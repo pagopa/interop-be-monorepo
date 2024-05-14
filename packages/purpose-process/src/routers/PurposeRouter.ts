@@ -396,6 +396,7 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/activate",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purposeId, versionId } = req.params;
           const purposeVersion = await purposeService.activatePurposeVersion({
@@ -403,6 +404,7 @@ const purposeRouter = (
             versionId: unsafeBrandId(versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -411,7 +413,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            activatePurposeVersionErrorMapper
+            activatePurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

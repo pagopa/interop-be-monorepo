@@ -33,9 +33,11 @@ import {
   PurposeVersionOverQuotaUnsuspendedV2,
   PurposeWaitingForApprovalV2,
   eserviceMode,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  genericLogger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -124,7 +126,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -133,6 +135,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockProducer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -177,7 +180,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -186,6 +189,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockConsumer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -232,7 +236,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -241,6 +245,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockProducer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -288,7 +293,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -297,6 +302,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockConsumer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -344,7 +350,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -353,6 +359,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockConsumer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -398,7 +405,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -407,6 +414,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockConsumer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -448,7 +456,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -457,6 +465,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockConsumer.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -495,7 +504,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -505,6 +514,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: purposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(organizationIsNotTheProducer(mockConsumer.id));
     });
@@ -518,7 +528,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -528,6 +538,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: purposeVersion.id,
           organizationId: mockProducer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(organizationIsNotTheConsumer(mockProducer.id));
     });
@@ -537,7 +548,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(consumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -547,6 +558,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: consumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(tenantKindNotFound(consumer.id));
     });
@@ -556,7 +568,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -566,13 +578,14 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(missingRiskAnalysis(mockPurpose.id));
     });
 
     it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -582,6 +595,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(eserviceNotFound(mockEService.id));
     });
@@ -604,6 +618,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(
         agreementNotFound(mockEService.id, mockConsumer.id)
@@ -627,7 +642,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
         await addOnePurpose(purpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
-        await writeInReadmodel(agreement, agreements);
+        await writeInReadmodel(toReadModelAgreement(agreement), agreements);
         await writeInReadmodel(mockConsumer, tenants);
         await writeInReadmodel(mockProducer, tenants);
 
@@ -637,6 +652,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
             versionId: mockPurposeVersion.id,
             organizationId: mockConsumer.id,
             correlationId: generateId(),
+            logger: genericLogger,
           });
         }).rejects.toThrowError(
           agreementNotFound(mockEService.id, mockConsumer.id)
@@ -649,7 +665,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
       await writeInReadmodel(anotherTenant, tenants);
@@ -660,6 +676,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: anotherTenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
     });
@@ -677,7 +694,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -687,6 +704,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
     });
@@ -706,7 +724,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -722,6 +740,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(
         riskAnalysisValidationFailed(
@@ -733,7 +752,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockProducer, tenants);
 
       expect(async () => {
@@ -742,6 +761,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockConsumer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
     });
@@ -749,7 +769,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     it("should throw tenantNotFound if the purpose producer is not found in the readmodel", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
 
       expect(async () => {
@@ -758,6 +778,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockProducer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(tenantNotFound(mockProducer.id));
     });
@@ -771,7 +792,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eservice), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(consumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
@@ -781,6 +802,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockProducer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(tenantKindNotFound(consumer.id));
     });
@@ -794,7 +816,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eservice), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(producer, tenants);
 
@@ -804,6 +826,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockProducer.id,
           correlationId: generateId(),
+          logger: genericLogger,
         });
       }).rejects.toThrowError(tenantKindNotFound(producer.id));
     });
@@ -823,7 +846,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
         await addOnePurpose(purpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
-        await writeInReadmodel(mockAgreement, agreements);
+        await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
         await writeInReadmodel(mockConsumer, tenants);
         await writeInReadmodel(mockProducer, tenants);
 
@@ -833,6 +856,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
             versionId: purposeVersion.id,
             organizationId: mockProducer.id,
             correlationId: generateId(),
+            logger: genericLogger,
           });
         }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
       }
@@ -853,7 +877,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
 
         await addOnePurpose(purpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
-        await writeInReadmodel(mockAgreement, agreements);
+        await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
         await writeInReadmodel(mockConsumer, tenants);
         await writeInReadmodel(mockProducer, tenants);
 
@@ -863,6 +887,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
             versionId: purposeVersion.id,
             organizationId: mockConsumer.id,
             correlationId: generateId(),
+            logger: genericLogger,
           });
         }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
       }
