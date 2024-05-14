@@ -9,7 +9,6 @@ import {
   TenantId,
   TenantKind,
   purposeVersionState,
-  agreementState,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -205,10 +204,9 @@ export async function isLoadAllowed(
     excludeDraft: true,
   });
 
-  const agreement = await readModelService.getAgreement(
+  const agreement = await readModelService.getActiveAgreement(
     eservice.id,
-    purpose.consumerId,
-    [agreementState.active]
+    purpose.consumerId
   );
 
   if (!agreement) {

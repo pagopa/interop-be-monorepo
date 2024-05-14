@@ -547,11 +547,10 @@ export function purposeServiceBuilder(
         `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
       );
 
-      const purposesList = await readModelService.getPurposes(
-        filters,
+      const purposesList = await readModelService.getPurposes(filters, {
         offset,
-        limit
-      );
+        limit,
+      });
 
       const mappingPurposeEservice = await Promise.all(
         purposesList.results.map(async (purpose) => {
@@ -620,7 +619,7 @@ export function purposeServiceBuilder(
       });
 
       const newPurposeVersion: PurposeVersion = {
-        ...seed,
+        dailyCalls: seed.dailyCalls,
         createdAt: new Date(),
         state: purposeVersionState.draft,
         id: generateId<PurposeVersionId>(),
