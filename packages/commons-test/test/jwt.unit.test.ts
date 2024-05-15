@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
 import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { P, match } from "ts-pattern";
 import { randomArrayItem } from "../src/testUtils.js";
 
 const mockUiToken = {
@@ -253,6 +254,30 @@ describe("JWT tests", () => {
           "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
         )
       );
+    });
+
+    it("should also accept audience as a JSON array", async () => {
+      const mockToken = randomArrayItem([
+        mockUiToken,
+        mockM2MToken,
+        mockInternalToken,
+      ]);
+      const token = getMockSignedToken({
+        ...mockToken,
+        aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
+      });
+
+      const authData = readAuthDataFromJwtToken(token);
+      expect(authData).toMatchObject({
+        userRoles: match(mockToken)
+          .with({ role: P.not(P.nullish) }, (t) => [t.role])
+          .with({ "user-roles": P.not(P.nullish) }, (t) =>
+            t["user-roles"].split(",")
+          )
+          .otherwise(() => {
+            throw new Error("Unexpected user roles in token");
+          }),
+      });
     });
   });
 });
