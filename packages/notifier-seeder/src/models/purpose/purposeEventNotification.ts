@@ -49,16 +49,6 @@ export type PurposeNotification = {
   purpose: PurposeV1Notification;
 };
 
-/*
-unused
-// PurposeVersionCreatedV1
-// PurposeVersionUpdatedV1
-export type PurposeIdAndVersiondNotification = {
-  purposeId: string;
-  version: PurposeVersionV1Notification;
-};
-*/
-
 // PurposeVersionRejectedV1
 export type PurposeAndVersionIdNotification = {
   purpose: PurposeV1Notification;
