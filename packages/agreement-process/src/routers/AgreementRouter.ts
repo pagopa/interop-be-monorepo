@@ -46,7 +46,7 @@ import {
   removeConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
   getAgreementErrorMapper,
-  computeAgreementStateErrorMapper,
+  computeAgreementsStateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -562,7 +562,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          computeAgreementStateErrorMapper,
+          computeAgreementsStateErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();

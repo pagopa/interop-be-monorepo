@@ -26,7 +26,7 @@ export type ApiAgreementSubmissionPayload = ZodiosBodyByPath<
   "/agreements/:agreementId/submit"
 >;
 
-export type ApiComputeAgreementStatePayload = ZodiosBodyByPath<
+export type ApiComputeAgreementsStatePayload = ZodiosBodyByPath<
   Api,
   "post",
   "/compute/agreementsState"

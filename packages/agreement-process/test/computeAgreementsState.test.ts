@@ -49,9 +49,9 @@ describe("compute Agreement state by attribute", () => {
     };
 
     // Create a consumer with invalid attributes,
-    // and use an invalid attribute + the consumer as inputs to computeAgreementStateByAttribute.
+    // and use an invalid attribute + the consumer as inputs to computeAgreementsStateByAttribute.
     // This simulates the fact that an attribute has been invalidated for the consumer,
-    // triggering a consequent call to computeAgreementStateByAttribute.
+    // triggering a consequent call to computeAgreementsStateByAttribute.
     const invalidCertifiedAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: new Date(),
@@ -212,9 +212,9 @@ describe("compute Agreement state by attribute", () => {
     const producerId: TenantId = generateId();
 
     // Create a consumer with all valid attributes,
-    // and use one of these attributes + the consumer as inputs to computeAgreementStateByAttribute.
+    // and use one of these attributes + the consumer as inputs to computeAgreementsStateByAttribute.
     // This simulates the fact that an attribute has been certified for the consumer,
-    // triggering a consequent call to computeAgreementStateByAttribute.
+    // triggering a consequent call to computeAgreementsStateByAttribute.
     const tenantCertifiedAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
