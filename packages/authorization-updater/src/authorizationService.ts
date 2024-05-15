@@ -1,13 +1,11 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { pluginToken } from "@zodios/plugins";
 import {
+  InteropTokenGenerator,
+  RefreshableInteropToken,
+  tokenGenerationConfig,
   Logger,
-  buildInteropTokenGenerator,
-  genericLogger,
-  jwtSeedConfig,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import {
   DescriptorId,
   EServiceId,
@@ -26,58 +24,34 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
-    correlationId: string | undefined | null
+    correlationId: string
   ) => Promise<void>;
   deletePurposeFromClient: (
     purposeId: PurposeId,
     clientId: ClientId,
     logger: Logger,
-    correlationId: string | undefined | null
+    correlationId: string
   ) => Promise<void>;
   updatePurposeState: (
     purposeId: PurposeId,
     versionId: PurposeVersionId,
     state: ApiClientComponentState,
     logger: Logger,
-    correlationId: string | undefined | null
+    correlationId: string
   ) => Promise<void>;
 };
 
 export const authorizationServiceBuilder =
   async (): Promise<AuthorizationService> => {
     const authMgmtClient = buildAuthMgmtClient();
-    const tokenGenerator = buildInteropTokenGenerator(genericLogger);
-    const jwtConfig = jwtSeedConfig();
+    const tokenGeneratorConfig = tokenGenerationConfig();
+    const tokenGenerator = new InteropTokenGenerator(tokenGeneratorConfig);
+    const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+    await refreshableToken.init();
 
-    const tokenPayloadSeed = {
-      subject: jwtConfig.subject,
-      audience: jwtConfig.audience,
-      tokenIssuer: jwtConfig.tokenIssuer,
-      expirationInSeconds: jwtConfig.secondsToExpire,
-    };
-    const token = await tokenGenerator.generateInternalToken(tokenPayloadSeed);
-
-    authMgmtClient.use(
-      pluginToken({
-        getToken: async () => token.serialized,
-        renewToken: async () => {
-          /*
-            This function is called when the service responds with a 401,
-            automatically renews the token, and executes the request again.
-            more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
-          */
-          genericLogger.info("Renewing token");
-
-          const newToken = await tokenGenerator.generateInternalToken(
-            tokenPayloadSeed
-          );
-          return newToken.serialized;
-        },
-      })
-    );
-
-    const getHeaders = (correlationId: string | undefined | null) => ({
-      "X-Correlation-Id": correlationId || uuidv4(),
+    const getHeaders = (correlationId: string, token: string) => ({
+      "X-Correlation-Id": correlationId,
+      Authorization: `Bearer ${token}`,
     });
 
     return {
@@ -89,7 +63,7 @@ export const authorizationServiceBuilder =
         audience: string[],
         voucherLifespan: number,
         logger: Logger,
-        correlationId: string | undefined | null
+        correlationId: string
       ) {
         const clientEServiceDetailsUpdate = {
           state,
@@ -98,10 +72,12 @@ export const authorizationServiceBuilder =
           voucherLifespan,
         };
 
+        const token = (await refreshableToken.get()).serialized;
+        const headers = getHeaders(correlationId, token);
         await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
           params: { eserviceId },
           withCredentials: true,
-          headers: getHeaders(correlationId),
+          headers,
         });
 
         logger.info(`Updating EService ${eserviceId} state for all clients`);
@@ -110,12 +86,14 @@ export const authorizationServiceBuilder =
         purposeId: PurposeId,
         clientId: ClientId,
         logger: Logger,
-        correlationId: string | undefined | null
+        correlationId: string
       ) {
+        const token = (await refreshableToken.get()).serialized;
+        const headers = getHeaders(correlationId, token);
         await authMgmtClient.removeClientPurpose(undefined, {
           params: { purposeId, clientId },
           withCredentials: true,
-          headers: getHeaders(correlationId),
+          headers,
         });
         logger.info(`Deleting purpose ${purposeId} from client ${clientId}`);
       },
@@ -124,14 +102,16 @@ export const authorizationServiceBuilder =
         versionId: PurposeVersionId,
         state: ApiClientComponentState,
         logger: Logger,
-        correlationId: string | undefined | null
+        correlationId: string
       ) {
+        const token = (await refreshableToken.get()).serialized;
+        const headers = getHeaders(correlationId, token);
         await authMgmtClient.updatePurposeState(
           { versionId, state },
           {
             params: { purposeId },
             withCredentials: true,
-            headers: getHeaders(correlationId),
+            headers,
           }
         );
         logger.info(`Updateding Puprpose ${purposeId} state for all clients`);

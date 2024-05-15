@@ -35,6 +35,7 @@ import {
   PurposeEventEnvelope,
   EventEnvelope,
 } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
@@ -121,14 +122,15 @@ async function executeUpdate(
 }
 
 function getLoggerInstance(
-  decodedMsg: EventEnvelope<{ type: string; event_version: number }>
+  decodedMsg: EventEnvelope<{ type: string; event_version: number }>,
+  correlationId: string
 ): Logger {
   return logger({
     serviceName: "authorization-updater",
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
-    correlationId: decodedMsg.correlation_id,
+    correlationId,
   });
 }
 
@@ -147,12 +149,15 @@ function processMessage(
             messagePayload.topic
           )(messagePayload.message);
 
-          await processCatalogMessage(
+          const correlationId = decodedMsg.correlation_id || uuidv4();
+
+          await processCatalogMessage({
             decodedMsg,
             messagePayload,
             authService,
-            getLoggerInstance(decodedMsg)
-          );
+            loggerInstance: getLoggerInstance(decodedMsg, correlationId),
+            correlationId,
+          });
         })
         .with(purposeTopicConfig.purposeTopic, () => {
           const decodedMsg = messageDecoderSupplier(
@@ -160,13 +165,16 @@ function processMessage(
             messagePayload.topic
           )(messagePayload.message);
 
-          return processPurposeMessage(
+          const correlationId = decodedMsg.correlation_id || uuidv4();
+
+          return processPurposeMessage({
             decodedMsg,
             messagePayload,
             authService,
             clients,
-            getLoggerInstance(decodedMsg)
-          );
+            loggerInstance: getLoggerInstance(decodedMsg, correlationId),
+            correlationId,
+          });
         })
         .otherwise(() => {
           throw new Error(`Unknown topic: ${messagePayload.topic}`);
@@ -182,12 +190,19 @@ function processMessage(
   };
 }
 
-async function processCatalogMessage(
-  decodedMsg: EServiceEventEnvelope,
-  messagePayload: EachMessagePayload,
-  authService: AuthorizationService,
-  loggerInstance: Logger
-): Promise<void> {
+async function processCatalogMessage({
+  decodedMsg,
+  messagePayload,
+  authService,
+  loggerInstance,
+  correlationId,
+}: {
+  decodedMsg: EServiceEventEnvelope;
+  messagePayload: EachMessagePayload;
+  authService: AuthorizationService;
+  loggerInstance: Logger;
+  correlationId: string;
+}): Promise<void> {
   await match(decodedMsg)
     .with(
       {
@@ -211,7 +226,7 @@ async function processCatalogMessage(
               data.descriptor.audience,
               data.descriptor.voucherLifespan,
               loggerInstance,
-              decodedMsg.correlation_id
+              correlationId
             ),
           loggerInstance
         );
@@ -239,7 +254,7 @@ async function processCatalogMessage(
               data.descriptor.audience,
               data.descriptor.voucherLifespan,
               loggerInstance,
-              decodedMsg.correlation_id
+              correlationId
             ),
           loggerInstance
         );
@@ -280,13 +295,21 @@ async function processCatalogMessage(
     .exhaustive();
 }
 
-async function processPurposeMessage(
-  decodedMsg: PurposeEventEnvelope,
-  messagePayload: EachMessagePayload,
-  authService: AuthorizationService,
-  clients: ClientCollection,
-  loggerInstance: Logger
-): Promise<void> {
+async function processPurposeMessage({
+  decodedMsg,
+  messagePayload,
+  authService,
+  clients,
+  loggerInstance,
+  correlationId,
+}: {
+  decodedMsg: PurposeEventEnvelope;
+  messagePayload: EachMessagePayload;
+  authService: AuthorizationService;
+  clients: ClientCollection;
+  loggerInstance: Logger;
+  correlationId: string;
+}): Promise<void> {
   await match(decodedMsg)
     .with(
       {
@@ -317,7 +340,7 @@ async function processPurposeMessage(
                   purpose.id,
                   clientId,
                   loggerInstance,
-                  decodedMsg.correlation_id
+                  correlationId
                 )
               )
             ),
@@ -387,7 +410,7 @@ async function processPurposeMessage(
                 ? "ACTIVE"
                 : "INACTIVE",
               loggerInstance,
-              decodedMsg.correlation_id
+              correlationId
             ),
           loggerInstance
         );
@@ -422,7 +445,7 @@ async function processPurposeMessage(
                 ? "ACTIVE"
                 : "INACTIVE",
               loggerInstance,
-              decodedMsg.correlation_id
+              correlationId
             ),
           loggerInstance
         );
