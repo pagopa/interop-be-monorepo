@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
@@ -7,6 +8,12 @@ import { StartedTestContainer } from "testcontainers";
 import type { GlobalSetupContext } from "vitest/node";
 import type {} from "vitest";
 import {
+  EventStoreConfig,
+  FileManagerConfig,
+  ReadModelDbConfig,
+} from "pagopa-interop-commons";
+import {
+  S3Config,
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
@@ -18,7 +25,7 @@ import {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    config: TestContainersConfig;
+    config: Partial<TestContainersConfig>;
   }
 }
 
@@ -32,15 +39,43 @@ declare module "vitest" {
  */
 export function setupTestContainersVitestGlobal() {
   dotenv();
-  const config = TestContainersConfig.parse(process.env);
+  const dbConfig = EventStoreConfig.safeParse(process.env);
+  const readModelConfig = ReadModelDbConfig.safeParse(process.env);
+  const s3Config = S3Config.safeParse(process.env);
+  const fileManagerConfig = FileManagerConfig.safeParse(process.env);
 
   return async function ({
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
-    const startedPostgreSqlContainer = await postgreSQLContainer(
-      config
-    ).start();
-    const startedMongodbContainer = await mongoDBContainer(config).start();
+    let startedPostgreSqlContainer: StartedTestContainer | undefined;
+    if (dbConfig.success) {
+      startedPostgreSqlContainer = await postgreSQLContainer(
+        dbConfig.data
+      ).start();
+    }
+
+    let startedMongodbContainer: StartedTestContainer | undefined;
+    if (readModelConfig.success) {
+      startedMongodbContainer = await mongoDBContainer(
+        readModelConfig.data
+      ).start();
+    }
+
+    // Start Minio container if the S3 bucket is provided
+    let startedMinioContainer: StartedTestContainer | undefined;
+
+    if (s3Config.success && s3Config.data.s3Bucket) {
+      startedMinioContainer = await minioContainer({
+        s3Bucket: s3Config.data.s3Bucket,
+      }).start();
+    }
+
+    const config = {
+      ...(dbConfig.success ? dbConfig.data : {}),
+      ...(readModelConfig.success ? readModelConfig.data : {}),
+      ...(s3Config.success ? s3Config.data : {}),
+      ...(fileManagerConfig.success ? fileManagerConfig.data : {}),
+    };
 
     /**
      * Since testcontainers exposes to the host on a random port, in order to avoid port
@@ -48,22 +83,14 @@ export function setupTestContainersVitestGlobal() {
      *
      * @see https://node.testcontainers.org/features/containers/#exposing-container-ports
      */
-    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+    config.eventStoreDbPort = startedPostgreSqlContainer?.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
     config.readModelDbPort =
-      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+      startedMongodbContainer?.getMappedPort(TEST_MONGO_DB_PORT);
 
-    // Start Minio container if the S3 bucket is provided
-    let startedMinioContainer: StartedTestContainer | undefined;
-
-    if (config.s3Bucket) {
-      startedMinioContainer = await minioContainer({
-        s3Bucket: config.s3Bucket,
-      }).start();
-      config.s3ServerPort =
-        startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
-    }
+    // @ts-ignore
+    config.s3ServerPort = startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
     /**
      * Vitest global setup functions are executed in a separate process, vitest provides a way to
@@ -74,8 +101,8 @@ export function setupTestContainersVitestGlobal() {
     provide("config", config);
 
     return async (): Promise<void> => {
-      await startedPostgreSqlContainer.stop();
-      await startedMongodbContainer.stop();
+      await startedPostgreSqlContainer?.stop();
+      await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
     };
   };
