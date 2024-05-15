@@ -77,13 +77,13 @@ export const minioContainer = (config: {
     ])
     .withExposedPorts(TEST_MINIO_PORT);
 
-export const S3Config = z
-  .object({ S3_BUCKET: z.string().optional() })
-  .transform((c) => ({ s3Bucket: c.S3_BUCKET }));
-
 export const TestContainersConfig = LoggerConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
   .and(FileManagerConfig)
-  .and(S3Config);
+  .and(
+    z
+      .object({ S3_BUCKET: z.string().optional() })
+      .transform((c) => ({ s3Bucket: c.S3_BUCKET }))
+  );
 
 export type TestContainersConfig = z.infer<typeof TestContainersConfig>;
