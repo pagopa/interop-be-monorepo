@@ -42,7 +42,7 @@ const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
 const SharedStandardJWTClaims = z.object({
   // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
-  aud: CommaSeparatedStringToArray(z.string()),
+  aud: z.union([z.array(z.string()), CommaSeparatedStringToArray(z.string())]),
   exp: z.number(),
   nbf: z.number(),
   iat: z.number(),
