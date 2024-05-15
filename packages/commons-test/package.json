@@ -31,7 +31,7 @@
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg-promise": "11.5.0",
+    "pg-promise": "11.6.0",
     "testcontainers": "10.2.2",
     "ts-pattern": "5.1.1",
     "typescript": "5.1.3",
