@@ -769,8 +769,8 @@ paths:
       responses:
         "204":
           description: Bulk operation executed
-        "404":
-          description: Resource Not Found
+        "400":
+          description: Bad Request
           content:
             application/json:
               schema:

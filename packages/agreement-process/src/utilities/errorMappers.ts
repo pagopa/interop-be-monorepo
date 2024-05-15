@@ -180,5 +180,5 @@ export const computeAgreementStateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    // TODO: add missing error codes
+    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

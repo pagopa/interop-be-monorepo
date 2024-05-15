@@ -9,7 +9,10 @@ export type ApiAgreementState = z.infer<typeof schemas.AgreementState>;
 
 export type ApiAgreementDocument = z.infer<typeof schemas.Document>;
 export type ApiAgreementDocumentSeed = z.infer<typeof schemas.DocumentSeed>;
-
+export type ApiTenantAttribute = z.infer<typeof schemas.TenantAttribute>;
+export type ApiTenantVerifier = z.infer<typeof schemas.TenantVerifier>;
+export type ApiTenantRevoker = z.infer<typeof schemas.TenantRevoker>;
+export type ApiCompactTenant = z.infer<typeof schemas.CompactTenant>;
 export type ApiAgreementPayload = ZodiosBodyByPath<Api, "post", "/agreements">;
 
 export type ApiAgreementUpdatePayload = ZodiosBodyByPath<
