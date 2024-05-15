@@ -22,15 +22,13 @@ import { AuthData } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
-export const { cleanup, ...testSetupServices } = setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig")
-);
+export const { cleanup, readModelRepository, postgresDB } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
 
 afterEach(cleanup);
-
-const readModelRepository = testSetupServices.readModelRepository!;
-const postgresDB = testSetupServices.postgresDB!;
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;

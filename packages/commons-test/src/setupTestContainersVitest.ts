@@ -37,10 +37,39 @@ import {
  * ```
  */
 export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig
+): {
+  readModelRepository: ReadModelRepository;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
-) {
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
+): {
+  readModelRepository?: ReadModelRepository;
+  postgresDB?: DB;
+  fileManager?: FileManager;
+  cleanup: () => Promise<void>;
+} {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
 
   let readModelRepository: ReadModelRepository | undefined;
