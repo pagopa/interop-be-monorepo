@@ -43,7 +43,7 @@
     "dotenv-flow": "3.3.0",
     "express": "4.19.2",
     "mongodb": "5.9.2",
-    "openapi-zod-client": "1.15.1",
+    "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.5.0",
