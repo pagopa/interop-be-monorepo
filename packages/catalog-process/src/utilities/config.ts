@@ -3,11 +3,13 @@ import {
   ReadModelDbConfig,
   FileManagerConfig,
   EventStoreConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const CataloProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(FileManagerConfig)
+  .and(S3Config)
   .and(EventStoreConfig)
   .and(
     z

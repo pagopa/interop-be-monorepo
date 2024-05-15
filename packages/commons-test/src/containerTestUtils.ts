@@ -1,7 +1,7 @@
 import {
   EventStoreConfig,
   ReadModelDbConfig,
-  FileManagerConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -60,7 +60,7 @@ export const postgreSQLContainer = (
  * @returns A promise that resolves to the started test container.
  */
 
-export const minioContainer = (config: FileManagerConfig): GenericContainer =>
+export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
       MINIO_ROOT_USER: "test-aws-key",

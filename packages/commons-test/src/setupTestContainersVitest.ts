@@ -11,6 +11,7 @@ import {
   LoggerConfig,
   ReadModelDbConfig,
   ReadModelRepository,
+  S3Config,
   genericLogger,
   initDB,
   initFileManager,
@@ -38,8 +39,7 @@ import {
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig,
-  loggerConfig?: LoggerConfig
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
 ) {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
 
@@ -63,11 +63,8 @@ export function setupTestContainersVitest(
     });
   }
 
-  if (fileManagerConfig && loggerConfig) {
-    fileManager = initFileManager({
-      ...fileManagerConfig,
-      ...loggerConfig,
-    });
+  if (fileManagerConfig) {
+    fileManager = initFileManager(fileManagerConfig);
   }
 
   return {

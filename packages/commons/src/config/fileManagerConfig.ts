@@ -36,5 +36,5 @@ export const S3Config = z
   .transform((c) => ({ s3Bucket: c.S3_BUCKET }));
 export type S3Config = z.infer<typeof S3Config>;
 
-export const FileManagerConfig = S3Config.and(S3CustomServerConfig);
+export const FileManagerConfig = S3CustomServerConfig;
 export type FileManagerConfig = z.infer<typeof FileManagerConfig>;

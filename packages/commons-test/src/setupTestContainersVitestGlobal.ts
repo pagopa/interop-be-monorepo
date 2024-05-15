@@ -12,6 +12,7 @@ import {
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 import {
   TEST_MINIO_PORT,
@@ -26,8 +27,7 @@ declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
-    fileManagerConfig?: FileManagerConfig;
-    loggerConfig?: LoggerConfig;
+    fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
   }
 }
 
@@ -43,8 +43,9 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const fileManagerConfig = FileManagerConfig.safeParse(process.env);
-  const loggerConfig = LoggerConfig.safeParse(process.env);
+  const fileManagerConfig = FileManagerConfig.and(S3Config)
+    .and(LoggerConfig)
+    .safeParse(process.env);
 
   return async function ({
     provide,
@@ -103,10 +104,6 @@ export function setupTestContainersVitestGlobal() {
         startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
       provide("fileManagerConfig", fileManagerConfig.data);
-    }
-
-    if (loggerConfig.success) {
-      provide("loggerConfig", loggerConfig.data);
     }
 
     return async (): Promise<void> => {
