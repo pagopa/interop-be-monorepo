@@ -10,14 +10,13 @@ import type {} from "vitest";
 import {
   EventStoreConfig,
   FileManagerConfig,
+  LoggerConfig,
   ReadModelDbConfig,
 } from "pagopa-interop-commons";
 import {
-  S3Config,
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  TestContainersConfig,
   minioContainer,
   mongoDBContainer,
   postgreSQLContainer,
@@ -25,7 +24,10 @@ import {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    config: Partial<TestContainersConfig>;
+    readModelConfig?: ReadModelDbConfig;
+    eventStoreConfig?: EventStoreConfig;
+    fileManagerConfig?: FileManagerConfig;
+    loggerConfig?: LoggerConfig;
   }
 }
 
@@ -39,66 +41,73 @@ declare module "vitest" {
  */
 export function setupTestContainersVitestGlobal() {
   dotenv();
-  const dbConfig = EventStoreConfig.safeParse(process.env);
+  const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const s3Config = S3Config.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
+  const loggerConfig = LoggerConfig.safeParse(process.env);
 
   return async function ({
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
-    if (dbConfig.success) {
+    let startedMongodbContainer: StartedTestContainer | undefined;
+    let startedMinioContainer: StartedTestContainer | undefined;
+
+    // Setting up the EventStore PostgreSQL container if the config is provided
+    if (eventStoreConfig.success) {
       startedPostgreSqlContainer = await postgreSQLContainer(
-        dbConfig.data
+        eventStoreConfig.data
       ).start();
+
+      /**
+       * Since testcontainers exposes to the host on a random port, in order to avoid port
+       * collisions, we need to get the port through `getMappedPort` to connect to the databases.
+       *
+       * @see https://node.testcontainers.org/features/containers/#exposing-container-ports
+       *
+       * The comment applies to the other containers setup after this one as well.
+       */
+      eventStoreConfig.data.eventStoreDbPort =
+        startedPostgreSqlContainer.getMappedPort(TEST_POSTGRES_DB_PORT);
+
+      /**
+       * Vitest global setup functions are executed in a separate process, vitest provides a way to
+       * pass serializable data to the tests via the `provide` function.
+       * In this case, we provide the `config` object to the tests, so that they can connect to the
+       * started containers.
+       *
+       * The comment applies to the other containers setup after this one as well.
+       */
+      provide("eventStoreConfig", eventStoreConfig.data);
     }
 
-    let startedMongodbContainer: StartedTestContainer | undefined;
+    // Setting up the MongoDB container if the config is provided
     if (readModelConfig.success) {
       startedMongodbContainer = await mongoDBContainer(
         readModelConfig.data
       ).start();
+
+      readModelConfig.data.readModelDbPort =
+        startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+
+      provide("readModelConfig", readModelConfig.data);
     }
 
-    // Start Minio container if the S3 bucket is provided
-    let startedMinioContainer: StartedTestContainer | undefined;
+    // Setting up the Minio container if the config is provided
+    if (fileManagerConfig.success) {
+      startedMinioContainer = await minioContainer(
+        fileManagerConfig.data
+      ).start();
 
-    if (s3Config.success && s3Config.data.s3Bucket) {
-      startedMinioContainer = await minioContainer({
-        s3Bucket: s3Config.data.s3Bucket,
-      }).start();
+      fileManagerConfig.data.s3ServerPort =
+        startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
+
+      provide("fileManagerConfig", fileManagerConfig.data);
     }
 
-    const config = {
-      ...(dbConfig.success ? dbConfig.data : {}),
-      ...(readModelConfig.success ? readModelConfig.data : {}),
-      ...(s3Config.success ? s3Config.data : {}),
-      ...(fileManagerConfig.success ? fileManagerConfig.data : {}),
-    };
-
-    /**
-     * Since testcontainers exposes to the host on a random port, in order to avoid port
-     * collisions, we need to get the port through `getMappedPort` to connect to the databases.
-     *
-     * @see https://node.testcontainers.org/features/containers/#exposing-container-ports
-     */
-    config.eventStoreDbPort = startedPostgreSqlContainer?.getMappedPort(
-      TEST_POSTGRES_DB_PORT
-    );
-    config.readModelDbPort =
-      startedMongodbContainer?.getMappedPort(TEST_MONGO_DB_PORT);
-
-    // @ts-ignore
-    config.s3ServerPort = startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
-
-    /**
-     * Vitest global setup functions are executed in a separate process, vitest provides a way to
-     * pass serializable data to the tests via the `provide` function.
-     * In this case, we provide the `config` object to the tests, so that they can connect to the
-     * started containers.
-     */
-    provide("config", config);
+    if (loggerConfig.success) {
+      provide("loggerConfig", loggerConfig.data);
+    }
 
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();

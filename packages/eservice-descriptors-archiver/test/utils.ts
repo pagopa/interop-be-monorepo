@@ -11,11 +11,14 @@ import {
 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
-export const { readModelRepository, cleanup } = setupTestContainersVitest(
-  inject("config")
+export const { cleanup, ...testSetupServices } = setupTestContainersVitest(
+  inject("readModelConfig")
 );
 
 afterEach(cleanup);
+
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const readModelRepository = testSetupServices.readModelRepository!;
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;

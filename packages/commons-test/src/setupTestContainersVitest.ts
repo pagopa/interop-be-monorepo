@@ -5,13 +5,16 @@
 
 import {
   DB,
+  EventStoreConfig,
   FileManager,
+  FileManagerConfig,
+  LoggerConfig,
+  ReadModelDbConfig,
   ReadModelRepository,
   genericLogger,
   initDB,
   initFileManager,
 } from "pagopa-interop-commons";
-import { TestContainersConfig } from "./containerTestUtils.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -32,30 +35,39 @@ import { TestContainersConfig } from "./containerTestUtils.js";
  * afterEach(cleanup);
  * ```
  */
-export function setupTestContainersVitest(config: TestContainersConfig) {
-  const s3OriginalBucket = config.s3Bucket;
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig,
+  loggerConfig?: LoggerConfig
+) {
+  const s3OriginalBucket = fileManagerConfig?.s3Bucket;
 
   let readModelRepository: ReadModelRepository | undefined;
-  if (config.readModelDbHost) {
-    readModelRepository = ReadModelRepository.init(config);
+  let postgresDB: DB | undefined;
+  let fileManager: FileManager | undefined;
+
+  if (readModelDbConfig) {
+    readModelRepository = ReadModelRepository.init(readModelDbConfig);
   }
 
-  let postgresDB: DB | undefined;
-  if (config.eventStoreDbHost) {
+  if (eventStoreConfig) {
     postgresDB = initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
+      username: eventStoreConfig.eventStoreDbUsername,
+      password: eventStoreConfig.eventStoreDbPassword,
+      host: eventStoreConfig.eventStoreDbHost,
+      port: eventStoreConfig.eventStoreDbPort,
+      database: eventStoreConfig.eventStoreDbName,
+      schema: eventStoreConfig.eventStoreDbSchema,
+      useSSL: eventStoreConfig.eventStoreDbUseSSL,
     });
   }
 
-  let fileManager: FileManager | undefined;
-  if (config.s3ServerHost) {
-    fileManager = initFileManager(config);
+  if (fileManagerConfig && loggerConfig) {
+    fileManager = initFileManager({
+      ...fileManagerConfig,
+      ...loggerConfig,
+    });
   }
 
   return {
@@ -79,20 +91,20 @@ export function setupTestContainersVitest(config: TestContainersConfig) {
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
 
-      if (s3OriginalBucket) {
-        const files = await fileManager?.listFiles(
+      if (s3OriginalBucket && fileManagerConfig && fileManager) {
+        const files = await fileManager.listFiles(
           s3OriginalBucket,
           genericLogger
         );
-        if (files) {
-          await Promise.all(
-            files.map((file) =>
-              fileManager!.delete(s3OriginalBucket, file, genericLogger)
-            )
-          );
-        }
+        await Promise.all(
+          files.map(async (file) => {
+            if (fileManager) {
+              await fileManager.delete(s3OriginalBucket, file, genericLogger);
+            }
+          })
+        );
         // Some tests change the bucket name, so we need to reset it
-        config.s3Bucket = s3OriginalBucket;
+        fileManagerConfig.s3Bucket = s3OriginalBucket;
       }
     },
   };

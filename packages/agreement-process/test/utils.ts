@@ -30,10 +30,18 @@ import { readModelServiceBuilder } from "../src/services/readmodel/readModelServ
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 
-export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config"));
+export const { cleanup, ...testSetupServices } = setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  inject("loggerConfig")
+);
 
 afterEach(cleanup);
+
+const readModelRepository = testSetupServices.readModelRepository!;
+const postgresDB = testSetupServices.postgresDB!;
+const fileManager = testSetupServices.fileManager!;
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
