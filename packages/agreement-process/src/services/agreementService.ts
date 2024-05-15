@@ -11,6 +11,7 @@ import {
   AgreementDocument,
   AgreementDocumentId,
   AgreementId,
+  Descriptor,
   DescriptorId,
   EService,
   EServiceId,
@@ -30,6 +31,7 @@ import {
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
   agreementNotFound,
+  descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
   publishedDescriptorNotFound,
@@ -60,7 +62,6 @@ import {
   agreementUpgradableStates,
   assertActivableState,
   assertCanWorkOnConsumerDocuments,
-  assertDescriptorExist,
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
@@ -137,6 +138,21 @@ export const retrieveTenant = async (
   return tenant;
 };
 
+const retrieveDescriptor = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
@@ -198,7 +214,7 @@ export function agreementServiceBuilder(
         validateCertifiedAttributes({ descriptor, consumer });
       }
 
-      const agreementSeed: Agreement = {
+      const agreement: Agreement = {
         id: generateId(),
         eserviceId,
         descriptorId,
@@ -214,10 +230,10 @@ export function agreementServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventAgreementAdded(agreementSeed, correlationId)
+        toCreateEventAgreementAdded(agreement, correlationId)
       );
 
-      return agreementSeed;
+      return agreement;
     },
     async getAgreementProducers(
       producerName: string | undefined,
@@ -260,14 +276,14 @@ export function agreementServiceBuilder(
         agreementUpdatableStates
       );
 
-      const agreementUpdated: Agreement = {
+      const updatedAgreement: Agreement = {
         ...agreementToBeUpdated.data,
         consumerNotes: agreement.consumerNotes,
       };
 
       await repository.createEvent(
         toCreateEventDraftAgreementUpdated(
-          agreementUpdated,
+          updatedAgreement,
           agreementToBeUpdated.metadata.version,
           correlationId
         )
@@ -380,14 +396,9 @@ export function agreementServiceBuilder(
         throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
       }
 
-      const currentDescriptor = eservice.descriptors.find(
-        (d) => d.id === agreementToBeUpgraded.data.descriptorId
-      );
-
-      assertDescriptorExist(
-        eservice.id,
+      const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
-        currentDescriptor
+        eservice
       );
 
       const currentVersion = z
@@ -476,13 +487,9 @@ export function agreementServiceBuilder(
         eserviceQuery
       );
 
-      const descriptor = eservice.descriptors.find(
-        (d) => d.id === agreementToBeCloned.data.descriptorId
-      );
-      assertDescriptorExist(
-        eservice.id,
+      const descriptor = retrieveDescriptor(
         agreementToBeCloned.data.descriptorId,
-        descriptor
+        eservice
       );
 
       validateCertifiedAttributes({
@@ -595,13 +602,9 @@ export function agreementServiceBuilder(
         eserviceQuery
       );
 
-      const descriptor = eservice.descriptors.find(
-        (d) => d.id === agreement.data.descriptorId
-      );
-      assertDescriptorExist(
-        eservice.id,
+      const descriptor = retrieveDescriptor(
         agreement.data.descriptorId,
-        descriptor
+        eservice
       );
 
       const consumer = await retrieveTenant(
@@ -703,13 +706,9 @@ export function agreementServiceBuilder(
         eserviceQuery
       );
 
-      const descriptor = eservice.descriptors.find(
-        (d) => d.id === agreementToBeRejected.data.descriptorId
-      );
-      assertDescriptorExist(
-        eservice.id,
+      const descriptor = retrieveDescriptor(
         agreementToBeRejected.data.descriptorId,
-        descriptor
+        eservice
       );
 
       const consumer = await retrieveTenant(

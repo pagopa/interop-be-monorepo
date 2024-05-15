@@ -103,9 +103,15 @@ export function createAgreementSuspendedEvent(
     );
   }
 
-  const eventType = isProducer
-    ? toCreateEventAgreementSuspendedByProducer
-    : toCreateEventAgreementSuspendedByConsumer;
-
-  return eventType(updatedAgreement, agreement.metadata.version, correlationId);
+  return isProducer
+    ? toCreateEventAgreementSuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      )
+    : toCreateEventAgreementSuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
 }

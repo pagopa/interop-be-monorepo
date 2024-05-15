@@ -181,16 +181,6 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
-export function assertDescriptorExist(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  descriptor: Descriptor | undefined
-): asserts descriptor is NonNullable<Descriptor> {
-  if (descriptor === undefined) {
-    throw descriptorNotFound(eserviceId, descriptorId);
-  }
-}
-
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
