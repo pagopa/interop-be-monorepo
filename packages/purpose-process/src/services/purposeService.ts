@@ -795,19 +795,24 @@ export function purposeServiceBuilder(
           : undefined;
 
       const currentDate = new Date();
-      const clonedPurposeName = `${
-        purposeToClone.data.title
-      } - clone - ${formatDateAndTime(currentDate)}`;
+      const title = purposeToClone.data.title;
+      const suffix = ` - clone - ${formatDateAndTime(currentDate)}`;
+      const prefixLengthAllowance = 60 - suffix.length - 3;
+
+      const clonedPurposeTitle =
+        title.length + suffix.length <= 60
+          ? `${title}${suffix}`
+          : `${title.slice(0, prefixLengthAllowance)}...${suffix}`;
 
       await assertPurposeTitleIsNotDuplicated({
         readModelService,
         eserviceId: unsafeBrandId(seed.eserviceId),
         consumerId: organizationId,
-        title: clonedPurposeName,
+        title: clonedPurposeTitle,
       });
 
       const clonedPurpose: Purpose = {
-        title: clonedPurposeName,
+        title: clonedPurposeTitle,
         id: generateId(),
         createdAt: currentDate,
         eserviceId: unsafeBrandId(seed.eserviceId),
