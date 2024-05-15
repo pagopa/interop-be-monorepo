@@ -552,7 +552,7 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.computeAgreementState(
+        await agreementService.computeAgreementsStateByAttribute(
           unsafeBrandId(req.body.attributeId),
           fromApiCompactTenant(req.body.consumer),
           ctx

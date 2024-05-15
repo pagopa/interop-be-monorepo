@@ -227,38 +227,33 @@ async function updateAgreementState(
     suspendedByPlatform: newSuspendedByPlatform,
   };
 
-  if (allowedStateTransitions(agreement.data.state).includes(finalState)) {
-    return match([finalState, newSuspendedByPlatform])
-      .with(
-        [
-          agreementState.suspended,
-          P.when(
-            (newSuspendedByPlatform) =>
-              newSuspendedByPlatform !== agreement.data.suspendedByPlatform
-          ),
-        ],
-        () =>
-          toCreateEventAgreementSuspendedByPlatform(
-            updatedAgreement,
-            agreement.metadata.version,
-            correlationId
-          )
+  if (
+    allowedStateTransitions(agreement.data.state).includes(finalState) &&
+    newSuspendedByPlatform !== agreement.data.suspendedByPlatform
+  ) {
+    return match(finalState)
+      .with(agreementState.suspended, () =>
+        toCreateEventAgreementSuspendedByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
       )
-      .with([agreementState.active, false], () =>
+      .with(agreementState.active, () =>
         toCreateEventAgreementUnsuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId
         )
       )
-      .with([agreementState.missingCertifiedAttributes, P.any], () =>
+      .with(agreementState.missingCertifiedAttributes, () =>
         toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId
         )
       )
-      .with([agreementState.draft, P.any], () =>
+      .with(agreementState.draft, () =>
         toCreateEventAgreementPutInDraftByPlatform(
           updatedAgreement,
           agreement.metadata.version,

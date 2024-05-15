@@ -430,7 +430,7 @@ export function agreementServiceBuilder(
 
       return agreement;
     },
-    async computeAgreementState(
+    async computeAgreementsStateByAttribute(
       attributeId: AttributeId,
       consumer: CompactTenant,
       { logger, correlationId }: WithLogger<AppContext>

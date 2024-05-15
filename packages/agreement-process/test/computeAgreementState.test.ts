@@ -1,4 +1,5 @@
 import {
+  decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDescriptorPublished,
@@ -10,36 +11,40 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
+  AgreementSuspendedByPlatformV2,
   AttributeId,
   Descriptor,
   EService,
   Tenant,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { genericLogger, userRoles } from "pagopa-interop-commons";
 import {
   addOneAgreement,
   addOneEService,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
-import { genericLogger, userRoles } from "pagopa-interop-commons";
 
 describe("compute Agreement state", () => {
-  it("should update the state of Agreements in updatable state based on the given attribute", async () => {
+  it("should update the state of Agreements to Suspended or MissingCertifiedAttributs when the given attribute is not satisfied", async () => {
     const authData = {
       ...getRandomAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 
-    const attributeId: AttributeId = generateId();
+    // Create a consumer with a certified attribute that has been invalidated,
+    // and use this attribute and consumer as input to computeAgreementState
+    const invalidatedAttributeId: AttributeId = generateId();
     const consumer: Tenant = {
       ...getMockTenant(),
       attributes: [
         {
-          ...getMockCertifiedTenantAttribute(attributeId),
-          revocationTimestamp: new Date(), // The given attribute was revoked
+          ...getMockCertifiedTenantAttribute(invalidatedAttributeId),
+          revocationTimestamp: new Date(),
         },
       ],
     };
@@ -47,7 +52,7 @@ describe("compute Agreement state", () => {
     const descriptor1: Descriptor = {
       ...getMockDescriptorPublished(),
       attributes: {
-        certified: [[getMockEServiceAttribute(attributeId)]],
+        certified: [[getMockEServiceAttribute(invalidatedAttributeId)]],
         declared: [[getMockEServiceAttribute()]],
         verified: [[getMockEServiceAttribute()]],
       },
@@ -61,7 +66,7 @@ describe("compute Agreement state", () => {
     const descriptor2: Descriptor = {
       ...getMockDescriptorPublished(),
       attributes: {
-        certified: [[getMockEServiceAttribute(attributeId)]],
+        certified: [[getMockEServiceAttribute(invalidatedAttributeId)]],
         declared: [[getMockEServiceAttribute()]],
         verified: [[getMockEServiceAttribute()]],
       },
@@ -81,29 +86,15 @@ describe("compute Agreement state", () => {
       ),
       descriptorId: eservice1.descriptors[0].id,
       producerId: eservice1.producerId,
+      suspendedByPlatform: false,
     };
 
-    const updatableAgreement2 = {
+    const updatableAgreement2: Agreement = {
       ...getMockAgreement(eservice2.id, consumer.id, agreementState.active),
       descriptorId: eservice2.descriptors[0].id,
       producerId: eservice2.producerId,
+      suspendedByPlatform: false,
     };
-
-    // const updatableAgreement3 = {
-    //   ...getMockAgreement(
-    //     eservice2.id,
-    //     consumer.id,
-    //     agreementState.missingCertifiedAttributes
-    //   ),
-    //   descriptorId: eservice2.descriptors[0].id,
-    //   producerId: eservice2.producerId,
-    // };
-
-    // const updatableAgreement4 = {
-    //   ...getMockAgreement(eservice2.id, consumer.id, agreementState.suspended),
-    //   descriptorId: eservice2.descriptors[0].id,
-    //   producerId: eservice2.producerId,
-    // };
 
     const nonUpdatableAgreement = {
       ...getMockAgreement(
@@ -123,12 +114,16 @@ describe("compute Agreement state", () => {
     // await addOneAgreement(updatableAgreement3);
     // await addOneAgreement(updatableAgreement4);
 
-    await agreementService.computeAgreementState(attributeId, consumer, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    await agreementService.computeAgreementsStateByAttribute(
+      invalidatedAttributeId,
+      consumer,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const nonUpdatableAgreementStateUpdateEvent = await readLastAgreementEvent(
       nonUpdatableAgreement.id
@@ -152,19 +147,41 @@ describe("compute Agreement state", () => {
       stream_id: updatableAgreement1.id,
     });
 
-    // TODO understand why this is not working ...
+    const agreement1StateUpdateEventData = decodeProtobufPayload({
+      messageType: AgreementSuspendedByPlatformV2,
+      payload: agreement1StateUpdateEvent.data,
+    });
 
-    // const agreement2StateUpdateEvent = await readLastAgreementEvent(
-    //   updatableAgreement2.id
-    // );
+    expect(agreement1StateUpdateEventData).toMatchObject({
+      agreement: toAgreementV2({
+        ...updatableAgreement1,
+        state: agreementState.missingCertifiedAttributes,
+        suspendedByPlatform: true,
+      }),
+    });
 
-    // expect(agreement2StateUpdateEvent).toMatchObject({
-    //   type: "AgreementSuspendedByPlatform",
-    //   event_version: 2,
-    //   version: "1",
-    //   stream_id: updatableAgreement2.id,
-    // });
+    const agreement2StateUpdateEvent = await readLastAgreementEvent(
+      updatableAgreement2.id
+    );
 
-    // TODO create another attribute and call the method another time to check the other two events
+    expect(agreement2StateUpdateEvent).toMatchObject({
+      type: "AgreementSuspendedByPlatform",
+      event_version: 2,
+      version: "1",
+      stream_id: updatableAgreement2.id,
+    });
+
+    const agreement2StateUpdateEventData = decodeProtobufPayload({
+      messageType: AgreementSuspendedByPlatformV2,
+      payload: agreement2StateUpdateEvent.data,
+    });
+
+    expect(agreement2StateUpdateEventData).toMatchObject({
+      agreement: toAgreementV2({
+        ...updatableAgreement2,
+        state: agreementState.suspended,
+        suspendedByPlatform: true,
+      }),
+    });
   });
 });
