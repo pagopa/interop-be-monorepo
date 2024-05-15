@@ -1,4 +1,4 @@
-import { logger } from "../index.js";
+import { genericInternalError } from "pagopa-interop-models";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -17,7 +17,9 @@ export type CreateEvent<T extends Event> = {
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
-): { createEvent: (createEvent: CreateEvent<T>) => Promise<string> } => ({
+): {
+  createEvent: (createEvent: CreateEvent<T>) => Promise<string>;
+} => ({
   async createEvent(createEvent: CreateEvent<T>): Promise<string> {
     try {
       return await db.tx(async (t) => {
@@ -40,8 +42,7 @@ export const eventRepository = <T extends Event>(
         return createEvent.streamId;
       });
     } catch (error) {
-      logger.error(`Error creating event: ${error}`);
-      throw error;
+      throw genericInternalError(`Error creating event: ${error}`);
     }
   },
 });

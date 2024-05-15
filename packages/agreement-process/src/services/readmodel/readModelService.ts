@@ -7,7 +7,6 @@ import {
   ReadModelRepository,
   RemoveDataPrefix,
   Metadata,
-  logger,
   AttributeCollection,
 } from "pagopa-interop-commons";
 import {
@@ -23,10 +22,10 @@ import {
   WithMetadata,
   agreementState,
   descriptorState,
-  genericError,
   EServiceId,
   AttributeReadmodel,
   TenantId,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -219,12 +218,11 @@ const getAllAgreements = async (
     .safeParse(data);
 
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse agreements items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse agreements items");
   }
 
   return result.data;
@@ -240,18 +238,18 @@ async function getAttribute(
   if (data) {
     const result = Attribute.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse attribute item");
     }
     return result.data;
   }
   return undefined;
 }
 
+// eslint-disable-next-line max-params
 async function searchTenantsByName(
   agreements: AgreementCollection,
   tenantName: string | undefined,
@@ -272,20 +270,19 @@ async function searchTenantsByName(
     .array(CompactOrganization)
     .safeParse(data.map((d) => d.data));
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse compact organization items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-
-    throw genericError("Unable to parse compact organization items");
   }
 
   return {
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
-      aggregationPipeline
+      aggregationPipeline,
+      false
     ),
   };
 }
@@ -393,20 +390,19 @@ export function readModelServiceBuilder(
 
       const result = z.array(Agreement).safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse agreements items");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
-          aggregationPipeline
+          aggregationPipeline,
+          false
         ),
       };
     },
@@ -426,8 +422,7 @@ export function readModelServiceBuilder(
           })
           .safeParse(data);
         if (!result.success) {
-          logger.error(`Agreement ${agreementId} not found`);
-          throw genericError(`Agreement ${agreementId} not found`);
+          throw genericInternalError(`Agreement ${agreementId} not found`);
         }
         return {
           data: result.data.data,
@@ -452,13 +447,11 @@ export function readModelServiceBuilder(
         const result = EService.safeParse(data.data);
 
         if (!result.success) {
-          logger.error(
+          throw genericInternalError(
             `Unable to parse eservices item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
-
-          throw genericError(`Unable to parse eservice ${id}`);
         }
 
         return result.data;
@@ -476,13 +469,11 @@ export function readModelServiceBuilder(
         const result = Tenant.safeParse(data.data);
 
         if (!result.success) {
-          logger.error(
+          throw genericInternalError(
             `Unable to parse tenant item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
-
-          throw genericError(`Unable to parse tenant ${tenantId}`);
         }
 
         return result.data;
@@ -564,20 +555,19 @@ export function readModelServiceBuilder(
         .array(CompactEService)
         .safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse compact eservice items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse compact eseervice items");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
-          aggregationPipeline
+          aggregationPipeline,
+          false
         ),
       };
     },

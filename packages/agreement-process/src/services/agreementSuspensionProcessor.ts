@@ -13,7 +13,10 @@ import {
   assertDescriptorExist,
   agreementSuspendableStates,
 } from "../model/domain/validators.js";
-import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import {
+  toCreateEventAgreementSuspendedByConsumer,
+  toCreateEventAgreementSuspendedByProducer,
+} from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
@@ -22,7 +25,6 @@ import {
   agreementStateByFlags,
   nextState,
   suspendedByConsumerFlag,
-  suspendedByPlatformFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
@@ -45,7 +47,7 @@ export async function suspendAgreementLogic({
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
   correlationId: string;
-}): Promise<CreateEvent<AgreementEvent>> {
+}): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
@@ -82,12 +84,10 @@ export async function suspendAgreementLogic({
     authData.organizationId,
     agreementState.suspended
   );
-  const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     suspendedByProducer,
-    suspendedByConsumer,
-    suspendedByPlatform
+    suspendedByConsumer
   );
 
   const stamp = createStamp(authData);
@@ -110,7 +110,6 @@ export async function suspendAgreementLogic({
     state: newState,
     suspendedByConsumer,
     suspendedByProducer,
-    suspendedByPlatform,
     stamps: {
       ...agreement.data.stamps,
       suspensionByConsumer: suspensionByConsumerStamp,
@@ -124,9 +123,27 @@ export async function suspendAgreementLogic({
     ...updateSeed,
   };
 
-  return toCreateEventAgreementUpdated(
-    updatedAgreement,
-    agreement.metadata.version,
-    correlationId
-  );
+  if (authData.organizationId === agreement.data.producerId) {
+    return [
+      updatedAgreement,
+      toCreateEventAgreementSuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      ),
+    ];
+  } else if (authData.organizationId === agreement.data.consumerId) {
+    return [
+      updatedAgreement,
+      toCreateEventAgreementSuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      ),
+    ];
+  } else {
+    throw new Error(
+      "Unexpected organizationId: Agreement can be suspended only by consumer or producer"
+    );
+  }
 }

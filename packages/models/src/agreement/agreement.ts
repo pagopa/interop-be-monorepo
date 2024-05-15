@@ -6,6 +6,7 @@ import {
   DescriptorId,
   EServiceId,
   TenantId,
+  UserId,
 } from "./../brandedIds.js";
 
 export const agreementState = {
@@ -37,7 +38,7 @@ export const AgreementDocument = z.object({
 export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
 export const AgreementStamp = z.object({
-  who: z.string().uuid(),
+  who: UserId,
   when: z.coerce.date(),
 });
 export type AgreementStamp = z.infer<typeof AgreementStamp>;

@@ -1,7 +1,7 @@
 import jwt, { JwtHeader, JwtPayload, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { invalidClaim, jwtDecodingError } from "pagopa-interop-models";
-import { JWTConfig, logger } from "../index.js";
+import { JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
 const decodeJwtToken = (jwtToken: string): JwtPayload | null => {
@@ -24,7 +24,8 @@ export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
 
 const getKey =
   (
-    clients: jwksClient.JwksClient[]
+    clients: jwksClient.JwksClient[],
+    logger: Logger
   ): ((header: JwtHeader, callback: SigningKeyCallback) => void) =>
   (header, callback) => {
     for (const { client, last } of clients.map((c, i) => ({
@@ -42,7 +43,10 @@ const getKey =
     }
   };
 
-export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
+export const verifyJwtToken = (
+  jwtToken: string,
+  logger: Logger
+): Promise<boolean> => {
   const config = JWTConfig.parse(process.env);
   const clients = config.wellKnownUrls.map((url) =>
     jwksClient({
@@ -52,7 +56,7 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
   return new Promise((resolve, _reject) => {
     jwt.verify(
       jwtToken,
-      getKey(clients),
+      getKey(clients, logger),
       {
         audience: config.acceptedAudiences,
       },

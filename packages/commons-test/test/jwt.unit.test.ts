@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
 import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { P, match } from "ts-pattern";
 import { randomArrayItem } from "../src/testUtils.js";
 
 const mockUiToken = {
@@ -102,6 +103,7 @@ describe("JWT tests", () => {
           origin: "IPA",
           value: "5N2TR557",
         },
+        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
         userRoles: ["admin"],
@@ -119,6 +121,7 @@ describe("JWT tests", () => {
           origin: "IPA",
           value: "5N2TR557",
         },
+        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
         userRoles: ["security", "api"],
@@ -159,6 +162,7 @@ describe("JWT tests", () => {
           value: "",
         },
         organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
+        selfcareId: "",
         userId: "",
         userRoles: ["m2m"],
       });
@@ -207,6 +211,7 @@ describe("JWT tests", () => {
           value: "",
         },
         organizationId: "",
+        selfcareId: "",
         userId: "",
         userRoles: ["internal"],
       });
@@ -232,6 +237,7 @@ describe("JWT tests", () => {
           value: "5N2TR557",
         },
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
         userRoles: ["support"],
       });
@@ -248,6 +254,30 @@ describe("JWT tests", () => {
           "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
         )
       );
+    });
+
+    it("should also accept audience as a JSON array", async () => {
+      const mockToken = randomArrayItem([
+        mockUiToken,
+        mockM2MToken,
+        mockInternalToken,
+      ]);
+      const token = getMockSignedToken({
+        ...mockToken,
+        aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
+      });
+
+      const authData = readAuthDataFromJwtToken(token);
+      expect(authData).toMatchObject({
+        userRoles: match(mockToken)
+          .with({ role: P.not(P.nullish) }, (t) => [t.role])
+          .with({ "user-roles": P.not(P.nullish) }, (t) =>
+            t["user-roles"].split(",")
+          )
+          .otherwise(() => {
+            throw new Error("Unexpected user roles in token");
+          }),
+      });
     });
   });
 });

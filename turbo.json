@@ -30,6 +30,16 @@
         "dist"
       ]
     },
+    "check": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist"
+      ]
+    },
     "generate-model": {
       "dependsOn": [
         "^generate-model"
@@ -45,12 +55,29 @@
     },
     "test": {
       "dependsOn": [
-        "build",
-        "^test"
+        "build"
+     ]
+    },
+    "lint": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist"
       ]
     },
-    "lint": {},
-    "lint:autofix": {},
+    "lint:autofix": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist"
+      ]
+    },
     "format:check": {},
     "format:write": {}
   },

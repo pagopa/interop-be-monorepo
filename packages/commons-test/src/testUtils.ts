@@ -11,6 +11,10 @@ import {
   EService,
   EServiceAttribute,
   EServiceId,
+  Purpose,
+  PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionState,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -19,9 +23,9 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  tenantAttributeType,
+  purposeVersionState,
+  Document,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -32,6 +36,10 @@ export function expectPastTimestamp(timestamp: bigint): boolean {
 
 export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
+}
+
+export function randomBoolean(): boolean {
+  return Math.random() < 0.5;
 }
 
 export const getRandomAuthData = (
@@ -81,53 +89,39 @@ export const getMockEService = (
 
 export const getMockVerifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): VerifiedTenantAttribute => ({
   ...generateMock(VerifiedTenantAttribute),
   id: attributeId,
 });
-
-export const getMockVerifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockVerifiedTenantAttribute());
 
 export const getMockCertifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
   id: attributeId,
-  type: tenantAttributeType.CERTIFIED,
-  revocationTimestamp: undefined,
 });
-
-export const getMockCertifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockCertifiedTenantAttribute());
 
 export const getMockDeclaredTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
 });
-
-export const getMockDeclaredTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockDeclaredTenantAttribute());
 
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
 ): Tenant => ({
-  ...generateMock(Tenant),
+  name: "A tenant",
   id: tenantId,
-  externalId: {
-    value: uuidv4(),
-    origin: "EXT",
-  },
+  createdAt: new Date(),
   attributes,
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
 });
 
 export const getMockAgreement = (
@@ -149,4 +143,75 @@ export const getMockAttribute = (): Attribute => ({
   creationTime: new Date(),
   code: undefined,
   origin: undefined,
+});
+
+export const getMockPurpose = (): Purpose => ({
+  id: generateId(),
+  eserviceId: generateId(),
+  consumerId: generateId(),
+  versions: [],
+  title: "Purpose 1 - test",
+  description: "Test purpose - description",
+  createdAt: new Date(),
+  isFreeOfCharge: true,
+});
+
+export const getMockPurposeVersion = (
+  state?: PurposeVersionState
+): PurposeVersion => ({
+  id: generateId(),
+  state: state || purposeVersionState.draft,
+  riskAnalysis: {
+    id: generateId(),
+    contentType: "json",
+    path: "path",
+    createdAt: new Date(),
+  },
+  dailyCalls: 10,
+  createdAt: new Date(),
+  ...(state !== purposeVersionState.draft
+    ? { updatedAt: new Date(), firstActivationAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.suspended
+    ? { suspendedAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.rejected
+    ? { rejectionReason: "test" }
+    : {}),
+});
+
+export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
+  path: "path",
+  id: generateId(),
+  contentType: "json",
+  createdAt: new Date(),
+});
+
+export const getMockDescriptor = (): Descriptor => ({
+  id: generateId(),
+  version: "1",
+  docs: [],
+  state: descriptorState.draft,
+  audience: [],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: generateId(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: "checksum",
+  uploadDate: new Date(),
 });

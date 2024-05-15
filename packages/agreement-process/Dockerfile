@@ -1,4 +1,4 @@
-FROM node:18.17.1-slim as build
+FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as build
 
 RUN corepack enable
 
@@ -10,6 +10,7 @@ COPY pnpm-workspace.yaml /app/
 COPY ./packages/agreement-process/package.json /app/packages/agreement-process/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/selfcare-v2-client/package.json /app/packages/selfcare-v2-client/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -18,6 +19,7 @@ COPY turbo.json /app/
 COPY ./packages/agreement-process /app/packages/agreement-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/selfcare-v2-client /app/packages/selfcare-v2-client
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -28,10 +30,11 @@ RUN pnpm build && \
       package*.json packages/agreement-process/package*.json \
       packages/commons/ \
       packages/models/ \
+      packages/selfcare-v2-client \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.17.1-slim as final 
+FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as final 
 
 COPY --from=build /out /app
 

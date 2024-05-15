@@ -5,11 +5,12 @@ import {
   AgreementState,
   TenantId,
   agreementState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
 export const createStamp = (authData: AuthData): AgreementStamp => ({
-  who: authData.userId,
+  who: unsafeBrandId(authData.userId),
   when: new Date(),
 });
 

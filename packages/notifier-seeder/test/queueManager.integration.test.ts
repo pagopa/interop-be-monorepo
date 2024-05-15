@@ -3,6 +3,7 @@
 import { StartedTestContainer } from "testcontainers";
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   QueueManager,
   initQueueManager,
@@ -52,19 +53,22 @@ describe("FileManager tests", async () => {
 
   describe("QueueWriter", () => {
     it("should send a message to the queue and receive it back", async () => {
-      await queueWriter.send({
-        messageUUID: uuidv4(),
-        kind: "TestMessageKind",
-        eventJournalPersistenceId: "test-persistence-id",
-        eventJournalSequenceNumber: 0,
-        eventTimestamp: new Date().getTime(),
-        payload: {
-          test: "test",
-          foo: "bar",
+      await queueWriter.send(
+        {
+          messageUUID: uuidv4(),
+          kind: "TestMessageKind",
+          eventJournalPersistenceId: "test-persistence-id",
+          eventJournalSequenceNumber: 0,
+          eventTimestamp: new Date().getTime(),
+          payload: {
+            test: "test",
+            foo: "bar",
+          },
         },
-      });
+        genericLogger
+      );
 
-      const lastMessage = (await queueWriter.receiveLast())[0];
+      const lastMessage = (await queueWriter.receiveLast(genericLogger))[0];
       expect(lastMessage).toMatchObject({
         kind: "TestMessageKind",
         eventJournalPersistenceId: "test-persistence-id",
@@ -78,17 +82,20 @@ describe("FileManager tests", async () => {
 
     it("should fail to send a message to a non existing queue", async () => {
       await expect(
-        nonExistingQueueWriter.send({
-          messageUUID: uuidv4(),
-          kind: "TestMessageKind",
-          eventJournalPersistenceId: "test-persistence-id",
-          eventJournalSequenceNumber: 0,
-          eventTimestamp: new Date().getTime(),
-          payload: {
-            test: "test",
-            foo: "bar",
+        nonExistingQueueWriter.send(
+          {
+            messageUUID: uuidv4(),
+            kind: "TestMessageKind",
+            eventJournalPersistenceId: "test-persistence-id",
+            eventJournalSequenceNumber: 0,
+            eventTimestamp: new Date().getTime(),
+            payload: {
+              test: "test",
+              foo: "bar",
+            },
           },
-        })
+          genericLogger
+        )
       ).rejects.toThrowError(
         queueManagerSendError(
           nonExistingQueueUrl,
@@ -98,7 +105,9 @@ describe("FileManager tests", async () => {
     });
 
     it("should fail to receive a message from a non existing queue", async () => {
-      await expect(nonExistingQueueWriter.receiveLast()).rejects.toThrowError(
+      await expect(
+        nonExistingQueueWriter.receiveLast(genericLogger)
+      ).rejects.toThrowError(
         queueManagerReceiveError(
           nonExistingQueueUrl,
           new Error("The specified queue does not exist.")

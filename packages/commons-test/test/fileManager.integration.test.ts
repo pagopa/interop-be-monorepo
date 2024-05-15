@@ -10,6 +10,7 @@ import {
   fileManagerDeleteError,
   fileManagerListFilesError,
   fileManagerStoreBytesError,
+  genericLogger,
   initFileManager,
 } from "pagopa-interop-commons";
 import { TEST_MINIO_PORT, minioContainer } from "../src/index.js";
@@ -37,8 +38,10 @@ describe("FileManager tests", async () => {
   });
 
   afterEach(async () => {
-    const files = await fileManager.listFiles(s3Bucket);
-    await Promise.all(files.map((file) => fileManager.delete(s3Bucket, file)));
+    const files = await fileManager.listFiles(s3Bucket, genericLogger);
+    await Promise.all(
+      files.map((file) => fileManager.delete(s3Bucket, file, genericLogger))
+    );
   });
 
   afterAll(async () => {
@@ -52,11 +55,12 @@ describe("FileManager tests", async () => {
         "test",
         "test",
         "test",
-        Buffer.from("test")
+        Buffer.from("test"),
+        genericLogger
       );
       expect(result).toBe("test/test/test");
 
-      const files = await fileManager.listFiles(s3Bucket);
+      const files = await fileManager.listFiles(s3Bucket, genericLogger);
       expect(files).toContain("test/test/test");
     });
 
@@ -67,7 +71,8 @@ describe("FileManager tests", async () => {
           "test",
           "test",
           "test",
-          Buffer.from("test")
+          Buffer.from("test"),
+          genericLogger
         )
       ).rejects.toThrowError(
         fileManagerStoreBytesError(
@@ -86,30 +91,32 @@ describe("FileManager tests", async () => {
         "test",
         "test",
         "test1",
-        Buffer.from("test1")
+        Buffer.from("test1"),
+        genericLogger
       );
       await fileManager.storeBytes(
         s3Bucket,
         "test",
         "test",
         "test2",
-        Buffer.from("test2")
+        Buffer.from("test2"),
+        genericLogger
       );
 
-      const files = await fileManager.listFiles(s3Bucket);
+      const files = await fileManager.listFiles(s3Bucket, genericLogger);
       expect(files.length).toBe(2);
       expect(files).toContain("test/test/test1");
       expect(files).toContain("test/test/test2");
     });
 
     it("should return an empty array if no files are present in the bucket", async () => {
-      const files = await fileManager.listFiles(s3Bucket);
+      const files = await fileManager.listFiles(s3Bucket, genericLogger);
       expect(files).toEqual([]);
     });
 
     it("should fail if the bucket does not exist", async () => {
       await expect(
-        fileManager.listFiles("invalid bucket")
+        fileManager.listFiles("invalid bucket", genericLogger)
       ).rejects.toThrowError(
         fileManagerListFilesError(
           "invalid bucket",
@@ -126,19 +133,26 @@ describe("FileManager tests", async () => {
         "test",
         "test",
         "test",
-        Buffer.from("test")
+        Buffer.from("test"),
+        genericLogger
       );
-      const listBeforeDelete = await fileManager.listFiles(s3Bucket);
+      const listBeforeDelete = await fileManager.listFiles(
+        s3Bucket,
+        genericLogger
+      );
       expect(listBeforeDelete).toContain("test/test/test");
 
-      await fileManager.delete(s3Bucket, "test/test/test");
-      const listAfterDelete = await fileManager.listFiles(s3Bucket);
+      await fileManager.delete(s3Bucket, "test/test/test", genericLogger);
+      const listAfterDelete = await fileManager.listFiles(
+        s3Bucket,
+        genericLogger
+      );
       expect(listAfterDelete).not.toContain("test/test/test");
     });
 
     it("should fail if the bucket does not exist", async () => {
       await expect(
-        fileManager.delete("invalid bucket", "test/test/test")
+        fileManager.delete("invalid bucket", "test/test/test", genericLogger)
       ).rejects.toThrowError(
         fileManagerDeleteError(
           "test/test/test",
@@ -156,7 +170,8 @@ describe("FileManager tests", async () => {
         "test",
         "test",
         "test",
-        Buffer.from("test")
+        Buffer.from("test"),
+        genericLogger
       );
 
       const copyResult = await fileManager.copy(
@@ -164,11 +179,12 @@ describe("FileManager tests", async () => {
         "test/test/test",
         "test",
         "test",
-        "testCopy"
+        "testCopy",
+        genericLogger
       );
 
       expect(copyResult).toBe("test/test/testCopy");
-      const files = await fileManager.listFiles(s3Bucket);
+      const files = await fileManager.listFiles(s3Bucket, genericLogger);
       expect(files.length).toBe(2);
       expect(files).toContain("test/test/test");
       expect(files).toContain("test/test/testCopy");
@@ -181,7 +197,8 @@ describe("FileManager tests", async () => {
           "test/test/test",
           "test",
           "test",
-          "testCopy"
+          "testCopy",
+          genericLogger
         )
       ).rejects.toThrowError(
         fileManagerCopyError(
@@ -195,7 +212,14 @@ describe("FileManager tests", async () => {
 
     it("should fail if the file to copy does not exist", async () => {
       await expect(
-        fileManager.copy(s3Bucket, "test/test/test", "test", "test", "testCopy")
+        fileManager.copy(
+          s3Bucket,
+          "test/test/test",
+          "test",
+          "test",
+          "testCopy",
+          genericLogger
+        )
       ).rejects.toThrowError(
         fileManagerCopyError(
           "test/test/test",

@@ -9,6 +9,7 @@ export * from "./repositories/EventRepository.js";
 export * from "./repositories/ReadModelRepository.js";
 export * from "./repositories/db.js";
 export * from "./types/index.js";
-export * from "./auth/token/index.js";
 export * from "./risk-analysis/index.js";
 export * from "./router/zodiosValidationErrorHandler.js";
+export * from "./interop-token/interopTokenService.js";
+export * from "./interop-token/refreshableInteropTokenService.js";
