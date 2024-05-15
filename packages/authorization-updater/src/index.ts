@@ -20,6 +20,7 @@ import {
   EServiceId,
   EService,
 } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
@@ -81,13 +82,14 @@ function processMessage(
         messagePayload.topic
       );
       const decodedMsg = messageDecoder(messagePayload.message);
+      const correlationId = decodedMsg.correlation_id || uuidv4();
 
       const loggerInstance = logger({
         serviceName: "authorization-updater",
         eventType: decodedMsg.type,
         eventVersion: decodedMsg.event_version,
         streamId: decodedMsg.stream_id,
-        correlationId: decodedMsg.correlation_id,
+        correlationId,
       });
 
       const updateSeed = match(decodedMsg)
@@ -147,7 +149,7 @@ function processMessage(
               updateSeed.audience,
               updateSeed.voucherLifespan,
               loggerInstance,
-              decodedMsg.correlation_id
+              correlationId
             ),
           loggerInstance
         );
