@@ -47,8 +47,6 @@ import {
   toCreateEventAgreementConsumerDocumentRemoved,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
-  toCreateEventAgreementSuspendedByConsumer,
-  toCreateEventAgreementSuspendedByProducer,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -91,7 +89,10 @@ import { processActivateAgreement } from "./agreementActivationProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { processSubmitAgreement } from "./agreementSubmissionProcessor.js";
-import { createAgreementSuspended } from "./agreementSuspensionProcessor.js";
+import {
+  createAgreementSuspendedEvent,
+  createAgreementSuspended,
+} from "./agreementSuspensionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
@@ -315,31 +316,32 @@ export function agreementServiceBuilder(
         agreementQuery
       );
 
-      const [agreementdocumentSeed, updatesEvents] =
-        await processSubmitAgreement({
-          agreementData: agreement,
-          eservice: await retrieveEService(
-            agreement.data.eserviceId,
-            eserviceQuery
-          ),
-          payload,
-          agreementQuery,
-          tenantQuery,
-          constractBuilder: contractBuilder(
-            authData.selfcareId,
-            attributeQuery,
-            fileManager.storeBytes,
-            logger
-          ),
-          authData,
-          correlationId,
-        });
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        eserviceQuery
+      );
+
+      const [submittedAgreement, updatesEvents] = await processSubmitAgreement({
+        agreementData: agreement,
+        eservice,
+        payload,
+        agreementQuery,
+        tenantQuery,
+        contractBuilder: contractBuilder(
+          authData.selfcareId,
+          attributeQuery,
+          fileManager.storeBytes,
+          logger
+        ),
+        authData,
+        correlationId,
+      });
 
       for (const event of updatesEvents) {
         await repository.createEvent(event);
       }
 
-      return agreementdocumentSeed;
+      return submittedAgreement;
     },
     async upgradeAgreement(
       agreementId: AgreementId,
@@ -602,28 +604,25 @@ export function agreementServiceBuilder(
         descriptor
       );
 
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        tenantQuery
+      );
+
       const updatedAgreement: Agreement = createAgreementSuspended({
         agreement: agreement.data,
         authData,
         descriptor,
-        consumer: await retrieveTenant(agreement.data.consumerId, tenantQuery),
+        consumer,
       });
 
-      const isProducer = authData.organizationId === agreement.data.producerId;
-      const isConsumer = authData.organizationId === agreement.data.consumerId;
-
-      if (!isProducer && !isConsumer) {
-        throw new Error(
-          "Agreement can only be suspended by the consumer or producer."
-        );
-      }
-
-      const eventType = isProducer
-        ? toCreateEventAgreementSuspendedByProducer
-        : toCreateEventAgreementSuspendedByConsumer;
-
       await repository.createEvent(
-        eventType(updatedAgreement, agreement.metadata.version, correlationId)
+        createAgreementSuspendedEvent(
+          authData.organizationId,
+          correlationId,
+          updatedAgreement,
+          agreement
+        )
       );
 
       return updatedAgreement;
@@ -760,12 +759,14 @@ export function agreementServiceBuilder(
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
 
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        eserviceQuery
+      );
+
       const [updatedAgreement, updatesEvents] = await processActivateAgreement({
         agreementData: agreement,
-        eservice: await retrieveEService(
-          agreement.data.eserviceId,
-          eserviceQuery
-        ),
+        eservice,
         authData,
         tenantQuery,
         agreementQuery,

@@ -53,7 +53,7 @@ export const processSubmitAgreement = async ({
   payload,
   agreementQuery,
   tenantQuery,
-  constractBuilder,
+  contractBuilder,
   authData,
   correlationId,
 }: {
@@ -62,18 +62,19 @@ export const processSubmitAgreement = async ({
   payload: ApiAgreementSubmissionPayload;
   agreementQuery: AgreementQuery;
   tenantQuery: TenantQuery;
-  constractBuilder: ContractBuilder;
+  contractBuilder: ContractBuilder;
   authData: AuthData;
   correlationId: string;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
 
-  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
-
   const descriptor = await validateSubmitOnDescriptor(
     eservice,
     agreement.descriptorId
   );
+
+  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
+
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
 
   const newState = agreementStateByFlags(
@@ -122,7 +123,7 @@ export const processSubmitAgreement = async ({
             consumer,
             updateSeed,
             tenantQuery,
-            constractBuilder
+            contractBuilder
           ),
         }
       : newAgreement;

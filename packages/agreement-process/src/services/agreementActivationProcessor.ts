@@ -72,11 +72,13 @@ export async function processActivateAgreement({
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = agreementData.data;
 
-  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
   const descriptor = validateActivationOnDescriptor(
     eservice,
     agreement.descriptorId
   );
+
+  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
+
   const nextAttributesState = nextState(agreement, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(

@@ -1,11 +1,18 @@
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementEventV2,
   Descriptor,
   Tenant,
+  TenantId,
+  WithMetadata,
   agreementState,
 } from "pagopa-interop-models";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  toCreateEventAgreementSuspendedByProducer,
+  toCreateEventAgreementSuspendedByConsumer,
+} from "../model/domain/toEvent.js";
 import {
   agreementStateByFlags,
   nextState,
@@ -79,4 +86,26 @@ export function createAgreementSuspended({
     ...agreement,
     ...updateSeed,
   };
+}
+
+export function createAgreementSuspendedEvent(
+  organizationId: TenantId,
+  correlationId: string,
+  updatedAgreement: Agreement,
+  agreement: WithMetadata<Agreement>
+): CreateEvent<AgreementEventV2> {
+  const isProducer = organizationId === agreement.data.producerId;
+  const isConsumer = organizationId === agreement.data.consumerId;
+
+  if (!isProducer && !isConsumer) {
+    throw new Error(
+      "Agreement can only be suspended by the consumer or producer."
+    );
+  }
+
+  const eventType = isProducer
+    ? toCreateEventAgreementSuspendedByProducer
+    : toCreateEventAgreementSuspendedByConsumer;
+
+  return eventType(updatedAgreement, agreement.metadata.version, correlationId);
 }
