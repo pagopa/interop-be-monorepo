@@ -36,7 +36,6 @@
     "@protobuf-ts/runtime": "2.9.4",
     "@zodios/core": "10.9.6",
     "axios": "1.6.8",
-    "@zodios/plugins": "10.6.0",
     "connection-string": "4.4.0",
     "dotenv-flow": "3.3.0",
     "kafka-iam-auth": "workspace:*",
