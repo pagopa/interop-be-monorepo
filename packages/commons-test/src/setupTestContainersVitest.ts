@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 
 import {
+  DB,
+  FileManager,
   ReadModelRepository,
   genericLogger,
   initDB,
@@ -32,47 +35,62 @@ import { TestContainersConfig } from "./containerTestUtils.js";
 export function setupTestContainersVitest(config: TestContainersConfig) {
   const s3OriginalBucket = config.s3Bucket;
 
-  const readModelRepository = ReadModelRepository.init(config);
+  let readModelRepository: ReadModelRepository | undefined;
+  if (config.readModelDbHost) {
+    readModelRepository = ReadModelRepository.init(config);
+  }
 
-  const postgresDB = initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  });
+  let postgresDB: DB | undefined;
+  if (config.eventStoreDbHost) {
+    postgresDB = initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    });
+  }
 
-  const fileManager = initFileManager(config);
+  let fileManager: FileManager | undefined;
+  if (config.s3ServerHost) {
+    fileManager = initFileManager(config);
+  }
 
   return {
     readModelRepository,
     postgresDB,
     fileManager,
     cleanup: async (): Promise<void> => {
-      await readModelRepository.agreements.deleteMany({});
-      await readModelRepository.eservices.deleteMany({});
-      await readModelRepository.tenants.deleteMany({});
-      await readModelRepository.purposes.deleteMany({});
-      await readModelRepository.attributes.deleteMany({});
+      await readModelRepository?.agreements.deleteMany({});
+      await readModelRepository?.eservices.deleteMany({});
+      await readModelRepository?.tenants.deleteMany({});
+      await readModelRepository?.purposes.deleteMany({});
+      await readModelRepository?.attributes.deleteMany({});
 
-      await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        "TRUNCATE TABLE agreement.events RESTART IDENTITY"
+      );
+      await postgresDB?.none(
+        "TRUNCATE TABLE attribute.events RESTART IDENTITY"
+      );
+      await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+      await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
+      await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
 
       if (s3OriginalBucket) {
-        const files = await fileManager.listFiles(
+        const files = await fileManager?.listFiles(
           s3OriginalBucket,
           genericLogger
         );
-        await Promise.all(
-          files.map((file) =>
-            fileManager.delete(s3OriginalBucket, file, genericLogger)
-          )
-        );
+        if (files) {
+          await Promise.all(
+            files.map((file) =>
+              fileManager!.delete(s3OriginalBucket, file, genericLogger)
+            )
+          );
+        }
         // Some tests change the bucket name, so we need to reset it
         config.s3Bucket = s3OriginalBucket;
       }
