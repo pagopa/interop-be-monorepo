@@ -24,6 +24,7 @@ import {
   descriptorState,
   generateId,
   purposeVersionState,
+  Document,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
@@ -203,4 +204,14 @@ export const getMockDescriptor = (): Descriptor => ({
     verified: [],
     declared: [],
   },
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: generateId(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: "checksum",
+  uploadDate: new Date(),
 });
