@@ -333,11 +333,12 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
 
 export function toCreateEventAgreementPutInDraftByPlatform(
   agreement: Agreement,
+  version: number,
   correlationId: string
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
-    version: 0,
+    version,
     event: {
       type: "AgreementPutInDraftByPlatform",
       event_version: 2,
@@ -351,11 +352,12 @@ export function toCreateEventAgreementPutInDraftByPlatform(
 
 export function toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
   agreement: Agreement,
+  version: number,
   correlationId: string
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
-    version: 0,
+    version,
     event: {
       type: "AgreementPutInMissingCertifiedAttributesByPlatform",
       event_version: 2,

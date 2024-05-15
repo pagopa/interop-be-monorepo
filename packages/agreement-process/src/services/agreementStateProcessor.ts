@@ -17,6 +17,8 @@ import {
   verifiedAttributesSatisfied,
 } from "../model/domain/validators.js";
 import {
+  toCreateEventAgreementPutInDraftByPlatform,
+  toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
@@ -226,7 +228,7 @@ async function updateAgreementState(
   };
 
   if (allowedStateTransitions(agreement.data.state).includes(finalState)) {
-    match([finalState, newSuspendedByPlatform])
+    return match([finalState, newSuspendedByPlatform])
       .with(
         [
           agreementState.suspended,
@@ -249,24 +251,25 @@ async function updateAgreementState(
           correlationId
         )
       )
-      .with([agreementState.missingCertifiedAttributes, P.any], () => {
-        toCreateEventAgreementSuspendedByPlatform(
+      .with([agreementState.missingCertifiedAttributes, P.any], () =>
+        toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId
-        );
-      })
-      .with([agreementState.draft, P.any], () => {
-        toCreateEventAgreementUnsuspendedByPlatform(
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        );
-      })
-      .otherwise(() =>
-        logger.error(
-          `Agreement state transition not allowed from ${agreement.data.state} to ${finalState}`
         )
+      )
+      .with([agreementState.draft, P.any], () =>
+        toCreateEventAgreementPutInDraftByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      )
+      .otherwise(
+        () =>
+          void logger.error(
+            `Agreement state transition not allowed from ${agreement.data.state} to ${finalState}`
+          )
       );
   } else {
     logger.error(

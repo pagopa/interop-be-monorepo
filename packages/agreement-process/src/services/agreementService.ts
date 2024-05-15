@@ -448,7 +448,9 @@ export function agreementServiceBuilder(
         logger
       );
 
-      await Promise.all(events.map(repository.createEvent));
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
     },
   };
 }
