@@ -24,6 +24,7 @@ import {
   descriptorState,
   generateId,
   purposeVersionState,
+  Document,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
@@ -184,4 +185,33 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   id: generateId(),
   contentType: "json",
   createdAt: new Date(),
+});
+
+export const getMockDescriptor = (): Descriptor => ({
+  id: generateId(),
+  version: "1",
+  docs: [],
+  state: descriptorState.draft,
+  audience: [],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: generateId(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: "checksum",
+  uploadDate: new Date(),
 });

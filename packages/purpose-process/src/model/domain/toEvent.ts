@@ -169,3 +169,21 @@ export const toCreateEventPurposeSuspendedByProducer = ({
   },
   correlationId,
 });
+
+export function toCreateEventPurposeAdded(
+  purpose: Purpose,
+  correlationId: string
+): CreateEvent<PurposeEventV2> {
+  return {
+    streamId: purpose.id,
+    version: 0,
+    event: {
+      type: "PurposeAdded",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+      },
+    },
+    correlationId,
+  };
+}
