@@ -1,4 +1,4 @@
-FROM node:18.17.1-slim as build
+FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as build
 
 RUN corepack enable
 
@@ -22,19 +22,19 @@ COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
-  rm -rf /app/node_modules/.modules.yaml && \
-  rm -rf /app/node_modules/.cache && \
-  mkdir /out && \
-  cp -a --parents -t /out \
-  node_modules packages/eservice-descriptors-archiver/node_modules \
-  package*.json packages/eservice-descriptors-archiver/package*.json \
-  packages/commons \
-  packages/models \
-  packages/kafka-iam-auth \
-  packages/eservice-descriptors-archiver/dist && \
-  find /out -exec touch -h --date=@0 {} \;
+    rm -rf /app/node_modules/.modules.yaml && \
+    rm -rf /app/node_modules/.cache && \
+    mkdir /out && \
+    cp -a --parents -t /out \
+      node_modules packages/eservice-descriptors-archiver/node_modules \
+      package*.json packages/eservice-descriptors-archiver/package*.json \
+      packages/commons \
+      packages/models \
+      packages/kafka-iam-auth \
+      packages/eservice-descriptors-archiver/dist && \
+    find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.17.1-slim as final
+FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as final
 
 COPY --from=build /out /app
 
