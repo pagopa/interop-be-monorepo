@@ -7,13 +7,14 @@ import {
   ReadEvent,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach, expect } from "vitest";
+import { afterEach, expect, inject } from "vitest";
 import {
   Agreement,
   AgreementEvent,
   AgreementId,
   EService,
   Tenant,
+  toAgreementV2,
   toReadModelEService,
   toReadModelAgreement,
   AgreementDocumentId,
@@ -27,7 +28,6 @@ import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
@@ -59,8 +59,8 @@ export const writeAgreementInEventstore = async (
 ): Promise<void> => {
   const agreementEvent: AgreementEvent = {
     type: "AgreementAdded",
-    event_version: 1,
-    data: { agreement: toAgreementV1(agreement) },
+    event_version: 2,
+    data: { agreement: toAgreementV2(agreement) },
   };
   const eventToWrite: StoredEvent<AgreementEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
