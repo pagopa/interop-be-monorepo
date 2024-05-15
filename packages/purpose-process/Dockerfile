@@ -1,4 +1,4 @@
-FROM node:18.20.2-slim@sha256:f2e7a19c91d98b854c226c04c4a1bf7d9d5fac28f320777efe5e01aa2e70c474 as build
+FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as build
 
 RUN corepack enable
 
@@ -31,7 +31,7 @@ RUN pnpm build && \
       packages/purpose-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.20.2-slim@sha256:f2e7a19c91d98b854c226c04c4a1bf7d9d5fac28f320777efe5e01aa2e70c474 as final 
+FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as final 
 
 COPY --from=build /out /app
 
