@@ -3,8 +3,14 @@ import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysis,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
-import { RiskAnalysis, TenantKind, tenantKind } from "pagopa-interop-models";
+import {
+  RiskAnalysis,
+  RiskAnalysisForm,
+  TenantKind,
+  tenantKind,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 
@@ -161,3 +167,19 @@ export function getMockValidRiskAnalysis(
     )
     .exhaustive();
 }
+
+export const getMockValidRiskAnalysisForm = (
+  producerTenantKind: TenantKind
+): RiskAnalysisForm =>
+  match(producerTenantKind)
+    .with(tenantKind.PA, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysis3_0_Pa
+      )
+    )
+    .with(tenantKind.PRIVATE, tenantKind.GSP, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysis2_0_Private
+      )
+    )
+    .exhaustive();
