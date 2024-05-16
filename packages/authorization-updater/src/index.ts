@@ -7,9 +7,11 @@ import {
   kafkaConsumerConfig,
   logger,
   CatalogTopicConfig,
-  catalogTopicConfig,
   Logger,
   genericLogger,
+  AgreementTopicConfig,
+  catalogTopicConfig,
+  agreementTopicConfig,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -19,6 +21,9 @@ import {
   kafkaMessageProcessError,
   EServiceId,
   EService,
+  genericInternalError,
+  Agreement,
+  agreementState,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -55,6 +60,21 @@ const getDescriptorFromEvent = (
   return { eserviceId: eservice.id, descriptor };
 };
 
+const getAgreementFromEvent = (
+  msg: {
+    data: {
+      agreement?: Agreement;
+    };
+  },
+  eventType: string
+): Agreement => {
+  if (!msg.data.agreement) {
+    throw missingKafkaMessageDataError("agreement", eventType);
+  }
+
+  return msg.data.agreement;
+};
+
 async function executeUpdate(
   eventType: string,
   messagePayload: EachMessagePayload,
@@ -72,16 +92,28 @@ async function executeUpdate(
 }
 
 function processMessage(
-  topicConfig: CatalogTopicConfig,
+  catalogTopicConfig: CatalogTopicConfig,
+  agreementTopicConfig: AgreementTopicConfig,
   authService: AuthorizationService
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const messageDecoder = messageDecoderSupplier(
-        topicConfig,
-        messagePayload.topic
-      );
-      const decodedMsg = messageDecoder(messagePayload.message);
+      const decodedMsg = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () =>
+          messageDecoderSupplier(
+            catalogTopicConfig,
+            messagePayload.topic
+          )(messagePayload.message)
+        )
+        .with(agreementTopicConfig.agreementTopic, () =>
+          messageDecoderSupplier(
+            agreementTopicConfig,
+            messagePayload.topic
+          )(messagePayload.message)
+        )
+        .otherwise(() => {
+          throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
+        });
       const correlationId = decodedMsg.correlation_id || uuidv4();
 
       const loggerInstance = logger({
@@ -92,7 +124,7 @@ function processMessage(
         correlationId,
       });
 
-      const updateSeed = match(decodedMsg)
+      const update: (() => Promise<void>) | undefined = match(decodedMsg)
         .with(
           {
             event_version: 2,
@@ -104,14 +136,16 @@ function processMessage(
           },
           (msg) => {
             const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "ACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
+            return (): Promise<void> =>
+              authService.updateEServiceState(
+                ApiClientComponent.Values.ACTIVE,
+                data.descriptor.id,
+                data.eserviceId,
+                data.descriptor.audience,
+                data.descriptor.voucherLifespan,
+                loggerInstance,
+                correlationId
+              );
           }
         )
         .with(
@@ -125,32 +159,49 @@ function processMessage(
           },
           (msg) => {
             const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "INACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
+            return (): Promise<void> =>
+              authService.updateEServiceState(
+                ApiClientComponent.Values.INACTIVE,
+                data.descriptor.id,
+                data.eserviceId,
+                data.descriptor.audience,
+                data.descriptor.voucherLifespan,
+                loggerInstance,
+                correlationId
+              );
+          }
+        )
+        .with(
+          {
+            event_version: 2,
+            type: "AgreementSubmitted",
+          },
+          (msg) => {
+            const agreement = getAgreementFromEvent(msg, decodedMsg.type);
+            const newClientState = match(agreement.state)
+              .with(agreementState.active, () => "ACTIVE")
+              .with(agreementState.suspended, () => "INACTIVE")
+              .otherwise(() => undefined);
+
+            return newClientState
+              ? (): Promise<void> =>
+                  authService.updateAgreementState(
+                    ApiClientComponent.Values.ACTIVE,
+                    agreement.id,
+                    agreement.eserviceId,
+                    agreement.consumerId,
+                    correlationId
+                  )
+              : undefined;
           }
         )
         .otherwise(() => undefined);
 
-      if (updateSeed) {
+      if (update) {
         await executeUpdate(
-          updateSeed.eventType,
+          decodedMsg.type,
           messagePayload,
-          () =>
-            authService.updateEServiceState(
-              ApiClientComponent.parse(updateSeed.state),
-              updateSeed.descriptorId,
-              updateSeed.eserviceId,
-              updateSeed.audience,
-              updateSeed.voucherLifespan,
-              loggerInstance,
-              correlationId
-            ),
+          update,
           loggerInstance
         );
       }
@@ -168,11 +219,12 @@ function processMessage(
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  const topicConfig: CatalogTopicConfig = catalogTopicConfig();
+  const catalogTopicConf: CatalogTopicConfig = catalogTopicConfig();
+  const agreementTopicConf: AgreementTopicConfig = agreementTopicConfig();
   await runConsumer(
     config,
-    [topicConfig.catalogTopic],
-    processMessage(topicConfig, authService)
+    [catalogTopicConf.catalogTopic, agreementTopicConf.agreementTopic],
+    processMessage(catalogTopicConf, agreementTopicConf, authService)
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);

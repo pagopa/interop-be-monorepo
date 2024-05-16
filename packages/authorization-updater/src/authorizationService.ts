@@ -6,7 +6,7 @@ import {
   tokenGenerationConfig,
   Logger,
 } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, TenantId } from "pagopa-interop-models";
 import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
 
@@ -18,6 +18,14 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+
+  updateAgreementState: (
+    state: ApiClientComponentState,
+    agreementId: string,
+    eserviceId: EServiceId,
+    consumerId: TenantId,
     correlationId: string
   ) => Promise<void>;
 };
@@ -62,6 +70,31 @@ export const authorizationServiceBuilder =
         });
 
         logger.info(`Updating EService ${eserviceId} state for all clients`);
+      },
+      async updateAgreementState(
+        state: ApiClientComponentState,
+        agreementId: string,
+        eserviceId: EServiceId,
+        consumerId: TenantId,
+        correlationId: string
+      ) {
+        const token = (await refreshableToken.get()).serialized;
+        const headers = getHeaders(correlationId, token);
+
+        await authMgmtClient.updateAgreementState(
+          {
+            agreementId,
+            state,
+          },
+          {
+            params: {
+              eserviceId,
+              consumerId,
+            },
+            withCredentials: true,
+            headers,
+          }
+        );
       },
     };
   };
