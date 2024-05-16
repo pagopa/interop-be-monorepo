@@ -146,7 +146,7 @@ export async function processActivateAgreement({
             : agreement.suspendedAt,
       };
 
-  const updatedAgreement = {
+  const updatedAgreement: Agreement = {
     ...agreement,
     ...updatedAgreementSeed,
   };
