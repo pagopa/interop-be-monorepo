@@ -11,7 +11,7 @@ import {
   TenantRevoker,
   badRequestError,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 
 import {
   ApiAgreement,
@@ -138,40 +138,36 @@ function fromApiTenantRevoker(revoker: ApiTenantRevoker): TenantRevoker {
 
 export const fromApiTenantAttribute = (
   input: ApiTenantAttribute
-): TenantAttribute =>
-  match<ApiTenantAttribute, TenantAttribute>(input)
-    .with(
-      { certified: P.nonNullable, verified: P.nullish, declared: P.nullish },
-      ({ certified }) => ({
-        type: tenantAttributeType.CERTIFIED,
-        id: unsafeBrandId<AttributeId>(certified.id),
-        assignmentTimestamp: new Date(certified.assignmentTimestamp),
-        revocationTimestamp: certified.revocationTimestamp
-          ? new Date(certified.revocationTimestamp)
-          : undefined,
-      })
-    )
-    .with(
-      { certified: P.nullish, verified: P.nonNullable, declared: P.nullish },
-      ({ verified }) => ({
-        type: tenantAttributeType.VERIFIED,
-        id: unsafeBrandId<AttributeId>(verified.id),
-        assignmentTimestamp: new Date(verified.assignmentTimestamp),
-        verifiedBy: verified.verifiedBy.map(fromApiTenantVerifier),
-        revokedBy: verified.revokedBy.map(fromApiTenantRevoker),
-      })
-    )
-    .with(
-      { certified: P.nullish, verified: P.nullish, declared: P.nonNullable },
-      ({ declared }) => ({
-        type: tenantAttributeType.DECLARED,
-        id: unsafeBrandId<AttributeId>(declared.id),
-        assignmentTimestamp: new Date(declared.assignmentTimestamp),
-      })
-    )
-    .otherwise(() => {
-      throw badRequestError("Invalid tenant attribute in API request");
-    });
+): TenantAttribute => {
+  if (input.certified && !input.verified && !input.declared) {
+    return {
+      type: tenantAttributeType.CERTIFIED,
+      id: unsafeBrandId<AttributeId>(input.certified.id),
+      assignmentTimestamp: new Date(input.certified.assignmentTimestamp),
+      revocationTimestamp: input.certified.revocationTimestamp
+        ? new Date(input.certified.revocationTimestamp)
+        : undefined,
+    };
+  } else if (input.verified && !input.certified && !input.declared) {
+    return {
+      type: tenantAttributeType.VERIFIED,
+      id: unsafeBrandId<AttributeId>(input.verified.id),
+      assignmentTimestamp: new Date(input.verified.assignmentTimestamp),
+      verifiedBy: input.verified.verifiedBy.map(fromApiTenantVerifier),
+      revokedBy: input.verified.revokedBy.map(fromApiTenantRevoker),
+    };
+  } else if (input.declared && !input.certified && !input.verified) {
+    return {
+      type: tenantAttributeType.DECLARED,
+      id: unsafeBrandId<AttributeId>(input.declared.id),
+      assignmentTimestamp: new Date(input.declared.assignmentTimestamp),
+    };
+  } else {
+    throw badRequestError(
+      `Invalid tenant attribute in API request: ${JSON.stringify(input)}`
+    );
+  }
+};
 
 export const fromApiCompactTenant = (
   input: ApiCompactTenant

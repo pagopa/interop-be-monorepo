@@ -227,48 +227,51 @@ async function updateAgreementState(
     suspendedByPlatform: newSuspendedByPlatform,
   };
 
-  if (
-    allowedStateTransitions(agreement.data.state).includes(finalState) &&
-    newSuspendedByPlatform !== agreement.data.suspendedByPlatform
-  ) {
-    return match(finalState)
-      .with(agreementState.suspended, () =>
-        toCreateEventAgreementSuspendedByPlatform(
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        )
-      )
-      .with(agreementState.active, () =>
-        toCreateEventAgreementUnsuspendedByPlatform(
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        )
-      )
-      .with(agreementState.missingCertifiedAttributes, () =>
-        toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        )
-      )
-      .with(agreementState.draft, () =>
-        toCreateEventAgreementPutInDraftByPlatform(
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        )
-      )
-      .otherwise(
-        () =>
-          void logger.error(
-            `Agreement state transition not allowed from ${agreement.data.state} to ${finalState}`
+  if (allowedStateTransitions(agreement.data.state).includes(finalState)) {
+    if (newSuspendedByPlatform !== agreement.data.suspendedByPlatform) {
+      return match(finalState)
+        .with(agreementState.suspended, () =>
+          toCreateEventAgreementSuspendedByPlatform(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
           )
+        )
+        .with(agreementState.active, () =>
+          toCreateEventAgreementUnsuspendedByPlatform(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
+        )
+        .with(agreementState.missingCertifiedAttributes, () =>
+          toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
+        )
+        .with(agreementState.draft, () =>
+          toCreateEventAgreementPutInDraftByPlatform(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
+        )
+        .otherwise(
+          () =>
+            void logger.error(
+              `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
+            )
+        );
+    } else {
+      logger.error(
+        `Skipping Agreement state transition from ${agreement.data.state} to ${finalState}, no change in suspendedByPlatform flag - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
       );
+    }
   } else {
     logger.error(
-      `Agreement state transition not allowed from ${agreement.data.state} to ${finalState}`
+      `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
     );
   }
 }
