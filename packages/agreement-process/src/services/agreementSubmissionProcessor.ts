@@ -35,7 +35,6 @@ import {
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { retrieveTenant } from "./agreementService.js";
@@ -51,7 +50,6 @@ export const processSubmitAgreement = async ({
   agreementData,
   eservice,
   payload,
-  agreementQuery,
   readModelService,
   contractBuilder,
   authData,
@@ -60,7 +58,6 @@ export const processSubmitAgreement = async ({
   agreementData: WithMetadata<Agreement>;
   eservice: EService;
   payload: ApiAgreementSubmissionPayload;
-  agreementQuery: AgreementQuery;
   readModelService: ReadModelService;
   contractBuilder: ContractBuilder;
   authData: AuthData;
@@ -100,7 +97,7 @@ export const processSubmitAgreement = async ({
   );
 
   const agreements = (
-    await agreementQuery.getAllAgreements({
+    await readModelService.getAllAgreements({
       producerId: agreement.producerId,
       consumerId: agreement.consumerId,
       eserviceId: agreement.eserviceId,

@@ -20,13 +20,13 @@ import {
 } from "../model/domain/toEvent.js";
 import { verifyConflictingAgreements } from "../model/domain/validators.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
+import { ReadModelService } from "./readmodel/readModelService.js";
 
 export async function createUpgradeOrNewDraft({
   agreement,
   descriptorId,
-  agreementQuery,
+  readModelService,
   canBeUpgraded,
   copyFile,
   authData,
@@ -35,7 +35,7 @@ export async function createUpgradeOrNewDraft({
 }: {
   agreement: WithMetadata<Agreement>;
   descriptorId: DescriptorId;
-  agreementQuery: AgreementQuery;
+  readModelService: ReadModelService;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
   authData: AuthData;
@@ -90,7 +90,7 @@ export async function createUpgradeOrNewDraft({
       agreement.data.consumerId,
       agreement.data.eserviceId,
       [agreementState.draft],
-      agreementQuery
+      readModelService
     );
 
     const id = generateId<AgreementId>();

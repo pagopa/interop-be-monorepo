@@ -23,7 +23,6 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
-import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { config } from "../src/utilities/config.js";
 
@@ -38,11 +37,8 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const agreementQuery = agreementQueryBuilder(readModelService);
-
 export const agreementService = agreementServiceBuilder(
   postgresDB,
-  agreementQuery,
   readModelService,
   fileManager
 );

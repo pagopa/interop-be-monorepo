@@ -406,7 +406,7 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async readAgreementById(
+    async getAgreementById(
       agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
@@ -483,21 +483,21 @@ export function readModelServiceBuilder(
     async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
-    async listConsumers(
+    async getConsumers(
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "consumerId", limit, offset);
     },
-    async listProducers(
+    async getProducers(
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
-    async listAgreementsEServices(
+    async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number

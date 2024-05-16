@@ -94,7 +94,6 @@ import {
   createAgreementSuspendedEvent,
   createAgreementSuspended,
 } from "./agreementSuspensionProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
@@ -116,7 +115,7 @@ export const retrieveEService = async (
 
 export const retrieveAgreement = async (
   agreementId: AgreementId,
-  readModelService: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<WithMetadata<Agreement>> => {
   const agreement = await readModelService.getAgreementById(agreementId);
   if (!agreement) {
@@ -154,7 +153,6 @@ const retrieveDescriptor = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  agreementQuery: AgreementQuery,
   readModelService: ReadModelService,
   fileManager: FileManager
 ) {
@@ -167,7 +165,7 @@ export function agreementServiceBuilder(
       logger: Logger
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await agreementQuery.getAgreements(filters, limit, offset);
+      return await readModelService.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
       agreementId: AgreementId,
@@ -175,7 +173,7 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       return agreement.data;
     },
     async createAgreement(
@@ -200,7 +198,7 @@ export function agreementServiceBuilder(
       await verifyCreationConflictingAgreements(
         authData.organizationId,
         agreementPayload,
-        agreementQuery
+        readModelService
       );
       const consumer = await retrieveTenant(
         authData.organizationId,
@@ -240,7 +238,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await agreementQuery.getProducers(producerName, limit, offset);
+      return await readModelService.getProducers(producerName, limit, offset);
     },
     async getAgreementConsumers(
       consumerName: string | undefined,
@@ -251,7 +249,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      return await agreementQuery.getConsumers(consumerName, limit, offset);
+      return await readModelService.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
       agreementId: AgreementId,
@@ -261,7 +259,7 @@ export function agreementServiceBuilder(
       logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await retrieveAgreement(
         agreementId,
-        agreementQuery
+        readModelService
       );
 
       assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
@@ -290,7 +288,7 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumer(agreement.data, authData);
 
@@ -319,13 +317,13 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumer(agreement.data, authData);
       assertSubmittableState(agreement.data.state, agreement.data.id);
       await verifySubmissionConflictingAgreements(
         agreement.data,
-        agreementQuery
+        readModelService
       );
 
       const eservice = await retrieveEService(
@@ -337,7 +335,6 @@ export function agreementServiceBuilder(
         agreementData: agreement,
         eservice,
         payload,
-        agreementQuery,
         readModelService,
         contractBuilder: contractBuilder(
           authData.selfcareId,
@@ -363,7 +360,7 @@ export function agreementServiceBuilder(
 
       const agreementToBeUpgraded = await retrieveAgreement(
         agreementId,
-        agreementQuery
+        readModelService
       );
 
       assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
@@ -434,7 +431,7 @@ export function agreementServiceBuilder(
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         descriptorId: newDescriptor.id,
-        agreementQuery,
+        readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
         authData,
@@ -456,7 +453,7 @@ export function agreementServiceBuilder(
 
       const agreementToBeCloned = await retrieveAgreement(
         agreementId,
-        agreementQuery
+        readModelService
       );
       assertRequesterIsConsumer(agreementToBeCloned.data, authData);
 
@@ -466,7 +463,7 @@ export function agreementServiceBuilder(
         agreementClonableStates
       );
 
-      const activeAgreement = await agreementQuery.getAllAgreements({
+      const activeAgreement = await readModelService.getAllAgreements({
         consumerId: authData.organizationId,
         eserviceId: agreementToBeCloned.data.eserviceId,
         agreementStates: agreementCloningConflictingStates,
@@ -527,7 +524,7 @@ export function agreementServiceBuilder(
     ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       assertRequesterIsConsumer(agreement.data, authData);
       assertCanWorkOnConsumerDocuments(agreement.data.state);
 
@@ -564,7 +561,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
       const document = agreement.data.consumerDocuments.find(
@@ -583,7 +580,7 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Suspending agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
@@ -636,7 +633,11 @@ export function agreementServiceBuilder(
         `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
 
-      return await agreementQuery.getEServices(filters, limit, offset);
+      return await readModelService.getAgreementsEServices(
+        filters,
+        limit,
+        offset
+      );
     },
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
@@ -647,7 +648,7 @@ export function agreementServiceBuilder(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       assertRequesterIsConsumer(agreement.data, authData);
       assertCanWorkOnConsumerDocuments(agreement.data.state);
 
@@ -686,7 +687,7 @@ export function agreementServiceBuilder(
 
       const agreementToBeRejected = await retrieveAgreement(
         agreementId,
-        agreementQuery
+        readModelService
       );
 
       assertRequesterIsProducer(agreementToBeRejected.data, authData);
@@ -748,7 +749,7 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
@@ -764,7 +765,6 @@ export function agreementServiceBuilder(
         eservice,
         authData,
         readModelService,
-        agreementQuery,
         storeFile: fileManager.storeBytes,
         correlationId,
         logger,
@@ -781,7 +781,7 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Archiving agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(agreementId, agreementQuery);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       assertRequesterIsConsumer(agreement.data, authData);
       assertExpectedState(
         agreementId,

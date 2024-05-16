@@ -25,7 +25,6 @@ import {
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
-import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import {
   cloneAgreementErrorMapper,
@@ -48,7 +47,6 @@ import { makeApiProblem } from "../model/domain/errors.js";
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-const agreementQuery = agreementQueryBuilder(readModelService);
 
 const agreementService = agreementServiceBuilder(
   initDB({
@@ -60,7 +58,6 @@ const agreementService = agreementServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  agreementQuery,
   readModelService,
   initFileManager(config)
 );

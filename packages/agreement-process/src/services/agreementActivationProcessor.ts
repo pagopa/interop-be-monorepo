@@ -39,7 +39,6 @@ import {
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
@@ -53,7 +52,6 @@ export async function processActivateAgreement({
   eservice,
   authData,
   readModelService,
-  agreementQuery,
   storeFile,
   correlationId,
   logger,
@@ -62,7 +60,6 @@ export async function processActivateAgreement({
   eservice: EService;
   authData: AuthData;
   readModelService: ReadModelService;
-  agreementQuery: AgreementQuery;
   storeFile: FileManager["storeBytes"];
   correlationId: string;
   logger: Logger;
@@ -193,7 +190,7 @@ export async function processActivateAgreement({
   const archiveEvents = await archiveRelatedToAgreements(
     agreement,
     authData,
-    agreementQuery,
+    readModelService,
     correlationId
   );
 
@@ -203,10 +200,10 @@ export async function processActivateAgreement({
 const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
-  agreementQuery: AgreementQuery,
+  readModelService: ReadModelService,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
-  const existingAgreements = await agreementQuery.getAllAgreements({
+  const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
   });
