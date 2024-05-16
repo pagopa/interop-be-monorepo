@@ -4690,8 +4690,12 @@ describe("database test", async () => {
           catalogService.createRiskAnalysis(
             eservice.id,
             buildRiskAnalysisSeed(newRiskAnalysis),
-            getMockAuthData(eservice.producerId),
-            uuidv4()
+            {
+              authData: getMockAuthData(producer.id),
+              correlationId: "",
+              serviceName: "",
+              logger: genericLogger,
+            }
           )
         ).rejects.toThrowError(
           riskAnalysisDuplicate(newRiskAnalysis.name, eservice.id)
@@ -5113,8 +5117,12 @@ describe("database test", async () => {
             eservice.id,
             riskAnalysis_1.id,
             buildRiskAnalysisSeed(riskAnalysis_1, riskAnalysis_2.name),
-            getMockAuthData(producer.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(producer.id),
+              correlationId: "",
+              serviceName: "",
+              logger: genericLogger,
+            }
           )
         ).rejects.toThrowError(
           riskAnalysisDuplicate(riskAnalysis_2.name, eservice.id)
