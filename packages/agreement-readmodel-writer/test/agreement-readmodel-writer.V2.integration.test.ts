@@ -117,6 +117,7 @@ describe("events V2", async () => {
     const spyDelete = vi.spyOn(agreements, "deleteOne");
 
     const agreement = getMockAgreement();
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
     const eventTypesConsumerDocument = [
       "AgreementConsumerDocumentAdded",
