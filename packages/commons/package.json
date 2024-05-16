@@ -34,7 +34,7 @@
     "pg-promise": "11.6.0",
     "ts-pattern": "5.1.1",
     "uuid": "9.0.1",
-    "winston": "3.9.0",
+    "winston": "3.13.0",
     "zod": "3.22.3",
     "zod-validation-error": "^3.1.0"
   },
