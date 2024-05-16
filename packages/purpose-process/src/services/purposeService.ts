@@ -3,6 +3,7 @@ import {
   DB,
   Logger,
   eventRepository,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -24,11 +25,18 @@ import {
   PurposeRiskAnalysisForm,
   PurposeEvent,
   eserviceMode,
+  ListResult,
+  unsafeBrandId,
+  generateId,
+  Agreement,
+  RiskAnalysisId,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  duplicatedPurposeTitle,
+  agreementNotFound,
   eserviceNotFound,
+  eserviceRiskAnalysisNotFound,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -43,6 +51,7 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -53,8 +62,10 @@ import {
 import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
+  ApiPurposeSeed,
+  ApiReversePurposeSeed,
 } from "../model/domain/models.js";
-import { ReadModelService } from "./readModelService.js";
+import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
   assertEserviceMode,
@@ -70,6 +81,8 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
+  validateRiskAnalysisOrThrow,
+  assertPurposeTitleIsNotDuplicated,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -136,6 +149,36 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveActiveAgreement = async (
+  eserviceId: EServiceId,
+  consumerId: TenantId,
+  readModelService: ReadModelService
+): Promise<Agreement> => {
+  const activeAgreement = await readModelService.getActiveAgreement(
+    eserviceId,
+    consumerId
+  );
+  if (activeAgreement === undefined) {
+    throw agreementNotFound(eserviceId, consumerId);
+  }
+  return activeAgreement;
+};
+
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): RiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
+
+  if (riskAnalysis === undefined) {
+    throw eserviceRiskAnalysisNotFound(eservice.id, riskAnalysisId);
+  }
+
+  return riskAnalysis;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -502,6 +545,194 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return suspendedPurposeVersion;
     },
+    async getPurposes(
+      organizationId: TenantId,
+      filters: GetPurposesFilters,
+      { offset, limit }: { offset: number; limit: number },
+      logger: Logger
+    ): Promise<ListResult<Purpose>> {
+      logger.info(
+        `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const purposesList = await readModelService.getPurposes(filters, {
+        offset,
+        limit,
+      });
+
+      const mappingPurposeEservice = await Promise.all(
+        purposesList.results.map(async (purpose) => {
+          const eservice = await retrieveEService(
+            purpose.eserviceId,
+            readModelService
+          );
+          if (eservice === undefined) {
+            throw eserviceNotFound(purpose.eserviceId);
+          }
+          return {
+            purpose,
+            eservice,
+          };
+        })
+      );
+
+      const purposesToReturn = mappingPurposeEservice.map(
+        ({ purpose, eservice }) => {
+          const isProducerOrConsumer =
+            organizationId === purpose.consumerId ||
+            organizationId === eservice.producerId;
+
+          return {
+            ...purpose,
+            riskAnalysisForm: isProducerOrConsumer
+              ? purpose.riskAnalysisForm
+              : undefined,
+          };
+        }
+      );
+
+      return {
+        results: purposesToReturn,
+        totalCount: purposesList.totalCount,
+      };
+    },
+    async createPurpose(
+      purposeSeed: ApiPurposeSeed,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
+      );
+      const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
+      const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
+      assertOrganizationIsAConsumer(organizationId, consumerId);
+
+      assertConsistentFreeOfCharge(
+        purposeSeed.isFreeOfCharge,
+        purposeSeed.freeOfChargeReason
+      );
+
+      const tenant = await retrieveTenant(organizationId, readModelService);
+
+      assertTenantKindExists(tenant);
+
+      const validatedFormSeed = validateAndTransformRiskAnalysis(
+        purposeSeed.riskAnalysisForm,
+        false,
+        tenant.kind
+      );
+
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
+
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
+        eserviceId,
+        consumerId,
+        title: purposeSeed.title,
+      });
+
+      const purpose: Purpose = {
+        ...purposeSeed,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId,
+        consumerId,
+        versions: [
+          {
+            id: generateId(),
+            state: purposeVersionState.draft,
+            dailyCalls: purposeSeed.dailyCalls,
+            createdAt: new Date(),
+          },
+        ],
+        riskAnalysisForm: validatedFormSeed,
+      };
+
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
+      return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
+    },
+    async createReversePurpose(
+      organizationId: TenantId,
+      seed: ApiReversePurposeSeed,
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(
+        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+      );
+      const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
+      const consumerId: TenantId = unsafeBrandId(seed.consumerId);
+
+      assertOrganizationIsAConsumer(organizationId, consumerId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertEserviceMode(eservice, eserviceMode.receive);
+
+      const riskAnalysis = retrieveRiskAnalysis(
+        unsafeBrandId(seed.riskAnalysisId),
+        eservice
+      );
+
+      assertConsistentFreeOfCharge(
+        seed.isFreeOfCharge,
+        seed.freeOfChargeReason
+      );
+
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      assertTenantKindExists(producer);
+
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
+
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
+        eserviceId,
+        consumerId,
+        title: seed.title,
+      });
+
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+          riskAnalysis.riskAnalysisForm
+        ),
+        schemaOnlyValidation: false,
+        tenantKind: producer.kind,
+      });
+
+      const newVersion: PurposeVersion = {
+        id: generateId(),
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        dailyCalls: seed.dailyCalls,
+      };
+
+      const purpose: Purpose = {
+        title: seed.title,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId,
+        consumerId,
+        description: seed.description,
+        versions: [newVersion],
+        isFreeOfCharge: seed.isFreeOfCharge,
+        freeOfChargeReason: seed.freeOfChargeReason,
+        riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+      };
+
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
+      return {
+        purpose,
+        isRiskAnalysisValid: true,
+      };
+    },
   };
 }
 
@@ -605,15 +836,12 @@ const performUpdatePurpose = async (
   assertPurposeIsDraft(purpose.data);
 
   if (updateContent.title !== purpose.data.title) {
-    const purposeWithSameTitle = await readModelService.getPurpose(
-      purpose.data.eserviceId,
-      purpose.data.consumerId,
-      updateContent.title
-    );
-
-    if (purposeWithSameTitle) {
-      throw duplicatedPurposeTitle(updateContent.title);
-    }
+    await assertPurposeTitleIsNotDuplicated({
+      readModelService,
+      eserviceId: purpose.data.eserviceId,
+      consumerId: purpose.data.consumerId,
+      title: updateContent.title,
+    });
   }
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
@@ -637,10 +865,12 @@ const performUpdatePurpose = async (
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           updateContent.riskAnalysisForm,
+          true,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
           purpose.data.riskAnalysisForm,
+          true,
           tenant.kind
         );
 

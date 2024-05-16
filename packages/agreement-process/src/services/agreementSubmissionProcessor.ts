@@ -41,11 +41,7 @@ import {
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import {
-  agreementStateByFlags,
-  nextState,
-  suspendedByPlatformFlag,
-} from "./agreementStateProcessor.js";
+import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
@@ -66,9 +62,8 @@ export async function submitAgreementLogic(
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   ctx: WithLogger<AppContext>
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const logger = ctx.logger;
-
   logger.info(`Submitting agreement ${agreementId}`);
 
   const agreement = await agreementQuery.getAgreementById(agreementId);
@@ -122,16 +117,14 @@ const submitAgreement = async (
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
   { authData, correlationId }: WithLogger<AppContext>
-): Promise<Array<CreateEvent<AgreementEvent>>> => {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
-  const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
 
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     undefined,
-    undefined,
-    suspendedByPlatform
+    undefined
   );
 
   if (agreement.state === agreementState.draft) {
@@ -147,7 +140,7 @@ const submitAgreement = async (
     payload,
     stamps,
     newState,
-    suspendedByPlatform
+    false
   );
 
   const agreements = (
@@ -215,7 +208,10 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
-  return [submittedAgreementEvent, ...archivedAgreementsUpdates];
+  return [
+    submittedAgreement,
+    [submittedAgreementEvent, ...archivedAgreementsUpdates],
+  ];
 };
 
 const createContract = async (

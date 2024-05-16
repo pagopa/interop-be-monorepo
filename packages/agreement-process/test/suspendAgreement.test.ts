@@ -21,7 +21,8 @@ import {
 import {
   Agreement,
   AgreementId,
-  AgreementUpdatedV1,
+  AgreementSuspendedByConsumerV2,
+  AgreementSuspendedByProducerV2,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -30,10 +31,10 @@ import {
   VerifiedTenantAttribute,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { agreementSuspendableStates } from "../src/model/domain/validators.js";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   agreementNotFound,
@@ -44,9 +45,9 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
-  addOneTenant,
-  addOneEService,
   addOneAgreement,
+  addOneEService,
+  addOneTenant,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -113,6 +114,7 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
+      suspendedByPlatform: false,
       state: randomArrayItem(agreementSuspendableStates),
     };
 
@@ -135,15 +137,20 @@ describe("suspend agreement", () => {
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
+    const isConsumer = requesterId === agreement.consumerId;
     expect(agreementEvent).toMatchObject({
-      type: "AgreementUpdated",
-      event_version: 1,
+      type: isConsumer
+        ? "AgreementSuspendedByConsumer"
+        : "AgreementSuspendedByProducer",
+      event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const actualAgreementSuspended = decodeProtobufPayload({
-      messageType: AgreementUpdatedV1,
+      messageType: isConsumer
+        ? AgreementSuspendedByConsumerV2
+        : AgreementSuspendedByProducerV2,
       payload: agreementEvent.data,
     }).agreement;
 
@@ -151,7 +158,6 @@ describe("suspend agreement", () => {
       the agreement will be suspended with suspendedByPlatform flag set to false
       and suspendedByConsumer or suspendedByProducer flag set
       to true depending on the requester (consumer or producer) */
-    const isConsumer = requesterId === agreement.consumerId;
     const expectedStamps = {
       suspensionByConsumer: isConsumer
         ? {
@@ -186,7 +192,7 @@ describe("suspend agreement", () => {
       },
     };
     expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV1(expectedAgreementSuspended)
+      toAgreementV2(expectedAgreementSuspended)
     );
   });
 
@@ -241,6 +247,7 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
+      suspendedByPlatform: false,
       state: randomArrayItem(agreementSuspendableStates),
     };
 
@@ -263,15 +270,20 @@ describe("suspend agreement", () => {
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
+    const isConsumer = requesterId === agreement.consumerId;
     expect(agreementEvent).toMatchObject({
-      type: "AgreementUpdated",
-      event_version: 1,
+      type: isConsumer
+        ? "AgreementSuspendedByConsumer"
+        : "AgreementSuspendedByProducer",
+      event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const actualAgreementSuspended = decodeProtobufPayload({
-      messageType: AgreementUpdatedV1,
+      messageType: isConsumer
+        ? AgreementSuspendedByConsumerV2
+        : AgreementSuspendedByProducerV2,
       payload: agreementEvent.data,
     }).agreement;
 
@@ -279,7 +291,6 @@ describe("suspend agreement", () => {
       the agreement will be suspended with suspendedByPlatform flag set to true
       and suspendedByConsumer or suspendedByProducer flag set
       to true depending on the requester (consumer or producer) */
-    const isConsumer = requesterId === agreement.consumerId;
     const expectedStamps = {
       suspensionByConsumer: isConsumer
         ? {
@@ -301,7 +312,7 @@ describe("suspend agreement", () => {
       suspendedByProducer: !isConsumer
         ? true
         : agreement.suspendedByProducer ?? false,
-      suspendedByPlatform: true, // This is the difference with the previous test
+      suspendedByPlatform: false,
     };
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
@@ -314,7 +325,7 @@ describe("suspend agreement", () => {
       },
     };
     expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV1(expectedAgreementSuspended)
+      toAgreementV2(expectedAgreementSuspended)
     );
   });
 
@@ -336,6 +347,7 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
+      suspendedByPlatform: false,
       state: randomArrayItem(agreementSuspendableStates),
     };
 
@@ -355,14 +367,14 @@ describe("suspend agreement", () => {
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
     expect(agreementEvent).toMatchObject({
-      type: "AgreementUpdated",
-      event_version: 1,
+      type: "AgreementSuspendedByProducer",
+      event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const actualAgreementSuspended = decodeProtobufPayload({
-      messageType: AgreementUpdatedV1,
+      messageType: AgreementSuspendedByProducerV2,
       payload: agreementEvent.data,
     }).agreement;
 
@@ -389,7 +401,7 @@ describe("suspend agreement", () => {
       },
     };
     expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV1(expectedAgreementSuspended)
+      toAgreementV2(expectedAgreementSuspended)
     );
   });
 
@@ -451,7 +463,7 @@ describe("suspend agreement", () => {
       state: agreementState.suspended,
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
-      suspendedByPlatform: randomBoolean(),
+      suspendedByPlatform: false,
       stamps: {
         activation: createStamp(authData),
         archiving: createStamp(authData),
@@ -476,19 +488,23 @@ describe("suspend agreement", () => {
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
+    const isConsumer = requesterId === agreement.consumerId;
     expect(agreementEvent).toMatchObject({
-      type: "AgreementUpdated",
-      event_version: 1,
+      type: isConsumer
+        ? "AgreementSuspendedByConsumer"
+        : "AgreementSuspendedByProducer",
+      event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const actualAgreementSuspended = decodeProtobufPayload({
-      messageType: AgreementUpdatedV1,
+      messageType: isConsumer
+        ? AgreementSuspendedByConsumerV2
+        : AgreementSuspendedByProducerV2,
       payload: agreementEvent.data,
     }).agreement;
 
-    const isConsumer = requesterId === agreement.consumerId;
     const expectedStamps = {
       suspensionByConsumer: isConsumer
         ? {
@@ -523,7 +539,7 @@ describe("suspend agreement", () => {
       },
     };
     expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV1(expectedAgreementSuspended)
+      toAgreementV2(expectedAgreementSuspended)
     );
   });
 
