@@ -29,7 +29,7 @@ import {
 import { StartedTestContainer } from "testcontainers";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import { toAgreementDocumentV1 } from "./converterV1.js";
+import { toAgreementDocumentV1 } from "./protobufConverterToV1.js";
 
 describe("events V1", async () => {
   let agreements: AgreementCollection;
