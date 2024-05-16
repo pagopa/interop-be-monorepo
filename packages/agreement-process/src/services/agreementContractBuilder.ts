@@ -3,7 +3,7 @@ import { Agreement, EService, SelfcareId, Tenant } from "pagopa-interop-models";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { pdfGenerator } from "./pdfGenerator.js";
-import { ReadModelService } from "./readmodel/readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (

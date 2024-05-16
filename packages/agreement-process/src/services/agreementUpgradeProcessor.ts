@@ -21,7 +21,7 @@ import {
 import { verifyConflictingAgreements } from "../model/domain/validators.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
-import { ReadModelService } from "./readmodel/readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export async function createUpgradeOrNewDraft({
   agreement,

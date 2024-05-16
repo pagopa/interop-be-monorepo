@@ -42,7 +42,7 @@ import {
   VerifiedAgreementAttribute,
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
-import { ReadModelService } from "./readmodel/readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,

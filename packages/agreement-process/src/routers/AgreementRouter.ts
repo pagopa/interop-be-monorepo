@@ -25,7 +25,7 @@ import {
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
-import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   cloneAgreementErrorMapper,
   addConsumerDocumentErrorMapper,

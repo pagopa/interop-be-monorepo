@@ -45,7 +45,7 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 import { retrieveTenant } from "./agreementService.js";
-import { ReadModelService } from "./readmodel/readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export async function processActivateAgreement({
   agreementData,

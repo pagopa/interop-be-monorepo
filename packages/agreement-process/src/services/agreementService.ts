@@ -98,7 +98,7 @@ import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
   ReadModelService,
-} from "./readmodel/readModelService.js";
+} from "./readModelService.js";
 
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 

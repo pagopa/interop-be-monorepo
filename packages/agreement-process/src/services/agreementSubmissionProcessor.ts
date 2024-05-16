@@ -38,7 +38,7 @@ import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { retrieveTenant } from "./agreementService.js";
-import { ReadModelService } from "./readmodel/readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;

@@ -22,7 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { ApiAgreementPayload } from "../types.js";
-import { ReadModelService } from "../../services/readmodel/readModelService.js";
+import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,

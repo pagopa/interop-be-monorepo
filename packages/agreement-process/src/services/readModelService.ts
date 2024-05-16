@@ -33,7 +33,7 @@ import { Document, Filter } from "mongodb";
 import {
   CompactEService,
   CompactOrganization,
-} from "../../model/domain/models.js";
+} from "../model/domain/models.js";
 
 export type AgreementQueryFilters = {
   producerId?: TenantId | TenantId[];
