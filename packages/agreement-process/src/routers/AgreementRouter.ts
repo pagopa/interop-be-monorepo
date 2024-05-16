@@ -26,7 +26,6 @@ import {
 import { config } from "../utilities/config.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
-import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import {
   cloneAgreementErrorMapper,
@@ -50,7 +49,6 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const agreementQuery = agreementQueryBuilder(readModelService);
-const attributeQuery = attributeQueryBuilder(readModelService);
 
 const agreementService = agreementServiceBuilder(
   initDB({
@@ -64,7 +62,6 @@ const agreementService = agreementServiceBuilder(
   }),
   agreementQuery,
   readModelService,
-  attributeQuery,
   initFileManager(config)
 );
 

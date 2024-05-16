@@ -45,7 +45,6 @@ import {
   suspendedByConsumerStamp,
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { retrieveTenant } from "./agreementService.js";
 import { ReadModelService } from "./readmodel/readModelService.js";
 
@@ -55,7 +54,6 @@ export async function processActivateAgreement({
   authData,
   readModelService,
   agreementQuery,
-  attributeQuery,
   storeFile,
   correlationId,
   logger,
@@ -65,7 +63,6 @@ export async function processActivateAgreement({
   authData: AuthData;
   readModelService: ReadModelService;
   agreementQuery: AgreementQuery;
-  attributeQuery: AttributeQuery;
   storeFile: FileManager["storeBytes"];
   correlationId: string;
   logger: Logger;
@@ -159,7 +156,6 @@ export async function processActivateAgreement({
           updatedAgreementSeed,
           eservice,
           consumer,
-          attributeQuery,
           readModelService,
           authData.selfcareId,
           storeFile,
@@ -248,7 +244,6 @@ const createContract = async (
   updateSeed: UpdateAgreementSeed,
   eservice: EService,
   consumer: Tenant,
-  attributeQuery: AttributeQuery,
   readModelService: ReadModelService,
   selfcareId: SelfcareId,
   storeFile: FileManager["storeBytes"],
@@ -258,7 +253,7 @@ const createContract = async (
 
   return await contractBuilder(
     selfcareId,
-    attributeQuery,
+    readModelService,
     storeFile,
     logger
   ).createContract(agreement, eservice, consumer, producer, updateSeed);

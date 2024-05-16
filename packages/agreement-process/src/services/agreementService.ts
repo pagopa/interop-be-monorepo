@@ -95,7 +95,6 @@ import {
   createAgreementSuspended,
 } from "./agreementSuspensionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
@@ -157,7 +156,6 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   agreementQuery: AgreementQuery,
   readModelService: ReadModelService,
-  attributeQuery: AttributeQuery,
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
@@ -343,7 +341,7 @@ export function agreementServiceBuilder(
         readModelService,
         contractBuilder: contractBuilder(
           authData.selfcareId,
-          attributeQuery,
+          readModelService,
           fileManager.storeBytes,
           logger
         ),
@@ -767,7 +765,6 @@ export function agreementServiceBuilder(
         authData,
         readModelService,
         agreementQuery,
-        attributeQuery,
         storeFile: fileManager.storeBytes,
         correlationId,
         logger,
