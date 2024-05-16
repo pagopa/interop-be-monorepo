@@ -102,12 +102,11 @@ import {
   ReadModelService,
 } from "./readmodel/readModelService.js";
 
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: EserviceQuery
+  readModelService: ReadModelService
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
@@ -158,7 +157,6 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   agreementQuery: AgreementQuery,
   readModelService: ReadModelService,
-  eserviceQuery: EserviceQuery,
   attributeQuery: AttributeQuery,
   fileManager: FileManager
 ) {
@@ -197,7 +195,7 @@ export function agreementServiceBuilder(
         agreementPayload.descriptorId
       );
 
-      const eservice = await retrieveEService(eserviceId, eserviceQuery);
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
       const descriptor = validateCreationOnDescriptor(eservice, descriptorId);
 
@@ -334,7 +332,7 @@ export function agreementServiceBuilder(
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
-        eserviceQuery
+        readModelService
       );
 
       const [submittedAgreement, updatesEvents] = await processSubmitAgreement({
@@ -380,7 +378,7 @@ export function agreementServiceBuilder(
 
       const eservice = await retrieveEService(
         agreementToBeUpgraded.data.eserviceId,
-        eserviceQuery
+        readModelService
       );
 
       const newDescriptor = eservice.descriptors.find(
@@ -484,7 +482,7 @@ export function agreementServiceBuilder(
 
       const eservice = await retrieveEService(
         agreementToBeCloned.data.eserviceId,
-        eserviceQuery
+        readModelService
       );
 
       const descriptor = retrieveDescriptor(
@@ -599,7 +597,7 @@ export function agreementServiceBuilder(
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
-        eserviceQuery
+        readModelService
       );
 
       const descriptor = retrieveDescriptor(
@@ -703,7 +701,7 @@ export function agreementServiceBuilder(
 
       const eservice = await retrieveEService(
         agreementToBeRejected.data.eserviceId,
-        eserviceQuery
+        readModelService
       );
 
       const descriptor = retrieveDescriptor(
@@ -760,7 +758,7 @@ export function agreementServiceBuilder(
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
-        eserviceQuery
+        readModelService
       );
 
       const [updatedAgreement, updatesEvents] = await processActivateAgreement({

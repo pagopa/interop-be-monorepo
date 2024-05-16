@@ -26,7 +26,6 @@ import {
 import { config } from "../utilities/config.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
-import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import {
@@ -51,7 +50,6 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const agreementQuery = agreementQueryBuilder(readModelService);
-const eserviceQuery = eserviceQueryBuilder(readModelService);
 const attributeQuery = attributeQueryBuilder(readModelService);
 
 const agreementService = agreementServiceBuilder(
@@ -65,7 +63,7 @@ const agreementService = agreementServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   agreementQuery,
-  eserviceQuery,
+  readModelService,
   attributeQuery,
   initFileManager(config)
 );
