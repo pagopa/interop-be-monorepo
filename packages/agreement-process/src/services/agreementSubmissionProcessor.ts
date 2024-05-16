@@ -37,9 +37,9 @@ import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { retrieveTenant } from "./agreementService.js";
+import { ReadModelService } from "./readmodel/readModelService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -52,7 +52,7 @@ export const processSubmitAgreement = async ({
   eservice,
   payload,
   agreementQuery,
-  tenantQuery,
+  readModelService,
   contractBuilder,
   authData,
   correlationId,
@@ -61,7 +61,7 @@ export const processSubmitAgreement = async ({
   eservice: EService;
   payload: ApiAgreementSubmissionPayload;
   agreementQuery: AgreementQuery;
-  tenantQuery: TenantQuery;
+  readModelService: ReadModelService;
   contractBuilder: ContractBuilder;
   authData: AuthData;
   correlationId: string;
@@ -73,7 +73,7 @@ export const processSubmitAgreement = async ({
     agreement.descriptorId
   );
 
-  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
+  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
 
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
 
@@ -84,7 +84,7 @@ export const processSubmitAgreement = async ({
   );
 
   if (agreement.state === agreementState.draft) {
-    await validateConsumerEmail(agreement, tenantQuery);
+    await validateConsumerEmail(agreement, readModelService);
   }
   const stamp = createStamp(authData);
   const stamps = calculateStamps(agreement, newState, stamp);
@@ -122,7 +122,7 @@ export const processSubmitAgreement = async ({
             eservice,
             consumer,
             updateSeed,
-            tenantQuery,
+            readModelService,
             contractBuilder
           ),
         }
@@ -175,10 +175,10 @@ const createContract = async (
   eservice: EService,
   consumer: Tenant,
   seed: UpdateAgreementSeed,
-  tenantQuery: TenantQuery,
+  readModelService: ReadModelService,
   constractBuilder: ContractBuilder
 ): Promise<AgreementDocument> => {
-  const producer = await retrieveTenant(agreement.producerId, tenantQuery);
+  const producer = await retrieveTenant(agreement.producerId, readModelService);
 
   if (agreement.contract) {
     throw contractAlreadyExists(agreement.id);
@@ -202,9 +202,9 @@ const createContract = async (
 
 const validateConsumerEmail = async (
   agreement: Agreement,
-  tenantQuery: TenantQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
-  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
+  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
 
   if (
     !consumer.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)

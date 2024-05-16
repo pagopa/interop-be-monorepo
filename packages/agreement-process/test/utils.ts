@@ -27,7 +27,6 @@ import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.
 import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
-import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
@@ -43,13 +42,12 @@ export const readModelService = readModelServiceBuilder(readModelRepository);
 
 const eserviceQuery = eserviceQueryBuilder(readModelService);
 const agreementQuery = agreementQueryBuilder(readModelService);
-const tenantQuery = tenantQueryBuilder(readModelService);
 const attributeQuery = attributeQueryBuilder(readModelService);
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   agreementQuery,
-  tenantQuery,
+  readModelService,
   eserviceQuery,
   attributeQuery,
   fileManager

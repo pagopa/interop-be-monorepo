@@ -40,7 +40,6 @@ import {
 } from "./agreementStateProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
@@ -48,12 +47,13 @@ import {
 } from "./agreementStampUtils.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { retrieveTenant } from "./agreementService.js";
+import { ReadModelService } from "./readmodel/readModelService.js";
 
 export async function processActivateAgreement({
   agreementData,
   eservice,
   authData,
-  tenantQuery,
+  readModelService,
   agreementQuery,
   attributeQuery,
   storeFile,
@@ -63,7 +63,7 @@ export async function processActivateAgreement({
   agreementData: WithMetadata<Agreement>;
   eservice: EService;
   authData: AuthData;
-  tenantQuery: TenantQuery;
+  readModelService: ReadModelService;
   agreementQuery: AgreementQuery;
   attributeQuery: AttributeQuery;
   storeFile: FileManager["storeBytes"];
@@ -77,7 +77,7 @@ export async function processActivateAgreement({
     agreement.descriptorId
   );
 
-  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
+  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
 
   const nextAttributesState = nextState(agreement, descriptor, consumer);
 
@@ -160,7 +160,7 @@ export async function processActivateAgreement({
           eservice,
           consumer,
           attributeQuery,
-          tenantQuery,
+          readModelService,
           authData.selfcareId,
           storeFile,
           logger
@@ -249,12 +249,12 @@ const createContract = async (
   eservice: EService,
   consumer: Tenant,
   attributeQuery: AttributeQuery,
-  tenantQuery: TenantQuery,
+  readModelService: ReadModelService,
   selfcareId: SelfcareId,
   storeFile: FileManager["storeBytes"],
   logger: Logger
 ): Promise<ApiAgreementDocumentSeed> => {
-  const producer = await retrieveTenant(agreement.producerId, tenantQuery);
+  const producer = await retrieveTenant(agreement.producerId, readModelService);
 
   return await contractBuilder(
     selfcareId,

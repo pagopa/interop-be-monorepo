@@ -99,10 +99,10 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
+  ReadModelService,
 } from "./readmodel/readModelService.js";
 
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 
 export const retrieveEService = async (
@@ -129,7 +129,7 @@ export const retrieveAgreement = async (
 
 export const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: TenantQuery
+  readModelService: ReadModelService
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -157,7 +157,7 @@ const retrieveDescriptor = (
 export function agreementServiceBuilder(
   dbInstance: DB,
   agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
+  readModelService: ReadModelService,
   eserviceQuery: EserviceQuery,
   attributeQuery: AttributeQuery,
   fileManager: FileManager
@@ -208,7 +208,7 @@ export function agreementServiceBuilder(
       );
       const consumer = await retrieveTenant(
         authData.organizationId,
-        tenantQuery
+        readModelService
       );
       if (eservice.producerId !== consumer.id) {
         validateCertifiedAttributes({ descriptor, consumer });
@@ -342,7 +342,7 @@ export function agreementServiceBuilder(
         eservice,
         payload,
         agreementQuery,
-        tenantQuery,
+        readModelService,
         contractBuilder: contractBuilder(
           authData.selfcareId,
           attributeQuery,
@@ -414,7 +414,7 @@ export function agreementServiceBuilder(
 
       const consumer = await retrieveTenant(
         authData.organizationId,
-        tenantQuery
+        readModelService
       );
 
       if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
@@ -496,7 +496,7 @@ export function agreementServiceBuilder(
         descriptor,
         consumer: await retrieveTenant(
           agreementToBeCloned.data.consumerId,
-          tenantQuery
+          readModelService
         ),
       });
 
@@ -609,7 +609,7 @@ export function agreementServiceBuilder(
 
       const consumer = await retrieveTenant(
         agreement.data.consumerId,
-        tenantQuery
+        readModelService
       );
 
       const updatedAgreement: Agreement = createAgreementSuspended({
@@ -713,7 +713,7 @@ export function agreementServiceBuilder(
 
       const consumer = await retrieveTenant(
         agreementToBeRejected.data.consumerId,
-        tenantQuery
+        readModelService
       );
 
       const stamp = createStamp(authData);
@@ -767,7 +767,7 @@ export function agreementServiceBuilder(
         agreementData: agreement,
         eservice,
         authData,
-        tenantQuery,
+        readModelService,
         agreementQuery,
         attributeQuery,
         storeFile: fileManager.storeBytes,
