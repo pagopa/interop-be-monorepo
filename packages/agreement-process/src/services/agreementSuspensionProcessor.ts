@@ -7,6 +7,7 @@ import {
   TenantId,
   WithMetadata,
   agreementState,
+  genericError,
 } from "pagopa-interop-models";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
@@ -98,7 +99,7 @@ export function createAgreementSuspendedEvent(
   const isConsumer = organizationId === agreement.data.consumerId;
 
   if (!isProducer && !isConsumer) {
-    throw new Error(
+    throw genericError(
       "Agreement can only be suspended by the consumer or producer."
     );
   }
