@@ -11,6 +11,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  formatClonedEServiceDate,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -94,7 +95,6 @@ import {
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
-import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertRequesterAllowed,

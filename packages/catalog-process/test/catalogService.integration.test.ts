@@ -29,6 +29,7 @@ import {
   unexpectedFieldError,
   unexpectedFieldValueError,
   userRoles,
+  formatClonedEServiceDate,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
@@ -115,7 +116,6 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
   addOneAgreement,
   addOneEService,
