@@ -26,7 +26,7 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 
-export function createAgreementSuspended({
+export function processSuspendAgreement({
   agreement,
   authData,
   descriptor,

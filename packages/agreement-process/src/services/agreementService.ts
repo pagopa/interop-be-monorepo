@@ -92,7 +92,7 @@ import { createStamp } from "./agreementStampUtils.js";
 import { processSubmitAgreement } from "./agreementSubmissionProcessor.js";
 import {
   createAgreementSuspendedEvent,
-  createAgreementSuspended,
+  processSuspendAgreement,
 } from "./agreementSuspensionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
@@ -152,6 +152,18 @@ const retrieveDescriptor = (
 
   return descriptor;
 };
+
+function retrieveAgreementDocument(
+  agreement: Agreement,
+  documentId: AgreementDocumentId
+): AgreementDocument {
+  const document = agreement.consumerDocuments.find((d) => d.id === documentId);
+
+  if (!document) {
+    throw agreementDocumentNotFound(documentId, agreement.id);
+  }
+  return document;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -571,15 +583,7 @@ export function agreementServiceBuilder(
       const agreement = await retrieveAgreement(agreementId, agreementQuery);
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
-      const document = agreement.data.consumerDocuments.find(
-        (d) => d.id === documentId
-      );
-
-      if (!document) {
-        throw agreementDocumentNotFound(documentId, agreementId);
-      }
-
-      return document;
+      return retrieveAgreementDocument(agreement.data, documentId);
     },
     async suspendAgreement(
       agreementId: AgreementId,
@@ -612,7 +616,7 @@ export function agreementServiceBuilder(
         tenantQuery
       );
 
-      const updatedAgreement: Agreement = createAgreementSuspended({
+      const updatedAgreement: Agreement = processSuspendAgreement({
         agreement: agreement.data,
         authData,
         descriptor,
@@ -655,13 +659,10 @@ export function agreementServiceBuilder(
       assertRequesterIsConsumer(agreement.data, authData);
       assertCanWorkOnConsumerDocuments(agreement.data.state);
 
-      const existentDocument = agreement.data.consumerDocuments.find(
-        (d) => d.id === documentId
+      const existentDocument = retrieveAgreementDocument(
+        agreement.data,
+        documentId
       );
-
-      if (!existentDocument) {
-        throw agreementDocumentNotFound(documentId, agreementId);
-      }
 
       await fileManager.delete(config.s3Bucket, existentDocument.path, logger);
 
@@ -717,7 +718,7 @@ export function agreementServiceBuilder(
       );
 
       const stamp = createStamp(authData);
-      const rejected: Agreement = {
+      const rejectedAgreement: Agreement = {
         ...agreementToBeRejected.data,
         state: agreementState.rejected,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -739,12 +740,12 @@ export function agreementServiceBuilder(
 
       await repository.createEvent(
         toCreateEventAgreementRejected(
-          rejected,
+          rejectedAgreement,
           agreementToBeRejected.metadata.version,
           correlationId
         )
       );
-      return rejected;
+      return rejectedAgreement;
     },
     async activateAgreement(
       agreementId: Agreement["id"],
@@ -794,7 +795,7 @@ export function agreementServiceBuilder(
         agreementArchivableStates
       );
 
-      const updatedAgreement = {
+      const updatedAgreement: Agreement = {
         ...agreement.data,
         state: agreementState.archived,
         stamps: {
