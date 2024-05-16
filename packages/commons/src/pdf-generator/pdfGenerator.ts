@@ -1,0 +1,84 @@
+/* eslint-disable functional/no-let */
+import { fileURLToPath } from "url";
+import path from "path";
+import { pdfGenerationError } from "pagopa-interop-models";
+import puppeteer, { Browser } from "puppeteer";
+import { buildTemplateService } from "../index.js";
+
+export interface PDFGenerator {
+  generate: (
+    templatePath: string,
+    context: Record<string, unknown>
+  ) => Promise<Buffer>;
+}
+
+export async function initPDFGenerator(): Promise<PDFGenerator> {
+  const templateService = buildTemplateService();
+  let browserInstance = await puppeteer.launch({
+    /* NOTE 
+      those configurations allow link (file://) usages for 
+      resources files in template's folder
+    */
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--allow-file-access-from-files",
+      "--enable-local-file-accesses",
+    ],
+  });
+
+  const getBrowser = async (): Promise<Browser> => {
+    if (browserInstance?.connected) {
+      return browserInstance;
+    } else {
+      browserInstance = await puppeteer.launch();
+      return browserInstance;
+    }
+  };
+
+  // During unexpected browser crash restarts browser handling "disconnected" event
+  browserInstance.on("disconnected", async () => {
+    browserInstance = await puppeteer.launch();
+  });
+
+  return {
+    generate: async (
+      templatePath: string,
+      context: Record<string, unknown>
+    ): Promise<Buffer> => {
+      const filename = fileURLToPath(import.meta.url);
+      const dirname = path.dirname(filename);
+      const polyfillFilePath = path.resolve(dirname, "paged.polyfill.js");
+
+      try {
+        const browser = await getBrowser();
+        const page = await browser.newPage();
+        await page.goto(`file://${templatePath}`);
+
+        /* Injecting polyfill paged.js to current html and set in the page 
+        */
+        const pageContent = await page.content();
+        const htmlCompiled = templateService.compileHtml(pageContent, {
+          ...context,
+          "paged-pdf-polyfill": `<script src="file://${polyfillFilePath}"></script>`,
+        });
+        await page.setContent(htmlCompiled, { waitUntil: "networkidle2" });
+
+        return await page.pdf({
+          format: "A4",
+          printBackground: true,
+          margin: {
+            left: "0px",
+            top: "0px",
+            right: "0px",
+            bottom: "0px",
+          },
+        });
+      } catch (error) {
+        throw pdfGenerationError(error);
+      }
+    },
+  };
+}
