@@ -3,7 +3,6 @@ import { runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
 import {
-  messageDecoderSupplier,
   kafkaConsumerConfig,
   logger,
   CatalogTopicConfig,
@@ -12,6 +11,7 @@ import {
   AgreementTopicConfig,
   catalogTopicConfig,
   agreementTopicConfig,
+  messageDecoderSupplier,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -24,6 +24,8 @@ import {
   genericInternalError,
   Agreement,
   agreementState,
+  AgreementV2,
+  fromAgreementV2,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -63,7 +65,7 @@ const getDescriptorFromEvent = (
 const getAgreementFromEvent = (
   msg: {
     data: {
-      agreement?: Agreement;
+      agreement?: AgreementV2;
     };
   },
   eventType: string
@@ -72,7 +74,7 @@ const getAgreementFromEvent = (
     throw missingKafkaMessageDataError("agreement", eventType);
   }
 
-  return msg.data.agreement;
+  return fromAgreementV2(msg.data.agreement);
 };
 
 async function executeUpdate(
@@ -100,16 +102,10 @@ function processMessage(
     try {
       const decodedMsg = match(messagePayload.topic)
         .with(catalogTopicConfig.catalogTopic, () =>
-          messageDecoderSupplier(
-            catalogTopicConfig,
-            messagePayload.topic
-          )(messagePayload.message)
+          messageDecoderSupplier(catalogTopicConfig)(messagePayload.message)
         )
         .with(agreementTopicConfig.agreementTopic, () =>
-          messageDecoderSupplier(
-            agreementTopicConfig,
-            messagePayload.topic
-          )(messagePayload.message)
+          messageDecoderSupplier(agreementTopicConfig)(messagePayload.message)
         )
         .otherwise(() => {
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
