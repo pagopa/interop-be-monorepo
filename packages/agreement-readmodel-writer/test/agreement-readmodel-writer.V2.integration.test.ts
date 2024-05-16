@@ -10,6 +10,7 @@ import {
 import {
   getMockAgreement,
   mongoDBContainer,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   AgreementEventEnvelopeV2,
@@ -62,6 +63,7 @@ describe("events V2", async () => {
     const spyDelete = vi.spyOn(agreements, "deleteOne");
 
     const agreement = getMockAgreement();
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
     const eventTypes = [
       "AgreementAdded",
@@ -157,6 +159,7 @@ describe("events V2", async () => {
     const spyDelete = vi.spyOn(agreements, "deleteOne");
 
     const agreement = getMockAgreement();
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
     const eventType = "AgreementDeleted";
     const event = {
