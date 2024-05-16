@@ -224,14 +224,6 @@ export async function isLoadAllowed(
   purposeVersion: PurposeVersion,
   readModelService: ReadModelService
 ): Promise<boolean> {
-  const consumerPurposes = await readModelService.getAllPurposes({
-    eservicesIds: [eservice.id],
-    consumersIds: [purpose.consumerId],
-    states: [purposeVersionState.active],
-    producersIds: [],
-    excludeDraft: true,
-  });
-
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
     consumersIds: [],
@@ -239,6 +231,10 @@ export async function isLoadAllowed(
     states: [purposeVersionState.active],
     excludeDraft: true,
   });
+
+  const consumerPurposes = allPurposes.filter(
+    (p) => p.consumerId === purpose.consumerId
+  );
 
   const agreement = await retrieveActiveAgreement(
     eservice.id,
