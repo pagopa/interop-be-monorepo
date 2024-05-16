@@ -1,4 +1,4 @@
-FROM node:20.13.1-slim@sha256:cffed8cd39d6a380434e6d08116d188c53e70611175cd5ec7700f93f32a935a6 as build
+FROM node:18.17.1 as build
 
 RUN corepack enable
 
@@ -34,9 +34,23 @@ RUN pnpm build && \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.13.1-slim@sha256:cffed8cd39d6a380434e6d08116d188c53e70611175cd5ec7700f93f32a935a6 as final 
+FROM node:18.17.1 as final 
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget gnupg ca-certificates && \
+    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends google-chrome-stable
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
 
 COPY --from=build /out /app
+
+RUN chown -R app:app /app
+RUN chmod -R 777 /app
+USER app
 
 WORKDIR /app/packages/agreement-process
 EXPOSE 3000

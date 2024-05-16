@@ -4,6 +4,7 @@ import {
   Logger,
   WithLogger,
   AppContext,
+  PDFGenerator,
   eventRepository,
   CreateEvent,
 } from "pagopa-interop-commons";
@@ -191,8 +192,12 @@ function retrieveAgreementDocument(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
-  fileManager: FileManager
+  agreementQuery: AgreementQuery,
+  tenantQuery: TenantQuery,
+  eserviceQuery: EserviceQuery,
+  attributeQuery: AttributeQuery,
+  fileManager: FileManager,
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -353,15 +358,21 @@ export function agreementServiceBuilder(
       payload: ApiAgreementSubmissionPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
-      logger.info(`Submitting agreement ${agreementId}`);
-
-      const agreement = await retrieveAgreement(agreementId, readModelService);
-
-      assertRequesterIsConsumer(agreement.data, authData);
-      assertSubmittableState(agreement.data.state, agreement.data.id);
-      await verifySubmissionConflictingAgreements(
-        agreement.data,
-        readModelService
+      ctx.logger.info(`Submitting agreement ${agreementId}`);
+      const [agreement, updatesEvents] = await submitAgreementLogic(
+        agreementId,
+        payload,
+        contractBuilder(
+          attributeQuery,
+          pdfGenerator,
+          fileManager,
+          config,
+          ctx.logger
+        ),
+        eserviceQuery,
+        agreementQuery,
+        tenantQuery,
+        ctx
       );
 
       if (agreement.data.state === agreementState.draft) {
@@ -853,16 +864,18 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
-
-      const agreement = await retrieveAgreement(agreementId, readModelService);
-
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
-      verifyConsumerDoesNotActivatePending(agreement.data, authData);
-      assertActivableState(agreement.data);
-
-      const eservice = await retrieveEService(
-        agreement.data.eserviceId,
-        readModelService
+      const [agreement, updatesEvents] = await activateAgreementLogic(
+        agreementId,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
+        attributeQuery,
+        authData,
+        correlationId,
+        fileManager,
+        pdfGenerator,
+        config,
+        logger
       );
 
       const descriptor = validateActivationOnDescriptor(
