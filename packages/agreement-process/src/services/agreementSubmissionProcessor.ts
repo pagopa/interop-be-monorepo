@@ -26,6 +26,7 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
+  toCreateEventAgreementActivated,
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementSubmitted,
 } from "../model/domain/toEvent.js";
@@ -172,11 +173,18 @@ const submitAgreement = async (
         }
       : newAgreement;
 
-  const submittedAgreementEvent = toCreateEventAgreementSubmitted(
-    submittedAgreement,
-    agreementData.metadata.version,
-    correlationId
-  );
+  const agreementEvent =
+    newState === agreementState.active
+      ? toCreateEventAgreementActivated(
+          submittedAgreement,
+          agreementData.metadata.version,
+          correlationId
+        )
+      : toCreateEventAgreementSubmitted(
+          submittedAgreement,
+          agreementData.metadata.version,
+          correlationId
+        );
 
   const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
     isActiveOrSuspended(newState)
@@ -208,10 +216,7 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
-  return [
-    submittedAgreement,
-    [submittedAgreementEvent, ...archivedAgreementsUpdates],
-  ];
+  return [submittedAgreement, [agreementEvent, ...archivedAgreementsUpdates]];
 };
 
 const createContract = async (
