@@ -34,9 +34,9 @@
     "pg-promise": "11.6.0",
     "testcontainers": "10.2.2",
     "ts-pattern": "5.1.1",
-    "typescript": "5.1.3",
+    "typescript": "5.4.5",
     "uuid": "9.0.1",
     "vitest": "1.6.0",
-    "zod": "3.22.3"
+    "zod": "3.23.8"
   }
 }
