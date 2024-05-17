@@ -16,16 +16,24 @@ import {
   RelationshipAddedV1,
   RelationshipRemovedV1,
 } from "../gen/v1/authorization/events.js";
+import {
+  ClientAddedV2,
+  ClientDeletedV2,
+  ClientKeyAddedV2,
+  ClientKeyDeletedV2,
+  ClientPurposeAddedV2,
+  ClientPurposeRemovedV2,
+  ClientUserAddedV2,
+  ClientUserDeletedV2,
+} from "../gen/v2/authorization/events.js";
 
 export function authorizationEventToBinaryData(
   event: AuthorizationEvent
 ): Uint8Array {
-  return (
-    match(event)
-      .with({ event_version: 1 }, authorizationEventToBinaryDataV1)
-      // .with({ event_version: 2 }, authorizationEventToBinaryDataV2)
-      .exhaustive()
-  );
+  return match(event)
+    .with({ event_version: 1 }, authorizationEventToBinaryDataV1)
+    .with({ event_version: 2 }, authorizationEventToBinaryDataV2)
+    .exhaustive();
 }
 
 export function authorizationEventToBinaryDataV1(
@@ -65,11 +73,35 @@ export function authorizationEventToBinaryDataV1(
     .exhaustive();
 }
 
-// export function authorizationEventToBinaryDataV2(
-//   event: AuthorizationEventV2
-// ): Uint8Array {
-//   return match(event).exhaustive();
-// }
+export function authorizationEventToBinaryDataV2(
+  event: AuthorizationEventV2
+): Uint8Array {
+  return match(event)
+    .with({ type: "ClientAdded" }, ({ data }) => ClientAddedV2.toBinary(data))
+    .with({ type: "ClientDeleted" }, ({ data }) =>
+      ClientDeletedV2.toBinary(data)
+    )
+    .with({ type: "ClientKeyAdded" }, ({ data }) =>
+      ClientKeyAddedV2.toBinary(data)
+    )
+    .with({ type: "ClientKeyDeleted" }, ({ data }) =>
+      ClientKeyDeletedV2.toBinary(data)
+    )
+    .with({ type: "ClientUserAdded" }, ({ data }) =>
+      ClientUserAddedV2.toBinary(data)
+    )
+    .with({ type: "ClientUserDeleted" }, ({ data }) =>
+      ClientUserDeletedV2.toBinary(data)
+    )
+    .with({ type: "ClientPurposeAdded" }, ({ data }) =>
+      ClientPurposeAddedV2.toBinary(data)
+    )
+    .with({ type: "ClientPurposeRemoved" }, ({ data }) =>
+      ClientPurposeRemovedV2.toBinary(data)
+    )
+
+    .exhaustive();
+}
 
 export const AuthorizationEventV1 = z.discriminatedUnion("type", [
   z.object({
@@ -140,14 +172,49 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
 ]);
 export type AuthorizationEventV1 = z.infer<typeof AuthorizationEventV1>;
 
-// export const AuthorizationEventV2 = z.discriminatedUnion("type", [
-//   z.object({
-//     event_version: z.literal(2),
-//     type: z.literal("To do"),
-//     data: protobufDecoder("to do"),
-//   }),
-// ]);
-// export type AuthorizationEventV2 = z.infer<typeof AuthorizationEventV2>;
+export const AuthorizationEventV2 = z.discriminatedUnion("type", [
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientAdded"),
+    data: protobufDecoder(ClientAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientDeleted"),
+    data: protobufDecoder(ClientDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientKeyAdded"),
+    data: protobufDecoder(ClientKeyAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientKeyDeleted"),
+    data: protobufDecoder(ClientKeyDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientUserAdded"),
+    data: protobufDecoder(ClientUserAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientUserDeleted"),
+    data: protobufDecoder(ClientUserDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientPurposeAdded"),
+    data: protobufDecoder(ClientPurposeAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientPurposeRemoved"),
+    data: protobufDecoder(ClientPurposeRemovedV2),
+  }),
+]);
+export type AuthorizationEventV2 = z.infer<typeof AuthorizationEventV2>;
 
 const eventV1 = z
   .object({
@@ -155,18 +222,18 @@ const eventV1 = z
   })
   .passthrough();
 
-// const eventV2 = z
-//   .object({
-//     event_version: z.literal(2),
-//   })
-//   .passthrough();
+const eventV2 = z
+  .object({
+    event_version: z.literal(2),
+  })
+  .passthrough();
 
 export const AuthorizationEvent = z
-  .discriminatedUnion("event_version", [eventV1])
+  .discriminatedUnion("event_version", [eventV1, eventV2])
   .transform((obj, ctx) => {
     const res = match(obj)
       .with({ event_version: 1 }, () => AuthorizationEventV1.safeParse(obj))
-      // .with({ event_version: 2 }, () => AuthorizationEventV2.safeParse(obj))
+      .with({ event_version: 2 }, () => AuthorizationEventV2.safeParse(obj))
       .exhaustive();
 
     if (!res.success) {
