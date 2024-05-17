@@ -1358,12 +1358,12 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
-      const riskAnalysisWithSameName = eservice.data.riskAnalysis.find(
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
         (ra: RiskAnalysis) =>
-          ra.name.toLowerCase === eserviceRiskAnalysisSeed.name.toLowerCase
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
       );
 
-      if (riskAnalysisWithSameName !== undefined) {
+      if (isDuplicateRiskAnalysis) {
         throw riskAnalysisDuplicate(
           eserviceRiskAnalysisSeed.name,
           eservice.data.id
@@ -1423,14 +1423,13 @@ export function catalogServiceBuilder(
         eservice
       );
 
-      const riskAnalysisWithSameName = eservice.data.riskAnalysis
-        .filter((ra: RiskAnalysis) => ra.id !== riskAnalysisId)
-        .find(
-          (ra: RiskAnalysis) =>
-            ra.name.toLowerCase === eserviceRiskAnalysisSeed.name.toLowerCase
-        );
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.id !== riskAnalysisId &&
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
 
-      if (riskAnalysisWithSameName !== undefined) {
+      if (isDuplicateRiskAnalysis) {
         throw riskAnalysisDuplicate(
           eserviceRiskAnalysisSeed.name,
           eservice.data.id

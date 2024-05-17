@@ -4658,7 +4658,9 @@ describe("database test", async () => {
         ).rejects.toThrowError(tenantKindNotFound(producer.id));
       });
       it("should throw riskAnalysisDuplicate if risk analysis name is duplicated", async () => {
-        const producerTenantKind: TenantKind = TenantKind.Enum.PA;
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
         const producer: Tenant = {
           ...getMockTenant(),
           kind: producerTenantKind,
