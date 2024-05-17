@@ -48,30 +48,6 @@ export const validateConsumerEmail = async (
   }
 };
 
-export const isActiveOrSuspended = (state: AgreementState): boolean =>
-  state === agreementState.active || state === agreementState.suspended;
-
-export const calculateStamps = (
-  agreement: Agreement,
-  state: AgreementState,
-  stamp: AgreementStamp
-): AgreementStamps =>
-  match<AgreementState, AgreementStamps>(state)
-    .with(agreementState.draft, () => agreement.stamps)
-    .with(agreementState.pending, () => ({
-      ...agreement.stamps,
-      submission: stamp,
-    }))
-    .with(agreementState.active, () => ({
-      ...agreement.stamps,
-      submission: stamp,
-      activation: stamp,
-    }))
-    .with(agreementState.missingCertifiedAttributes, () => agreement.stamps)
-    .otherwise(() => {
-      throw agreementNotInExpectedState(agreement.id, state);
-    });
-
 export const createSubmissionUpdateAgreementSeed = (
   descriptor: Descriptor,
   consumer: Tenant,
@@ -112,3 +88,27 @@ export const createSubmissionUpdateAgreementSeed = (
         stamps,
       };
 };
+
+export const isActiveOrSuspended = (state: AgreementState): boolean =>
+  state === agreementState.active || state === agreementState.suspended;
+
+export const calculateStamps = (
+  agreement: Agreement,
+  state: AgreementState,
+  stamp: AgreementStamp
+): AgreementStamps =>
+  match<AgreementState, AgreementStamps>(state)
+    .with(agreementState.draft, () => agreement.stamps)
+    .with(agreementState.pending, () => ({
+      ...agreement.stamps,
+      submission: stamp,
+    }))
+    .with(agreementState.active, () => ({
+      ...agreement.stamps,
+      submission: stamp,
+      activation: stamp,
+    }))
+    .with(agreementState.missingCertifiedAttributes, () => agreement.stamps)
+    .otherwise(() => {
+      throw agreementNotInExpectedState(agreement.id, state);
+    });

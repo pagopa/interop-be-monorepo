@@ -109,28 +109,6 @@ export function createActivationUpdateAgreementSeed({
       };
 }
 
-export const archiveRelatedToAgreements = async (
-  agreement: Agreement,
-  userId: UserId,
-  agreementQuery: AgreementQuery,
-  correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> => {
-  const existingAgreements = await agreementQuery.getAllAgreements({
-    consumerId: agreement.consumerId,
-    eserviceId: agreement.eserviceId,
-  });
-
-  const archivables = existingAgreements.filter(
-    (a) =>
-      agreementArchivableStates.includes(a.data.state) &&
-      a.data.id !== agreement.id
-  );
-
-  return archivables.map((agreementData) =>
-    createArchivedAgreementEvent(agreementData, userId, correlationId)
-  );
-};
-
 export async function createActivationEvent({
   firstActivation,
   agreement,
@@ -195,3 +173,25 @@ export async function createActivationEvent({
     }
   }
 }
+
+export const archiveRelatedToAgreements = async (
+  agreement: Agreement,
+  userId: UserId,
+  agreementQuery: AgreementQuery,
+  correlationId: string
+): Promise<Array<CreateEvent<AgreementEvent>>> => {
+  const existingAgreements = await agreementQuery.getAllAgreements({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
+
+  const archivables = existingAgreements.filter(
+    (a) =>
+      agreementArchivableStates.includes(a.data.state) &&
+      a.data.id !== agreement.id
+  );
+
+  return archivables.map((agreementData) =>
+    createArchivedAgreementEvent(agreementData, userId, correlationId)
+  );
+};
