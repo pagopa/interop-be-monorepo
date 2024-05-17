@@ -31,8 +31,11 @@ import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/risk
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 
-export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config"));
+export const { cleanup, readModelRepository, postgresDB } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
 
 afterEach(cleanup);
 
