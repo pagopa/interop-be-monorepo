@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package authorization.v2;
+
+message ClientV2 {
+  string id = 1;
+  string consumerId = 3;
+  string name = 4;
+  optional string description = 5;
+  repeated string relationships = 6;
+  repeated ClientPurposesEntryV2 purposes = 7;
+  ClientKindV2 kind = 8;
+  optional int64 createdAt = 9; // to do double-check why optional
+  repeated string users = 10;
+}
+
+message ClientPurposesEntryV2 {
+  ClientStatesChainV2 states = 2;
+}
+
+message ClientStatesChainV2 {
+  string id = 1;
+  ClientEServiceDetailsV2 eService = 2;
+  ClientAgreementDetailsV2 agreement = 3;
+  ClientPurposeDetailsV2 purpose = 4;
+}
+
+message ClientEServiceDetailsV2 {
+  string eServiceId = 1;
+  string descriptorId = 2;
+  ClientComponentStateV2 state = 3;
+  repeated string audience = 4;
+  int32 voucherLifespan = 5;
+}
+
+message ClientAgreementDetailsV2 {
+  string eServiceId = 1;
+  string consumerId = 2;
+  string agreementId = 3;
+  ClientComponentStateV2 state = 4;
+}
+
+message ClientPurposeDetailsV2 {
+  string purposeId = 1;
+  string versionId = 2;
+  ClientComponentStateV2 state = 3;
+}
+
+enum ClientComponentStateV2 {
+  ACTIVE = 0;
+  INACTIVE = 1;
+}
+
+enum ClientKindV2 {
+  CONSUMER = 0;
+  API = 1;
+}
