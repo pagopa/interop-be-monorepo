@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import {
   CreateEvent,
   DB,
@@ -1267,9 +1268,28 @@ async function activateOrWaitingForApproval({
     .with(
       {
         state: purposeVersionState.suspended,
-        ownership: P.union("CONSUMER", "SELF_CONSUMER"),
+        ownership: "CONSUMER",
       },
       () => purpose.suspendedByConsumer,
+      async () => {
+        if (
+          await isLoadAllowed(
+            eservice,
+            purpose,
+            purposeVersion,
+            readModelService
+          )
+        ) {
+          return activateFromSuspended();
+        }
+        return createWaitForApproval();
+      }
+    )
+    .with(
+      {
+        state: purposeVersionState.suspended,
+        ownership: "SELF_CONSUMER",
+      },
       async () => {
         if (
           await isLoadAllowed(
