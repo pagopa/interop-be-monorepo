@@ -41,6 +41,7 @@ import {
 import {
   CompactEService,
   CompactOrganization,
+  UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventAgreementAdded,
@@ -68,9 +69,11 @@ import {
   assertRequesterIsProducer,
   assertSubmittableState,
   declaredAttributesSatisfied,
+  failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
+  validateActivationOnDescriptor,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   verifiedAttributesSatisfied,
@@ -86,7 +89,11 @@ import {
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
-import { processActivateAgreement } from "./agreementActivationProcessor.js";
+import {
+  archiveRelatedToAgreements,
+  createActivationEvent,
+  createUpdateAgreementSeed,
+} from "./agreementActivationProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { processSubmitAgreement } from "./agreementSubmissionProcessor.js";
@@ -104,6 +111,12 @@ import {
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
+import {
+  nextState,
+  suspendedByConsumerFlag,
+  suspendedByProducerFlag,
+  agreementStateByFlags,
+} from "./agreementStateProcessor.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
@@ -748,7 +761,7 @@ export function agreementServiceBuilder(
       return rejectedAgreement;
     },
     async activateAgreement(
-      agreementId: Agreement["id"],
+      agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
@@ -764,19 +777,86 @@ export function agreementServiceBuilder(
         eserviceQuery
       );
 
-      const [updatedAgreement, updatesEvents] = await processActivateAgreement({
-        agreementData: agreement,
+      const descriptor = validateActivationOnDescriptor(
         eservice,
+        agreement.data.descriptorId
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        tenantQuery
+      );
+
+      const nextAttributesState = nextState(
+        agreement.data,
+        descriptor,
+        consumer
+      );
+
+      const suspendedByConsumer = suspendedByConsumerFlag(
+        agreement.data,
+        authData.organizationId,
+        agreementState.active
+      );
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        agreementState.active
+      );
+
+      const newState = agreementStateByFlags(
+        nextAttributesState,
+        suspendedByProducer,
+        suspendedByConsumer
+      );
+
+      failOnActivationFailure(newState, agreement.data);
+
+      const firstActivation =
+        agreement.data.state === agreementState.pending &&
+        newState === agreementState.active;
+
+      const updatedAgreementSeed: UpdateAgreementSeed =
+        createUpdateAgreementSeed({
+          firstActivation,
+          newState,
+          descriptor,
+          consumer,
+          eservice,
+          authData,
+          agreement: agreement.data,
+          suspendedByConsumer,
+          suspendedByProducer,
+        });
+
+      const updatedAgreement: Agreement = {
+        ...agreement.data,
+        ...updatedAgreementSeed,
+      };
+
+      const activationEvent = await createActivationEvent({
+        firstActivation,
+        agreement,
+        updatedAgreement,
+        updatedAgreementSeed,
+        eservice,
+        consumer,
         authData,
-        tenantQuery,
-        agreementQuery,
-        attributeQuery,
-        storeFile: fileManager.storeBytes,
         correlationId,
+        attributeQuery,
+        tenantQuery,
+        storeFile: fileManager.storeBytes,
         logger,
       });
 
-      for (const event of updatesEvents) {
+      const archiveEvents = await archiveRelatedToAgreements(
+        agreement.data,
+        authData,
+        agreementQuery,
+        correlationId
+      );
+
+      for (const event of [activationEvent, ...archiveEvents]) {
         await repository.createEvent(event);
       }
       return updatedAgreement;
