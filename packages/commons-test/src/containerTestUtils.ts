@@ -1,11 +1,9 @@
 import {
   EventStoreConfig,
-  FileManagerConfig,
-  LoggerConfig,
   ReadModelDbConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
-import { z } from "zod";
 
 export const TEST_MONGO_DB_PORT = 27017;
 export const TEST_MONGO_DB_IMAGE = "mongo:4";
@@ -62,9 +60,7 @@ export const postgreSQLContainer = (
  * @returns A promise that resolves to the started test container.
  */
 
-export const minioContainer = (config: {
-  s3Bucket: string;
-}): GenericContainer =>
+export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
       MINIO_ROOT_USER: "test-aws-key",
@@ -76,14 +72,3 @@ export const minioContainer = (config: {
       `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
     ])
     .withExposedPorts(TEST_MINIO_PORT);
-
-export const TestContainersConfig = LoggerConfig.and(ReadModelDbConfig)
-  .and(EventStoreConfig)
-  .and(FileManagerConfig)
-  .and(
-    z
-      .object({ S3_BUCKET: z.string().optional() })
-      .transform((c) => ({ s3Bucket: c.S3_BUCKET }))
-  );
-
-export type TestContainersConfig = z.infer<typeof TestContainersConfig>;
