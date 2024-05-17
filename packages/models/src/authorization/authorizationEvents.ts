@@ -248,10 +248,10 @@ export type AuthorizationEventEnvelopeV1 = z.infer<
   typeof AuthorizationEventEnvelopeV1
 >;
 
-// export const AuthorizationEventEnvelopeV2 = EventEnvelope(AuthorizationEventV2);
-// export type AuthorizationEventEnvelopeV2 = z.infer<
-//   typeof AuthorizationEventEnvelopeV2
-// >;
+export const AuthorizationEventEnvelopeV2 = EventEnvelope(AuthorizationEventV2);
+export type AuthorizationEventEnvelopeV2 = z.infer<
+  typeof AuthorizationEventEnvelopeV2
+>;
 
 export const AuthorizationEventEnvelope = EventEnvelope(AuthorizationEvent);
 export type AuthorizationEventEnvelope = z.infer<
