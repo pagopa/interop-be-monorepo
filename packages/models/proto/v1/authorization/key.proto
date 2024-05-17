@@ -8,13 +8,14 @@ message KeyEntryV1 {
 }
 
 message KeyV1 {
-  required string relationshipId = 1;
+  optional string relationshipId = 1;
   required string kid = 2;
   required string encodedPem = 3;
   required KeyUseV1 use = 4;
   required string algorithm = 5;
   required string createdAt = 6;
   required string name = 7;
+  optional string userId = 8;
 }
 
 enum KeyUseV1 {

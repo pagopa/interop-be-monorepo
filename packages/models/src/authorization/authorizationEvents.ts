@@ -11,10 +11,13 @@ import {
   ClientPurposeRemovedV1,
   EServiceStateUpdatedV1,
   KeyDeletedV1,
+  KeyRelationshipToUserMigratedV1,
   KeysAddedV1,
   PurposeStateUpdatedV1,
   RelationshipAddedV1,
   RelationshipRemovedV1,
+  UserAddedV1,
+  UserRemovedV1,
 } from "../gen/v1/authorization/events.js";
 import {
   ClientAddedV2,
@@ -42,6 +45,9 @@ export function authorizationEventToBinaryDataV1(
   return match(event)
     .with({ type: "KeysAdded" }, ({ data }) => KeysAddedV1.toBinary(data))
     .with({ type: "KeyDeleted" }, ({ data }) => KeyDeletedV1.toBinary(data))
+    .with({ type: "KeyRelationshipToUserMigrated" }, ({ data }) =>
+      KeyRelationshipToUserMigratedV1.toBinary(data)
+    )
     .with({ type: "ClientAdded" }, ({ data }) => ClientAddedV1.toBinary(data))
     .with({ type: "ClientDeleted" }, ({ data }) =>
       ClientDeletedV1.toBinary(data)
@@ -52,6 +58,8 @@ export function authorizationEventToBinaryDataV1(
     .with({ type: "RelationshipRemoved" }, ({ data }) =>
       RelationshipRemovedV1.toBinary(data)
     )
+    .with({ type: "UserAdded" }, ({ data }) => UserAddedV1.toBinary(data))
+    .with({ type: "UserRemoved" }, ({ data }) => UserRemovedV1.toBinary(data))
     .with({ type: "ClientPurposeAdded" }, ({ data }) =>
       ClientPurposeAddedV1.toBinary(data)
     )
@@ -116,6 +124,11 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(1),
+    type: z.literal("KeyRelationshipToUserMigrated"),
+    data: protobufDecoder(KeyRelationshipToUserMigratedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
     type: z.literal("ClientAdded"),
     data: protobufDecoder(ClientAddedV1),
   }),
@@ -133,6 +146,16 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
     event_version: z.literal(1),
     type: z.literal("RelationshipRemoved"),
     data: protobufDecoder(RelationshipRemovedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("UserAdded"),
+    data: protobufDecoder(UserAddedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("UserRemoved"),
+    data: protobufDecoder(UserRemovedV1),
   }),
   z.object({
     event_version: z.literal(1),
@@ -248,11 +271,6 @@ export const AuthorizationEventEnvelopeV1 = EventEnvelope(AuthorizationEventV1);
 export type AuthorizationEventEnvelopeV1 = z.infer<
   typeof AuthorizationEventEnvelopeV1
 >;
-
-// export const AuthorizationEventEnvelopeV2 = EventEnvelope(AuthorizationEventV2);
-// export type AuthorizationEventEnvelopeV2 = z.infer<
-//   typeof AuthorizationEventEnvelopeV2
-// >;
 
 export const AuthorizationEventEnvelope = EventEnvelope(AuthorizationEvent);
 export type AuthorizationEventEnvelope = z.infer<
