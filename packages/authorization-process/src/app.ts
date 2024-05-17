@@ -6,7 +6,7 @@ import {
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
 
-const serviceName = "attribute-registry-process";
+const serviceName = "authorization-process";
 
 const app = zodiosCtx.app();
 

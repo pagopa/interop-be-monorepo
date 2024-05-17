@@ -6,7 +6,7 @@ export function authorizationServiceBuilder(
   _dbInstance: DB,
   _readModelService: ReadModelService
 ) {
-  // const repository = eventRepository(dbInstance, attributeEventToBinaryData);
+  // const repository = eventRepository(dbInstance, authorizationEventToBinaryData);
 
   return {
     sample(): string {
