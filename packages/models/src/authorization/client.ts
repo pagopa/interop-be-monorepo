@@ -67,6 +67,7 @@ export const Client = z.object({
   purposes: z.array(ClientStatesChain),
   description: z.string().optional(),
   relationships: z.array(z.string()),
+  users: z.array(z.string()),
   kind: ClientKind,
   createdAt: z.coerce.date(),
 });

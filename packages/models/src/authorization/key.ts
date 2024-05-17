@@ -11,7 +11,7 @@ export const KeyUse = z.enum([
 export type KeyUse = z.infer<typeof KeyUse>;
 
 export const Key = z.object({
-  relationshipId: z.string(),
+  relationshipId: z.string().optional(),
   kid: z.string(),
   name: z.string(),
   encodedPem: z.string(),
