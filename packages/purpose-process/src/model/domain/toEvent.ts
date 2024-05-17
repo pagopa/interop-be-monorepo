@@ -309,3 +309,55 @@ export function toCreateEventPurposeAdded(
     correlationId,
   };
 }
+
+export function toCreateEventNewPurposeVersionActivated({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> {
+  return {
+    streamId: purpose.id,
+    version,
+    event: {
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+        versionId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventNewPurposeVersionWaitingForApproval({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> {
+  return {
+    streamId: purpose.id,
+    version,
+    event: {
+      type: "NewPurposeVersionWaitingForApproval",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+        versionId,
+      },
+    },
+    correlationId,
+  };
+}

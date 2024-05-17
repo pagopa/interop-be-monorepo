@@ -55,16 +55,13 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
-  toCreateEventPurposeActivated,
+  toCreateEventNewPurposeVersionActivated,
+  toCreateEventNewPurposeVersionWaitingForApproval,
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
-  toCreateEventPurposeVersionOverQuotaUnsuspended,
   toCreateEventPurposeVersionRejected,
-  toCreateEventPurposeVersionUnsuspenedByConsumer,
-  toCreateEventPurposeVersionUnsuspenedByProducer,
-  toCreateEventPurposeWaitingForApproval,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
@@ -91,10 +88,10 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
-  isLoadAllowed,
   assertDailyCallsIsDifferentThanBefore,
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
+  isOverQuota,
 } from "./validators.js";
 import { pdfGenerator } from "./pdfGenerator.js";
 
@@ -649,39 +646,86 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const ownership = getOrganizationRole({
-        organizationId,
-        producerId: eservice.producerId,
-        consumerId: purpose.data.consumerId,
+      /**
+       * If, with the given daily calls, the purpose goes in over quota,
+       * we will create a new version in waiting for approval state
+       */
+      if (
+        await isOverQuota(
+          eservice,
+          purpose.data,
+          seed.dailyCalls,
+          readModelService
+        )
+      ) {
+        const newPurposeVersion: PurposeVersion = {
+          id: generateId<PurposeVersionId>(),
+          createdAt: new Date(),
+          state: purposeVersionState.waitingForApproval,
+          dailyCalls: seed.dailyCalls,
+        };
+
+        const updatedPurpose = {
+          ...purpose.data,
+          versions: [...purpose.data.versions, newPurposeVersion],
+          updatedAt: new Date(),
+        };
+
+        await repository.createEvent(
+          toCreateEventNewPurposeVersionWaitingForApproval({
+            purpose: updatedPurpose,
+            versionId: newPurposeVersion.id,
+            version: purpose.metadata.version,
+            correlationId,
+          })
+        );
+
+        return newPurposeVersion;
+      }
+
+      /**
+       * If the purpose is not over quota, we will create a new version directly in active state and
+       * also generate the new risk analysis document
+       */
+      const riskAnalysisDocument = await generateRiskAnalysisDocument({
+        eservice,
+        purpose: purpose.data,
+        dailyCalls: seed.dailyCalls,
+        readModelService,
+        storeFile: fileManager.storeBytes,
+        logger,
       });
 
       const newPurposeVersion: PurposeVersion = {
+        id: generateId(),
+        state: purposeVersionState.active,
+        riskAnalysis: riskAnalysisDocument,
         dailyCalls: seed.dailyCalls,
+        firstActivationAt: new Date(),
         createdAt: new Date(),
-        state: purposeVersionState.draft,
-        id: generateId<PurposeVersionId>(),
       };
 
-      const updatedPurpose: Purpose = {
-        ...purpose.data,
-        versions: [...purpose.data.versions, newPurposeVersion],
-        updatedAt: new Date(),
-      };
+      const updatedPurpose: Purpose = archiveOldPurposeVersions(
+        {
+          ...purpose.data,
+          versions: [...purpose.data.versions, newPurposeVersion],
+          updatedAt: new Date(),
+        },
+        newPurposeVersion.id
+      );
 
-      return await activateOrWaitingForApproval({
-        eservice,
-        purpose: updatedPurpose,
-        purposeVersion: newPurposeVersion,
-        organizationId,
-        ownership,
-        version: purpose.metadata.version,
-        correlationId,
-        readModelService,
-        storeFile: fileManager.storeBytes,
-        repository,
-        logger,
-      });
+      await repository.createEvent(
+        toCreateEventNewPurposeVersionActivated({
+          purpose: updatedPurpose,
+          versionId: newPurposeVersion.id,
+          version: purpose.metadata.version,
+          correlationId,
+        })
+      );
+
+      return newPurposeVersion;
     },
+
     async createPurpose(
       purposeSeed: ApiPurposeSeed,
       organizationId: TenantId,
@@ -994,323 +1038,78 @@ const performUpdatePurpose = async (
   };
 };
 
-async function activateOrWaitingForApproval({
+async function generateRiskAnalysisDocument({
   eservice,
   purpose,
-  purposeVersion,
-  organizationId,
-  ownership,
+  dailyCalls,
   readModelService,
-  version,
-  correlationId,
   storeFile,
-  repository,
   logger,
 }: {
   eservice: EService;
   purpose: Purpose;
-  purposeVersion: PurposeVersion;
-  organizationId: TenantId;
-  ownership: Ownership;
+  dailyCalls: number;
   readModelService: ReadModelService;
-  version: number;
-  correlationId: string;
   storeFile: FileManager["storeBytes"];
-  repository: {
-    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
-  };
   logger: Logger;
-}): Promise<PurposeVersion> {
-  function archiveOldVersion(
-    purpose: Purpose,
-    newPurposeVersionId: PurposeVersionId
-  ): Purpose {
-    const versions = purpose.versions.map((v) =>
-      match(v.state)
-        .with(
-          P.union(purposeVersionState.active, purposeVersionState.suspended),
-          () => ({
-            ...v,
-            state:
-              v.id === newPurposeVersionId
-                ? v.state
-                : purposeVersionState.archived,
-          })
-        )
-        .otherwise(() => v)
-    );
+}): Promise<PurposeVersionDocument> {
+  const documentId = generateId<PurposeVersionDocumentId>();
 
-    return { ...purpose, versions };
+  const [producer, consumer] = await Promise.all([
+    retrieveTenant(eservice.producerId, readModelService),
+    retrieveTenant(purpose.consumerId, readModelService),
+  ]);
+
+  const eserviceInfo: PurposeDocumentEServiceInfo = {
+    name: eservice.name,
+    mode: eservice.mode,
+    producerName: producer.name,
+    producerOrigin: producer.externalId.origin,
+    producerIPACode: producer.externalId.value,
+    consumerName: consumer.name,
+    consumerOrigin: consumer.externalId.origin,
+    consumerIPACode: consumer.externalId.value,
+  };
+
+  function getTenantKind(tenant: Tenant): TenantKind {
+    assertTenantKindExists(tenant);
+    return tenant.kind;
   }
 
-  function changeToWaitForApproval(): {
-    event: CreateEvent<PurposeEvent>;
-    updatedPurposeVersion: PurposeVersion;
-  } {
-    const updatedPurposeVersion: PurposeVersion = {
-      ...purposeVersion,
-      state: purposeVersionState.waitingForApproval,
-      updatedAt: new Date(),
-    };
+  const tenantKind = match(eservice.mode)
+    .with(eserviceMode.deliver, () => getTenantKind(consumer))
+    .with(eserviceMode.receive, () => getTenantKind(producer))
+    .exhaustive();
 
-    const updatedPurpose: Purpose = replacePurposeVersion(
-      purpose,
-      updatedPurposeVersion
-    );
+  return await pdfGenerator.createRiskAnalysisDocument(
+    documentId,
+    purpose,
+    dailyCalls,
+    eserviceInfo,
+    tenantKind,
+    storeFile,
+    logger
+  );
+}
 
-    return {
-      event: toCreateEventPurposeWaitingForApproval({
-        purpose: updatedPurpose,
-        version,
-        correlationId,
-      }),
-      updatedPurposeVersion,
-    };
-  }
-
-  function createWaitForApproval(): {
-    event: CreateEvent<PurposeEvent>;
-    updatedPurposeVersion: PurposeVersion;
-  } {
-    const newPurposeVersion: PurposeVersion = {
-      ...purposeVersion,
-      createdAt: new Date(),
-      state: purposeVersionState.waitingForApproval,
-      id: generateId<PurposeVersionId>(),
-    };
-
-    const updatedPurpose: Purpose = {
-      ...purpose,
-      versions: [...purpose.versions, newPurposeVersion],
-      updatedAt: new Date(),
-    };
-
-    return {
-      event: toCreateEventPurposeVersionOverQuotaUnsuspended({
-        purpose: updatedPurpose,
-        versionId: newPurposeVersion.id,
-        version,
-        correlationId,
-      }),
-      updatedPurposeVersion: newPurposeVersion,
-    };
-  }
-
-  async function firstVersionActivation(): Promise<{
-    event: CreateEvent<PurposeEvent>;
-    updatedPurposeVersion: PurposeVersion;
-  }> {
-    const documentId = generateId<PurposeVersionDocumentId>();
-
-    const [producer, consumer] = await Promise.all([
-      retrieveTenant(eservice.producerId, readModelService),
-      retrieveTenant(purpose.consumerId, readModelService),
-    ]);
-
-    const eserviceInfo: PurposeDocumentEServiceInfo = {
-      name: eservice.name,
-      mode: eservice.mode,
-      producerName: producer.name,
-      producerOrigin: producer.externalId.origin,
-      producerIPACode: producer.externalId.value,
-      consumerName: consumer.name,
-      consumerOrigin: consumer.externalId.origin,
-      consumerIPACode: consumer.externalId.value,
-    };
-
-    function getTenantKind(tenant: Tenant): TenantKind {
-      assertTenantKindExists(tenant);
-      return tenant.kind;
-    }
-
-    const tenantKind = match(eservice.mode)
-      .with(eserviceMode.deliver, () => getTenantKind(consumer))
-      .with(eserviceMode.receive, () => getTenantKind(producer))
-      .exhaustive();
-
-    const riskAnalysisDocument = await pdfGenerator.createRiskAnalysisDocument(
-      documentId,
-      purpose,
-      purposeVersion,
-      eserviceInfo,
-      tenantKind,
-      storeFile,
-      logger
-    );
-
-    const updatedPurposeVersion: PurposeVersion = {
-      ...purposeVersion,
-      state: purposeVersionState.active,
-      riskAnalysis: riskAnalysisDocument,
-      updatedAt: new Date(),
-      firstActivationAt: new Date(),
-    };
-
-    const updatedPurpose: Purpose = archiveOldVersion(
-      replacePurposeVersion(purpose, updatedPurposeVersion),
-      updatedPurposeVersion.id
-    );
-
-    return {
-      event: toCreateEventPurposeActivated({
-        purpose: updatedPurpose,
-        version,
-        correlationId,
-      }),
-      updatedPurposeVersion,
-    };
-  }
-
-  function activateFromSuspended(): {
-    event: CreateEvent<PurposeEvent>;
-    updatedPurposeVersion: PurposeVersion;
-  } {
-    const newState = match({
-      suspendedByProducer: purpose.suspendedByProducer,
-      suspendedByConsumer: purpose.suspendedByConsumer,
-      ownership,
-    })
+function archiveOldPurposeVersions(
+  purpose: Purpose,
+  newPurposeVersionId: PurposeVersionId
+): Purpose {
+  const versions = purpose.versions.map((v) =>
+    match(v.state)
       .with(
-        {
-          suspendedByConsumer: true,
-          ownership: "PRODUCER",
-        },
-        {
-          suspendedByProducer: true,
-          ownership: "CONSUMER",
-        },
-        () => purposeVersionState.suspended
+        P.union(purposeVersionState.active, purposeVersionState.suspended),
+        () => ({
+          ...v,
+          state:
+            v.id === newPurposeVersionId
+              ? v.state
+              : purposeVersionState.archived,
+        })
       )
-      .otherwise(() => purposeVersionState.active);
+      .otherwise(() => v)
+  );
 
-    const updatedPurposeVersion: PurposeVersion = {
-      ...purposeVersion,
-      updatedAt: new Date(),
-      suspendedAt:
-        newState !== purposeVersionState.suspended
-          ? undefined
-          : purposeVersion.suspendedAt,
-      state: newState,
-    };
-
-    const updatedPurpose: Purpose = replacePurposeVersion(
-      purpose,
-      updatedPurposeVersion
-    );
-
-    if (ownership === "PRODUCER" || ownership === "SELF_CONSUMER") {
-      return {
-        event: toCreateEventPurposeVersionUnsuspenedByProducer({
-          purpose: { ...updatedPurpose, suspendedByProducer: false },
-          versionId: purposeVersion.id,
-          version,
-          correlationId,
-        }),
-        updatedPurposeVersion,
-      };
-    } else {
-      return {
-        event: toCreateEventPurposeVersionUnsuspenedByConsumer({
-          purpose: { ...updatedPurpose, suspendedByConsumer: false },
-          versionId: purposeVersion.id,
-          version,
-          correlationId,
-        }),
-        updatedPurposeVersion,
-      };
-    }
-  }
-
-  const { event, updatedPurposeVersion } = await match({
-    state: purposeVersion.state,
-    ownership,
-  })
-    .with(
-      {
-        state: purposeVersionState.draft,
-        ownership: P.union("CONSUMER", "SELF_CONSUMER"),
-      },
-      async () => {
-        if (
-          await isLoadAllowed(
-            eservice,
-            purpose,
-            purposeVersion,
-            readModelService
-          )
-        ) {
-          return await firstVersionActivation();
-        }
-        return changeToWaitForApproval();
-      }
-    )
-    .with({ state: purposeVersionState.draft, ownership: "PRODUCER" }, () => {
-      throw organizationIsNotTheConsumer(organizationId);
-    })
-    .with(
-      { state: purposeVersionState.waitingForApproval, ownership: "CONSUMER" },
-      () => {
-        throw organizationIsNotTheProducer(organizationId);
-      }
-    )
-    .with(
-      {
-        state: purposeVersionState.waitingForApproval,
-        ownership: P.union("PRODUCER", "SELF_CONSUMER"),
-      },
-      async () => await firstVersionActivation()
-    )
-    .with(
-      { state: purposeVersionState.suspended, ownership: "CONSUMER" },
-      () => purpose.suspendedByConsumer && purpose.suspendedByProducer,
-      () => activateFromSuspended()
-    )
-    .with(
-      {
-        state: purposeVersionState.suspended,
-        ownership: "CONSUMER",
-      },
-      () => purpose.suspendedByConsumer,
-      async () => {
-        if (
-          await isLoadAllowed(
-            eservice,
-            purpose,
-            purposeVersion,
-            readModelService
-          )
-        ) {
-          return activateFromSuspended();
-        }
-        return createWaitForApproval();
-      }
-    )
-    .with(
-      {
-        state: purposeVersionState.suspended,
-        ownership: "SELF_CONSUMER",
-      },
-      async () => {
-        if (
-          await isLoadAllowed(
-            eservice,
-            purpose,
-            purposeVersion,
-            readModelService
-          )
-        ) {
-          return activateFromSuspended();
-        }
-        return createWaitForApproval();
-      }
-    )
-    .with({ state: purposeVersionState.suspended, ownership: "PRODUCER" }, () =>
-      activateFromSuspended()
-    )
-    .otherwise(() => {
-      throw organizationNotAllowed(organizationId);
-    });
-
-  await repository.createEvent(event);
-  return updatedPurposeVersion;
+  return { ...purpose, versions };
 }
