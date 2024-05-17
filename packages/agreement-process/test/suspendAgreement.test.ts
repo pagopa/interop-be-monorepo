@@ -466,13 +466,13 @@ describe("suspend agreement", () => {
       suspendedByProducer: randomBoolean(),
       suspendedByPlatform: false,
       stamps: {
-        activation: createStamp(authData),
-        archiving: createStamp(authData),
-        rejection: createStamp(authData),
-        submission: createStamp(authData),
-        upgrade: createStamp(authData),
-        suspensionByConsumer: createStamp(authData),
-        suspensionByProducer: createStamp(authData),
+        activation: createStamp(authData.userId),
+        archiving: createStamp(authData.userId),
+        rejection: createStamp(authData.userId),
+        submission: createStamp(authData.userId),
+        upgrade: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
       },
     };
 
