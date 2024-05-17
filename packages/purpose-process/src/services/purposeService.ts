@@ -646,6 +646,39 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      function buildUpdatedPurpose({
+        newPurposeVersion,
+        archiveOldVersions,
+      }: {
+        newPurposeVersion: PurposeVersion;
+        archiveOldVersions: boolean;
+      }): Purpose {
+        const oldVersions = purpose.data.versions
+          // Remove all versions in waiting for approval state
+          .filter((v) => v.state !== purposeVersionState.waitingForApproval)
+          // Archive all versions in active/suspended state if the flag `archiveOldVersions` is set
+          .map((v) =>
+            match({ state: v.state, archiveOldVersions })
+              .with(
+                {
+                  state: P.union(
+                    purposeVersionState.active,
+                    purposeVersionState.suspended
+                  ),
+                  archiveOldVersions: true,
+                },
+                () => ({ ...v, state: purposeVersionState.archived })
+              )
+              .otherwise(() => v)
+          );
+
+        return {
+          ...purpose.data,
+          versions: [...oldVersions, newPurposeVersion],
+          updatedAt: new Date(),
+        };
+      }
+
       /**
        * If, with the given daily calls, the purpose goes in over quota,
        * we will create a new version in waiting for approval state
@@ -665,11 +698,10 @@ export function purposeServiceBuilder(
           dailyCalls: seed.dailyCalls,
         };
 
-        const updatedPurpose = {
-          ...purpose.data,
-          versions: [...purpose.data.versions, newPurposeVersion],
-          updatedAt: new Date(),
-        };
+        const updatedPurpose = buildUpdatedPurpose({
+          newPurposeVersion,
+          archiveOldVersions: false,
+        });
 
         await repository.createEvent(
           toCreateEventNewPurposeVersionWaitingForApproval({
@@ -705,14 +737,10 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
       };
 
-      const updatedPurpose: Purpose = archiveOldPurposeVersions(
-        {
-          ...purpose.data,
-          versions: [...purpose.data.versions, newPurposeVersion],
-          updatedAt: new Date(),
-        },
-        newPurposeVersion.id
-      );
+      const updatedPurpose = buildUpdatedPurpose({
+        newPurposeVersion,
+        archiveOldVersions: true,
+      });
 
       await repository.createEvent(
         toCreateEventNewPurposeVersionActivated({
@@ -1090,26 +1118,4 @@ async function generateRiskAnalysisDocument({
     storeFile,
     logger
   );
-}
-
-function archiveOldPurposeVersions(
-  purpose: Purpose,
-  newPurposeVersionId: PurposeVersionId
-): Purpose {
-  const versions = purpose.versions.map((v) =>
-    match(v.state)
-      .with(
-        P.union(purposeVersionState.active, purposeVersionState.suspended),
-        () => ({
-          ...v,
-          state:
-            v.id === newPurposeVersionId
-              ? v.state
-              : purposeVersionState.archived,
-        })
-      )
-      .otherwise(() => v)
-  );
-
-  return { ...purpose, versions };
 }
