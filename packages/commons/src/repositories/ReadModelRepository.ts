@@ -123,6 +123,9 @@ type NarrowRootFilterOperators<TSchema> = Pick<
  * Type of the filter that can be used to query the read model.
  * It extends the mongodb filter type by adding all the possible model query keys.
  */
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - ignoring ts ts(2589): Type instantiation is excessively deep and possibly infinite.
 export type ReadModelFilter<TSchema> = {
   [P in MongoQueryKeys<WithId<{ data: TSchema }["data"]>>]?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 } & NarrowRootFilterOperators<TSchema>;

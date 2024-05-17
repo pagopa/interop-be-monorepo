@@ -807,7 +807,7 @@ export function purposeServiceBuilder(
       const title = purposeToClone.data.title;
       const suffix = ` - clone - ${formatDateAndTime(currentDate)}`;
       const prefixLengthAllowance = 60 - suffix.length - 3;
-
+      // 60 is the maximum length for the purpose title, according to the api spec (PurposeSeed)
       const clonedPurposeTitle =
         title.length + suffix.length <= 60
           ? `${title}${suffix}`
