@@ -43,8 +43,12 @@ import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
-export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config"));
+export const { cleanup, readModelRepository, postgresDB, fileManager } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig")
+  );
 
 afterEach(cleanup);
 
