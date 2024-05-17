@@ -10,7 +10,7 @@ import path from "path";
 
 import { FileManager, Logger } from "pagopa-interop-commons";
 import {
-  EServiceInfo,
+  PurposeDocumentEServiceInfo,
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
@@ -43,7 +43,7 @@ export const pdfGenerator = {
     documentId: PurposeVersionDocumentId,
     purpose: Purpose,
     purposeVersion: PurposeVersion,
-    eserviceInfo: EServiceInfo,
+    eserviceInfo: PurposeDocumentEServiceInfo,
     kind: TenantKind,
     storeFile: FileManager["storeBytes"],
     logger: Logger

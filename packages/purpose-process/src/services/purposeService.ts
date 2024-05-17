@@ -31,7 +31,7 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
-  EServiceInfo,
+  PurposeDocumentEServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
 } from "pagopa-interop-models";
@@ -1107,7 +1107,7 @@ async function activateOrWaitingForApproval({
       retrieveTenant(purpose.consumerId, readModelService),
     ]);
 
-    const eserviceInfo: EServiceInfo = {
+    const eserviceInfo: PurposeDocumentEServiceInfo = {
       name: eservice.name,
       mode: eservice.mode,
       producerName: producer.name,
