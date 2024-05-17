@@ -19,10 +19,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -51,12 +51,12 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
@@ -127,8 +127,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -168,10 +168,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -206,12 +206,12 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@faker-js/faker':
         specifier: 8.4.1
         version: 8.4.1
@@ -282,8 +282,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -320,7 +320,7 @@ importers:
         version: 2.9.4
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -349,8 +349,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -381,10 +381,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -416,12 +416,12 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@faker-js/faker':
         specifier: 8.4.1
         version: 8.4.1
@@ -492,8 +492,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -542,10 +542,10 @@ importers:
         version: 3.577.0
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -580,11 +580,11 @@ importers:
         specifier: 3.13.0
         version: 3.13.0
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
       zod-validation-error:
         specifier: ^3.1.0
-        version: 3.1.0(zod@3.22.3)
+        version: 3.1.0(zod@3.23.8)
     devDependencies:
       '@types/express':
         specifier: 4.17.21
@@ -612,7 +612,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
@@ -633,7 +633,7 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -668,14 +668,14 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.3.1)
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
 
   packages/eservice-descriptors-archiver:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -701,8 +701,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -774,8 +774,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@types/json-diff':
         specifier: 1.0.3
@@ -854,11 +854,11 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
       zod-validation-error:
         specifier: ^3.1.0
-        version: 3.1.0(zod@3.22.3)
+        version: 3.1.0(zod@3.23.8)
     devDependencies:
       eslint:
         specifier: 8.57.0
@@ -909,8 +909,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -950,10 +950,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -982,8 +982,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1043,8 +1043,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1081,13 +1081,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@types/node':
         specifier: 20.3.1
@@ -1112,10 +1112,10 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+        version: 10.9.6(axios@1.6.8)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -1144,8 +1144,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1208,8 +1208,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       zod:
-        specifier: 3.22.3
-        version: 3.22.3
+        specifier: 3.23.8
+        version: 3.23.8
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1244,7 +1244,7 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.18
 
-  /@anatine/zod-mock@3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3):
+  /@anatine/zod-mock@3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8):
     resolution: {integrity: sha512-yO/KeuyYsEDCTcQ+7CiRuY3dnafMHIZUMok6Ci7aERRCTQ+/XmsiPk/RnMx5wlLmWBTmX9kw+PavbMsjM+sAJA==}
     peerDependencies:
       '@faker-js/faker': ^7.0.0 || ^8.0.0
@@ -1252,7 +1252,7 @@ packages:
     dependencies:
       '@faker-js/faker': 8.4.1
       randexp: 0.5.3
-      zod: 3.22.3
+      zod: 3.23.8
     dev: true
 
   /@apidevtools/json-schema-ref-parser@9.0.6:
@@ -4618,25 +4618,25 @@ packages:
       pretty-format: 29.7.0
     dev: true
 
-  /@zodios/core@10.9.6(axios@1.6.8)(zod@3.22.3):
+  /@zodios/core@10.9.6(axios@1.6.8)(zod@3.23.8):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
       axios: ^0.x || ^1.0.0
       zod: ^3.x
     dependencies:
       axios: 1.6.8
-      zod: 3.22.3
+      zod: 3.23.8
 
-  /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3):
+  /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
     peerDependencies:
       '@zodios/core': '>=10.4.4 <11.0.0'
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.22.3)
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.23.8)
       express: 4.19.2
-      zod: 3.22.3
+      zod: 3.23.8
     dev: false
 
   /accepts@1.3.8:
@@ -7166,7 +7166,7 @@ packages:
       commander: 10.0.1
       js-yaml: 4.1.0
       undici: 5.28.4
-      zod: 3.22.3
+      zod: 3.23.8
     dev: true
 
   /openapi-types@12.1.3:
@@ -7178,7 +7178,7 @@ packages:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.22.3)
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.23.8)
       axios: 1.6.8
       cac: 6.7.14
       handlebars: 4.7.7
@@ -7189,7 +7189,7 @@ packages:
       tanu: 0.1.13
       ts-pattern: 5.1.1
       whence: 2.0.0
-      zod: 3.22.3
+      zod: 3.23.8
     transitivePeerDependencies:
       - debug
       - react
@@ -8676,14 +8676,14 @@ packages:
       readable-stream: 3.6.2
     dev: true
 
-  /zod-validation-error@3.1.0(zod@3.22.3):
+  /zod-validation-error@3.1.0(zod@3.23.8):
     resolution: {integrity: sha512-zujS6HqJjMZCsvjfbnRs7WI3PXN39ovTcY1n8a+KTm4kOH0ZXYsNiJkH1odZf4xZKMkBDL7M2rmQ913FCS1p9w==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.18.0
     dependencies:
-      zod: 3.22.3
+      zod: 3.23.8
     dev: false
 
-  /zod@3.22.3:
-    resolution: {integrity: sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==}
+  /zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
