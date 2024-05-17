@@ -73,12 +73,6 @@ export function authorizationEventToBinaryDataV1(
     .exhaustive();
 }
 
-// export function authorizationEventToBinaryDataV2(
-//   event: AuthorizationEventV2
-// ): Uint8Array {
-//   return match(event).exhaustive();
-// }
-
 export const AuthorizationEventV1 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(1),
@@ -163,26 +157,11 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
 ]);
 export type AuthorizationEventV1 = z.infer<typeof AuthorizationEventV1>;
 
-// export const AuthorizationEventV2 = z.discriminatedUnion("type", [
-//   z.object({
-//     event_version: z.literal(2),
-//     type: z.literal("To do"),
-//     data: protobufDecoder("to do"),
-//   }),
-// ]);
-// export type AuthorizationEventV2 = z.infer<typeof AuthorizationEventV2>;
-
 const eventV1 = z
   .object({
     event_version: z.literal(1),
   })
   .passthrough();
-
-// const eventV2 = z
-//   .object({
-//     event_version: z.literal(2),
-//   })
-//   .passthrough();
 
 export const AuthorizationEvent = z
   .discriminatedUnion("event_version", [eventV1])
@@ -204,11 +183,6 @@ export const AuthorizationEventEnvelopeV1 = EventEnvelope(AuthorizationEventV1);
 export type AuthorizationEventEnvelopeV1 = z.infer<
   typeof AuthorizationEventEnvelopeV1
 >;
-
-// export const AuthorizationEventEnvelopeV2 = EventEnvelope(AuthorizationEventV2);
-// export type AuthorizationEventEnvelopeV2 = z.infer<
-//   typeof AuthorizationEventEnvelopeV2
-// >;
 
 export const AuthorizationEventEnvelope = EventEnvelope(AuthorizationEvent);
 export type AuthorizationEventEnvelope = z.infer<
