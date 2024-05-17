@@ -36,6 +36,7 @@ export const errorCodes = {
   descriptorNotFound: "0020",
   unchangedDailyCalls: "0021",
   missingRiskAnalysis: "0022",
+  purposeVersionStateConflict: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -256,5 +257,17 @@ export function unchangedDailyCalls(
     detail: `Creation of new version without changing daily calls for purpose ${purposeId}`,
     code: "unchangedDailyCalls",
     title: "Unchanged daily calls",
+  });
+}
+
+export function purposeVersionStateConflict(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId,
+  state: PurposeVersionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
+    code: "purposeVersionStateConflict",
+    title: "Purpose version state conflict",
   });
 }

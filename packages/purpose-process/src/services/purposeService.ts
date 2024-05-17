@@ -48,6 +48,7 @@ import {
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
+  purposeVersionStateConflict,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -624,8 +625,23 @@ export function purposeServiceBuilder(
       logger.info(`Creating Version for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
       assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
+
+      const conflictVersion = purpose.data.versions.find(
+        (v) =>
+          v.state === purposeVersionState.draft ||
+          v.state === purposeVersionState.waitingForApproval
+      );
+
+      if (conflictVersion !== undefined) {
+        throw purposeVersionStateConflict(
+          purposeId,
+          conflictVersion.id,
+          conflictVersion.state
+        );
+      }
 
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
