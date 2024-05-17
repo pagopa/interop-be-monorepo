@@ -1,9 +1,4 @@
-import {
-  FileManager,
-  AuthData,
-  Logger,
-  CreateEvent,
-} from "pagopa-interop-commons";
+import { FileManager, Logger, CreateEvent } from "pagopa-interop-commons";
 import {
   WithMetadata,
   Agreement,
@@ -12,6 +7,7 @@ import {
   agreementState,
   generateId,
   AgreementId,
+  UserId,
 } from "pagopa-interop-models";
 import {
   toCreateEventAgreementArchivedByUpgrade,
@@ -29,7 +25,7 @@ export async function createUpgradeOrNewDraft({
   agreementQuery,
   canBeUpgraded,
   copyFile,
-  authData,
+  userId,
   correlationId,
   logger,
 }: {
@@ -38,13 +34,13 @@ export async function createUpgradeOrNewDraft({
   agreementQuery: AgreementQuery;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
-  authData: AuthData;
+  userId: UserId;
   correlationId: string;
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   if (canBeUpgraded) {
     // upgradeAgreement
-    const stamp = createStamp(authData);
+    const stamp = createStamp(userId);
     const archived: Agreement = {
       ...agreement.data,
       state: agreementState.archived,
