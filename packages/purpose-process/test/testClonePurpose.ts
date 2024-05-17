@@ -48,9 +48,6 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       vi.useRealTimers();
     });
     it("should write on event-store for the cloning of a purpose", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
       const mockTenant = {
         ...getMockTenant(),
         kind: tenantKind.PA,
@@ -120,13 +117,8 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       };
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-
-      vi.useRealTimers();
     });
     it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
       const mockTenant = {
         ...getMockTenant(),
         kind: tenantKind.PA,
@@ -198,8 +190,6 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       expect(expectedPurpose.title.length).toBe(60);
-
-      vi.useRealTimers();
     });
     it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
       const mockTenant = {
