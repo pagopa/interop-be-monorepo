@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   StoredEvent,
   readLastEventByStreamId,
@@ -26,8 +27,12 @@ import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
 
-export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config"));
+export const { cleanup, readModelRepository, postgresDB, fileManager } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig")
+  );
 
 afterEach(cleanup);
 
