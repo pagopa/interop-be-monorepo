@@ -43,10 +43,10 @@ export const fromKeyV1 = (input: KeyV1): Key => ({
 
 export const fromClientKindV1 = (input: ClientKindV1): ClientKind => {
   switch (input) {
-    case ClientKindV1.API:
-      return clientKind.api;
     case ClientKindV1.CONSUMER:
       return clientKind.consumer;
+    case ClientKindV1.API:
+      return clientKind.api;
     case ClientKindV1.UNSPECIFIED$: {
       throw new Error("Unspecified client kind");
     }

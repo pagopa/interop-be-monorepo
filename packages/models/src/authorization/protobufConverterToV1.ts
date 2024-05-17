@@ -37,8 +37,8 @@ export const toKeyV1 = (input: Key): KeyV1 => ({
 
 export const toClientKindV1 = (input: ClientKind): ClientKindV1 =>
   match(input)
-    .with(clientKind.api, () => ClientKindV1.API)
     .with(clientKind.consumer, () => ClientKindV1.CONSUMER)
+    .with(clientKind.api, () => ClientKindV1.API)
     .exhaustive();
 
 export const toClientComponentStateV1 = (
