@@ -119,12 +119,7 @@ export const createPurposeVersionErrorMapper = (
       "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "purposeNotFound",
-      "agreementNotFound",
-      "descriptorNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
