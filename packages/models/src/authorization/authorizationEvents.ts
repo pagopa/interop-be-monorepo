@@ -99,7 +99,6 @@ export function authorizationEventToBinaryDataV2(
     .with({ type: "ClientPurposeRemoved" }, ({ data }) =>
       ClientPurposeRemovedV2.toBinary(data)
     )
-
     .exhaustive();
 }
 
