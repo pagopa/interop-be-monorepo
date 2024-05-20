@@ -547,6 +547,11 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     it("should throw tenantKindNotFound if the purpose consumer has no kind", async () => {
       const consumer = { ...mockConsumer, kind: undefined };
 
+      const eservice: EService = {
+        ...mockEService,
+        mode: eserviceMode.deliver,
+      };
+
       const purposeVersion: PurposeVersion = {
         ...mockPurposeVersion,
         state: purposeVersionState.draft,
@@ -557,7 +562,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       };
 
       await addOnePurpose(purpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(toReadModelEService(eservice), eservices);
       await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(consumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
