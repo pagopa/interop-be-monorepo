@@ -408,7 +408,7 @@ export function agreementServiceBuilder(
       );
 
       const agreements = (
-        await agreementQuery.getAllAgreements({
+        await readModelService.getAllAgreements({
           producerId: agreement.data.producerId,
           consumerId: agreement.data.consumerId,
           eserviceId: agreement.data.eserviceId,

@@ -38,6 +38,7 @@ import {
   createArchivedAgreementEvent,
   createContract,
 } from "./agreementService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({
   firstActivation,

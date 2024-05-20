@@ -27,6 +27,7 @@ import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { retrieveTenant } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
+import { ReadModelService } from "./readModelService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
