@@ -42,6 +42,9 @@ import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { AgreementProcessConfig } from "../utilities/config.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
+const CONTENT_TYPE_PDF = "application/pdf";
+const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
+
 const retrieveUser = async (
   selfcareId: SelfcareId,
   id: UserId
@@ -337,8 +340,8 @@ export const contractBuilder = (
       return {
         id: documentId,
         name: documentName,
-        contentType: "application/pdf",
-        prettyName: "Richiesta di fruizione",
+        contentType: CONTENT_TYPE_PDF,
+        prettyName: AGREEMENT_CONTRACT_PRETTY_NAME,
         path: documentPath,
       };
     },
