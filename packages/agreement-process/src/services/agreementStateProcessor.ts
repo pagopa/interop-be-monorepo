@@ -280,19 +280,13 @@ function eserviceContainsAttribute(
   attributeId: AttributeId,
   eservice: EService
 ): boolean {
-  const certified = eservice.descriptors.flatMap(
-    (descriptor) => descriptor.attributes.certified
-  );
-  const declared = eservice.descriptors.flatMap(
-    (descriptor) => descriptor.attributes.declared
-  );
-  const verified = eservice.descriptors.flatMap(
-    (descriptor) => descriptor.attributes.verified
-  );
-
-  const allIds = [...certified, ...declared, ...verified].flatMap((attr) =>
-    attr.map((a) => a.id)
-  );
+  const allIds = eservice.descriptors
+    .flatMap((descriptor) => [
+      ...descriptor.attributes.certified,
+      ...descriptor.attributes.declared,
+      ...descriptor.attributes.verified,
+    ])
+    .flatMap((attr) => attr.map((a) => a.id));
 
   return allIds.includes(attributeId);
 }
