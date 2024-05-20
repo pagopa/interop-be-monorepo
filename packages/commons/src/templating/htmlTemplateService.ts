@@ -1,11 +1,11 @@
 import Handlebars from "handlebars";
 import { htmlTemplateInterpolationError } from "pagopa-interop-models";
 
-export type TemplateService = {
+export type HtmlTemplateService = {
   compileHtml: (html: string, context: Record<string, unknown>) => string;
 };
 
-export function buildTemplateService(): TemplateService {
+export function buildHTMLTemplateService(): HtmlTemplateService {
   return {
     compileHtml: (
       htmlTemplate: string,

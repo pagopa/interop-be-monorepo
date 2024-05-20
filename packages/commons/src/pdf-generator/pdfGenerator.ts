@@ -1,9 +1,9 @@
 /* eslint-disable functional/no-let */
-import { fileURLToPath } from "url";
-import path from "path";
 import { pdfGenerationError } from "pagopa-interop-models";
+import path from "path";
 import puppeteer, { Browser } from "puppeteer";
-import { buildTemplateService } from "../index.js";
+import { fileURLToPath } from "url";
+import { buildHTMLTemplateService } from "../index.js";
 
 export interface PDFGenerator {
   generate: (
@@ -13,7 +13,7 @@ export interface PDFGenerator {
 }
 
 export async function initPDFGenerator(): Promise<PDFGenerator> {
-  const templateService = buildTemplateService();
+  const templateService = buildHTMLTemplateService();
   let browserInstance = await puppeteer.launch({
     /* NOTE 
       those configurations allow link (file://) usages for 
