@@ -1,8 +1,7 @@
 /* eslint-disable max-params */
-import { CreateEvent, AuthData } from "pagopa-interop-commons";
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementDocument,
   AgreementEvent,
   AgreementStamp,
   AgreementStamps,
@@ -10,35 +9,24 @@ import {
   Descriptor,
   EService,
   Tenant,
-  WithMetadata,
+  UserId,
   agreementState,
   tenantMailKind,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
-  contractAlreadyExists,
 } from "../model/domain/errors.js";
-import {
-  toCreateEventAgreementArchivedByUpgrade,
-  toCreateEventAgreementSubmitted,
-} from "../model/domain/toEvent.js";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
-  validateActiveOrPendingAgreement,
-  validateSubmitOnDescriptor,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
-import { createStamp } from "./agreementStampUtils.js";
 import { retrieveTenant } from "./agreementService.js";
-import { ReadModelService } from "./readModelService.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -46,158 +34,7 @@ export type AgremeentSubmissionResults = {
   version: number;
 };
 
-export const processSubmitAgreement = async ({
-  agreementData,
-  eservice,
-  payload,
-  readModelService,
-  contractBuilder,
-  authData,
-  correlationId,
-}: {
-  agreementData: WithMetadata<Agreement>;
-  eservice: EService;
-  payload: ApiAgreementSubmissionPayload;
-  readModelService: ReadModelService;
-  contractBuilder: ContractBuilder;
-  authData: AuthData;
-  correlationId: string;
-}): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
-  const agreement = agreementData.data;
-
-  const descriptor = await validateSubmitOnDescriptor(
-    eservice,
-    agreement.descriptorId
-  );
-
-  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
-
-  const nextStateByAttributes = nextState(agreement, descriptor, consumer);
-
-  const newState = agreementStateByFlags(
-    nextStateByAttributes,
-    undefined,
-    undefined
-  );
-
-  if (agreement.state === agreementState.draft) {
-    await validateConsumerEmail(agreement, readModelService);
-  }
-  const stamp = createStamp(authData);
-  const stamps = calculateStamps(agreement, newState, stamp);
-  const updateSeed = getUpdateSeed(
-    descriptor,
-    consumer,
-    eservice,
-    agreement,
-    payload,
-    stamps,
-    newState,
-    false
-  );
-
-  const agreements = (
-    await readModelService.getAllAgreements({
-      producerId: agreement.producerId,
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-      agreementStates: [agreementState.active, agreementState.suspended],
-    })
-  ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.id);
-
-  const newAgreement = {
-    ...agreement,
-    ...updateSeed,
-  };
-
-  const submittedAgreement =
-    newAgreement.state === agreementState.active && agreements.length === 0
-      ? {
-          ...newAgreement,
-          contract: await createContract(
-            newAgreement,
-            eservice,
-            consumer,
-            updateSeed,
-            readModelService,
-            contractBuilder
-          ),
-        }
-      : newAgreement;
-
-  const submittedAgreementEvent = toCreateEventAgreementSubmitted(
-    submittedAgreement,
-    agreementData.metadata.version,
-    correlationId
-  );
-
-  const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-    isActiveOrSuspended(newState)
-      ? await Promise.all(
-          agreements.map(
-            async (
-              agreement: WithMetadata<Agreement>
-            ): Promise<CreateEvent<AgreementEvent>> => {
-              const updateSeed: UpdateAgreementSeed = {
-                state: agreementState.archived,
-                stamps: {
-                  ...agreement.data.stamps,
-                  archiving: createStamp(authData),
-                },
-              };
-
-              return toCreateEventAgreementArchivedByUpgrade(
-                {
-                  ...agreement.data,
-                  ...updateSeed,
-                },
-                agreement.metadata.version,
-                correlationId
-              );
-            }
-          )
-        )
-      : [];
-
-  validateActiveOrPendingAgreement(agreement.id, newState);
-
-  return [
-    submittedAgreement,
-    [submittedAgreementEvent, ...archivedAgreementsUpdates],
-  ];
-};
-
-const createContract = async (
-  agreement: Agreement,
-  eservice: EService,
-  consumer: Tenant,
-  seed: UpdateAgreementSeed,
-  readModelService: ReadModelService,
-  constractBuilder: ContractBuilder
-): Promise<AgreementDocument> => {
-  const producer = await retrieveTenant(agreement.producerId, readModelService);
-
-  if (agreement.contract) {
-    throw contractAlreadyExists(agreement.id);
-  }
-
-  const newContract = await constractBuilder.createContract(
-    agreement,
-    eservice,
-    consumer,
-    producer,
-    seed
-  );
-  const agreementdocumentSeed: AgreementDocument = {
-    ...newContract,
-    id: unsafeBrandId(newContract.id),
-    createdAt: new Date(),
-  };
-
-  return agreementdocumentSeed;
-};
-
-const validateConsumerEmail = async (
+export const validateConsumerEmail = async (
   agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<void> => {
@@ -210,17 +47,19 @@ const validateConsumerEmail = async (
   }
 };
 
-const getUpdateSeed = (
+export const createSubmissionUpdateAgreementSeed = (
   descriptor: Descriptor,
   consumer: Tenant,
   eservice: EService,
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
-  stamps: AgreementStamps,
   newState: AgreementState,
-  suspendedByPlatform: boolean
-): UpdateAgreementSeed =>
-  newState === agreementState.active
+  suspendedByPlatform: boolean,
+  userId: UserId
+): UpdateAgreementSeed => {
+  const stamps = calculateStamps(agreement, newState, createStamp(userId));
+
+  return newState === agreementState.active
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -247,11 +86,12 @@ const getUpdateSeed = (
         consumerNotes: payload.consumerNotes,
         stamps,
       };
+};
 
-const isActiveOrSuspended = (state: AgreementState): boolean =>
+export const isActiveOrSuspended = (state: AgreementState): boolean =>
   state === agreementState.active || state === agreementState.suspended;
 
-const calculateStamps = (
+export const calculateStamps = (
   agreement: Agreement,
   state: AgreementState,
   stamp: AgreementStamp

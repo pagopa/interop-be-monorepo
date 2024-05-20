@@ -26,7 +26,7 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 
-export function processSuspendAgreement({
+export function createSuspensionUpdatedAgreement({
   agreement,
   authData,
   descriptor,
@@ -55,7 +55,7 @@ export function processSuspendAgreement({
     suspendedByConsumer
   );
 
-  const stamp = createStamp(authData);
+  const stamp = createStamp(authData.userId);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement,

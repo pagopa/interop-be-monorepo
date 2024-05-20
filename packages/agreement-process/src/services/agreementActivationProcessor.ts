@@ -1,4 +1,3 @@
-/* eslint-disable max-params */
 import {
   AuthData,
   CreateEvent,
@@ -10,95 +9,60 @@ import {
   EService,
   Tenant,
   agreementState,
-  WithMetadata,
   AgreementEvent,
-  SelfcareId,
+  AgreementState,
+  Descriptor,
+  genericError,
+  AgreementEventV2,
+  WithMetadata,
+  UserId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
-  failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
-  validateActivationOnDescriptor,
   agreementArchivableStates,
 } from "../model/domain/validators.js";
 import {
   toCreateEventAgreementActivated,
-  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUnsuspendedByConsumer,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { ApiAgreementDocumentSeed } from "../model/types.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
-import {
-  agreementStateByFlags,
-  nextState,
-  suspendedByConsumerFlag,
-  suspendedByProducerFlag,
-} from "./agreementStateProcessor.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
-import { retrieveTenant } from "./agreementService.js";
-import { ReadModelService } from "./readModelService.js";
+import {
+  createArchivedAgreementEvent,
+  createContract,
+} from "./agreementService.js";
 
-export async function processActivateAgreement({
-  agreementData,
+export function createActivationUpdateAgreementSeed({
+  firstActivation,
+  newState,
+  descriptor,
+  consumer,
   eservice,
   authData,
-  readModelService,
-  storeFile,
-  correlationId,
-  logger,
+  agreement,
+  suspendedByConsumer,
+  suspendedByProducer,
 }: {
-  agreementData: WithMetadata<Agreement>;
+  firstActivation: boolean;
+  newState: AgreementState;
+  descriptor: Descriptor;
+  consumer: Tenant;
   eservice: EService;
   authData: AuthData;
-  readModelService: ReadModelService;
-  storeFile: FileManager["storeBytes"];
-  correlationId: string;
-  logger: Logger;
-}): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const agreement = agreementData.data;
+  agreement: Agreement;
+  suspendedByConsumer: boolean | undefined;
+  suspendedByProducer: boolean | undefined;
+}): UpdateAgreementSeed {
+  const stamp = createStamp(authData.userId);
 
-  const descriptor = validateActivationOnDescriptor(
-    eservice,
-    agreement.descriptorId
-  );
-
-  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
-
-  const nextAttributesState = nextState(agreement, descriptor, consumer);
-
-  const suspendedByConsumer = suspendedByConsumerFlag(
-    agreement,
-    authData.organizationId,
-    agreementState.active
-  );
-  const suspendedByProducer = suspendedByProducerFlag(
-    agreement,
-    authData.organizationId,
-    agreementState.active
-  );
-
-  const newState = agreementStateByFlags(
-    nextAttributesState,
-    suspendedByProducer,
-    suspendedByConsumer
-  );
-
-  failOnActivationFailure(newState, agreement);
-
-  const firstActivation =
-    agreement.state === agreementState.pending &&
-    newState === agreementState.active;
-
-  const updatedAgreementSeed: UpdateAgreementSeed = firstActivation
+  return firstActivation
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -112,7 +76,7 @@ export async function processActivateAgreement({
         suspendedByProducer,
         stamps: {
           ...agreement.stamps,
-          activation: createStamp(authData),
+          activation: stamp,
         },
       }
     : {
@@ -125,13 +89,13 @@ export async function processActivateAgreement({
             agreement,
             authData.organizationId,
             agreementState.active,
-            createStamp(authData)
+            stamp
           ),
           suspensionByProducer: suspendedByProducerStamp(
             agreement,
             authData.organizationId,
             agreementState.active,
-            createStamp(authData)
+            stamp
           ),
         },
         suspendedAt:
@@ -139,67 +103,73 @@ export async function processActivateAgreement({
             ? undefined
             : agreement.suspendedAt,
       };
-
-  const updatedAgreement: Agreement = {
-    ...agreement,
-    ...updatedAgreementSeed,
-  };
-
-  const activationEvent = await match(firstActivation)
-    .with(true, async () => {
-      const contract = apiAgreementDocumentToAgreementDocument(
-        await createContract(
-          updatedAgreement,
-          updatedAgreementSeed,
-          eservice,
-          consumer,
-          readModelService,
-          authData.selfcareId,
-          storeFile,
-          logger
-        )
-      );
-
-      return toCreateEventAgreementActivated(
-        { ...updatedAgreement, contract },
-        agreementData.metadata.version,
-        correlationId
-      );
-    })
-    .with(false, () => {
-      if (authData.organizationId === agreement.producerId) {
-        return toCreateEventAgreementUnsuspendedByProducer(
-          updatedAgreement,
-          agreementData.metadata.version,
-          correlationId
-        );
-      } else if (authData.organizationId === agreement.consumerId) {
-        return toCreateEventAgreementUnsuspendedByConsumer(
-          updatedAgreement,
-          agreementData.metadata.version,
-          correlationId
-        );
-      } else {
-        throw new Error(
-          `Unexpected organizationId ${authData.organizationId} in activateAgreement`
-        );
-      }
-    })
-    .exhaustive();
-
-  const archiveEvents = await archiveRelatedToAgreements(
-    agreement,
-    authData,
-    readModelService,
-    correlationId
-  );
-
-  return [updatedAgreement, [activationEvent, ...archiveEvents]];
 }
 
-const archiveRelatedToAgreements = async (
+export async function createActivationEvent({
+  firstActivation,
+  agreement,
+  updatedAgreement,
+  updatedAgreementSeed,
+  eservice,
+  consumer,
+  authData,
+  correlationId,
+  readModelService,
+  storeFile,
+  logger,
+}: {
+  firstActivation: boolean;
+  agreement: WithMetadata<Agreement>;
+  updatedAgreement: Agreement;
+  updatedAgreementSeed: UpdateAgreementSeed;
+  eservice: EService;
+  consumer: Tenant;
+  authData: AuthData;
+  correlationId: string;
+  readModelService: ReadModelService;
+  storeFile: FileManager["storeBytes"];
+  logger: Logger;
+}): Promise<CreateEvent<AgreementEventV2>> {
+  if (firstActivation) {
+    const contract = await createContract({
+      agreement: updatedAgreement,
+      updateSeed: updatedAgreementSeed,
+      eservice,
+      consumer,
+      readModelService,
+      selfcareId: authData.selfcareId,
+      storeFile,
+      logger,
+    });
+    return toCreateEventAgreementActivated(
+      { ...updatedAgreement, contract },
+      agreement.metadata.version,
+      correlationId
+    );
+  } else {
+    if (authData.organizationId === agreement.data.producerId) {
+      return toCreateEventAgreementUnsuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    } else if (authData.organizationId === agreement.data.consumerId) {
+      return toCreateEventAgreementUnsuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    } else {
+      throw genericError(
+        `Unexpected organizationId ${authData.organizationId} in activateAgreement`
+      );
+    }
+  }
+}
+
+export const archiveRelatedToAgreements = async (
   agreement: Agreement,
-  authData: AuthData,
+  userId: UserId,
   readModelService: ReadModelService,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
@@ -215,43 +185,6 @@ const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    toCreateEventAgreementArchivedByUpgrade(
-      {
-        ...agreementData.data,
-        state: agreementState.archived,
-        certifiedAttributes: agreementData.data.certifiedAttributes,
-        declaredAttributes: agreementData.data.declaredAttributes,
-        verifiedAttributes: agreementData.data.verifiedAttributes,
-        suspendedByConsumer: agreementData.data.suspendedByConsumer,
-        suspendedByProducer: agreementData.data.suspendedByProducer,
-        suspendedByPlatform: agreementData.data.suspendedByPlatform,
-        stamps: {
-          ...agreementData.data.stamps,
-          archiving: createStamp(authData),
-        },
-      },
-      agreementData.metadata.version,
-      correlationId
-    )
+    createArchivedAgreementEvent(agreementData, userId, correlationId)
   );
-};
-
-const createContract = async (
-  agreement: Agreement,
-  updateSeed: UpdateAgreementSeed,
-  eservice: EService,
-  consumer: Tenant,
-  readModelService: ReadModelService,
-  selfcareId: SelfcareId,
-  storeFile: FileManager["storeBytes"],
-  logger: Logger
-): Promise<ApiAgreementDocumentSeed> => {
-  const producer = await retrieveTenant(agreement.producerId, readModelService);
-
-  return await contractBuilder(
-    selfcareId,
-    readModelService,
-    storeFile,
-    logger
-  ).createContract(agreement, eservice, consumer, producer, updateSeed);
 };
