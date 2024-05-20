@@ -27,7 +27,7 @@
     "@types/uuid": "9.0.8",
     "@zodios/core": "10.9.6",
     "dotenv-flow": "3.3.0",
-    "axios": "1.6.8",
+    "axios": "1.7.0",
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
