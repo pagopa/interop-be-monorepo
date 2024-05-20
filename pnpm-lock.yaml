@@ -88,8 +88,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -149,8 +149,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -240,8 +240,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -301,8 +301,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -453,8 +453,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -517,8 +517,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.8.1
-        version: 10.8.1
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -620,8 +620,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       '@testcontainers/postgresql':
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       '@types/dotenv-flow':
         specifier: 3.3.3
         version: 3.3.3
@@ -653,8 +653,8 @@ importers:
         specifier: 11.6.0
         version: 11.6.0
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-pattern:
         specifier: 5.1.1
         version: 5.1.1
@@ -726,8 +726,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -934,8 +934,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -1004,8 +1004,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -1065,8 +1065,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.8.1
-        version: 10.8.1
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -1169,8 +1169,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       testcontainers:
-        specifier: 10.2.2
-        version: 10.2.2
+        specifier: 10.9.0
+        version: 10.9.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
@@ -4268,10 +4268,10 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@testcontainers/postgresql@10.2.2:
-    resolution: {integrity: sha512-G1xJKe8omeNzngK0dj4R2cSYxWyOUdTXD/oBA03AqIwdReq/gi4WjT6CJqGbkqQy9opXZV6ug3gHMja+wM5BCA==}
+  /@testcontainers/postgresql@10.9.0:
+    resolution: {integrity: sha512-Z3K/TFkl/PVE2v8A6yKqgF4pSFk9ilFG02yeGhPswUjmBlcig/rpVOjBQOkQ/yJCcQ/r2RrX3RR+7vr+UO4QlQ==}
     dependencies:
-      testcontainers: 10.8.1
+      testcontainers: 10.9.0
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -8004,30 +8004,8 @@ packages:
       streamx: 2.15.2
     dev: true
 
-  /testcontainers@10.2.2:
-    resolution: {integrity: sha512-5GZ93rtoVXMx/s3xZjydftrKLnv1Yf+ETzGkXYRCm16LB60W48SGodxuiouYvNlVy0y0ogoQhdOw3DqsPActEA==}
-    dependencies:
-      '@balena/dockerignore': 1.0.2
-      archiver: 5.3.2
-      async-lock: 1.4.1
-      byline: 5.0.0
-      debug: 4.3.4
-      docker-compose: 0.24.7
-      dockerode: 3.3.5
-      get-port: 5.1.1
-      node-fetch: 2.7.0
-      proper-lockfile: 4.1.2
-      properties-reader: 2.3.0
-      ssh-remote-port-forward: 1.0.4
-      tar-fs: 3.0.5
-      tmp: 0.2.1
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-    dev: true
-
-  /testcontainers@10.8.1:
-    resolution: {integrity: sha512-2Kzeu3UfnILkhpdz2+YDu1FBFerAusdMCsltErBCJouP5j5xuxrV8BHxhlDt0xsJdM8YnhHgA2B32LmDr5AToA==}
+  /testcontainers@10.9.0:
+    resolution: {integrity: sha512-LN+cKAOd61Up9SVMJW+3VFVGeVQG8JBqZhEQo2U0HBfIsAynyAXcsLBSo+KZrOfy9SBz7pGHctWN/KabLDbNFA==}
     dependencies:
       '@balena/dockerignore': 1.0.2
       '@types/dockerode': 3.3.26
