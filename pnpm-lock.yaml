@@ -67,8 +67,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -92,13 +92,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/agreement-readmodel-writer:
     dependencies:
@@ -137,8 +137,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -153,7 +153,7 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -162,7 +162,7 @@ importers:
         version: 9.0.1
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/attribute-registry-process:
     dependencies:
@@ -228,8 +228,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -244,13 +244,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/attribute-registry-readmodel-writer:
     dependencies:
@@ -292,8 +292,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -305,13 +305,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/authorization-updater:
     dependencies:
@@ -359,8 +359,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -372,7 +372,7 @@ importers:
         version: 2.8.8
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -438,8 +438,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -457,13 +457,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/catalog-readmodel-writer:
     dependencies:
@@ -502,8 +502,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -521,7 +521,7 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -530,7 +530,7 @@ importers:
         version: 9.0.1
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/commons:
     dependencies:
@@ -593,8 +593,8 @@ importers:
         specifier: 9.0.6
         version: 9.0.6
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -666,7 +666,7 @@ importers:
         version: 9.0.1
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -711,8 +711,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -730,19 +730,19 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/event-migration:
     dependencies:
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -791,13 +791,13 @@ importers:
         version: 2.8.8
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/kafka-iam-auth:
     dependencies:
@@ -842,8 +842,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -919,8 +919,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -938,13 +938,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/purpose-process:
     dependencies:
@@ -995,8 +995,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1008,13 +1008,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/purpose-readmodel-writer:
     dependencies:
@@ -1053,8 +1053,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -1069,13 +1069,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/selfcare-v2-client:
     dependencies:
@@ -1090,8 +1090,8 @@ importers:
         version: 3.23.8
     devDependencies:
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -1157,8 +1157,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1173,13 +1173,13 @@ importers:
         version: 10.9.0
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.3.1)
+        version: 1.6.0(@types/node@20.12.12)
 
   packages/tenant-readmodel-writer:
     dependencies:
@@ -1218,14 +1218,14 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       '@types/node':
-        specifier: 20.3.1
-        version: 20.3.1
+        specifier: 20.12.12
+        version: 20.12.12
       prettier:
         specifier: 2.8.8
         version: 2.8.8
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.3.1)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.12.12)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -4301,17 +4301,17 @@ packages:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
       '@types/connect': 3.4.35
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
 
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
 
   /@types/docker-modem@3.0.6:
     resolution: {integrity: sha512-yKpAGEuKRSS8wwx0joknWxsmLha78wNMe9R2S3UNsVOkZded8UqOrV8KoeDXoXsjndxwyF3eIhyClGbO1SEhEg==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       '@types/ssh2': 0.5.52
     dev: true
 
@@ -4319,7 +4319,7 @@ packages:
     resolution: {integrity: sha512-/K+I9bGhRO2SvyIHisGeOsy/ypxnWLz8+Rde9S2tNNEKa3r91e0XMYIEq2D+kb7srm7xrmpAR0CDKfXoZOr4OA==}
     dependencies:
       '@types/docker-modem': 3.0.6
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
     dev: true
 
   /@types/dotenv-flow@3.3.3:
@@ -4333,7 +4333,7 @@ packages:
   /@types/express-serve-static-core@4.17.35:
     resolution: {integrity: sha512-wALWQwrgiB2AWTT91CB62b6Yt0sNHpznUXeZEcnPU3DRdlDIz74x8Qg1UUYKSVFi+va5vKOLYRBI1bRKiLLKIg==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
       '@types/send': 0.17.1
@@ -4349,7 +4349,7 @@ packages:
   /@types/fs-extra@9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
 
   /@types/json-diff@1.0.3:
     resolution: {integrity: sha512-Qvxm8fpRMv/1zZR3sQWImeRK2mBYJji20xF51Fq9Gt//Ed18u0x6/FNLogLS1xhfUWTEmDyqveJqn95ltB6Kvw==}
@@ -4366,7 +4366,7 @@ packages:
   /@types/jsonwebtoken@9.0.6:
     resolution: {integrity: sha512-/5hndP5dCjloafCXns6SZyESp3Ldq7YjH3zwzwczYnjxIT0Fqzk5ROSYVGfFyczIue7IUEj8hkvLbPoLQ18vQw==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
 
   /@types/lodash.isequal@4.5.8:
     resolution: {integrity: sha512-uput6pg4E/tj2LGxCZo9+y27JNyB2OZuuI/T5F+ylVDYuqICLG2/ktjxx0v6GvVntAf8TvEzeQLcV0ffRirXuA==}
@@ -4384,8 +4384,10 @@ packages:
   /@types/mime@3.0.1:
     resolution: {integrity: sha512-Y4XFY5VJAuw0FgAqPNd6NNoV44jbq9Bz2L7Rh/J6jLTiHBSBJa9fxqQIvkIld4GsoDOcCbvzOUAbLPsSKKg+uA==}
 
-  /@types/node@20.3.1:
-    resolution: {integrity: sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg==}
+  /@types/node@20.12.12:
+    resolution: {integrity: sha512-eWLDGF/FOSPtAvEqeRAQ4C8LSA7M1I7i0ky1I8U7kD1J5ITyW3AsRhQrKVoWf5pFKZ2kILsEGJhsI9r93PYnOw==}
+    dependencies:
+      undici-types: 5.26.5
 
   /@types/qs@6.9.7:
     resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==}
@@ -4401,24 +4403,24 @@ packages:
     resolution: {integrity: sha512-Cwo8LE/0rnvX7kIIa3QHCkcuF21c05Ayb0ZfxPiv0W8VRiZiNW/WuRupHKpqqGVGf7SUA44QSOUKaEd9lIrd/Q==}
     dependencies:
       '@types/mime': 1.3.2
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
 
   /@types/serve-static@1.15.1:
     resolution: {integrity: sha512-NUo5XNiAdULrJENtJXZZ3fHtfMolzZwczzBbnAeBbqBwG+LaG6YaJtuwzwGSQZ2wsCrxjEhNNjAkKigy3n8teQ==}
     dependencies:
       '@types/mime': 3.0.1
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
 
   /@types/ssh2-streams@0.1.12:
     resolution: {integrity: sha512-Sy8tpEmCce4Tq0oSOYdfqaBpA3hDM8SoxoFh5vzFsu2oL+znzGz8oVWW7xb4K920yYMUY+PIG31qZnFMfPWNCg==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
     dev: true
 
   /@types/ssh2@0.5.52:
     resolution: {integrity: sha512-lbLLlXxdCZOSJMCInKH2+9V/77ET2J6NPQHpFI0kda61Dd1KglJs+fPQBchizmzYSOJBgdTajhPqBO1xxLywvg==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       '@types/ssh2-streams': 0.1.12
     dev: true
 
@@ -4436,7 +4438,7 @@ packages:
   /@types/whatwg-url@8.2.2:
     resolution: {integrity: sha512-FtQu10RWgn3D9U4aazdwIE2yzphmTJREDqNdODHrbrZmmMqI0vMheC/6NE/J1Yveaj8H+ela+YwWTjq5PGmuhA==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       '@types/webidl-conversions': 7.0.0
     dev: false
 
@@ -8087,7 +8089,7 @@ packages:
     resolution: {integrity: sha512-XrHUvV5HpdLmIj4uVMxHggLbFSZYIn7HEWsqePZcI50pco+MPqJ50wMGY794X7AOOhxOBAjbkqfAbEe/QMp2Lw==}
     dev: false
 
-  /ts-node@10.9.2(@types/node@20.3.1)(typescript@5.4.5):
+  /ts-node@10.9.2(@types/node@20.12.12)(typescript@5.4.5):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     peerDependencies:
       '@swc/core': '>=1.2.50'
@@ -8105,7 +8107,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       acorn: 8.11.3
       acorn-walk: 8.3.2
       arg: 4.1.3
@@ -8293,6 +8295,9 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
+  /undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+
   /undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
@@ -8348,7 +8353,7 @@ packages:
     engines: {node: '>= 0.8'}
     dev: false
 
-  /vite-node@1.6.0(@types/node@20.3.1):
+  /vite-node@1.6.0(@types/node@20.12.12):
     resolution: {integrity: sha512-de6HJgzC+TFzOu0NTC4RAIsyf/DY/ibWDYQUcuEA84EMHhcefTUGkjFHKKEJhQN4A+6I0u++kr3l36ZF2d7XRw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     dependencies:
@@ -8356,7 +8361,7 @@ packages:
       debug: 4.3.4
       pathe: 1.1.2
       picocolors: 1.0.0
-      vite: 5.2.9(@types/node@20.3.1)
+      vite: 5.2.9(@types/node@20.12.12)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -8368,7 +8373,7 @@ packages:
       - terser
     dev: true
 
-  /vite@5.2.9(@types/node@20.3.1):
+  /vite@5.2.9(@types/node@20.12.12):
     resolution: {integrity: sha512-uOQWfuZBlc6Y3W/DTuQ1Sr+oIXWvqljLvS881SVmAj00d5RdgShLcuXWxseWPd4HXwiYBFW/vXHfKFeqj9uQnw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
@@ -8395,7 +8400,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       esbuild: 0.20.2
       postcss: 8.4.38
       rollup: 4.14.3
@@ -8403,7 +8408,7 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /vitest@1.6.0(@types/node@20.3.1):
+  /vitest@1.6.0(@types/node@20.12.12):
     resolution: {integrity: sha512-H5r/dN06swuFnzNFhq/dnz37bPXnq8xB2xB5JOVk8K09rUtoeNN+LHWkoQ0A/i3hvbUKKcCei9KpbxqHMLhLLA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
@@ -8427,7 +8432,7 @@ packages:
       jsdom:
         optional: true
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.12.12
       '@vitest/expect': 1.6.0
       '@vitest/runner': 1.6.0
       '@vitest/snapshot': 1.6.0
@@ -8445,8 +8450,8 @@ packages:
       strip-literal: 2.1.0
       tinybench: 2.7.0
       tinypool: 0.8.4
-      vite: 5.2.9(@types/node@20.3.1)
-      vite-node: 1.6.0(@types/node@20.3.1)
+      vite: 5.2.9(@types/node@20.12.12)
+      vite-node: 1.6.0(@types/node@20.12.12)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
