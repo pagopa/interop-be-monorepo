@@ -218,10 +218,10 @@ export const assertPurposeTitleIsNotDuplicated = async ({
   }
 };
 
-export async function isLoadAllowed(
+export async function isOverQuota(
   eservice: EService,
   purpose: Purpose,
-  purposeVersion: PurposeVersion,
+  dailyCalls: number,
   readModelService: ReadModelService
 ): Promise<boolean> {
   const allPurposes = await readModelService.getAllPurposes({
@@ -267,9 +267,8 @@ export async function isLoadAllowed(
   const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
-  return (
-    consumerLoadRequestsSum + purposeVersion.dailyCalls <=
-      maxDailyCallsPerConsumer &&
-    allPurposesRequestsSum + purposeVersion.dailyCalls <= maxDailyCallsTotal
+  return !(
+    consumerLoadRequestsSum + dailyCalls <= maxDailyCallsPerConsumer &&
+    allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
   );
 }

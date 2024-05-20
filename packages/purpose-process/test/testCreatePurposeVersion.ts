@@ -19,7 +19,6 @@ import {
   Purpose,
   generateId,
   toPurposeV2,
-  PurposeActivatedV2,
   Tenant,
   Descriptor,
   EService,
@@ -29,6 +28,8 @@ import {
   toReadModelEService,
   eserviceMode,
   toReadModelAgreement,
+  NewPurposeVersionActivatedV2,
+  NewPurposeVersionWaitingForApprovalV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -135,7 +136,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       expect(writtenEvent).toMatchObject({
         stream_id: mockPurpose.id,
         version: "1",
-        type: "PurposeActivated",
+        type: "NewPurposeVersionActivated",
         event_version: 2,
       });
 
@@ -153,11 +154,65 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       };
 
       const writtenPayload = decodeProtobufPayload({
-        messageType: PurposeActivatedV2,
+        messageType: NewPurposeVersionActivatedV2,
         payload: writtenEvent.data,
       });
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    });
+
+    it("should write on event-store for the creation of a new purpose version in waiting for approval state", async () => {
+      const descriptor: Descriptor = {
+        ...mockEServiceDescriptor,
+        dailyCallsPerConsumer: 99,
+      };
+      const eservice = { ...mockEService, descriptors: [descriptor] };
+
+      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(eservice), eservices);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+      await writeInReadmodel(mockConsumer, tenants);
+      await writeInReadmodel(mockProducer, tenants);
+
+      const purposeVersion = await purposeService.createPurposeVersion({
+        purposeId: mockPurpose.id,
+        seed: {
+          dailyCalls: 1000,
+        },
+        organizationId: mockPurpose.consumerId,
+        correlationId: generateId(),
+        logger: genericLogger,
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        mockPurpose.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "NewPurposeVersionWaitingForApproval",
+        event_version: 2,
+      });
+
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        versions: [...mockPurpose.versions, purposeVersion],
+        updatedAt: new Date(),
+      };
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: NewPurposeVersionWaitingForApprovalV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+      expect(purposeVersion.state).toEqual(
+        purposeVersionState.waitingForApproval
+      );
     });
 
     it("should throw unchangedDailyCalls if the new request daily calls are the same of the previous version", async () => {
@@ -417,33 +472,5 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
           logger: genericLogger,
         });
       }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
-    });
-
-    it("should create a new purpose waiting for approval version if the new version surpasses the e-service daily calls per consumer limit", async () => {
-      const descriptor: Descriptor = {
-        ...mockEServiceDescriptor,
-        dailyCallsPerConsumer: 99,
-      };
-      const eservice = { ...mockEService, descriptors: [descriptor] };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eservice), eservices);
-      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-      await writeInReadmodel(mockConsumer, tenants);
-      await writeInReadmodel(mockProducer, tenants);
-
-      const purposeVersion = await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
-          dailyCalls: 1000,
-        },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
-
-      expect(purposeVersion.state).toEqual(
-        purposeVersionState.waitingForApproval
-      );
     });
   });

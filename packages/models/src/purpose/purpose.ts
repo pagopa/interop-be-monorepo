@@ -74,7 +74,7 @@ export const Ownership = z.enum([
 ]);
 export type Ownership = z.infer<typeof Ownership>;
 
-export const EServiceInfo = z.object({
+export const PurposeDocumentEServiceInfo = z.object({
   name: z.string(),
   mode: EServiceMode,
   producerName: z.string(),
@@ -84,12 +84,14 @@ export const EServiceInfo = z.object({
   consumerOrigin: z.string(),
   consumerIPACode: z.string(),
 });
-export type EServiceInfo = z.infer<typeof EServiceInfo>;
+export type PurposeDocumentEServiceInfo = z.infer<
+  typeof PurposeDocumentEServiceInfo
+>;
 
 export const RiskAnalysisPDFPayload = z.object({
   riskAnalysisForm: PurposeRiskAnalysisForm,
   dailyCalls: z.number(),
-  eserviceInfo: EServiceInfo,
+  eserviceInfo: PurposeDocumentEServiceInfo,
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
   kind: TenantKind,

@@ -10,9 +10,8 @@ import path from "path";
 
 import { FileManager, Logger } from "pagopa-interop-commons";
 import {
-  EServiceInfo,
+  PurposeDocumentEServiceInfo,
   Purpose,
-  PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   RiskAnalysisPDFPayload,
@@ -42,8 +41,8 @@ export const pdfGenerator = {
   createRiskAnalysisDocument: async (
     documentId: PurposeVersionDocumentId,
     purpose: Purpose,
-    purposeVersion: PurposeVersion,
-    eserviceInfo: EServiceInfo,
+    dailyCalls: number,
+    eserviceInfo: PurposeDocumentEServiceInfo,
     kind: TenantKind,
     storeFile: FileManager["storeBytes"],
     logger: Logger
@@ -54,7 +53,7 @@ export const pdfGenerator = {
 
     const riskAnalysisPDFPayload: RiskAnalysisPDFPayload = {
       riskAnalysisForm: purpose.riskAnalysisForm,
-      dailyCalls: purposeVersion.dailyCalls,
+      dailyCalls,
       eserviceInfo,
       isFreeOfCharge: purpose.isFreeOfCharge,
       freeOfChargeReason: purpose.freeOfChargeReason,
