@@ -48,9 +48,6 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       vi.useRealTimers();
     });
     it("should write on event-store for the cloning of a purpose", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
       const mockTenant = {
         ...getMockTenant(),
         kind: tenantKind.PA,
@@ -120,8 +117,79 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       };
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    });
+    it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
+      const mockTenant = {
+        ...getMockTenant(),
+        kind: tenantKind.PA,
+      };
+      const mockEService = getMockEService();
 
-      vi.useRealTimers();
+      const mockAgreement = getMockAgreement(
+        mockEService.id,
+        mockTenant.id,
+        agreementState.active
+      );
+
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        title: "Title exceeding the maximum length when the suffix is added",
+        eserviceId: mockEService.id,
+        consumerId: mockTenant.id,
+        versions: [getMockPurposeVersion(purposeVersionState.active)],
+      };
+
+      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      await writeInReadmodel(mockTenant, tenants);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+      const { purpose } = await purposeService.clonePurpose({
+        purposeId: mockPurpose.id,
+        organizationId: mockTenant.id,
+        seed: {
+          eserviceId: mockEService.id,
+        },
+        correlationId: generateId(),
+        logger: genericLogger,
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        purpose.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: purpose.id,
+        version: "0",
+        type: "PurposeCloned",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeClonedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        id: unsafeBrandId(writtenPayload.purpose!.id),
+        title: `Title exceeding the maximum... - clone - ${formatDateAndTime(
+          new Date()
+        )}`,
+        versions: [
+          {
+            id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+            state: purposeVersionState.draft,
+            createdAt: new Date(),
+            dailyCalls: mockPurpose.versions[0].dailyCalls,
+          },
+        ],
+        createdAt: new Date(),
+      };
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      expect(expectedPurpose.title.length).toBe(60);
     });
     it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
       const mockTenant = {
