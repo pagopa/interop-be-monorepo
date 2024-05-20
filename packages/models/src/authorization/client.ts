@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AgreementId,
+  ClientId,
   DescriptorId,
   EServiceId,
   PurposeId,
@@ -62,7 +63,7 @@ export const ClientStatesChain = z.object({
 export type ClientStatesChain = z.infer<typeof ClientStatesChain>;
 
 export const Client = z.object({
-  id: z.string(),
+  id: ClientId,
   consumerId: TenantId,
   name: z.string(),
   purposes: z.array(PurposeId),

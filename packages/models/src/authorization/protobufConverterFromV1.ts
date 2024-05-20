@@ -62,6 +62,7 @@ export const fromClientComponentStateV1 = (
 
 export const fromClientV1 = (input: ClientV1): Client => ({
   ...input,
+  id: unsafeBrandId(input.id),
   consumerId: unsafeBrandId(input.consumerId),
   purposes: input.purposes.map((item) =>
     unsafeBrandId(item.states!.purpose!.purposeId)
