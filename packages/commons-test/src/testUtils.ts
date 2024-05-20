@@ -25,6 +25,7 @@ import {
   generateId,
   purposeVersionState,
   Document,
+  AgreementAttribute,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
@@ -70,6 +71,12 @@ export const getMockEServiceAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
+  id: attributeId,
+});
+
+export const getMockAgreementAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): AgreementAttribute => ({
   id: attributeId,
 });
 
