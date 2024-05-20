@@ -26,6 +26,7 @@ export type AuthorizationService = {
     agreementId: string,
     eserviceId: EServiceId,
     consumerId: TenantId,
+    logger: Logger,
     correlationId: string
   ) => Promise<void>;
 };
@@ -76,6 +77,7 @@ export const authorizationServiceBuilder =
         agreementId: string,
         eserviceId: EServiceId,
         consumerId: TenantId,
+        logger: Logger,
         correlationId: string
       ) {
         const token = (await refreshableToken.get()).serialized;
@@ -95,6 +97,8 @@ export const authorizationServiceBuilder =
             headers,
           }
         );
+
+        logger.info(`Updated Agreement ${agreementId} state for all clients`);
       },
     };
   };

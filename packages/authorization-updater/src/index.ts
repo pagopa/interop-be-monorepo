@@ -32,7 +32,7 @@ import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
-import { ApiClientComponent } from "./model/models.js";
+import { ApiClientComponent, ApiClientComponentState } from "./model/models.js";
 
 const getDescriptorFromEvent = (
   msg: {
@@ -76,6 +76,13 @@ const getAgreementFromEvent = (
 
   return fromAgreementV2(msg.data.agreement);
 };
+
+const agreementStateToClientState = (
+  agreement: Agreement
+): ApiClientComponentState =>
+  match(agreement.state)
+    .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
+    .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
 async function executeUpdate(
   eventType: string,
@@ -172,23 +179,54 @@ function processMessage(
             event_version: 2,
             type: "AgreementSubmitted",
           },
+          {
+            event_version: 2,
+            type: "AgreementActivated",
+          },
+          {
+            event_version: 2,
+            type: "AgreementUnsuspendedByPlatform",
+          },
+          {
+            event_version: 2,
+            type: "AgreementUnsuspendedByConsumer",
+          },
+          {
+            event_version: 2,
+            type: "AgreementUnsuspendedByProducer",
+          },
+          {
+            event_version: 2,
+            type: "AgreementSuspendedByPlatform",
+          },
+          {
+            event_version: 2,
+            type: "AgreementSuspendedByConsumer",
+          },
+          {
+            event_version: 2,
+            type: "AgreementSuspendedByProducer",
+          },
+          {
+            event_version: 2,
+            type: "AgreementArchivedByConsumer",
+          },
+          {
+            event_version: 2,
+            type: "AgreementArchivedByUpgrade",
+          },
           (msg) => {
             const agreement = getAgreementFromEvent(msg, decodedMsg.type);
-            const newClientState = match(agreement.state)
-              .with(agreementState.active, () => "ACTIVE")
-              .with(agreementState.suspended, () => "INACTIVE")
-              .otherwise(() => undefined);
 
-            return newClientState
-              ? (): Promise<void> =>
-                  authService.updateAgreementState(
-                    ApiClientComponent.Values.ACTIVE,
-                    agreement.id,
-                    agreement.eserviceId,
-                    agreement.consumerId,
-                    correlationId
-                  )
-              : undefined;
+            return (): Promise<void> =>
+              authService.updateAgreementState(
+                agreementStateToClientState(agreement),
+                agreement.id,
+                agreement.eserviceId,
+                agreement.consumerId,
+                loggerInstance,
+                correlationId
+              );
           }
         )
         .otherwise(() => undefined);
