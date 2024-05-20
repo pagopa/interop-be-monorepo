@@ -23,6 +23,7 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
 import { CompactTenant } from "../model/domain/models.js";
+import { eServiceNotFound } from "../model/domain/errors.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 
@@ -305,14 +306,19 @@ export async function computeAgreementsStateByAttribute(
     agreementStates: updatableStates,
   });
 
-  const eservices: EService[] = (
-    await Promise.all(
-      agreements
-        .map((agreement) => agreement.data.eserviceId)
-        .map(eserviceQuery.getEServiceById)
-    )
-  ).filter(
-    (eservice): eservice is NonNullable<EService> => eservice !== undefined
+  const uniqueEServiceIds = Array.from(
+    new Set(agreements.map((a) => a.data.eserviceId))
+  );
+
+  const eservices: EService[] = await Promise.all(
+    uniqueEServiceIds.map(async (id) => {
+      // TODO replace with retrieveEservice after https://github.com/pagopa/interop-be-monorepo/pull/500
+      const eservice = await eserviceQuery.getEServiceById(id);
+      if (!eservice) {
+        throw eServiceNotFound(id);
+      }
+      return eservice;
+    })
   );
 
   const eservicesWithAttribute = eservices.filter((eservice) =>
