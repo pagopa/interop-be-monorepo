@@ -1,23 +1,16 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { unsafeBrandId } from "../brandedIds.js";
 import {
-  ClientAgreementDetailsV1,
   ClientComponentStateV1,
-  ClientEServiceDetailsV1,
   ClientKindV1,
-  ClientPurposeDetailsV1,
-  ClientStatesChainV1,
   ClientV1,
 } from "../gen/v1/authorization/client.js";
 import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
 import {
   Client,
-  ClientAgreementDetails,
   ClientComponentState,
-  ClientEserviceDetails,
   ClientKind,
-  ClientPurposeDetails,
-  ClientStatesChain,
   clientComponentState,
   clientKind,
 } from "./client.js";
@@ -67,51 +60,12 @@ export const fromClientComponentStateV1 = (
   }
 };
 
-export const fromClientEserviceDetailsV1 = (
-  input: ClientEServiceDetailsV1
-): ClientEserviceDetails => ({
-  eserviceId: unsafeBrandId(input.eServiceId),
-  descriptorId: unsafeBrandId(input.descriptorId),
-  state: fromClientComponentStateV1(input.state),
-  audience: input.audience,
-  voucherLifespan: input.voucherLifespan,
-});
-
-export const fromClientAgreementDetailsV1 = (
-  input: ClientAgreementDetailsV1
-): ClientAgreementDetails => ({
-  eserviceId: unsafeBrandId(input.eServiceId),
-  consumerId: unsafeBrandId(input.consumerId),
-  agreementId: unsafeBrandId(input.agreementId),
-  state: fromClientComponentStateV1(input.state),
-});
-
-export const fromClientPurposeDetailsV1 = (
-  input: ClientPurposeDetailsV1
-): ClientPurposeDetails => ({
-  purposeId: unsafeBrandId(input.purposeId),
-  versionId: unsafeBrandId(input.versionId),
-  state: fromClientComponentStateV1(input.state),
-});
-
-export const fromClientStatesChainV1 = (
-  input: ClientStatesChainV1
-): ClientStatesChain => ({
-  id: input.id,
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  eservice: fromClientEserviceDetailsV1(input.eService!),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  agreement: fromClientAgreementDetailsV1(input.agreement!),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  purpose: fromClientPurposeDetailsV1(input.purpose!),
-});
-
 export const fromClientV1 = (input: ClientV1): Client => ({
   ...input,
   consumerId: unsafeBrandId(input.consumerId),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  purposes: input.purposes.map((item) => fromClientStatesChainV1(item.states!)),
+  purposes: input.purposes.map((item) =>
+    unsafeBrandId(item.states!.purpose!.purposeId)
+  ),
   kind: fromClientKindV1(input.kind),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   createdAt: bigIntToDate(input.createdAt!),
 });

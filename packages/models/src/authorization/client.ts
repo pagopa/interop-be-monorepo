@@ -64,7 +64,7 @@ export const Client = z.object({
   id: z.string(),
   consumerId: TenantId,
   name: z.string(),
-  purposes: z.array(ClientStatesChain),
+  purposes: z.array(PurposeId),
   description: z.string().optional(),
   relationships: z.array(z.string()),
   users: z.array(z.string()),
