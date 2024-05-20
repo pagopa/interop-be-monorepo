@@ -57,8 +57,7 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
         const page = await browser.newPage();
         await page.goto(`file://${templatePath}`);
 
-        /* Injecting polyfill paged.js to current html and set in the page 
-        */
+        // Injecting polyfill paged.js to current html and set in the page
         const pageContent = await page.content();
         const htmlCompiled = templateService.compileHtml(pageContent, {
           ...context,
