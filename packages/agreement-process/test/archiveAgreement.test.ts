@@ -8,6 +8,7 @@ import {
   TenantId,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
@@ -17,7 +18,6 @@ import {
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -46,12 +46,14 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const agreementId = await agreementService.archiveAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const agreementId = (
+      await agreementService.archiveAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
+    ).id;
 
     expect(agreementId).toBeDefined();
     if (!agreementId) {

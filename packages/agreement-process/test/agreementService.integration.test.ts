@@ -35,6 +35,7 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  toAgreementStateV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -46,7 +47,6 @@ import {
   notLatestEServiceDescriptor,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
@@ -150,13 +150,13 @@ describe("Agreement service", () => {
         eserviceId,
         descriptorId,
       };
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         agreementData,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eserviceId,
         descriptorId,
         authData.organizationId,
@@ -209,13 +209,13 @@ describe("Agreement service", () => {
         descriptorId: eservice.descriptors[0].id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor.id,
         eserviceProducer.id,
@@ -246,13 +246,13 @@ describe("Agreement service", () => {
         descriptorId: eservice.descriptors[0].id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor.id,
         eserviceProducer.id,
@@ -291,13 +291,13 @@ describe("Agreement service", () => {
         descriptorId: descriptor0.id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor0.id,
         tenant.id,
@@ -333,13 +333,13 @@ describe("Agreement service", () => {
         descriptorId: descriptor.id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor.id,
         tenant.id,
