@@ -1,3 +1,5 @@
+/* eslint-disable fp/no-delete */
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   decodeProtobufPayload,
@@ -25,6 +27,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  badRequestError,
   generateId,
   toAgreementV2,
   unsafeBrandId,
@@ -38,6 +41,9 @@ import {
   addOneAgreement,
   addOneEService,
   agreementService,
+  getMockApiTenantCertifiedAttribute,
+  getMockApiTenantDeclaredAttribute,
+  getMockApiTenantVerifiedAttribute,
   readLastAgreementEvent,
 } from "./utils.js";
 
@@ -478,61 +484,9 @@ describe("compute Agreement state by attribute", () => {
       const apiCompactTenant: ApiCompactTenant = {
         id: generateId(),
         attributes: [
-          {
-            certified: {
-              id: generateId(),
-              assignmentTimestamp: new Date().toISOString(),
-              revocationTimestamp: randomArrayItem([
-                new Date().toISOString(),
-                undefined,
-              ]),
-            },
-          },
-          {
-            declared: {
-              id: generateId(),
-              assignmentTimestamp: new Date().toISOString(),
-              revocationTimestamp: randomArrayItem([
-                new Date().toISOString(),
-                undefined,
-              ]),
-            },
-          },
-          {
-            verified: {
-              id: generateId(),
-              assignmentTimestamp: new Date().toISOString(),
-              verifiedBy: [
-                {
-                  id: generateId(),
-                  verificationDate: new Date().toISOString(),
-                  expirationDate: randomArrayItem([
-                    new Date().toISOString(),
-                    undefined,
-                  ]),
-                  extensionDate: randomArrayItem([
-                    new Date().toISOString(),
-                    undefined,
-                  ]),
-                },
-              ],
-              revokedBy: [
-                {
-                  id: generateId(),
-                  verificationDate: new Date().toISOString(),
-                  revocationDate: new Date().toISOString(),
-                  expirationDate: randomArrayItem([
-                    new Date().toISOString(),
-                    undefined,
-                  ]),
-                  extensionDate: randomArrayItem([
-                    new Date().toISOString(),
-                    undefined,
-                  ]),
-                },
-              ],
-            },
-          },
+          getMockApiTenantCertifiedAttribute(),
+          getMockApiTenantDeclaredAttribute(),
+          getMockApiTenantVerifiedAttribute(),
         ],
       };
 
@@ -625,6 +579,28 @@ describe("compute Agreement state by attribute", () => {
       const actualCompactTenant: CompactTenant =
         fromApiCompactTenant(apiCompactTenant);
       expect(actualCompactTenant).toMatchObject(expectedCompactTenant);
+    });
+
+    it("throws a badRequestError when the ApiCompactTenant cannot be converted to a CompactTenant", () => {
+      const apiCompactTenant: ApiCompactTenant = {
+        id: generateId(),
+        attributes: [
+          {
+            // An attribute with both certified and declared keys cannot
+            // be converted to a TenantAttribute.
+            ...getMockApiTenantCertifiedAttribute(),
+            ...getMockApiTenantDeclaredAttribute(),
+          },
+        ],
+      };
+
+      expect(() => fromApiCompactTenant(apiCompactTenant)).toThrow(
+        badRequestError(
+          `Invalid tenant attribute in API request: ${JSON.stringify(
+            apiCompactTenant.attributes[0]
+          )}`
+        )
+      );
     });
   });
 });
