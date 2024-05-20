@@ -18,9 +18,9 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "20.3.1",
+    "@types/node": "20.12.12",
     "connection-string": "4.4.0",
-    "dotenv-flow": "3.3.0",
+    "dotenv-flow": "4.1.0",
     "json-diff": "1.0.6",
     "lodash.isequal": "4.5.0",
     "mongodb": "5.9.2",

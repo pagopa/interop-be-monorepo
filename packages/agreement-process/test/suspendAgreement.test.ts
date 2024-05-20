@@ -26,6 +26,7 @@ import {
   AgreementSuspendedByProducerV2,
   Descriptor,
   EService,
+  EServiceId,
   Tenant,
   TenantId,
   agreementState,
@@ -305,13 +306,13 @@ describe("suspend agreement", () => {
       suspendedByProducer: randomBoolean(),
       suspendedByPlatform: randomBoolean(),
       stamps: {
-        activation: createStamp(authData),
-        archiving: createStamp(authData),
-        rejection: createStamp(authData),
-        submission: createStamp(authData),
-        upgrade: createStamp(authData),
-        suspensionByConsumer: createStamp(authData),
-        suspensionByProducer: createStamp(authData),
+        activation: createStamp(authData.userId),
+        archiving: createStamp(authData.userId),
+        rejection: createStamp(authData.userId),
+        submission: createStamp(authData.userId),
+        upgrade: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
       },
     };
 
@@ -453,7 +454,12 @@ describe("suspend agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
-    const eservice = getMockEService();
+    const descriptor = getMockDescriptorPublished();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const consumer = getMockTenant();
     const agreement = {
       ...getMockAgreement(),
@@ -461,6 +467,7 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       producerId: eservice.producerId,
       consumerId: consumer.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
     await addOneEService(eservice);
