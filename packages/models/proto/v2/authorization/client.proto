@@ -4,18 +4,18 @@ package authorization.v2;
 
 message ClientV2 {
   string id = 1;
-  string consumerId = 3;
-  string name = 4;
-  optional string description = 5;
-  repeated string relationships = 6;
-  repeated ClientPurposesEntryV2 purposes = 7;
-  ClientKindV2 kind = 8;
-  optional int64 createdAt = 9; // to do double-check why optional
-  repeated string users = 10;
+  string consumerId = 2;
+  string name = 3;
+  optional string description = 4;
+  repeated string relationships = 5;
+  repeated ClientPurposesEntryV2 purposes = 6;
+  ClientKindV2 kind = 7;
+  optional int64 createdAt = 8; // to do double-check why optional
+  repeated string users = 9;
 }
 
 message ClientPurposesEntryV2 {
-  ClientStatesChainV2 states = 2;
+  ClientStatesChainV2 states = 1;
 }
 
 message ClientStatesChainV2 {
