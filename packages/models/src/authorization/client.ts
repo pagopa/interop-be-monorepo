@@ -7,6 +7,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
+import { Key } from "./key.js";
 
 export const clientKind = {
   consumer: "Consumer",
@@ -64,12 +65,13 @@ export const Client = z.object({
   id: z.string(),
   consumerId: TenantId,
   name: z.string(),
-  purposes: z.array(ClientStatesChain),
+  purposes: z.array(PurposeId),
   description: z.string().optional(),
   relationships: z.array(z.string()),
   users: z.array(z.string()),
   kind: ClientKind,
   createdAt: z.coerce.date(),
+  keys: z.array(Key),
 });
 
 export type Client = z.infer<typeof Client>;
