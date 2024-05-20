@@ -752,32 +752,31 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      const riskAnalysisForm = purpose.data.riskAnalysisForm;
-
-      if (!riskAnalysisForm) {
-        throw missingRiskAnalysis(purposeId);
-      }
-
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenant = await getInvolvedTenantByEServiceMode(
-        eservice,
-        purpose.data.consumerId,
-        readModelService
-      );
-
-      assertTenantKindExists(tenant);
-
-      const tenantKind = tenant.kind;
 
       if (purposeVersion.state === purposeVersionState.draft) {
+        const riskAnalysisForm = purpose.data.riskAnalysisForm;
+
+        if (!riskAnalysisForm) {
+          throw missingRiskAnalysis(purposeId);
+        }
+
+        const tenant = await getInvolvedTenantByEServiceMode(
+          eservice,
+          purpose.data.consumerId,
+          readModelService
+        );
+
+        assertTenantKindExists(tenant);
+
         validateRiskAnalysisOrThrow({
           riskAnalysisForm:
             riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
           schemaOnlyValidation: false,
-          tenantKind,
+          tenantKind: tenant.kind,
         });
       }
 
