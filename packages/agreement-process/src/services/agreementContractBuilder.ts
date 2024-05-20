@@ -90,7 +90,7 @@ const getAttributeInvolved = async (
       .with(tenantAttributeType.DECLARED, () => seed.declaredAttributes || [])
       .with(tenantAttributeType.VERIFIED, () => seed.verifiedAttributes || [])
       .exhaustive()
-      .map((ca) => ca.id);
+      .map((attribute) => attribute.id);
 
     const tenantAttributes = consumer.attributes.filter(
       (a) => a.type === type && seedAttributes.includes(a.id)
