@@ -14,9 +14,10 @@ export function loggerMiddleware(serviceName: string) {
 
     const loggerInstance = logger(loggerMetadata);
 
-    loggerInstance.info(`Request ${req.method} ${req.url}`);
     res.on("finish", () => {
-      loggerInstance.info(`Response ${res.statusCode} ${res.statusMessage}`);
+      loggerInstance.info(
+        `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`
+      );
     });
 
     next();
