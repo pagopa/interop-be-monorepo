@@ -787,7 +787,7 @@ export function purposeServiceBuilder(
         consumerId: purpose.data.consumerId,
       });
 
-      function changeToWaitForApproval(): {
+      function changeToWaitForApprovalFromDraft(): {
         event: CreateEvent<PurposeEvent>;
         updatedPurposeVersion: PurposeVersion;
       } {
@@ -979,7 +979,7 @@ export function purposeServiceBuilder(
                 readModelService
               )
             ) {
-              return changeToWaitForApproval();
+              return changeToWaitForApprovalFromDraft();
             }
             return await activateVersion({
               fromState: purposeVersionState.draft,
