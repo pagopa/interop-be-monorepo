@@ -4,20 +4,20 @@ import {
   CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelDbConfig)
   .and(FileManagerConfig)
+  .and(S3Config)
   .and(
     z
       .object({
-        S3_BUCKET: z.string(),
         CONSUMER_DOCUMENTS_PATH: z.string(),
         AGREEMENT_CONTRACTS_PATH: z.string(),
       })
       .transform((c) => ({
-        s3Bucket: c.S3_BUCKET,
         consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
       }))

@@ -6,6 +6,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
+  RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -29,6 +30,8 @@ export const errorCodes = {
   purposeNotInDraftState: "0015",
   duplicatedPurposeTitle: "0016",
   purposeCannotBeDeleted: "0017",
+  agreementNotFound: "0018",
+  eserviceRiskAnalysisNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -196,5 +199,27 @@ export function purposeCannotBeDeleted(
     detail: `Versions in Purpose ${purposeId} do not allow deletion`,
     code: "purposeCannotBeDeleted",
     title: "Purpose cannot be deleted",
+  });
+}
+
+export function agreementNotFound(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
+    code: "agreementNotFound",
+    title: "Agreement Not Found",
+  });
+}
+
+export function eserviceRiskAnalysisNotFound(
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
+    code: "eserviceRiskAnalysisNotFound",
+    title: "Risk analysis not found",
   });
 }
