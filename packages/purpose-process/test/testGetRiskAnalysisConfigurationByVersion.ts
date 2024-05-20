@@ -2,7 +2,6 @@
 import {
   getMockEService,
   getMockTenant,
-  randomArrayItem,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -30,50 +29,64 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
   typeof describe
 > =>
   describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
-    it("should retrieve risk analysis configuration by version (Eservice mode: deliver)", async () => {
-      const mockEservice = { ...getMockEService(), mode: eserviceMode.deliver };
-      const kind = randomArrayItem(Object.values(tenantKind));
-      const mockTenant = {
-        ...getMockTenant(),
-        kind,
-      };
-      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-      await writeInReadmodel(mockTenant, tenants);
+    it.each(Object.values(tenantKind))(
+      "should retrieve risk analysis configuration by version from the consumer (Eservice mode: deliver) with kind %s",
+      async (kind) => {
+        const mockEservice = {
+          ...getMockEService(),
+          mode: eserviceMode.deliver,
+        };
+        const mockTenant = {
+          ...getMockTenant(),
+          kind,
+        };
+        await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+        await writeInReadmodel(mockTenant, tenants);
 
-      const riskAnalysisVersion = "1.0";
+        const riskAnalysisVersion = "1.0";
 
-      const result =
-        await purposeService.retrieveRiskAnalysisConfigurationByVersion({
-          eserviceId: mockEservice.id,
-          riskAnalysisVersion,
-          organizationId: mockTenant.id,
-          logger: genericLogger,
-        });
+        const result =
+          await purposeService.retrieveRiskAnalysisConfigurationByVersion({
+            eserviceId: mockEservice.id,
+            riskAnalysisVersion,
+            organizationId: mockTenant.id,
+            logger: genericLogger,
+          });
 
-      expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
-    });
-    it("should retrieve risk analysis configuration by version (Eservice mode: receive)", async () => {
-      const mockEservice = { ...getMockEService(), mode: eserviceMode.receive };
-      const kind = randomArrayItem(Object.values(tenantKind));
-      const mockTenant = {
-        ...getMockTenant(mockEservice.producerId),
-        kind,
-      };
-      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-      await writeInReadmodel(mockTenant, tenants);
+        expect(result).toEqual(
+          getFormRulesByVersion(kind, riskAnalysisVersion)
+        );
+      }
+    );
+    it.each(Object.values(tenantKind))(
+      "should retrieve risk analysis configuration by version from the producer (Eservice mode: receive) with kind %s",
+      async (kind) => {
+        const mockEservice = {
+          ...getMockEService(),
+          mode: eserviceMode.receive,
+        };
+        const mockTenant = {
+          ...getMockTenant(mockEservice.producerId),
+          kind,
+        };
+        await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+        await writeInReadmodel(mockTenant, tenants);
 
-      const riskAnalysisVersion = "1.0";
+        const riskAnalysisVersion = "1.0";
 
-      const result =
-        await purposeService.retrieveRiskAnalysisConfigurationByVersion({
-          eserviceId: mockEservice.id,
-          riskAnalysisVersion,
-          organizationId: mockTenant.id,
-          logger: genericLogger,
-        });
+        const result =
+          await purposeService.retrieveRiskAnalysisConfigurationByVersion({
+            eserviceId: mockEservice.id,
+            riskAnalysisVersion,
+            organizationId: mockTenant.id,
+            logger: genericLogger,
+          });
 
-      expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
-    });
+        expect(result).toEqual(
+          getFormRulesByVersion(kind, riskAnalysisVersion)
+        );
+      }
+    );
     it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
       const mockTenant = getMockTenant();
       const randomId = generateId<EServiceId>();
