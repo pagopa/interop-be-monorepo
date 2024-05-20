@@ -68,4 +68,5 @@ export const fromClientV1 = (input: ClientV1): Client => ({
   ),
   kind: fromClientKindV1(input.kind),
   createdAt: bigIntToDate(input.createdAt!),
+  keys: [],
 });
