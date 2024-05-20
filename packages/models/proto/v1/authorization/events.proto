@@ -60,7 +60,7 @@ message ClientPurposeRemovedV1 {
   required string purposeId = 2;
 }
 
-// to be removed
+// to be removed?
 message EServiceStateUpdatedV1 {
   required string eServiceId = 1;
   required string descriptorId = 2;
@@ -69,7 +69,7 @@ message EServiceStateUpdatedV1 {
   required int32 voucherLifespan = 5;
 }
 
-// to be removed
+// to be removed?
 message AgreementStateUpdatedV1 {
   required string eServiceId = 1;
   required string consumerId = 2;
@@ -77,14 +77,14 @@ message AgreementStateUpdatedV1 {
   required ClientComponentStateV1 state = 4;
 }
 
-// to be removed
+// to be removed?
 message PurposeStateUpdatedV1 {
   required string purposeId = 1;
   required string versionId = 2;
   required ClientComponentStateV1 state = 3;
 }
 
-// to be removed
+// to be removed?
 message AgreementAndEServiceStatesUpdatedV1 {
   required string eServiceId = 1;
   required string descriptorId = 2;
