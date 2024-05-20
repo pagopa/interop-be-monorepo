@@ -161,6 +161,9 @@ export const fromApiTenantAttribute = (
       type: tenantAttributeType.DECLARED,
       id: unsafeBrandId<AttributeId>(input.declared.id),
       assignmentTimestamp: new Date(input.declared.assignmentTimestamp),
+      revocationTimestamp: input.declared.revocationTimestamp
+        ? new Date(input.declared.revocationTimestamp)
+        : undefined,
     };
   } else {
     throw badRequestError(

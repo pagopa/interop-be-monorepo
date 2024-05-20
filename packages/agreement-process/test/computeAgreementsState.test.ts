@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -26,9 +27,13 @@ import {
   agreementState,
   generateId,
   toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { ApiCompactTenant } from "../src/model/types.js";
+import { fromApiCompactTenant } from "../src/model/domain/apiConverter.js";
+import { CompactTenant } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -465,6 +470,161 @@ describe("compute Agreement state by attribute", () => {
         state: agreementState.suspended,
         suspendedByPlatform: true,
       }),
+    });
+  });
+
+  describe("fromApiCompactTenant API converter", () => {
+    it("converts an ApiCompactTenant to a CompactTenant", () => {
+      const apiCompactTenant: ApiCompactTenant = {
+        id: generateId(),
+        attributes: [
+          {
+            certified: {
+              id: generateId(),
+              assignmentTimestamp: new Date().toISOString(),
+              revocationTimestamp: randomArrayItem([
+                new Date().toISOString(),
+                undefined,
+              ]),
+            },
+          },
+          {
+            declared: {
+              id: generateId(),
+              assignmentTimestamp: new Date().toISOString(),
+              revocationTimestamp: randomArrayItem([
+                new Date().toISOString(),
+                undefined,
+              ]),
+            },
+          },
+          {
+            verified: {
+              id: generateId(),
+              assignmentTimestamp: new Date().toISOString(),
+              verifiedBy: [
+                {
+                  id: generateId(),
+                  verificationDate: new Date().toISOString(),
+                  expirationDate: randomArrayItem([
+                    new Date().toISOString(),
+                    undefined,
+                  ]),
+                  extensionDate: randomArrayItem([
+                    new Date().toISOString(),
+                    undefined,
+                  ]),
+                },
+              ],
+              revokedBy: [
+                {
+                  id: generateId(),
+                  verificationDate: new Date().toISOString(),
+                  revocationDate: new Date().toISOString(),
+                  expirationDate: randomArrayItem([
+                    new Date().toISOString(),
+                    undefined,
+                  ]),
+                  extensionDate: randomArrayItem([
+                    new Date().toISOString(),
+                    undefined,
+                  ]),
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const expectedCompactTenant: CompactTenant = {
+        id: unsafeBrandId(apiCompactTenant.id),
+        attributes: [
+          {
+            type: "PersistentCertifiedAttribute",
+            id: unsafeBrandId(apiCompactTenant.attributes[0].certified!.id),
+            assignmentTimestamp: new Date(
+              apiCompactTenant.attributes[0].certified!.assignmentTimestamp
+            ),
+            revocationTimestamp: apiCompactTenant.attributes[0].certified!
+              .revocationTimestamp
+              ? new Date(
+                  apiCompactTenant.attributes[0].certified!.revocationTimestamp
+                )
+              : undefined,
+          },
+          {
+            type: "PersistentDeclaredAttribute",
+            id: unsafeBrandId(apiCompactTenant.attributes[1].declared!.id),
+            assignmentTimestamp: new Date(
+              apiCompactTenant.attributes[1].declared!.assignmentTimestamp
+            ),
+            revocationTimestamp: apiCompactTenant.attributes[1].declared!
+              .revocationTimestamp
+              ? new Date(
+                  apiCompactTenant.attributes[1].declared!.revocationTimestamp
+                )
+              : undefined,
+          },
+          {
+            type: "PersistentVerifiedAttribute",
+            id: unsafeBrandId(apiCompactTenant.attributes[2].verified!.id),
+            assignmentTimestamp: new Date(
+              apiCompactTenant.attributes[2].verified!.assignmentTimestamp
+            ),
+            verifiedBy: [
+              {
+                id: unsafeBrandId(
+                  apiCompactTenant.attributes[2].verified!.verifiedBy[0].id
+                ),
+                verificationDate: new Date(
+                  apiCompactTenant.attributes[2].verified!.verifiedBy[0].verificationDate
+                ),
+                expirationDate: apiCompactTenant.attributes[2].verified!
+                  .verifiedBy[0].expirationDate
+                  ? new Date(
+                      apiCompactTenant.attributes[2].verified!.verifiedBy[0].expirationDate
+                    )
+                  : undefined,
+                extensionDate: apiCompactTenant.attributes[2].verified!
+                  .verifiedBy[0].extensionDate
+                  ? new Date(
+                      apiCompactTenant.attributes[2].verified!.verifiedBy[0].extensionDate
+                    )
+                  : undefined,
+              },
+            ],
+            revokedBy: [
+              {
+                id: unsafeBrandId(
+                  apiCompactTenant.attributes[2].verified!.revokedBy[0].id
+                ),
+                verificationDate: new Date(
+                  apiCompactTenant.attributes[2].verified!.revokedBy[0].verificationDate
+                ),
+                revocationDate: new Date(
+                  apiCompactTenant.attributes[2].verified!.revokedBy[0].revocationDate
+                ),
+                expirationDate: apiCompactTenant.attributes[2].verified!
+                  .revokedBy[0].expirationDate
+                  ? new Date(
+                      apiCompactTenant.attributes[2].verified!.revokedBy[0].expirationDate
+                    )
+                  : undefined,
+                extensionDate: apiCompactTenant.attributes[2].verified!
+                  .revokedBy[0].extensionDate
+                  ? new Date(
+                      apiCompactTenant.attributes[2].verified!.revokedBy[0].extensionDate
+                    )
+                  : undefined,
+              },
+            ],
+          },
+        ],
+      };
+
+      const actualCompactTenant: CompactTenant =
+        fromApiCompactTenant(apiCompactTenant);
+      expect(actualCompactTenant).toMatchObject(expectedCompactTenant);
     });
   });
 });
