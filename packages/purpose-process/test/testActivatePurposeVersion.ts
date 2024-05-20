@@ -547,7 +547,16 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     it("should throw tenantKindNotFound if the purpose consumer has no kind", async () => {
       const consumer = { ...mockConsumer, kind: undefined };
 
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      const purposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.draft,
+      };
+      const purpose: Purpose = {
+        ...mockPurpose,
+        versions: [purposeVersion],
+      };
+
+      await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(consumer, tenants);
@@ -565,7 +574,15 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     });
 
     it("should throw missingRiskAnalysis if the purpose has no risk analysis", async () => {
-      const purpose: Purpose = { ...mockPurpose, riskAnalysisForm: undefined };
+      const purposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.draft,
+      };
+      const purpose: Purpose = {
+        ...mockPurpose,
+        versions: [purposeVersion],
+        riskAnalysisForm: undefined,
+      };
 
       await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
@@ -751,7 +768,16 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
     });
 
     it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      const purposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.draft,
+      };
+      const purpose: Purpose = {
+        ...mockPurpose,
+        versions: [purposeVersion],
+      };
+
+      await addOnePurpose(purpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
       await writeInReadmodel(mockProducer, tenants);
