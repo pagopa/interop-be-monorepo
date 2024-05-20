@@ -185,6 +185,8 @@ describe("suspend agreement", () => {
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
     const producerAndConsumerId = generateId<TenantId>();
 
+    // Adding some attributes to consumer, descriptor and eService to verify
+    // that the suspension ignores them and does not update them
     const consumer: Tenant = {
       ...getMockTenant(producerAndConsumerId),
       attributes: [
