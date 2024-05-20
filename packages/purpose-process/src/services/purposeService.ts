@@ -35,7 +35,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   agreementNotFound,
   eserviceNotFound,
