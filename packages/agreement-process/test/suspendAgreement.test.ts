@@ -7,9 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAgreementAttribute,
+  getMockCertifiedTenantAttribute,
+  getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
   getMockEService,
+  getMockEServiceAttribute,
   getMockTenant,
+  getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
   randomBoolean,
@@ -21,6 +26,7 @@ import {
   AgreementSuspendedByProducerV2,
   Descriptor,
   EService,
+  Tenant,
   TenantId,
   agreementState,
   generateId,
@@ -58,9 +64,25 @@ describe("suspend agreement", () => {
   it("should succeed when requester is Consumer or Producer and the Agreement is in an suspendable state", async () => {
     const producerId = generateId<TenantId>();
 
-    const consumer = getMockTenant();
+    // Adding some attributes to consumer, descriptor and eService to verify
+    // that the suspension ignores them and does not update them
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      attributes: [
+        getMockCertifiedTenantAttribute(),
+        getMockDeclaredTenantAttribute(),
+        getMockVerifiedTenantAttribute(),
+      ],
+    };
 
-    const descriptor = getMockDescriptorPublished();
+    const descriptor = {
+      ...getMockDescriptorPublished(),
+      attributes: {
+        certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
+        declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
+        verified: [[getMockEServiceAttribute(consumer.attributes[2].id)]],
+      },
+    };
     const eservice: EService = {
       ...getMockEService(),
       producerId,
@@ -74,6 +96,15 @@ describe("suspend agreement", () => {
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
       state: randomArrayItem(agreementSuspendableStates),
+      certifiedAttributes: [
+        getMockAgreementAttribute(consumer.attributes[0].id),
+      ],
+      declaredAttributes: [
+        getMockAgreementAttribute(consumer.attributes[1].id),
+      ],
+      verifiedAttributes: [
+        getMockAgreementAttribute(consumer.attributes[2].id),
+      ],
     };
 
     await addOneTenant(consumer);
@@ -154,8 +185,22 @@ describe("suspend agreement", () => {
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
     const producerAndConsumerId = generateId<TenantId>();
 
-    const consumer = getMockTenant(producerAndConsumerId);
-    const descriptor: Descriptor = getMockDescriptorPublished();
+    const consumer: Tenant = {
+      ...getMockTenant(producerAndConsumerId),
+      attributes: [
+        getMockCertifiedTenantAttribute(),
+        getMockDeclaredTenantAttribute(),
+        getMockVerifiedTenantAttribute(),
+      ],
+    };
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      attributes: {
+        certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
+        declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
+        verified: [[getMockEServiceAttribute(consumer.attributes[2].id)]],
+      },
+    };
 
     const eservice: EService = {
       ...getMockEService(),
@@ -170,6 +215,15 @@ describe("suspend agreement", () => {
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
       state: randomArrayItem(agreementSuspendableStates),
+      certifiedAttributes: [
+        getMockAgreementAttribute(consumer.attributes[0].id),
+      ],
+      declaredAttributes: [
+        getMockAgreementAttribute(consumer.attributes[1].id),
+      ],
+      verifiedAttributes: [
+        getMockAgreementAttribute(consumer.attributes[2].id),
+      ],
     };
 
     await addOneTenant(consumer);
