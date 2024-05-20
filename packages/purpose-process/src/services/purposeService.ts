@@ -35,7 +35,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import {
   agreementNotFound,
   eserviceNotFound,
@@ -58,11 +58,17 @@ import {
   toCreateEventDraftPurposeUpdated,
   toCreateEventNewPurposeVersionActivated,
   toCreateEventNewPurposeVersionWaitingForApproval,
+  toCreateEventPurposeActivated,
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
+  toCreateEventPurposeVersionActivated,
+  toCreateEventPurposeVersionOverQuotaUnsuspended,
   toCreateEventPurposeVersionRejected,
+  toCreateEventPurposeVersionUnsuspenedByConsumer,
+  toCreateEventPurposeVersionUnsuspenedByProducer,
+  toCreateEventPurposeWaitingForApproval,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
@@ -706,15 +712,8 @@ export function purposeServiceBuilder(
         createdAt: new Date(),
       };
 
-      // Archive all versions in active/suspended state
-      const oldVersions = purpose.data.versions.map((v) =>
-        match(v.state)
-          .with(
-            purposeVersionState.active,
-            purposeVersionState.suspended,
-            () => ({ ...v, state: purposeVersionState.archived })
-          )
-          .otherwise(() => v)
+      const oldVersions = archiveActiveAndSuspendedPurposeVersions(
+        purpose.data.versions
       );
 
       const updatedPurpose = {
@@ -751,6 +750,14 @@ export function purposeServiceBuilder(
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
+
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
         readModelService
@@ -764,13 +771,6 @@ export function purposeServiceBuilder(
       assertTenantKindExists(tenant);
 
       const tenantKind = tenant.kind;
-      const purposeVersion = retrievePurposeVersion(versionId, purpose);
-
-      const riskAnalysisForm = purpose.data.riskAnalysisForm;
-
-      if (!riskAnalysisForm) {
-        throw missingRiskAnalysis(purposeId);
-      }
 
       if (purposeVersion.state === purposeVersionState.draft) {
         validateRiskAnalysisOrThrow({
@@ -786,6 +786,287 @@ export function purposeServiceBuilder(
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
       });
+
+      function changeToWaitForApproval(): {
+        event: CreateEvent<PurposeEvent>;
+        updatedPurposeVersion: PurposeVersion;
+      } {
+        const updatedPurposeVersion: PurposeVersion = {
+          ...purposeVersion,
+          state: purposeVersionState.waitingForApproval,
+          updatedAt: new Date(),
+        };
+
+        const updatedPurpose: Purpose = replacePurposeVersion(
+          purpose.data,
+          updatedPurposeVersion
+        );
+
+        return {
+          event: toCreateEventPurposeWaitingForApproval({
+            purpose: updatedPurpose,
+            version: purpose.metadata.version,
+            correlationId,
+          }),
+          updatedPurposeVersion,
+        };
+      }
+
+      function activateFromOverQuotaSuspended(): {
+        event: CreateEvent<PurposeEvent>;
+        updatedPurposeVersion: PurposeVersion;
+      } {
+        const newPurposeVersion: PurposeVersion = {
+          ...purposeVersion,
+          createdAt: new Date(),
+          state: purposeVersionState.waitingForApproval,
+          id: generateId<PurposeVersionId>(),
+        };
+
+        const oldVersions = purpose.data.versions.filter(
+          (v) => v.state !== purposeVersionState.waitingForApproval
+        );
+
+        const updatedPurpose: Purpose = {
+          ...purpose.data,
+          versions: [...oldVersions, newPurposeVersion],
+          updatedAt: new Date(),
+        };
+
+        return {
+          event: toCreateEventPurposeVersionOverQuotaUnsuspended({
+            purpose: updatedPurpose,
+            versionId: newPurposeVersion.id,
+            version: purpose.metadata.version,
+            correlationId,
+          }),
+          updatedPurposeVersion: newPurposeVersion,
+        };
+      }
+
+      async function activateVersion({
+        fromState,
+      }: {
+        fromState:
+          | typeof purposeVersionState.draft
+          | typeof purposeVersionState.waitingForApproval;
+      }): Promise<{
+        event: CreateEvent<PurposeEvent>;
+        updatedPurposeVersion: PurposeVersion;
+      }> {
+        const updatedPurposeVersion: PurposeVersion = {
+          ...purposeVersion,
+          state: purposeVersionState.active,
+          riskAnalysis: await generateRiskAnalysisDocument({
+            eservice,
+            purpose: purpose.data,
+            dailyCalls: purposeVersion.dailyCalls,
+            readModelService,
+            storeFile: fileManager.storeBytes,
+            logger,
+          }),
+          updatedAt: new Date(),
+          firstActivationAt: new Date(),
+        };
+
+        const updatedPurpose: Purpose = replacePurposeVersion(
+          {
+            ...purpose.data,
+            versions: archiveActiveAndSuspendedPurposeVersions(
+              purpose.data.versions
+            ),
+          },
+          updatedPurposeVersion
+        );
+
+        if (fromState === purposeVersionState.draft) {
+          return {
+            event: toCreateEventPurposeActivated({
+              purpose: updatedPurpose,
+              version: purpose.metadata.version,
+              correlationId,
+            }),
+            updatedPurposeVersion,
+          };
+        } else {
+          return {
+            event: toCreateEventPurposeVersionActivated({
+              purpose: updatedPurpose,
+              versionId: updatedPurposeVersion.id,
+              version: purpose.metadata.version,
+              correlationId,
+            }),
+            updatedPurposeVersion,
+          };
+        }
+      }
+
+      function activateFromSuspended(): {
+        event: CreateEvent<PurposeEvent>;
+        updatedPurposeVersion: PurposeVersion;
+      } {
+        const newState = match({
+          suspendedByProducer: purpose.data.suspendedByProducer,
+          suspendedByConsumer: purpose.data.suspendedByConsumer,
+          ownership,
+        })
+          .with(
+            {
+              suspendedByConsumer: true,
+              ownership: "PRODUCER",
+            },
+            {
+              suspendedByProducer: true,
+              ownership: "CONSUMER",
+            },
+            () => purposeVersionState.suspended
+          )
+          .otherwise(() => purposeVersionState.active);
+
+        const updatedPurposeVersion: PurposeVersion = {
+          ...purposeVersion,
+          updatedAt: new Date(),
+          suspendedAt:
+            newState !== purposeVersionState.suspended
+              ? undefined
+              : purposeVersion.suspendedAt,
+          state: newState,
+        };
+
+        const updatedPurpose: Purpose = replacePurposeVersion(
+          purpose.data,
+          updatedPurposeVersion
+        );
+
+        if (ownership === "PRODUCER" || ownership === "SELF_CONSUMER") {
+          return {
+            event: toCreateEventPurposeVersionUnsuspenedByProducer({
+              purpose: { ...updatedPurpose, suspendedByProducer: false },
+              versionId: purposeVersion.id,
+              version: purpose.metadata.version,
+              correlationId,
+            }),
+            updatedPurposeVersion,
+          };
+        } else {
+          return {
+            event: toCreateEventPurposeVersionUnsuspenedByConsumer({
+              purpose: { ...updatedPurpose, suspendedByConsumer: false },
+              versionId: purposeVersion.id,
+              version: purpose.metadata.version,
+              correlationId,
+            }),
+            updatedPurposeVersion,
+          };
+        }
+      }
+
+      const { event, updatedPurposeVersion } = await match({
+        state: purposeVersion.state,
+        ownership,
+      })
+        .with(
+          {
+            state: purposeVersionState.draft,
+            ownership: P.union("CONSUMER", "SELF_CONSUMER"),
+          },
+          async () => {
+            if (
+              await isOverQuota(
+                eservice,
+                purpose.data,
+                purposeVersion.dailyCalls,
+                readModelService
+              )
+            ) {
+              return changeToWaitForApproval();
+            }
+            return await activateVersion({
+              fromState: purposeVersionState.draft,
+            });
+          }
+        )
+        .with(
+          { state: purposeVersionState.draft, ownership: "PRODUCER" },
+          () => {
+            throw organizationIsNotTheConsumer(organizationId);
+          }
+        )
+        .with(
+          {
+            state: purposeVersionState.waitingForApproval,
+            ownership: "CONSUMER",
+          },
+          () => {
+            throw organizationIsNotTheProducer(organizationId);
+          }
+        )
+        .with(
+          {
+            state: purposeVersionState.waitingForApproval,
+            ownership: P.union("PRODUCER", "SELF_CONSUMER"),
+          },
+          async () =>
+            await activateVersion({
+              fromState: purposeVersionState.waitingForApproval,
+            })
+        )
+        .with(
+          { state: purposeVersionState.suspended, ownership: "CONSUMER" },
+          () =>
+            purpose.data.suspendedByConsumer &&
+            purpose.data.suspendedByProducer,
+          () => activateFromSuspended()
+        )
+        .with(
+          {
+            state: purposeVersionState.suspended,
+            ownership: "CONSUMER",
+          },
+          () => purpose.data.suspendedByConsumer,
+          async () => {
+            if (
+              await isOverQuota(
+                eservice,
+                purpose.data,
+                purposeVersion.dailyCalls,
+                readModelService
+              )
+            ) {
+              return activateFromOverQuotaSuspended();
+            }
+            return activateFromSuspended();
+          }
+        )
+        .with(
+          {
+            state: purposeVersionState.suspended,
+            ownership: "SELF_CONSUMER",
+          },
+          async () => {
+            if (
+              await isOverQuota(
+                eservice,
+                purpose.data,
+                purposeVersion.dailyCalls,
+                readModelService
+              )
+            ) {
+              return activateFromOverQuotaSuspended();
+            }
+            return activateFromSuspended();
+          }
+        )
+        .with(
+          { state: purposeVersionState.suspended, ownership: "PRODUCER" },
+          () => activateFromSuspended()
+        )
+        .otherwise(() => {
+          throw organizationNotAllowed(organizationId);
+        });
+
+      await repository.createEvent(event);
+      return updatedPurposeVersion;
     },
 
     async createPurpose(
@@ -994,6 +1275,18 @@ const replacePurposeVersion = (
     updatedAt: newVersion.updatedAt,
   };
 };
+
+const archiveActiveAndSuspendedPurposeVersions = (
+  versions: PurposeVersion[]
+): PurposeVersion[] =>
+  versions.map((v) =>
+    match(v.state)
+      .with(purposeVersionState.active, purposeVersionState.suspended, () => ({
+        ...v,
+        state: purposeVersionState.archived,
+      }))
+      .otherwise(() => v)
+  );
 
 const getInvolvedTenantByEServiceMode = async (
   eservice: EService,

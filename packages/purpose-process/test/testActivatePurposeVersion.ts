@@ -34,6 +34,7 @@ import {
   PurposeWaitingForApprovalV2,
   eserviceMode,
   toReadModelAgreement,
+  PurposeVersionActivatedV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -147,7 +148,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       expect(writtenEvent).toMatchObject({
         stream_id: mockPurpose.id,
         version: "1",
-        type: "PurposeActivated",
+        type: "PurposeVersionActivated",
         event_version: 2,
       });
 
@@ -158,7 +159,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       };
 
       const writtenPayload = decodeProtobufPayload({
-        messageType: PurposeActivatedV2,
+        messageType: PurposeVersionActivatedV2,
         payload: writtenEvent.data,
       });
 
