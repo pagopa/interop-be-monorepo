@@ -32,6 +32,7 @@ export const fromClientKindV2 = (input: ClientKindV2): ClientKind => {
 
 export const fromClientV2 = (input: ClientV2): Client => ({
   ...input,
+  id: unsafeBrandId(input.id),
   consumerId: unsafeBrandId(input.consumerId),
   purposes: input.purposes.map((purposeId) => unsafeBrandId(purposeId)),
   kind: fromClientKindV2(input.kind),
