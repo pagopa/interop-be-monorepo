@@ -55,7 +55,7 @@ export const agreementService = agreementServiceBuilder(
   eserviceQuery,
   attributeQuery,
   fileManager,
-  pdfGenerator,
+  pdfGenerator
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement
