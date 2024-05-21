@@ -29,7 +29,7 @@ export const KeyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
 
 export const clientToApiClient = (
   client: Client,
-  withKeys: boolean
+  { includeKeys }: { includeKeys: boolean }
 ): ApiClient | ApiClientWithKeys => ({
   id: client.id,
   name: client.name,
@@ -39,7 +39,7 @@ export const clientToApiClient = (
   purposes: client.purposes,
   kind: ClientKindToApiClientKind(client.kind),
   description: client.description ? client.description : undefined,
-  ...(withKeys ? { keys: client.keys } : {}),
+  ...(includeKeys ? { keys: client.keys } : {}),
 });
 
 export const keyToApiKey = (key: Key): ApiKey => ({
