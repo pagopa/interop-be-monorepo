@@ -23,12 +23,9 @@ import {
 export function authorizationEventToBinaryData(
   event: AuthorizationEvent
 ): Uint8Array {
-  return (
-    match(event)
-      .with({ event_version: 1 }, authorizationEventToBinaryDataV1)
-      // .with({ event_version: 2 }, authorizationEventToBinaryDataV2)
-      .exhaustive()
-  );
+  return match(event)
+    .with({ event_version: 1 }, authorizationEventToBinaryDataV1)
+    .exhaustive();
 }
 
 export function authorizationEventToBinaryDataV1(
@@ -163,7 +160,6 @@ export const AuthorizationEvent = z
   .transform((obj, ctx) => {
     const res = match(obj)
       .with({ event_version: 1 }, () => AuthorizationEventV1.safeParse(obj))
-      // .with({ event_version: 2 }, () => AuthorizationEventV2.safeParse(obj))
       .exhaustive();
 
     if (!res.success) {
