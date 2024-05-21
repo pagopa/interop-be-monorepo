@@ -115,7 +115,7 @@ function processMessage(
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const decodedMsg = match(messagePayload.topic)
+      const decodedMessage = match(messagePayload.topic)
         .with(catalogTopicConfig.catalogTopic, () =>
           messageDecoderSupplier(catalogTopicConfig)(messagePayload.message)
         )
@@ -125,17 +125,19 @@ function processMessage(
         .otherwise(() => {
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
         });
-      const correlationId = decodedMsg.correlation_id || uuidv4();
+      const correlationId = decodedMessage.correlation_id || uuidv4();
 
       const loggerInstance = logger({
         serviceName: "authorization-updater",
-        eventType: decodedMsg.type,
-        eventVersion: decodedMsg.event_version,
-        streamId: decodedMsg.stream_id,
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
         correlationId,
       });
 
-      const update: (() => Promise<void>) | undefined = await match(decodedMsg)
+      const update: (() => Promise<void>) | undefined = await match(
+        decodedMessage
+      )
         .with(
           {
             event_version: 2,
@@ -146,7 +148,7 @@ function processMessage(
             type: "EServiceDescriptorActivated",
           },
           async (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
+            const data = getDescriptorFromEvent(msg, decodedMessage.type);
             return (): Promise<void> =>
               authService.updateEServiceState(
                 ApiClientComponent.Values.ACTIVE,
@@ -169,7 +171,7 @@ function processMessage(
             type: "EServiceDescriptorArchived",
           },
           async (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
+            const data = getDescriptorFromEvent(msg, decodedMessage.type);
             return (): Promise<void> =>
               authService.updateEServiceState(
                 ApiClientComponent.Values.INACTIVE,
@@ -224,7 +226,7 @@ function processMessage(
             type: "AgreementArchivedByUpgrade",
           },
           async (msg) => {
-            const agreement = getAgreementFromEvent(msg, decodedMsg.type);
+            const agreement = getAgreementFromEvent(msg, decodedMessage.type);
 
             return (): Promise<void> =>
               authService.updateAgreementState(
@@ -243,7 +245,7 @@ function processMessage(
             type: "AgreementUpgraded",
           },
           async (msg) => {
-            const agreement = getAgreementFromEvent(msg, decodedMsg.type);
+            const agreement = getAgreementFromEvent(msg, decodedMessage.type);
             const eservice = await readModelService.getEServiceById(
               agreement.eserviceId
             );
@@ -289,7 +291,7 @@ function processMessage(
 
       if (update) {
         await executeUpdate(
-          decodedMsg.type,
+          decodedMessage.type,
           messagePayload,
           update,
           loggerInstance
