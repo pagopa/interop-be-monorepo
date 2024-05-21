@@ -39,7 +39,7 @@ export const clientToApiClient = (
   purposes: client.purposes,
   kind: ClientKindToApiClientKind(client.kind),
   description: client.description ? client.description : undefined,
-  ...(withKeys ? { keys: [client.keys] } : {}),
+  ...(withKeys ? { keys: client.keys } : {}),
 });
 
 export const keyToApiKey = (key: Key): ApiKey => ({
