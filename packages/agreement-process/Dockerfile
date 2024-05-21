@@ -1,4 +1,4 @@
-FROM node:18.17.1 as build
+FROM node:20.13.1 as build
 
 RUN corepack enable
 
@@ -34,7 +34,7 @@ RUN pnpm build && \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.17.1 as final 
+FROM node:20.13.1 as final 
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget gnupg ca-certificates && \
