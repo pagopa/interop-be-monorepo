@@ -178,11 +178,6 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(1),
-    type: z.literal("AgreementStateUpdated"),
-    data: protobufDecoder(AgreementStateUpdatedV1),
-  }),
-  z.object({
-    event_version: z.literal(1),
     type: z.literal("PurposeStateUpdated"),
     data: protobufDecoder(PurposeStateUpdatedV1),
   }),
