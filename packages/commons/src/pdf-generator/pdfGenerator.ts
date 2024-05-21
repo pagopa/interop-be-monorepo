@@ -1,8 +1,8 @@
 /* eslint-disable functional/no-let */
-import { pdfGenerationError } from "pagopa-interop-models";
 import path from "path";
-import puppeteer, { Browser } from "puppeteer";
 import { fileURLToPath } from "url";
+import { pdfGenerationError } from "pagopa-interop-models";
+import puppeteer, { Browser } from "puppeteer";
 import { buildHTMLTemplateService } from "../index.js";
 
 export interface PDFGenerator {
