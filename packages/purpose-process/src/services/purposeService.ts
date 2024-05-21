@@ -762,13 +762,13 @@ export function purposeServiceBuilder(
         throw purposeCannotBeCloned(purposeId);
       }
 
-      const dailyCalls = getDailyCallsFromPurposeToClone(purposeToClone.data);
+      const versionToClone = getVersionToClone(purposeToClone.data);
 
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
         createdAt: new Date(),
         state: purposeVersionState.draft,
-        dailyCalls,
+        dailyCalls: versionToClone.dailyCalls,
       };
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
@@ -840,7 +840,7 @@ export function purposeServiceBuilder(
       const event = toCreateEventPurposeCloned({
         purpose: clonedPurpose,
         sourcePurposeId: purposeToClone.data.id,
-        sourceVersionId: generateId(), // TO DO not sure where to take this, but the event definition requires it
+        sourceVersionId: versionToClone.id,
         correlationId,
       });
       await repository.createEvent(event);
@@ -1024,7 +1024,7 @@ const performUpdatePurpose = async (
   };
 };
 
-const getDailyCallsFromPurposeToClone = (purposeToClone: Purpose): number => {
+const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
   const nonWaitingVersions = purposeToClone.versions.filter(
     (v) => v.state !== purposeVersionState.waitingForApproval
   );
@@ -1038,5 +1038,5 @@ const getDailyCallsFromPurposeToClone = (purposeToClone: Purpose): number => {
     (v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime()
   );
 
-  return sortedVersions.length > 0 ? sortedVersions[0].dailyCalls : 0;
+  return sortedVersions[0];
 };
