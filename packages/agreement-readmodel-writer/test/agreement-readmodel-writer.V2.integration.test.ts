@@ -3,13 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
-  AgreementCollection,
-  ReadModelRepository,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
-import {
   getMockAgreement,
-  mongoDBContainer,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
@@ -18,44 +12,14 @@ import {
   toAgreementV2,
   toReadModelAgreement,
 } from "pagopa-interop-models";
-import { StartedTestContainer } from "testcontainers";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
+import { agreements } from "./utils.js";
 
 describe("events V2", async () => {
-  let agreements: AgreementCollection;
-  let startedMongoDBContainer: StartedTestContainer;
-
-  const config = readModelWriterConfig();
-  beforeAll(async () => {
-    startedMongoDBContainer = await mongoDBContainer(config).start();
-
-    config.readModelDbPort = startedMongoDBContainer.getMappedPort(27017);
-
-    const readModelRepository = ReadModelRepository.init(config);
-    agreements = readModelRepository.agreements;
-  });
-
   beforeEach(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-  });
-
-  afterEach(async () => {
-    await agreements.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await startedMongoDBContainer.stop();
   });
 
   it("should test upsert agreement events", async () => {

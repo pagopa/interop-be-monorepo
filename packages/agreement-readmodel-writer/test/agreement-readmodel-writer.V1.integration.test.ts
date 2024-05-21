@@ -4,13 +4,7 @@
 
 import { generateMock } from "@anatine/zod-mock";
 import {
-  AgreementCollection,
-  ReadModelRepository,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
-import {
   getMockAgreement,
-  mongoDBContainer,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
@@ -26,33 +20,12 @@ import {
   generateId,
   toReadModelAgreement,
 } from "pagopa-interop-models";
-import { StartedTestContainer } from "testcontainers";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { toAgreementDocumentV1 } from "./protobufConverterToV1.js";
+import { agreements } from "./utils.js";
 
 describe("events V1", async () => {
-  let agreements: AgreementCollection;
-  let startedMongoDBContainer: StartedTestContainer;
-
-  const config = readModelWriterConfig();
-  beforeAll(async () => {
-    startedMongoDBContainer = await mongoDBContainer(config).start();
-
-    config.readModelDbPort = startedMongoDBContainer.getMappedPort(27017);
-
-    const readModelRepository = ReadModelRepository.init(config);
-    agreements = readModelRepository.agreements;
-  });
-
-  afterEach(async () => {
-    await agreements.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await startedMongoDBContainer.stop();
-  });
-
   it("should create an agreement", async () => {
     const id = generateId();
     const newAgreement: AgreementAddedV1 = {
