@@ -45,9 +45,6 @@ export async function submitAgreementLogic(
   tenantQuery: TenantQuery,
   ctx: WithLogger<AppContext>
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const logger = ctx.logger;
-  logger.info(`Submitting agreement ${agreementId}`);
-
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
   if (!agreement) {
