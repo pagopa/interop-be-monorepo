@@ -44,6 +44,8 @@ export * from "./authorization/key.js";
 export * from "./authorization/authorizationEvents.js";
 export * from "./authorization/protobufConverterFromV1.js";
 export * from "./authorization/protobufConverterToV1.js";
+export * from "./authorization/protobufConverterFromV2.js";
+export * from "./authorization/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
