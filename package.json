@@ -32,11 +32,11 @@
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "18.12.5",
+    "@tsconfig/node-lts": "20.1.3",
     "turbo": "1.13.3"
   },
   "config":  { 
     "protocVersion": "26.1"
    },
-  "packageManager": "pnpm@8.6.3"
+  "packageManager": "pnpm@8.15.8"
 }
