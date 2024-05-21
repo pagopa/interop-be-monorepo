@@ -14,18 +14,8 @@ import {
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import {
-  Descriptor,
-  EServiceV2,
-  fromEServiceV2,
-  missingKafkaMessageDataError,
   kafkaMessageProcessError,
-  EServiceId,
-  EService,
   genericInternalError,
-  Agreement,
-  agreementState,
-  AgreementV2,
-  fromAgreementV2,
   descriptorState,
   EServiceEventEnvelopeV2,
   EServiceEventV2,
@@ -37,63 +27,18 @@ import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
-import { ApiClientComponent, ApiClientComponentState } from "./model/models.js";
+import { ApiClientComponent } from "./model/models.js";
 import { config } from "./utilities/config.js";
 import {
   ReadModelService,
   readModelServiceBuilder,
 } from "./readModelService.js";
 import { authorizationManagementClientBuilder } from "./authorizationManagementClient.js";
-
-const getDescriptorFromEvent = (
-  msg: {
-    data: {
-      descriptorId: string;
-      eservice?: EServiceV2;
-    };
-  },
-  eventType: string
-): {
-  eserviceId: EServiceId;
-  descriptor: Descriptor;
-} => {
-  if (!msg.data.eservice) {
-    throw missingKafkaMessageDataError("eservice", eventType);
-  }
-
-  const eservice: EService = fromEServiceV2(msg.data.eservice);
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === msg.data.descriptorId
-  );
-
-  if (!descriptor) {
-    throw missingKafkaMessageDataError("descriptor", eventType);
-  }
-
-  return { eserviceId: eservice.id, descriptor };
-};
-
-const getAgreementFromEvent = (
-  msg: {
-    data: {
-      agreement?: AgreementV2;
-    };
-  },
-  eventType: string
-): Agreement => {
-  if (!msg.data.agreement) {
-    throw missingKafkaMessageDataError("agreement", eventType);
-  }
-
-  return fromAgreementV2(msg.data.agreement);
-};
-
-const agreementStateToClientState = (
-  agreement: Agreement
-): ApiClientComponentState =>
-  match(agreement.state)
-    .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
-    .otherwise(() => ApiClientComponent.Values.INACTIVE);
+import {
+  getDescriptorFromEvent,
+  getAgreementFromEvent,
+  agreementStateToClientState,
+} from "./utils.js";
 
 export async function sendAuthUpdate(
   decodedMessage: EServiceEventEnvelopeV2 | AgreementEventEnvelopeV2,
@@ -322,7 +267,7 @@ try {
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
   await refreshableToken.init();
 
-  const authService = await authorizationServiceBuilder(
+  const authService = authorizationServiceBuilder(
     authMgmtClient,
     refreshableToken
   );

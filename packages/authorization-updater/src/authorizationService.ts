@@ -26,8 +26,8 @@ export type AuthorizationService = {
   ) => Promise<void>;
 
   updateAgreementAndEServiceStates: (
-    eserviceState: ApiClientComponentState,
     agreementState: ApiClientComponentState,
+    eserviceState: ApiClientComponentState,
     agreementId: string,
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
@@ -39,10 +39,10 @@ export type AuthorizationService = {
   ) => Promise<void>;
 };
 
-export const authorizationServiceBuilder = async (
+export const authorizationServiceBuilder = (
   authMgmtClient: AuthorizationManagementClient,
   refreshableToken: RefreshableInteropToken
-): Promise<AuthorizationService> => {
+): AuthorizationService => {
   const getHeaders = (correlationId: string, token: string) => ({
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${token}`,
@@ -105,8 +105,8 @@ export const authorizationServiceBuilder = async (
       logger.info(`Updated Agreement ${agreementId} state for all clients`);
     },
     async updateAgreementAndEServiceStates(
-      eserviceState: ApiClientComponentState,
       agreementState: ApiClientComponentState,
+      eserviceState: ApiClientComponentState,
       agreementId: string,
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
