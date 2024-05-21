@@ -15,6 +15,7 @@ import {
   EServiceEventEnvelopeV2,
   descriptorState,
   generateId,
+  genericInternalError,
   toAgreementV2,
   toEServiceV2,
 } from "pagopa-interop-models";
@@ -204,7 +205,7 @@ describe("Authorization Updater processMessage", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("Should correctly process agreement messages and call updateAgreementAndEServiceStates", async () => {
+  it("Should correctly process AgreementUpgraded messages and call updateAgreementAndEServiceStates", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       version: "1",
@@ -271,6 +272,90 @@ describe("Authorization Updater processMessage", () => {
       headers: testHeaders,
     });
 
+    expect(
+      authorizationManagementClient.updateAgreementState
+    ).not.toHaveBeenCalled();
+    expect(
+      authorizationManagementClient.updateEServiceState
+    ).not.toHaveBeenCalled();
+  });
+
+  it("Should throw when processing AgreementUpgraded messages if the EService for the agreement is not found", async () => {
+    const agreement: Agreement = getMockAgreement();
+    const message: AgreementEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: agreement.id,
+      version: 1,
+      type: "AgreementUpgraded",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+      log_date: new Date(),
+    } as AgreementEventEnvelopeV2;
+
+    await expect(
+      sendAuthUpdate(
+        message,
+        readModelService,
+        authorizationService,
+        genericLogger,
+        testCorrelationId
+      )
+    ).rejects.toThrow(
+      genericInternalError(
+        `Unable to find EService with id ${agreement.eserviceId}`
+      )
+    );
+
+    expect(
+      authorizationManagementClient.updateAgreementAndEServiceStates
+    ).not.toHaveBeenCalled();
+    expect(
+      authorizationManagementClient.updateAgreementState
+    ).not.toHaveBeenCalled();
+    expect(
+      authorizationManagementClient.updateEServiceState
+    ).not.toHaveBeenCalled();
+  });
+
+  it("Should throw when processing AgreementUpgraded messages if the EService descriptor for the agreement is not found", async () => {
+    const eservice: EService = getMockEService();
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: eservice.id,
+    };
+    await addOneEService(eservice);
+
+    const message: AgreementEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: agreement.id,
+      version: 1,
+      type: "AgreementUpgraded",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+      log_date: new Date(),
+    } as AgreementEventEnvelopeV2;
+
+    await expect(
+      sendAuthUpdate(
+        message,
+        readModelService,
+        authorizationService,
+        genericLogger,
+        testCorrelationId
+      )
+    ).rejects.toThrow(
+      genericInternalError(
+        `Unable to find descriptor with id ${agreement.descriptorId}`
+      )
+    );
+
+    expect(
+      authorizationManagementClient.updateAgreementAndEServiceStates
+    ).not.toHaveBeenCalled();
     expect(
       authorizationManagementClient.updateAgreementState
     ).not.toHaveBeenCalled();
