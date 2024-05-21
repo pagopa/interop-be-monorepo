@@ -797,12 +797,13 @@ export function purposeServiceBuilder(
       const currentDate = new Date();
       const title = purposeToClone.data.title;
       const suffix = ` - clone - ${formatDateAndTime(currentDate)}`;
-      const prefixLengthAllowance = 60 - suffix.length - 3;
+      const dots = "...";
+      const prefixLengthAllowance = 60 - suffix.length - dots.length;
       // 60 is the maximum length for the purpose title, according to the api spec (PurposeSeed)
       const clonedPurposeTitle =
         title.length + suffix.length <= 60
           ? `${title}${suffix}`
-          : `${title.slice(0, prefixLengthAllowance)}...${suffix}`;
+          : `${title.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
       await assertPurposeTitleIsNotDuplicated({
         readModelService,
