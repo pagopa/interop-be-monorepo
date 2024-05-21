@@ -44,7 +44,7 @@ export async function sendAuthUpdate(
   decodedMessage: EServiceEventEnvelopeV2 | AgreementEventEnvelopeV2,
   readModelService: ReadModelService,
   authService: AuthorizationService,
-  loggerInstance: Logger,
+  logger: Logger,
   correlationId: string
 ): Promise<void> {
   const update: (() => Promise<void>) | undefined = await match(decodedMessage)
@@ -66,7 +66,7 @@ export async function sendAuthUpdate(
             data.eserviceId,
             data.descriptor.audience,
             data.descriptor.voucherLifespan,
-            loggerInstance,
+            logger,
             correlationId
           );
       }
@@ -89,7 +89,7 @@ export async function sendAuthUpdate(
             data.eserviceId,
             data.descriptor.audience,
             data.descriptor.voucherLifespan,
-            loggerInstance,
+            logger,
             correlationId
           );
       }
@@ -144,7 +144,7 @@ export async function sendAuthUpdate(
             agreement.id,
             agreement.eserviceId,
             agreement.consumerId,
-            loggerInstance,
+            logger,
             correlationId
           );
       }
@@ -192,7 +192,7 @@ export async function sendAuthUpdate(
             agreement.consumerId,
             descriptor.audience,
             descriptor.voucherLifespan,
-            loggerInstance,
+            logger,
             correlationId
           );
       }
@@ -201,6 +201,8 @@ export async function sendAuthUpdate(
 
   if (update) {
     await update();
+  } else {
+    logger.info(`No auth update needed for ${decodedMessage.type} message`);
   }
 }
 
@@ -233,20 +235,16 @@ function processMessage(
         correlationId,
       });
 
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      );
+
       await sendAuthUpdate(
         decodedMessage,
         readModelService,
         authService,
         loggerInstance,
         correlationId
-      );
-
-      loggerInstance.info(
-        `Authorization updated after ${JSON.stringify(
-          decodedMessage.type
-        )} event - Partition number: ${messagePayload.partition} - Offset: ${
-          messagePayload.message.offset
-        }`
       );
     } catch (e) {
       throw kafkaMessageProcessError(
