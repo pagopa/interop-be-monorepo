@@ -777,7 +777,7 @@ export function purposeServiceBuilder(
         riskAnalysisFormToClone
           ? {
               id: generateId(),
-              version: riskAnalysisFormToClone.version, // TO DO double-check
+              version: riskAnalysisFormToClone.version,
               riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
               singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
                 (answer) => ({
