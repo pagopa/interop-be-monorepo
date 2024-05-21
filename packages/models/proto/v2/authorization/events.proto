@@ -15,12 +15,12 @@ message ClientDeletedV2 {
 }
 
 message ClientKeyAddedV2 {
-  string keyId = 1;
+  string kid = 1;
   ClientV2 client = 2;
 }
 
 message ClientKeyDeletedV2 {
-  string keyId = 1;
+  string kid = 1;
   ClientV2 client = 2;
 }
 
