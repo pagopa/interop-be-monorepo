@@ -23,11 +23,10 @@
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
     "@pagopa/eslint-config": "3.0.0",
-    "@types/dotenv-flow": "3.3.3",
     "@types/express": "4.17.21",
     "@types/node": "20.12.12",
     "@types/uuid": "9.0.8",
-    "cpx2": "2.0.0",
+    "cpx2": "7.0.1",
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons-test": "workspace:*",
     "pg-promise": "11.6.0",
@@ -40,8 +39,8 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
-    "axios": "1.7.0",
-    "dotenv-flow": "3.3.0",
+    "axios": "1.7.1",
+    "dotenv-flow": "4.1.0",
     "express": "4.19.2",
     "mongodb": "5.9.2",
     "pagopa-interop-commons": "workspace:*",
