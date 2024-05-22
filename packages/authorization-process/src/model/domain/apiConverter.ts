@@ -1,6 +1,7 @@
 import {
   Client,
   ClientKind,
+  Key,
   KeyUse,
   clientKind,
   keyUse,
@@ -11,6 +12,7 @@ import {
   ApiClientWithKeys,
   ApiClientKind,
   ApiKeyUse,
+  ApiKey,
 } from "./models.js";
 
 export const ClientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
@@ -49,3 +51,14 @@ export function clientToApiClient(
     ...(includeKeys ? { keys: client.keys } : {}),
   };
 }
+
+export const keyToApiKey = (key: Key): ApiKey => ({
+  name: key.name,
+  createdAt: key.createdAt.toJSON(),
+  kid: key.kid,
+  encodedPem: key.encodedPem,
+  algorithm: key.algorithm,
+  use: KeyUseToApiKeyUse(key.use),
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  userId: key.userId!, // TODO Double check
+});
