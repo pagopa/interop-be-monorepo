@@ -7,7 +7,6 @@ export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
 import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
 import { KafkaConsumerConfig, genericLogger } from "pagopa-interop-commons";
-import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { createMechanism } from "./create-mechanism.js";
 
 export const DEFAULT_AUTHENTICATION_TIMEOUT = 60 * 60 * 1000;
@@ -157,11 +156,8 @@ const initConsumer = async (
         await consumerHandler(payload);
         await kafkaCommitMessageOffsets(consumer, payload);
       } catch (e) {
-        throw kafkaMessageProcessError(
-          payload.topic,
-          payload.partition,
-          payload.message.offset,
-          e
+        genericLogger.error(
+          `Error during message processing: topic: ${payload.topic}, partition: ${payload.partition}, offset: ${payload.message.offset}, error: ${e}`
         );
       }
     },
