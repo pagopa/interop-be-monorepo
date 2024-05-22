@@ -29,19 +29,16 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-/* eslint-disable max-params */
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
   createAgreementArchivedByUpgradeEvent,
   createContract,
 } from "./agreementService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({
   firstActivation,
@@ -118,8 +115,7 @@ export async function createActivationEvent({
   consumer,
   authData,
   correlationId,
-  attributeQuery,
-  tenantQuery,
+  readModelService,
   storeFile,
   logger,
 }: {
@@ -131,8 +127,7 @@ export async function createActivationEvent({
   consumer: Tenant;
   authData: AuthData;
   correlationId: string;
-  attributeQuery: AttributeQuery;
-  tenantQuery: TenantQuery;
+  readModelService: ReadModelService;
   storeFile: FileManager["storeBytes"];
   logger: Logger;
 }): Promise<CreateEvent<AgreementEventV2>> {
@@ -142,8 +137,7 @@ export async function createActivationEvent({
       updateSeed: updatedAgreementSeed,
       eservice,
       consumer,
-      attributeQuery,
-      tenantQuery,
+      readModelService,
       selfcareId: authData.selfcareId,
       storeFile,
       logger,
@@ -177,10 +171,10 @@ export async function createActivationEvent({
 export const archiveRelatedToAgreements = async (
   agreement: Agreement,
   userId: UserId,
-  agreementQuery: AgreementQuery,
+  readModelService: ReadModelService,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
-  const existingAgreements = await agreementQuery.getAllAgreements({
+  const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
   });

@@ -21,8 +21,8 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
-import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
+import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -232,25 +232,25 @@ export const validateCreationOnDescriptor = (
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
   agreement: ApiAgreementPayload,
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
     unsafeBrandId(agreement.eserviceId),
     agreementCreationConflictingStates,
-    agreementQuery
+    readModelService
   );
 };
 
 export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     agreement.consumerId,
     unsafeBrandId(agreement.eserviceId),
     agreementSubmissionConflictingStates,
-    agreementQuery
+    readModelService
   );
 };
 
@@ -342,9 +342,9 @@ export const verifyConflictingAgreements = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   conflictingStates: AgreementState[],
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
-  const agreements = await agreementQuery.getAllAgreements({
+  const agreements = await readModelService.getAllAgreements({
     consumerId,
     eserviceId,
     agreementStates: conflictingStates,
