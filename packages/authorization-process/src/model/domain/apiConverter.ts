@@ -27,20 +27,30 @@ export const KeyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
-export const clientToApiClient = (
+export function clientToApiClient(
+  client: Client,
+  { includeKeys }: { includeKeys: true }
+): ApiClientWithKeys;
+export function clientToApiClient(
+  client: Client,
+  { includeKeys }: { includeKeys: false }
+): ApiClient;
+export function clientToApiClient(
   client: Client,
   { includeKeys }: { includeKeys: boolean }
-): ApiClient | ApiClientWithKeys => ({
-  id: client.id,
-  name: client.name,
-  consumerId: client.consumerId,
-  users: client.users,
-  createdAt: client.createdAt.toJSON(),
-  purposes: client.purposes,
-  kind: ClientKindToApiClientKind(client.kind),
-  description: client.description ? client.description : undefined,
-  ...(includeKeys ? { keys: client.keys } : {}),
-});
+): ApiClientWithKeys | ApiClient {
+  return {
+    id: client.id,
+    name: client.name,
+    consumerId: client.consumerId,
+    users: client.users,
+    createdAt: client.createdAt.toJSON(),
+    purposes: client.purposes,
+    kind: ClientKindToApiClientKind(client.kind),
+    description: client.description ? client.description : undefined,
+    ...(includeKeys ? { keys: client.keys } : {}),
+  };
+}
 
 export const keyToApiKey = (key: Key): ApiKey => ({
   name: key.name,
