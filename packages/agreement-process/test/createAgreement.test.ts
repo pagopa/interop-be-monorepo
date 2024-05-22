@@ -12,7 +12,7 @@ import {
   getMockAgreement,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons/dist";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   AgreementId,
   EServiceId,
@@ -30,7 +30,7 @@ import {
   TenantAttribute,
   Descriptor,
   descriptorState,
-} from "pagopa-interop-models/dist";
+} from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
   eServiceNotFound,
@@ -39,16 +39,16 @@ import {
   agreementAlreadyExists,
   tenantNotFound,
   missingCertifiedAttributesError,
-} from "../src/model/domain/errors";
-import { agreementCreationConflictingStates } from "../src/model/domain/validators";
-import { ApiAgreementPayload } from "../src/model/types";
+} from "../src/model/domain/errors.js";
+import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
+import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   readLastAgreementEvent,
   addOneEService,
   addOneTenant,
   agreementService,
   addOneAgreement,
-} from "./utils";
+} from "./utils.js";
 
 /**
  * Executes the generic agreement expectation for agreement creation process,

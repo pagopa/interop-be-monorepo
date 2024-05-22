@@ -5,7 +5,7 @@ import {
   getMockEService,
   getMockAgreement,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons/dist";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   Tenant,
   Descriptor,
@@ -17,14 +17,14 @@ import {
   EServiceId,
   agreementState,
   TenantId,
-} from "pagopa-interop-models/dist";
+} from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import {
   addOneTenant,
   addOneEService,
   addOneAgreement,
   agreementService,
-} from "./utils";
+} from "./utils.js";
 
 describe("get agreements", () => {
   let tenant1: Tenant;
