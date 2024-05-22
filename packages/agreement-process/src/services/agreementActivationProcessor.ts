@@ -1,4 +1,3 @@
-/* eslint-disable max-params */
 import {
   AuthData,
   CreateEvent,
@@ -7,48 +6,31 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
-  Descriptor,
   EService,
   Tenant,
   agreementState,
-  WithMetadata,
   AgreementEvent,
-  AgreementId,
-  SelfcareId,
+  AgreementState,
+  Descriptor,
+  genericError,
+  AgreementEventV2,
+  WithMetadata,
+  UserId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
-  assertAgreementExist,
-  assertRequesterIsConsumerOrProducer,
-  assertTenantExist,
-  failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
-  validateActivationOnDescriptor,
-  assertActivableState,
-  verifyConsumerDoesNotActivatePending,
-  assertEServiceExist,
   agreementArchivableStates,
 } from "../model/domain/validators.js";
 import {
   toCreateEventAgreementActivated,
-  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUnsuspendedByConsumer,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { ApiAgreementDocumentSeed } from "../model/types.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
-import {
-  agreementStateByFlags,
-  nextState,
-  suspendedByConsumerFlag,
-  suspendedByProducerFlag,
-} from "./agreementStateProcessor.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
+/* eslint-disable max-params */
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import {
   createStamp,
@@ -56,93 +38,35 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import {
+  createAgreementArchivedByUpgradeEvent,
+  createContract,
+} from "./agreementService.js";
 
-export async function activateAgreementLogic(
-  agreementId: AgreementId,
-  agreementQuery: AgreementQuery,
-  eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery,
-  attributeQuery: AttributeQuery,
-  authData: AuthData,
-  storeFile: FileManager["storeBytes"],
-  correlationId: string,
-  logger: Logger
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-  assertAgreementExist(agreementId, agreement);
+export function createActivationUpdateAgreementSeed({
+  firstActivation,
+  newState,
+  descriptor,
+  consumer,
+  eservice,
+  authData,
+  agreement,
+  suspendedByConsumer,
+  suspendedByProducer,
+}: {
+  firstActivation: boolean;
+  newState: AgreementState;
+  descriptor: Descriptor;
+  consumer: Tenant;
+  eservice: EService;
+  authData: AuthData;
+  agreement: Agreement;
+  suspendedByConsumer: boolean | undefined;
+  suspendedByProducer: boolean | undefined;
+}): UpdateAgreementSeed {
+  const stamp = createStamp(authData.userId);
 
-  assertRequesterIsConsumerOrProducer(agreement.data, authData);
-  verifyConsumerDoesNotActivatePending(agreement.data, authData);
-  assertActivableState(agreement.data);
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
-  );
-  assertEServiceExist(agreement.data.eserviceId, eservice);
-
-  const descriptor = validateActivationOnDescriptor(
-    eservice,
-    agreement.data.descriptorId
-  );
-
-  const tenant = await tenantQuery.getTenantById(agreement.data.consumerId);
-  assertTenantExist(agreement.data.consumerId, tenant);
-
-  return activateAgreement(
-    agreement,
-    eservice,
-    descriptor,
-    tenant,
-    authData,
-    tenantQuery,
-    agreementQuery,
-    attributeQuery,
-    storeFile,
-    correlationId,
-    logger
-  );
-}
-
-async function activateAgreement(
-  agreementData: WithMetadata<Agreement>,
-  eservice: EService,
-  descriptor: Descriptor,
-  consumer: Tenant,
-  authData: AuthData,
-  tenantQuery: TenantQuery,
-  agreementQuery: AgreementQuery,
-  attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"],
-  correlationId: string,
-  logger: Logger
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const agreement = agreementData.data;
-  const nextAttributesState = nextState(agreement, descriptor, consumer);
-
-  const suspendedByConsumer = suspendedByConsumerFlag(
-    agreement,
-    authData.organizationId,
-    agreementState.active
-  );
-  const suspendedByProducer = suspendedByProducerFlag(
-    agreement,
-    authData.organizationId,
-    agreementState.active
-  );
-
-  const newState = agreementStateByFlags(
-    nextAttributesState,
-    suspendedByProducer,
-    suspendedByConsumer
-  );
-
-  failOnActivationFailure(newState, agreement);
-
-  const firstActivation =
-    agreement.state === agreementState.pending &&
-    newState === agreementState.active;
-
-  const updatedAgreementSeed: UpdateAgreementSeed = firstActivation
+  return firstActivation
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -156,7 +80,7 @@ async function activateAgreement(
         suspendedByProducer,
         stamps: {
           ...agreement.stamps,
-          activation: createStamp(authData),
+          activation: stamp,
         },
       }
     : {
@@ -169,13 +93,13 @@ async function activateAgreement(
             agreement,
             authData.organizationId,
             agreementState.active,
-            createStamp(authData)
+            stamp
           ),
           suspensionByProducer: suspendedByProducerStamp(
             agreement,
             authData.organizationId,
             agreementState.active,
-            createStamp(authData)
+            stamp
           ),
         },
         suspendedAt:
@@ -183,68 +107,76 @@ async function activateAgreement(
             ? undefined
             : agreement.suspendedAt,
       };
-
-  const updatedAgreement = {
-    ...agreement,
-    ...updatedAgreementSeed,
-  };
-
-  const activationEvent = await match(firstActivation)
-    .with(true, async () => {
-      const contract = apiAgreementDocumentToAgreementDocument(
-        await createContract(
-          updatedAgreement,
-          updatedAgreementSeed,
-          eservice,
-          consumer,
-          attributeQuery,
-          tenantQuery,
-          authData.selfcareId,
-          storeFile,
-          logger
-        )
-      );
-
-      return toCreateEventAgreementActivated(
-        { ...updatedAgreement, contract },
-        agreementData.metadata.version,
-        correlationId
-      );
-    })
-    .with(false, () => {
-      if (authData.organizationId === agreement.producerId) {
-        return toCreateEventAgreementUnsuspendedByProducer(
-          updatedAgreement,
-          agreementData.metadata.version,
-          correlationId
-        );
-      } else if (authData.organizationId === agreement.consumerId) {
-        return toCreateEventAgreementUnsuspendedByConsumer(
-          updatedAgreement,
-          agreementData.metadata.version,
-          correlationId
-        );
-      } else {
-        throw new Error(
-          `Unexpected organizationId ${authData.organizationId} in activateAgreement`
-        );
-      }
-    })
-    .exhaustive();
-
-  const archiveEvents = await archiveRelatedToAgreements(
-    agreement,
-    authData,
-    agreementQuery,
-    correlationId
-  );
-
-  return [updatedAgreement, [activationEvent, ...archiveEvents]];
 }
 
-const archiveRelatedToAgreements = async (
+export async function createActivationEvent({
+  firstActivation,
+  agreement,
+  updatedAgreement,
+  updatedAgreementSeed,
+  eservice,
+  consumer,
+  authData,
+  correlationId,
+  attributeQuery,
+  tenantQuery,
+  storeFile,
+  logger,
+}: {
+  firstActivation: boolean;
+  agreement: WithMetadata<Agreement>;
+  updatedAgreement: Agreement;
+  updatedAgreementSeed: UpdateAgreementSeed;
+  eservice: EService;
+  consumer: Tenant;
+  authData: AuthData;
+  correlationId: string;
+  attributeQuery: AttributeQuery;
+  tenantQuery: TenantQuery;
+  storeFile: FileManager["storeBytes"];
+  logger: Logger;
+}): Promise<CreateEvent<AgreementEventV2>> {
+  if (firstActivation) {
+    const contract = await createContract({
+      agreement: updatedAgreement,
+      updateSeed: updatedAgreementSeed,
+      eservice,
+      consumer,
+      attributeQuery,
+      tenantQuery,
+      selfcareId: authData.selfcareId,
+      storeFile,
+      logger,
+    });
+    return toCreateEventAgreementActivated(
+      { ...updatedAgreement, contract },
+      agreement.metadata.version,
+      correlationId
+    );
+  } else {
+    if (authData.organizationId === agreement.data.producerId) {
+      return toCreateEventAgreementUnsuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    } else if (authData.organizationId === agreement.data.consumerId) {
+      return toCreateEventAgreementUnsuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    } else {
+      throw genericError(
+        `Unexpected organizationId ${authData.organizationId} in activateAgreement`
+      );
+    }
+  }
+}
+
+export const archiveRelatedToAgreements = async (
   agreement: Agreement,
-  authData: AuthData,
+  userId: UserId,
   agreementQuery: AgreementQuery,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
@@ -260,45 +192,6 @@ const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    toCreateEventAgreementArchivedByUpgrade(
-      {
-        ...agreementData.data,
-        state: agreementState.archived,
-        certifiedAttributes: agreementData.data.certifiedAttributes,
-        declaredAttributes: agreementData.data.declaredAttributes,
-        verifiedAttributes: agreementData.data.verifiedAttributes,
-        suspendedByConsumer: agreementData.data.suspendedByConsumer,
-        suspendedByProducer: agreementData.data.suspendedByProducer,
-        suspendedByPlatform: agreementData.data.suspendedByPlatform,
-        stamps: {
-          ...agreementData.data.stamps,
-          archiving: createStamp(authData),
-        },
-      },
-      agreementData.metadata.version,
-      correlationId
-    )
+    createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
   );
-};
-
-const createContract = async (
-  agreement: Agreement,
-  updateSeed: UpdateAgreementSeed,
-  eservice: EService,
-  consumer: Tenant,
-  attributeQuery: AttributeQuery,
-  tenantQuery: TenantQuery,
-  selfcareId: SelfcareId,
-  storeFile: FileManager["storeBytes"],
-  logger: Logger
-): Promise<ApiAgreementDocumentSeed> => {
-  const producer = await tenantQuery.getTenantById(agreement.producerId);
-  assertTenantExist(agreement.producerId, producer);
-
-  return await contractBuilder(
-    selfcareId,
-    attributeQuery,
-    storeFile,
-    logger
-  ).createContract(agreement, eservice, consumer, producer, updateSeed);
 };
