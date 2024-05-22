@@ -30,7 +30,7 @@ type EventStoreSchema =
   | "catalog"
   | "tenant"
   | "purpose"
-  | "authorization";
+  | '"authorization"';
 
 export type StoredEvent<T extends Event> = {
   stream_id: string;
@@ -57,7 +57,7 @@ export async function writeInEventstore<T extends EventStoreSchema>(
     ? StoredEvent<TenantEvent>
     : T extends "purpose"
     ? StoredEvent<PurposeEvent>
-    : T extends "authorization"
+    : T extends '"authorization"'
     ? StoredEvent<AuthorizationEvent>
     : never,
   schema: T,
@@ -86,7 +86,7 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("purpose", () =>
           purposeEventToBinaryData(event.event as PurposeEvent)
         )
-        .with("authorization", () =>
+        .with('"authorization"', () =>
           authorizationEventToBinaryData(event.event as AuthorizationEvent)
         )
         .exhaustive(),
@@ -105,7 +105,7 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     ? TenantId
     : T extends "purpose"
     ? PurposeId
-    : T extends "authorization"
+    : T extends '"authorization"'
     ? ClientId
     : never,
   schema: T,
@@ -122,7 +122,7 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       ? TenantEvent
       : T extends "purpose"
       ? PurposeEvent
-      : T extends "authorization"
+      : T extends '"authorization"'
       ? AuthorizationEvent
       : never
   >
@@ -144,7 +144,7 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     ? TenantId
     : T extends "purpose"
     ? PurposeId
-    : T extends "authorization"
+    : T extends '"authorization"'
     ? ClientId
     : never,
   version: number,
@@ -162,7 +162,7 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
       ? TenantEvent
       : T extends "purpose"
       ? PurposeEvent
-      : T extends "authorization"
+      : T extends '"authorization"'
       ? AuthorizationEvent
       : never
   >

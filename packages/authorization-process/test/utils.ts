@@ -45,7 +45,7 @@ export const writeClientInEventstore = async (
     event: authorizationtEvent,
   };
 
-  await writeInEventstore(eventToWrite, "authorization", postgresDB);
+  await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
