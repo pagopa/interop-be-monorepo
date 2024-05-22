@@ -491,13 +491,11 @@ describe("Agreement service", () => {
         descriptor,
       ]);
 
-      const conflictingAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          consumer.id,
-          randomArrayItem(agreementCreationConflictingStates)
-        ),
-      };
+      const conflictingAgreement = getMockAgreement(
+        eservice.id,
+        consumer.id,
+        randomArrayItem(agreementCreationConflictingStates)
+      );
 
       await addOneTenant(consumer);
       await addOneEService(eservice);
@@ -556,12 +554,10 @@ describe("Agreement service", () => {
       const certifiedDescriptorAttribute2: EServiceAttribute =
         getMockEServiceAttribute();
 
-      const descriptor = {
-        ...getMockDescriptorPublished(generateId<DescriptorId>(), [
-          [certifiedDescriptorAttribute1],
-          [certifiedDescriptorAttribute2],
-        ]),
-      };
+      const descriptor = getMockDescriptorPublished(
+        generateId<DescriptorId>(),
+        [[certifiedDescriptorAttribute1], [certifiedDescriptorAttribute2]]
+      );
 
       // In this case, the consumer is missing one of the two certified attributes
       const certifiedTenantAttribute1: TenantAttribute =
@@ -705,9 +701,7 @@ describe("Agreement service", () => {
         ...getMockDescriptorPublished(),
         publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
       };
-      descriptor5 = {
-        ...getMockDescriptorPublished(),
-      };
+      descriptor5 = getMockDescriptorPublished();
       eservice1 = {
         ...getMockEService(generateId<EServiceId>(), tenant1.id, [
           descriptor1,
