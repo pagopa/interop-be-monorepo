@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
 import { EachMessagePayload, KafkaMessage } from "kafkajs";
-import { EServiceEvent, Message, PurposeEvent } from "pagopa-interop-models";
+import {
+  AuthorizationEvent,
+  EServiceEvent,
+  Message,
+  PurposeEvent,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { KafkaTopicConfig } from "../config/kafkaTopicConfig.js";
 
@@ -50,6 +55,11 @@ export const messageDecoderSupplier = (
     .with(
       { purposeTopic: P.string },
       () => (message: KafkaMessage) => decodeKafkaMessage(message, PurposeEvent)
+    )
+    .with(
+      { authorizationTopic: P.string },
+      () => (message: KafkaMessage) =>
+        decodeKafkaMessage(message, AuthorizationEvent)
     )
     .otherwise(() => {
       throw new Error(`Topic decoder not found for provided topic : ${topic}`);
