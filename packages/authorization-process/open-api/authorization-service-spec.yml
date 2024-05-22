@@ -58,7 +58,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /clientsApi:
@@ -86,7 +86,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /clientsWithKeys:
@@ -157,19 +157,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /clients:
@@ -240,19 +240,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /clients/{clientId}:
@@ -315,19 +315,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users":
@@ -357,19 +357,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users/{userId}":
@@ -401,25 +401,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client or User not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -437,25 +437,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Missing Required Information
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Add an user to a Client
@@ -477,25 +477,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client id not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -548,19 +548,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client id not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/keys/{keyId}":
@@ -596,19 +596,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Key not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -637,19 +637,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Key not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users/{userId}/keys":
@@ -685,13 +685,13 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client id not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/purposes":
@@ -724,19 +724,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/purposes/{purposeId}":
@@ -769,19 +769,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /clients/purposes/{purposeId}:
@@ -807,19 +807,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /status:
@@ -834,7 +834,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:

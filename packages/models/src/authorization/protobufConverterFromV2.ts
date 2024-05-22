@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { unsafeBrandId } from "../brandedIds.js";
+import { UserId, unsafeBrandId } from "../brandedIds.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
 import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
@@ -35,6 +35,7 @@ export const fromClientV2 = (input: ClientV2): Client => ({
   id: unsafeBrandId(input.id),
   consumerId: unsafeBrandId(input.consumerId),
   purposes: input.purposes.map((purposeId) => unsafeBrandId(purposeId)),
+  users: input.users.map(unsafeBrandId<UserId>),
   kind: fromClientKindV2(input.kind),
   createdAt: bigIntToDate(input.createdAt!),
   keys: input.keys.map(fromKeyV2),
