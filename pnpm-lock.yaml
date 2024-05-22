@@ -27,8 +27,8 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       express:
         specifier: 4.19.2
         version: 4.19.2
@@ -109,8 +109,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -179,8 +179,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       express:
         specifier: 4.19.2
         version: 4.19.2
@@ -264,8 +264,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -328,8 +328,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -392,8 +392,8 @@ importers:
         specifier: 3.6.0
         version: 3.6.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       express:
         specifier: 4.19.2
         version: 4.19.2
@@ -474,8 +474,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -638,8 +638,8 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -677,8 +677,8 @@ importers:
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.1)(zod@3.23.8)
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -747,8 +747,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       json-diff:
         specifier: 1.0.6
         version: 1.0.6
@@ -891,8 +891,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -958,8 +958,8 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       express:
         specifier: 4.19.2
         version: 4.19.2
@@ -1022,8 +1022,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -1120,8 +1120,8 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       express:
         specifier: 4.19.2
         version: 4.19.2
@@ -1190,8 +1190,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
       dotenv-flow:
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 4.1.0
+        version: 4.1.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -5440,15 +5440,15 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /dotenv-flow@3.3.0:
-    resolution: {integrity: sha512-GLSvRqDZ1TGhloS6ZCZ5chdqqv/3XMqZxAnX9rliJiHn6uyJLguKeu+3M2kcagBkoVCnLWYfbR4rfFe1xSU39A==}
-    engines: {node: '>= 8.0.0'}
+  /dotenv-flow@4.1.0:
+    resolution: {integrity: sha512-0cwP9jpQBQfyHwvE0cRhraZMkdV45TQedA8AAUZMsFzvmLcQyc1HPv+oX0OOYwLFjIlvgVepQ+WuQHbqDaHJZg==}
+    engines: {node: '>= 12.0.0'}
     dependencies:
-      dotenv: 8.6.0
+      dotenv: 16.4.5
 
-  /dotenv@8.6.0:
-    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
-    engines: {node: '>=10'}
+  /dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+    engines: {node: '>=12'}
 
   /drange@1.1.1:
     resolution: {integrity: sha512-pYxfDYpued//QpnLIm4Avk7rsNtAtQkUES2cwAYSvD/wd2pKD71gN2Ebj3e7klzXwjocvE8c5vx/1fxwpqmSxA==}

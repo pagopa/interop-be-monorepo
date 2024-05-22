@@ -33,7 +33,7 @@
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "3.1.2",
     "@protobuf-ts/runtime": "2.9.4",
     "connection-string": "4.4.0",
-    "dotenv-flow": "3.3.0",
+    "dotenv-flow": "4.1.0",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
