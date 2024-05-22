@@ -418,7 +418,7 @@ export function agreementServiceBuilder(
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
       const updatedAgreement = {
-        ...agreement,
+        ...agreement.data,
         ...updateSeed,
       };
 
@@ -428,7 +428,7 @@ export function agreementServiceBuilder(
           ? {
               ...updatedAgreement,
               contract: await createContract({
-                agreement: updatedAgreement.data,
+                agreement: updatedAgreement,
                 eservice,
                 consumer,
                 updateSeed,
@@ -468,7 +468,7 @@ export function agreementServiceBuilder(
         await repository.createEvent(event);
       }
 
-      return submittedAgreement.data;
+      return submittedAgreement;
     },
     async upgradeAgreement(
       agreementId: AgreementId,
