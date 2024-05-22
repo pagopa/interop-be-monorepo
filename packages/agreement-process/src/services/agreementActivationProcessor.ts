@@ -39,7 +39,7 @@ import {
 } from "./agreementStampUtils.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
-  createArchivedAgreementEvent,
+  createAgreementArchivedByUpgradeEvent,
   createContract,
 } from "./agreementService.js";
 
@@ -192,6 +192,6 @@ export const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    createArchivedAgreementEvent(agreementData, userId, correlationId)
+    createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
   );
 };

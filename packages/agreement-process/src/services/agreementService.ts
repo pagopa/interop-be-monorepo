@@ -455,7 +455,7 @@ export function agreementServiceBuilder(
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
         isActiveOrSuspended(newState)
           ? agreements.map((agreement) =>
-              createArchivedAgreementEvent(
+            createAgreementArchivedByUpgradeEvent(
                 agreement,
                 authData.userId,
                 correlationId
@@ -1054,7 +1054,7 @@ export async function createContract({
   return apiAgreementDocumentToAgreementDocument(contract);
 }
 
-export function createArchivedAgreementEvent(
+export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
   userId: UserId,
   correlationId: string
