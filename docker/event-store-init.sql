@@ -93,8 +93,8 @@ create table purpose.events (
     UNIQUE (stream_id, version)
 );
 
-create schema authorization;
-create table authorization.events (
+create schema "authorization";
+create table "authorization".events (
     sequence_num bigserial NOT NULL,
 
     stream_id uuid NOT NULL,
