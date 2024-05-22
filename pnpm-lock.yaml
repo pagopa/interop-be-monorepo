@@ -60,9 +60,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -133,9 +130,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -221,9 +215,6 @@ importers:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -288,9 +279,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -355,9 +343,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -431,9 +416,6 @@ importers:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -498,9 +480,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -622,9 +601,6 @@ importers:
       '@testcontainers/postgresql':
         specifier: 10.9.0
         version: 10.9.0
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/jsonwebtoken':
         specifier: 9.0.6
         version: 9.0.6
@@ -707,9 +683,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -915,9 +888,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -988,9 +958,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -1049,9 +1016,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -1150,9 +1114,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -1214,9 +1175,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.4.5)
-      '@types/dotenv-flow':
-        specifier: 3.3.3
-        version: 3.3.3
       '@types/node':
         specifier: 20.12.12
         version: 20.12.12
@@ -4339,10 +4297,6 @@ packages:
     dependencies:
       '@types/docker-modem': 3.0.6
       '@types/node': 20.12.12
-    dev: true
-
-  /@types/dotenv-flow@3.3.3:
-    resolution: {integrity: sha512-aJjBsKw4bfGjvaRwrxBtEOfYZxCAq+LiFTpZ4DGTEK2b9eLVt/IAClapSxMfgV4Mi/2bIBKKjoTCO0lOh4ACLg==}
     dev: true
 
   /@types/estree@1.0.5:
