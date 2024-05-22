@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+import { z } from "zod";
 import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
 import {
   ClientComponentStateV1,
@@ -9,13 +10,17 @@ import {
 import { dateToBigInt } from "../utils.js";
 import { PurposeId, generateId } from "../brandedIds.js";
 import { Key, KeyUse, keyUse } from "./key.js";
-import {
-  Client,
-  ClientComponentState,
-  ClientKind,
-  clientComponentState,
-  clientKind,
-} from "./client.js";
+import { Client, ClientKind, clientKind } from "./client.js";
+
+const clientComponentState = {
+  active: "Active",
+  inactive: "Inactive",
+} as const;
+const ClientComponentState = z.enum([
+  Object.values(clientComponentState)[0],
+  ...Object.values(clientComponentState).slice(1),
+]);
+type ClientComponentState = z.infer<typeof ClientComponentState>;
 
 const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
   match(input)

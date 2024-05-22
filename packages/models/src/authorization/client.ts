@@ -1,13 +1,5 @@
 import { z } from "zod";
-import {
-  AgreementId,
-  ClientId,
-  DescriptorId,
-  EServiceId,
-  PurposeId,
-  PurposeVersionId,
-  TenantId,
-} from "../brandedIds.js";
+import { ClientId, PurposeId, TenantId, UserId } from "../brandedIds.js";
 import { Key } from "./key.js";
 
 export const clientKind = {
@@ -20,48 +12,6 @@ export const ClientKind = z.enum([
 ]);
 export type ClientKind = z.infer<typeof ClientKind>;
 
-export const clientComponentState = {
-  active: "Active",
-  inactive: "Inactive",
-} as const;
-export const ClientComponentState = z.enum([
-  Object.values(clientComponentState)[0],
-  ...Object.values(clientComponentState).slice(1),
-]);
-export type ClientComponentState = z.infer<typeof ClientComponentState>;
-
-export const ClientEserviceDetails = z.object({
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  state: ClientComponentState,
-  audience: z.array(z.string()),
-  voucherLifespan: z.number(),
-});
-export type ClientEserviceDetails = z.infer<typeof ClientEserviceDetails>;
-
-export const ClientAgreementDetails = z.object({
-  eserviceId: EServiceId,
-  consumerId: TenantId,
-  agreementId: AgreementId,
-  state: ClientComponentState,
-});
-export type ClientAgreementDetails = z.infer<typeof ClientAgreementDetails>;
-
-export const ClientPurposeDetails = z.object({
-  purposeId: PurposeId,
-  versionId: PurposeVersionId,
-  state: ClientComponentState,
-});
-export type ClientPurposeDetails = z.infer<typeof ClientPurposeDetails>;
-
-export const ClientStatesChain = z.object({
-  id: z.string(),
-  eservice: ClientEserviceDetails,
-  agreement: ClientAgreementDetails,
-  purpose: ClientPurposeDetails,
-});
-export type ClientStatesChain = z.infer<typeof ClientStatesChain>;
-
 export const Client = z.object({
   id: ClientId,
   consumerId: TenantId,
@@ -69,7 +19,7 @@ export const Client = z.object({
   purposes: z.array(PurposeId),
   description: z.string().optional(),
   relationships: z.array(z.string()),
-  users: z.array(z.string()),
+  users: z.array(UserId),
   kind: ClientKind,
   createdAt: z.coerce.date(),
   keys: z.array(Key),
