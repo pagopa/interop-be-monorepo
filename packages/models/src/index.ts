@@ -87,3 +87,6 @@ export * from "./gen/v2/agreement/agreement.js";
 export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
 export * from "./gen/v2/purpose/events.js";
+export * from "./gen/v2/authorization/client.js";
+export * from "./gen/v2/authorization/key.js";
+export * from "./gen/v2/authorization/events.js";
