@@ -1,7 +1,6 @@
 import {
   Client,
   ClientKind,
-  Key,
   KeyUse,
   clientKind,
   keyUse,
@@ -11,7 +10,6 @@ import {
   ApiClient,
   ApiClientWithKeys,
   ApiClientKind,
-  ApiKey,
   ApiKeyUse,
 } from "./models.js";
 
@@ -27,28 +25,27 @@ export const KeyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
-export const clientToApiClient = (
+export function clientToApiClient(
+  client: Client,
+  { includeKeys }: { includeKeys: true }
+): ApiClientWithKeys;
+export function clientToApiClient(
+  client: Client,
+  { includeKeys }: { includeKeys: false }
+): ApiClient;
+export function clientToApiClient(
   client: Client,
   { includeKeys }: { includeKeys: boolean }
-): ApiClient | ApiClientWithKeys => ({
-  id: client.id,
-  name: client.name,
-  consumerId: client.consumerId,
-  users: client.users,
-  createdAt: client.createdAt.toJSON(),
-  purposes: client.purposes,
-  kind: ClientKindToApiClientKind(client.kind),
-  description: client.description ? client.description : undefined,
-  ...(includeKeys ? { keys: client.keys } : {}),
-});
-
-export const keyToApiKey = (key: Key): ApiKey => ({
-  name: key.name,
-  createdAt: key.createdAt.toJSON(),
-  kid: key.kid,
-  encodedPem: key.encodedPem,
-  algorithm: key.algorithm,
-  use: KeyUseToApiKeyUse(key.use),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  userId: key.userId!, // TODO Double check
-});
+): ApiClientWithKeys | ApiClient {
+  return {
+    id: client.id,
+    name: client.name,
+    consumerId: client.consumerId,
+    users: client.users,
+    createdAt: client.createdAt.toJSON(),
+    purposes: client.purposes,
+    kind: ClientKindToApiClientKind(client.kind),
+    description: client.description ? client.description : undefined,
+    ...(includeKeys ? { keys: client.keys } : {}),
+  };
+}
