@@ -41,9 +41,11 @@ export const validateConsumerEmail = async (
 ): Promise<void> => {
   const consumer = await retrieveTenant(agreement.consumerId, readModelService);
 
-  if (
-    !consumer.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)
-  ) {
+  const hasContactEmail = consumer.mails.some(
+    (mail) => mail.kind === tenantMailKind.ContactEmail
+  );
+
+  if (!hasContactEmail) {
     throw consumerWithNotValidEmail(agreement.id, agreement.consumerId);
   }
 };

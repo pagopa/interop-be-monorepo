@@ -35,7 +35,7 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 import {
-  createArchivedAgreementEvent,
+  createAgreementArchivedByUpgradeEvent,
   createContract,
 } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
@@ -186,6 +186,6 @@ export const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    createArchivedAgreementEvent(agreementData, userId, correlationId)
+    createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
   );
 };
