@@ -7,30 +7,30 @@ import { addOneClient, authorizationService, getMockClient } from "./utils.js";
 describe("getClientById", async () => {
   it("should get from the readModel the client with the secified Id with users", async () => {
     const organizationId = generateId();
-    const client: Client = {
+    const expectedClient: Client = {
       ...getMockClient(),
       consumerId: unsafeBrandId(organizationId),
     };
-    await addOneClient(client);
+    await addOneClient(expectedClient);
 
-    const result = await authorizationService.getClientById(
-      client.id,
+    const { client } = await authorizationService.getClientById(
+      expectedClient.id,
       unsafeBrandId(organizationId),
       genericLogger
     );
-    expect(result).toMatchObject(client);
+    expect(client).toMatchObject(expectedClient);
   });
   it("should get from the readModel the client with the secified Id without users", async () => {
-    const client = getMockClient();
+    const mockClient = getMockClient();
 
-    await addOneClient(client);
+    await addOneClient(mockClient);
 
-    const result = await authorizationService.getClientById(
-      client.id,
+    const { client } = await authorizationService.getClientById(
+      mockClient.id,
       generateId(),
       genericLogger
     );
-    expect(result).toMatchObject(client);
+    expect(client).toMatchObject(mockClient);
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     const client = getMockClient();
