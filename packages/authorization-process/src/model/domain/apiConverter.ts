@@ -54,7 +54,7 @@ export function clientToApiClient(
 }
 
 export const keyToApiKey = (key: Key): ApiKey => {
-  if (key.userId === undefined) {
+  if (!key.userId) {
     throw missingUserId(key.kid);
   } else {
     return {
@@ -64,7 +64,6 @@ export const keyToApiKey = (key: Key): ApiKey => {
       encodedPem: key.encodedPem,
       algorithm: key.algorithm,
       use: KeyUseToApiKeyUse(key.use),
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       userId: key.userId,
     };
   }
