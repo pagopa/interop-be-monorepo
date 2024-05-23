@@ -10,6 +10,6 @@ export const toKeyUseV1Notification = (input: KeyUse): string =>
 
 export const toKeyV1Notification = (input: Key): KeyV1Notification => ({
   ...input,
-  use: toKeyUseV1Notification(input.use),
-  createdAt: input.createdAt.toISOString(),
+  use: "test",
+  createdAt: "test",
 });
