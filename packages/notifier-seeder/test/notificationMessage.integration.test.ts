@@ -251,7 +251,7 @@ describe("Notification tests", async () => {
       });
       expect(receivedAuthorizationMessage.payload).toEqual({
         clientId: mockClient.id,
-        keys: [{ ...mockClient.keys[0], createdAt: new Date() }],
+        keys: [{ ...mockClient.keys[0], createdAt: new Date().toISOString() }],
       });
 
       vi.useRealTimers();
