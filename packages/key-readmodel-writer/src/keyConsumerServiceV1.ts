@@ -7,9 +7,9 @@ export async function handleMessageV1(
   _keys: KeyCollection
 ): Promise<void> {
   match(message)
-    .with({ type: "KeysAdded" }, () => Promise.resolve)
-    .with({ type: "KeyDeleted" }, () => Promise.resolve)
     .with(
+      { type: "KeysAdded" },
+      { type: "KeyDeleted" },
       { type: "KeyRelationshipToUserMigrated" },
       { type: "ClientAdded" },
       { type: "ClientDeleted" },
