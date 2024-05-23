@@ -34,14 +34,13 @@ export function authorizationServiceBuilder(
       clientId: ClientId,
       organizationId: TenantId,
       logger: Logger
-    ): Promise<Client> {
+    ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      if (client.data.consumerId === organizationId) {
-        return client.data;
-      } else {
-        return { ...client.data, users: [] };
-      }
+      return {
+        client: client.data,
+        showUsers: client.data.consumerId === organizationId,
+      };
     },
   };
 }

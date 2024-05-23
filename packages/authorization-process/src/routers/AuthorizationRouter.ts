@@ -73,14 +73,15 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const client = await authorizationService.getClientById(
-            unsafeBrandId(req.params.clientId),
-            ctx.authData.organizationId,
-            ctx.logger
-          );
+          const { client, showUsers } =
+            await authorizationService.getClientById(
+              unsafeBrandId(req.params.clientId),
+              ctx.authData.organizationId,
+              ctx.logger
+            );
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
