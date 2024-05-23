@@ -59,35 +59,3 @@ message ClientPurposeRemovedV1 {
   required string clientId = 1;
   required string purposeId = 2;
 }
-
-message EServiceStateUpdatedV1 {
-  required string eServiceId = 1;
-  required string descriptorId = 2;
-  required ClientComponentStateV1 state = 3;
-  repeated string audience = 4;
-  required int32 voucherLifespan = 5;
-}
-
-message AgreementStateUpdatedV1 {
-  required string eServiceId = 1;
-  required string consumerId = 2;
-  required string agreementId = 3;
-  required ClientComponentStateV1 state = 4;
-}
-
-message PurposeStateUpdatedV1 {
-  required string purposeId = 1;
-  required string versionId = 2;
-  required ClientComponentStateV1 state = 3;
-}
-
-message AgreementAndEServiceStatesUpdatedV1 {
-  required string eServiceId = 1;
-  required string descriptorId = 2;
-  required string consumerId = 3;
-  required string agreementId = 4;
-  required ClientComponentStateV1 agreementState = 5;
-  required ClientComponentStateV1 eServiceState = 6;
-  repeated string audience = 7;
-  required int32 voucherLifespan = 8;
-}
