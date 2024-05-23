@@ -42,11 +42,11 @@ import {
   VerifiedAgreementAttribute,
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { ReadModelService } from "./readModelService.js";
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery
+  readModelService: ReadModelService
 ): Promise<AgreementInvolvedAttributes> => {
   const getAgreementAttributeByType = async <
     T extends
@@ -68,7 +68,7 @@ const getAttributeInvolved = async (
 
     return Promise.all(
       attributes.map(async (attr) => {
-        const att = await attributeQuery.getAttributeById(attr.id);
+        const att = await readModelService.getAttributeById(attr.id);
         if (!att) {
           throw genericError(`Attribute ${attr.id} not found`);
         }
@@ -140,12 +140,12 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery
+  readModelService: ReadModelService
 ): Promise<PDFPayload> => {
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
     seed,
-    attributeQuery
+    readModelService
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareId,
@@ -201,7 +201,7 @@ export const pdfGenerator = {
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,
-    attributeQuery: AttributeQuery,
+    readModelService: ReadModelService,
     storeFile: FileManager["storeBytes"],
     logger: Logger
   ): Promise<ApiAgreementDocumentSeed> => {
@@ -218,7 +218,7 @@ export const pdfGenerator = {
       consumer,
       producer,
       seed,
-      attributeQuery
+      readModelService
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 
