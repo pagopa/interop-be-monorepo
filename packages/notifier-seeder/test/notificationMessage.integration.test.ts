@@ -254,7 +254,7 @@ describe("Notification tests", async () => {
         keys: [
           {
             ...mockClient.keys[0],
-            createdAt: mockClient.keys[0].createdAt.toISOString(),
+            createdAt: new Date().toISOString(),
           },
         ],
       });
