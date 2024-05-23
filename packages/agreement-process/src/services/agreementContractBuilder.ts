@@ -317,15 +317,15 @@ export const contractBuilder = (
         attributeQuery
       );
 
+      const pdfBuffer: Buffer = await pdfGenerator.generate(
+        templateFilePath,
+        pdfPayload
+      );
+
       const documentId = generateId<AgreementDocumentId>();
       const documentName = createAgreementDocumentName(
         agreement.consumerId,
         agreement.producerId
-      );
-
-      const pdfBuffer: Buffer = await pdfGenerator.generate(
-        templateFilePath,
-        pdfPayload
       );
 
       const documentPath = await fileManager.storeBytes(
