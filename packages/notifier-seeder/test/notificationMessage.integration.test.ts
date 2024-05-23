@@ -4,16 +4,20 @@ import { StartedTestContainer } from "testcontainers";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
+  AuthorizationEventEnvelopeV2,
+  ClientKeyAddedV2,
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorV2,
   EServiceEventEnvelopeV2,
   EServiceV2,
+  Key,
   PurposeAddedV2,
   PurposeEventEnvelopeV2,
   descriptorState,
   eserviceMode,
   generateId,
   technology,
+  toClientV2,
   toDescriptorV2,
   toEServiceV2,
   toPurposeV2,
@@ -21,7 +25,7 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
-import { getMockPurpose } from "pagopa-interop-commons-test";
+import { getMockClient, getMockPurpose } from "pagopa-interop-commons-test";
 import {
   QueueManager,
   initQueueManager,
@@ -29,7 +33,9 @@ import {
 import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
 import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
+import { buildAuthorizationMessage } from "../src/models/authorization/authorizationEventNotificationMessage.js";
 import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
+import { toAuthorizationEventNotification } from "../src/models/authorization/authorizationEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
@@ -128,7 +134,7 @@ describe("Notification tests", async () => {
     await startedElasticMQContainer.stop();
   });
 
-  describe("Catalog and Purpose Event Message", async () => {
+  describe("Catalog, Purpose, Authorization Event Message", async () => {
     it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -191,11 +197,48 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(purposeMessage, genericLogger);
 
-      const receivedMessages = await queueWriter.receiveLast(genericLogger, 2);
-      expect(receivedMessages.length).toBe(2);
+      const key: Key = {
+        name: "key",
+        createdAt: new Date(),
+        kid: "kid",
+        encodedPem: generateId(),
+        algorithm: "",
+        use: "Sig",
+      };
+      const mockClient = { ...getMockClient(), keys: [key] };
+      const authorizationEventV2: ClientKeyAddedV2 = {
+        client: toClientV2(mockClient),
+        kid: key.kid,
+      };
+
+      const authorizationEventEnvelope: AuthorizationEventEnvelopeV2 = {
+        sequence_num: 3,
+        stream_id: mockClient.id,
+        version: 1,
+        correlation_id: v4(),
+        log_date: new Date(),
+        event_version: 2,
+        type: "ClientKeyAdded",
+        data: authorizationEventV2,
+      };
+      const authorizationEventNotification = toAuthorizationEventNotification(
+        authorizationEventEnvelope
+      );
+
+      const authorizationMessage = buildAuthorizationMessage(
+        authorizationEventEnvelope,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        authorizationEventNotification!
+      );
+
+      await queueWriter.send(authorizationMessage, genericLogger);
+
+      const receivedMessages = await queueWriter.receiveLast(genericLogger, 3);
+      expect(receivedMessages.length).toBe(3);
 
       const receivedCatalogMessage = receivedMessages[0];
       const receivedPurposeMessage = receivedMessages[1];
+      const receivedAuthorizationMessage = receivedMessages[2];
 
       expect(receivedCatalogMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
@@ -205,6 +248,15 @@ describe("Notification tests", async () => {
           ...mockPurpose,
           createdAt: new Date().toISOString(),
         },
+      });
+      expect(receivedAuthorizationMessage.payload).toEqual({
+        clientId: mockClient.id,
+        keys: [
+          {
+            ...mockClient.keys[0],
+            createdAt: new Date().toISOString(),
+          },
+        ],
       });
 
       vi.useRealTimers();
