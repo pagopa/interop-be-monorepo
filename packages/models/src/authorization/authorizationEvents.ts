@@ -3,17 +3,13 @@ import { z } from "zod";
 import { EventEnvelope } from "../events/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
-  AgreementAndEServiceStatesUpdatedV1,
-  AgreementStateUpdatedV1,
   ClientAddedV1,
   ClientDeletedV1,
   ClientPurposeAddedV1,
   ClientPurposeRemovedV1,
-  EServiceStateUpdatedV1,
   KeyDeletedV1,
   KeyRelationshipToUserMigratedV1,
   KeysAddedV1,
-  PurposeStateUpdatedV1,
   RelationshipAddedV1,
   RelationshipRemovedV1,
   UserAddedV1,
@@ -65,18 +61,6 @@ export function authorizationEventToBinaryDataV1(
     )
     .with({ type: "ClientPurposeRemoved" }, ({ data }) =>
       ClientPurposeRemovedV1.toBinary(data)
-    )
-    .with({ type: "EServiceStateUpdated" }, ({ data }) =>
-      EServiceStateUpdatedV1.toBinary(data)
-    )
-    .with({ type: "AgreementStateUpdated" }, ({ data }) =>
-      AgreementStateUpdatedV1.toBinary(data)
-    )
-    .with({ type: "PurposeStateUpdated" }, ({ data }) =>
-      PurposeStateUpdatedV1.toBinary(data)
-    )
-    .with({ type: "AgreementAndEServiceStatesUpdated" }, ({ data }) =>
-      AgreementAndEServiceStatesUpdatedV1.toBinary(data)
     )
     .exhaustive();
 }
@@ -165,26 +149,6 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
     event_version: z.literal(1),
     type: z.literal("ClientPurposeRemoved"),
     data: protobufDecoder(ClientPurposeRemovedV1),
-  }),
-  z.object({
-    event_version: z.literal(1),
-    type: z.literal("EServiceStateUpdated"),
-    data: protobufDecoder(EServiceStateUpdatedV1),
-  }),
-  z.object({
-    event_version: z.literal(1),
-    type: z.literal("AgreementStateUpdated"),
-    data: protobufDecoder(AgreementStateUpdatedV1),
-  }),
-  z.object({
-    event_version: z.literal(1),
-    type: z.literal("PurposeStateUpdated"),
-    data: protobufDecoder(PurposeStateUpdatedV1),
-  }),
-  z.object({
-    event_version: z.literal(1),
-    type: z.literal("AgreementAndEServiceStatesUpdated"),
-    data: protobufDecoder(AgreementAndEServiceStatesUpdatedV1),
   }),
 ]);
 export type AuthorizationEventV1 = z.infer<typeof AuthorizationEventV1>;
