@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -17,6 +18,7 @@ import {
   AgreementEventEnvelope,
   AgreementStateV1,
   AgreementUpdatedV1,
+  fromAgreementV1,
   generateId,
   toReadModelAgreement,
 } from "pagopa-interop-models";
@@ -58,13 +60,9 @@ describe("events V1", async () => {
       "data.id": id.toString(),
     });
 
-    expect(agreement?.data).toMatchObject({
-      id: newAgreement.agreement?.id,
-      eserviceId: newAgreement.agreement?.eserviceId,
-      descriptorId: newAgreement.agreement?.descriptorId,
-      producerId: newAgreement.agreement?.producerId,
-      consumerId: newAgreement.agreement?.consumerId,
-    });
+    expect(agreement?.data).toEqual(
+      toReadModelAgreement(fromAgreementV1(newAgreement.agreement!))
+    );
   });
 
   it("should delete an agreement", async () => {
@@ -132,21 +130,9 @@ describe("events V1", async () => {
 
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toMatchObject({
-      id: agreementUpdated.agreement?.id,
-      eserviceId: agreementUpdated.agreement?.eserviceId,
-      descriptorId: agreementUpdated.agreement?.descriptorId,
-      producerId: agreementUpdated.agreement?.producerId,
-      consumerId: agreementUpdated.agreement?.consumerId,
-      state: "Suspended",
-      certifiedAttributes: agreementUpdated.agreement?.certifiedAttributes,
-      declaredAttributes: agreementUpdated.agreement?.declaredAttributes,
-      verifiedAttributes: agreementUpdated.agreement?.verifiedAttributes,
-      createdAt: new Date(
-        Number(agreementUpdated.agreement?.createdAt)
-      ).toISOString(),
-      consumerDocuments: agreementUpdated.agreement?.consumerDocuments,
-    });
+    expect(actualAgreement?.data).toEqual(
+      toReadModelAgreement(fromAgreementV1(agreementUpdated.agreement!))
+    );
   });
 
   it("should add a consumer document to an agreement", async () => {
