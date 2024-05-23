@@ -81,6 +81,37 @@ export function authorizationServiceBuilder(
         showUsers: client.consumerId === organizationId,
       };
     },
+    async createApiClient(
+      clientSeed: ApiClientSeed,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(
+        `Creating API client ${clientSeed.name} for consumer ${organizationId}"`
+      );
+      const client: Client = {
+        id: generateId(),
+        consumerId: organizationId,
+        name: clientSeed.name,
+        purposes: [],
+        description: clientSeed.description,
+        relationships: [],
+        kind: clientKind.api,
+        users: clientSeed.members.map(unsafeBrandId<UserId>),
+        createdAt: new Date(),
+        keys: [],
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdded(client, correlationId)
+      );
+
+      return {
+        client,
+        showUsers: client.consumerId === organizationId,
+      };
+    },
   };
 }
 
