@@ -19,12 +19,12 @@ export const eventV2TypeMapper = (
 
 export const buildAuthorizationMessage = (
   event: AuthorizationEventEnvelopeV2,
-  purposeEvent: AuthorizationEventNotification
+  authorizationEvent: AuthorizationEventNotification
 ): QueueMessage => ({
   messageUUID: uuidv4(),
   eventJournalPersistenceId: event.stream_id,
   eventJournalSequenceNumber: event.version,
   eventTimestamp: Number(event.log_date),
   kind: eventV2TypeMapper(event.type),
-  payload: purposeEvent,
+  payload: authorizationEvent,
 });
