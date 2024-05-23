@@ -14,6 +14,7 @@ import {
   ApiKey,
   ApiKeyUse,
 } from "./models.js";
+import { missingUserId } from "./errors.js";
 
 export const ClientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
   match<ClientKind, ApiClientKind>(kind)
@@ -29,21 +30,21 @@ export const KeyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
 
 export function clientToApiClient(
   client: Client,
-  { includeKeys }: { includeKeys: true }
+  { includeKeys, showUsers }: { includeKeys: true; showUsers: boolean }
 ): ApiClientWithKeys;
 export function clientToApiClient(
   client: Client,
-  { includeKeys }: { includeKeys: false }
+  { includeKeys, showUsers }: { includeKeys: false; showUsers: boolean }
 ): ApiClient;
 export function clientToApiClient(
   client: Client,
-  { includeKeys }: { includeKeys: boolean }
+  { includeKeys, showUsers }: { includeKeys: boolean; showUsers: boolean }
 ): ApiClientWithKeys | ApiClient {
   return {
     id: client.id,
     name: client.name,
     consumerId: client.consumerId,
-    users: client.users,
+    users: showUsers ? client.users : [],
     createdAt: client.createdAt.toJSON(),
     purposes: client.purposes,
     kind: ClientKindToApiClientKind(client.kind),
@@ -52,13 +53,19 @@ export function clientToApiClient(
   };
 }
 
-export const keyToApiKey = (key: Key): ApiKey => ({
-  name: key.name,
-  createdAt: key.createdAt.toJSON(),
-  kid: key.kid,
-  encodedPem: key.encodedPem,
-  algorithm: key.algorithm,
-  use: KeyUseToApiKeyUse(key.use),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  userId: key.userId!, // TODO Double check
-});
+export const keyToApiKey = (key: Key): ApiKey => {
+  if (key.userId === undefined) {
+    throw missingUserId(key.kid);
+  } else {
+    return {
+      name: key.name,
+      createdAt: key.createdAt.toJSON(),
+      kid: key.kid,
+      encodedPem: key.encodedPem,
+      algorithm: key.algorithm,
+      use: KeyUseToApiKeyUse(key.use),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      userId: key.userId,
+    };
+  }
+};
