@@ -213,7 +213,7 @@ describe("Notification tests", async () => {
 
       const authorizationEventEnvelope: AuthorizationEventEnvelopeV2 = {
         sequence_num: 3,
-        stream_id: mockPurpose.id,
+        stream_id: mockClient.id,
         version: 1,
         correlation_id: v4(),
         log_date: new Date(),
