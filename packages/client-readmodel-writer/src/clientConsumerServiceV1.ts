@@ -19,10 +19,6 @@ export async function handleMessageV1(
       { type: "UserRemoved" },
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
-      { type: "EServiceStateUpdated" },
-      { type: "AgreementStateUpdated" },
-      { type: "PurposeStateUpdated" },
-      { type: "AgreementAndEServiceStatesUpdated" },
       () => Promise.resolve
     )
     .exhaustive();
