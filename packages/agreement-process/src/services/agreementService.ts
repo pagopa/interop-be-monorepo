@@ -443,12 +443,12 @@ export function agreementServiceBuilder(
       const agreementEvent =
         newState === agreementState.active
           ? toCreateEventAgreementActivated(
-              submittedAgreement.data,
+              submittedAgreement,
               agreement.metadata.version,
               correlationId
             )
           : toCreateEventAgreementSubmitted(
-              submittedAgreement.data,
+              submittedAgreement,
               agreement.metadata.version,
               correlationId
             );
