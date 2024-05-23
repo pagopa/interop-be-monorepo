@@ -55,7 +55,7 @@ export function authorizationServiceBuilder(
       organizationId: TenantId,
       correlationId: string,
       logger: Logger
-    ): Promise<Client> {
+    ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${organizationId}"`
       );
@@ -76,11 +76,10 @@ export function authorizationServiceBuilder(
         toCreateEventClientAdded(client, correlationId)
       );
 
-      if (client.consumerId === organizationId) {
-        return client;
-      } else {
-        return { ...client, users: [] };
-      }
+      return {
+        client,
+        showUsers: client.consumerId === organizationId,
+      };
     },
   };
 }
