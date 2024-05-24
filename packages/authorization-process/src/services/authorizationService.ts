@@ -2,6 +2,7 @@ import {
   Client,
   ClientId,
   Key,
+  PurposeId,
   TenantId,
   UserId,
   WithMetadata,
@@ -15,6 +16,7 @@ import {
   clientNotFound,
   keyNotFound,
   organizationNotAllowedOnClient,
+  purposeIdNotFound,
   userIdNotFound,
 } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
@@ -22,6 +24,7 @@ import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
+  toCreateEventClientPurposeRemoved,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
@@ -43,6 +46,12 @@ const retrieveKey = (client: Client, keyId: string): Key => {
     throw keyNotFound(keyId, client.id);
   }
   return key;
+};
+
+const retrievePurposeId = (client: Client, purposeId: PurposeId): void => {
+  if (!client.purposes.find((id) => id === purposeId)) {
+    throw purposeIdNotFound(purposeId, client.id);
+  }
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -199,6 +208,38 @@ export function authorizationServiceBuilder(
         toCreateEventClientKeyDeleted(
           updatedClient,
           keyIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientPurpose(
+      clientId: ClientId,
+      purposeIdToRemove: PurposeId,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(
+        `Removing purpose ${purposeIdToRemove} from client ${clientId}`
+      );
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      retrievePurposeId(client.data, purposeIdToRemove);
+
+      const updatedClient: Client = {
+        ...client.data,
+        purposes: client.data.purposes.filter(
+          (purposeId) => purposeId !== purposeIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientPurposeRemoved(
+          updatedClient,
+          purposeIdToRemove,
           client.metadata.version,
           correlationId
         )

@@ -22,6 +22,7 @@ import {
   deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
+  removeClientPurposeErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -252,7 +253,26 @@ const authorizationRouter = (
     .delete(
       "/clients/:clientId/purposes/:purposeId", // to do
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeClientPurpose(
+            unsafeBrandId(req.params.clientId),
+            unsafeBrandId(req.params.purposeId),
+            ctx.authData.organizationId,
+            ctx.correlationId,
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeClientPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/clients/purposes/:purposeId",
