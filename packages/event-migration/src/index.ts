@@ -37,7 +37,7 @@ const Config = z
       "dev-refactor_attribute_registry",
       "uat-attribute_registry",
       "prod-attribute_registry",
-    ]),
+    ]), // to do add authorization and make it flexible
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
