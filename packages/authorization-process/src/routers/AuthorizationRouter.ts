@@ -19,6 +19,7 @@ import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createClientErrorMapper,
+  deleteClientErrorMapper,
   getClientErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -141,9 +142,27 @@ const authorizationRouter = (
       }
     )
     .delete(
-      "/clients/:clientId", // to do
+      "/clients/:clientId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.deleteClient(
+            unsafeBrandId(req.params.clientId),
+            ctx.authData.organizationId,
+            ctx.correlationId,
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId/users",

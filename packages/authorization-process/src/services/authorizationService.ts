@@ -10,9 +10,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { DB, Logger, eventRepository } from "pagopa-interop-commons";
-import { clientNotFound } from "../model/domain/errors.js";
+import {
+  clientNotFound,
+  organizationNotAllowedOnClient,
+} from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
-import { toCreateEventClientAdded } from "../model/domain/toEvent.js";
+import {
+  toCreateEventClientAdded,
+  toCreateEventClientDeleted,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 
 const retrieveClient = async (
@@ -112,9 +118,33 @@ export function authorizationServiceBuilder(
         showUsers: client.consumerId === organizationId,
       };
     },
+    async deleteClient(
+      clientId: ClientId,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Deleting client ${clientId}`);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      await repository.createEvent(
+        toCreateEventClientDeleted(client.data, correlationId)
+      );
+    },
   };
 }
 
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
+
+const assertOrganizationIsClientConsumer = (
+  organizationId: TenantId,
+  client: Client
+): void => {
+  if (client.consumerId !== organizationId) {
+    throw organizationNotAllowedOnClient(organizationId, client.id);
+  }
+};
