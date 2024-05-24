@@ -11,6 +11,7 @@ export const errorCodes = {
   missingUserId: "0002",
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
+  keyNotFound: "0005",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -52,5 +53,16 @@ export function userIdNotFound(
     detail: `User ${userId} not found in client ${clientId}`,
     code: "userIdNotFound",
     title: "User id not found",
+  });
+}
+
+export function keyNotFound(
+  keyId: string,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key ${keyId} not found in client ${clientId}`,
+    code: "keyNotFound",
+    title: "Key not found",
   });
 }
