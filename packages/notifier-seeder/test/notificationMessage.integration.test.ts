@@ -10,7 +10,6 @@ import {
   EServiceDescriptorV2,
   EServiceEventEnvelopeV2,
   EServiceV2,
-  Key,
   PurposeAddedV2,
   PurposeEventEnvelopeV2,
   descriptorState,
@@ -25,7 +24,11 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
-import { getMockClient, getMockPurpose } from "pagopa-interop-commons-test";
+import {
+  getMockClient,
+  getMockKey,
+  getMockPurpose,
+} from "pagopa-interop-commons-test";
 import {
   QueueManager,
   initQueueManager,
@@ -197,14 +200,7 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(purposeMessage, genericLogger);
 
-      const key: Key = {
-        name: "key",
-        createdAt: new Date(),
-        kid: "kid",
-        encodedPem: generateId(),
-        algorithm: "",
-        use: "Sig",
-      };
+      const key = getMockKey();
       const mockClient = { ...getMockClient(), keys: [key] };
       const authorizationEventV2: ClientKeyAddedV2 = {
         client: toClientV2(mockClient),
