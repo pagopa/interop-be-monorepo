@@ -21,6 +21,7 @@ import {
   createClientErrorMapper,
   deleteClientErrorMapper,
   getClientErrorMapper,
+  removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -172,7 +173,26 @@ const authorizationRouter = (
     .delete(
       "/clients/:clientId/users/:userId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeUser(
+            unsafeBrandId(req.params.clientId),
+            unsafeBrandId(req.params.userId),
+            ctx.authData.organizationId,
+            ctx.correlationId,
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeUserErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/clients/:clientId/users/:userId",

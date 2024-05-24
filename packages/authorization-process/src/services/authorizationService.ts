@@ -13,11 +13,13 @@ import { DB, Logger, eventRepository } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
+  userIdNotFound,
 } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
+  toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -131,6 +133,36 @@ export function authorizationServiceBuilder(
 
       await repository.createEvent(
         toCreateEventClientDeleted(client.data, correlationId)
+      );
+    },
+    async removeUser(
+      clientId: ClientId,
+      userIdToRemove: UserId,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      if (client.data.users.includes(userIdToRemove)) {
+        throw userIdNotFound(userIdToRemove, clientId);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        users: client.data.users.filter((userId) => userId !== userIdToRemove),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientUserDeleted(
+          updatedClient,
+          userIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
       );
     },
   };
