@@ -46,7 +46,7 @@ const Config = z
     sourceDbSchema: c.SOURCE_DB_SCHEMA,
     sourceDbUseSSL: c.SOURCE_DB_USE_SSL,
     targetDbUsername: c.TARGET_DB_USERNAME,
-    targetDbPassword: c.TARGET_DB_PASSWORD,
+    targetDbPassword: encodeURIComponent(c.TARGET_DB_PASSWORD),
     targetDbHost: c.TARGET_DB_HOST,
     targetDbPort: c.TARGET_DB_PORT,
     targetDbName: c.TARGET_DB_NAME,
