@@ -275,7 +275,7 @@ const authorizationRouter = (
       }
     )
     .delete(
-      "/clients/purposes/:purposeId",
+      "/clients/purposes/:purposeId", // to do
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     );
