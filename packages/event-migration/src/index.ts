@@ -3,7 +3,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
-import { AttributeEvent, EServiceEventV1 } from "pagopa-interop-models";
+import {
+  AttributeEvent,
+  AuthorizationEvent,
+  EServiceEventV1,
+} from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -188,7 +192,32 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
+  .when(
+    (schema) => schema.includes("authorization"),
+    () => {
+      checkSchema(config.sourceDbSchema, "authorization");
 
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace(
+            "it.pagopa.interop.authorizationmanagement.model.persistence.",
+            ""
+          )
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AuthorizationEvent.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.client ? anyPayload.client.id : anyPayload.clientId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
   .otherwise(() => {
     throw new Error("Unhandled schema, please double-check the config");
   });
@@ -199,8 +228,21 @@ for (const event of originalEvents) {
 
   const parsedEventType = parseEventType(event_ser_manifest);
 
-  const decodedEvent = decodeEvent(parsedEventType, event_payload);
+  const authorizationEventsToSkip = [
+    "EServiceStateUpdated",
+    "AgreementStateUpdated",
+    "PurposeStateUpdated",
+    "AgreementAndEServiceStatesUpdated",
+  ];
 
+  if (
+    config.targetDbSchema.includes("authorization") &&
+    authorizationEventsToSkip.includes(parsedEventType)
+  ) {
+    continue;
+  }
+
+  const decodedEvent = decodeEvent(parsedEventType, event_payload);
   if (!decodedEvent.success) {
     console.error(
       `Error decoding event ${parsedEventType} with payload ${event_payload}`
