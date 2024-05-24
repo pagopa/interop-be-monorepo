@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   AuthorizationEventV2,
   Client,
+  UserId,
   toClientV2,
 } from "pagopa-interop-models";
 
@@ -36,6 +37,27 @@ export function toCreateEventClientDeleted(
       data: {
         client: toClientV2(client),
         clientId: client.id,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventClientUserDeleted(
+  client: Client,
+  userId: UserId,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientUserDeleted",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        userId,
       },
     },
     correlationId,
