@@ -130,7 +130,11 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       await repository.createEvent(
-        toCreateEventClientDeleted(client.data, correlationId)
+        toCreateEventClientDeleted(
+          client.data,
+          client.metadata.version,
+          correlationId
+        )
       );
     },
   };
