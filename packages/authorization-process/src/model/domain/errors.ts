@@ -1,6 +1,7 @@
 import {
   ApiError,
   ClientId,
+  PurposeId,
   TenantId,
   UserId,
   makeApiProblemBuilder,
@@ -12,6 +13,7 @@ export const errorCodes = {
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
   keyNotFound: "0005",
+  purposeIdNotFound: "0005",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -64,5 +66,16 @@ export function keyNotFound(
     detail: `Key ${keyId} not found in client ${clientId}`,
     code: "keyNotFound",
     title: "Key not found",
+  });
+}
+
+export function purposeIdNotFound(
+  purposeId: PurposeId,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found in client ${clientId}`,
+    code: "purposeIdNotFound",
+    title: "Purpose id not found",
   });
 }
