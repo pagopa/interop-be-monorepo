@@ -250,7 +250,7 @@ const authorizationRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/clients/:clientId/purposes/:purposeId",
+      "/clients/:clientId/purposes/:purposeId", // to do
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
