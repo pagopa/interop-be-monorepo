@@ -48,6 +48,7 @@ import {
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
+  toCreateEventAgreementActivated,
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchivedByConsumer,
   toCreateEventAgreementArchivedByUpgrade,
@@ -417,7 +418,7 @@ export function agreementServiceBuilder(
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
       const updatedAgreement = {
-        ...agreement,
+        ...agreement.data,
         ...updateSeed,
       };
 
@@ -427,7 +428,7 @@ export function agreementServiceBuilder(
           ? {
               ...updatedAgreement,
               contract: await createContract({
-                agreement: updatedAgreement.data,
+                agreement: updatedAgreement,
                 eservice,
                 consumer,
                 updateSeed,
@@ -439,11 +440,18 @@ export function agreementServiceBuilder(
             }
           : updatedAgreement;
 
-      const submittedAgreementEvent = toCreateEventAgreementSubmitted(
-        submittedAgreement.data,
-        agreement.metadata.version,
-        correlationId
-      );
+      const agreementEvent =
+        newState === agreementState.active
+          ? toCreateEventAgreementActivated(
+              submittedAgreement,
+              agreement.metadata.version,
+              correlationId
+            )
+          : toCreateEventAgreementSubmitted(
+              submittedAgreement,
+              agreement.metadata.version,
+              correlationId
+            );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
         isActiveOrSuspended(newState)
@@ -456,14 +464,12 @@ export function agreementServiceBuilder(
             )
           : [];
 
-      for (const event of [
-        submittedAgreementEvent,
+      await repository.createEvents([
+        agreementEvent,
         ...archivedAgreementsUpdates,
-      ]) {
-        await repository.createEvent(event);
-      }
+      ]);
 
-      return submittedAgreement.data;
+      return submittedAgreement;
     },
     async upgradeAgreement(
       agreementId: AgreementId,
@@ -552,9 +558,7 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      for (const event of events) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvents(events);
 
       return agreement;
     },
@@ -939,9 +943,8 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      for (const event of [activationEvent, ...archiveEvents]) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvents([activationEvent, ...archiveEvents]);
+
       return updatedAgreement;
     },
     async archiveAgreement(
