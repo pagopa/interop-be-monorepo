@@ -15,8 +15,6 @@ export const toAuthorizationEventNotification = (
   event: AuthorizationEventEnvelopeV2
 ): AuthorizationEventNotification | undefined =>
   match(event)
-    .with({ type: "ClientAdded" }, () => undefined)
-    .with({ type: "ClientDeleted" }, () => undefined)
     .with({ type: "ClientKeyAdded" }, (event): KeysAddedNotification => {
       if (!event.data.client) {
         throw missingKafkaMessageDataError("client", event.type);
@@ -44,8 +42,13 @@ export const toAuthorizationEventNotification = (
         deactivationTimestamp: new Date().toISOString(),
       };
     })
-    .with({ type: "ClientUserAdded" }, () => undefined)
-    .with({ type: "ClientUserDeleted" }, () => undefined)
-    .with({ type: "ClientPurposeAdded" }, () => undefined)
-    .with({ type: "ClientPurposeRemoved" }, () => undefined)
+    .with(
+      { type: "ClientAdded" },
+      { type: "ClientDeleted" },
+      { type: "ClientUserAdded" },
+      { type: "ClientUserDeleted" },
+      { type: "ClientPurposeAdded" },
+      { type: "ClientPurposeRemoved" },
+      () => undefined
+    )
     .exhaustive();
