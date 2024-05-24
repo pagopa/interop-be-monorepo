@@ -20,6 +20,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createClientErrorMapper,
   deleteClientErrorMapper,
+  deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -215,9 +216,28 @@ const authorizationRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/clients/:clientId/keys/:keyId",
+      "/clients/:clientId/keys/:keyId", // to do
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.deleteClientKeyById(
+            unsafeBrandId(req.params.clientId),
+            unsafeBrandId(req.params.keyId),
+            ctx.authData.organizationId,
+            ctx.correlationId,
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteClientKeyByIdErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId/users/:userId/keys",

@@ -1,6 +1,7 @@
 import {
   Client,
   ClientId,
+  Key,
   TenantId,
   UserId,
   WithMetadata,
@@ -12,6 +13,7 @@ import {
 import { DB, Logger, eventRepository } from "pagopa-interop-commons";
 import {
   clientNotFound,
+  keyNotFound,
   organizationNotAllowedOnClient,
   userIdNotFound,
 } from "../model/domain/errors.js";
@@ -19,6 +21,7 @@ import { ApiClientSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
+  toCreateEventClientKeyDeleted,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
@@ -32,6 +35,14 @@ const retrieveClient = async (
     throw clientNotFound(clientId);
   }
   return client;
+};
+
+const retrieveKey = (client: Client, keyId: string): Key => {
+  const key = client.keys.find((key) => key.kid === keyId);
+  if (!key) {
+    throw keyNotFound(keyId, client.id);
+  }
+  return key;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -160,6 +171,34 @@ export function authorizationServiceBuilder(
         toCreateEventClientUserDeleted(
           updatedClient,
           userIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async deleteClientKeyById(
+      clientId: ClientId,
+      keyIdToRemove: string,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      retrieveKey(client.data, keyIdToRemove);
+
+      const updatedClient: Client = {
+        ...client.data,
+        keys: client.data.keys.filter((key) => key.kid !== keyIdToRemove),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientKeyDeleted(
+          updatedClient,
+          keyIdToRemove,
           client.metadata.version,
           correlationId
         )
