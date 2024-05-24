@@ -130,7 +130,7 @@ const idVersionHashMap = new Map<string, number>();
 
 const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .when(
-    (schema) => schema.includes("catalog"),
+    (targetSchema) => targetSchema.includes("catalog"),
     () => {
       checkSchema(config.sourceDbSchema, "catalog");
       const parseEventType = (event_ser_manifest: any) =>
@@ -163,7 +163,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
-    (schema) => schema.includes("attribute"),
+    (targetSchema) => targetSchema.includes("attribute"),
     () => {
       checkSchema(config.sourceDbSchema, "attribute");
 
@@ -193,7 +193,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
-    (schema) => schema.includes("authorization"),
+    (targetSchema) => targetSchema.includes("authorization"),
     () => {
       checkSchema(config.sourceDbSchema, "authorization");
 
