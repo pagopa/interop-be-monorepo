@@ -1,4 +1,4 @@
-FROM node:20.13.1 as build
+FROM node:20.13.1@sha256:d6925dc84f8c0d1c1f8df4ea6a9a54e57d430241cb734b1b0c45ed6d26e8e9c0 as build
 
 RUN corepack enable
 
@@ -34,22 +34,22 @@ RUN pnpm build && \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.13.1 as final 
+FROM node:20.13.1@sha256:d6925dc84f8c0d1c1f8df4ea6a9a54e57d430241cb734b1b0c45ed6d26e8e9c0 as final 
 
+# Install dependencies for Puppeteer
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget gnupg ca-certificates && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends google-chrome-stable
+    apt-get install -y --no-install-recommends \
+        chromium \
+        ca-certificates 
 
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 RUN groupadd -r app && useradd -rm -g app -G audio,video app
 
 COPY --from=build /out /app
 
 RUN chown -R app:app /app
-RUN chmod -R 777 /app
+RUN chmod -R 700 /app
 USER app
 
 WORKDIR /app/packages/agreement-process
