@@ -22,3 +22,22 @@ export function toCreateEventClientAdded(
     correlationId,
   };
 }
+
+export function toCreateEventClientDeleted(
+  client: Client,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version: 0,
+    event: {
+      type: "ClientDeleted",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        clientId: client.id,
+      },
+    },
+    correlationId,
+  };
+}
