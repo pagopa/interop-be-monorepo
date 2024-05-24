@@ -39,7 +39,7 @@ export type AgremeentSubmissionResults = {
 export async function submitAgreementLogic(
   agreementId: AgreementId,
   payload: ApiAgreementSubmissionPayload,
-  constractBuilder: ContractBuilder,
+  contractBuilder: ContractBuilder,
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
@@ -81,7 +81,7 @@ export async function submitAgreementLogic(
     payload,
     agreementQuery,
     tenantQuery,
-    constractBuilder,
+    contractBuilder,
     ctx
   );
 }
@@ -94,7 +94,7 @@ const submitAgreement = async (
   payload: ApiAgreementSubmissionPayload,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder,
+  contractBuilder: ContractBuilder,
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
@@ -147,7 +147,7 @@ const submitAgreement = async (
             consumer,
             updateSeed,
             tenantQuery,
-            constractBuilder
+            contractBuilder
           ),
         }
       : newAgreement;
@@ -201,7 +201,7 @@ const createContract = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  contractBuilder: ContractBuilder
 ): Promise<AgreementDocument> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
@@ -213,7 +213,7 @@ const createContract = async (
     throw contractAlreadyExists(agreement.id);
   }
 
-  const newContract = await constractBuilder.createContract(
+  const newContract = await contractBuilder.createContract(
     selfcareId,
     agreement,
     eservice,
