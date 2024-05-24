@@ -222,6 +222,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     throw new Error("Unhandled schema, please double-check the config");
   });
 
+let skippedEvents = 0;
+
 for (const event of originalEvents) {
   console.log(event);
   const { event_ser_manifest, event_payload, write_timestamp } = event;
@@ -239,6 +241,7 @@ for (const event of originalEvents) {
     config.targetDbSchema.includes("authorization") &&
     authorizationEventsToSkip.includes(parsedEventType)
   ) {
+    skippedEvents++;
     continue;
   }
 
@@ -293,6 +296,8 @@ for (const event of originalEvents) {
     ]
   );
 }
+
+console.log(`Count of skipped events: ${skippedEvents}`);
 
 function checkSchema(sourceSchema: string, schemaKind: string) {
   if (!sourceSchema.includes(schemaKind)) {
