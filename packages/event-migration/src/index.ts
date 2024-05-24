@@ -28,16 +28,7 @@ const Config = z
     TARGET_DB_HOST: z.string(),
     TARGET_DB_PORT: z.coerce.number(),
     TARGET_DB_NAME: z.string(),
-    TARGET_DB_SCHEMA: z.enum([
-      "catalog",
-      "dev-refactor_catalog",
-      "uat-catalog",
-      "prod-catalog",
-      "attribute",
-      "dev-refactor_attribute_registry",
-      "uat-attribute_registry",
-      "prod-attribute_registry",
-    ]), // to do add authorization and make it flexible
+    TARGET_DB_SCHEMA: z.string(),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
@@ -134,11 +125,8 @@ const originalEvents = await sourceConnection.many(
 const idVersionHashMap = new Map<string, number>();
 
 const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
-  .with(
-    "catalog",
-    "dev-refactor_catalog",
-    "uat-catalog",
-    "prod-catalog",
+  .when(
+    (schema) => schema.includes("catalog"),
     () => {
       checkSchema(config.sourceDbSchema, "catalog");
       const parseEventType = (event_ser_manifest: any) =>
@@ -170,11 +158,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .with(
-    "attribute",
-    "dev-refactor_attribute_registry",
-    "uat-attribute_registry",
-    "prod-attribute_registry",
+  .when(
+    (schema) => schema.includes("attribute"),
     () => {
       checkSchema(config.sourceDbSchema, "attribute");
 
@@ -203,7 +188,10 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .exhaustive();
+
+  .otherwise(() => {
+    throw new Error("Unhandled schema, please double-check the config");
+  });
 
 for (const event of originalEvents) {
   console.log(event);
