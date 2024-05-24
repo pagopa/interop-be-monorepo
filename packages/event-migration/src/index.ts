@@ -39,7 +39,7 @@ const Config = z
   })
   .transform((c) => ({
     sourceDbUsername: c.SOURCE_DB_USERNAME,
-    sourceDbPassword: c.SOURCE_DB_PASSWORD,
+    sourceDbPassword: encodeURIComponent(c.SOURCE_DB_PASSWORD),
     sourceDbHost: c.SOURCE_DB_HOST,
     sourceDbPort: c.SOURCE_DB_PORT,
     sourceDbName: c.SOURCE_DB_NAME,
