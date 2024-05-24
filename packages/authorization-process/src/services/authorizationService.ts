@@ -245,6 +245,32 @@ export function authorizationServiceBuilder(
         )
       );
     },
+    async removePurposeFromClients(
+      purposeIdToRemove: PurposeId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
+
+      const clients: Array<WithMetadata<Client>> = [];
+      for (const client of clients) {
+        const updatedClient: Client = {
+          ...client.data,
+          purposes: client.data.purposes.filter(
+            (purposeId) => purposeId !== purposeIdToRemove
+          ),
+        };
+
+        await repository.createEvent(
+          toCreateEventClientPurposeRemoved(
+            updatedClient,
+            purposeIdToRemove,
+            client.metadata.version,
+            correlationId
+          )
+        );
+      }
+    },
   };
 }
 
