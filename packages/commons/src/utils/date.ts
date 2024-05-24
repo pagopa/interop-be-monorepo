@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
-export function formatClonedEServiceDate(date: Date): string {
+export function formatDateddMMyyyyHHmmss(date: Date): string {
   return format(date, "dd/MM/yyyy HH:mm:ss");
 }
 
