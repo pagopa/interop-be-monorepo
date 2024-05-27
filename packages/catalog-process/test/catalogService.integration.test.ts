@@ -23,13 +23,13 @@ import {
   ReadModelRepository,
   TenantCollection,
   fileManagerDeleteError,
-  formatDateAndTime,
   genericLogger,
   initDB,
   initFileManager,
   unexpectedFieldError,
   unexpectedFieldValueError,
   userRoles,
+  formatDateddMMyyyyHHmmss,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
@@ -2887,7 +2887,7 @@ describe("database test", async () => {
         const expectedEService: EService = {
           ...eservice,
           id: unsafeBrandId(writtenPayload.eservice!.id),
-          name: `${eservice.name} - clone - ${formatDateAndTime(
+          name: `${eservice.name} - clone - ${formatDateddMMyyyyHHmmss(
             cloneTimestamp
           )}`,
           descriptors: [expectedDescriptor],
@@ -2968,7 +2968,7 @@ describe("database test", async () => {
         const cloneTimestamp = new Date();
         const conflictEServiceName = `${
           eservice1.name
-        } - clone - ${formatDateAndTime(cloneTimestamp)}`;
+        } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
 
         const eservice2: EService = {
           ...mockEService,
