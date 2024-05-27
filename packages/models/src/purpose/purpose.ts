@@ -33,7 +33,6 @@ export type PurposeVersionDocument = z.infer<typeof PurposeVersionDocument>;
 export const PurposeVersion = z.object({
   id: PurposeVersionId,
   state: PurposeVersionState,
-  expectedApprovalDate: z.coerce.date().optional(),
   riskAnalysis: PurposeVersionDocument.optional(),
   dailyCalls: z.number(),
   rejectionReason: z.string().optional(),
