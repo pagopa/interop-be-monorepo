@@ -28,8 +28,8 @@ import {
   AgreementUnsuspendedByProducerV2,
   AgreementUpgradedV2,
   DraftAgreementUpdatedV2,
-  AgreementPutInDraftByPlatformV2,
-  AgreementPutInMissingCertifiedAttributesByPlatformV2,
+  AgreementSetDraftByPlatformV2,
+  AgreementSetMissingCertifiedAttributesByPlatformV2,
 } from "../gen/v2/agreement/events.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
@@ -119,13 +119,13 @@ export function agreementEventToBinaryDataV2(
     .with({ type: "AgreementConsumerDocumentRemoved" }, ({ data }) =>
       AgreementConsumerDocumentRemovedV2.toBinary(data)
     )
-    .with({ type: "AgreementPutInDraftByPlatform" }, ({ data }) =>
-      AgreementPutInDraftByPlatformV2.toBinary(data)
+    .with({ type: "AgreementSetDraftByPlatform" }, ({ data }) =>
+      AgreementSetDraftByPlatformV2.toBinary(data)
     )
     .with(
-      { type: "AgreementPutInMissingCertifiedAttributesByPlatform" },
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       ({ data }) =>
-        AgreementPutInMissingCertifiedAttributesByPlatformV2.toBinary(data)
+        AgreementSetMissingCertifiedAttributesByPlatformV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -252,13 +252,13 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("AgreementPutInDraftByPlatform"),
-    data: protobufDecoder(AgreementPutInDraftByPlatformV2),
+    type: z.literal("AgreementSetDraftByPlatform"),
+    data: protobufDecoder(AgreementSetDraftByPlatformV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("AgreementPutInMissingCertifiedAttributesByPlatform"),
-    data: protobufDecoder(AgreementPutInMissingCertifiedAttributesByPlatformV2),
+    type: z.literal("AgreementSetMissingCertifiedAttributesByPlatform"),
+    data: protobufDecoder(AgreementSetMissingCertifiedAttributesByPlatformV2),
   }),
 ]);
 export type AgreementEventV2 = z.infer<typeof AgreementEventV2>;

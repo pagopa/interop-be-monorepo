@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
-  AgreementPutInDraftByPlatformV2,
+  AgreementSetDraftByPlatformV2,
   AgreementSuspendedByPlatformV2,
   AgreementUnsuspendedByPlatformV2,
   CertifiedTenantAttribute,
@@ -166,7 +166,7 @@ describe("compute Agreement state by attribute", () => {
     );
 
     expect(agreement1StateUpdateEvent).toMatchObject({
-      type: "AgreementPutInMissingCertifiedAttributesByPlatform",
+      type: "AgreementSetMissingCertifiedAttributesByPlatform",
       event_version: 2,
       version: "1",
       stream_id: updatableAgreement1.id,
@@ -352,14 +352,14 @@ describe("compute Agreement state by attribute", () => {
     );
 
     expect(agreement1StateUpdateEvent).toMatchObject({
-      type: "AgreementPutInDraftByPlatform",
+      type: "AgreementSetDraftByPlatform",
       event_version: 2,
       version: "1",
       stream_id: updatableAgreement1.id,
     });
 
     const agreement1StateUpdateEventData = decodeProtobufPayload({
-      messageType: AgreementPutInDraftByPlatformV2,
+      messageType: AgreementSetDraftByPlatformV2,
       payload: agreement1StateUpdateEvent.data,
     });
 

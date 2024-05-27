@@ -17,8 +17,8 @@ import {
   verifiedAttributesSatisfied,
 } from "../model/domain/validators.js";
 import {
-  toCreateEventAgreementPutInDraftByPlatform,
-  toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform,
+  toCreateEventAgreementSetDraftByPlatform,
+  toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
@@ -245,14 +245,14 @@ async function updateAgreementState(
           )
         )
         .with(agreementState.missingCertifiedAttributes, () =>
-          toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
+          toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
             updatedAgreement,
             agreement.metadata.version,
             correlationId
           )
         )
         .with(agreementState.draft, () =>
-          toCreateEventAgreementPutInDraftByPlatform(
+          toCreateEventAgreementSetDraftByPlatform(
             updatedAgreement,
             agreement.metadata.version,
             correlationId

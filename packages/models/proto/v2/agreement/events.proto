@@ -74,10 +74,10 @@ message AgreementConsumerDocumentRemovedV2 {
   AgreementV2 agreement = 2;
 }
 
-message AgreementPutInDraftByPlatformV2 {
+message AgreementSetDraftByPlatformV2 {
   AgreementV2 agreement = 1;
 }
 
-message AgreementPutInMissingCertifiedAttributesByPlatformV2 {
+message AgreementSetMissingCertifiedAttributesByPlatformV2 {
   AgreementV2 agreement = 1;
 }

@@ -331,7 +331,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
   };
 }
 
-export function toCreateEventAgreementPutInDraftByPlatform(
+export function toCreateEventAgreementSetDraftByPlatform(
   agreement: Agreement,
   version: number,
   correlationId: string
@@ -340,7 +340,7 @@ export function toCreateEventAgreementPutInDraftByPlatform(
     streamId: agreement.id,
     version,
     event: {
-      type: "AgreementPutInDraftByPlatform",
+      type: "AgreementSetDraftByPlatform",
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
@@ -350,7 +350,7 @@ export function toCreateEventAgreementPutInDraftByPlatform(
   };
 }
 
-export function toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
+export function toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
   agreement: Agreement,
   version: number,
   correlationId: string
@@ -359,7 +359,7 @@ export function toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
     streamId: agreement.id,
     version,
     event: {
-      type: "AgreementPutInMissingCertifiedAttributesByPlatform",
+      type: "AgreementSetMissingCertifiedAttributesByPlatform",
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
