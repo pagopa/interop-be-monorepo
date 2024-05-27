@@ -15,13 +15,14 @@ import { clientNotFound } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import { toCreateEventClientAdded } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
+import { isClientConsumer } from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<Client>> => {
   const client = await readModelService.getClientById(clientId);
-  if (client === undefined) {
+  if (!client) {
     throw clientNotFound(clientId);
   }
   return client;
@@ -47,7 +48,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       return {
         client: client.data,
-        showUsers: client.data.consumerId === organizationId,
+        showUsers: isClientConsumer(client.data.consumerId, organizationId),
       };
     },
 
