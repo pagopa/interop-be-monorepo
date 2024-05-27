@@ -6,14 +6,9 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-
+import { getMockClient, getRandomAuthData } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
-import {
-  addOneClient,
-  authorizationService,
-  getMockAuthData,
-  getMockClient,
-} from "./utils.js";
+import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getClients", async () => {
   const consumerId = generateId();
@@ -69,7 +64,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
@@ -92,7 +87,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
 
@@ -107,7 +102,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.totalCount).toBe(4);
@@ -129,7 +124,7 @@ describe("getClients", async () => {
         purposeId: unsafeBrandId<PurposeId>(purposeId),
       },
       { offset: 0, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
@@ -144,7 +139,7 @@ describe("getClients", async () => {
         kind: "Consumer",
       },
       { offset: 0, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
@@ -179,7 +174,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       { offset: 2, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.results).toEqual([
@@ -215,7 +210,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       { offset: 0, limit: 2 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.results).toEqual([mockClient3, mockClient4]);
@@ -230,7 +225,7 @@ describe("getClients", async () => {
         kind: "",
       },
       { offset: 0, limit: 3 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.totalCount).toBe(0);
@@ -262,7 +257,7 @@ describe("getClients", async () => {
         kind: "Api",
       },
       { offset: 0, limit: 50 },
-      getMockAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
