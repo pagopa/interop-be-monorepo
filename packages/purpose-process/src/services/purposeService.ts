@@ -3,7 +3,6 @@ import {
   DB,
   Logger,
   eventRepository,
-  formatDateAndTime,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -796,7 +795,7 @@ export function purposeServiceBuilder(
 
       const currentDate = new Date();
       const title = purposeToClone.data.title;
-      const suffix = ` - clone - ${formatDateAndTime(currentDate)}`;
+      const suffix = ` - clone - ${formatDateddMMyyyyHHmmss(currentDate)}`;
       const dots = "...";
       const maxTitleLength = 60; // same value as in the api spec (PurposeSeed)
       const prefixLengthAllowance =
