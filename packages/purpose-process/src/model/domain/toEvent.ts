@@ -197,7 +197,7 @@ export const toCreateEventPurposeCloned = ({
 }: {
   purpose: Purpose;
   sourcePurposeId: PurposeId;
-  sourceVersionId: PurposeId;
+  sourceVersionId: PurposeVersionId;
   correlationId: string;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,

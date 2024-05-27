@@ -22,7 +22,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { formatDateAndTime, genericLogger } from "pagopa-interop-commons";
+import {
+  formatDateddMMyyyyHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   duplicatedPurposeTitle,
   purposeCannotBeCloned,
@@ -102,7 +105,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       const expectedPurpose: Purpose = {
         ...mockPurpose,
         id: unsafeBrandId(writtenPayload.purpose!.id),
-        title: `${mockPurpose.title} - clone - ${formatDateAndTime(
+        title: `${mockPurpose.title} - clone - ${formatDateddMMyyyyHHmmss(
           new Date()
         )}`,
         versions: [
@@ -174,7 +177,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       const expectedPurpose: Purpose = {
         ...mockPurpose,
         id: unsafeBrandId(writtenPayload.purpose!.id),
-        title: `Title exceeding the maximum... - clone - ${formatDateAndTime(
+        title: `Title exceeding the maximum... - clone - ${formatDateddMMyyyyHHmmss(
           new Date()
         )}`,
         versions: [
@@ -320,9 +323,9 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       const mockPurposeWithSameName: Purpose = {
         ...getMockPurpose(),
-        title: `${mockPurposeToClone.title} - clone - ${formatDateAndTime(
-          new Date()
-        )}`,
+        title: `${
+          mockPurposeToClone.title
+        } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`,
         eserviceId: mockEService.id,
         consumerId: mockTenant.id,
       };
