@@ -134,3 +134,13 @@ export const createReversePurposeErrorMapper = (
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "duplicatedPurposeTitle",
+      "purposeCannotBeCloned",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

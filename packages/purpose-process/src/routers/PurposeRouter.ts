@@ -24,6 +24,7 @@ import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
+  clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
@@ -373,7 +374,30 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/clone",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.clonePurpose({
+              purposeId: unsafeBrandId(req.params.purposeId),
+              organizationId: req.ctx.authData.organizationId,
+              seed: req.body,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            clonePurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/suspend",
