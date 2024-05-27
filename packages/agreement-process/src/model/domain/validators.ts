@@ -10,7 +10,6 @@ import {
   EServiceAttribute,
   Tenant,
   VerifiedTenantAttribute,
-  WithMetadata,
   agreementState,
   descriptorState,
   tenantAttributeType,
@@ -22,22 +21,19 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
-import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
+import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
-  agreementNotFound,
   agreementNotInExpectedState,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
-  eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  tenantNotFound,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
@@ -117,24 +113,6 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 
 /* ========= ASSERTIONS ========= */
 
-export function assertAgreementExist(
-  agreementId: AgreementId,
-  agreement: WithMetadata<Agreement> | undefined
-): asserts agreement is NonNullable<WithMetadata<Agreement>> {
-  if (agreement === undefined) {
-    throw agreementNotFound(agreementId);
-  }
-}
-
-export function assertEServiceExist(
-  eserviceId: EServiceId,
-  eservice: EService | undefined
-): asserts eservice is NonNullable<EService> {
-  if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
-  }
-}
-
 export const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
@@ -189,15 +167,6 @@ export const assertExpectedState = (
   }
 };
 
-export function assertTenantExist(
-  tenantId: string,
-  tenant: Tenant | undefined
-): asserts tenant is NonNullable<Tenant> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
-
 export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState
 ): void => {
@@ -211,16 +180,6 @@ export const assertActivableState = (agreement: Agreement): void => {
     throw agreementNotInExpectedState(agreement.id, agreement.state);
   }
 };
-
-export function assertDescriptorExist(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  descriptor: Descriptor | undefined
-): asserts descriptor is NonNullable<Descriptor> {
-  if (descriptor === undefined) {
-    throw descriptorNotFound(eserviceId, descriptorId);
-  }
-}
 
 /* =========  VALIDATIONS ========= */
 
@@ -273,32 +232,35 @@ export const validateCreationOnDescriptor = (
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
   agreement: ApiAgreementPayload,
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
     unsafeBrandId(agreement.eserviceId),
     agreementCreationConflictingStates,
-    agreementQuery
+    readModelService
   );
 };
 
 export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     agreement.consumerId,
     unsafeBrandId(agreement.eserviceId),
     agreementSubmissionConflictingStates,
-    agreementQuery
+    readModelService
   );
 };
 
-export const validateCertifiedAttributes = (
-  descriptor: Descriptor,
-  consumer: Tenant
-): void => {
+export const validateCertifiedAttributes = ({
+  descriptor,
+  consumer,
+}: {
+  descriptor: Descriptor;
+  consumer: Tenant;
+}): void => {
   if (!certifiedAttributesSatisfied(descriptor, consumer)) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
@@ -380,9 +342,9 @@ export const verifyConflictingAgreements = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   conflictingStates: AgreementState[],
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
-  const agreements = await agreementQuery.getAllAgreements({
+  const agreements = await readModelService.getAllAgreements({
     consumerId,
     eserviceId,
     agreementStates: conflictingStates,
