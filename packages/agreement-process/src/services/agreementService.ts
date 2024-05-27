@@ -19,7 +19,6 @@ import {
   EService,
   EServiceId,
   ListResult,
-  SelfcareId,
   Tenant,
   TenantId,
   UserId,
@@ -192,10 +191,7 @@ function retrieveAgreementDocument(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
-  eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery,
+  readModelService: ReadModelService,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -358,21 +354,15 @@ export function agreementServiceBuilder(
       payload: ApiAgreementSubmissionPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
-      ctx.logger.info(`Submitting agreement ${agreementId}`);
-      const [agreement, updatesEvents] = await submitAgreementLogic(
-        agreementId,
-        payload,
-        contractBuilder(
-          attributeQuery,
-          pdfGenerator,
-          fileManager,
-          config,
-          ctx.logger
-        ),
-        eserviceQuery,
-        agreementQuery,
-        tenantQuery,
-        ctx
+      logger.info(`Submitting agreement ${agreementId}`);
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertSubmittableState(agreement.data.state, agreement.data.id);
+      await verifySubmissionConflictingAgreements(
+        agreement.data,
+        readModelService
       );
 
       if (agreement.data.state === agreementState.draft) {
@@ -391,6 +381,11 @@ export function agreementServiceBuilder(
 
       const consumer = await retrieveTenant(
         agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
         readModelService
       );
 
@@ -433,21 +428,27 @@ export function agreementServiceBuilder(
         ...updateSeed,
       };
 
+      const contract = await contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger
+      ).createContract(
+        authData.selfcareId,
+        agreement.data,
+        eservice,
+        consumer,
+        producer,
+        updateSeed
+      );
+
       const submittedAgreement =
         updatedAgreement.state === agreementState.active &&
         agreements.length === 0
           ? {
               ...updatedAgreement,
-              contract: await createContract({
-                agreement: updatedAgreement,
-                eservice,
-                consumer,
-                updateSeed,
-                readModelService,
-                storeFile: fileManager.storeBytes,
-                selfcareId: authData.selfcareId,
-                logger,
-              }),
+              contract: apiAgreementDocumentToAgreementDocument(contract),
             }
           : updatedAgreement;
 
@@ -864,18 +865,24 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
-      const [agreement, updatesEvents] = await activateAgreementLogic(
-        agreementId,
-        agreementQuery,
-        eserviceQuery,
-        tenantQuery,
-        attributeQuery,
-        authData,
-        correlationId,
-        fileManager,
+
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
         pdfGenerator,
+        fileManager,
         config,
         logger
+      );
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      verifyConsumerDoesNotActivatePending(agreement.data, authData);
+      assertActivableState(agreement.data);
+
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
       );
 
       const descriptor = validateActivationOnDescriptor(
@@ -885,6 +892,11 @@ export function agreementServiceBuilder(
 
       const consumer = await retrieveTenant(
         agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
         readModelService
       );
 
@@ -935,19 +947,18 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const activationEvent = await createActivationEvent({
+      const activationEvent = await createActivationEvent(
         firstActivation,
         agreement,
         updatedAgreement,
         updatedAgreementSeed,
         eservice,
         consumer,
+        producer,
         authData,
         correlationId,
-        readModelService,
-        storeFile: fileManager.storeBytes,
-        logger,
-      });
+        contractBuilderInstance
+      );
 
       const archiveEvents = await archiveRelatedToAgreements(
         agreement.data,
@@ -1031,37 +1042,6 @@ export async function createAndCopyDocumentsForClonedAgreement(
     path: d.newPath,
     createdAt: new Date(),
   }));
-}
-
-export async function createContract({
-  agreement,
-  updateSeed,
-  eservice,
-  consumer,
-  readModelService,
-  selfcareId,
-  storeFile,
-  logger,
-}: {
-  agreement: Agreement;
-  updateSeed: UpdateAgreementSeed;
-  eservice: EService;
-  consumer: Tenant;
-  readModelService: ReadModelService;
-  selfcareId: SelfcareId;
-  storeFile: FileManager["storeBytes"];
-  logger: Logger;
-}): Promise<AgreementDocument> {
-  const producer = await retrieveTenant(agreement.producerId, readModelService);
-
-  const contract = await contractBuilder(
-    selfcareId,
-    readModelService,
-    storeFile,
-    logger
-  ).createContract(agreement, eservice, consumer, producer, updateSeed);
-
-  return apiAgreementDocumentToAgreementDocument(contract);
 }
 
 export function createAgreementArchivedByUpgradeEvent(
