@@ -14,7 +14,7 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm --watch ./src/index.ts",
-    "build": "tsc && pnpm run copy-sql-files",
+    "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
     "check": "tsc --project tsconfig.check.json",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
   },
@@ -26,6 +26,9 @@
     "@zodios/express": "10.6.1",
     "axios": "1.7.2",
     "connection-string": "4.4.0",
+    "date-fns": "3.6.0",
+    "date-fns-tz": "3.1.3",
+    "handlebars": "4.7.8",
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.1.0",
     "kafkajs": "2.2.4",
@@ -33,6 +36,7 @@
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.6.0",
     "ts-pattern": "5.1.2",
+    "puppeteer": "22.8.0",
     "uuid": "9.0.1",
     "winston": "3.13.0",
     "zod": "3.23.8",
@@ -44,6 +48,7 @@
     "@types/node": "20.12.12",
     "@types/uuid": "9.0.8",
     "eslint": "8.57.0",
+    "cpx2": "7.0.1",
     "prettier": "2.8.8",
     "typescript": "5.4.5"
   }
