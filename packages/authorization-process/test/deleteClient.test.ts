@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockTenant,
-  readLastEventByStreamId,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
