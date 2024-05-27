@@ -4,6 +4,7 @@ import {
   Logger,
   WithLogger,
   AppContext,
+  PDFGenerator,
   eventRepository,
   CreateEvent,
 } from "pagopa-interop-commons";
@@ -18,7 +19,6 @@ import {
   EService,
   EServiceId,
   ListResult,
-  SelfcareId,
   Tenant,
   TenantId,
   UserId,
@@ -192,7 +192,8 @@ function retrieveAgreementDocument(
 export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  fileManager: FileManager
+  fileManager: FileManager,
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -383,6 +384,11 @@ export function agreementServiceBuilder(
         readModelService
       );
 
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
+        readModelService
+      );
+
       const nextStateByAttributes = nextState(
         agreement.data,
         descriptor,
@@ -422,21 +428,27 @@ export function agreementServiceBuilder(
         ...updateSeed,
       };
 
+      const contract = await contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger
+      ).createContract(
+        authData.selfcareId,
+        agreement.data,
+        eservice,
+        consumer,
+        producer,
+        updateSeed
+      );
+
       const submittedAgreement =
         updatedAgreement.state === agreementState.active &&
         agreements.length === 0
           ? {
               ...updatedAgreement,
-              contract: await createContract({
-                agreement: updatedAgreement,
-                eservice,
-                consumer,
-                updateSeed,
-                readModelService,
-                storeFile: fileManager.storeBytes,
-                selfcareId: authData.selfcareId,
-                logger,
-              }),
+              contract: apiAgreementDocumentToAgreementDocument(contract),
             }
           : updatedAgreement;
 
@@ -854,6 +866,14 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
 
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger
+      );
+
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
@@ -872,6 +892,11 @@ export function agreementServiceBuilder(
 
       const consumer = await retrieveTenant(
         agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
         readModelService
       );
 
@@ -922,19 +947,18 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const activationEvent = await createActivationEvent({
+      const activationEvent = await createActivationEvent(
         firstActivation,
         agreement,
         updatedAgreement,
         updatedAgreementSeed,
         eservice,
         consumer,
+        producer,
         authData,
         correlationId,
-        readModelService,
-        storeFile: fileManager.storeBytes,
-        logger,
-      });
+        contractBuilderInstance
+      );
 
       const archiveEvents = await archiveRelatedToAgreements(
         agreement.data,
@@ -1018,37 +1042,6 @@ export async function createAndCopyDocumentsForClonedAgreement(
     path: d.newPath,
     createdAt: new Date(),
   }));
-}
-
-export async function createContract({
-  agreement,
-  updateSeed,
-  eservice,
-  consumer,
-  readModelService,
-  selfcareId,
-  storeFile,
-  logger,
-}: {
-  agreement: Agreement;
-  updateSeed: UpdateAgreementSeed;
-  eservice: EService;
-  consumer: Tenant;
-  readModelService: ReadModelService;
-  selfcareId: SelfcareId;
-  storeFile: FileManager["storeBytes"];
-  logger: Logger;
-}): Promise<AgreementDocument> {
-  const producer = await retrieveTenant(agreement.producerId, readModelService);
-
-  const contract = await contractBuilder(
-    selfcareId,
-    readModelService,
-    storeFile,
-    logger
-  ).createContract(agreement, eservice, consumer, producer, updateSeed);
-
-  return apiAgreementDocumentToAgreementDocument(contract);
 }
 
 export function createAgreementArchivedByUpgradeEvent(
