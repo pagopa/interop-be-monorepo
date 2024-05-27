@@ -81,15 +81,6 @@ export type AgreementIdAndDocumentIdNotification = {
   documentId: string;
 };
 
-/*
-unused
-// AgreementContractAddedV1
-export type AgreementIdAndContractNotification = {
-  agreementId: string;
-  contract: AgreementDocumentV1Notification;
-};
-*/
-
 export type AgreementEventNotification =
   | AgreementNotification
   | AgreementIdNotification
