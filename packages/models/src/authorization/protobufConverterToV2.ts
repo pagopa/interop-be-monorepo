@@ -14,7 +14,7 @@ const toKeyUseV2 = (input: KeyUse): KeyUseV2 =>
 export const toKeyV2 = (input: Key): KeyV2 => ({
   ...input,
   use: toKeyUseV2(input.use),
-  createdAt: input.createdAt.toString(),
+  createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toClientKindV2 = (input: ClientKind): ClientKindV2 =>
