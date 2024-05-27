@@ -24,8 +24,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { CompactTenant } from "../model/domain/models.js";
 import { eServiceNotFound } from "../model/domain/errors.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
+import { ReadModelService } from "./readModelService.js";
 
 const {
   draft,
@@ -296,12 +295,11 @@ function eserviceContainsAttribute(
 export async function computeAgreementsStateByAttribute(
   attributeId: AttributeId,
   consumer: CompactTenant,
-  agreementQuery: AgreementQuery,
-  eserviceQuery: EserviceQuery,
+  readModelService: ReadModelService,
   correlationId: string,
   logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
-  const agreements = await agreementQuery.getAllAgreements({
+  const agreements = await readModelService.getAllAgreements({
     consumerId: consumer.id,
     agreementStates: updatableStates,
   });
@@ -313,7 +311,7 @@ export async function computeAgreementsStateByAttribute(
   const eservices: EService[] = await Promise.all(
     uniqueEServiceIds.map(async (id) => {
       // TODO replace with retrieveEservice after https://github.com/pagopa/interop-be-monorepo/pull/500
-      const eservice = await eserviceQuery.getEServiceById(id);
+      const eservice = await readModelService.getEServiceById(id);
       if (!eservice) {
         throw eServiceNotFound(id);
       }

@@ -101,11 +101,8 @@ export const agreementToApiAgreement = (
 export const apiAgreementDocumentToAgreementDocument = (
   input: ApiAgreementDocumentSeed
 ): AgreementDocument => ({
+  ...input,
   id: unsafeBrandId(input.id),
-  name: input.name,
-  prettyName: input.prettyName,
-  contentType: input.contentType,
-  path: input.path,
   createdAt: new Date(),
 });
 
