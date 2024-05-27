@@ -184,7 +184,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      if (client.data.users.includes(userIdToRemove)) {
+      if (!client.data.users.includes(userIdToRemove)) {
         throw userIdNotFound(userIdToRemove, clientId);
       }
 
