@@ -1,13 +1,16 @@
 import {
+  ReadEvent,
   StoredEvent,
   setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import {
   AuthorizationEvent,
   Client,
+  ClientId,
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
@@ -22,6 +25,7 @@ export const { cleanup, readModelRepository, postgresDB } =
 afterEach(cleanup);
 
 export const clients = readModelRepository.clients;
+export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -85,3 +89,8 @@ export const getMockClientWithKey = (): Client => ({
   relationships: [],
   users: [],
 });
+
+export const readLastAuthorizationEvent = async (
+  clientId: ClientId
+): Promise<ReadEvent<AuthorizationEvent>> =>
+  await readLastEventByStreamId(clientId, '"authorization"', postgresDB);
