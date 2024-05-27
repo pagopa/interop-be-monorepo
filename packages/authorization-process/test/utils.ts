@@ -8,9 +8,11 @@ import { afterEach, inject } from "vitest";
 import {
   AuthorizationEvent,
   Client,
+  TenantId,
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
+import { AuthData } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
@@ -63,6 +65,17 @@ export const getMockClient = (): Client => ({
   purposes: [],
   relationships: [],
   users: [],
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
 
 export const getMockClientWithKey = (): Client => ({
