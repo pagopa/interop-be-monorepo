@@ -14,36 +14,53 @@ export type CreateEvent<T extends Event> = {
   readonly event: T;
 };
 
+async function internalCreateEvents<T extends Event>(
+  db: DB,
+  toBinaryData: (event: T) => Uint8Array,
+  createEvents: Array<CreateEvent<T>>
+): Promise<string[]> {
+  try {
+    return await db.tx(
+      async (t) =>
+        await Promise.all(
+          createEvents.map(async (createEvent) => {
+            const data = await t.oneOrNone(sql.checkEventVersionExists, {
+              stream_id: createEvent.streamId,
+              version: createEvent.version,
+            });
+
+            const newVersion = data != null ? createEvent.version + 1 : 0;
+
+            await t.none(sql.insertEvent, {
+              stream_id: createEvent.streamId,
+              version: newVersion,
+              correlation_id: createEvent.correlationId,
+              type: createEvent.event.type,
+              event_version: createEvent.event.event_version,
+              data: Buffer.from(toBinaryData(createEvent.event)),
+            });
+
+            return createEvent.streamId;
+          })
+        )
+    );
+  } catch (error) {
+    throw genericInternalError(`Error creating event: ${error}`);
+  }
+}
+
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
 ): {
   createEvent: (createEvent: CreateEvent<T>) => Promise<string>;
+  createEvents: (createEvents: Array<CreateEvent<T>>) => Promise<string[]>;
 } => ({
   async createEvent(createEvent: CreateEvent<T>): Promise<string> {
-    try {
-      return await db.tx(async (t) => {
-        const data = await t.oneOrNone(sql.checkEventVersionExists, {
-          stream_id: createEvent.streamId,
-          version: createEvent.version,
-        });
-
-        const newVersion = data != null ? createEvent.version + 1 : 0;
-
-        await t.none(sql.insertEvent, {
-          stream_id: createEvent.streamId,
-          version: newVersion,
-          correlation_id: createEvent.correlationId,
-          type: createEvent.event.type,
-          event_version: createEvent.event.event_version,
-          data: Buffer.from(toBinaryData(createEvent.event)),
-        });
-
-        return createEvent.streamId;
-      });
-    } catch (error) {
-      throw genericInternalError(`Error creating event: ${error}`);
-    }
+    return (await internalCreateEvents(db, toBinaryData, [createEvent]))[0];
+  },
+  async createEvents(createEvents: Array<CreateEvent<T>>): Promise<string[]> {
+    return await internalCreateEvents(db, toBinaryData, createEvents);
   },
 });
 
