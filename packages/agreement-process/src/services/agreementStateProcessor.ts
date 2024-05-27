@@ -264,15 +264,7 @@ async function updateAgreementState(
               `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
             )
         );
-    } else {
-      logger.error(
-        `Skipping Agreement state transition from ${agreement.data.state} to ${finalState}, no change in suspendedByPlatform flag - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
-      );
     }
-  } else {
-    logger.error(
-      `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
-    );
   }
 }
 

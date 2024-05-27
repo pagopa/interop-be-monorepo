@@ -989,7 +989,7 @@ export function agreementServiceBuilder(
       { logger, correlationId }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
-        `Recalculating agreements state for attribute ${attributeId}`
+        `Recalculating agreements state for Attribute ${attributeId} - Consumer Tenant ${consumer.id}`
       );
 
       const events = await computeAgreementsStateByAttribute(
