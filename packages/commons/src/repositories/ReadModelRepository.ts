@@ -1,9 +1,9 @@
 import {
   AgreementReadModel,
   AttributeReadmodel,
-  Client,
+  ClientReadModel,
   EServiceReadModel,
-  Key,
+  KeyReadModel,
   PurposeReadModel,
   Tenant,
   genericInternalError,
@@ -36,8 +36,8 @@ export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
-export type ClientCollection = GenericCollection<Client>;
-export type KeyCollection = GenericCollection<Key>;
+export type ClientCollection = GenericCollection<ClientReadModel>;
+export type KeyCollection = GenericCollection<KeyReadModel>;
 
 export type Collections =
   | EServiceCollection
