@@ -4,7 +4,7 @@ import {
   Logger,
   RiskAnalysisFormRules,
   eventRepository,
-  formatDateAndTime,
+  formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getLatestVersionFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -805,7 +805,7 @@ export function purposeServiceBuilder(
 
       const currentDate = new Date();
       const title = purposeToClone.data.title;
-      const suffix = ` - clone - ${formatDateAndTime(currentDate)}`;
+      const suffix = ` - clone - ${formatDateddMMyyyyHHmmss(currentDate)}`;
       const dots = "...";
       const maxTitleLength = 60; // same value as in the api spec (PurposeSeed)
       const prefixLengthAllowance =
