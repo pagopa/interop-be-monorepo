@@ -42,18 +42,11 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const eserviceQuery = eserviceQueryBuilder(readModelService);
-const agreementQuery = agreementQueryBuilder(readModelService);
-const tenantQuery = tenantQueryBuilder(readModelService);
-const attributeQuery = attributeQueryBuilder(readModelService);
 const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
-  agreementQuery,
-  tenantQuery,
-  eserviceQuery,
-  attributeQuery,
+  readModelService,
   fileManager,
   pdfGenerator
 );
