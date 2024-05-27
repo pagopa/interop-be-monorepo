@@ -2,12 +2,13 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
+  ReadModelRepository,
   ZodiosContext,
-  userRoles,
   authorizationMiddleware,
   initDB,
-  ReadModelRepository,
   initFileManager,
+  initPDFGenerator,
+  userRoles,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
@@ -17,36 +18,37 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
-import { config } from "../utilities/config.js";
+import { api } from "../model/generated/api.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
 import {
-  cloneAgreementErrorMapper,
-  addConsumerDocumentErrorMapper,
   activateAgreementErrorMapper,
+  addConsumerDocumentErrorMapper,
+  archiveAgreementErrorMapper,
+  cloneAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
+  getAgreementErrorMapper,
   getConsumerDocumentErrorMapper,
   rejectAgreementErrorMapper,
+  removeConsumerDocumentErrorMapper,
   submitAgreementErrorMapper,
   suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
-  removeConsumerDocumentErrorMapper,
-  archiveAgreementErrorMapper,
-  getAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const pdfGenerator = await initPDFGenerator();
 
 const agreementService = agreementServiceBuilder(
   initDB({
@@ -59,7 +61,8 @@ const agreementService = agreementServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelService,
-  initFileManager(config)
+  initFileManager(config),
+  pdfGenerator
 );
 
 const {
