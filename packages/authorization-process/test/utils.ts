@@ -5,12 +5,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import { afterEach, inject } from "vitest";
-import {
-  AuthorizationEvent,
-  Client,
-  generateId,
-  toClientV2,
-} from "pagopa-interop-models";
+import { AuthorizationEvent, Client, toClientV2 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
