@@ -12,6 +12,7 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
+  randomBoolean,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
@@ -176,14 +177,20 @@ describe("compute Agreements state by attribute", () => {
       });
     });
 
-    it("updates the state of an updatable Agreement from Suspended to Suspended (but with suspendedByPlatform = true)", async () => {
+    it("suspends an Agreement by platform even when the Agreement is already suspended but with suspendedByPlatform = false", async () => {
       await addOneEService(eservice);
+
+      // At least one of these flags must be true
+      const suspendedByConsumer = randomBoolean();
+      const suspendedByProducer = !suspendedByConsumer ? true : randomBoolean();
 
       const updatableSuspendedAgreement: Agreement = {
         ...getMockAgreement(eservice.id, consumer.id, agreementState.suspended),
         descriptorId: eservice.descriptors[0].id,
         producerId: eservice.producerId,
         suspendedByPlatform: false,
+        suspendedByConsumer,
+        suspendedByProducer,
       };
 
       await addOneAgreement(updatableSuspendedAgreement);
@@ -386,6 +393,64 @@ describe("compute Agreements state by attribute", () => {
         agreement: toAgreementV2({
           ...updatableMissingCertAttributesAgreement,
           state: agreementState.draft,
+          suspendedByPlatform: false,
+        }),
+      });
+    });
+
+    it("un-suspends an Agreement by platform, even if the Agreement remains suspended because suspended by producer or consumer", async () => {
+      await addOneEService(eservice);
+
+      // At least one of these flags must be true
+      const suspendedByProducer = randomBoolean();
+      const suspendedByConsumer = !suspendedByProducer ? true : randomBoolean();
+
+      const updatableSuspendedAgreement: Agreement = {
+        ...getMockAgreement(eservice.id, consumer.id, agreementState.suspended),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: eservice.producerId,
+        suspendedByPlatform: true,
+        suspendedByConsumer,
+        suspendedByProducer,
+      };
+
+      await addOneAgreement(updatableSuspendedAgreement);
+
+      await agreementService.computeAgreementsStateByAttribute(
+        randomArrayItem([
+          tenantCertifiedAttribute.id,
+          tenantDeclaredAttribute.id,
+          tenantVerifiedAttribute.id,
+        ]),
+        consumer,
+        {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        }
+      );
+
+      const agreementStateUpdateEvent = await readLastAgreementEvent(
+        updatableSuspendedAgreement.id
+      );
+
+      expect(agreementStateUpdateEvent).toMatchObject({
+        type: "AgreementUnsuspendedByPlatform",
+        event_version: 2,
+        version: "1",
+        stream_id: updatableSuspendedAgreement.id,
+      });
+
+      const agreementStateUpdateEventData = decodeProtobufPayload({
+        messageType: AgreementUnsuspendedByPlatformV2,
+        payload: agreementStateUpdateEvent.data,
+      });
+
+      expect(agreementStateUpdateEventData).toMatchObject({
+        agreement: toAgreementV2({
+          ...updatableSuspendedAgreement,
+          state: agreementState.suspended,
           suspendedByPlatform: false,
         }),
       });

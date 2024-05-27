@@ -231,29 +231,32 @@ function updateAgreementState(
     allowedStateTransitions(agreement.data.state).includes(finalState) &&
     newSuspendedByPlatform !== agreement.data.suspendedByPlatform
   ) {
-    return match(finalState)
-      .with(agreementState.suspended, () =>
+    return match([finalState, newSuspendedByPlatform])
+      .with([agreementState.suspended, true], () =>
         toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId
         )
       )
-      .with(agreementState.active, () =>
-        toCreateEventAgreementUnsuspendedByPlatform(
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        )
+      .with(
+        [agreementState.suspended, false],
+        [agreementState.active, P._],
+        () =>
+          toCreateEventAgreementUnsuspendedByPlatform(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
       )
-      .with(agreementState.missingCertifiedAttributes, () =>
+      .with([agreementState.missingCertifiedAttributes, P._], () =>
         toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId
         )
       )
-      .with(agreementState.draft, () =>
+      .with([agreementState.draft, P._], () =>
         toCreateEventAgreementSetDraftByPlatform(
           updatedAgreement,
           agreement.metadata.version,
