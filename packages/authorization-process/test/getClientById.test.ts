@@ -5,7 +5,7 @@ import { clientNotFound } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService, getMockClient } from "./utils.js";
 
 describe("getClientById", async () => {
-  it("should get from the readModel the client with the secified Id with users", async () => {
+  it("should get from the readModel the client with the specified Id with users", async () => {
     const organizationId = generateId();
     const expectedClient: Client = {
       ...getMockClient(),
@@ -18,7 +18,7 @@ describe("getClientById", async () => {
       unsafeBrandId(organizationId),
       genericLogger
     );
-    expect(client).toMatchObject(expectedClient);
+    expect(client).toEqual(expectedClient);
   });
   it("should get from the readModel the client with the secified Id without users", async () => {
     const mockClient = getMockClient();
@@ -30,12 +30,16 @@ describe("getClientById", async () => {
       generateId(),
       genericLogger
     );
-    expect(client).toMatchObject(mockClient);
+    expect(client).toEqual(mockClient);
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
-    const client = getMockClient();
+    const clientId = generateId();
     await expect(
-      authorizationService.getClientById(client.id, generateId(), genericLogger)
-    ).rejects.toThrowError(clientNotFound(client.id));
+      authorizationService.getClientById(
+        unsafeBrandId(clientId),
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
 });

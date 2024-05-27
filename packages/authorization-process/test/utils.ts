@@ -64,24 +64,3 @@ export const getMockClient = (): Client => ({
   relationships: [],
   users: [],
 });
-
-export const getMockClientWithKey = (): Client => ({
-  keys: [
-    {
-      name: "key name",
-      createdAt: new Date(),
-      kid: "a kid",
-      encodedPem: "",
-      algorithm: "",
-      use: "Sig",
-    },
-  ],
-  name: "a client",
-  id: generateId(),
-  createdAt: new Date(),
-  consumerId: generateId(),
-  kind: "Api",
-  purposes: [],
-  relationships: [],
-  users: [],
-});
