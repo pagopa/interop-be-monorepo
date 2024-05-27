@@ -22,13 +22,9 @@ import {
   generateId,
   AgreementDocument,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
-import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
-import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
-import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
-import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
@@ -46,18 +42,13 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const eserviceQuery = eserviceQueryBuilder(readModelService);
-const agreementQuery = agreementQueryBuilder(readModelService);
-const tenantQuery = tenantQueryBuilder(readModelService);
-const attributeQuery = attributeQueryBuilder(readModelService);
+const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
-  agreementQuery,
-  tenantQuery,
-  eserviceQuery,
-  attributeQuery,
-  fileManager
+  readModelService,
+  fileManager,
+  pdfGenerator
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement
