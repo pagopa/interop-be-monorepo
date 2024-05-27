@@ -771,13 +771,13 @@ export function purposeServiceBuilder(
         throw purposeCannotBeCloned(purposeId);
       }
 
-      const dailyCalls = getDailyCallsFromPurposeToClone(purposeToClone.data);
+      const versionToClone = getVersionToClone(purposeToClone.data);
 
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
         createdAt: new Date(),
         state: purposeVersionState.draft,
-        dailyCalls,
+        dailyCalls: versionToClone.dailyCalls,
       };
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
@@ -786,7 +786,7 @@ export function purposeServiceBuilder(
         riskAnalysisFormToClone
           ? {
               id: generateId(),
-              version: riskAnalysisFormToClone.version, // TO DO double-check
+              version: riskAnalysisFormToClone.version,
               riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
               singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
                 (answer) => ({
@@ -806,12 +806,14 @@ export function purposeServiceBuilder(
       const currentDate = new Date();
       const title = purposeToClone.data.title;
       const suffix = ` - clone - ${formatDateAndTime(currentDate)}`;
-      const prefixLengthAllowance = 60 - suffix.length - 3;
-      // 60 is the maximum length for the purpose title, according to the api spec (PurposeSeed)
+      const dots = "...";
+      const maxTitleLength = 60; // same value as in the api spec (PurposeSeed)
+      const prefixLengthAllowance =
+        maxTitleLength - suffix.length - dots.length;
       const clonedPurposeTitle =
-        title.length + suffix.length <= 60
+        title.length + suffix.length <= maxTitleLength
           ? `${title}${suffix}`
-          : `${title.slice(0, prefixLengthAllowance)}...${suffix}`;
+          : `${title.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
       await assertPurposeTitleIsNotDuplicated({
         readModelService,
@@ -846,7 +848,7 @@ export function purposeServiceBuilder(
       const event = toCreateEventPurposeCloned({
         purpose: clonedPurpose,
         sourcePurposeId: purposeToClone.data.id,
-        sourceVersionId: generateId(), // TO DO not sure where to take this, but the event definition requires it
+        sourceVersionId: versionToClone.id,
         correlationId,
       });
       await repository.createEvent(event);
@@ -1086,7 +1088,7 @@ const performUpdatePurpose = async (
   };
 };
 
-const getDailyCallsFromPurposeToClone = (purposeToClone: Purpose): number => {
+const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
   const nonWaitingVersions = purposeToClone.versions.filter(
     (v) => v.state !== purposeVersionState.waitingForApproval
   );
@@ -1100,5 +1102,5 @@ const getDailyCallsFromPurposeToClone = (purposeToClone: Purpose): number => {
     (v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime()
   );
 
-  return sortedVersions.length > 0 ? sortedVersions[0].dailyCalls : 0;
+  return sortedVersions[0];
 };
