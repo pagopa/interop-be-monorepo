@@ -166,13 +166,19 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeUser(
-      clientId: ClientId,
-      userIdToRemove: UserId,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removeUser({
+      clientId,
+      userIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      userIdToRemove: UserId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
