@@ -3,7 +3,9 @@ import {
   DB,
   Logger,
   eventRepository,
+  formatDateddMMyyyyHHmmss,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -42,6 +44,7 @@ import {
   organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeCannotBeDeleted,
+  purposeCannotBeCloned,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -53,6 +56,7 @@ import {
   toCreateEventDraftPurposeUpdated,
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
+  toCreateEventPurposeCloned,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
   toCreateEventPurposeVersionRejected,
@@ -64,6 +68,7 @@ import {
   ApiReversePurposeUpdateContent,
   ApiPurposeSeed,
   ApiReversePurposeSeed,
+  ApiPurposeCloneSeed,
 } from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
@@ -733,6 +738,116 @@ export function purposeServiceBuilder(
         isRiskAnalysisValid: true,
       };
     },
+    async clonePurpose({
+      purposeId,
+      organizationId,
+      seed,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      organizationId: TenantId;
+      seed: ApiPurposeCloneSeed;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(`Cloning Purpose ${purposeId}`);
+
+      const tenant = await retrieveTenant(organizationId, readModelService);
+      assertTenantKindExists(tenant);
+
+      const purposeToClone = await retrievePurpose(purposeId, readModelService);
+
+      if (purposeIsDraft(purposeToClone.data)) {
+        throw purposeCannotBeCloned(purposeId);
+      }
+
+      const versionToClone = getVersionToClone(purposeToClone.data);
+
+      const newPurposeVersion: PurposeVersion = {
+        id: generateId(),
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        dailyCalls: versionToClone.dailyCalls,
+      };
+
+      const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
+
+      const clonedRiskAnalysisForm: PurposeRiskAnalysisForm | undefined =
+        riskAnalysisFormToClone
+          ? {
+              id: generateId(),
+              version: riskAnalysisFormToClone.version,
+              riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
+              singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
+                (answer) => ({
+                  ...answer,
+                  id: generateId(),
+                })
+              ),
+              multiAnswers: riskAnalysisFormToClone.multiAnswers.map(
+                (answer) => ({
+                  ...answer,
+                  id: generateId(),
+                })
+              ),
+            }
+          : undefined;
+
+      const currentDate = new Date();
+      const title = purposeToClone.data.title;
+      const suffix = ` - clone - ${formatDateddMMyyyyHHmmss(currentDate)}`;
+      const dots = "...";
+      const maxTitleLength = 60; // same value as in the api spec (PurposeSeed)
+      const prefixLengthAllowance =
+        maxTitleLength - suffix.length - dots.length;
+      const clonedPurposeTitle =
+        title.length + suffix.length <= maxTitleLength
+          ? `${title}${suffix}`
+          : `${title.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
+
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
+        eserviceId: unsafeBrandId(seed.eserviceId),
+        consumerId: organizationId,
+        title: clonedPurposeTitle,
+      });
+
+      const clonedPurpose: Purpose = {
+        title: clonedPurposeTitle,
+        id: generateId(),
+        createdAt: currentDate,
+        eserviceId: unsafeBrandId(seed.eserviceId),
+        consumerId: organizationId,
+        description: purposeToClone.data.description,
+        versions: [newPurposeVersion],
+        isFreeOfCharge: purposeToClone.data.isFreeOfCharge,
+        freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
+        riskAnalysisForm: clonedRiskAnalysisForm,
+      };
+
+      const isRiskAnalysisValid = clonedRiskAnalysisForm
+        ? validateRiskAnalysis(
+            riskAnalysisFormToRiskAnalysisFormToValidate(
+              clonedRiskAnalysisForm
+            ),
+            false,
+            tenant.kind
+          ).type === "valid"
+        : false;
+
+      const event = toCreateEventPurposeCloned({
+        purpose: clonedPurpose,
+        sourcePurposeId: purposeToClone.data.id,
+        sourceVersionId: versionToClone.id,
+        correlationId,
+      });
+      await repository.createEvent(event);
+      return {
+        purpose: clonedPurpose,
+        isRiskAnalysisValid,
+      };
+    },
   };
 }
 
@@ -906,4 +1021,21 @@ const performUpdatePurpose = async (
       tenant.kind
     ),
   };
+};
+
+const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
+  const nonWaitingVersions = purposeToClone.versions.filter(
+    (v) => v.state !== purposeVersionState.waitingForApproval
+  );
+
+  const versionsToSearch =
+    nonWaitingVersions.length > 0
+      ? nonWaitingVersions
+      : purposeToClone.versions;
+
+  const sortedVersions = [...versionsToSearch].sort(
+    (v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime()
+  );
+
+  return sortedVersions[0];
 };
