@@ -15,16 +15,19 @@ const LocalizedText = z.object({
   it: z.string(),
   en: z.string(),
 });
+export type LocalizedText = z.infer<typeof LocalizedText>;
 
 const Dependency = z.object({
   id: z.string(),
   value: z.string(),
 });
+export type Dependency = z.infer<typeof Dependency>;
 
 const HideOptionConfig = z.object({
   id: z.string(),
   value: z.string(),
 });
+export type HideOptionConfig = z.infer<typeof HideOptionConfig>;
 
 const ValidationOption = z.object({
   maxLength: z.number().optional(),
@@ -34,6 +37,7 @@ const LabeledValue = z.object({
   label: LocalizedText,
   value: z.string(),
 });
+export type LabeledValue = z.infer<typeof LabeledValue>;
 
 const FormConfigQuestionCommonProps = z.object({
   id: z.string(),

@@ -41,6 +41,7 @@ import { testGetPurposes } from "./testGetPurposes.js";
 import { testCreatePurpose } from "./testCreatePurpose.js";
 import { testCreateReversePurpose } from "./testCreateReversePurpose.js";
 import { testClonePurpose } from "./testClonePurpose.js";
+import { testGetRiskAnalysisConfigurationByVersion } from "./testGetRiskAnalysisConfigurationByVersion.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -108,5 +109,6 @@ describe("Integration tests", async () => {
     testCreatePurpose();
     testCreateReversePurpose();
     testClonePurpose();
+    testGetRiskAnalysisConfigurationByVersion();
   });
 });

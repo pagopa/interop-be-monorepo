@@ -2,8 +2,10 @@ import {
   CreateEvent,
   DB,
   Logger,
+  RiskAnalysisFormRules,
   eventRepository,
   formatDateddMMyyyyHHmmss,
+  getFormRulesByVersion,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -50,6 +52,7 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   tenantNotFound,
+  riskAnalysisConfigVersionNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -847,6 +850,44 @@ export function purposeServiceBuilder(
         purpose: clonedPurpose,
         isRiskAnalysisValid,
       };
+    },
+    async retrieveRiskAnalysisConfigurationByVersion({
+      eserviceId,
+      riskAnalysisVersion,
+      organizationId,
+      logger,
+    }: {
+      eserviceId: EServiceId;
+      riskAnalysisVersion: string;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<RiskAnalysisFormRules> {
+      logger.info(
+        `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const tenant = await getInvolvedTenantByEServiceMode(
+        eservice,
+        organizationId,
+        readModelService
+      );
+
+      assertTenantKindExists(tenant);
+
+      const riskAnalysisFormConfig = getFormRulesByVersion(
+        tenant.kind,
+        riskAnalysisVersion
+      );
+
+      if (!riskAnalysisFormConfig) {
+        throw riskAnalysisConfigVersionNotFound(
+          riskAnalysisVersion,
+          tenant.kind
+        );
+      }
+
+      return riskAnalysisFormConfig;
     },
   };
 }
