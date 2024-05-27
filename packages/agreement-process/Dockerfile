@@ -1,4 +1,4 @@
-FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as build
+FROM node:20.13.1@sha256:d6925dc84f8c0d1c1f8df4ea6a9a54e57d430241cb734b1b0c45ed6d26e8e9c0 as build
 
 RUN corepack enable
 
@@ -34,9 +34,23 @@ RUN pnpm build && \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.20.2-slim@sha256:2697eb70c760c3720ad9811871d5ab19c4ad2f2e0a3735785e531927ab99bd39 as final 
+FROM node:20.13.1@sha256:d6925dc84f8c0d1c1f8df4ea6a9a54e57d430241cb734b1b0c45ed6d26e8e9c0 as final 
+
+# Install dependencies for Puppeteer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        chromium \
+        ca-certificates 
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
 
 COPY --from=build /out /app
+
+RUN chown -R app:app /app
+RUN chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/agreement-process
 EXPOSE 3000
