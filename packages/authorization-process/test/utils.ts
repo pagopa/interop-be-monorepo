@@ -5,12 +5,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import { afterEach, inject } from "vitest";
-import {
-  AuthorizationEvent,
-  Client,
-  generateId,
-  toClientV2,
-} from "pagopa-interop-models";
+import { AuthorizationEvent, Client, toClientV2 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
@@ -52,36 +47,3 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(client, clients);
 };
-
-export const getMockClient = (): Client => ({
-  keys: [],
-  name: "a client",
-  id: generateId(),
-  createdAt: new Date(),
-  consumerId: generateId(),
-  kind: "Api",
-  purposes: [],
-  relationships: [],
-  users: [],
-});
-
-export const getMockClientWithKey = (): Client => ({
-  keys: [
-    {
-      name: "key name",
-      createdAt: new Date(),
-      kid: "a kid",
-      encodedPem: "",
-      algorithm: "",
-      use: "Sig",
-    },
-  ],
-  name: "a client",
-  id: generateId(),
-  createdAt: new Date(),
-  consumerId: generateId(),
-  kind: "Api",
-  purposes: [],
-  relationships: [],
-  users: [],
-});
