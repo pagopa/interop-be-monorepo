@@ -3,7 +3,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
-import { AttributeEvent, EServiceEventV1 } from "pagopa-interop-models";
+import {
+  AttributeEvent,
+  EServiceEventV1,
+  PurposeEventV1,
+} from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -31,12 +35,16 @@ const Config = z
     TARGET_DB_SCHEMA: z.enum([
       "catalog",
       "dev-refactor_catalog",
-      "uat-catalog",
-      "prod-catalog",
+      "test_catalog",
+      "prod_catalog",
       "attribute",
       "dev-refactor_attribute_registry",
-      "uat-attribute_registry",
-      "prod-attribute_registry",
+      "test_attribute_registry",
+      "prod_attribute_registry",
+      "purpose",
+      "dev-refactor_purpose",
+      "test_purpose",
+      "prod_purpose",
     ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
@@ -137,8 +145,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .with(
     "catalog",
     "dev-refactor_catalog",
-    "uat-catalog",
-    "prod-catalog",
+    "test_catalog",
+    "prod_catalog",
     () => {
       checkSchema(config.sourceDbSchema, "catalog");
       const parseEventType = (event_ser_manifest: any) =>
@@ -173,8 +181,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .with(
     "attribute",
     "dev-refactor_attribute_registry",
-    "uat-attribute_registry",
-    "prod-attribute_registry",
+    "test_attribute_registry",
+    "prod_attribute_registry",
     () => {
       checkSchema(config.sourceDbSchema, "attribute");
 
@@ -199,6 +207,31 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
 
       const parseId = (anyPayload: any) =>
         anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .with(
+    "purpose",
+    "dev-refactor_purpose",
+    "test_purpose",
+    "prod_purpose",
+    () => {
+      checkSchema(config.sourceDbSchema, "purpose");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace("it.pagopa.interop.purposemanagement.model.persistence.", "")
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        PurposeEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
 
       return { parseEventType, decodeEvent, parseId };
     }

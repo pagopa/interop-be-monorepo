@@ -49,9 +49,7 @@ export const fromPurposeVersionV2 = (
   ...input,
   id: unsafeBrandId(input.id),
   state: fromPurposeVersionStateV2(input.state),
-  expectedApprovalDate: input.expectedApprovalDate
-    ? new Date(Number(input.expectedApprovalDate))
-    : undefined,
+  expectedApprovalDate: bigIntToDate(input.expectedApprovalDate),
   riskAnalysis: input.riskAnalysis
     ? fromPurposeVersionDocumentV2(input.riskAnalysis)
     : undefined,
