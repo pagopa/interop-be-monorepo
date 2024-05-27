@@ -119,6 +119,27 @@ export function authorizationServiceBuilder(
         showUsers: client.consumerId === organizationId,
       };
     },
+    async getClients(
+      filters: GetClientsFilters,
+      { offset, limit }: { offset: number; limit: number },
+      authData: AuthData,
+      logger: Logger
+    ): Promise<ListResult<Client>> {
+      logger.info(
+        `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
+      );
+      const userIds = authData.userRoles.includes("security")
+        ? [authData.userId]
+        : filters.userIds.map(unsafeBrandId<UserId>);
+
+      return await readModelService.getClients(
+        { ...filters, userIds },
+        {
+          offset,
+          limit,
+        }
+      );
+    },
     async deleteClient({
       clientId,
       organizationId,
@@ -141,27 +162,6 @@ export function authorizationServiceBuilder(
           client.metadata.version,
           correlationId
         )
-      );
-    },
-    async getClients(
-      filters: GetClientsFilters,
-      { offset, limit }: { offset: number; limit: number },
-      authData: AuthData,
-      logger: Logger
-    ): Promise<ListResult<Client>> {
-      logger.info(
-        `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
-      );
-      const userIds = authData.userRoles.includes("security")
-        ? [authData.userId]
-        : filters.userIds.map(unsafeBrandId<UserId>);
-
-      return await readModelService.getClients(
-        { ...filters, userIds },
-        {
-          offset,
-          limit,
-        }
       );
     },
   };
