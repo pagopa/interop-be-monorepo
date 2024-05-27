@@ -1,9 +1,5 @@
-import {
-  AuthData,
-  CreateEvent,
-  FileManager,
-  Logger,
-} from "pagopa-interop-commons";
+/* eslint-disable max-params */
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   EService,
@@ -29,16 +25,15 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
-import {
-  createAgreementArchivedByUpgradeEvent,
-  createContract,
-} from "./agreementService.js";
+import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
+import { ContractBuilder } from "./agreementContractBuilder.js";
 
 export function createActivationUpdateAgreementSeed({
   firstActivation,
@@ -106,44 +101,33 @@ export function createActivationUpdateAgreementSeed({
       };
 }
 
-export async function createActivationEvent({
-  firstActivation,
-  agreement,
-  updatedAgreement,
-  updatedAgreementSeed,
-  eservice,
-  consumer,
-  authData,
-  correlationId,
-  readModelService,
-  storeFile,
-  logger,
-}: {
-  firstActivation: boolean;
-  agreement: WithMetadata<Agreement>;
-  updatedAgreement: Agreement;
-  updatedAgreementSeed: UpdateAgreementSeed;
-  eservice: EService;
-  consumer: Tenant;
-  authData: AuthData;
-  correlationId: string;
-  readModelService: ReadModelService;
-  storeFile: FileManager["storeBytes"];
-  logger: Logger;
-}): Promise<CreateEvent<AgreementEventV2>> {
+export async function createActivationEvent(
+  firstActivation: boolean,
+  agreement: WithMetadata<Agreement>,
+  updatedAgreement: Agreement,
+  updatedAgreementSeed: UpdateAgreementSeed,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant,
+  authData: AuthData,
+  correlationId: string,
+  contractBuilder: ContractBuilder
+): Promise<CreateEvent<AgreementEventV2>> {
   if (firstActivation) {
-    const contract = await createContract({
-      agreement: updatedAgreement,
-      updateSeed: updatedAgreementSeed,
+    const agreementContract = await contractBuilder.createContract(
+      authData.selfcareId,
+      updatedAgreement,
       eservice,
       consumer,
-      readModelService,
-      selfcareId: authData.selfcareId,
-      storeFile,
-      logger,
-    });
+      producer,
+      updatedAgreementSeed
+    );
+
     return toCreateEventAgreementActivated(
-      { ...updatedAgreement, contract },
+      {
+        ...updatedAgreement,
+        contract: apiAgreementDocumentToAgreementDocument(agreementContract),
+      },
       agreement.metadata.version,
       correlationId
     );
