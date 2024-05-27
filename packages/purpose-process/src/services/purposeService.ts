@@ -3,6 +3,7 @@ import {
   DB,
   Logger,
   eventRepository,
+  formatDateddMMyyyyHHmmss,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
