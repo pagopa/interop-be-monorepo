@@ -26,6 +26,8 @@ import {
   purposeVersionState,
   Document,
   AgreementAttribute,
+  Key,
+  Client,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
@@ -221,4 +223,26 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockClient = (): Client => ({
+  id: generateId(),
+  consumerId: generateId(),
+  name: "Test client",
+  purposes: [],
+  description: "Client description",
+  relationships: [],
+  users: [],
+  kind: "Consumer",
+  createdAt: new Date(),
+  keys: [],
+});
+
+export const getMockKey = (): Key => ({
+  name: "key",
+  createdAt: new Date(),
+  kid: "kid",
+  encodedPem: generateId(),
+  algorithm: "",
+  use: "Sig",
 });

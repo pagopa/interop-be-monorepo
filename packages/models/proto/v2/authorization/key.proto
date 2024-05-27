@@ -13,7 +13,7 @@ message KeyV2 {
   string encodedPem = 3;
   KeyUseV2 use = 4;
   string algorithm = 5;
-  string createdAt = 6;
+  int64 createdAt = 6;
   string name = 7;
   optional string userId = 8;
 }
