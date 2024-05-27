@@ -4,6 +4,7 @@
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
 import {
+  AgreementEventV1,
   AttributeEvent,
   EServiceEventV1,
   PurposeEventV1,
@@ -45,6 +46,10 @@ const Config = z
       "dev-refactor_purpose",
       "test_purpose",
       "prod_purpose",
+      "agreement",
+      "dev-refactor_agreement",
+      "test_agreement",
+      "prod_agreement",
     ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
@@ -232,6 +237,34 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
 
       const parseId = (anyPayload: any) =>
         anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .with(
+    "agreement",
+    "dev-refactor_agreement",
+    "test_agreement",
+    "prod_agreement",
+    () => {
+      checkSchema(config.sourceDbSchema, "agreement");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace(
+            "it.pagopa.interop.agreementmanagement.model.persistence.",
+            ""
+          )
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AgreementEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.agreement ? anyPayload.agreement.id : anyPayload.agreementId;
 
       return { parseEventType, decodeEvent, parseId };
     }
