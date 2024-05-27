@@ -147,12 +147,12 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.deleteClient(
-            unsafeBrandId(req.params.clientId),
-            ctx.authData.organizationId,
-            ctx.correlationId,
-            ctx.logger
-          );
+          await authorizationService.deleteClient({
+            clientId: unsafeBrandId(req.params.clientId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(

@@ -118,12 +118,17 @@ export function authorizationServiceBuilder(
         showUsers: client.consumerId === organizationId,
       };
     },
-    async deleteClient(
-      clientId: ClientId,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async deleteClient({
+      clientId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
