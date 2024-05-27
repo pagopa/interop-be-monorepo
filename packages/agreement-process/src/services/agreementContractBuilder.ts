@@ -40,7 +40,7 @@ import {
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { AgreementProcessConfig } from "../utilities/config.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { ReadModelService } from "./readModelService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
@@ -71,7 +71,7 @@ const createAgreementDocumentName = (
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery
+  readModelService: ReadModelService
 ): Promise<{
   certified: Array<[Attribute, CertifiedTenantAttribute]>;
   declared: Array<[Attribute, DeclaredTenantAttribute]>;
@@ -98,7 +98,7 @@ const getAttributeInvolved = async (
 
     return Promise.all(
       tenantAttributes.map(async (tenantAttribute) => {
-        const attribute = await attributeQuery.getAttributeById(
+        const attribute = await readModelService.getAttributeById(
           tenantAttribute.id
         );
         if (!attribute) {
@@ -167,7 +167,7 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery
+  readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
@@ -258,7 +258,7 @@ const getPdfPayload = async (
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
     seed,
-    attributeQuery
+    readModelService
   );
 
   return {
@@ -282,7 +282,7 @@ const getPdfPayload = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (
-  attributeQuery: AttributeQuery,
+  readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   config: AgreementProcessConfig,
@@ -314,7 +314,7 @@ export const contractBuilder = (
         consumer,
         producer,
         seed,
-        attributeQuery
+        readModelService
       );
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
