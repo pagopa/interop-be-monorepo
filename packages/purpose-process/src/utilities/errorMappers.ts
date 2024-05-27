@@ -144,3 +144,14 @@ export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const retrieveRiskAnalysisConfigurationByVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "riskAnalysisConfigVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
