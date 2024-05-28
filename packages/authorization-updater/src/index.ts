@@ -50,11 +50,9 @@ export async function sendAuthUpdate(
   const update: (() => Promise<void>) | undefined = await match(decodedMessage)
     .with(
       {
-        event_version: 2,
         type: "EServiceDescriptorPublished",
       },
       {
-        event_version: 2,
         type: "EServiceDescriptorActivated",
       },
       async (msg) => {
@@ -72,14 +70,8 @@ export async function sendAuthUpdate(
       }
     )
     .with(
-      {
-        event_version: 2,
-        type: "EServiceDescriptorSuspended",
-      },
-      {
-        event_version: 2,
-        type: "EServiceDescriptorArchived",
-      },
+      { type: "EServiceDescriptorSuspended" },
+      { type: "EServiceDescriptorArchived" },
       async (msg) => {
         const data = getDescriptorFromEvent(msg, decodedMessage.type);
         return (): Promise<void> =>
@@ -95,46 +87,16 @@ export async function sendAuthUpdate(
       }
     )
     .with(
-      {
-        event_version: 2,
-        type: "AgreementSubmitted",
-      },
-      {
-        event_version: 2,
-        type: "AgreementActivated",
-      },
-      {
-        event_version: 2,
-        type: "AgreementUnsuspendedByPlatform",
-      },
-      {
-        event_version: 2,
-        type: "AgreementUnsuspendedByConsumer",
-      },
-      {
-        event_version: 2,
-        type: "AgreementUnsuspendedByProducer",
-      },
-      {
-        event_version: 2,
-        type: "AgreementSuspendedByPlatform",
-      },
-      {
-        event_version: 2,
-        type: "AgreementSuspendedByConsumer",
-      },
-      {
-        event_version: 2,
-        type: "AgreementSuspendedByProducer",
-      },
-      {
-        event_version: 2,
-        type: "AgreementArchivedByConsumer",
-      },
-      {
-        event_version: 2,
-        type: "AgreementArchivedByUpgrade",
-      },
+      { type: "AgreementSubmitted" },
+      { type: "AgreementActivated" },
+      { type: "AgreementUnsuspendedByPlatform" },
+      { type: "AgreementUnsuspendedByConsumer" },
+      { type: "AgreementUnsuspendedByProducer" },
+      { type: "AgreementSuspendedByPlatform" },
+      { type: "AgreementSuspendedByConsumer" },
+      { type: "AgreementSuspendedByProducer" },
+      { type: "AgreementArchivedByConsumer" },
+      { type: "AgreementArchivedByUpgrade" },
       async (msg) => {
         const agreement = getAgreementFromEvent(msg, decodedMessage.type);
 
@@ -149,55 +111,77 @@ export async function sendAuthUpdate(
           );
       }
     )
-    .with(
-      {
-        event_version: 2,
-        type: "AgreementUpgraded",
-      },
-      async (msg) => {
-        const agreement = getAgreementFromEvent(msg, decodedMessage.type);
-        const eservice = await readModelService.getEServiceById(
-          agreement.eserviceId
+    .with({ type: "AgreementUpgraded" }, async (msg) => {
+      const agreement = getAgreementFromEvent(msg, decodedMessage.type);
+      const eservice = await readModelService.getEServiceById(
+        agreement.eserviceId
+      );
+      if (!eservice) {
+        throw genericInternalError(
+          `Unable to find EService with id ${agreement.eserviceId}`
         );
-        if (!eservice) {
-          throw genericInternalError(
-            `Unable to find EService with id ${agreement.eserviceId}`
-          );
-        }
-
-        const descriptor = eservice.descriptors.find(
-          (d) => d.id === agreement.descriptorId
-        );
-        if (!descriptor) {
-          throw genericInternalError(
-            `Unable to find descriptor with id ${agreement.descriptorId}`
-          );
-        }
-
-        const eserviceClientState = match(descriptor.state)
-          .with(
-            descriptorState.published,
-            descriptorState.deprecated,
-            () => ApiClientComponent.Values.ACTIVE
-          )
-          .otherwise(() => ApiClientComponent.Values.INACTIVE);
-
-        return (): Promise<void> =>
-          authService.updateAgreementAndEServiceStates(
-            agreementStateToClientState(agreement),
-            eserviceClientState,
-            agreement.id,
-            agreement.eserviceId,
-            agreement.descriptorId,
-            agreement.consumerId,
-            descriptor.audience,
-            descriptor.voucherLifespan,
-            logger,
-            correlationId
-          );
       }
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (!descriptor) {
+        throw genericInternalError(
+          `Unable to find descriptor with id ${agreement.descriptorId}`
+        );
+      }
+
+      const eserviceClientState = match(descriptor.state)
+        .with(
+          descriptorState.published,
+          descriptorState.deprecated,
+          () => ApiClientComponent.Values.ACTIVE
+        )
+        .otherwise(() => ApiClientComponent.Values.INACTIVE);
+
+      return (): Promise<void> =>
+        authService.updateAgreementAndEServiceStates(
+          agreementStateToClientState(agreement),
+          eserviceClientState,
+          agreement.id,
+          agreement.eserviceId,
+          agreement.descriptorId,
+          agreement.consumerId,
+          descriptor.audience,
+          descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+    })
+    .with({ type: "EServiceAdded" }, () => undefined)
+    .with({ type: "EServiceCloned" }, () => undefined)
+    .with({ type: "EServiceDeleted" }, () => undefined)
+    .with({ type: "DraftEServiceUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorAdded" }, () => undefined)
+    .with({ type: "EServiceDraftDescriptorDeleted" }, () => undefined)
+    .with({ type: "EServiceDraftDescriptorUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorDocumentAdded" }, () => undefined)
+    .with({ type: "EServiceDescriptorDocumentUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorDocumentDeleted" }, () => undefined)
+    .with({ type: "EServiceDescriptorInterfaceAdded" }, () => undefined)
+    .with({ type: "EServiceDescriptorInterfaceUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorInterfaceDeleted" }, () => undefined)
+    .with({ type: "EServiceRiskAnalysisAdded" }, () => undefined)
+    .with({ type: "EServiceRiskAnalysisUpdated" }, () => undefined)
+    .with({ type: "EServiceRiskAnalysisDeleted" }, () => undefined)
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, () => undefined)
+    .with({ type: "AgreementAdded" }, () => undefined)
+    .with({ type: "AgreementDeleted" }, () => undefined)
+    .with({ type: "AgreementRejected" }, () => undefined)
+    .with({ type: "DraftAgreementUpdated" }, () => undefined)
+    .with({ type: "AgreementConsumerDocumentAdded" }, () => undefined)
+    .with({ type: "AgreementConsumerDocumentRemoved" }, () => undefined)
+    .with({ type: "AgreementSetDraftByPlatform" }, () => undefined)
+    .with(
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      () => undefined
     )
-    .otherwise(() => undefined);
+    .exhaustive();
 
   if (update) {
     await update();
