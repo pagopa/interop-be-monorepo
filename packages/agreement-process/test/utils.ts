@@ -23,7 +23,7 @@ import {
   generateId,
   AgreementDocument,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
@@ -44,10 +44,13 @@ export const tenants = readModelRepository.tenants;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
+const pdfGenerator = await initPDFGenerator();
+
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
-  fileManager
+  fileManager,
+  pdfGenerator
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement
