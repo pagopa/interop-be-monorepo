@@ -14,6 +14,7 @@ import {
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
+  AttributeId,
   Descriptor,
   DescriptorId,
   EService,
@@ -45,6 +46,7 @@ import {
 import {
   CompactEService,
   CompactOrganization,
+  CompactTenant,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -114,19 +116,19 @@ import {
   AgreementQueryFilters,
   ReadModelService,
 } from "./readModelService.js";
-
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
-  nextState,
   suspendedByConsumerFlag,
   suspendedByProducerFlag,
   agreementStateByFlags,
+  nextStateByAttributes,
 } from "./agreementStateProcessor.js";
 import {
   createSubmissionUpdateAgreementSeed,
   isActiveOrSuspended,
   validateConsumerEmail,
 } from "./agreementSubmissionProcessor.js";
+import { computeAgreementsStateByAttribute } from "./agreementStateProcessor.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
@@ -389,14 +391,15 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const nextStateByAttributes = nextState(
+      const nextState = nextStateByAttributes(
         agreement.data,
         descriptor,
         consumer
       );
 
       const newState = agreementStateByFlags(
-        nextStateByAttributes,
+        nextState,
+        undefined,
         undefined,
         undefined
       );
@@ -410,7 +413,6 @@ export function agreementServiceBuilder(
         agreement.data,
         payload,
         newState,
-        false,
         authData.userId
       );
 
@@ -900,7 +902,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const nextAttributesState = nextState(
+      const nextState = nextStateByAttributes(
         agreement.data,
         descriptor,
         consumer
@@ -918,9 +920,10 @@ export function agreementServiceBuilder(
       );
 
       const newState = agreementStateByFlags(
-        nextAttributesState,
+        nextState,
         suspendedByProducer,
-        suspendedByConsumer
+        suspendedByConsumer,
+        undefined
       );
 
       failOnActivationFailure(newState, agreement.data);
@@ -1003,6 +1006,27 @@ export function agreementServiceBuilder(
       );
 
       return updatedAgreement;
+    },
+    async computeAgreementsStateByAttribute(
+      attributeId: AttributeId,
+      consumer: CompactTenant,
+      { logger, correlationId }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Recalculating agreements state for Attribute ${attributeId} - Consumer Tenant ${consumer.id}`
+      );
+
+      const events = await computeAgreementsStateByAttribute(
+        attributeId,
+        consumer,
+        readModelService,
+        correlationId,
+        logger
+      );
+
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
     },
   };
 }
