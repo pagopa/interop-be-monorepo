@@ -259,7 +259,7 @@ const authorizationRouter = (
     )
     .delete(
       "/clients/:clientId/keys/:keyId", // to do
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
