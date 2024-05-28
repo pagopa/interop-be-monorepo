@@ -168,7 +168,8 @@ export function readModelServiceBuilder(
             data: Client,
           })
         )
-        .safeParse(data.map((d) => d.data));
+        .safeParse(data);
+
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse client items: result ${JSON.stringify(
