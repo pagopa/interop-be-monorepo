@@ -298,13 +298,13 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.removeClientPurpose(
-            unsafeBrandId(req.params.clientId),
-            unsafeBrandId(req.params.purposeId),
-            ctx.authData.organizationId,
-            ctx.correlationId,
-            ctx.logger
-          );
+          await authorizationService.removeClientPurpose({
+            clientId: unsafeBrandId(req.params.clientId),
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(

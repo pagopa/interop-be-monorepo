@@ -256,13 +256,19 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeClientPurpose(
-      clientId: ClientId,
-      purposeIdToRemove: PurposeId,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removeClientPurpose({
+      clientId,
+      purposeIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      purposeIdToRemove: PurposeId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(
         `Removing purpose ${purposeIdToRemove} from client ${clientId}`
       );
