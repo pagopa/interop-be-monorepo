@@ -2,26 +2,35 @@ import { FileManager, Logger, CreateEvent } from "pagopa-interop-commons";
 import {
   WithMetadata,
   Agreement,
-  DescriptorId,
   AgreementEvent,
   agreementState,
   generateId,
   AgreementId,
   UserId,
+  Descriptor,
+  EService,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
   toCreateEventAgreementAdded,
 } from "../model/domain/toEvent.js";
-import { verifyConflictingAgreements } from "../model/domain/validators.js";
+import {
+  matchingCertifiedAttributes,
+  matchingDeclaredAttributes,
+  matchingVerifiedAttributes,
+  verifyConflictingAgreements,
+} from "../model/domain/validators.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
 
 export async function createUpgradeOrNewDraft({
   agreement,
-  descriptorId,
+  eservice,
+  newDescriptor,
+  consumer,
   readModelService,
   canBeUpgraded,
   copyFile,
@@ -30,7 +39,9 @@ export async function createUpgradeOrNewDraft({
   logger,
 }: {
   agreement: WithMetadata<Agreement>;
-  descriptorId: DescriptorId;
+  eservice: EService;
+  newDescriptor: Descriptor;
+  consumer: Tenant;
   readModelService: ReadModelService;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
@@ -38,6 +49,7 @@ export async function createUpgradeOrNewDraft({
   correlationId: string;
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
+  const newAgreementId = generateId<AgreementId>();
   if (canBeUpgraded) {
     // upgradeAgreement
     const stamp = createStamp(userId);
@@ -49,24 +61,40 @@ export async function createUpgradeOrNewDraft({
         archiving: stamp,
       },
     };
-    const newAgreementId = generateId<AgreementId>();
     const upgraded: Agreement = {
-      ...agreement.data,
       id: newAgreementId,
-      descriptorId,
+      state: agreement.data.state,
       createdAt: new Date(),
-      updatedAt: undefined,
-      rejectionReason: undefined,
-      stamps: {
-        ...agreement.data.stamps,
-        upgrade: stamp,
-      },
+      descriptorId: newDescriptor.id,
+      eserviceId: agreement.data.eserviceId,
+      producerId: agreement.data.producerId,
+      consumerId: agreement.data.consumerId,
+      consumerNotes: agreement.data.consumerNotes,
       consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
         newAgreementId,
         agreement.data,
         copyFile,
         logger
       ),
+      // TODO generate a new contract here - https://pagopa.atlassian.net/browse/IMN-622
+      contract: agreement.data.contract,
+      verifiedAttributes: matchingVerifiedAttributes(
+        eservice,
+        newDescriptor,
+        consumer
+      ),
+      certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
+      declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
+      suspendedByConsumer: agreement.data.suspendedByConsumer,
+      suspendedByProducer: agreement.data.suspendedByProducer,
+      suspendedAt: agreement.data.suspendedAt,
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
+      stamps: {
+        ...agreement.data.stamps,
+        upgrade: stamp,
+      },
     };
 
     return [
@@ -89,20 +117,41 @@ export async function createUpgradeOrNewDraft({
       readModelService
     );
 
-    const id = generateId<AgreementId>();
     const newAgreement: Agreement = {
-      ...agreement.data,
-      id,
-      descriptorId,
+      id: newAgreementId,
       state: agreementState.draft,
       createdAt: new Date(),
+      descriptorId: newDescriptor.id,
+      eserviceId: agreement.data.eserviceId,
+      producerId: agreement.data.producerId,
+      consumerId: agreement.data.consumerId,
+      consumerNotes: agreement.data.consumerNotes,
       consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
-        id,
+        newAgreementId,
         agreement.data,
         copyFile,
         logger
       ),
-      stamps: {},
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
+      contract: undefined,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      /* We copy suspendedByProducer, suspendedByProducer, suspendedAt, and
+      the corresponding stamps, even if this is a Draft Agreement and suspension
+      should not make sense on a Draft Agreement.
+      In this way, when the new agreement gets activated
+      by the producer, it will be suspended right away if the original
+      agreement was suspended by the consumer, and viceversa. */
+      suspendedByConsumer: agreement.data.suspendedByConsumer,
+      suspendedByProducer: agreement.data.suspendedByProducer,
+      suspendedAt: agreement.data.suspendedAt,
+      stamps: {
+        suspensionByConsumer: agreement.data.stamps.suspensionByConsumer,
+        suspensionByProducer: agreement.data.stamps.suspensionByProducer,
+      },
     };
 
     const createEvent = toCreateEventAgreementAdded(

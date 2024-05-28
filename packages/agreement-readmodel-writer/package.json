@@ -21,14 +21,14 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.12.12",
+    "@types/node": "20.14.2",
     "@types/uuid": "9.0.8",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
-    "uuid": "9.0.1",
+    "uuid": "10.0.0",
     "vitest": "1.6.0",
     "@anatine/zod-mock": "3.13.4"
   },

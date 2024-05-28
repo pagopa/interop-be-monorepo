@@ -12,35 +12,50 @@ export interface PDFGenerator {
   ) => Promise<Buffer>;
 }
 
+/* Exporting a function for the launch options of puppeteer instead
+of the launchBrowser function itself. This avoids exporting the puppeteer
+module types, that cause ESLint to reach max heap size and crash.
+
+These reaused to launch puppeteer for testing
+with the same params used in production, but allowing to set
+pipe option to true. Pipe true allows test suites to run
+without spawning a new browser instance for each test.
+*/
+export const puppeteerLaunchOptions = (
+  options: { pipe: boolean } = { pipe: false }
+): object => ({
+  ...options,
+  /* the following args allow file:// usages for
+  resources files in template's folder */
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--allow-file-access-from-files",
+    "--enable-local-file-accesses",
+  ],
+});
+
+const launchBrowser = (): Promise<Browser> =>
+  puppeteer.launch(puppeteerLaunchOptions());
+
 export async function initPDFGenerator(): Promise<PDFGenerator> {
   const templateService = buildHTMLTemplateService();
-  let browserInstance = await puppeteer.launch({
-    /* NOTE 
-      those configurations allow link (file://) usages for 
-      resources files in template's folder
-    */
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-gpu",
-      "--disable-dev-shm-usage",
-      "--allow-file-access-from-files",
-      "--enable-local-file-accesses",
-    ],
-  });
+  let browserInstance = await launchBrowser();
 
   const getBrowser = async (): Promise<Browser> => {
     if (browserInstance?.connected) {
       return browserInstance;
     } else {
-      browserInstance = await puppeteer.launch();
+      browserInstance = await launchBrowser();
       return browserInstance;
     }
   };
 
   // During unexpected browser crash restarts browser handling "disconnected" event
   browserInstance.on("disconnected", async () => {
-    browserInstance = await puppeteer.launch();
+    browserInstance = await launchBrowser();
   });
 
   return {
@@ -52,9 +67,11 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
       const dirname = path.dirname(filename);
       const polyfillFilePath = path.resolve(dirname, "paged.polyfill.js");
 
+      let page: puppeteer.Page | undefined;
+
       try {
         const browser = await getBrowser();
-        const page = await browser.newPage();
+        page = await browser.newPage();
         await page.goto(`file://${templatePath}`);
 
         // Injecting polyfill paged.js to current html and set in the page
@@ -77,6 +94,8 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
         });
       } catch (error) {
         throw pdfGenerationError(error);
+      } finally {
+        await page?.close();
       }
     },
   };

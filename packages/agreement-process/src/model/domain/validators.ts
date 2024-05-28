@@ -37,6 +37,7 @@ import {
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
+  CompactTenant,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -46,6 +47,13 @@ export const agreementActivableStates: AgreementState[] = [
   agreementState.pending,
   agreementState.suspended,
 ];
+
+export const agreementActivationAllowedDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+];
+
 export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
@@ -299,7 +307,7 @@ const attributesSatisfied = (
 
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const certifiedAttributes = filterCertifiedAttributes(tenant).map(
     (a) => a.id
@@ -313,7 +321,7 @@ export const certifiedAttributesSatisfied = (
 
 export const declaredAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
 
@@ -326,7 +334,7 @@ export const declaredAttributesSatisfied = (
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
     (a) => a.id
@@ -372,12 +380,6 @@ export const validateActivationOnDescriptor = (
   eservice: EService,
   descriptorId: Descriptor["id"]
 ): Descriptor => {
-  const allowedState: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.deprecated,
-    descriptorState.suspended,
-  ];
-
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
     throw descriptorNotFound(eservice.id, descriptorId);
@@ -387,7 +389,7 @@ export const validateActivationOnDescriptor = (
     eservice.id,
     descriptor.id,
     descriptor.state,
-    allowedState
+    agreementActivationAllowedDescriptorStates
   );
 
   return descriptor;
@@ -460,7 +462,7 @@ export const matchingVerifiedAttributes = (
 
 export const filterVerifiedAttributes = (
   producerId: TenantId,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -473,7 +475,7 @@ export const filterVerifiedAttributes = (
   ) as VerifiedTenantAttribute[];
 
 export const filterCertifiedAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): CertifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -481,7 +483,7 @@ export const filterCertifiedAttributes = (
   ) as CertifiedTenantAttribute[];
 
 export const filterDeclaredAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): DeclaredTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>

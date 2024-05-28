@@ -253,7 +253,7 @@ export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
 
 export function badRequestError(
   detail: string,
-  errors: Error[]
+  errors?: Error[]
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail,

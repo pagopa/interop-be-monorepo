@@ -1,4 +1,4 @@
-FROM node:20.13.1-slim@sha256:cffed8cd39d6a380434e6d08116d188c53e70611175cd5ec7700f93f32a935a6 as build
+FROM node:20.14.0-slim@sha256:0ff3b9e24e805e08f2e4f822957d1deee86bb07927c70ba8440de79a6a885da6 as build
 
 RUN corepack enable
 
@@ -34,7 +34,7 @@ RUN pnpm build && \
       packages/attribute-registry-readmodel-writer/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.13.1-slim@sha256:cffed8cd39d6a380434e6d08116d188c53e70611175cd5ec7700f93f32a935a6 as final 
+FROM node:20.14.0-slim@sha256:0ff3b9e24e805e08f2e4f822957d1deee86bb07927c70ba8440de79a6a885da6 as final 
 
 COPY --from=build /out /app
 

@@ -25,10 +25,10 @@
     "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.4",
-    "@types/node": "20.12.12",
+    "@types/node": "20.14.2",
     "@types/uuid": "9.0.8",
     "ts-pattern": "5.1.2",
-    "uuid": "9.0.1",
+    "uuid": "10.0.0",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0"
   },

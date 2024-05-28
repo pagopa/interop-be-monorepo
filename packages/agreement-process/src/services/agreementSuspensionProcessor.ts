@@ -16,7 +16,7 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   agreementStateByFlags,
-  nextState,
+  nextStateByAttributesFSM,
   suspendedByConsumerFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
@@ -37,22 +37,33 @@ export function createSuspensionUpdatedAgreement({
   descriptor: Descriptor;
   consumer: Tenant;
 }): Agreement {
-  const nextStateByAttributes = nextState(agreement, descriptor, consumer);
+  /* nextAttributesState VS targetDestinationState
+  -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
+  -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+  */
+  const targetDestinationState = agreementState.suspended;
+  const nextStateByAttributes = nextStateByAttributesFSM(
+    agreement,
+    descriptor,
+    consumer
+  );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement,
     authData.organizationId,
-    agreementState.suspended
+    targetDestinationState
   );
   const suspendedByProducer = suspendedByProducerFlag(
     agreement,
     authData.organizationId,
-    agreementState.suspended
+    targetDestinationState
   );
+
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     suspendedByProducer,
-    suspendedByConsumer
+    suspendedByConsumer,
+    agreement.suspendedByPlatform
   );
 
   const stamp = createStamp(authData.userId);

@@ -4,7 +4,9 @@
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
 import {
+  AgreementEventV1,
   AttributeEvent,
+  AuthorizationEvent,
   EServiceEventV1,
   PurposeEventV1,
 } from "pagopa-interop-models";
@@ -32,34 +34,21 @@ const Config = z
     TARGET_DB_HOST: z.string(),
     TARGET_DB_PORT: z.coerce.number(),
     TARGET_DB_NAME: z.string(),
-    TARGET_DB_SCHEMA: z.enum([
-      "catalog",
-      "dev-refactor_catalog",
-      "test_catalog",
-      "prod_catalog",
-      "attribute",
-      "dev-refactor_attribute_registry",
-      "test_attribute_registry",
-      "prod_attribute_registry",
-      "purpose",
-      "dev-refactor_purpose",
-      "test_purpose",
-      "prod_purpose",
-    ]),
+    TARGET_DB_SCHEMA: z.string(),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
   })
   .transform((c) => ({
     sourceDbUsername: c.SOURCE_DB_USERNAME,
-    sourceDbPassword: c.SOURCE_DB_PASSWORD,
+    sourceDbPassword: encodeURIComponent(c.SOURCE_DB_PASSWORD),
     sourceDbHost: c.SOURCE_DB_HOST,
     sourceDbPort: c.SOURCE_DB_PORT,
     sourceDbName: c.SOURCE_DB_NAME,
     sourceDbSchema: c.SOURCE_DB_SCHEMA,
     sourceDbUseSSL: c.SOURCE_DB_USE_SSL,
     targetDbUsername: c.TARGET_DB_USERNAME,
-    targetDbPassword: c.TARGET_DB_PASSWORD,
+    targetDbPassword: encodeURIComponent(c.TARGET_DB_PASSWORD),
     targetDbHost: c.TARGET_DB_HOST,
     targetDbPort: c.TARGET_DB_PORT,
     targetDbName: c.TARGET_DB_NAME,
@@ -142,11 +131,8 @@ const originalEvents = await sourceConnection.many(
 const idVersionHashMap = new Map<string, number>();
 
 const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
-  .with(
-    "catalog",
-    "dev-refactor_catalog",
-    "test_catalog",
-    "prod_catalog",
+  .when(
+    (targetSchema) => targetSchema.includes("catalog"),
     () => {
       checkSchema(config.sourceDbSchema, "catalog");
       const parseEventType = (event_ser_manifest: any) =>
@@ -178,11 +164,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .with(
-    "attribute",
-    "dev-refactor_attribute_registry",
-    "test_attribute_registry",
-    "prod_attribute_registry",
+  .when(
+    (targetSchema) => targetSchema.includes("attribute"),
     () => {
       checkSchema(config.sourceDbSchema, "attribute");
 
@@ -211,11 +194,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .with(
-    "purpose",
-    "dev-refactor_purpose",
-    "test_purpose",
-    "prod_purpose",
+  .when(
+    (targetSchema) => targetSchema.includes("purpose"),
     () => {
       checkSchema(config.sourceDbSchema, "purpose");
       const parseEventType = (event_ser_manifest: any) =>
@@ -236,7 +216,61 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .exhaustive();
+  .when(
+    (targetSchema) => targetSchema.includes("agreement"),
+    () => {
+      checkSchema(config.sourceDbSchema, "agreement");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace(
+            "it.pagopa.interop.agreementmanagement.model.persistence.",
+            ""
+          )
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AgreementEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.agreement ? anyPayload.agreement.id : anyPayload.agreementId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .when(
+    (targetSchema) => targetSchema.includes("authorization"),
+    () => {
+      checkSchema(config.sourceDbSchema, "authorization");
+
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace(
+            "it.pagopa.interop.authorizationmanagement.model.persistence.",
+            ""
+          )
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AuthorizationEvent.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.client ? anyPayload.client.id : anyPayload.clientId;
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .otherwise(() => {
+    throw new Error("Unhandled schema, please double-check the config");
+  });
+
+let skippedEvents = 0;
 
 for (const event of originalEvents) {
   console.log(event);
@@ -244,8 +278,29 @@ for (const event of originalEvents) {
 
   const parsedEventType = parseEventType(event_ser_manifest);
 
-  const decodedEvent = decodeEvent(parsedEventType, event_payload);
+  // Agreement has some event-store entries with no details about the event
+  // the data updates related to these missing entries are going to be fixed by a custom script
+  if (parsedEventType === "") {
+    skippedEvents++;
+    continue;
+  }
 
+  const authorizationEventsToSkip = [
+    "EServiceStateUpdated",
+    "AgreementStateUpdated",
+    "PurposeStateUpdated",
+    "AgreementAndEServiceStatesUpdated",
+  ];
+  // Authorization has some event-store entries that don't have to be migrated
+  if (
+    config.targetDbSchema.includes("authorization") &&
+    authorizationEventsToSkip.includes(parsedEventType)
+  ) {
+    skippedEvents++;
+    continue;
+  }
+
+  const decodedEvent = decodeEvent(parsedEventType, event_payload);
   if (!decodedEvent.success) {
     console.error(
       `Error decoding event ${parsedEventType} with payload ${event_payload}`
@@ -296,6 +351,8 @@ for (const event of originalEvents) {
     ]
   );
 }
+
+console.log(`Count of skipped events: ${skippedEvents}`);
 
 function checkSchema(sourceSchema: string, schemaKind: string) {
   if (!sourceSchema.includes(schemaKind)) {

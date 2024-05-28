@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.12.12",
+    "@types/node": "20.14.2",
     "@types/uuid": "9.0.8",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
@@ -38,7 +38,7 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "5.1.2",
-    "uuid": "9.0.1",
+    "uuid": "10.0.0",
     "zod": "3.23.8"
   }
 }

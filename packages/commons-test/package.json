@@ -30,11 +30,11 @@
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg-promise": "11.6.0",
+    "pg-promise": "11.8.0",
     "testcontainers": "10.9.0",
     "ts-pattern": "5.1.2",
     "typescript": "5.4.5",
-    "uuid": "9.0.1",
+    "uuid": "10.0.0",
     "vitest": "1.6.0",
     "zod": "3.23.8"
   }

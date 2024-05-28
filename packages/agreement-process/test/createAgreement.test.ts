@@ -30,6 +30,8 @@ import {
   TenantAttribute,
   Descriptor,
   descriptorState,
+  Agreement,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -62,12 +64,13 @@ import {
  * @returns A Promise that resolves return the created AgreementV1 object.
  */
 const expectedAgreementCreation = async (
-  agreementId: AgreementId | undefined,
+  agreement: Agreement,
   expectedEserviceId: EServiceId,
   expectedDescriptorId: DescriptorId,
   expectedProducerId: TenantId,
   expectedConsumerId: TenantId
 ): Promise<AgreementV2> => {
+  const agreementId = unsafeBrandId<AgreementId>(agreement.id);
   expect(agreementId).toBeDefined();
   if (!agreementId) {
     fail("Unhandled error: returned agreementId is undefined");
@@ -112,6 +115,7 @@ const expectedAgreementCreation = async (
     stamps: {},
     createdAt: expect.any(BigInt),
   });
+  expect(actualAgreement).toEqual(toAgreementV2(agreement));
 
   return actualAgreement;
 };
@@ -144,7 +148,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eserviceId,
       descriptorId,
       authData.organizationId,
@@ -203,7 +207,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -240,7 +244,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -285,7 +289,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor0.id,
       tenant.id,
@@ -327,7 +331,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor.id,
       tenant.id,
