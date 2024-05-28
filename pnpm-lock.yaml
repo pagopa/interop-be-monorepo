@@ -79,8 +79,8 @@ importers:
         specifier: workspace:*
         version: link:../commons-test
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -194,8 +194,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
@@ -432,8 +432,8 @@ importers:
         specifier: workspace:*
         version: link:../commons-test
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -559,8 +559,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       puppeteer:
         specifier: 22.8.0
         version: 22.8.0(typescript@5.4.5)
@@ -644,8 +644,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -759,8 +759,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
@@ -967,8 +967,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
@@ -1145,8 +1145,8 @@ importers:
         specifier: workspace:*
         version: link:../commons-test
       pg-promise:
-        specifier: 11.6.0
-        version: 11.6.0
+        specifier: 11.7.8
+        version: 11.7.8
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -7599,9 +7599,9 @@ packages:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
 
-  /pg-minify@1.6.3:
-    resolution: {integrity: sha512-NoSsPqXxbkD8RIe+peQCqiea4QzXgosdTKY8p7PsbbGsh2F8TifDj/vJxfuR8qJwNYrijdSs7uf0tAe6WOyCsQ==}
-    engines: {node: '>=12.0.0'}
+  /pg-minify@1.6.4:
+    resolution: {integrity: sha512-cf6hBt1YqzqPX0OznXKSv4U7e4o7eUU4zp2zQsbJ+4OCNNr7EnnAVWkIz4k0dv6UN4ouS1ZL4WlXxCrZHHl69g==}
+    engines: {node: '>=14.0.0'}
 
   /pg-pool@3.6.2(pg@8.11.5):
     resolution: {integrity: sha512-Htjbg8BlwXqSBQ9V8Vjtc+vzf/6fVUuak/3/XXKA9oxZprwW3IMDQTGHP+KDmVL7rtd+R1QjbnCFPuTHm3G4hg==}
@@ -7610,13 +7610,13 @@ packages:
     dependencies:
       pg: 8.11.5
 
-  /pg-promise@11.6.0:
-    resolution: {integrity: sha512-NDRPMfkv3ia89suWlJ4iGvP6X5YFrLJ2+9AIVISeBFFZ29Eb4FNXX9JaVb1p1OrpQkE2yT7igmXPL7UYQhk+6A==}
+  /pg-promise@11.7.8:
+    resolution: {integrity: sha512-s5pcLp8QLIFNhnEsxaqBtDh7LsOG3hjJbVOVpYlWPqg/g1LIixGMtbNgbxW1HkTSY5rKT9tyE0J+dw2X7bD3rQ==}
     engines: {node: '>=14.0'}
     dependencies:
       assert-options: 0.8.1
       pg: 8.11.5
-      pg-minify: 1.6.3
+      pg-minify: 1.6.4
       spex: 3.3.0
     transitivePeerDependencies:
       - pg-native

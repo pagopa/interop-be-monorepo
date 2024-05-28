@@ -34,7 +34,7 @@
     "kafkajs": "2.2.4",
     "mongodb": "5.9.2",
     "pagopa-interop-models": "workspace:*",
-    "pg-promise": "11.6.0",
+    "pg-promise": "11.7.8",
     "ts-pattern": "5.1.2",
     "puppeteer": "22.8.0",
     "uuid": "9.0.1",
