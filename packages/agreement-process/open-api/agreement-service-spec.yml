@@ -769,6 +769,12 @@ paths:
       responses:
         "204":
           description: Bulk operation executed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/agreements/filter/eservices":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
