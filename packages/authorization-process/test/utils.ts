@@ -7,7 +7,12 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
-import { AuthorizationEvent, Client, toClientV2 } from "pagopa-interop-models";
+import {
+  AuthorizationEvent,
+  Client,
+  ClientId,
+  toClientV2,
+} from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
