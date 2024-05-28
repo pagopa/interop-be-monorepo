@@ -10,6 +10,8 @@ export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
   clients: ClientCollection
 ): Promise<void> {
+  const client = message.data.client;
+
   await match(message)
     .with(
       { type: "ClientAdded" },
@@ -27,8 +29,8 @@ export async function handleMessageV2(
           },
           {
             $set: {
-              data: message.data.client
-                ? toReadModelClient(fromClientV2(message.data.client))
+              data: client
+                ? toReadModelClient(fromClientV2(client))
                 : undefined,
               metadata: {
                 version: message.version,
