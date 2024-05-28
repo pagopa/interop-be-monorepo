@@ -321,7 +321,19 @@ export function authorizationServiceBuilder(
         );
       }
     },
-    async getClientUsers(clientId: String);
+    async getClientUsers(
+      clientId: ClientId,
+      organizationId: TenantId,
+      logger: Logger
+    ): Promise<{ users: UserId[]; showUsers: boolean }> {
+      logger.info(`Retrieving users of client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+      return {
+        users: client.data.users,
+        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+      };
+    },
   };
 }
 
