@@ -322,11 +322,11 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.removePurposeFromClients(
-            unsafeBrandId(req.params.purposeId),
-            ctx.correlationId,
-            ctx.logger
-          );
+          await authorizationService.removePurposeFromClients({
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);
