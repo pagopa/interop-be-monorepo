@@ -293,7 +293,7 @@ const authorizationRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/clients/:clientId/purposes/:purposeId", // to do
+      "/clients/:clientId/purposes/:purposeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
