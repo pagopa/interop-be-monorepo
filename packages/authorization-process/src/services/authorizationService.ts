@@ -213,13 +213,19 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async deleteClientKeyById(
-      clientId: ClientId,
-      keyIdToRemove: string,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async deleteClientKeyById({
+      clientId,
+      keyIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      keyIdToRemove: string;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
