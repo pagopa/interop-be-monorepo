@@ -11,8 +11,8 @@ import {
   ApiClient,
   ApiClientWithKeys,
   ApiClientKind,
-  ApiKeyUse,
   ApiKey,
+  ApiKeyUse,
 } from "./models.js";
 import { missingUserId } from "./errors.js";
 

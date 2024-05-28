@@ -106,6 +106,7 @@ export function setupTestContainersVitest(
       await readModelRepository?.tenants.deleteMany({});
       await readModelRepository?.purposes.deleteMany({});
       await readModelRepository?.attributes.deleteMany({});
+      await readModelRepository?.clients.deleteMany({});
 
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -116,6 +117,9 @@ export function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
+      );
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
