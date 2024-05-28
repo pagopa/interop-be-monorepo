@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockClient,
   getMockTenant,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -19,7 +20,6 @@ import {
 import {
   addOneClient,
   authorizationService,
-  getMockClient,
   readLastAuthorizationEvent,
   tenants,
 } from "./utils.js";
