@@ -29,13 +29,14 @@ import {
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
+import { isClientConsumer } from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<Client>> => {
   const client = await readModelService.getClientById(clientId);
-  if (client === undefined) {
+  if (!client) {
     throw clientNotFound(clientId);
   }
   return client;
@@ -75,7 +76,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       return {
         client: client.data,
-        showUsers: client.data.consumerId === organizationId,
+        showUsers: isClientConsumer(client.data.consumerId, organizationId),
       };
     },
 
@@ -186,19 +187,25 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeUser(
-      clientId: ClientId,
-      userIdToRemove: UserId,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removeUser({
+      clientId,
+      userIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      userIdToRemove: UserId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      if (client.data.users.includes(userIdToRemove)) {
+      if (!client.data.users.includes(userIdToRemove)) {
         throw userIdNotFound(userIdToRemove, clientId);
       }
 
@@ -216,13 +223,19 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async deleteClientKeyById(
-      clientId: ClientId,
-      keyIdToRemove: string,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async deleteClientKeyById({
+      clientId,
+      keyIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      keyIdToRemove: string;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
@@ -244,13 +257,19 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeClientPurpose(
-      clientId: ClientId,
-      purposeIdToRemove: PurposeId,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removeClientPurpose({
+      clientId,
+      purposeIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      purposeIdToRemove: PurposeId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(
         `Removing purpose ${purposeIdToRemove} from client ${clientId}`
       );
