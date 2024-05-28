@@ -125,57 +125,56 @@ describe("compute Agreements state by attribute", () => {
       });
     });
 
-    it("updates the state of an updatable Agreement from Draft or Pending to MissingCertifiedAttributes", async () => {
-      await addOneEService(eservice);
+    it.each([agreementState.draft, agreementState.pending])(
+      "updates the state of an updatable Agreement from %s to MissingCertifiedAttributes",
+      async (state) => {
+        await addOneEService(eservice);
 
-      const updatableDraftOrPendingAgreement: Agreement = {
-        ...getMockAgreement(
-          eservice.id,
-          consumer.id,
-          randomArrayItem([agreementState.draft, agreementState.pending])
-        ),
-        descriptorId: eservice.descriptors[0].id,
-        producerId: eservice.producerId,
-        suspendedByPlatform: false,
-      };
+        const updatableDraftOrPendingAgreement: Agreement = {
+          ...getMockAgreement(eservice.id, consumer.id, state),
+          descriptorId: eservice.descriptors[0].id,
+          producerId: eservice.producerId,
+          suspendedByPlatform: false,
+        };
 
-      await addOneAgreement(updatableDraftOrPendingAgreement);
+        await addOneAgreement(updatableDraftOrPendingAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
-        invalidCertifiedAttribute.id,
-        consumer,
-        {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        }
-      );
+        await agreementService.computeAgreementsStateByAttribute(
+          invalidCertifiedAttribute.id,
+          consumer,
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
+        );
 
-      const agreementStateUpdateEvent = await readLastAgreementEvent(
-        updatableDraftOrPendingAgreement.id
-      );
+        const agreementStateUpdateEvent = await readLastAgreementEvent(
+          updatableDraftOrPendingAgreement.id
+        );
 
-      expect(agreementStateUpdateEvent).toMatchObject({
-        type: "AgreementSetMissingCertifiedAttributesByPlatform",
-        event_version: 2,
-        version: "1",
-        stream_id: updatableDraftOrPendingAgreement.id,
-      });
+        expect(agreementStateUpdateEvent).toMatchObject({
+          type: "AgreementSetMissingCertifiedAttributesByPlatform",
+          event_version: 2,
+          version: "1",
+          stream_id: updatableDraftOrPendingAgreement.id,
+        });
 
-      const agreementStateUpdateEventData = decodeProtobufPayload({
-        messageType: AgreementSuspendedByPlatformV2,
-        payload: agreementStateUpdateEvent.data,
-      });
+        const agreementStateUpdateEventData = decodeProtobufPayload({
+          messageType: AgreementSuspendedByPlatformV2,
+          payload: agreementStateUpdateEvent.data,
+        });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
-        agreement: toAgreementV2({
-          ...updatableDraftOrPendingAgreement,
-          state: agreementState.missingCertifiedAttributes,
-          suspendedByPlatform: true,
-        }),
-      });
-    });
+        expect(agreementStateUpdateEventData).toMatchObject({
+          agreement: toAgreementV2({
+            ...updatableDraftOrPendingAgreement,
+            state: agreementState.missingCertifiedAttributes,
+            suspendedByPlatform: true,
+          }),
+        });
+      }
+    );
 
     it("suspends an Agreement by platform even when the Agreement is already suspended but with suspendedByPlatform = false", async () => {
       await addOneEService(eservice);
