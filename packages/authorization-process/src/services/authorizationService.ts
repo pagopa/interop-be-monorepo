@@ -302,6 +302,7 @@ export function authorizationServiceBuilder(
         );
       }
     },
+    async getClientUsers(clientId: String);
   };
 }
 
