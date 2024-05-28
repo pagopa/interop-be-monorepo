@@ -114,8 +114,13 @@ const retrievePurpose = async (
   return purpose;
 };
 
-const retrievePurposeVersion = (versionId: PurposeVersionId, purpose: WithMetadata<Purpose>): PurposeVersion => {
-  const version = purpose.data.versions.find((v: PurposeVersion) => v.id === versionId);
+const retrievePurposeVersion = (
+  versionId: PurposeVersionId,
+  purpose: WithMetadata<Purpose>
+): PurposeVersion => {
+  const version = purpose.data.versions.find(
+    (v: PurposeVersion) => v.id === versionId
+  );
 
   if (version === undefined) {
     throw purposeVersionNotFound(purpose.data.id, versionId);
@@ -132,13 +137,20 @@ const retrievePurposeVersionDocument = (
   const document = purposeVersion.riskAnalysis;
 
   if (document === undefined || document.id !== documentId) {
-    throw purposeVersionDocumentNotFound(purposeId, purposeVersion.id, documentId);
+    throw purposeVersionDocumentNotFound(
+      purposeId,
+      purposeVersion.id,
+      documentId
+    );
   }
 
   return document;
 };
 
-const retrieveEService = async (eserviceId: EServiceId, readModelService: ReadModelService): Promise<EService> => {
+const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
     throw eserviceNotFound(eserviceId);
@@ -146,7 +158,10 @@ const retrieveEService = async (eserviceId: EServiceId, readModelService: ReadMo
   return eservice;
 };
 
-const retrieveTenant = async (tenantId: TenantId, readModelService: ReadModelService): Promise<Tenant> => {
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
@@ -159,15 +174,23 @@ export const retrieveActiveAgreement = async (
   consumerId: TenantId,
   readModelService: ReadModelService
 ): Promise<Agreement> => {
-  const activeAgreement = await readModelService.getActiveAgreement(eserviceId, consumerId);
+  const activeAgreement = await readModelService.getActiveAgreement(
+    eserviceId,
+    consumerId
+  );
   if (activeAgreement === undefined) {
     throw agreementNotFound(eserviceId, consumerId);
   }
   return activeAgreement;
 };
 
-const retrieveRiskAnalysis = (riskAnalysisId: RiskAnalysisId, eservice: EService): RiskAnalysis => {
-  const riskAnalysis = eservice.riskAnalysis.find((ra: RiskAnalysis) => ra.id === riskAnalysisId);
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): RiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
 
   if (riskAnalysis === undefined) {
     throw eserviceRiskAnalysisNotFound(eservice.id, riskAnalysisId);
@@ -177,7 +200,11 @@ const retrieveRiskAnalysis = (riskAnalysisId: RiskAnalysisId, eservice: EService
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadModelService, fileManager: FileManager) {
+export function purposeServiceBuilder(
+  dbInstance: DB,
+  readModelService: ReadModelService,
+  fileManager: FileManager
+) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
   return {
@@ -189,7 +216,10 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const eservice = await retrieveEService(purpose.data.eserviceId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
       const tenant = await retrieveTenant(organizationId, readModelService);
 
       assertTenantKindExists(tenant);
@@ -214,10 +244,15 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       organizationId: TenantId;
       logger: Logger;
     }): Promise<PurposeVersionDocument> {
-      logger.info(`Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`);
+      logger.info(
+        `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+      );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const eservice = await retrieveEService(purpose.data.eserviceId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
       getOrganizationRole({
         organizationId,
         producerId: eservice.producerId,
@@ -256,7 +291,9 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
 
       const updatedPurpose: Purpose = {
         ...purpose.data,
-        versions: purpose.data.versions.filter((v) => v.id !== purposeVersion.id),
+        versions: purpose.data.versions.filter(
+          (v) => v.id !== purposeVersion.id
+        ),
         updatedAt: new Date(),
       };
 
@@ -286,7 +323,10 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const eservice = await retrieveEService(purpose.data.eserviceId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
       if (organizationId !== eservice.producerId) {
         throw organizationIsNotTheProducer(organizationId);
       }
@@ -304,7 +344,10 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
         updatedAt: new Date(),
       };
 
-      const updatedPurpose = replacePurposeVersion(purpose.data, updatedPurposeVersion);
+      const updatedPurpose = replacePurposeVersion(
+        purpose.data,
+        updatedPurposeVersion
+      );
 
       const event = toCreateEventPurposeVersionRejected({
         purpose: updatedPurpose,
@@ -427,14 +470,19 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
 
       const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
-        versions: purpose.data.versions.filter((v) => v.state !== purposeVersionState.waitingForApproval),
+        versions: purpose.data.versions.filter(
+          (v) => v.state !== purposeVersionState.waitingForApproval
+        ),
       };
       const archivedVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.archived,
         updatedAt: new Date(),
       };
-      const updatedPurpose = replacePurposeVersion(purposeWithoutWaitingForApproval, archivedVersion);
+      const updatedPurpose = replacePurposeVersion(
+        purposeWithoutWaitingForApproval,
+        archivedVersion
+      );
 
       const event = toCreateEventPurposeArchived({
         purpose: updatedPurpose,
@@ -468,7 +516,10 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
 
-      const eservice = await retrieveEService(purpose.data.eserviceId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       const suspender = getOrganizationRole({
         organizationId,
@@ -530,7 +581,10 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
 
       const mappingPurposeEservice = await Promise.all(
         purposesList.results.map(async (purpose) => {
-          const eservice = await retrieveEService(purpose.eserviceId, readModelService);
+          const eservice = await retrieveEService(
+            purpose.eserviceId,
+            readModelService
+          );
           if (eservice === undefined) {
             throw eserviceNotFound(purpose.eserviceId);
           }
@@ -541,14 +595,20 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
         })
       );
 
-      const purposesToReturn = mappingPurposeEservice.map(({ purpose, eservice }) => {
-        const isProducerOrConsumer = organizationId === purpose.consumerId || organizationId === eservice.producerId;
+      const purposesToReturn = mappingPurposeEservice.map(
+        ({ purpose, eservice }) => {
+          const isProducerOrConsumer =
+            organizationId === purpose.consumerId ||
+            organizationId === eservice.producerId;
 
-        return {
-          ...purpose,
-          riskAnalysisForm: isProducerOrConsumer ? purpose.riskAnalysisForm : undefined,
-        };
-      });
+          return {
+            ...purpose,
+            riskAnalysisForm: isProducerOrConsumer
+              ? purpose.riskAnalysisForm
+              : undefined,
+          };
+        }
+      );
 
       return {
         results: purposesToReturn,
@@ -576,20 +636,36 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
 
       const conflictVersion = purpose.data.versions.find(
-        (v) => v.state === purposeVersionState.draft || v.state === purposeVersionState.waitingForApproval
+        (v) =>
+          v.state === purposeVersionState.draft ||
+          v.state === purposeVersionState.waitingForApproval
       );
 
       if (conflictVersion !== undefined) {
-        throw purposeVersionStateConflict(purposeId, conflictVersion.id, conflictVersion.state);
+        throw purposeVersionStateConflict(
+          purposeId,
+          conflictVersion.id,
+          conflictVersion.state
+        );
       }
 
-      const eservice = await retrieveEService(purpose.data.eserviceId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       /**
        * If, with the given daily calls, the purpose goes in over quota,
        * we will create a new version in waiting for approval state
        */
-      if (await isOverQuota(eservice, purpose.data, seed.dailyCalls, readModelService)) {
+      if (
+        await isOverQuota(
+          eservice,
+          purpose.data,
+          seed.dailyCalls,
+          readModelService
+        )
+      ) {
         const newPurposeVersion: PurposeVersion = {
           id: generateId<PurposeVersionId>(),
           createdAt: new Date(),
@@ -640,10 +716,14 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       // Archive all versions in active/suspended state
       const oldVersions = purpose.data.versions.map((v) =>
         match(v.state)
-          .with(purposeVersionState.active, purposeVersionState.suspended, () => ({
-            ...v,
-            state: purposeVersionState.archived,
-          }))
+          .with(
+            purposeVersionState.active,
+            purposeVersionState.suspended,
+            () => ({
+              ...v,
+              state: purposeVersionState.archived,
+            })
+          )
           .otherwise(() => v)
       );
 
@@ -671,18 +751,27 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       correlationId: string,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
-      logger.info(`Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`);
+      logger.info(
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
+      );
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
       assertOrganizationIsAConsumer(organizationId, consumerId);
 
-      assertConsistentFreeOfCharge(purposeSeed.isFreeOfCharge, purposeSeed.freeOfChargeReason);
+      assertConsistentFreeOfCharge(
+        purposeSeed.isFreeOfCharge,
+        purposeSeed.freeOfChargeReason
+      );
 
       const tenant = await retrieveTenant(organizationId, readModelService);
 
       assertTenantKindExists(tenant);
 
-      const validatedFormSeed = validateAndTransformRiskAnalysis(purposeSeed.riskAnalysisForm, false, tenant.kind);
+      const validatedFormSeed = validateAndTransformRiskAnalysis(
+        purposeSeed.riskAnalysisForm,
+        false,
+        tenant.kind
+      );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
@@ -710,7 +799,9 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
         riskAnalysisForm: validatedFormSeed,
       };
 
-      await repository.createEvent(toCreateEventPurposeAdded(purpose, correlationId));
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
     async createReversePurpose(
@@ -719,7 +810,9 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       correlationId: string,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
-      logger.info(`Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`);
+      logger.info(
+        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+      );
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
@@ -727,11 +820,20 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
-      const riskAnalysis = retrieveRiskAnalysis(unsafeBrandId(seed.riskAnalysisId), eservice);
+      const riskAnalysis = retrieveRiskAnalysis(
+        unsafeBrandId(seed.riskAnalysisId),
+        eservice
+      );
 
-      assertConsistentFreeOfCharge(seed.isFreeOfCharge, seed.freeOfChargeReason);
+      assertConsistentFreeOfCharge(
+        seed.isFreeOfCharge,
+        seed.freeOfChargeReason
+      );
 
-      const producer = await retrieveTenant(eservice.producerId, readModelService);
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
 
       assertTenantKindExists(producer);
 
@@ -745,7 +847,9 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       });
 
       validateRiskAnalysisOrThrow({
-        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm),
+        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+          riskAnalysis.riskAnalysisForm
+        ),
         schemaOnlyValidation: false,
         tenantKind: producer.kind,
       });
@@ -770,7 +874,9 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
         riskAnalysisForm: riskAnalysis.riskAnalysisForm,
       };
 
-      await repository.createEvent(toCreateEventPurposeAdded(purpose, correlationId));
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
       return {
         purpose,
         isRiskAnalysisValid: true,
@@ -811,28 +917,34 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
 
-      const clonedRiskAnalysisForm: PurposeRiskAnalysisForm | undefined = riskAnalysisFormToClone
-        ? {
-            id: generateId(),
-            version: riskAnalysisFormToClone.version,
-            riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
-            singleAnswers: riskAnalysisFormToClone.singleAnswers.map((answer) => ({
-              ...answer,
+      const clonedRiskAnalysisForm: PurposeRiskAnalysisForm | undefined =
+        riskAnalysisFormToClone
+          ? {
               id: generateId(),
-            })),
-            multiAnswers: riskAnalysisFormToClone.multiAnswers.map((answer) => ({
-              ...answer,
-              id: generateId(),
-            })),
-          }
-        : undefined;
+              version: riskAnalysisFormToClone.version,
+              riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
+              singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
+                (answer) => ({
+                  ...answer,
+                  id: generateId(),
+                })
+              ),
+              multiAnswers: riskAnalysisFormToClone.multiAnswers.map(
+                (answer) => ({
+                  ...answer,
+                  id: generateId(),
+                })
+              ),
+            }
+          : undefined;
 
       const currentDate = new Date();
       const title = purposeToClone.data.title;
       const suffix = ` - clone - ${formatDateddMMyyyyHHmmss(currentDate)}`;
       const dots = "...";
       const maxTitleLength = 60; // same value as in the api spec (PurposeSeed)
-      const prefixLengthAllowance = maxTitleLength - suffix.length - dots.length;
+      const prefixLengthAllowance =
+        maxTitleLength - suffix.length - dots.length;
       const clonedPurposeTitle =
         title.length + suffix.length <= maxTitleLength
           ? `${title}${suffix}`
@@ -859,8 +971,13 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       };
 
       const isRiskAnalysisValid = clonedRiskAnalysisForm
-        ? validateRiskAnalysis(riskAnalysisFormToRiskAnalysisFormToValidate(clonedRiskAnalysisForm), false, tenant.kind)
-            .type === "valid"
+        ? validateRiskAnalysis(
+            riskAnalysisFormToRiskAnalysisFormToValidate(
+              clonedRiskAnalysisForm
+            ),
+            false,
+            tenant.kind
+          ).type === "valid"
         : false;
 
       const event = toCreateEventPurposeCloned({
@@ -886,17 +1003,29 @@ export function purposeServiceBuilder(dbInstance: DB, readModelService: ReadMode
       organizationId: TenantId;
       logger: Logger;
     }): Promise<RiskAnalysisFormRules> {
-      logger.info(`Retrieve version ${riskAnalysisVersion} of risk analysis configuration`);
+      logger.info(
+        `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
+      );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      const tenant = await getInvolvedTenantByEServiceMode(eservice, organizationId, readModelService);
+      const tenant = await getInvolvedTenantByEServiceMode(
+        eservice,
+        organizationId,
+        readModelService
+      );
 
       assertTenantKindExists(tenant);
 
-      const riskAnalysisFormConfig = getFormRulesByVersion(tenant.kind, riskAnalysisVersion);
+      const riskAnalysisFormConfig = getFormRulesByVersion(
+        tenant.kind,
+        riskAnalysisVersion
+      );
 
       if (!riskAnalysisFormConfig) {
-        throw riskAnalysisConfigVersionNotFound(riskAnalysisVersion, tenant.kind);
+        throw riskAnalysisConfigVersionNotFound(
+          riskAnalysisVersion,
+          tenant.kind
+        );
       }
 
       return riskAnalysisFormConfig;
@@ -919,7 +1048,11 @@ const authorizeRiskAnalysisForm = ({
 }): { purpose: Purpose; isRiskAnalysisValid: boolean } => {
   if (organizationId === purpose.consumerId || organizationId === producerId) {
     if (purposeIsDraft(purpose)) {
-      const isRiskAnalysisValid = isRiskAnalysisFormValid(purpose.riskAnalysisForm, false, tenantKind);
+      const isRiskAnalysisValid = isRiskAnalysisFormValid(
+        purpose.riskAnalysisForm,
+        false,
+        tenantKind
+      );
       return { purpose, isRiskAnalysisValid };
     } else {
       return { purpose, isRiskAnalysisValid: true };
@@ -952,8 +1085,13 @@ const getOrganizationRole = ({
   }
 };
 
-const replacePurposeVersion = (purpose: Purpose, newVersion: PurposeVersion): Purpose => {
-  const updatedVersions = purpose.versions.map((v: PurposeVersion) => (v.id === newVersion.id ? newVersion : v));
+const replacePurposeVersion = (
+  purpose: Purpose,
+  newVersion: PurposeVersion
+): Purpose => {
+  const updatedVersions = purpose.versions.map((v: PurposeVersion) =>
+    v.id === newVersion.id ? newVersion : v
+  );
 
   return {
     ...purpose,
@@ -1002,18 +1140,36 @@ const performUpdatePurpose = async (
       title: updateContent.title,
     });
   }
-  const eservice = await retrieveEService(purpose.data.eserviceId, readModelService);
+  const eservice = await retrieveEService(
+    purpose.data.eserviceId,
+    readModelService
+  );
   assertEserviceMode(eservice, mode);
-  assertConsistentFreeOfCharge(updateContent.isFreeOfCharge, updateContent.freeOfChargeReason);
+  assertConsistentFreeOfCharge(
+    updateContent.isFreeOfCharge,
+    updateContent.freeOfChargeReason
+  );
 
-  const tenant = await getInvolvedTenantByEServiceMode(eservice, purpose.data.consumerId, readModelService);
+  const tenant = await getInvolvedTenantByEServiceMode(
+    eservice,
+    purpose.data.consumerId,
+    readModelService
+  );
 
   assertTenantKindExists(tenant);
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver
-      ? validateAndTransformRiskAnalysis(updateContent.riskAnalysisForm, true, tenant.kind)
-      : reverseValidateAndTransformRiskAnalysis(purpose.data.riskAnalysisForm, true, tenant.kind);
+      ? validateAndTransformRiskAnalysis(
+          updateContent.riskAnalysisForm,
+          true,
+          tenant.kind
+        )
+      : reverseValidateAndTransformRiskAnalysis(
+          purpose.data.riskAnalysisForm,
+          true,
+          tenant.kind
+        );
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
@@ -1041,7 +1197,11 @@ const performUpdatePurpose = async (
 
   return {
     purpose: updatedPurpose,
-    isRiskAnalysisValid: isRiskAnalysisFormValid(updatedPurpose.riskAnalysisForm, false, tenant.kind),
+    isRiskAnalysisValid: isRiskAnalysisFormValid(
+      updatedPurpose.riskAnalysisForm,
+      false,
+      tenant.kind
+    ),
   };
 };
 
@@ -1100,11 +1260,18 @@ async function generateRiskAnalysisDocument({
 }
 
 const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
-  const nonWaitingVersions = purposeToClone.versions.filter((v) => v.state !== purposeVersionState.waitingForApproval);
+  const nonWaitingVersions = purposeToClone.versions.filter(
+    (v) => v.state !== purposeVersionState.waitingForApproval
+  );
 
-  const versionsToSearch = nonWaitingVersions.length > 0 ? nonWaitingVersions : purposeToClone.versions;
+  const versionsToSearch =
+    nonWaitingVersions.length > 0
+      ? nonWaitingVersions
+      : purposeToClone.versions;
 
-  const sortedVersions = [...versionsToSearch].sort((v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime());
+  const sortedVersions = [...versionsToSearch].sort(
+    (v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime()
+  );
 
   return sortedVersions[0];
 };

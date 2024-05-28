@@ -40,7 +40,6 @@ export const errorCodes = {
   unchangedDailyCalls: "0023",
   missingRiskAnalysis: "0024",
   purposeVersionStateConflict: "0025",
-
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -294,5 +293,5 @@ export function purposeVersionStateConflict(
     detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
     code: "purposeVersionStateConflict",
     title: "Purpose version state conflict",
-  })
-};
+  });
+}
