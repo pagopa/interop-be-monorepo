@@ -145,6 +145,40 @@ export function readModelServiceBuilder(
         ),
       };
     },
+    async getClientsRelatedToPurpose(
+      purposeId: PurposeId
+    ): Promise<Array<WithMetadata<Client>>> {
+      const data = await clients
+        .aggregate(
+          [
+            {
+              $match: {
+                "data.purposes": { $eq: purposeId },
+              },
+            },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z
+        .array(
+          z.object({
+            metadata: z.object({ version: z.number() }),
+            data: Client,
+          })
+        )
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse client items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
+    },
   };
 }
 
