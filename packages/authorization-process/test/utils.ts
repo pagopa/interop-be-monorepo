@@ -11,7 +11,6 @@ import {
   AuthorizationEvent,
   Client,
   ClientId,
-  generateId,
   toClientV2,
 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -56,39 +55,6 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(client, clients);
 };
-
-export const getMockClient = (): Client => ({
-  keys: [],
-  name: "a client",
-  id: generateId(),
-  createdAt: new Date(),
-  consumerId: generateId(),
-  kind: "Api",
-  purposes: [],
-  relationships: [],
-  users: [],
-});
-
-export const getMockClientWithKey = (): Client => ({
-  keys: [
-    {
-      name: "key name",
-      createdAt: new Date(),
-      kid: "a kid",
-      encodedPem: "",
-      algorithm: "",
-      use: "Sig",
-    },
-  ],
-  name: "a client",
-  id: generateId(),
-  createdAt: new Date(),
-  consumerId: generateId(),
-  kind: "Api",
-  purposes: [],
-  relationships: [],
-  users: [],
-});
 
 export const readLastAuthorizationEvent = async (
   clientId: ClientId
