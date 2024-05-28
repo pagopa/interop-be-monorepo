@@ -89,7 +89,6 @@ export function processMessage(
       streamId: decodedMessage.stream_id,
       correlationId: decodedMessage.correlation_id,
     });
-
     if (decodedMessage.event_version !== 2) {
       loggerInstance.info(
         `Event with version ${decodedMessage.event_version} skipped`
