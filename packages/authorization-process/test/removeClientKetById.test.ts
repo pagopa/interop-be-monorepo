@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockClient,
   getMockKey,
   getMockTenant,
   writeInReadmodel,
@@ -21,7 +22,6 @@ import {
 import {
   addOneClient,
   authorizationService,
-  getMockClient,
   readLastAuthorizationEvent,
   tenants,
 } from "./utils.js";
