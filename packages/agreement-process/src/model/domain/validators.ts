@@ -37,6 +37,7 @@ import {
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
+  CompactTenant,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -299,7 +300,7 @@ const attributesSatisfied = (
 
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const certifiedAttributes = filterCertifiedAttributes(tenant).map(
     (a) => a.id
@@ -313,7 +314,7 @@ export const certifiedAttributesSatisfied = (
 
 export const declaredAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
 
@@ -326,7 +327,7 @@ export const declaredAttributesSatisfied = (
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
     (a) => a.id
@@ -460,7 +461,7 @@ export const matchingVerifiedAttributes = (
 
 export const filterVerifiedAttributes = (
   producerId: TenantId,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -473,7 +474,7 @@ export const filterVerifiedAttributes = (
   ) as VerifiedTenantAttribute[];
 
 export const filterCertifiedAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): CertifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -481,7 +482,7 @@ export const filterCertifiedAttributes = (
   ) as CertifiedTenantAttribute[];
 
 export const filterDeclaredAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): DeclaredTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>

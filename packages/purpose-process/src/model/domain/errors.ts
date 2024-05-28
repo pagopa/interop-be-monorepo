@@ -8,6 +8,7 @@ import {
   PurposeVersionState,
   RiskAnalysisId,
   TenantId,
+  TenantKind,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
@@ -32,6 +33,8 @@ export const errorCodes = {
   purposeCannotBeDeleted: "0017",
   agreementNotFound: "0018",
   eserviceRiskAnalysisNotFound: "0019",
+  purposeCannotBeCloned: "0020",
+  riskAnalysisConfigVersionNotFound: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -221,5 +224,26 @@ export function eserviceRiskAnalysisNotFound(
     detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
     code: "eserviceRiskAnalysisNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function purposeCannotBeCloned(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} cannot be cloned`,
+    code: "purposeCannotBeCloned",
+    title: "Purpose cannot be cloned",
+  });
+}
+
+export function riskAnalysisConfigVersionNotFound(
+  version: string,
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis Configuration version ${version} for tenant kind ${tenantKind} not found`,
+    code: "riskAnalysisConfigVersionNotFound",
+    title: "Risk Analysis config version not found",
   });
 }
