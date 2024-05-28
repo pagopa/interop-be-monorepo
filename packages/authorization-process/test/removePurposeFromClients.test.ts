@@ -20,7 +20,7 @@ import {
 } from "./utils.js";
 
 describe("remove client purpose", () => {
-  it("should write on event-store for removing a purpose from many clients", async () => {
+  it("should write on event-store for removing a purpose from all clients", async () => {
     const mockConsumer = getMockTenant();
     const purposeIdToRemove: PurposeId = generateId();
     const purposeIdToNotRemove: PurposeId = generateId();
