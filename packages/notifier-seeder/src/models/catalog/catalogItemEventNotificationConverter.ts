@@ -4,7 +4,7 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eventV1ConversionError } from "../notifierErrors.js";
+import { eventV1ConversionError } from "../../notifierErrors.js";
 import {
   CatalogDescriptorNotification,
   CatalogDescriptorV1Notification,
