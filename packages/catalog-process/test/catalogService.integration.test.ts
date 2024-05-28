@@ -29,6 +29,7 @@ import {
   unexpectedFieldError,
   unexpectedFieldValueError,
   userRoles,
+  formatDateddMMyyyyHHmmss,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
@@ -117,7 +118,6 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -2889,7 +2889,7 @@ describe("database test", async () => {
         const expectedEService: EService = {
           ...eservice,
           id: unsafeBrandId(writtenPayload.eservice!.id),
-          name: `${eservice.name} - clone - ${formatClonedEServiceDate(
+          name: `${eservice.name} - clone - ${formatDateddMMyyyyHHmmss(
             cloneTimestamp
           )}`,
           descriptors: [expectedDescriptor],
@@ -2970,7 +2970,7 @@ describe("database test", async () => {
         const cloneTimestamp = new Date();
         const conflictEServiceName = `${
           eservice1.name
-        } - clone - ${formatClonedEServiceDate(cloneTimestamp)}`;
+        } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
 
         const eservice2: EService = {
           ...mockEService,

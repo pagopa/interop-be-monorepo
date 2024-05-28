@@ -10,7 +10,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/attribute-registry-service-spec.yml' -o './src/model/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
@@ -45,8 +45,8 @@
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg-promise": "11.6.0",
-    "ts-pattern": "5.1.1",
+    "pg-promise": "11.7.8",
+    "ts-pattern": "5.1.2",
     "uuid": "9.0.1",
     "zod": "3.23.8"
   }

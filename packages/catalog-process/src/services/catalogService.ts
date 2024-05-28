@@ -11,6 +11,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  formatDateddMMyyyyHHmmss,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -95,7 +96,6 @@ import {
   eServiceRiskAnalysisNotFound,
   riskAnalysisDuplicate,
 } from "../model/domain/errors.js";
-import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertRequesterAllowed,
@@ -1159,7 +1159,7 @@ export function catalogServiceBuilder(
 
       const clonedEServiceName = `${
         eservice.data.name
-      } - clone - ${formatClonedEServiceDate(new Date())}`;
+      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
 
       if (
         await readModelService.getEServiceByNameAndProducerId({

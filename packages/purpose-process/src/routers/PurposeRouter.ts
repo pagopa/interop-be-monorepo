@@ -17,13 +17,14 @@ import {
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionToApiPurposeVersion,
+  riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
+  clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
@@ -31,10 +32,12 @@ import {
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  retrieveRiskAnalysisConfigurationByVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -373,7 +376,30 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/clone",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.clonePurpose({
+              purposeId: unsafeBrandId(req.params.purposeId),
+              organizationId: req.ctx.authData.organizationId,
+              seed: req.body,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            clonePurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/suspend",
@@ -429,11 +455,6 @@ const purposeRouter = (
         }
       }
     )
-    .post(
-      "/purposes/:purposeId/versions/:versionId/update/waitingForApproval",
-      authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
-    )
     .get(
       "/purposes/riskAnalysis/latest",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
@@ -442,7 +463,33 @@ const purposeRouter = (
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const riskAnalysisConfiguration =
+            await purposeService.retrieveRiskAnalysisConfigurationByVersion({
+              eserviceId: unsafeBrandId(req.query.eserviceId),
+              riskAnalysisVersion: req.params.riskAnalysisVersion,
+              organizationId: req.ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(
+              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                riskAnalysisConfiguration
+              )
+            )
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            retrieveRiskAnalysisConfigurationByVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return purposeRouter;
