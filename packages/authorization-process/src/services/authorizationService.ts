@@ -334,6 +334,7 @@ export function authorizationServiceBuilder(
         showUsers: isClientConsumer(client.data.consumerId, organizationId),
       };
     },
+    async addUser()
   };
 }
 
