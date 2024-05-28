@@ -14,6 +14,8 @@ export const errorCodes = {
   userIdNotFound: "0004",
   keyNotFound: "0005",
   purposeIdNotFound: "0005",
+  securityUserNotFound: "0006",
+  userAlreadyAssigned: "0007",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -77,5 +79,27 @@ export function purposeIdNotFound(
     detail: `Purpose ${purposeId} not found in client ${clientId}`,
     code: "purposeIdNotFound",
     title: "Purpose id not found",
+  });
+}
+
+export function securityUserNotFound(
+  requesterUserId: UserId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Security user not found for consumer ${requesterUserId} and user ${userId}`,
+    code: "securityUserNotFound",
+    title: "security User not found",
+  });
+}
+
+export function userAlreadyAssigned(
+  clientId: ClientId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned to the client ${clientId}`,
+    code: "userAlreadyAssigned",
+    title: "user Already Assigned",
   });
 }

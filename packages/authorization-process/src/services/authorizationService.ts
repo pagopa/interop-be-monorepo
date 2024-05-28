@@ -12,12 +12,21 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData, DB, Logger, eventRepository } from "pagopa-interop-commons";
+import {
+  AuthData,
+  DB,
+  Logger,
+  eventRepository,
+  userRoles,
+} from "pagopa-interop-commons";
+import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   keyNotFound,
   organizationNotAllowedOnClient,
   purposeIdNotFound,
+  securityUserNotFound,
+  userAlreadyAssigned,
   userIdNotFound,
 } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
@@ -26,6 +35,7 @@ import {
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeRemoved,
+  toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
@@ -336,7 +346,44 @@ export function authorizationServiceBuilder(
         showUsers: isClientConsumer(client.data.consumerId, organizationId),
       };
     },
-    async addUser()
+    async addUser(
+      {
+        clientId,
+        userId,
+        authData,
+      }: {
+        clientId: ClientId;
+        userId: UserId;
+        authData: AuthData;
+      },
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(`Binding client ${clientId} with user ${userId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+      assertSecurityUser(authData.selfcareId, authData.userId, userId);
+      if (client.data.users.includes(userId)) {
+        throw userAlreadyAssigned(clientId, userId);
+      }
+      const updatedClient: Client = {
+        ...client.data,
+        users: [...client.data.users, userId],
+      };
+
+      await repository.createEvent(
+        toCreateEventClientUserAdded(
+          userId,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
+      return {
+        client: updatedClient,
+        showUsers: updatedClient.consumerId === authData.organizationId,
+      };
+    },
   };
 }
 
@@ -350,5 +397,22 @@ const assertOrganizationIsClientConsumer = (
 ): void => {
   if (client.consumerId !== organizationId) {
     throw organizationNotAllowedOnClient(organizationId, client.id);
+  }
+};
+const assertSecurityUser = (
+  selfcareId: string,
+  requesterUserId: UserId,
+  userId: UserId
+): void => {
+  const users = selfcareV2Client.getInstitutionProductUsersUsingGET({
+    params: { institutionId: selfcareId },
+    queries: {
+      userIdForAuth: requesterUserId,
+      userId,
+      productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
+    },
+  });
+  if (!users) {
+    throw securityUserNotFound(requesterUserId, userId);
   }
 };
