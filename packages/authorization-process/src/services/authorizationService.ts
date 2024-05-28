@@ -302,7 +302,9 @@ export function authorizationServiceBuilder(
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
-      const clients: Array<WithMetadata<Client>> = []; // TO DO replace with query getClients(purposeId)
+      const clients = await readModelService.getClientsRelatedToPurpose(
+        purposeIdToRemove
+      );
       for (const client of clients) {
         const updatedClient: Client = {
           ...client.data,
