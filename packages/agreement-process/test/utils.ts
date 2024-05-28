@@ -7,6 +7,7 @@ import {
   writeInReadmodel,
   ReadEvent,
   readEventByStreamIdAndVersion,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { afterEach, expect, inject } from "vitest";
 import {
@@ -26,6 +27,7 @@ import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
+import { ApiTenantAttribute } from "../src/model/types.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   setupTestContainersVitest(
@@ -130,5 +132,63 @@ export function getMockConsumerDocument(
     prettyName: "pretty name",
     contentType: "application/pdf",
     createdAt: new Date(),
+  };
+}
+
+export function getMockApiTenantCertifiedAttribute(): ApiTenantAttribute {
+  return {
+    certified: {
+      id: generateId(),
+      assignmentTimestamp: new Date().toISOString(),
+      revocationTimestamp: randomArrayItem([
+        new Date().toISOString(),
+        undefined,
+      ]),
+    },
+  };
+}
+
+export function getMockApiTenantDeclaredAttribute(): ApiTenantAttribute {
+  return {
+    declared: {
+      id: generateId(),
+      assignmentTimestamp: new Date().toISOString(),
+      revocationTimestamp: randomArrayItem([
+        new Date().toISOString(),
+        undefined,
+      ]),
+    },
+  };
+}
+
+export function getMockApiTenantVerifiedAttribute(): ApiTenantAttribute {
+  return {
+    verified: {
+      id: generateId(),
+      assignmentTimestamp: new Date().toISOString(),
+      verifiedBy: [
+        {
+          id: generateId(),
+          verificationDate: new Date().toISOString(),
+          expirationDate: randomArrayItem([
+            new Date().toISOString(),
+            undefined,
+          ]),
+          extensionDate: randomArrayItem([new Date().toISOString(), undefined]),
+        },
+      ],
+      revokedBy: [
+        {
+          id: generateId(),
+          verificationDate: new Date().toISOString(),
+          revocationDate: new Date().toISOString(),
+          expirationDate: randomArrayItem([
+            new Date().toISOString(),
+            undefined,
+          ]),
+          extensionDate: randomArrayItem([new Date().toISOString(), undefined]),
+        },
+      ],
+    },
   };
 }
