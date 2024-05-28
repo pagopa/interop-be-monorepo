@@ -38,6 +38,6 @@ export function organizationNotAllowedOnClient(
   return new ApiError({
     detail: `Organization ${organizationId} is not allowed on client ${clientId}`,
     code: "organizationNotAllowedOnClient",
-    title: "OrganizationNotAllowedOnClient",
+    title: "Organization not allowed on client",
   });
 }
