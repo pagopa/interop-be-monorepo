@@ -1,5 +1,11 @@
 import { CreateEvent } from "pagopa-interop-commons";
-import { Purpose, PurposeEventV2, PurposeId, PurposeVersionId, toPurposeV2 } from "pagopa-interop-models";
+import {
+  Purpose,
+  PurposeEventV2,
+  PurposeId,
+  PurposeVersionId,
+  toPurposeV2,
+} from "pagopa-interop-models";
 
 export const toCreateEventWaitingForApprovalPurposeVersionDeleted = ({
   purpose,
@@ -165,8 +171,10 @@ export const toCreateEventPurposeSuspendedByProducer = ({
   correlationId,
 });
 
-export function toCreateEventPurposeAdded(purpose: Purpose, correlationId: string): CreateEvent<PurposeEventV2> {
-  return {
+export function toCreateEventPurposeAdded(
+  purpose: Purpose,
+  correlationId: string
+): CreateEvent<PurposeEventV2> {  return {
     streamId: purpose.id,
     version: 0,
     event: {

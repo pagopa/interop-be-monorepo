@@ -294,5 +294,5 @@ export function purposeVersionStateConflict(
     detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
     code: "purposeVersionStateConflict",
     title: "Purpose version state conflict",
-})
+  })
 };
