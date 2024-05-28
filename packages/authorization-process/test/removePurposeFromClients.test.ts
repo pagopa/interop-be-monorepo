@@ -4,7 +4,6 @@ import {
   decodeProtobufPayload,
   getMockClient,
   getMockTenant,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Client,
@@ -18,7 +17,6 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-  tenants,
 } from "./utils.js";
 
 describe("remove client purpose", () => {
@@ -46,7 +44,6 @@ describe("remove client purpose", () => {
     await addOneClient(mockClient1);
     await addOneClient(mockClient2);
     await addOneClient(mockClient3);
-    await writeInReadmodel(mockConsumer, tenants);
 
     await authorizationService.removePurposeFromClients({
       purposeIdToRemove,
