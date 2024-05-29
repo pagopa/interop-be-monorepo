@@ -24,12 +24,11 @@ import {
   AgreementId,
   AgreementSuspendedByConsumerV2,
   AgreementSuspendedByProducerV2,
-  CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
+  Tenant,
   TenantId,
-  VerifiedTenantAttribute,
   agreementState,
   generateId,
   toAgreementV2,
@@ -63,44 +62,26 @@ describe("suspend agreement", () => {
     vi.useRealTimers();
   });
 
-  it("should succeed when requester is Consumer or Producer, Consumer has all attributes satisfied, and the Agreement is in an suspendable state", async () => {
+  it("should succeed when requester is Consumer or Producer and the Agreement is in an suspendable state", async () => {
     const producerId = generateId<TenantId>();
 
-    const tenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const tenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const tenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producerId,
-          verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-        },
-      ],
-    };
-
-    const consumer = {
+    // Adding some attributes to consumer, descriptor and eService to verify
+    // that the suspension ignores them and does not update them
+    const consumer: Tenant = {
       ...getMockTenant(),
       attributes: [
-        tenantCertifiedAttribute,
-        tenantDeclaredAttribute,
-        tenantVerifiedAttribute,
+        getMockCertifiedTenantAttribute(),
+        getMockDeclaredTenantAttribute(),
+        getMockVerifiedTenantAttribute(),
       ],
     };
-    const descriptor: Descriptor = {
+
+    const descriptor = {
       ...getMockDescriptorPublished(),
       attributes: {
-        certified: [[getMockEServiceAttribute(tenantCertifiedAttribute.id)]],
-        declared: [[getMockEServiceAttribute(tenantDeclaredAttribute.id)]],
-        verified: [[getMockEServiceAttribute(tenantVerifiedAttribute.id)]],
+        certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
+        declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
+        verified: [[getMockEServiceAttribute(consumer.attributes[2].id)]],
       },
     };
     const eservice: EService = {
@@ -115,7 +96,6 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
-      suspendedByPlatform: false,
       state: randomArrayItem(agreementSuspendableStates),
       certifiedAttributes: [
         getMockAgreementAttribute(consumer.attributes[0].id),
@@ -164,10 +144,8 @@ describe("suspend agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    /* If the consumer has all the attributes satisfied,
-      the agreement will be suspended with suspendedByPlatform flag set to false
-      and suspendedByConsumer or suspendedByProducer flag set
-      to true depending on the requester (consumer or producer) */
+    /* The agreement will be suspended with suspendedByConsumer or suspendedByProducer flag set
+    to true depending on the requester (consumer or producer) */
     const expectedStamps = {
       suspensionByConsumer: isConsumer
         ? {
@@ -189,145 +167,6 @@ describe("suspend agreement", () => {
       suspendedByProducer: !isConsumer
         ? true
         : agreement.suspendedByProducer ?? false,
-      suspendedByPlatform: false,
-    };
-    const expectedAgreementSuspended: Agreement = {
-      ...agreement,
-      ...expectedSuspensionFlags,
-      state: agreementState.suspended,
-      suspendedAt: agreement.suspendedAt ?? new Date(),
-      stamps: {
-        ...agreement.stamps,
-        ...expectedStamps,
-      },
-    };
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(expectedAgreementSuspended)
-    );
-  });
-
-  it("should succeed when requester is Consumer or Producer, Consumer attributes are not satisfied, and the Agreement is in an suspendable state", async () => {
-    const producerId = generateId<TenantId>();
-
-    const tenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const tenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const tenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producerId,
-          verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-        },
-      ],
-    };
-
-    const consumer = {
-      ...getMockTenant(),
-      attributes: [
-        tenantVerifiedAttribute,
-        // Missing certified and declared attributes from the descriptor
-      ],
-    };
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      attributes: {
-        certified: [[getMockEServiceAttribute(tenantCertifiedAttribute.id)]],
-        declared: [[getMockEServiceAttribute(tenantDeclaredAttribute.id)]],
-        verified: [[getMockEServiceAttribute(tenantVerifiedAttribute.id)]],
-      },
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      producerId,
-      descriptors: [descriptor],
-    };
-
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      consumerId: consumer.id,
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-      producerId: eservice.producerId,
-      suspendedByPlatform: false,
-      state: randomArrayItem(agreementSuspendableStates),
-      certifiedAttributes: [
-        getMockAgreementAttribute(consumer.attributes[0].id),
-      ],
-      declaredAttributes: [getMockAgreementAttribute()],
-      verifiedAttributes: [getMockAgreementAttribute()],
-    };
-
-    await addOneTenant(consumer);
-    await addOneEService(eservice);
-    await addOneAgreement(agreement);
-
-    const requesterId = randomArrayItem([
-      agreement.consumerId,
-      agreement.producerId,
-    ]);
-    const authData = getRandomAuthData(requesterId);
-
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
-
-    const agreementEvent = await readLastAgreementEvent(agreement.id);
-
-    const isConsumer = requesterId === agreement.consumerId;
-    expect(agreementEvent).toMatchObject({
-      type: isConsumer
-        ? "AgreementSuspendedByConsumer"
-        : "AgreementSuspendedByProducer",
-      event_version: 2,
-      version: "1",
-      stream_id: agreement.id,
-    });
-
-    const actualAgreementSuspended = decodeProtobufPayload({
-      messageType: isConsumer
-        ? AgreementSuspendedByConsumerV2
-        : AgreementSuspendedByProducerV2,
-      payload: agreementEvent.data,
-    }).agreement;
-
-    /* If the consumer DOES NOT have all the attributes satisfied,
-      the agreement will be suspended with suspendedByPlatform flag set to true
-      and suspendedByConsumer or suspendedByProducer flag set
-      to true depending on the requester (consumer or producer) */
-    const expectedStamps = {
-      suspensionByConsumer: isConsumer
-        ? {
-            who: authData.userId,
-            when: new Date(),
-          }
-        : agreement.stamps.suspensionByConsumer,
-      suspensionByProducer: !isConsumer
-        ? {
-            who: authData.userId,
-            when: new Date(),
-          }
-        : agreement.stamps.suspensionByProducer,
-    };
-    const expectedSuspensionFlags = {
-      suspendedByConsumer: isConsumer
-        ? true
-        : agreement.suspendedByConsumer ?? false,
-      suspendedByProducer: !isConsumer
-        ? true
-        : agreement.suspendedByProducer ?? false,
-      suspendedByPlatform: false,
     };
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
@@ -347,8 +186,24 @@ describe("suspend agreement", () => {
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
     const producerAndConsumerId = generateId<TenantId>();
 
-    const consumer = getMockTenant(producerAndConsumerId);
-    const descriptor: Descriptor = getMockDescriptorPublished();
+    // Adding some attributes to consumer, descriptor and eService to verify
+    // that the suspension ignores them and does not update them
+    const consumer: Tenant = {
+      ...getMockTenant(producerAndConsumerId),
+      attributes: [
+        getMockCertifiedTenantAttribute(),
+        getMockDeclaredTenantAttribute(),
+        getMockVerifiedTenantAttribute(),
+      ],
+    };
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      attributes: {
+        certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
+        declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
+        verified: [[getMockEServiceAttribute(consumer.attributes[2].id)]],
+      },
+    };
 
     const eservice: EService = {
       ...getMockEService(),
@@ -362,11 +217,16 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       producerId: eservice.producerId,
-      suspendedByPlatform: false,
       state: randomArrayItem(agreementSuspendableStates),
-      certifiedAttributes: [getMockAgreementAttribute()],
-      declaredAttributes: [getMockAgreementAttribute()],
-      verifiedAttributes: [getMockAgreementAttribute()],
+      certifiedAttributes: [
+        getMockAgreementAttribute(consumer.attributes[0].id),
+      ],
+      declaredAttributes: [
+        getMockAgreementAttribute(consumer.attributes[1].id),
+      ],
+      verifiedAttributes: [
+        getMockAgreementAttribute(consumer.attributes[2].id),
+      ],
     };
 
     await addOneTenant(consumer);
@@ -396,14 +256,12 @@ describe("suspend agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    /* If the consumer and producer of the agreement are the same, there is no need to check the attributes.
-      the agreement will be suspended with suspendedByPlatform flag set to false
-      and suspendedByConsumer and suspendedByProducer flags both set to true */
+    /* If the consumer and producer of the agreement are the same the agreement will be
+    suspended with suspendedByConsumer and suspendedByProducer flags both set to true */
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
       suspendedByConsumer: true,
       suspendedByProducer: true,
-      suspendedByPlatform: false,
       state: agreementState.suspended,
       suspendedAt: agreement.suspendedAt ?? new Date(),
       stamps: {
@@ -426,43 +284,8 @@ describe("suspend agreement", () => {
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
     const producerId = generateId<TenantId>();
 
-    const tenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const tenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const tenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producerId,
-          verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-        },
-      ],
-    };
-
-    const consumer = {
-      ...getMockTenant(),
-      attributes: [
-        tenantCertifiedAttribute,
-        tenantDeclaredAttribute,
-        tenantVerifiedAttribute,
-      ],
-    };
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      attributes: {
-        certified: [[getMockEServiceAttribute(tenantCertifiedAttribute.id)]],
-        declared: [[getMockEServiceAttribute(tenantDeclaredAttribute.id)]],
-        verified: [[getMockEServiceAttribute(tenantVerifiedAttribute.id)]],
-      },
-    };
+    const consumer = getMockTenant();
+    const descriptor: Descriptor = getMockDescriptorPublished();
     const eservice: EService = {
       ...getMockEService(),
       producerId,
@@ -481,7 +304,7 @@ describe("suspend agreement", () => {
       state: agreementState.suspended,
       suspendedByConsumer: randomBoolean(),
       suspendedByProducer: randomBoolean(),
-      suspendedByPlatform: false,
+      suspendedByPlatform: randomBoolean(),
       stamps: {
         activation: createStamp(authData.userId),
         archiving: createStamp(authData.userId),
@@ -491,15 +314,6 @@ describe("suspend agreement", () => {
         suspensionByConsumer: createStamp(authData.userId),
         suspensionByProducer: createStamp(authData.userId),
       },
-      certifiedAttributes: [
-        getMockAgreementAttribute(consumer.attributes[0].id),
-      ],
-      declaredAttributes: [
-        getMockAgreementAttribute(consumer.attributes[1].id),
-      ],
-      verifiedAttributes: [
-        getMockAgreementAttribute(consumer.attributes[2].id),
-      ],
     };
 
     await addOneTenant(consumer);
@@ -553,7 +367,6 @@ describe("suspend agreement", () => {
       suspendedByProducer: !isConsumer
         ? true
         : agreement.suspendedByProducer ?? false,
-      suspendedByPlatform: false,
     };
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
@@ -642,7 +455,11 @@ describe("suspend agreement", () => {
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
     const descriptor = getMockDescriptorPublished();
-    const eservice = { ...getMockEService(), descriptors: [descriptor] };
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const consumer = getMockTenant();
     const agreement = {
       ...getMockAgreement(),
