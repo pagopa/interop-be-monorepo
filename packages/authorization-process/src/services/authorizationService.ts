@@ -417,7 +417,7 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      assertSecurityUser(authData.selfcareId, authData.userId, userId);
+      await assertSecurityUser(authData.selfcareId, authData.userId, userId);
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -532,12 +532,12 @@ const assertOrganizationIsClientConsumer = (
     throw organizationNotAllowedOnClient(organizationId, client.id);
   }
 };
-const assertSecurityUser = (
+const assertSecurityUser = async (
   selfcareId: string,
   requesterUserId: UserId,
   userId: UserId
-): void => {
-  const users = selfcareV2Client.getInstitutionProductUsersUsingGET({
+): Promise<void> => {
+  const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
     params: { institutionId: selfcareId },
     queries: {
       userIdForAuth: requesterUserId,
@@ -545,7 +545,7 @@ const assertSecurityUser = (
       productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
     },
   });
-  if (!users) {
+  if (users.length === 0) {
     throw securityUserNotFound(requesterUserId, userId);
   }
 };
