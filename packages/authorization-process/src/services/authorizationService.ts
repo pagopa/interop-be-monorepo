@@ -388,14 +388,11 @@ export function authorizationServiceBuilder(
       clientId: ClientId,
       organizationId: TenantId,
       logger: Logger
-    ): Promise<{ keys: Key[]; showUsers: boolean }> {
+    ): Promise<Key[]> {
       logger.info(`Retrieving keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
-      return {
-        keys: client.data.keys,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
-      };
+      return client.data.keys;
     },
   };
 }

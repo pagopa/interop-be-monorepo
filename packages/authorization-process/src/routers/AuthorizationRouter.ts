@@ -15,7 +15,10 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { clientToApiClient } from "../model/domain/apiConverter.js";
+import {
+  clientToApiClient,
+  keyToApiKey,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   addUserErrorMapper,
@@ -23,6 +26,7 @@ import {
   deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
+  getClientKeysErrorMapper,
   getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
   removeUserErrorMapper,
@@ -338,8 +342,34 @@ const authorizationRouter = (
     )
     .get(
       "/clients/:clientId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const keys = await authorizationService.getClientKeys(
+            unsafeBrandId(req.params.clientId),
+            ctx.authData.organizationId,
+            ctx.logger
+          );
+
+          return res
+            .status(200)
+            .json({ keys: keys.map((key) => keyToApiKey(key)) })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientKeysErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId/keys/:keyId",

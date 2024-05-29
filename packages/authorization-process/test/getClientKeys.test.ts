@@ -10,8 +10,6 @@ import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getClientKeys", async () => {
   const consumerId = generateId();
-  const userIds1 = generateId();
-  const userIds2 = generateId();
   const mockKey: Key = {
     name: "Key 1",
     createdAt: new Date(),
@@ -23,14 +21,13 @@ describe("getClientKeys", async () => {
   const mockClient: Client = {
     ...getMockClient(),
     keys: [mockKey],
-    users: [unsafeBrandId(userIds1), unsafeBrandId(userIds2)],
     consumerId: unsafeBrandId(consumerId),
   };
 
   it("should get from the readModel the keys in the specified client", async () => {
     await addOneClient(mockClient);
 
-    const { keys } = await authorizationService.getClientKeys(
+    const keys = await authorizationService.getClientKeys(
       mockClient.id,
       unsafeBrandId(consumerId),
       genericLogger
