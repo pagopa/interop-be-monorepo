@@ -295,11 +295,15 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removePurposeFromClients(
-      purposeIdToRemove: PurposeId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removePurposeFromClients({
+      purposeIdToRemove,
+      correlationId,
+      logger,
+    }: {
+      purposeIdToRemove: PurposeId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
       const clients = await readModelService.getClientsRelatedToPurpose(
