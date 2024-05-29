@@ -29,8 +29,6 @@ import {
   VerifiedTenantAttribute,
   Tenant,
   TenantAttribute,
-  AgreementSuspendedByConsumerV2,
-  AgreementSuspendedByProducerV2,
   fromAgreementV2,
   AgreementUnsuspendedByProducerV2,
   AgreementUnsuspendedByConsumerV2,
@@ -59,7 +57,10 @@ import {
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  // TODO success case with requester === producer and ALSO CONSUMER and satate Suspended >>> Active
+  // TODO success case with requester === producer and ALSO CONSUMER and state Suspended >>> Active
+  // TODO success case with requester === producer and state Pending >>> Suspended (suspendedByConsumer was true)
+  // But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
+
   // TODO remember to test the firstActivation VS non firstActivation case
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
@@ -142,8 +143,7 @@ describe("activate agreement", () => {
     });
   }
 
-  it.skip("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
-    // TODO complete this success case with requester === producer and state Pending >>> Active
+  it.only("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
     const producer = getMockTenant();
 
     const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -202,6 +202,8 @@ describe("activate agreement", () => {
       descriptorId: descriptor.id,
       producerId: producer.id,
       consumerId: consumer.id,
+      suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
+      suspendedByProducer: randomBoolean(), // will be set to false by the activation
     };
 
     await addOneTenant(consumer);
