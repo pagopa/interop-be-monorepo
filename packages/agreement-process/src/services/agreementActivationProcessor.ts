@@ -28,7 +28,6 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
@@ -36,7 +35,6 @@ import {
 } from "./agreementStampUtils.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
 
 export function createActivationUpdateAgreementSeed({
   firstActivation,
@@ -112,30 +110,13 @@ export async function createActivationEvent(
   firstActivation: boolean,
   agreement: WithMetadata<Agreement>,
   updatedAgreement: Agreement,
-  updatedAgreementSeed: UpdateAgreementSeed,
-  eservice: EService,
-  consumer: Tenant,
-  producer: Tenant,
   authData: AuthData,
-  correlationId: string,
-  contractBuilder: ContractBuilder
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (firstActivation) {
-    const agreementContract = await contractBuilder.createContract(
-      authData.selfcareId,
-      updatedAgreement,
-      eservice,
-      consumer,
-      producer,
-      updatedAgreementSeed
-    );
-
     return [
       toCreateEventAgreementActivated(
-        {
-          ...updatedAgreement,
-          contract: apiAgreementDocumentToAgreementDocument(agreementContract),
-        },
+        updatedAgreement,
         agreement.metadata.version,
         correlationId
       ),
