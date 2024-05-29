@@ -26,7 +26,6 @@ import {
   PurposeEventV2,
   purposeVersionState,
   missingKafkaMessageDataError,
-  EventEnvelope,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -47,6 +46,82 @@ import {
   getPurposeFromEvent,
   getPurposeVersionFromEvent,
 } from "./utils.js";
+
+export async function sendCatalogAuthUpdate(
+  decodedMessage: EServiceEventEnvelopeV2,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorActivated"
+        ),
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          ApiClientComponent.Values.ACTIVE,
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorArchived"
+        ),
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          ApiClientComponent.Values.INACTIVE,
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceAdded",
+          "EServiceCloned",
+          "EServiceDeleted",
+          "DraftEServiceUpdated",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptorQuotasUpdated"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
+    )
+    .exhaustive();
+}
 
 export async function sendAgreementAuthUpdate(
   decodedMessage: AgreementEventEnvelopeV2,
@@ -145,83 +220,7 @@ export async function sendAgreementAuthUpdate(
     .exhaustive();
 }
 
-export async function sendCatalogAuthUpdate(
-  decodedMessage: EServiceEventEnvelopeV2,
-  authService: AuthorizationService,
-  logger: Logger,
-  correlationId: string
-): Promise<void> {
-  await match(decodedMessage)
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorPublished",
-          "EServiceDescriptorActivated"
-        ),
-      },
-      async (msg) => {
-        const data = getDescriptorFromEvent(msg, decodedMessage.type);
-        await authService.updateEServiceState(
-          ApiClientComponent.Values.ACTIVE,
-          data.descriptor.id,
-          data.eserviceId,
-          data.descriptor.audience,
-          data.descriptor.voucherLifespan,
-          logger,
-          correlationId
-        );
-      }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorArchived"
-        ),
-      },
-      async (msg) => {
-        const data = getDescriptorFromEvent(msg, decodedMessage.type);
-        await authService.updateEServiceState(
-          ApiClientComponent.Values.INACTIVE,
-          data.descriptor.id,
-          data.eserviceId,
-          data.descriptor.audience,
-          data.descriptor.voucherLifespan,
-          logger,
-          correlationId
-        );
-      }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceAdded",
-          "EServiceCloned",
-          "EServiceDeleted",
-          "DraftEServiceUpdated",
-          "EServiceDescriptorAdded",
-          "EServiceDraftDescriptorDeleted",
-          "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorInterfaceDeleted",
-          "EServiceRiskAnalysisAdded",
-          "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorQuotasUpdated"
-        ),
-      },
-      () => {
-        logger.info(`No auth update needed for ${decodedMessage.type} message`);
-      }
-    )
-    .exhaustive();
-}
-
-export async function sendCatalogPurposeUpdate(
+export async function sendPurposeAuthUpdate(
   decodedMessage: PurposeEventEnvelopeV2,
   readModelService: ReadModelService,
   authService: AuthorizationService,
@@ -345,74 +344,70 @@ function processMessage(
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      function getLoggerInstanceAndCorrelationId(
-        decodedMessage: EventEnvelope<{ type: string; event_version: number }>
-      ): { correlationId: string; loggerInstance: Logger } {
-        const correlationId = decodedMessage.correlation_id || uuidv4();
-
-        const loggerInstance = logger({
-          serviceName: "authorization-updater",
-          eventType: decodedMessage.type,
-          eventVersion: decodedMessage.event_version,
-          streamId: decodedMessage.stream_id,
-          correlationId,
-        });
-
-        loggerInstance.info(
-          `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
-        );
-
-        return { loggerInstance, correlationId };
-      }
-
-      await match(messagePayload.topic)
-        .with(catalogTopicConfig.catalogTopic, async () => {
+      const { decodedMessage, updater } = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () => {
           const decodedMessage = decodeKafkaMessage(
             messagePayload.message,
             EServiceEventV2
           );
-          const { correlationId, loggerInstance } =
-            getLoggerInstanceAndCorrelationId(decodedMessage);
-          await sendCatalogAuthUpdate(
+
+          const updater = sendCatalogAuthUpdate.bind(
+            null,
             decodedMessage,
-            authService,
-            loggerInstance,
-            correlationId
+            authService
           );
+
+          return { decodedMessage, updater };
         })
-        .with(agreementTopicConfig.agreementTopic, async () => {
+        .with(agreementTopicConfig.agreementTopic, () => {
           const decodedMessage = decodeKafkaMessage(
             messagePayload.message,
             AgreementEventV2
           );
-          const { correlationId, loggerInstance } =
-            getLoggerInstanceAndCorrelationId(decodedMessage);
-          await sendAgreementAuthUpdate(
+
+          const updater = sendAgreementAuthUpdate.bind(
+            null,
             decodedMessage,
             readModelService,
-            authService,
-            loggerInstance,
-            correlationId
+            authService
           );
+
+          return { decodedMessage, updater };
         })
-        .with(purposeTopicConfig.purposeTopic, async () => {
+        .with(purposeTopicConfig.purposeTopic, () => {
           const decodedMessage = decodeKafkaMessage(
             messagePayload.message,
             PurposeEventV2
           );
-          const { correlationId, loggerInstance } =
-            getLoggerInstanceAndCorrelationId(decodedMessage);
-          await sendCatalogPurposeUpdate(
+
+          const updater = sendPurposeAuthUpdate.bind(
+            null,
             decodedMessage,
             readModelService,
-            authService,
-            loggerInstance,
-            correlationId
+            authService
           );
+
+          return { decodedMessage, updater };
         })
         .otherwise(() => {
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
         });
+
+      const correlationId = decodedMessage.correlation_id || uuidv4();
+
+      const loggerInstance = logger({
+        serviceName: "authorization-updater",
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
+        correlationId,
+      });
+
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      );
+
+      await updater(loggerInstance, correlationId);
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
