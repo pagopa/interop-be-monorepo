@@ -174,16 +174,16 @@ describe("upgrade Agreement", () => {
     await addOneTenant(producerAndConsumer);
     await addOneAgreement(agreementToBeUpgraded);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
       agreementToBeUpgraded.id,
@@ -264,6 +264,9 @@ describe("upgrade Agreement", () => {
     delete expectedUpgradedAgreement.updatedAt;
     delete expectedUpgradedAgreement.rejectionReason;
     expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
+    expect(actualAgreementUpgraded).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
 
     for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -371,16 +374,16 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreementToBeUpgraded);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
       agreementToBeUpgraded.id,
@@ -463,6 +466,9 @@ describe("upgrade Agreement", () => {
     delete expectedUpgradedAgreement.updatedAt;
     delete expectedUpgradedAgreement.rejectionReason;
     expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
+    expect(actualAgreementUpgraded).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -556,16 +562,16 @@ describe("upgrade Agreement", () => {
     );
     await addOneEService(eservice);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
 
@@ -618,6 +624,9 @@ describe("upgrade Agreement", () => {
     delete expectedCreatedAgreement.suspendedAt;
     delete expectedCreatedAgreement.contract;
     expect(actualCreatedAgreementV2).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreementV2).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
 
     const expectedUploadedDocumentPath = `${
       config.consumerDocumentsPath
@@ -728,16 +737,16 @@ describe("upgrade Agreement", () => {
     );
     await addOneEService(eservice);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
     const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -789,6 +798,9 @@ describe("upgrade Agreement", () => {
     delete expectedCreatedAgreement.suspendedAt;
     delete expectedCreatedAgreement.contract;
     expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
 
     const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualCreatedAgreement?.consumerDocuments[0].id}/${agreementConsumerDocument.name}`;
 
@@ -897,16 +909,16 @@ describe("upgrade Agreement", () => {
     );
     await addOneEService(eservice);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
     const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -955,6 +967,9 @@ describe("upgrade Agreement", () => {
     delete expectedCreatedAgreement.suspendedAt;
     delete expectedCreatedAgreement.contract;
     expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
 
     for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;

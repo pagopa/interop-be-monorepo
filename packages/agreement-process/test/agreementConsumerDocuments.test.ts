@@ -147,16 +147,17 @@ describe("agreement consumer document", () => {
 
       await addOneAgreement(agreement);
 
-      await agreementService.addConsumerDocument(
-        agreement.id,
-        consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        }
-      );
+      const returnedConsumerDocument =
+        await agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
+        );
       const { data: payload } = await readLastAgreementEvent(agreement.id);
 
       const actualConsumerDocument = decodeProtobufPayload({
@@ -172,6 +173,17 @@ describe("agreement consumer document", () => {
       expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
+      });
+
+      expect(actualConsumerDocument).toEqual({
+        agreement: {
+          ...agreement,
+          consumerDocuments: [
+            ...agreement.consumerDocuments,
+            returnedConsumerDocument,
+          ],
+        },
+        documentId: returnedConsumerDocument.id,
       });
     });
 
@@ -320,16 +332,17 @@ describe("agreement consumer document", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(agreement1.consumerDocuments[0].path);
 
-      await agreementService.removeAgreementConsumerDocument(
-        agreement1.id,
-        consumerDocument.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        }
-      );
+      const returnedAgreementId =
+        await agreementService.removeAgreementConsumerDocument(
+          agreement1.id,
+          consumerDocument.id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
+        );
 
       // Check that the file is removed from the bucket after removing it
       expect(
@@ -349,6 +362,7 @@ describe("agreement consumer document", () => {
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
+      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
