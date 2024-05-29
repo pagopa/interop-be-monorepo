@@ -34,6 +34,8 @@ import {
   AgreementUnsuspendedByProducerV2,
   AgreementUnsuspendedByConsumerV2,
 } from "pagopa-interop-models";
+import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { generateMock } from "@anatine/zod-mock";
 import {
   agreementActivationFailed,
   agreementNotFound,
@@ -67,8 +69,17 @@ describe("activate agreement", () => {
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
 
+  const mockSelfcareUserResponse: UserResponse = {
+    email: "test@test.com",
+    name: "Test Name",
+    surname: "Test Surname",
+    id: generateId(),
+    taxCode: "TSTTSTTSTTSTTSTT",
+  };
   beforeEach(async () => {
-    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn();
+    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
+      async () => mockSelfcareUserResponse
+    );
   });
 
   afterEach(async () => {
