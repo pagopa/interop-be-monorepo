@@ -73,6 +73,7 @@ describe("activate agreement", () => {
   // TODO success case with requester === producer and state Pending >>> Suspended (suspendedByConsumer was true)
   //      But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
 
+  // TODO fix the bug of the creation date of the contract
   // TODO add attributes to all agreements to test that activation does not update them
   // TODO remember to test the firstActivation VS non firstActivation case
   // TODO also test manually
@@ -173,7 +174,7 @@ describe("activate agreement", () => {
     });
   }
 
-  it.only("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
+  it("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
     const producer = getMockTenant();
 
     const certifiedAttribute: Attribute = {
@@ -285,14 +286,15 @@ describe("activate agreement", () => {
     );
 
     const contractDocumentId = actualAgreementActivated.contract!.id;
+    const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
     const contractDocumentName = `${consumer.id}_${
       producer.id
-    }_${formatDateyyyyMMddHHmmss(new Date())}_agreement_contract.pdf`;
+    }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
     const expectedContract = {
       id: contractDocumentId,
       contentType: "application/pdf",
-      createdAt: actualAgreementActivated.contract!.createdAt,
+      createdAt: contractCreatedAt,
       path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
       prettyName: "Richiesta di fruizione",
       name: contractDocumentName,
