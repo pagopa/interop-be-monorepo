@@ -311,6 +311,13 @@ async function processPurposeMessage({
   correlationId: string;
 }): Promise<void> {
   await match(decodedMsg)
+    /**
+     * With the new purpose logic, this part should not be needed, since the purpose with the first version
+     * in DRAFT or WAITING_FOR_APPROVAL, which are deletable, could not be added to any client.
+     * We decided to keep this part since there are still deletable purposes added to clients in the read model.
+     *
+     * This whole consumer will be replaced/updated once the refactor of the authorization server will be implemented.
+     */
     .with(
       {
         event_version: 2,
