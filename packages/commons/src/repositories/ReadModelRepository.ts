@@ -35,6 +35,8 @@ export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
 
+// Client model is not yet migrated to the repo, so we use any for now
+// For now the client collection is only required in the authorization-updater.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ClientCollection = GenericCollection<any>;
 
