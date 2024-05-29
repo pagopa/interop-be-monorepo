@@ -245,11 +245,8 @@ export async function sendPurposeAuthUpdate(
       async (msg): Promise<void> => {
         const purpose = getPurposeFromEvent(msg, msg.type);
 
-        const purposeClients = await readModelService.getClientsPurpose(
-          purpose.id
-        );
-
-        const purposeClientsIds = purposeClients.map((client) => client.id);
+        const purposeClientsIds =
+          await readModelService.getClientsIdFromPurpose(purpose.id);
 
         await Promise.all(
           purposeClientsIds.map((clientId) =>

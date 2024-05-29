@@ -41,8 +41,6 @@ export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
-export * from "./client/client.js";
-
 // Protobuf
 export * from "./protobuf/protobuf.js";
 

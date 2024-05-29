@@ -173,7 +173,7 @@ export const authorizationServiceBuilder = (
         withCredentials: true,
         headers,
       });
-      logger.info(`Deleting purpose ${purposeId} from client ${clientId}`);
+      logger.info(`Deleted purpose ${purposeId} from client ${clientId}`);
     },
     async updatePurposeState(
       purposeId: PurposeId,
@@ -192,7 +192,7 @@ export const authorizationServiceBuilder = (
           headers,
         }
       );
-      logger.info(`Updating Purpose ${purposeId} state for all clients`);
+      logger.info(`Updated Purpose ${purposeId} state for all clients`);
     },
   };
 };

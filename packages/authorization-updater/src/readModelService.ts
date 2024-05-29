@@ -1,15 +1,16 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
-  Client,
+  ClientId,
   EService,
   PurposeId,
   genericInternalError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
 export type ReadModelService = {
   getEServiceById: (id: string) => Promise<EService | undefined>;
-  getClientsPurpose: (purposeId: PurposeId) => Promise<Client[]>;
+  getClientsIdFromPurpose: (purposeId: PurposeId) => Promise<ClientId[]>;
 };
 
 export function readModelServiceBuilder(
@@ -41,7 +42,9 @@ export function readModelServiceBuilder(
     return undefined;
   }
 
-  async function getClientsPurpose(purposeId: PurposeId): Promise<Client[]> {
+  async function getClientsIdFromPurpose(
+    purposeId: PurposeId
+  ): Promise<ClientId[]> {
     const data = await clients
       .find(
         {
@@ -52,7 +55,7 @@ export function readModelServiceBuilder(
       .map((c) => c.data)
       .toArray();
 
-    const result = z.array(Client).safeParse(data);
+    const result = z.array(z.object({ id: z.string() })).safeParse(data);
 
     if (!result.success) {
       throw genericInternalError(
@@ -62,11 +65,11 @@ export function readModelServiceBuilder(
       );
     }
 
-    return result.data;
+    return result.data.map((c) => unsafeBrandId<ClientId>(c.id));
   }
 
   return {
     getEServiceById,
-    getClientsPurpose,
+    getClientsIdFromPurpose,
   };
 }

@@ -4,7 +4,6 @@ import {
   EServiceReadModel,
   PurposeReadModel,
   Tenant,
-  Client,
   genericInternalError,
 } from "pagopa-interop-models";
 import {
@@ -35,7 +34,9 @@ export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
-export type ClientCollection = GenericCollection<Client>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ClientCollection = GenericCollection<any>;
 
 export type Collections =
   | EServiceCollection
