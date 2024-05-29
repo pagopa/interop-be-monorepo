@@ -376,7 +376,7 @@ const authorizationRouter = (
       async (_req, res) => res.status(501).send()
     )
     .post(
-      "/clients/:clientId/purposes",
+      "/clients/:clientId/purposes", // to do
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
