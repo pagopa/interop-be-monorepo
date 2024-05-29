@@ -11,10 +11,10 @@ import {
   UserId,
   generateId,
   toClientV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+import { describe, expect, it, vi } from "vitest";
+import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -27,8 +27,27 @@ import {
   readLastAuthorizationEvent,
 } from "./utils.js";
 
+function mockSelfcareV2ClientCall(
+  value: Awaited<
+    ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+  >
+): void {
+  vi.spyOn(
+    selfcareV2Client,
+    "getInstitutionProductUsersUsingGET"
+  ).mockImplementationOnce(() => Promise.resolve(value));
+}
+
+const mockSelfCareUsers = {
+  id: generateId(),
+  name: "test",
+  roles: [],
+  email: "test@test.it",
+  surname: "surname_test",
+};
+
 describe("addUser", () => {
-  it.only("should write on event-store for adding a user from a client", async () => {
+  it("should write on event-store for adding a user from a client", async () => {
     const consumerId: TenantId = generateId();
     const userIdToAdd: UserId = generateId();
     const userId: UserId = generateId();
@@ -39,7 +58,17 @@ describe("addUser", () => {
       users: [userId],
     };
 
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
     await addOneClient(mockClient);
+
+    vi.mock("pagopa-interop-selfcare-v2-client", () => ({
+      selfcareV2Client: {
+        getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
+          Promise.resolve(true),
+      },
+    }));
+
     await authorizationService.addUser(
       {
         clientId: mockClient.id,
@@ -80,6 +109,7 @@ describe("addUser", () => {
     };
 
     await addOneClient(getMockClient());
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.addUser(
         {
@@ -103,6 +133,7 @@ describe("addUser", () => {
     };
 
     await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addUser(
@@ -126,6 +157,7 @@ describe("addUser", () => {
     };
 
     await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
       authorizationService.addUser(
@@ -145,25 +177,37 @@ describe("addUser", () => {
     const userIdToAdd: UserId = generateId();
     const consumerId: TenantId = generateId();
 
+    const authData: AuthData = {
+      userId: generateId(),
+      selfcareId: generateId(),
+      organizationId: consumerId,
+      userRoles: [],
+      externalId: {
+        value: "",
+        origin: "",
+      },
+    };
+
     const mockClient: Client = {
       ...getMockClient(),
       consumerId,
       users: [],
     };
 
-    await addOneClient(getMockClient());
+    await addOneClient(mockClient);
+
+    mockSelfcareV2ClientCall([]);
+
     expect(
       authorizationService.addUser(
         {
           clientId: mockClient.id,
           userId: userIdToAdd,
-          authData: getRandomAuthData(),
+          authData,
         },
         generateId(),
         genericLogger
       )
-    ).rejects.toThrowError(
-      securityUserNotFound(unsafeBrandId(consumerId), userIdToAdd)
-    );
+    ).rejects.toThrowError(securityUserNotFound(authData.userId, userIdToAdd));
   });
 });
