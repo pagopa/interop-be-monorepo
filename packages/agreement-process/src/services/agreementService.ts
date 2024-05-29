@@ -891,14 +891,6 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
 
-      const contractBuilderInstance = contractBuilder(
-        readModelService,
-        pdfGenerator,
-        fileManager,
-        config,
-        logger
-      );
-
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
@@ -995,27 +987,47 @@ export function agreementServiceBuilder(
           suspendedByPlatform,
         });
 
-      const updatedAgreement: Agreement = {
+      const updatedAgreementWithoutContract: Agreement = {
         ...agreement.data,
         ...updatedAgreementSeed,
+      };
+
+      const contract = !firstActivation
+        ? agreement.data.contract
+        : apiAgreementDocumentToAgreementDocument(
+            await contractBuilder(
+              readModelService,
+              pdfGenerator,
+              fileManager,
+              config,
+              logger
+            ).createContract(
+              authData.selfcareId,
+              updatedAgreementWithoutContract,
+              eservice,
+              consumer,
+              producer,
+              updatedAgreementSeed
+            )
+          );
+
+      const updatedAgreement: Agreement = {
+        ...updatedAgreementWithoutContract,
+        contract,
       };
 
       const suspendedByPlatformChanged =
         agreement.data.suspendedByPlatform !==
         updatedAgreement.suspendedByPlatform;
+
       const activationEvents = await createActivationEvent(
         firstActivation,
         updatedAgreement,
-        updatedAgreementSeed,
-        eservice,
-        consumer,
-        producer,
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId,
-        contractBuilderInstance
+        correlationId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
