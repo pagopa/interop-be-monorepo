@@ -296,7 +296,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       agreement: ApiAgreementUpdatePayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<void> {
+    ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await retrieveAgreement(
         agreementId,
@@ -323,6 +323,8 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
+
+      return updatedAgreement;
     },
     async deleteAgreementById(
       agreementId: AgreementId,
