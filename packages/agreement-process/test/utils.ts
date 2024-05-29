@@ -22,6 +22,8 @@ import {
   AgreementDocumentId,
   generateId,
   AgreementDocument,
+  Attribute,
+  toReadModelAttribute,
 } from "pagopa-interop-models";
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
@@ -42,6 +44,7 @@ afterEach(cleanup);
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
+export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -85,6 +88,10 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(tenant, tenants);
+};
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const readLastAgreementEvent = async (
