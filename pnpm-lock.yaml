@@ -801,9 +801,6 @@ importers:
       aws-msk-iam-sasl-signer-js:
         specifier: ^1.0.0
         version: 1.0.0(@aws-sdk/client-sso-oidc@3.583.0)
-      crypto:
-        specifier: 1.0.1
-        version: 1.0.1
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
@@ -814,9 +811,6 @@ importers:
         specifier: workspace:*
         version: link:../models
     devDependencies:
-      '@aws-sdk/types':
-        specifier: 3.577.0
-        version: 3.577.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2469,6 +2463,7 @@ packages:
     dependencies:
       '@smithy/types': 3.0.0
       tslib: 2.6.2
+    dev: false
 
   /@aws-sdk/util-arn-parser@3.568.0:
     resolution: {integrity: sha512-XUKJWWo+KOB7fbnPP0+g/o5Ulku/X53t7i/h+sPHr5xxYTJJ9CYnbToo95mzxe7xWvkLrsNtJ8L+MnNn9INs2w==}
@@ -3963,6 +3958,7 @@ packages:
     engines: {node: '>=16.0.0'}
     dependencies:
       tslib: 2.6.2
+    dev: false
 
   /@smithy/url-parser@2.2.0:
     resolution: {integrity: sha512-hoA4zm61q1mNTpksiSWp2nEl1dt3j726HdRhiNgVJQMj7mLp7dprtF57mOB6JvEk/x9d2bsuL5hlqZbBuHQylQ==}
@@ -5349,10 +5345,6 @@ packages:
       shebang-command: 2.0.0
       which: 2.0.2
     dev: true
-
-  /crypto@1.0.1:
-    resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
-    dev: false
 
   /data-uri-to-buffer@6.0.2:
     resolution: {integrity: sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw==}

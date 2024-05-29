@@ -19,13 +19,11 @@
   "license": "Apache-2.0",
   "dependencies": {
     "aws-msk-iam-sasl-signer-js": "^1.0.0",
-    "crypto": "1.0.1",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:^",
     "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
-    "@aws-sdk/types": "3.577.0",
     "typescript": "5.4.5"
   }
 }
