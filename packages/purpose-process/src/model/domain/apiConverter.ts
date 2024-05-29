@@ -10,11 +10,28 @@ import {
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
+  LocalizedText,
+  DataType,
+  dataType,
+  Dependency,
+  HideOptionConfig,
+  LabeledValue,
+  FormQuestionRules,
+  RiskAnalysisFormRules,
+} from "pagopa-interop-commons";
+import {
+  ApiDataType,
+  ApiDependency,
+  ApiFormQuestionRules,
+  ApiHideOptionConfig,
+  ApiLabeledValue,
+  ApiLocalizedText,
   ApiPurpose,
   ApiPurposeVersion,
   ApiPurposeVersionDocument,
   ApiPurposeVersionState,
   ApiRiskAnalysisForm,
+  ApiRiskAnalysisFormRules,
 } from "./models.js";
 
 export const singleAnswersToApiSingleAnswers = (
@@ -98,7 +115,6 @@ export const purposeVersionToApiPurposeVersion = (
   createdAt: version.createdAt.toJSON(),
   updatedAt: version.updatedAt?.toJSON(),
   firstActivationAt: version.firstActivationAt?.toJSON(),
-  expectedApprovalDate: version.expectedApprovalDate?.toJSON(),
   riskAnalysis: version.riskAnalysis
     ? purposeVersionDocumentToApiPurposeVersionDocument(version.riskAnalysis)
     : undefined,
@@ -126,4 +142,85 @@ export const purposeToApiPurpose = (
   isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
+});
+
+export const localizedTextToApiLocalizedText = (
+  localizedText: LocalizedText
+): ApiLocalizedText => ({
+  it: localizedText.it,
+  en: localizedText.en,
+});
+
+export const dataTypeToApiDataType = (type: DataType): ApiDataType =>
+  match<DataType, ApiDataType>(type)
+    .with(dataType.single, () => "SINGLE")
+    .with(dataType.multi, () => "MULTI")
+    .with(dataType.freeText, () => "FREETEXT")
+    .exhaustive();
+
+export const dependencyToApiDependency = (
+  dependency: Dependency
+): ApiDependency => ({
+  id: dependency.id,
+  value: dependency.value,
+});
+
+export const hideOptionConfigToApiHideOptionConfig = (
+  hideOptionConfig: HideOptionConfig
+): ApiHideOptionConfig => ({
+  id: hideOptionConfig.id,
+  value: hideOptionConfig.value,
+});
+export const mapHideOptionToApiMapHideOption = (
+  mapHideOptionConfig: Record<string, HideOptionConfig[]>
+): Record<string, ApiHideOptionConfig[]> =>
+  Object.fromEntries(
+    Object.entries(mapHideOptionConfig).map(([key, value]) => [
+      key,
+      value.map(hideOptionConfigToApiHideOptionConfig),
+    ])
+  );
+
+export const labeledValueToApiLabeledValue = (
+  labeledValue: LabeledValue
+): ApiLabeledValue => ({
+  label: localizedTextToApiLocalizedText(labeledValue.label),
+  value: labeledValue.value,
+});
+
+export const formConfigQuestionToApiFormConfigQuestion = (
+  question: FormQuestionRules
+): ApiFormQuestionRules => {
+  const commonFields = {
+    id: question.id,
+    label: localizedTextToApiLocalizedText(question.label),
+    infoLabel: question.infoLabel
+      ? localizedTextToApiLocalizedText(question.infoLabel)
+      : undefined,
+    dataType: dataTypeToApiDataType(question.dataType),
+    required: question.required,
+    dependencies: question.dependencies.map(dependencyToApiDependency),
+    visualType: question.type,
+    defaultValue: question.defaultValue,
+    hideOption: question.hideOption
+      ? mapHideOptionToApiMapHideOption(question.hideOption)
+      : undefined,
+  };
+
+  return match<FormQuestionRules, ApiFormQuestionRules>(question)
+    .with({ dataType: dataType.freeText }, () => commonFields)
+    .with({ dataType: dataType.single }, { dataType: dataType.multi }, (q) => ({
+      ...commonFields,
+      options: q.options.map(labeledValueToApiLabeledValue),
+    }))
+    .exhaustive();
+};
+
+export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
+  configuration: RiskAnalysisFormRules
+): ApiRiskAnalysisFormRules => ({
+  version: configuration.version,
+  questions: configuration.questions.map(
+    formConfigQuestionToApiFormConfigQuestion
+  ),
 });
