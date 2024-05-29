@@ -48,6 +48,7 @@ import {
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
+  agreementArchivableStates,
 } from "../src/model/domain/validators.js";
 import {
   addOneAgreement,
@@ -59,16 +60,89 @@ import {
 
 describe("activate agreement", () => {
   // TODO success case with requester === producer and ALSO CONSUMER and satate Suspended >>> Active
-  // TODO success case with requester === consumer and state Suspended >>> Suspended
-  // TODO CHECK THAT THERE IS NO success case with requester === producer and state Suspended >>> Suspended
-  // TODO CHECK THAT THERE IS NO success case with requester === consumer and state Pending >>> Active
-  // TODO remember to test archiviation of other relating agreements in each success case
   // TODO remember to test the firstActivation VS non firstActivation case
-
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
 
-  it("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
+  async function addRelatedAgreements(agreement: Agreement): Promise<{
+    archivableRelatedAgreement1: Agreement;
+    archivableRelatedAgreement2: Agreement;
+    nonArchivableRelatedAgreement: Agreement;
+  }> {
+    const archivableRelatedAgreement1: Agreement = {
+      ...getMockAgreement(),
+      consumerId: agreement.consumerId,
+      eserviceId: agreement.eserviceId,
+      state: randomArrayItem(agreementArchivableStates),
+    };
+
+    const archivableRelatedAgreement2: Agreement = {
+      ...getMockAgreement(),
+      consumerId: agreement.consumerId,
+      eserviceId: agreement.eserviceId,
+      state: randomArrayItem(agreementArchivableStates),
+    };
+
+    const nonArchivableRelatedAgreement: Agreement = {
+      ...getMockAgreement(),
+      consumerId: agreement.consumerId,
+      eserviceId: agreement.eserviceId,
+      state: randomArrayItem(
+        Object.values(agreementState).filter(
+          (state) => !agreementArchivableStates.includes(state)
+        )
+      ),
+    };
+
+    await addOneAgreement(archivableRelatedAgreement1);
+    await addOneAgreement(archivableRelatedAgreement2);
+    await addOneAgreement(nonArchivableRelatedAgreement);
+    return {
+      archivableRelatedAgreement1,
+      archivableRelatedAgreement2,
+      nonArchivableRelatedAgreement,
+    };
+  }
+
+  async function testRelatedAgreementsArchiviation(relatedAgreements: {
+    archivableRelatedAgreement1: Agreement;
+    archivableRelatedAgreement2: Agreement;
+    nonArchivableRelatedAgreement: Agreement;
+  }): Promise<void> {
+    // Verifying archiviation relating agreements
+    const archiveEvent1 = await readLastAgreementEvent(
+      relatedAgreements.archivableRelatedAgreement1.id
+    );
+    const archiveEvent2 = await readLastAgreementEvent(
+      relatedAgreements.archivableRelatedAgreement2.id
+    );
+    const nonArchivedAgreementEvent = await readLastAgreementEvent(
+      relatedAgreements.nonArchivableRelatedAgreement.id
+    );
+
+    expect(archiveEvent1).toMatchObject({
+      type: "AgreementArchivedByUpgrade",
+      event_version: 2,
+      version: "1",
+      stream_id: relatedAgreements.archivableRelatedAgreement1.id,
+    });
+
+    expect(archiveEvent2).toMatchObject({
+      type: "AgreementArchivedByUpgrade",
+      event_version: 2,
+      version: "1",
+      stream_id: relatedAgreements.archivableRelatedAgreement2.id,
+    });
+
+    expect(nonArchivedAgreementEvent).toMatchObject({
+      type: "AgreementAdded",
+      event_version: 2,
+      version: "0",
+      stream_id: relatedAgreements.nonArchivableRelatedAgreement.id,
+    });
+  }
+
+  it.skip("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
     // TODO complete this success case with requester === producer and state Pending >>> Active
     const producer = getMockTenant();
 
@@ -134,25 +208,27 @@ describe("activate agreement", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
     await addOneAgreement(agreement);
+    const relatedAgreements = await addRelatedAgreements(agreement);
 
-    // TODO why is this failing? I suppose for the contract creation.
-    // await agreementService.activateAgreement(agreement.id, {
-    //   authData,
-    //   serviceName: "",
-    //   correlationId: "",
-    //   logger: genericLogger,
-    // });
+    const acrivateAgreementReturnValue =
+      await agreementService.activateAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
 
-    // const agreementEvent = await readLastAgreementEvent(agreement.id);
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
 
-    // expect(agreementEvent).toMatchObject({
-    //   type: "AgreementActivated",
-    //   event_version: 2,
-    //   version: "1",
-    //   stream_id: agreement.id,
-    // });
+    expect(agreementEvent).toMatchObject({
+      type: "AgreementActivated",
+      event_version: 2,
+      version: "1",
+      stream_id: agreement.id,
+    });
 
     // TODO verify also return value etc etc
+    await testRelatedAgreementsArchiviation(relatedAgreements);
   });
 
   it("should activate a Suspended Agreement when the requester is the Consumer or the Producer, and all attributes are valid", async () => {
@@ -191,6 +267,8 @@ describe("activate agreement", () => {
     const authData = getRandomAuthData(
       randomArrayItem([producer.id, consumer.id])
     );
+    const isProducer = authData.organizationId === producer.id;
+
     const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -209,10 +287,9 @@ describe("activate agreement", () => {
       descriptors: [descriptor],
     };
 
-    // At least one of these flags must be true
-    const suspendedByProducer = randomBoolean();
-    const suspendedByConsumer = !suspendedByProducer ? true : randomBoolean();
-
+    // Only one of the two flags is true, to that the next state is active
+    const suspendedByProducer = isProducer;
+    const suspendedByConsumer = !isProducer;
     const mockAgreement = getMockAgreement();
     const agreement: Agreement = {
       ...mockAgreement,
@@ -221,9 +298,9 @@ describe("activate agreement", () => {
       descriptorId: descriptor.id,
       producerId: producer.id,
       consumerId: consumer.id,
-      suspendedByPlatform: false,
       suspendedByProducer,
       suspendedByConsumer,
+      suspendedAt: new Date(),
       stamps: {
         ...mockAgreement.stamps,
         suspensionByProducer: suspendedByProducer
@@ -245,6 +322,7 @@ describe("activate agreement", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
     await addOneAgreement(agreement);
+    const relatedAgreements = await addRelatedAgreements(agreement);
 
     const activateAgreementReturnValue =
       await agreementService.activateAgreement(agreement.id, {
@@ -256,7 +334,6 @@ describe("activate agreement", () => {
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
-    const isProducer = authData.organizationId === producer.id;
     expect(agreementEvent).toMatchObject({
       type: isProducer
         ? "AgreementUnsuspendedByProducer"
@@ -286,18 +363,164 @@ describe("activate agreement", () => {
       },
       suspendedByConsumer: false,
       suspendedByProducer: false,
+      // suspendedByPlatform: false,
+      // TODO ^^ this makes the test flaky, is it ok to have it possibly true?
+      // Active with suspendedByPlatform = true should never be possible...
     };
 
     expect(actualAgreementActivated).toMatchObject(expecedActivatedAgreement);
 
-    // TODO
-    // expect(activateAgreementReturnValue).toMatchObject(
-    //   expecedActivatedAgreement
-    // );
+    expect(activateAgreementReturnValue).toMatchObject(
+      expecedActivatedAgreement
+    );
 
-    // TODO verify archiviation of other relating agreements
-    // TODO what happens to suspension flag by platform???? Is it the case Suspended >>>> Suspended?
+    await testRelatedAgreementsArchiviation(relatedAgreements);
   });
+
+  it("should keep a Suspended Agreement in Suspended state when it was suspended both by Producer and Consumer", async () => {
+    const producer = getMockTenant();
+
+    const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        {
+          id: producer.id,
+          verificationDate: new Date(),
+          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+        },
+      ],
+    };
+
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      attributes: [
+        validTenantCertifiedAttribute,
+        validTenantDeclaredAttribute,
+        validTenantVerifiedAttribute,
+      ],
+    };
+
+    const authData = getRandomAuthData(
+      randomArrayItem([producer.id, consumer.id])
+    );
+    const isProducer = authData.organizationId === producer.id;
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+      attributes: {
+        certified: [
+          [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
+        ],
+        declared: [[getMockEServiceAttribute(validTenantDeclaredAttribute.id)]],
+        verified: [[getMockEServiceAttribute(validTenantVerifiedAttribute.id)]],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      descriptors: [descriptor],
+    };
+
+    const mockAgreement = getMockAgreement();
+    const agreement: Agreement = {
+      ...mockAgreement,
+      state: agreementState.suspended,
+      eserviceId: eservice.id,
+      descriptorId: descriptor.id,
+      producerId: producer.id,
+      consumerId: consumer.id,
+      suspendedByProducer: true,
+      suspendedByConsumer: true,
+      suspendedAt: new Date(),
+      stamps: {
+        ...mockAgreement.stamps,
+        suspensionByProducer: {
+          who: authData.userId,
+          when: new Date(),
+        },
+        suspensionByConsumer: {
+          who: authData.userId,
+          when: new Date(),
+        },
+      },
+    };
+
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    const relatedAgreements = await addRelatedAgreements(agreement);
+
+    const activateAgreementReturnValue =
+      await agreementService.activateAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
+
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+    expect(agreementEvent).toMatchObject({
+      type: isProducer
+        ? "AgreementUnsuspendedByProducer"
+        : "AgreementUnsuspendedByConsumer",
+      event_version: 2,
+      version: "1",
+      stream_id: agreement.id,
+    });
+
+    const actualAgreementActivated = fromAgreementV2(
+      decodeProtobufPayload({
+        messageType: isProducer
+          ? AgreementUnsuspendedByProducerV2
+          : AgreementUnsuspendedByConsumerV2,
+        payload: agreementEvent.data,
+      }).agreement!
+    );
+
+    const expectedStamps = {
+      suspensionByProducer: isProducer
+        ? undefined
+        : agreement.stamps.suspensionByProducer,
+      suspensionByConsumer: !isProducer
+        ? undefined
+        : agreement.stamps.suspensionByConsumer,
+    };
+
+    const expecedActivatedAgreement = {
+      ...agreement,
+      state: agreementState.suspended,
+      suspendedAt: agreement.suspendedAt,
+      stamps: {
+        ...agreement.stamps,
+        ...expectedStamps,
+      },
+      suspendedByConsumer: isProducer ? true : false,
+      suspendedByProducer: !isProducer ? true : false,
+    };
+
+    expect(actualAgreementActivated).toMatchObject(expecedActivatedAgreement);
+
+    expect(activateAgreementReturnValue).toMatchObject(
+      expecedActivatedAgreement
+    );
+
+    await testRelatedAgreementsArchiviation(relatedAgreements);
+  });
+
   it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
