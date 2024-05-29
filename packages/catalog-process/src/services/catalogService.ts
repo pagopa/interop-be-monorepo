@@ -94,7 +94,7 @@ import {
   originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
-  riskAnalysisDuplicate,
+  riskAnalysisDuplicated,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -1364,7 +1364,7 @@ export function catalogServiceBuilder(
       );
 
       if (isDuplicateRiskAnalysis) {
-        throw riskAnalysisDuplicate(
+        throw riskAnalysisDuplicated(
           eserviceRiskAnalysisSeed.name,
           eservice.data.id
         );
@@ -1430,7 +1430,7 @@ export function catalogServiceBuilder(
       );
 
       if (isDuplicateRiskAnalysis) {
-        throw riskAnalysisDuplicate(
+        throw riskAnalysisDuplicated(
           eserviceRiskAnalysisSeed.name,
           eservice.data.id
         );

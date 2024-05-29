@@ -112,7 +112,7 @@ import {
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
-  riskAnalysisDuplicate,
+  riskAnalysisDuplicated,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
@@ -4657,7 +4657,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(tenantKindNotFound(producer.id));
       });
-      it("should throw riskAnalysisDuplicate if risk analysis name is duplicated", async () => {
+      it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
         const producerTenantKind: TenantKind = randomArrayItem(
           Object.values(tenantKind)
         );
@@ -4700,7 +4700,7 @@ describe("database test", async () => {
             }
           )
         ).rejects.toThrowError(
-          riskAnalysisDuplicate(newRiskAnalysis.name, eservice.id)
+          riskAnalysisDuplicated(newRiskAnalysis.name, eservice.id)
         );
       });
       it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
@@ -5086,7 +5086,7 @@ describe("database test", async () => {
           eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
         );
       });
-      it("should throw riskAnalysisDuplicate if risk analysis name is duplicated", async () => {
+      it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
         const producerTenantKind: TenantKind = randomArrayItem(
           Object.values(tenantKind)
         );
@@ -5127,7 +5127,7 @@ describe("database test", async () => {
             }
           )
         ).rejects.toThrowError(
-          riskAnalysisDuplicate(riskAnalysis_2.name, eservice.id)
+          riskAnalysisDuplicated(riskAnalysis_2.name, eservice.id)
         );
       });
       it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
