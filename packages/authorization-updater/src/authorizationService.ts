@@ -192,7 +192,7 @@ export const authorizationServiceBuilder = (
           headers,
         }
       );
-      logger.info(`Updateding Puprpose ${purposeId} state for all clients`);
+      logger.info(`Updating Purpose ${purposeId} state for all clients`);
     },
   };
 };
