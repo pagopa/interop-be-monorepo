@@ -29,7 +29,7 @@ import {
   userAlreadyAssigned,
   userIdNotFound,
 } from "../model/domain/errors.js";
-import { ApiClientSeed } from "../model/domain/models.js";
+import { ApiClientSeed, ApiKeySeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
@@ -384,7 +384,14 @@ export function authorizationServiceBuilder(
         showUsers: updatedClient.consumerId === authData.organizationId,
       };
     },
-    async createKeys();
+    async createKeys(
+      clientId: ClientId,
+      keysSeeds: ApiKeySeed,
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(`Creating keys for client ${clientId}`);
+    },
   };
 }
 
