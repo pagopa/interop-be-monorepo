@@ -456,11 +456,6 @@ const purposeRouter = (
         }
       }
     )
-    .post(
-      "/purposes/:purposeId/versions/:versionId/update/waitingForApproval",
-      authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
-    )
     .get(
       "/purposes/riskAnalysis/latest",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
