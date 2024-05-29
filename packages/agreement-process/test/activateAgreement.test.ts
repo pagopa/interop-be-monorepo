@@ -1,5 +1,6 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -54,6 +55,7 @@ import {
   addOneTenant,
   agreementService,
   readLastAgreementEvent,
+  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("activate agreement", () => {
@@ -64,6 +66,14 @@ describe("activate agreement", () => {
   // TODO remember to test the firstActivation VS non firstActivation case
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
+
+  beforeEach(async () => {
+    selfcareV2ClientMock.getUserInfoUsingGET = vi.fn();
+  });
+
+  afterEach(async () => {
+    vi.clearAllMocks();
+  });
 
   async function addRelatedAgreements(agreement: Agreement): Promise<{
     archivableRelatedAgreement1: Agreement;
