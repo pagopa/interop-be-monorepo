@@ -122,6 +122,7 @@ import {
   suspendedByProducerFlag,
   agreementStateByFlags,
   nextStateByAttributes,
+  suspendedByPlatformFlag,
 } from "./agreementStateProcessor.js";
 import {
   createSubmissionUpdateAgreementSeed,
@@ -918,11 +919,13 @@ export function agreementServiceBuilder(
         agreementState.active
       );
 
+      const suspendedByPlatform = suspendedByPlatformFlag(nextState);
+
       const newState = agreementStateByFlags(
         nextState,
         suspendedByProducer,
         suspendedByConsumer,
-        undefined
+        suspendedByPlatform
       );
 
       failOnActivationFailure(newState, agreement.data);
@@ -942,6 +945,7 @@ export function agreementServiceBuilder(
           agreement: agreement.data,
           suspendedByConsumer,
           suspendedByProducer,
+          suspendedByPlatform,
         });
 
       const updatedAgreement: Agreement = {

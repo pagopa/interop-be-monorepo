@@ -45,6 +45,7 @@ export function createActivationUpdateAgreementSeed({
   agreement,
   suspendedByConsumer,
   suspendedByProducer,
+  suspendedByPlatform,
 }: {
   firstActivation: boolean;
   newState: AgreementState;
@@ -55,6 +56,7 @@ export function createActivationUpdateAgreementSeed({
   agreement: Agreement;
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
+  suspendedByPlatform: boolean;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData.userId);
 
@@ -70,6 +72,7 @@ export function createActivationUpdateAgreementSeed({
         ),
         suspendedByConsumer,
         suspendedByProducer,
+        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           activation: stamp,
@@ -79,6 +82,7 @@ export function createActivationUpdateAgreementSeed({
         state: newState,
         suspendedByConsumer,
         suspendedByProducer,
+        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           suspensionByConsumer: suspendedByConsumerStamp(
