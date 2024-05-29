@@ -24,6 +24,7 @@ import {
   AgreementDocument,
 } from "pagopa-interop-models";
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
@@ -46,11 +47,14 @@ export const readModelService = readModelServiceBuilder(readModelRepository);
 
 const pdfGenerator = await initPDFGenerator();
 
+export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
+
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
   fileManager,
-  pdfGenerator
+  pdfGenerator,
+  selfcareV2ClientMock
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement
