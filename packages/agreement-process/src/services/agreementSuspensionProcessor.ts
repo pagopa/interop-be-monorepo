@@ -18,6 +18,7 @@ import {
   agreementStateByFlags,
   nextStateByAttributes,
   suspendedByConsumerFlag,
+  suspendedByPlatformFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
@@ -50,11 +51,13 @@ export function createSuspensionUpdatedAgreement({
     agreementState.suspended
   );
 
+  const suspendedByPlatform = suspendedByPlatformFlag(nextState);
+
   const newState = agreementStateByFlags(
     nextState,
     suspendedByProducer,
     suspendedByConsumer,
-    undefined
+    suspendedByPlatform
   );
 
   const stamp = createStamp(authData.userId);
