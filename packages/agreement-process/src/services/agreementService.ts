@@ -396,12 +396,13 @@ export function agreementServiceBuilder(
         descriptor,
         consumer
       );
+      const suspendedByPlatform = suspendedByPlatformFlag(nextState);
 
       const newState = agreementStateByFlags(
         nextState,
         undefined,
         undefined,
-        undefined
+        suspendedByPlatform
       );
 
       validateActiveOrPendingAgreement(agreement.data.id, newState);
@@ -413,6 +414,7 @@ export function agreementServiceBuilder(
         agreement.data,
         payload,
         newState,
+        suspendedByPlatform,
         authData.userId
       );
 
