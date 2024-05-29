@@ -32,6 +32,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -200,7 +201,8 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator
+  pdfGenerator: PDFGenerator,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -462,6 +464,7 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       ).createContract(
@@ -1004,6 +1007,7 @@ export function agreementServiceBuilder(
               readModelService,
               pdfGenerator,
               fileManager,
+              selfcareV2Client,
               config,
               logger
             ).createContract(
