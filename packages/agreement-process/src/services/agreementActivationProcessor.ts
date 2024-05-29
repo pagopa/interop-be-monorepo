@@ -27,7 +27,6 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
@@ -35,7 +34,6 @@ import {
 } from "./agreementStampUtils.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
 
 export function createActivationUpdateAgreementSeed({
   firstActivation,
@@ -110,34 +108,17 @@ export function createActivationUpdateAgreementSeed({
 export async function createActivationEvent(
   firstActivation: boolean,
   updatedAgreement: Agreement,
-  updatedAgreementSeed: UpdateAgreementSeed,
-  eservice: EService,
-  consumer: Tenant,
-  producer: Tenant,
   originalSuspendedByPlatform: boolean | undefined,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   authData: AuthData,
-  correlationId: string,
-  contractBuilder: ContractBuilder
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (firstActivation) {
     // Pending >>> Active
-    const agreementContract = await contractBuilder.createContract(
-      authData.selfcareId,
-      updatedAgreement,
-      eservice,
-      consumer,
-      producer,
-      updatedAgreementSeed
-    );
-
     return [
       toCreateEventAgreementActivated(
-        {
-          ...updatedAgreement,
-          contract: apiAgreementDocumentToAgreementDocument(agreementContract),
-        },
+        updatedAgreement,
         agreementEventStoreVersion,
         correlationId
       ),
