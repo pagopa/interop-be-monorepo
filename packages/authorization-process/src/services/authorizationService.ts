@@ -1,15 +1,23 @@
 import {
   Client,
   ClientId,
+  Descriptor,
+  DescriptorId,
+  EService,
+  EServiceId,
   Key,
   ListResult,
+  Purpose,
   PurposeId,
+  PurposeVersionState,
   TenantId,
   UserId,
   WithMetadata,
+  agreementState,
   authorizationEventToBinaryData,
   clientKind,
   generateId,
+  purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -21,19 +29,29 @@ import {
 } from "pagopa-interop-commons";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
+  agreementNotFound,
   clientNotFound,
+  descriptorNotFound,
+  eserviceNotFound,
   keyNotFound,
+  noVersionsFoundInPurpose,
   organizationNotAllowedOnClient,
+  purposeAlreadyLinkedToClient,
   purposeIdNotFound,
+  purposeNotFound,
   securityUserNotFound,
   userAlreadyAssigned,
   userIdNotFound,
 } from "../model/domain/errors.js";
-import { ApiClientSeed } from "../model/domain/models.js";
+import {
+  ApiClientSeed,
+  ApiPurposeAdditionSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
+  toCreateEventClientPurposeAdded,
   toCreateEventClientPurposeRemoved,
   toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
@@ -64,6 +82,43 @@ const retrievePurposeId = (client: Client, purposeId: PurposeId): void => {
   if (!client.purposes.find((id) => id === purposeId)) {
     throw purposeIdNotFound(purposeId, client.id);
   }
+};
+
+const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (eservice === undefined) {
+    throw eserviceNotFound(eserviceId);
+  }
+  return eservice;
+};
+
+const retrievePurpose = async (
+  purposeId: PurposeId,
+  readModelService: ReadModelService
+): Promise<Purpose> => {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (purpose === undefined) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
+};
+
+const retrieveDescriptor = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (descriptor === undefined) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -383,6 +438,84 @@ export function authorizationServiceBuilder(
         client: updatedClient,
         showUsers: updatedClient.consumerId === authData.organizationId,
       };
+    },
+    async addClientPurpose({
+      clientId,
+      seed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      seed: ApiPurposeAdditionSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Adding purpose with id ${seed.purposeId} to client ${clientId}`
+      );
+      const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      const eservice = await retrieveEService(
+        purpose.eserviceId,
+        readModelService
+      );
+
+      const agreements = await readModelService.getAgreements(
+        eservice.id,
+        organizationId
+      );
+      const agreement = agreements
+        .filter(
+          (a) =>
+            a.state === agreementState.active ||
+            a.state === agreementState.suspended
+        )
+        .sort((a1, a2) => a1.createdAt.getTime() - a2.createdAt.getTime())[0];
+
+      if (agreement === undefined) {
+        throw agreementNotFound(eservice.id, organizationId);
+      }
+
+      retrieveDescriptor(agreement.descriptorId, eservice);
+
+      const invalidPurposeVersionStates: PurposeVersionState[] = [
+        purposeVersionState.archived,
+        purposeVersionState.rejected,
+        purposeVersionState.draft,
+        purposeVersionState.waitingForApproval,
+      ];
+      const purposeVersion = purpose.versions.filter(
+        (v) => !invalidPurposeVersionStates.includes(v.state)
+      );
+
+      if (purposeVersion === undefined) {
+        throw noVersionsFoundInPurpose(purpose.id);
+      }
+
+      if (client.data.purposes.includes(purposeId)) {
+        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        purposes: [...client.data.purposes, purposeId],
+      };
+
+      await repository.createEvent(
+        toCreateEventClientPurposeAdded(
+          purposeId,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
     },
   };
 }

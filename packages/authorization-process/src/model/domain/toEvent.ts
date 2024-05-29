@@ -128,3 +128,24 @@ export function toCreateEventClientUserAdded(
     correlationId,
   };
 }
+
+export function toCreateEventClientPurposeAdded(
+  purposeId: PurposeId,
+  client: Client,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientPurposeAdded",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        purposeId,
+      },
+    },
+    correlationId,
+  };
+}
