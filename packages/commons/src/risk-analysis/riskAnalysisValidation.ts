@@ -116,6 +116,15 @@ function getLatestVersionFormRules(
   }
 }
 
+export function getFormRulesByVersion(
+  tenantKind: TenantKind,
+  version: string
+): RiskAnalysisFormRules | undefined {
+  return riskAnalysisFormRules[tenantKind].find(
+    (config) => config.version === version
+  );
+}
+
 function questionRulesDepsToValidationRuleDeps(
   dependencies: FormQuestionRules["dependencies"]
 ): ValidationRuleDependency[] {
