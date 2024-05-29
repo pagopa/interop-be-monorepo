@@ -384,6 +384,8 @@ export function authorizationServiceBuilder(
         showUsers: updatedClient.consumerId === authData.organizationId,
       };
     },
+    async getClientKeys();
+    
     async createKeys(
       clientId: ClientId,
       keysSeeds: ApiKeySeed,
