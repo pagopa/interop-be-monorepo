@@ -37,7 +37,10 @@ import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "../src/authorizationService.js";
-import { sendAuthUpdate } from "../src/index.js";
+import {
+  sendAgreementAuthUpdate,
+  sendCatalogAuthUpdate,
+} from "../src/index.js";
 import { ApiClientComponent } from "../src/model/models.js";
 import { agreementStateToClientState } from "../src/utils.js";
 import { addOneEService, readModelService } from "./utils.js";
@@ -106,9 +109,8 @@ describe("Authorization Updater processMessage", () => {
         log_date: new Date(),
       } as EServiceEventEnvelopeV2;
 
-      await sendAuthUpdate(
+      await sendCatalogAuthUpdate(
         message,
-        readModelService,
         authorizationService,
         genericLogger,
         testCorrelationId
@@ -175,7 +177,7 @@ describe("Authorization Updater processMessage", () => {
         log_date: new Date(),
       } as AgreementEventEnvelopeV2;
 
-      await sendAuthUpdate(
+      await sendAgreementAuthUpdate(
         message,
         readModelService,
         authorizationService,
@@ -241,7 +243,7 @@ describe("Authorization Updater processMessage", () => {
       log_date: new Date(),
     } as AgreementEventEnvelopeV2;
 
-    await sendAuthUpdate(
+    await sendAgreementAuthUpdate(
       message,
       readModelService,
       authorizationService,
@@ -301,7 +303,7 @@ describe("Authorization Updater processMessage", () => {
     } as AgreementEventEnvelopeV2;
 
     await expect(
-      sendAuthUpdate(
+      sendAgreementAuthUpdate(
         message,
         readModelService,
         authorizationService,
@@ -346,7 +348,7 @@ describe("Authorization Updater processMessage", () => {
     } as AgreementEventEnvelopeV2;
 
     await expect(
-      sendAuthUpdate(
+      sendAgreementAuthUpdate(
         message,
         readModelService,
         authorizationService,
