@@ -13,7 +13,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --loader ts-node/esm ./src/index.ts",
+    "start": "node --loader ts-node/esm --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/**/**/*.proto && tsc-esm-fix --src='src/gen/' --ext='.js'"
@@ -25,12 +25,12 @@
     "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.4",
-    "@types/node": "20.3.1",
+    "@types/node": "20.14.2",
     "@types/uuid": "9.0.8",
-    "ts-pattern": "5.1.1",
-    "uuid": "9.0.1",
-    "zod": "3.22.3",
-    "zod-validation-error": "^3.1.0"
+    "ts-pattern": "5.1.2",
+    "uuid": "10.0.0",
+    "zod": "3.23.8",
+    "zod-validation-error": "3.3.0"
   },
   "devDependencies": {
     "eslint": "8.57.0",

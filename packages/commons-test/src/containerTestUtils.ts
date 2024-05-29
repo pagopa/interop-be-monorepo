@@ -6,7 +6,7 @@ import {
 import { GenericContainer } from "testcontainers";
 
 export const TEST_MONGO_DB_PORT = 27017;
-export const TEST_MONGO_DB_IMAGE = "mongo:4";
+export const TEST_MONGO_DB_IMAGE = "mongo:4.0";
 
 export const TEST_POSTGRES_DB_PORT = 5432;
 export const TEST_POSTGRES_DB_IMAGE = "postgres:14";
@@ -14,6 +14,10 @@ export const TEST_POSTGRES_DB_IMAGE = "postgres:14";
 export const TEST_MINIO_PORT = 9000;
 export const TEST_MINIO_IMAGE =
   "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z";
+
+export const TEST_MAILPIT_HTTP_PORT = 8025;
+export const TEST_MAILPIT_SMTP_PORT = 1025;
+export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
 
 /**
  * Starts a MongoDB container for testing purposes.
@@ -59,7 +63,6 @@ export const postgreSQLContainer = (
  * @param config - The configuration for the MinIO container.
  * @returns A promise that resolves to the started test container.
  */
-
 export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
@@ -72,3 +75,9 @@ export const minioContainer = (config: S3Config): GenericContainer =>
       `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
     ])
     .withExposedPorts(TEST_MINIO_PORT);
+
+export const mailpitContainer = (): GenericContainer =>
+  new GenericContainer(TEST_MAILPIT_IMAGE).withExposedPorts(
+    TEST_MAILPIT_HTTP_PORT,
+    TEST_MAILPIT_SMTP_PORT
+  );
