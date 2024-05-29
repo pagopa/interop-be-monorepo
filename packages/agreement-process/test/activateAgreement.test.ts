@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
@@ -15,7 +16,10 @@ import {
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   generateId,
   AgreementId,
@@ -33,9 +37,10 @@ import {
   fromAgreementV2,
   AgreementUnsuspendedByProducerV2,
   AgreementUnsuspendedByConsumerV2,
+  Attribute,
+  AgreementActivatedV2,
 } from "pagopa-interop-models";
 import { UserResponse } from "pagopa-interop-selfcare-v2-client";
-import { generateMock } from "@anatine/zod-mock";
 import {
   agreementActivationFailed,
   agreementNotFound,
@@ -51,11 +56,14 @@ import {
   agreementActivationAllowedDescriptorStates,
   agreementArchivableStates,
 } from "../src/model/domain/validators.js";
+import { config } from "../src/utilities/config.js";
 import {
   addOneAgreement,
+  addOneAttribute,
   addOneEService,
   addOneTenant,
   agreementService,
+  fileManager,
   readLastAgreementEvent,
   selfcareV2ClientMock,
 } from "./utils.js";
@@ -63,8 +71,9 @@ import {
 describe("activate agreement", () => {
   // TODO success case with requester === producer and ALSO CONSUMER and state Suspended >>> Active
   // TODO success case with requester === producer and state Pending >>> Suspended (suspendedByConsumer was true)
-  // But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
+  //      But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
 
+  // TODO add attributes to all agreements to test that activation does not update them
   // TODO remember to test the firstActivation VS non firstActivation case
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
@@ -167,18 +176,33 @@ describe("activate agreement", () => {
   it.only("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
     const producer = getMockTenant();
 
+    const certifiedAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: "Certified",
+    };
+
+    const declaredAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: "Declared",
+    };
+
+    const verifiedAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: "Verified",
+    };
+
     const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
+      ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
       revocationTimestamp: undefined,
     };
 
     const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
+      ...getMockDeclaredTenantAttribute(declaredAttribute.id),
       revocationTimestamp: undefined,
     };
 
     const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
+      ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
       verifiedBy: [
         {
           id: producer.id,
@@ -231,6 +255,9 @@ describe("activate agreement", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
     await addOneAgreement(agreement);
+    await addOneAttribute(certifiedAttribute);
+    await addOneAttribute(declaredAttribute);
+    await addOneAttribute(verifiedAttribute);
     const relatedAgreements = await addRelatedAgreements(agreement);
 
     const acrivateAgreementReturnValue =
@@ -250,7 +277,56 @@ describe("activate agreement", () => {
       stream_id: agreement.id,
     });
 
-    // TODO verify also return value etc etc
+    const actualAgreementActivated = fromAgreementV2(
+      decodeProtobufPayload({
+        messageType: AgreementActivatedV2,
+        payload: agreementEvent.data,
+      }).agreement!
+    );
+
+    const contractDocumentId = actualAgreementActivated.contract!.id;
+    const contractDocumentName = `${consumer.id}_${
+      producer.id
+    }_${formatDateyyyyMMddHHmmss(new Date())}_agreement_contract.pdf`;
+
+    const expectedContract = {
+      id: contractDocumentId,
+      contentType: "application/pdf",
+      createdAt: actualAgreementActivated.contract!.createdAt,
+      path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+      prettyName: "Richiesta di fruizione",
+      name: contractDocumentName,
+    };
+
+    const expectedActivatedAgreement: Agreement = {
+      ...agreement,
+      state: agreementState.active,
+      stamps: {
+        ...agreement.stamps,
+        activation: {
+          who: authData.userId,
+          when: actualAgreementActivated.stamps.activation!.when,
+        },
+      },
+      certifiedAttributes: [{ id: certifiedAttribute.id }],
+      declaredAttributes: [{ id: declaredAttribute.id }],
+      verifiedAttributes: [{ id: verifiedAttribute.id }],
+      contract: expectedContract,
+      suspendedByProducer: false,
+      suspendedByConsumer: false,
+      // suspendedByPlatform: false,
+      // TODO ^^ this makes the test flaky, is it ok to have it possibly true?
+      // Active with suspendedByPlatform = true should never be possible...
+    };
+
+    expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
+    expect(acrivateAgreementReturnValue).toMatchObject(
+      expectedActivatedAgreement
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(expectedContract.path);
     await testRelatedAgreementsArchiviation(relatedAgreements);
   });
 
@@ -375,7 +451,7 @@ describe("activate agreement", () => {
       }).agreement!
     );
 
-    const expecedActivatedAgreement = {
+    const expectedActivatedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
       suspendedAt: undefined,
@@ -391,10 +467,10 @@ describe("activate agreement", () => {
       // Active with suspendedByPlatform = true should never be possible...
     };
 
-    expect(actualAgreementActivated).toMatchObject(expecedActivatedAgreement);
+    expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
 
     expect(activateAgreementReturnValue).toMatchObject(
-      expecedActivatedAgreement
+      expectedActivatedAgreement
     );
 
     await testRelatedAgreementsArchiviation(relatedAgreements);
@@ -523,7 +599,7 @@ describe("activate agreement", () => {
         : agreement.stamps.suspensionByConsumer,
     };
 
-    const expecedActivatedAgreement = {
+    const expectedActivatedAgreement: Agreement = {
       ...agreement,
       state: agreementState.suspended,
       suspendedAt: agreement.suspendedAt,
@@ -535,10 +611,10 @@ describe("activate agreement", () => {
       suspendedByProducer: !isProducer ? true : false,
     };
 
-    expect(actualAgreementActivated).toMatchObject(expecedActivatedAgreement);
+    expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
 
     expect(activateAgreementReturnValue).toMatchObject(
-      expecedActivatedAgreement
+      expectedActivatedAgreement
     );
 
     await testRelatedAgreementsArchiviation(relatedAgreements);
