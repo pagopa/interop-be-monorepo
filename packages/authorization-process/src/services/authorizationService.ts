@@ -384,6 +384,7 @@ export function authorizationServiceBuilder(
         showUsers: updatedClient.consumerId === authData.organizationId,
       };
     },
+    async getClientKeys();
   };
 }
 
