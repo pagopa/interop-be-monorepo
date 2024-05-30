@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAgreementAttribute,
   getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
@@ -82,8 +83,6 @@ describe("activate agreement", () => {
   //      But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
 
   // TODO fix the bug of the creation date of the contract
-  // TODO add attributes to all agreements to test that activation does not update them
-  // TODO remember to test the firstActivation VS non firstActivation case
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
 
@@ -273,6 +272,11 @@ describe("activate agreement", () => {
         },
         activation: undefined,
       },
+
+      // Adding some random attributes to check that they are overwritten by the activation
+      certifiedAttributes: [getMockAgreementAttribute()],
+      declaredAttributes: [getMockAgreementAttribute()],
+      verifiedAttributes: [getMockAgreementAttribute()],
     };
 
     await addOneTenant(consumer);
@@ -440,6 +444,11 @@ describe("activate agreement", () => {
             }
           : undefined,
       },
+
+      // Adding some random attributes to check that they are not modified by the Unsuspension
+      certifiedAttributes: [getMockAgreementAttribute()],
+      declaredAttributes: [getMockAgreementAttribute()],
+      verifiedAttributes: [getMockAgreementAttribute()],
     };
 
     await addOneTenant(consumer);
@@ -579,6 +588,10 @@ describe("activate agreement", () => {
           when: new Date(),
         },
       },
+      // Adding some random attributes to check that they are not modified by the Unsuspension
+      certifiedAttributes: [getMockAgreementAttribute()],
+      declaredAttributes: [getMockAgreementAttribute()],
+      verifiedAttributes: [getMockAgreementAttribute()],
     };
 
     await addOneTenant(consumer);
