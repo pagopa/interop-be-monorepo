@@ -222,9 +222,7 @@ describe("reject agreement", () => {
     expect(actualAgreementRejected).toMatchObject(
       toAgreementV2(expectedAgreemenentRejected)
     );
-    expect(actualAgreementRejected).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
     vi.useRealTimers();
   });
 

@@ -196,7 +196,7 @@ describe("clone agreement", () => {
     expect(agreementClonedEventPayload).toMatchObject({
       agreement: expectedAgreementCloned,
     });
-    expect(agreementClonedEventPayload).toMatchObject({
+    expect(agreementClonedEventPayload).toEqual({
       agreement: toAgreementV2(returnedAgreement),
     });
 

@@ -115,7 +115,7 @@ const expectedAgreementCreation = async (
     stamps: {},
     createdAt: expect.any(BigInt),
   });
-  expect(actualAgreement).toMatchObject(toAgreementV2(agreement));
+  expect(actualAgreement).toEqual(toAgreementV2(agreement));
 
   return actualAgreement;
 };

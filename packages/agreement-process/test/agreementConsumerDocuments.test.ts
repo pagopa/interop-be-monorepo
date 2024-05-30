@@ -176,13 +176,13 @@ describe("agreement consumer document", () => {
       });
 
       expect(actualConsumerDocument).toEqual({
-        agreement: {
+        agreement: toAgreementV2({
           ...agreement,
           consumerDocuments: [
             ...agreement.consumerDocuments,
             returnedConsumerDocument,
           ],
-        },
+        }),
         documentId: returnedConsumerDocument.id,
       });
     });
