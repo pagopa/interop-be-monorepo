@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
