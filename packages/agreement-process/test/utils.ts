@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   StoredEvent,
@@ -27,7 +28,7 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
@@ -42,10 +43,15 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
-const browserInstance = await puppeteer.launch();
-afterAll(async () => {
-  browserInstance.close();
-});
+export let browserInstance: Browser | undefined;
+export const respawnTestBrowserInstance = async (): Promise<void> => {
+  browserInstance = await puppeteer.launch();
+};
+
+export const closeTestBrowserInstance = async (): Promise<void> =>
+  browserInstance && (await browserInstance.close());
+
+afterAll(closeTestBrowserInstance);
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
@@ -54,6 +60,7 @@ export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
+await respawnTestBrowserInstance();
 const pdfGenerator = await initPDFGenerator(browserInstance);
 
 export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
