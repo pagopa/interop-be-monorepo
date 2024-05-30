@@ -12,6 +12,7 @@ import {
   TenantCollection,
   initDB,
   initFileManager,
+  initPDFGenerator,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
@@ -89,10 +90,13 @@ describe("Integration tests", async () => {
       useSSL: config.eventStoreDbUseSSL,
     });
     const fileManager = initFileManager(config);
+    const pdfGenerator = await initPDFGenerator();
+
     purposeService = purposeServiceBuilder(
       postgresDB,
       readModelService,
-      fileManager
+      fileManager,
+      pdfGenerator
     );
   });
 
