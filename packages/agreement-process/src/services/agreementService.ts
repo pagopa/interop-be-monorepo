@@ -108,6 +108,7 @@ import {
 import { config } from "../utilities/config.js";
 import {
   archiveRelatedToAgreements,
+  createActivationContract,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
@@ -701,7 +702,10 @@ export function agreementServiceBuilder(
       if (existentDocument) {
         throw agreementDocumentAlreadyExists(agreementId);
       }
-      const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
+      const newDocument = apiAgreementDocumentToAgreementDocument(
+        documentSeed,
+        new Date()
+      );
 
       const updatedAgreement = {
         ...agreement.data,
@@ -1207,7 +1211,7 @@ async function addContractOnFirstActivation(
   authData: AuthData
 ): Promise<Agreement> {
   if (isFirstActivation) {
-    const contract = await contractBuilder.createContract(
+    const { contractSeed, createdAt } = await contractBuilder.createContract(
       authData.selfcareId,
       agreement,
       eservice,
@@ -1218,7 +1222,10 @@ async function addContractOnFirstActivation(
 
     return {
       ...agreement,
-      contract: apiAgreementDocumentToAgreementDocument(contract),
+      contract: apiAgreementDocumentToAgreementDocument(
+        contractSeed,
+        createdAt
+      ),
     };
   }
 

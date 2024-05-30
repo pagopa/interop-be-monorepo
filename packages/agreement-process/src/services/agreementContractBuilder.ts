@@ -65,10 +65,11 @@ const retrieveUser = async (
 
 const createAgreementDocumentName = (
   consumerId: TenantId,
-  producerId: TenantId
+  producerId: TenantId,
+  contractCreatedAt: Date
 ): string =>
   `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    new Date()
+    contractCreatedAt
   )}_agreement_contract.pdf`;
 
 const getAttributeInvolved = async (
@@ -326,7 +327,10 @@ export const contractBuilder = (
       consumer: Tenant,
       producer: Tenant,
       seed: UpdateAgreementSeed
-    ): Promise<ApiAgreementDocumentSeed> => {
+    ): Promise<{
+      contractSeed: ApiAgreementDocumentSeed;
+      createdAt: Date;
+    }> => {
       const templateFilePath = path.resolve(
         dirname,
         "..",
@@ -351,9 +355,12 @@ export const contractBuilder = (
       );
 
       const documentId = generateId<AgreementDocumentId>();
+
+      const contractCreatedAt = new Date();
       const documentName = createAgreementDocumentName(
         agreement.consumerId,
-        agreement.producerId
+        agreement.producerId,
+        contractCreatedAt
       );
 
       const documentPath = await fileManager.storeBytes(
@@ -366,11 +373,14 @@ export const contractBuilder = (
       );
 
       return {
-        id: documentId,
-        name: documentName,
-        contentType: CONTENT_TYPE_PDF,
-        prettyName: AGREEMENT_CONTRACT_PRETTY_NAME,
-        path: documentPath,
+        contractSeed: {
+          id: documentId,
+          name: documentName,
+          contentType: CONTENT_TYPE_PDF,
+          prettyName: AGREEMENT_CONTRACT_PRETTY_NAME,
+          path: documentPath,
+        },
+        createdAt: contractCreatedAt,
       };
     },
   };
