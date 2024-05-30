@@ -1328,6 +1328,7 @@ const archiveActiveAndSuspendedPurposeVersions = (
       .with(purposeVersionState.active, purposeVersionState.suspended, () => ({
         ...v,
         state: purposeVersionState.archived,
+        updatedAt: new Date(),
       }))
       .otherwise(() => v)
   );

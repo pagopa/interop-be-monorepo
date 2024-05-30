@@ -418,7 +418,6 @@ export function agreementServiceBuilder(
 
       const agreements = (
         await readModelService.getAllAgreements({
-          producerId: agreement.data.producerId,
           consumerId: agreement.data.consumerId,
           eserviceId: agreement.data.eserviceId,
           agreementStates: [agreementState.active, agreementState.suspended],
