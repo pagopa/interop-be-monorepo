@@ -9,7 +9,7 @@ import {
   readEventByStreamIdAndVersion,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { afterEach, expect, inject } from "vitest";
+import { afterAll, afterEach, expect, inject } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -27,6 +27,7 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import puppeteer from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
@@ -41,6 +42,11 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
+const browserInstance = await puppeteer.launch();
+afterAll(async () => {
+  browserInstance.close();
+});
+
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
@@ -48,7 +54,7 @@ export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const pdfGenerator = await initPDFGenerator();
+const pdfGenerator = await initPDFGenerator(browserInstance);
 
 export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
 
