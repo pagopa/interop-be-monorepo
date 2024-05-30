@@ -132,7 +132,7 @@ export const addContractOnFirstActivation = async (
     agreement.state === agreementState.active && !hasRelatedAgreements;
 
   if (isFirstActivation) {
-    const contract = await contractBuilder.createContract(
+    const { contractSeed, createdAt } = await contractBuilder.createContract(
       authData.selfcareId,
       agreement,
       eservice,
@@ -143,7 +143,10 @@ export const addContractOnFirstActivation = async (
 
     return {
       ...agreement,
-      contract: apiAgreementDocumentToAgreementDocument(contract),
+      contract: apiAgreementDocumentToAgreementDocument(
+        contractSeed,
+        createdAt
+      ),
     };
   }
 

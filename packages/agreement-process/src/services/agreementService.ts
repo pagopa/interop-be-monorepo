@@ -107,6 +107,7 @@ import {
 import { config } from "../utilities/config.js";
 import {
   archiveRelatedToAgreements,
+  createActivationContract,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
@@ -692,7 +693,10 @@ export function agreementServiceBuilder(
       if (existentDocument) {
         throw agreementDocumentAlreadyExists(agreementId);
       }
-      const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
+      const newDocument = apiAgreementDocumentToAgreementDocument(
+        documentSeed,
+        new Date()
+      );
 
       const updatedAgreement = {
         ...agreement.data,
@@ -995,25 +999,21 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const contract = !firstActivation
-        ? agreement.data.contract
-        : apiAgreementDocumentToAgreementDocument(
-            await contractBuilder(
-              readModelService,
-              pdfGenerator,
-              fileManager,
-              selfcareV2Client,
-              config,
-              logger
-            ).createContract(
-              authData.selfcareId,
-              updatedAgreementWithoutContract,
-              eservice,
-              consumer,
-              producer,
-              updatedAgreementSeed
-            )
-          );
+      const contract = await createActivationContract(
+        agreement,
+        firstActivation,
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        logger,
+        authData,
+        updatedAgreementWithoutContract,
+        updatedAgreementSeed,
+        eservice,
+        consumer,
+        producer
+      );
 
       const updatedAgreement: Agreement = {
         ...updatedAgreementWithoutContract,
