@@ -271,8 +271,8 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(authorizationMessage, genericLogger);
 
-      const receivedMessages = await queueWriter.receiveLast(genericLogger, 3);
-      expect(receivedMessages.length).toBe(3);
+      const receivedMessages = await queueWriter.receiveLast(genericLogger, 4);
+      expect(receivedMessages.length).toBe(4);
 
       const receivedCatalogMessage = receivedMessages[0];
       const receivedPurposeMessage = receivedMessages[1];
