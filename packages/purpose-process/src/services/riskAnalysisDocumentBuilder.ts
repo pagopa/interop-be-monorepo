@@ -2,6 +2,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   FileManager,
+  FormQuestionRules,
   Logger,
   PDFGenerator,
   RiskAnalysisFormRules,
@@ -18,6 +19,8 @@ import {
   PurposeRiskAnalysisForm,
   RiskAnalysisDocumentPDFPayload,
   eserviceMode,
+  RiskAnalysisSingleAnswer,
+  RiskAnalysisMultiAnswer,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -25,6 +28,10 @@ import {
   riskAnalysisConfigVersionNotFound,
 } from "../model/domain/errors.js";
 import { PurposeProcessConfig } from "../utilities/config.js";
+
+const YES = "Sì";
+const NO = "No";
+const NOT_AVAILABLE = "N/A";
 
 const createRiskAnalysisDocumentName = (): string =>
   `${new Date().toISOString()}_${generateId()}_risk_analysis.pdf`;
@@ -122,12 +129,12 @@ const getPdfPayload = ({
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
 }): RiskAnalysisDocumentPDFPayload => {
-  const answers = sortedAnswers(riskAnalysisFormConfig, riskAnalysisForm);
-  const { freeOfChargeHtml, freeOfChargeReadonHtml } = formatFreeOfCharge(
+  const answers = formatAnswers(riskAnalysisFormConfig, riskAnalysisForm);
+  const { freeOfChargeHtml, freeOfChargeReasonHtml } = formatFreeOfCharge(
     isFreeOfCharge,
     freeOfChargeReason
   );
-  const mode = match(eserviceInfo.mode)
+  const eServiceMode = match(eserviceInfo.mode)
     .with(eserviceMode.receive, () => "Riceve")
     .with(eserviceMode.deliver, () => "Eroga")
     .exhaustive();
@@ -136,44 +143,83 @@ const getPdfPayload = ({
     dailyCalls: dailyCalls.toString(),
     answers,
     eServiceName: eserviceInfo.name,
-    producerText: getDescriptionText(
+    producerText: formatTenantDescription(
       eserviceInfo.producerName,
       eserviceInfo.producerOrigin,
       eserviceInfo.producerIPACode
     ),
-    consumerText: getDescriptionText(
+    consumerText: formatTenantDescription(
       eserviceInfo.consumerName,
       eserviceInfo.consumerOrigin,
       eserviceInfo.consumerIPACode
     ),
     freeOfCharge: freeOfChargeHtml,
-    freeOfChargeReason: freeOfChargeReadonHtml,
+    freeOfChargeReason: freeOfChargeReasonHtml,
     date: dateAtRomeZone(new Date()),
-    eServiceMode: mode,
+    eServiceMode,
   };
 };
 
-function sortedAnswers(
-  _formConfig: RiskAnalysisFormRules,
-  _riskAnalysisForm: PurposeRiskAnalysisForm
+function formatSingleAnswer(
+  _questionRules: FormQuestionRules,
+  _singleAnswer: RiskAnalysisSingleAnswer
 ): string {
-  return "TODO";
+  return "";
+}
+
+function formatMultiAnswer(
+  _questionRules: FormQuestionRules,
+  _multiAnswer: RiskAnalysisMultiAnswer
+): string {
+  return "";
+}
+
+function formatAnswers(
+  formConfig: RiskAnalysisFormRules,
+  riskAnalysisForm: PurposeRiskAnalysisForm
+): string {
+  return formConfig.questions
+    .flatMap((questionRules) => {
+      const singleAnswers = riskAnalysisForm.singleAnswers
+        .filter((a) => a.key === questionRules.id)
+        .map((a) => formatSingleAnswer(questionRules, a));
+      const multiAnswers = riskAnalysisForm.multiAnswers
+        .filter((a) => a.key === questionRules.id)
+        .map((a) => formatMultiAnswer(questionRules, a));
+      return singleAnswers.concat(multiAnswers);
+    })
+    .join("\n");
 }
 
 function formatFreeOfCharge(
-  _isFreeOfCharge: boolean,
-  _freeOfChargeReadon?: string
-): { freeOfChargeHtml: string; freeOfChargeReadonHtml: string } {
+  isFreeOfCharge: boolean,
+  freeOfChargeReason?: string
+): { freeOfChargeHtml: string; freeOfChargeReasonHtml: string } {
+  const freeOfChargeHtml = `<div class="item">
+  <div class="label">Indicare se l'accesso ai dati messi a disposizione con la fruizione del presente e-service è a titolo gratuito</div>
+  <div class="value">${isFreeOfCharge ? YES : NO}</div>
+</div>`;
+
+  const freeOfChargeReasonHtml = isFreeOfCharge
+    ? `<div class="item">
+  <div class="label">Motivazione titolo gratuito</div>
+  <div class="value">${freeOfChargeReason ?? NOT_AVAILABLE}</div>
+</div>`
+    : '<div class="item-not-visible"></div>';
+
   return {
-    freeOfChargeHtml: "TODO",
-    freeOfChargeReadonHtml: "TODO",
+    freeOfChargeHtml,
+    freeOfChargeReasonHtml,
   };
 }
 
-function getDescriptionText(
-  _tenantName: string,
-  _tenantOrigin: string,
-  _tenantIPACode: string
+function formatTenantDescription(
+  tenantName: string,
+  tenantOrigin: string,
+  tenantIPACode: string
 ): string {
-  return `TODO`;
+  if (tenantOrigin === "IPA") {
+    return `${tenantName} (codice IPA: ${tenantIPACode})`;
+  }
+  return tenantName;
 }
