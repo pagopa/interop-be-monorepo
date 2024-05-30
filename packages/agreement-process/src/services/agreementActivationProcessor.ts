@@ -1,5 +1,11 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  FileManager,
+  Logger,
+  PDFGenerator,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   EService,
@@ -14,6 +20,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -28,6 +35,8 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
+import { config } from "../utilities/config.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
@@ -35,6 +44,7 @@ import {
 } from "./agreementStampUtils.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
+import { contractBuilder } from "./agreementContractBuilder.js";
 
 export function createActivationUpdateAgreementSeed({
   firstActivation,
@@ -224,4 +234,42 @@ export function maybeCreateSuspensionByPlatformEvents(
         ];
   }
   return [];
+}
+
+export async function createActivationContract(
+  agreement: WithMetadata<Agreement>,
+  firstActivation: boolean,
+  readModelService: ReadModelService,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager,
+  selfcareV2Client: SelfcareV2Client,
+  logger: Logger,
+  authData: AuthData,
+  updatedAgreementWithoutContract: Agreement,
+  updatedAgreementSeed: UpdateAgreementSeed,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant
+): Promise<Agreement["contract"]> {
+  if (!firstActivation) {
+    return agreement.data.contract;
+  }
+
+  const { contractSeed, createdAt } = await contractBuilder(
+    readModelService,
+    pdfGenerator,
+    fileManager,
+    selfcareV2Client,
+    config,
+    logger
+  ).createContract(
+    authData.selfcareId,
+    updatedAgreementWithoutContract,
+    eservice,
+    consumer,
+    producer,
+    updatedAgreementSeed
+  );
+
+  return apiAgreementDocumentToAgreementDocument(contractSeed, createdAt);
 }
