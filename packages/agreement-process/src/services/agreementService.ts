@@ -110,7 +110,7 @@ import { createStamp } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
   computeAgreementsStateByAttribute,
-  nextStateByAttributes,
+  nextStateByAttributesFSM,
   suspendedByConsumerFlag,
   suspendedByPlatformFlag,
   suspendedByProducerFlag,
@@ -391,16 +391,18 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const nextState = nextStateByAttributes(
+      const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
         consumer
       );
 
-      const suspendedByPlatform = suspendedByPlatformFlag(nextState);
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
 
       const newState = agreementStateByFlags(
-        nextState,
+        nextStateByAttributes,
         undefined,
         undefined,
         suspendedByPlatform
@@ -900,7 +902,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const nextState = nextStateByAttributes(
+      /* nextAttributesState VS targetDestinationState
+      -- targetDestinationState is the state where the caller wants to go (active, in this case)
+      -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+      */
+      const targetDestinationState = agreementState.active;
+      const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
         consumer
@@ -909,17 +916,19 @@ export function agreementServiceBuilder(
       const suspendedByConsumer = suspendedByConsumerFlag(
         agreement.data,
         authData.organizationId,
-        agreementState.active
+        targetDestinationState
       );
       const suspendedByProducer = suspendedByProducerFlag(
         agreement.data,
         authData.organizationId,
-        agreementState.active
+        targetDestinationState
       );
-      const suspendedByPlatform = suspendedByPlatformFlag(nextState);
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
 
       const newState = agreementStateByFlags(
-        nextState,
+        nextStateByAttributes,
         suspendedByProducer,
         suspendedByConsumer,
         suspendedByPlatform
