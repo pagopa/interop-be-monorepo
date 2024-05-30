@@ -28,7 +28,6 @@ export async function handleMessageV2(
       { type: "AgreementUnsuspendedByProducer" },
       { type: "AgreementUnsuspendedByConsumer" },
       { type: "AgreementUnsuspendedByPlatform" },
-      { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementArchivedByConsumer" },
       { type: "AgreementSuspendedByProducer" },
       { type: "AgreementSuspendedByConsumer" },
@@ -37,7 +36,8 @@ export async function handleMessageV2(
       { type: "AgreementConsumerDocumentAdded" },
       { type: "AgreementConsumerDocumentRemoved" },
       { type: "AgreementArchivedByUpgrade" },
-      { type: "AgreementUpgraded" },
+      { type: "AgreementSetDraftByPlatform" },
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       async (message) =>
         await agreements.updateOne(
           {
