@@ -396,6 +396,7 @@ export function agreementServiceBuilder(
         descriptor,
         consumer
       );
+
       const suspendedByPlatform = suspendedByPlatformFlag(nextState);
 
       const newState = agreementStateByFlags(
@@ -915,7 +916,6 @@ export function agreementServiceBuilder(
         authData.organizationId,
         agreementState.active
       );
-
       const suspendedByPlatform = suspendedByPlatformFlag(nextState);
 
       const newState = agreementStateByFlags(
