@@ -4156,10 +4156,175 @@ describe("database test", async () => {
     });
 
     describe("update Document", () => {
-      it("should write on event-store for the update of a document", async () => {
+      it("should write on event-store for the update of a document for draft descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        await catalogService.updateDocument(
+          eservice.id,
+          descriptor.id,
+          mockDocument.id,
+          { prettyName: "updated prettyName" },
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
+        );
+        const writtenEvent = await readLastEserviceEvent(
+          eservice.id,
+          postgresDB
+        );
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              docs: [
+                {
+                  ...mockDocument,
+                  prettyName: "updated prettyName",
+                },
+              ],
+            },
+          ],
+        });
+
+        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorDocumentUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.documentId).toEqual(mockDocument.id);
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
+      });
+      it("should write on event-store for the update of a document for deprecated descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.deprecated,
+          docs: [mockDocument],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        await catalogService.updateDocument(
+          eservice.id,
+          descriptor.id,
+          mockDocument.id,
+          { prettyName: "updated prettyName" },
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
+        );
+        const writtenEvent = await readLastEserviceEvent(
+          eservice.id,
+          postgresDB
+        );
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              docs: [
+                {
+                  ...mockDocument,
+                  prettyName: "updated prettyName",
+                },
+              ],
+            },
+          ],
+        });
+
+        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorDocumentUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.documentId).toEqual(mockDocument.id);
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
+      });
+      it("should write on event-store for the update of a document for suspended descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.suspended,
+          docs: [mockDocument],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        await catalogService.updateDocument(
+          eservice.id,
+          descriptor.id,
+          mockDocument.id,
+          { prettyName: "updated prettyName" },
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
+        );
+        const writtenEvent = await readLastEserviceEvent(
+          eservice.id,
+          postgresDB
+        );
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              docs: [
+                {
+                  ...mockDocument,
+                  prettyName: "updated prettyName",
+                },
+              ],
+            },
+          ],
+        });
+
+        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorDocumentUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.documentId).toEqual(mockDocument.id);
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
+      });
+      it("should write on event-store for the update of a document for published descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
           docs: [mockDocument],
         };
         const eservice: EService = {
@@ -4276,62 +4441,6 @@ describe("database test", async () => {
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
         );
       });
-      it("should throw notValidDescriptor if the descriptor is in Published state", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          interface: mockDocument,
-          state: descriptorState.published,
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-        expect(
-          catalogService.updateDocument(
-            eservice.id,
-            descriptor.id,
-            generateId(),
-            { prettyName: "updated prettyName" },
-            {
-              authData: getMockAuthData(eservice.producerId),
-              correlationId: "",
-              serviceName: "",
-              logger: genericLogger,
-            }
-          )
-        ).rejects.toThrowError(
-          notValidDescriptor(descriptor.id, descriptorState.published)
-        );
-      });
-      it("should throw notValidDescriptor if the descriptor is in Suspended state", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          interface: mockDocument,
-          state: descriptorState.suspended,
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-        expect(
-          catalogService.updateDocument(
-            eservice.id,
-            descriptor.id,
-            generateId(),
-            { prettyName: "updated prettyName" },
-            {
-              authData: getMockAuthData(eservice.producerId),
-              correlationId: "",
-              serviceName: "",
-              logger: genericLogger,
-            }
-          )
-        ).rejects.toThrowError(
-          notValidDescriptor(descriptor.id, descriptorState.suspended)
-        );
-      });
       it("should throw notValidDescriptor if the descriptor is in Archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -4358,34 +4467,6 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
-        );
-      });
-      it("should throw notValidDescriptor if the descriptor is in Deprecated state", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          interface: mockDocument,
-          state: descriptorState.deprecated,
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-        expect(
-          catalogService.updateDocument(
-            eservice.id,
-            descriptor.id,
-            generateId(),
-            { prettyName: "updated prettyName" },
-            {
-              authData: getMockAuthData(eservice.producerId),
-              correlationId: "",
-              serviceName: "",
-              logger: genericLogger,
-            }
-          )
-        ).rejects.toThrowError(
-          notValidDescriptor(descriptor.id, descriptorState.deprecated)
         );
       });
       it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {
