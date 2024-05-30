@@ -23,7 +23,6 @@ import {
   ReadModelRepository,
   TenantCollection,
   fileManagerDeleteError,
-  formatDateAndTime,
   genericLogger,
   initDB,
   initFileManager,

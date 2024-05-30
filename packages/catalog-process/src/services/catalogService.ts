@@ -7,7 +7,6 @@ import {
   WithLogger,
   AppContext,
   eventRepository,
-  formatDateAndTime,
   hasPermission,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
