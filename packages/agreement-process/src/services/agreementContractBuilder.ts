@@ -24,7 +24,6 @@ import {
   VerifiedTenantAttribute,
   UserId,
   generateId,
-  genericError,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import {
@@ -35,6 +34,7 @@ import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
   agreementStampNotFound,
+  attributeNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -103,7 +103,7 @@ const getAttributeInvolved = async (
           tenantAttribute.id
         );
         if (!attribute) {
-          throw genericError(`Attribute ${tenantAttribute.id} not found`);
+          throw attributeNotFound(tenantAttribute.id);
         }
         return [attribute, tenantAttribute as unknown as T];
       })
