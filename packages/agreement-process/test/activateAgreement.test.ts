@@ -82,7 +82,6 @@ describe("activate agreement", () => {
   // TODO success case with requester === producer and state Pending >>> Suspended (suspendedByConsumer was true)
   //      But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
 
-  // TODO fix the bug of the creation date of the contract
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
 
