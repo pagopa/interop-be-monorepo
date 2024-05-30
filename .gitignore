@@ -45,3 +45,7 @@ packages/*/src/model/generated
 
 # MinIO container data
 docker/minio-data
+
+### Turbo ###
+# Turborepo task cache
+.turbo

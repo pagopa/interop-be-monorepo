@@ -10,6 +10,7 @@
     ":ignoreUnstable",
     ":rebaseStalePrs"
   ],
+  "prConcurrentLimit": 2,
   "labels": [
     "dependencies"
   ],
