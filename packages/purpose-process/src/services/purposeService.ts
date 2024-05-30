@@ -722,6 +722,7 @@ export function purposeServiceBuilder(
             () => ({
               ...v,
               state: purposeVersionState.archived,
+              updatedAt: new Date(),
             })
           )
           .otherwise(() => v)
