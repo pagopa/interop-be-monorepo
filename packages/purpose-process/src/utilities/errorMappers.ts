@@ -154,5 +154,4 @@ export const retrieveRiskAnalysisConfigurationByVersionErrorMapper = (
       "riskAnalysisConfigVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotFound", "tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

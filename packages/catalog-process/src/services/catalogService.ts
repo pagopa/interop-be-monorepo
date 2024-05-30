@@ -12,6 +12,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  formatDateddMMyyyyHHmmss,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -1158,7 +1159,7 @@ export function catalogServiceBuilder(
 
       const clonedEServiceName = `${
         eservice.data.name
-      } - clone - ${formatDateAndTime(new Date())}`;
+      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
 
       if (
         await readModelService.getEServiceByNameAndProducerId({

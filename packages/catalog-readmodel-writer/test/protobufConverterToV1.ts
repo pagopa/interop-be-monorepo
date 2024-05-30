@@ -18,6 +18,7 @@ import {
   EServiceV1,
   RiskAnalysis,
   Technology,
+  dateToBigInt,
 } from "pagopa-interop-models";
 
 export const toAgreementApprovalPolicyV1 = (
@@ -76,17 +77,11 @@ export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
   agreementApprovalPolicy: toAgreementApprovalPolicyV1(
     input.agreementApprovalPolicy
   ),
-  createdAt: BigInt(input.createdAt.getTime()),
-  publishedAt: input.publishedAt
-    ? BigInt(input.publishedAt.getTime())
-    : undefined,
-  suspendedAt: input.suspendedAt
-    ? BigInt(input.suspendedAt.getTime())
-    : undefined,
-  deprecatedAt: input.deprecatedAt
-    ? BigInt(input.deprecatedAt.getTime())
-    : undefined,
-  archivedAt: input.archivedAt ? BigInt(input.archivedAt.getTime()) : undefined,
+  createdAt: dateToBigInt(input.createdAt),
+  publishedAt: dateToBigInt(input.publishedAt),
+  suspendedAt: dateToBigInt(input.suspendedAt),
+  deprecatedAt: dateToBigInt(input.deprecatedAt),
+  archivedAt: dateToBigInt(input.archivedAt),
 });
 
 export const toEServiceModeV1 = (input: EServiceMode): EServiceModeV1 =>
@@ -99,7 +94,7 @@ export const toRiskAnalysisV1 = (
   input: RiskAnalysis
 ): EServiceRiskAnalysisV1 => ({
   ...input,
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toEServiceV1 = (eservice: EService): EServiceV1 => ({
@@ -114,7 +109,7 @@ export const toEServiceV1 = (eservice: EService): EServiceV1 => ({
         }
       : undefined,
   descriptors: eservice.descriptors.map(toDescriptorV1),
-  createdAt: BigInt(eservice.createdAt.getTime()),
+  createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV1(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV1),
 });
