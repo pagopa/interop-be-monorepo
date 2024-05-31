@@ -441,7 +441,8 @@ export function agreementServiceBuilder(
         agreement.data,
         payload,
         newState,
-        authData.userId
+        authData.userId,
+        suspendedByPlatform
       );
 
       const agreements = (
