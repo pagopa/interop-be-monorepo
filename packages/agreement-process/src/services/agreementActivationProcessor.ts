@@ -226,25 +226,21 @@ export function maybeCreateSuspensionByPlatformEvents(
       agreement.data.suspendedByPlatform &&
     updatedAgreement.state === agreementState.suspended
   ) {
-    if (updatedAgreement.suspendedByPlatform) {
-      return [
-        toCreateEventAgreementSuspendedByPlatform(
-          updatedAgreement,
-          agreement.metadata.version + 1,
-          correlationId
-        ),
-      ];
-    }
-
-    if (updatedAgreement.suspendedByPlatform === false) {
-      return [
-        toCreateEventAgreementUnsuspendedByPlatform(
-          updatedAgreement,
-          agreement.metadata.version + 1,
-          correlationId
-        ),
-      ];
-    }
+    return updatedAgreement.suspendedByPlatform
+      ? [
+          toCreateEventAgreementSuspendedByPlatform(
+            updatedAgreement,
+            agreement.metadata.version + 1,
+            correlationId
+          ),
+        ]
+      : [
+          toCreateEventAgreementUnsuspendedByPlatform(
+            updatedAgreement,
+            agreement.metadata.version + 1,
+            correlationId
+          ),
+        ];
   }
   return [];
 }
