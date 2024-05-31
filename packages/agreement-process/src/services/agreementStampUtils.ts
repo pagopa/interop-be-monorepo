@@ -18,7 +18,7 @@ export const suspendedByConsumerStamp = (
   agreement: Agreement,
   requesterOrgId: TenantId,
   destinationState: AgreementState,
-  stamp: AgreementStamp
+  stamp: AgreementStamp,
 ): AgreementStamp | undefined =>
   match([requesterOrgId, destinationState])
     .with([agreement.consumerId, agreementState.suspended], () => stamp)
@@ -29,7 +29,7 @@ export const suspendedByProducerStamp = (
   agreement: Agreement,
   requesterOrgId: TenantId,
   destinationState: AgreementState,
-  stamp: AgreementStamp
+  stamp: AgreementStamp,
 ): AgreementStamp | undefined =>
   match([requesterOrgId, destinationState])
     .with([agreement.producerId, agreementState.suspended], () => stamp)

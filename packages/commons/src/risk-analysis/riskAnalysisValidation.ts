@@ -30,7 +30,7 @@ import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRulesProvider.js"
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
 
@@ -51,16 +51,16 @@ export function validateRiskAnalysis(
   const results = validateFormAnswers(
     sanitizedAnswers,
     schemaOnlyValidation,
-    validationRules
+    validationRules,
   );
 
   if (results.some((r) => r.type === "invalid")) {
     return invalidResult(
-      results.flatMap((r) => (r.type === "invalid" ? r.issues : []))
+      results.flatMap((r) => (r.type === "invalid" ? r.issues : [])),
     );
   } else {
     const validatedAnswers = results.flatMap((r) =>
-      r.type === "valid" ? [r.value] : []
+      r.type === "valid" ? [r.value] : [],
     );
 
     const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
@@ -80,7 +80,7 @@ export function validateRiskAnalysis(
       {
         singleAnswers: [],
         multiAnswers: [],
-      }
+      },
     );
 
     return validResult({
@@ -92,15 +92,15 @@ export function validateRiskAnalysis(
 }
 
 function getSanitizedAnswers(
-  riskAnalysisForm: RiskAnalysisFormToValidate
+  riskAnalysisForm: RiskAnalysisFormToValidate,
 ): RiskAnalysisFormToValidate["answers"] {
   return Object.fromEntries(
-    Object.entries(riskAnalysisForm.answers).filter(([, v]) => v.length > 0)
+    Object.entries(riskAnalysisForm.answers).filter(([, v]) => v.length > 0),
   );
 }
 
 function getLatestVersionFormRules(
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): RiskAnalysisFormRules | undefined {
   const rules = riskAnalysisFormRules[tenantKind];
   try {
@@ -118,15 +118,15 @@ function getLatestVersionFormRules(
 
 export function getFormRulesByVersion(
   tenantKind: TenantKind,
-  version: string
+  version: string,
 ): RiskAnalysisFormRules | undefined {
   return riskAnalysisFormRules[tenantKind].find(
-    (config) => config.version === version
+    (config) => config.version === version,
   );
 }
 
 function questionRulesDepsToValidationRuleDeps(
-  dependencies: FormQuestionRules["dependencies"]
+  dependencies: FormQuestionRules["dependencies"],
 ): ValidationRuleDependency[] {
   return dependencies.map((d) => ({
     fieldName: d.id,
@@ -135,7 +135,7 @@ function questionRulesDepsToValidationRuleDeps(
 }
 
 function buildValidationRules(
-  formRules: RiskAnalysisFormRules
+  formRules: RiskAnalysisFormRules,
 ): ValidationRule[] {
   return formRules.questions.map(buildValidationRule);
 }
@@ -160,7 +160,7 @@ function buildValidationRule(question: FormQuestionRules): ValidationRule {
         required: q.required,
         dependencies: questionRulesDepsToValidationRuleDeps(q.dependencies),
         allowedValues: new Set(q.options.map((o) => o.value)),
-      })
+      }),
     )
     .exhaustive();
 }
@@ -168,14 +168,14 @@ function buildValidationRule(question: FormQuestionRules): ValidationRule {
 function validateFormAnswers(
   answers: RiskAnalysisFormToValidate["answers"],
   schemaOnlyValidation: boolean,
-  validationRules: ValidationRule[]
+  validationRules: ValidationRule[],
 ): Array<
   RiskAnalysisValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer>
 > {
   return Object.entries(answers)
     .map(([answerKey, answerValue]) => {
       const validationRule = validationRules.find(
-        (r) => r.fieldName === answerKey
+        (r) => r.fieldName === answerKey,
       );
 
       return match(validationRule)
@@ -185,7 +185,7 @@ function validateFormAnswers(
             answerValue,
             rule,
             schemaOnlyValidation,
-            answers
+            answers,
           );
 
           if (errors.length > 0) {
@@ -194,7 +194,7 @@ function validateFormAnswers(
             return answerToValidatedSingleOrMultiAnswer(
               answerKey,
               answerValue,
-              rule
+              rule,
             );
           }
         })
@@ -212,7 +212,7 @@ function validateFormAnswers(
             return [];
           }
         })
-        .exhaustive()
+        .exhaustive(),
     );
 }
 
@@ -220,14 +220,14 @@ function validateFormField(
   fieldValue: string[],
   validationRule: ValidationRule,
   schemaOnlyValidation: boolean,
-  answers: RiskAnalysisFormToValidate["answers"]
+  answers: RiskAnalysisFormToValidate["answers"],
 ): RiskAnalysisValidationIssue[] {
   return match(schemaOnlyValidation)
     .with(true, () => validateFieldValue(fieldValue, validationRule))
     .with(false, () => [
       ...validateFieldValue(fieldValue, validationRule),
       ...validationRule.dependencies.flatMap((dependency) =>
-        validateFieldDependency(answers, validationRule.fieldName, dependency)
+        validateFieldDependency(answers, validationRule.fieldName, dependency),
       ),
     ])
     .exhaustive();
@@ -235,15 +235,15 @@ function validateFormField(
 
 function validateFieldValue(
   fieldValue: string[],
-  rule: ValidationRule
+  rule: ValidationRule,
 ): RiskAnalysisValidationIssue[] {
   return match(rule.allowedValues)
     .with(P.not(P.nullish), (allowedValues) =>
       fieldValue.flatMap((v) =>
         allowedValues.has(v)
           ? []
-          : [unexpectedFieldValueError(rule.fieldName, allowedValues)]
-      )
+          : [unexpectedFieldValueError(rule.fieldName, allowedValues)],
+      ),
     )
     .with(P.nullish, () => [])
     .exhaustive();
@@ -252,7 +252,7 @@ function validateFieldValue(
 function validateFieldDependency(
   answers: RiskAnalysisFormToValidate["answers"],
   dependentField: string,
-  dependency: ValidationRuleDependency
+  dependency: ValidationRuleDependency,
 ): RiskAnalysisValidationIssue[] {
   const dependencyValue: string[] | undefined = answers[dependency.fieldName];
   if (dependencyValue === undefined) {
@@ -264,7 +264,7 @@ function validateFieldDependency(
       unexpectedDependencyValueError(
         dependentField,
         dependency.fieldName,
-        dependency.fieldValue
+        dependency.fieldValue,
       ),
     ];
   }
@@ -274,13 +274,13 @@ function validateFieldDependency(
 
 function validateRequiredFields(
   answers: RiskAnalysisFormToValidate["answers"],
-  validationRules: ValidationRule[]
+  validationRules: ValidationRule[],
 ): RiskAnalysisValidationIssue[] {
   return validationRules
     .filter((r) => r.required)
     .flatMap((rule) => {
       const depsSatisfied = rule.dependencies.every((dependency) =>
-        formContainsDependency(answers, dependency)
+        formContainsDependency(answers, dependency),
       );
       const field: string[] | undefined = answers[rule.fieldName];
       if (depsSatisfied && field === undefined) {
@@ -293,12 +293,12 @@ function validateRequiredFields(
 
 function formContainsDependency(
   answers: RiskAnalysisFormToValidate["answers"],
-  dependency: ValidationRuleDependency
+  dependency: ValidationRuleDependency,
 ): boolean {
   const field: string[] | undefined = answers[dependency.fieldName];
   return match(field)
     .with(P.not(P.nullish), (values) =>
-      values.some((v) => v === dependency.fieldValue)
+      values.some((v) => v === dependency.fieldValue),
     )
     .with(P.nullish, () => false)
     .exhaustive();
@@ -307,7 +307,7 @@ function formContainsDependency(
 function answerToValidatedSingleOrMultiAnswer(
   answerKey: string,
   answerValue: string[],
-  validationRule: ValidationRule
+  validationRule: ValidationRule,
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer> {
   return match(validationRule.dataType)
     .with(dataType.single, dataType.freeText, () => {
@@ -329,13 +329,13 @@ function answerToValidatedSingleOrMultiAnswer(
           key: answerKey,
           values: answerValue,
         },
-      })
+      }),
     )
     .exhaustive();
 }
 
 function invalidResult(
-  issues: RiskAnalysisValidationIssue[]
+  issues: RiskAnalysisValidationIssue[],
 ): RiskAnalysisValidationInvalid {
   return {
     type: "invalid",

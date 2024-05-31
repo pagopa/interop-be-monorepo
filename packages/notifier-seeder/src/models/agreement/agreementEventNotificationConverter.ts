@@ -17,7 +17,7 @@ import {
 import { toAgreementV1Notification } from "./agreementEventNotificationMappers.js";
 
 const getAgreement = (
-  event: AgreementEventEnvelopeV2
+  event: AgreementEventEnvelopeV2,
 ): AgreementV1Notification => {
   if (!event.data.agreement) {
     throw missingKafkaMessageDataError("agreement", event.type);
@@ -28,12 +28,12 @@ const getAgreement = (
 
 const getDocument = (
   agreement: AgreementV1Notification,
-  documentId: string
+  documentId: string,
 ): AgreementDocumentV1Notification => {
   const document = agreement.consumerDocuments.find((d) => d.id === documentId);
   if (!document) {
     throw eventV1ConversionError(
-      `Expected document ${documentId} in agreement ${agreement.id} during eventV1 conversion`
+      `Expected document ${documentId} in agreement ${agreement.id} during eventV1 conversion`,
     );
   }
 
@@ -41,7 +41,7 @@ const getDocument = (
 };
 
 export const toAgreementEventNotification = (
-  event: AgreementEventEnvelopeV2
+  event: AgreementEventEnvelopeV2,
 ): AgreementEventNotification =>
   match(event)
     .with(
@@ -63,13 +63,13 @@ export const toAgreementEventNotification = (
       { type: "AgreementArchivedByConsumer" },
       (event): AgreementNotification => ({
         agreement: getAgreement(event),
-      })
+      }),
     )
     .with(
       { type: "AgreementDeleted" },
       (event): AgreementIdNotification => ({
         agreementId: getAgreement(event).id,
-      })
+      }),
     )
     .with(
       { type: "AgreementConsumerDocumentAdded" },
@@ -79,13 +79,13 @@ export const toAgreementEventNotification = (
           agreementId: agreementV1Notification.id,
           document: getDocument(agreementV1Notification, event.data.documentId),
         };
-      }
+      },
     )
     .with(
       { type: "AgreementConsumerDocumentRemoved" },
       (event): AgreementIdAndDocumentIdNotification => ({
         agreementId: getAgreement(event).id,
         documentId: event.data.documentId,
-      })
+      }),
     )
     .exhaustive();

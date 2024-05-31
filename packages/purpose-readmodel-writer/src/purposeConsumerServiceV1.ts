@@ -10,7 +10,7 @@ import { match } from "ts-pattern";
 
 export async function handleMessageV1(
   message: PurposeEventEnvelopeV1,
-  purposes: PurposeCollection
+  purposes: PurposeCollection,
 ): Promise<void> {
   await match(message)
     .with(
@@ -28,8 +28,8 @@ export async function handleMessageV1(
               },
             },
           },
-          { upsert: true }
-        )
+          { upsert: true },
+        ),
     )
     .with(
       { type: "PurposeVersionCreated" },
@@ -46,12 +46,12 @@ export async function handleMessageV1(
             $push: {
               "data.versions": msg.data.version
                 ? toReadModelPurposeVersion(
-                    fromPurposeVersionV1(msg.data.version)
+                    fromPurposeVersionV1(msg.data.version),
                   )
                 : undefined,
             },
-          }
-        )
+          },
+        ),
     )
     .with(
       { type: "PurposeUpdated" },
@@ -72,8 +72,8 @@ export async function handleMessageV1(
                 version: msg.version,
               },
             },
-          }
-        )
+          },
+        ),
     )
     .with({ type: "PurposeVersionUpdated" }, async (msg) => {
       await purposes.updateOne(
@@ -86,7 +86,7 @@ export async function handleMessageV1(
             "metadata.version": msg.version,
             "data.versions.$[version]": msg.data.version
               ? toReadModelPurposeVersion(
-                  fromPurposeVersionV1(msg.data.version)
+                  fromPurposeVersionV1(msg.data.version),
                 )
               : undefined,
           },
@@ -97,7 +97,7 @@ export async function handleMessageV1(
               "version.id": msg.data.version?.id,
             },
           ],
-        }
+        },
       );
     })
     .with({ type: "PurposeDeleted" }, async (msg) => {
@@ -123,8 +123,8 @@ export async function handleMessageV1(
             $set: {
               "metadata.version": msg.version,
             },
-          }
-        )
+          },
+        ),
     )
     .exhaustive();
 }

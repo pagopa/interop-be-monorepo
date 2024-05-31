@@ -65,7 +65,7 @@ export async function createUpgradeOrNewDraft({
         newAgreementId,
         agreement.data,
         copyFile,
-        logger
+        logger,
       ),
     };
 
@@ -75,7 +75,7 @@ export async function createUpgradeOrNewDraft({
         toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreement.metadata.version,
-          correlationId
+          correlationId,
         ),
         toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
@@ -86,7 +86,7 @@ export async function createUpgradeOrNewDraft({
       agreement.data.consumerId,
       agreement.data.eserviceId,
       [agreementState.draft],
-      readModelService
+      readModelService,
     );
 
     const id = generateId<AgreementId>();
@@ -100,14 +100,14 @@ export async function createUpgradeOrNewDraft({
         id,
         agreement.data,
         copyFile,
-        logger
+        logger,
       ),
       stamps: {},
     };
 
     const createEvent = toCreateEventAgreementAdded(
       newAgreement,
-      correlationId
+      correlationId,
     );
 
     return [newAgreement, [createEvent]];

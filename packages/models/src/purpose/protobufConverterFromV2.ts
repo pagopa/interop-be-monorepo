@@ -17,7 +17,7 @@ import {
 } from "./purpose.js";
 
 export const fromPurposeVersionStateV2 = (
-  input: PurposeStateV2
+  input: PurposeStateV2,
 ): PurposeVersionState => {
   switch (input) {
     case PurposeStateV2.DRAFT:
@@ -36,7 +36,7 @@ export const fromPurposeVersionStateV2 = (
 };
 
 export const fromPurposeVersionDocumentV2 = (
-  input: PurposeVersionDocumentV2
+  input: PurposeVersionDocumentV2,
 ): PurposeVersionDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -44,7 +44,7 @@ export const fromPurposeVersionDocumentV2 = (
 });
 
 export const fromPurposeVersionV2 = (
-  input: PurposeVersionV2
+  input: PurposeVersionV2,
 ): PurposeVersion => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -59,7 +59,7 @@ export const fromPurposeVersionV2 = (
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (
-  input: PurposeRiskAnalysisFormV2
+  input: PurposeRiskAnalysisFormV2,
 ): PurposeRiskAnalysisForm => ({
   ...input,
   id: unsafeBrandId(input.id),

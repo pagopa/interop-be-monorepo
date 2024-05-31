@@ -4,7 +4,7 @@ import { INT32_SIZE } from "./constants.js";
 
 /** @internal */
 export const createSaslAuthenticationRequest = (
-  payload: Payload
+  payload: Payload,
 ): SaslAuthenticationRequest => ({
   encode: (): Buffer => {
     const stringifiedPayload = JSON.stringify(payload);

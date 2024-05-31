@@ -19,7 +19,7 @@ import {
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>,
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -36,8 +36,8 @@ async function getAttribute(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return {
@@ -49,7 +49,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<Tenant>>>,
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -63,8 +63,8 @@ async function getTenant(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
 
@@ -90,8 +90,8 @@ async function getAttributes({
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse attributes items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
+        result,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
   return {
@@ -99,14 +99,14 @@ async function getAttributes({
     totalCount: await ReadModelRepository.getTotalCount(
       attributes,
       aggregationPipeline,
-      false
+      false,
     ),
   };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
+  readModelRepository: ReadModelRepository,
 ) {
   const { attributes, tenants } = readModelRepository;
 
@@ -200,13 +200,13 @@ export function readModelServiceBuilder(
     },
 
     async getAttributeById(
-      id: AttributeId
+      id: AttributeId,
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
 
     async getAttributeByName(
-      name: string
+      name: string,
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
         "data.name": {
@@ -231,7 +231,7 @@ export function readModelServiceBuilder(
 
     async getAttributeByCodeAndName(
       code: string,
-      name: string
+      name: string,
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
         "data.code": {

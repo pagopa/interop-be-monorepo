@@ -20,7 +20,7 @@ export const getDescriptorFromEvent = (
       eservice?: EServiceV2;
     };
   },
-  eventType: string
+  eventType: string,
 ): {
   eserviceId: EServiceId;
   descriptor: Descriptor;
@@ -31,7 +31,7 @@ export const getDescriptorFromEvent = (
 
   const eservice: EService = fromEServiceV2(msg.data.eservice);
   const descriptor = eservice.descriptors.find(
-    (d) => d.id === msg.data.descriptorId
+    (d) => d.id === msg.data.descriptorId,
   );
 
   if (!descriptor) {
@@ -47,7 +47,7 @@ export const getAgreementFromEvent = (
       agreement?: AgreementV2;
     };
   },
-  eventType: string
+  eventType: string,
 ): Agreement => {
   if (!msg.data.agreement) {
     throw missingKafkaMessageDataError("agreement", eventType);
@@ -57,7 +57,7 @@ export const getAgreementFromEvent = (
 };
 
 export const agreementStateToClientState = (
-  agreement: Agreement
+  agreement: Agreement,
 ): ApiClientComponentState =>
   match(agreement.state)
     .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)

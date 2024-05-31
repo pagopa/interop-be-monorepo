@@ -12,7 +12,7 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
         .map((origin) => origin.trim())
         .filter(Boolean),
-    }))
+    })),
   );
 
 export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;

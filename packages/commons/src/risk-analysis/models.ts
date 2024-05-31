@@ -70,7 +70,7 @@ export type ValidationRule = {
 
 export function riskAnalysisValidatedFormToNewRiskAnalysis(
   validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"]
+  name: RiskAnalysis["name"],
 ): RiskAnalysis {
   return {
     id: generateId<RiskAnalysisId>(),
@@ -82,7 +82,7 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
 }
 
 export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
-  validatedForm: RiskAnalysisValidatedForm
+  validatedForm: RiskAnalysisValidatedForm,
 ): RiskAnalysisForm {
   return {
     id: generateId<RiskAnalysisFormId>(),
@@ -99,7 +99,7 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
 }
 
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
-  form: RiskAnalysisForm
+  form: RiskAnalysisForm,
 ): RiskAnalysisFormToValidate {
   return {
     version: form.version,
@@ -109,14 +109,14 @@ export function riskAnalysisFormToRiskAnalysisFormToValidate(
           ...acc,
           [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
         }),
-        {}
+        {},
       ),
       ...form.multiAnswers.reduce(
         (acc, multiAnswer) => ({
           ...acc,
           [multiAnswer.key]: multiAnswer.values,
         }),
-        {}
+        {},
       ),
     },
   };

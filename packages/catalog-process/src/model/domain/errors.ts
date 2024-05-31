@@ -53,7 +53,7 @@ export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
 
 export function eServiceDescriptorNotFound(
   eserviceId: EServiceId,
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} not found`,
@@ -65,7 +65,7 @@ export function eServiceDescriptorNotFound(
 export function eServiceDocumentNotFound(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  documentId: EServiceDocumentId
+  documentId: EServiceDocumentId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
@@ -76,7 +76,7 @@ export function eServiceDocumentNotFound(
 
 export function notValidDescriptor(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} has a not valid status for this operation ${descriptorStatus}`,
@@ -86,7 +86,7 @@ export function notValidDescriptor(
 }
 
 export function eServiceDescriptorWithoutInterface(
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} does not have an interface`,
@@ -96,7 +96,7 @@ export function eServiceDescriptorWithoutInterface(
 }
 
 export function draftDescriptorAlreadyExists(
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} already contains a draft descriptor`,
@@ -106,7 +106,7 @@ export function draftDescriptorAlreadyExists(
 }
 
 export function invalidDescriptorVersion(
-  details: string
+  details: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: details,
@@ -116,7 +116,7 @@ export function invalidDescriptorVersion(
 }
 
 export function interfaceAlreadyExists(
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} already contains an interface`,
@@ -150,7 +150,7 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
 }
 
 export function eserviceNotInDraftState(
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in draft state`,
@@ -160,7 +160,7 @@ export function eserviceNotInDraftState(
 }
 
 export function eserviceNotInReceiveMode(
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in receive mode`,
@@ -186,7 +186,7 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function riskAnalysisValidationFailed(
-  issues: RiskAnalysisValidationIssue[]
+  issues: RiskAnalysisValidationIssue[],
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis validation failed. Reasons: [${issues
@@ -199,7 +199,7 @@ export function riskAnalysisValidationFailed(
 
 export function eServiceRiskAnalysisNotFound(
   eserviceId: EServiceId,
-  riskAnalysisId: RiskAnalysisId
+  riskAnalysisId: RiskAnalysisId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
@@ -209,7 +209,7 @@ export function eServiceRiskAnalysisNotFound(
 }
 
 export function eServiceRiskAnalysisIsRequired(
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `At least one Risk Analysis is required for EService ${eserviceId}`,

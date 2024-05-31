@@ -9,7 +9,7 @@ import {
 export function toCreateEventAgreementDeleted(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -27,7 +27,7 @@ export function toCreateEventAgreementDeleted(
 
 export function toCreateEventAgreementAdded(
   agreement: Agreement,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -46,7 +46,7 @@ export function toCreateEventAgreementAdded(
 export function toCreateEventAgreementSubmitted(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -65,7 +65,7 @@ export function toCreateEventAgreementSubmitted(
 export function toCreateEventDraftAgreementUpdated(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -84,7 +84,7 @@ export function toCreateEventDraftAgreementUpdated(
 export function toCreateEventAgreementArchivedByConsumer(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -103,7 +103,7 @@ export function toCreateEventAgreementArchivedByConsumer(
 export function toCreateEventAgreementArchivedByUpgrade(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -121,7 +121,7 @@ export function toCreateEventAgreementArchivedByUpgrade(
 
 export function toCreateEventAgreementUpgraded(
   agreement: Agreement,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -140,7 +140,7 @@ export function toCreateEventAgreementUpgraded(
 export function toCreateEventAgreementRejected(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -159,7 +159,7 @@ export function toCreateEventAgreementRejected(
 export function toCreateEventAgreementActivated(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -178,7 +178,7 @@ export function toCreateEventAgreementActivated(
 export function toCreateEventAgreementSuspendedByProducer(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -197,7 +197,7 @@ export function toCreateEventAgreementSuspendedByProducer(
 export function toCreateEventAgreementSuspendedByConsumer(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -216,7 +216,7 @@ export function toCreateEventAgreementSuspendedByConsumer(
 export function toCreateEventAgreementSuspendedByPlatform(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -235,7 +235,7 @@ export function toCreateEventAgreementSuspendedByPlatform(
 export function toCreateEventAgreementUnsuspendedByProducer(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -254,7 +254,7 @@ export function toCreateEventAgreementUnsuspendedByProducer(
 export function toCreateEventAgreementUnsuspendedByConsumer(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -273,7 +273,7 @@ export function toCreateEventAgreementUnsuspendedByConsumer(
 export function toCreateEventAgreementUnsuspendedByPlatform(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -293,7 +293,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
   documentId: AgreementDocumentId,
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -314,7 +314,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
   documentId: AgreementDocumentId,
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -334,7 +334,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
 export function toCreateEventAgreementSetDraftByPlatform(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -353,7 +353,7 @@ export function toCreateEventAgreementSetDraftByPlatform(
 export function toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
   agreement: Agreement,
   version: number,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,

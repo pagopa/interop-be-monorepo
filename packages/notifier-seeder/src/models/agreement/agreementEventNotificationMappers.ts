@@ -23,20 +23,20 @@ export const toAgreementStateV1Notification = (input: AgreementState): string =>
     .with(agreementState.active, () => "Active")
     .with(
       agreementState.missingCertifiedAttributes,
-      () => "MissingCertifiedAttribute"
+      () => "MissingCertifiedAttribute",
     )
     .with(agreementState.rejected, () => "Rejected")
     .exhaustive();
 
 export const toAgreementDocumentV1Notification = (
-  input: AgreementDocument
+  input: AgreementDocument,
 ): AgreementDocumentV1Notification => ({
   ...input,
   createdAt: input.createdAt.toISOString(),
 });
 
 export const toAgreementStampsV1Notification = (
-  input: AgreementStamps
+  input: AgreementStamps,
 ): AgreementStampsV1Notification => ({
   submission: input.submission
     ? toAgreementStampV1Notification(input.submission)
@@ -62,21 +62,21 @@ export const toAgreementStampsV1Notification = (
 });
 
 export const toAgreementStampV1Notification = (
-  input: AgreementStamp
+  input: AgreementStamp,
 ): AgreementStampV1Notification => ({
   ...input,
   when: input.when.toISOString(),
 });
 
 export const toAgreementV1Notification = (
-  input: Agreement
+  input: Agreement,
 ): AgreementV1Notification => ({
   ...input,
   state: toAgreementStateV1Notification(input.state),
   createdAt: input.createdAt.toISOString(),
   updatedAt: input.updatedAt?.toISOString(),
   consumerDocuments: input.consumerDocuments.map(
-    toAgreementDocumentV1Notification
+    toAgreementDocumentV1Notification,
   ),
   contract: input.contract
     ? toAgreementDocumentV1Notification(input.contract)

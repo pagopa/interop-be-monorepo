@@ -15,7 +15,7 @@ import {
 } from "./purpose.js";
 
 export const toPurposeVersionStateV2 = (
-  input: PurposeVersionState
+  input: PurposeVersionState,
 ): PurposeStateV2 =>
   match(input)
     .with(purposeVersionState.draft, () => PurposeStateV2.DRAFT)
@@ -24,20 +24,20 @@ export const toPurposeVersionStateV2 = (
     .with(purposeVersionState.archived, () => PurposeStateV2.ARCHIVED)
     .with(
       purposeVersionState.waitingForApproval,
-      () => PurposeStateV2.WAITING_FOR_APPROVAL
+      () => PurposeStateV2.WAITING_FOR_APPROVAL,
     )
     .with(purposeVersionState.rejected, () => PurposeStateV2.REJECTED)
     .exhaustive();
 
 export const toPurposeVersionDocumentV2 = (
-  input: PurposeVersionDocument
+  input: PurposeVersionDocument,
 ): PurposeVersionDocumentV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toPurposeVersionV2 = (
-  input: PurposeVersion
+  input: PurposeVersion,
 ): PurposeVersionV2 => ({
   ...input,
   state: toPurposeVersionStateV2(input.state),

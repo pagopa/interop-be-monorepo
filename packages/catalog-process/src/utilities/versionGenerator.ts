@@ -9,7 +9,7 @@ export const nextDescriptorVersion = (eservice: EService): string => {
       .safeParse(descriptor.version);
     if (!currentVersionNumber.success) {
       throw invalidDescriptorVersion(
-        `${descriptor.version} is not a valid descriptor version`
+        `${descriptor.version} is not a valid descriptor version`,
       );
     }
 

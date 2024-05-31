@@ -32,7 +32,7 @@ const errorEventsListener = (consumer: Consumer): void => {
         processExit();
       } catch (e) {
         genericLogger.error(
-          `Unexpected error on consumer disconnection with event type ${type}; Error detail: ${e}`
+          `Unexpected error on consumer disconnection with event type ${type}; Error detail: ${e}`,
         );
         processExit();
       }
@@ -71,14 +71,14 @@ const kafkaEventsListener = (consumer: Consumer): void => {
 
   consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
     genericLogger.error(
-      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
+      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`,
     );
   });
 };
 
 const kafkaCommitMessageOffsets = async (
   consumer: Consumer,
-  payload: EachMessagePayload
+  payload: EachMessagePayload,
 ): Promise<void> => {
   const { topic, partition, message } = payload;
   await consumer.commitOffsets([
@@ -86,14 +86,14 @@ const kafkaCommitMessageOffsets = async (
   ]);
 
   genericLogger.debug(
-    `Topic message offset ${Number(message.offset) + 1} committed`
+    `Topic message offset ${Number(message.offset) + 1} committed`,
   );
 };
 
 const initConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
-  consumerHandler: (payload: EachMessagePayload) => Promise<void>
+  consumerHandler: (payload: EachMessagePayload) => Promise<void>,
 ): Promise<Consumer> => {
   genericLogger.info(`Consumer connecting to topics ${JSON.stringify(topics)}`);
 
@@ -159,7 +159,7 @@ const initConsumer = async (
           payload.topic,
           payload.partition,
           payload.message.offset,
-          e
+          e,
         );
       }
     },
@@ -170,7 +170,7 @@ const initConsumer = async (
 export const runConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
-  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
+  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
 ): Promise<void> => {
   do {
     try {
@@ -179,8 +179,8 @@ export const runConsumer = async (
       await new Promise((resolve) =>
         setTimeout(
           resolve,
-          DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
-        )
+          DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD,
+        ),
       );
 
       await consumer.disconnect().finally(() => {
@@ -188,7 +188,7 @@ export const runConsumer = async (
       });
     } catch (e) {
       genericLogger.error(
-        `Generic error occurs during consumer initialization: ${e}`
+        `Generic error occurs during consumer initialization: ${e}`,
       );
       processExit();
     }
@@ -197,10 +197,10 @@ export const runConsumer = async (
 
 export const validateTopicMetadata = async (
   kafka: Kafka,
-  topicNames: string[]
+  topicNames: string[],
 ): Promise<boolean> => {
   genericLogger.debug(
-    `Check topics [${JSON.stringify(topicNames)}] existence...`
+    `Check topics [${JSON.stringify(topicNames)}] existence...`,
   );
 
   const admin = kafka.admin();
@@ -217,8 +217,8 @@ export const validateTopicMetadata = async (
     await admin.disconnect();
     genericLogger.error(
       `Unable to subscribe! Error during topic metadata fetch: ${JSON.stringify(
-        e
-      )}`
+        e,
+      )}`,
     );
     return false;
   }

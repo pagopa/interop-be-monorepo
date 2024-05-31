@@ -35,7 +35,7 @@ import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>,
 ): Promise<WithMetadata<EService> | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -52,8 +52,8 @@ async function getEService(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse eService item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return {
@@ -65,7 +65,7 @@ async function getEService(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<Tenant>>>,
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -79,8 +79,8 @@ async function getTenant(
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse tenant item: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
+        result,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
@@ -89,7 +89,7 @@ async function getTenant(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
+  readModelRepository: ReadModelRepository,
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
@@ -101,7 +101,7 @@ export function readModelServiceBuilder(
       authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
-      limit: number
+      limit: number,
     ): Promise<ListResult<EService>> {
       const {
         eservicesIds,
@@ -122,7 +122,7 @@ export function readModelServiceBuilder(
               producersIds: [],
               states: agreementStates,
             })
-          ).map((a) => a.eserviceId)
+          ).map((a) => a.eserviceId),
         );
 
       if (agreementStates.length > 0 && ids.length === 0) {
@@ -182,7 +182,7 @@ export function readModelServiceBuilder(
 
       const visibilityFilter: ReadModelFilter<EService> = hasPermission(
         [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
-        authData
+        authData,
       )
         ? {
             $nor: [
@@ -256,8 +256,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse eservices items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -266,7 +266,7 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
           aggregationPipeline,
-          false
+          false,
         ),
       };
     },
@@ -286,14 +286,14 @@ export function readModelServiceBuilder(
       });
     },
     async getEServiceById(
-      id: EServiceId
+      id: EServiceId,
     ): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, { "data.id": id });
     },
     async getEServiceConsumers(
       eserviceId: EServiceId,
       offset: number,
-      limit: number
+      limit: number,
     ): Promise<ListResult<Consumer>> {
       const aggregationPipeline = [
         {
@@ -387,8 +387,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse consumers: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -397,14 +397,14 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
           aggregationPipeline,
-          false
+          false,
         ),
       };
     },
     async getDocumentById(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
+      documentId: EServiceDocumentId,
     ): Promise<Document | undefined> {
       const eservice = await this.getEServiceById(eserviceId);
       return eservice?.data.descriptors
@@ -464,8 +464,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreements: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -473,7 +473,7 @@ export function readModelServiceBuilder(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
     ): Promise<Attribute[]> {
       const data = await attributes
         .find({
@@ -485,8 +485,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse attributes items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 

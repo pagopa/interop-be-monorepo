@@ -13,7 +13,7 @@ import {
 } from "./purposeEventNotification.js";
 
 export const toPurposeVersionStateV1Notification = (
-  input: PurposeVersionState
+  input: PurposeVersionState,
 ): string =>
   match(input)
     .with(purposeVersionState.draft, () => "Draft")
@@ -25,14 +25,14 @@ export const toPurposeVersionStateV1Notification = (
     .exhaustive();
 
 export const toPurposeVersionDocumentV1Notification = (
-  input: PurposeVersionDocument
+  input: PurposeVersionDocument,
 ): PurposeVersionDocumentV1Notification => ({
   ...input,
   createdAt: input.createdAt.toISOString(),
 });
 
 export const toPurposeVersionV1Notification = (
-  input: PurposeVersion
+  input: PurposeVersion,
 ): PurposeVersionV1Notification => ({
   ...input,
   state: toPurposeVersionStateV1Notification(input.state),
@@ -46,7 +46,7 @@ export const toPurposeVersionV1Notification = (
 });
 
 export const toPurposeV1Notification = (
-  input: Purpose
+  input: Purpose,
 ): PurposeV1Notification => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV1Notification),

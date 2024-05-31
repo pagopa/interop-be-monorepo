@@ -29,7 +29,7 @@ import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
   tenantId: TenantId,
-  tenant: WithMetadata<Tenant> | undefined
+  tenant: WithMetadata<Tenant> | undefined,
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
@@ -39,7 +39,7 @@ export function assertTenantExists(
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
   attribute: TenantAttribute | undefined,
-  tenant: WithMetadata<Tenant>
+  tenant: WithMetadata<Tenant>,
 ): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
@@ -50,7 +50,7 @@ export function assertOrganizationVerifierExist(
   verifierId: string,
   tenantId: TenantId,
   attributeId: AttributeId,
-  tenantVerifier: TenantVerifier | undefined
+  tenantVerifier: TenantVerifier | undefined,
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
     throw organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
@@ -61,7 +61,7 @@ export function assertExpirationDateExist(
   tenantId: TenantId,
   attributeId: string,
   verifierId: string,
-  expirationDate: Date | undefined
+  expirationDate: Date | undefined,
 ): asserts expirationDate is Date {
   if (expirationDate === undefined) {
     throw expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
@@ -74,7 +74,7 @@ const PUBLIC_SERVICES_MANAGERS = "L37";
 
 export function getTenantKind(
   attributes: ExternalId[],
-  externalId: ExternalId
+  externalId: ExternalId,
 ): TenantKind {
   return match(externalId.origin)
     .with(
@@ -85,9 +85,9 @@ export function getTenantKind(
           (attr) =>
             attr.origin === origin &&
             (attr.value === PUBLIC_SERVICES_MANAGERS ||
-              attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
+              attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS),
         ),
-      () => tenantKind.GSP
+      () => tenantKind.GSP,
     )
     .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
     .otherwise(() => tenantKind.PRIVATE);
@@ -95,7 +95,7 @@ export function getTenantKind(
 
 async function assertRequesterAllowed(
   resourceId: string,
-  requesterId: string
+  requesterId: string,
 ): Promise<void> {
   if (resourceId !== requesterId) {
     throw operationForbidden;
@@ -104,7 +104,7 @@ async function assertRequesterAllowed(
 
 export async function assertResourceAllowed(
   resourceId: string,
-  authData: AuthData
+  authData: AuthData,
 ): Promise<void> {
   const roles = authData.userRoles;
   const organizationId = authData.organizationId;
@@ -117,13 +117,13 @@ export async function assertResourceAllowed(
 export async function getTenantKindLoadingCertifiedAttributes(
   readModelService: ReadModelService,
   attributes: TenantAttribute[],
-  externalId: ExternalId
+  externalId: ExternalId,
 ): Promise<TenantKind> {
   function getCertifiedAttributesIds(
-    attributes: TenantAttribute[]
+    attributes: TenantAttribute[],
   ): AttributeId[] {
     return attributes.flatMap((attr) =>
-      attr.type === tenantAttributeType.CERTIFIED ? attr.id : []
+      attr.type === tenantAttributeType.CERTIFIED ? attr.id : [],
     );
   }
 
@@ -147,7 +147,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
 
 export function assertAttributeExists(
   attributeId: AttributeId,
-  attributes: TenantAttribute[]
+  attributes: TenantAttribute[],
 ): asserts attributes is NonNullable<TenantAttribute[]> {
   if (!attributes.some((attr) => attr.id === attributeId)) {
     throw attributeNotFound(attributeId);
@@ -155,7 +155,7 @@ export function assertAttributeExists(
 }
 
 export function assertValidExpirationDate(
-  expirationDate: Date | undefined
+  expirationDate: Date | undefined,
 ): void {
   if (expirationDate && expirationDate < new Date()) {
     throw expirationDateCannotBeInThePast(expirationDate);
@@ -165,7 +165,7 @@ export function assertValidExpirationDate(
 export function assertOrganizationIsInAttributeVerifiers(
   verifierId: string,
   tenantId: TenantId,
-  attribute: VerifiedTenantAttribute
+  attribute: VerifiedTenantAttribute,
 ): void {
   if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
     throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
@@ -190,7 +190,7 @@ export function evaluateNewSelfcareId({
 
 export function getTenantCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f) => f.type === "PersistentCertifier",
   );
   if (!certifierFeature) {
     throw tenantIsNotCertifier(tenant.id);

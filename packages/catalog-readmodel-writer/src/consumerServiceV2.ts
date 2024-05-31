@@ -8,7 +8,7 @@ import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
-  eservices: EServiceCollection
+  eservices: EServiceCollection,
 ): Promise<void> {
   const eservice = message.data.eservice;
 
@@ -56,8 +56,8 @@ export async function handleMessageV2(
               },
             },
           },
-          { upsert: true }
-        )
+          { upsert: true },
+        ),
     )
     .exhaustive();
 }

@@ -22,7 +22,7 @@ import {
 import { toCatalogItemV1 } from "./catalogItemEventNotificationMappers.js";
 
 const getCatalogItem = (
-  event: EServiceEventEnvelopeV2
+  event: EServiceEventEnvelopeV2,
 ): CatalogItemV1Notification => {
   if (!event.data.eservice) {
     throw missingKafkaMessageDataError("eservice", event.type);
@@ -36,13 +36,13 @@ const getCatalogItemDescriptor = (
     id: string;
     descriptors: CatalogDescriptorV1Notification[];
   },
-  descriptorId: string
+  descriptorId: string,
 ): CatalogDescriptorV1Notification => {
   const descriptor = eserviceV1.descriptors.find((d) => d.id === descriptorId);
 
   if (!descriptor) {
     throw eventV1ConversionError(
-      `Expected descriptor ${descriptorId} in eservice ${eserviceV1.id} during eventV1 conversion`
+      `Expected descriptor ${descriptorId} in eservice ${eserviceV1.id} during eventV1 conversion`,
     );
   }
 
@@ -51,12 +51,12 @@ const getCatalogItemDescriptor = (
 
 const getCatalogItemDocument = (
   descriptor: CatalogDescriptorV1Notification,
-  documentId: string
+  documentId: string,
 ): CatalogDocumentV1Notification => {
   const document = descriptor.docs.find((d) => d.id === documentId);
   if (!document) {
     throw eventV1ConversionError(
-      `Expected document ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+      `Expected document ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`,
     );
   }
 
@@ -65,17 +65,17 @@ const getCatalogItemDocument = (
 
 const getCatalogItemInterface = (
   descriptor: CatalogDescriptorV1Notification,
-  interfaceId: string
+  interfaceId: string,
 ): CatalogDocumentV1Notification => {
   if (!descriptor?.interface) {
     throw eventV1ConversionError(
-      `Expected interface ${interfaceId} in descriptor ${descriptor.id} during eventV1 conversion`
+      `Expected interface ${interfaceId} in descriptor ${descriptor.id} during eventV1 conversion`,
     );
   }
 
   if (descriptor.interface.id !== interfaceId) {
     throw eventV1ConversionError(
-      `Expected interface with same ID ${interfaceId} in descriptor ${descriptor.id} interface during eventV1 conversion`
+      `Expected interface with same ID ${interfaceId} in descriptor ${descriptor.id} interface during eventV1 conversion`,
     );
   }
 
@@ -83,7 +83,7 @@ const getCatalogItemInterface = (
 };
 
 export const toCatalogItemEventNotification = (
-  event: EServiceEventEnvelopeV2
+  event: EServiceEventEnvelopeV2,
 ): CatalogItemEventNotification =>
   match(event)
     .with(
@@ -92,13 +92,13 @@ export const toCatalogItemEventNotification = (
       { type: "DraftEServiceUpdated" }, // CatalogItemV1UpdatedV1
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
-      })
+      }),
     )
     .with(
       { type: "EServiceDeleted" }, // CatalogItemDeletedV1
       (e): CatalogItemIdNotification => ({
         catalogItemId: e.data.eserviceId,
-      })
+      }),
     )
     .with(
       { type: "EServiceDescriptorAdded" }, // CatalogItemDescriptorAddedV1
@@ -112,21 +112,21 @@ export const toCatalogItemEventNotification = (
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
           catalogItem,
-          e.data.descriptorId
+          e.data.descriptorId,
         );
 
         return {
           eServiceId: catalogItem.id,
           catalogDescriptor: catalogItemDescriptor,
         };
-      }
+      },
     )
     .with(
       { type: "EServiceDraftDescriptorDeleted" }, // CatalogItemWithDescriptorsDeletedV1
       (e): CatalogItemDescriptorDeletedNotification => ({
         catalogItem: getCatalogItem(e),
         descriptorId: e.data.descriptorId,
-      })
+      }),
     )
     .with(
       { type: "EServiceDescriptorDocumentAdded" }, // CatalogItemDocumentAddedV1
@@ -134,11 +134,11 @@ export const toCatalogItemEventNotification = (
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
           catalogItem,
-          e.data.descriptorId
+          e.data.descriptorId,
         );
         const catalogItemDocument = getCatalogItemDocument(
           catalogItemDescriptor,
-          e.data.documentId
+          e.data.documentId,
         );
 
         return {
@@ -148,7 +148,7 @@ export const toCatalogItemEventNotification = (
           isInterface: false,
           serverUrls: catalogItemDescriptor.serverUrls,
         };
-      }
+      },
     )
     .with(
       { type: "EServiceDescriptorInterfaceAdded" }, // CatalogItemDocumentAddedV1
@@ -156,11 +156,11 @@ export const toCatalogItemEventNotification = (
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
           catalogItem,
-          e.data.descriptorId
+          e.data.descriptorId,
         );
         const catalogItemInterface = getCatalogItemInterface(
           catalogItemDescriptor,
-          e.data.documentId
+          e.data.documentId,
         );
 
         return {
@@ -170,7 +170,7 @@ export const toCatalogItemEventNotification = (
           isInterface: true,
           serverUrls: catalogItemDescriptor.serverUrls,
         };
-      }
+      },
     )
     .with(
       { type: "EServiceDescriptorDocumentDeleted" }, // CatalogItemDocumentDeletedV1
@@ -185,7 +185,7 @@ export const toCatalogItemEventNotification = (
           descriptorId: e.data.descriptorId,
           documentId: e.data.documentId,
         };
-      }
+      },
     )
     .with(
       { type: "EServiceDescriptorInterfaceUpdated" }, // CatalogItemDocumentUpdatedV1
@@ -193,11 +193,11 @@ export const toCatalogItemEventNotification = (
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(
           eserviceV1,
-          e.data.descriptorId
+          e.data.descriptorId,
         );
         const interfaceV1 = getCatalogItemInterface(
           descriptorV1,
-          e.data.documentId
+          e.data.documentId,
         );
 
         return {
@@ -207,7 +207,7 @@ export const toCatalogItemEventNotification = (
           updatedDocument: interfaceV1,
           serverUrls: descriptorV1.serverUrls,
         };
-      }
+      },
     )
     .with(
       { type: "EServiceDescriptorDocumentUpdated" }, // CatalogItemDocumentUpdatedV1
@@ -215,11 +215,11 @@ export const toCatalogItemEventNotification = (
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(
           eserviceV1,
-          e.data.descriptorId
+          e.data.descriptorId,
         );
         const documentV1 = getCatalogItemDocument(
           descriptorV1,
-          e.data.documentId
+          e.data.documentId,
         );
 
         return {
@@ -229,7 +229,7 @@ export const toCatalogItemEventNotification = (
           updatedDocument: documentV1,
           serverUrls: descriptorV1.serverUrls,
         };
-      }
+      },
     )
     .with(
       { type: "EServiceRiskAnalysisAdded" }, // CatalogItemRiskAnalysisAddedV1
@@ -238,6 +238,6 @@ export const toCatalogItemEventNotification = (
       (e): CatalogItemRiskAnalysisNotification => ({
         catalogItem: getCatalogItem(e),
         catalogRiskAnalysisId: e.data.riskAnalysisId,
-      })
+      }),
     )
     .exhaustive();

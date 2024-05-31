@@ -18,7 +18,7 @@ export function loggerMiddleware(serviceName: string): express.RequestHandler {
 
     res.on("finish", () => {
       loggerInstance.info(
-        `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`
+        `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`,
       );
     });
 

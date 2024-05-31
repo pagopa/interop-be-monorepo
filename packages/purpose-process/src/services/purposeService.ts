@@ -95,7 +95,7 @@ import {
 
 const retrievePurpose = async (
   purposeId: PurposeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<WithMetadata<Purpose>> => {
   const purpose = await readModelService.getPurposeById(purposeId);
   if (purpose === undefined) {
@@ -106,10 +106,10 @@ const retrievePurpose = async (
 
 const retrievePurposeVersion = (
   versionId: PurposeVersionId,
-  purpose: WithMetadata<Purpose>
+  purpose: WithMetadata<Purpose>,
 ): PurposeVersion => {
   const version = purpose.data.versions.find(
-    (v: PurposeVersion) => v.id === versionId
+    (v: PurposeVersion) => v.id === versionId,
   );
 
   if (version === undefined) {
@@ -122,7 +122,7 @@ const retrievePurposeVersion = (
 const retrievePurposeVersionDocument = (
   purposeId: PurposeId,
   purposeVersion: PurposeVersion,
-  documentId: PurposeVersionDocumentId
+  documentId: PurposeVersionDocumentId,
 ): PurposeVersionDocument => {
   const document = purposeVersion.riskAnalysis;
 
@@ -130,7 +130,7 @@ const retrievePurposeVersionDocument = (
     throw purposeVersionDocumentNotFound(
       purposeId,
       purposeVersion.id,
-      documentId
+      documentId,
     );
   }
 
@@ -139,7 +139,7 @@ const retrievePurposeVersionDocument = (
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -150,7 +150,7 @@ const retrieveEService = async (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -162,11 +162,11 @@ const retrieveTenant = async (
 const retrieveActiveAgreement = async (
   eserviceId: EServiceId,
   consumerId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<Agreement> => {
   const activeAgreement = await readModelService.getActiveAgreement(
     eserviceId,
-    consumerId
+    consumerId,
   );
   if (activeAgreement === undefined) {
     throw agreementNotFound(eserviceId, consumerId);
@@ -176,10 +176,10 @@ const retrieveActiveAgreement = async (
 
 const retrieveRiskAnalysis = (
   riskAnalysisId: RiskAnalysisId,
-  eservice: EService
+  eservice: EService,
 ): RiskAnalysis => {
   const riskAnalysis = eservice.riskAnalysis.find(
-    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId,
   );
 
   if (riskAnalysis === undefined) {
@@ -192,7 +192,7 @@ const retrieveRiskAnalysis = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
@@ -200,14 +200,14 @@ export function purposeServiceBuilder(
     async getPurposeById(
       purposeId: PurposeId,
       organizationId: TenantId,
-      logger: Logger
+      logger: Logger,
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
-        readModelService
+        readModelService,
       );
       const tenant = await retrieveTenant(organizationId, readModelService);
 
@@ -234,13 +234,13 @@ export function purposeServiceBuilder(
       logger: Logger;
     }): Promise<PurposeVersionDocument> {
       logger.info(
-        `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+        `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`,
       );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
-        readModelService
+        readModelService,
       );
       getOrganizationRole({
         organizationId,
@@ -281,7 +281,7 @@ export function purposeServiceBuilder(
       const updatedPurpose: Purpose = {
         ...purpose.data,
         versions: purpose.data.versions.filter(
-          (v) => v.id !== purposeVersion.id
+          (v) => v.id !== purposeVersion.id,
         ),
         updatedAt: new Date(),
       };
@@ -314,7 +314,7 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
-        readModelService
+        readModelService,
       );
       if (organizationId !== eservice.producerId) {
         throw organizationIsNotTheProducer(organizationId);
@@ -335,7 +335,7 @@ export function purposeServiceBuilder(
 
       const updatedPurpose = replacePurposeVersion(
         purpose.data,
-        updatedPurposeVersion
+        updatedPurposeVersion,
       );
 
       const event = toCreateEventPurposeVersionRejected({
@@ -369,7 +369,7 @@ export function purposeServiceBuilder(
         organizationId,
         readModelService,
         correlationId,
-        repository
+        repository,
       );
     },
     async updateReversePurpose({
@@ -395,7 +395,7 @@ export function purposeServiceBuilder(
         organizationId,
         readModelService,
         correlationId,
-        repository
+        repository,
       );
     },
     async deletePurpose({
@@ -460,7 +460,7 @@ export function purposeServiceBuilder(
       const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
         versions: purpose.data.versions.filter(
-          (v) => v.state !== purposeVersionState.waitingForApproval
+          (v) => v.state !== purposeVersionState.waitingForApproval,
         ),
       };
       const archivedVersion: PurposeVersion = {
@@ -470,7 +470,7 @@ export function purposeServiceBuilder(
       };
       const updatedPurpose = replacePurposeVersion(
         purposeWithoutWaitingForApproval,
-        archivedVersion
+        archivedVersion,
       );
 
       const event = toCreateEventPurposeArchived({
@@ -507,7 +507,7 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
-        readModelService
+        readModelService,
       );
 
       const suspender = getOrganizationRole({
@@ -557,10 +557,10 @@ export function purposeServiceBuilder(
       organizationId: TenantId,
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number },
-      logger: Logger
+      logger: Logger,
     ): Promise<ListResult<Purpose>> {
       logger.info(
-        `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
+        `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`,
       );
 
       const purposesList = await readModelService.getPurposes(filters, {
@@ -572,7 +572,7 @@ export function purposeServiceBuilder(
         purposesList.results.map(async (purpose) => {
           const eservice = await retrieveEService(
             purpose.eserviceId,
-            readModelService
+            readModelService,
           );
           if (eservice === undefined) {
             throw eserviceNotFound(purpose.eserviceId);
@@ -581,7 +581,7 @@ export function purposeServiceBuilder(
             purpose,
             eservice,
           };
-        })
+        }),
       );
 
       const purposesToReturn = mappingPurposeEservice.map(
@@ -596,7 +596,7 @@ export function purposeServiceBuilder(
               ? purpose.riskAnalysisForm
               : undefined,
           };
-        }
+        },
       );
 
       return {
@@ -608,10 +608,10 @@ export function purposeServiceBuilder(
       purposeSeed: ApiPurposeSeed,
       organizationId: TenantId,
       correlationId: string,
-      logger: Logger
+      logger: Logger,
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
-        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`,
       );
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
@@ -619,7 +619,7 @@ export function purposeServiceBuilder(
 
       assertConsistentFreeOfCharge(
         purposeSeed.isFreeOfCharge,
-        purposeSeed.freeOfChargeReason
+        purposeSeed.freeOfChargeReason,
       );
 
       const tenant = await retrieveTenant(organizationId, readModelService);
@@ -629,7 +629,7 @@ export function purposeServiceBuilder(
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
-        tenant.kind
+        tenant.kind,
       );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
@@ -659,7 +659,7 @@ export function purposeServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventPurposeAdded(purpose, correlationId)
+        toCreateEventPurposeAdded(purpose, correlationId),
       );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
@@ -667,10 +667,10 @@ export function purposeServiceBuilder(
       organizationId: TenantId,
       seed: ApiReversePurposeSeed,
       correlationId: string,
-      logger: Logger
+      logger: Logger,
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
-        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`,
       );
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
@@ -681,17 +681,17 @@ export function purposeServiceBuilder(
 
       const riskAnalysis = retrieveRiskAnalysis(
         unsafeBrandId(seed.riskAnalysisId),
-        eservice
+        eservice,
       );
 
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,
-        seed.freeOfChargeReason
+        seed.freeOfChargeReason,
       );
 
       const producer = await retrieveTenant(
         eservice.producerId,
-        readModelService
+        readModelService,
       );
 
       assertTenantKindExists(producer);
@@ -707,7 +707,7 @@ export function purposeServiceBuilder(
 
       validateRiskAnalysisOrThrow({
         riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
-          riskAnalysis.riskAnalysisForm
+          riskAnalysis.riskAnalysisForm,
         ),
         schemaOnlyValidation: false,
         tenantKind: producer.kind,
@@ -734,7 +734,7 @@ export function purposeServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventPurposeAdded(purpose, correlationId)
+        toCreateEventPurposeAdded(purpose, correlationId),
       );
       return {
         purpose,
@@ -786,13 +786,13 @@ export function purposeServiceBuilder(
                 (answer) => ({
                   ...answer,
                   id: generateId(),
-                })
+                }),
               ),
               multiAnswers: riskAnalysisFormToClone.multiAnswers.map(
                 (answer) => ({
                   ...answer,
                   id: generateId(),
-                })
+                }),
               ),
             }
           : undefined;
@@ -832,10 +832,10 @@ export function purposeServiceBuilder(
       const isRiskAnalysisValid = clonedRiskAnalysisForm
         ? validateRiskAnalysis(
             riskAnalysisFormToRiskAnalysisFormToValidate(
-              clonedRiskAnalysisForm
+              clonedRiskAnalysisForm,
             ),
             false,
-            tenant.kind
+            tenant.kind,
           ).type === "valid"
         : false;
 
@@ -863,27 +863,27 @@ export function purposeServiceBuilder(
       logger: Logger;
     }): Promise<RiskAnalysisFormRules> {
       logger.info(
-        `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
+        `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`,
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const tenant = await getInvolvedTenantByEServiceMode(
         eservice,
         organizationId,
-        readModelService
+        readModelService,
       );
 
       assertTenantKindExists(tenant);
 
       const riskAnalysisFormConfig = getFormRulesByVersion(
         tenant.kind,
-        riskAnalysisVersion
+        riskAnalysisVersion,
       );
 
       if (!riskAnalysisFormConfig) {
         throw riskAnalysisConfigVersionNotFound(
           riskAnalysisVersion,
-          tenant.kind
+          tenant.kind,
         );
       }
 
@@ -910,7 +910,7 @@ const authorizeRiskAnalysisForm = ({
       const isRiskAnalysisValid = isRiskAnalysisFormValid(
         purpose.riskAnalysisForm,
         false,
-        tenantKind
+        tenantKind,
       );
       return { purpose, isRiskAnalysisValid };
     } else {
@@ -946,10 +946,10 @@ const getOrganizationRole = ({
 
 const replacePurposeVersion = (
   purpose: Purpose,
-  newVersion: PurposeVersion
+  newVersion: PurposeVersion,
 ): Purpose => {
   const updatedVersions = purpose.versions.map((v: PurposeVersion) =>
-    v.id === newVersion.id ? newVersion : v
+    v.id === newVersion.id ? newVersion : v,
   );
 
   return {
@@ -962,7 +962,7 @@ const replacePurposeVersion = (
 const getInvolvedTenantByEServiceMode = async (
   eservice: EService,
   consumerId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<Tenant> => {
   if (eservice.mode === eserviceMode.deliver) {
     return retrieveTenant(consumerId, readModelService);
@@ -984,7 +984,7 @@ const performUpdatePurpose = async (
   correlationId: string,
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
-  }
+  },
   // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
@@ -1001,18 +1001,18 @@ const performUpdatePurpose = async (
   }
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
-    readModelService
+    readModelService,
   );
   assertEserviceMode(eservice, mode);
   assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
-    updateContent.freeOfChargeReason
+    updateContent.freeOfChargeReason,
   );
 
   const tenant = await getInvolvedTenantByEServiceMode(
     eservice,
     purpose.data.consumerId,
-    readModelService
+    readModelService,
   );
 
   assertTenantKindExists(tenant);
@@ -1022,12 +1022,12 @@ const performUpdatePurpose = async (
       ? validateAndTransformRiskAnalysis(
           updateContent.riskAnalysisForm,
           true,
-          tenant.kind
+          tenant.kind,
         )
       : reverseValidateAndTransformRiskAnalysis(
           purpose.data.riskAnalysisForm,
           true,
-          tenant.kind
+          tenant.kind,
         );
 
   const updatedPurpose: Purpose = {
@@ -1059,14 +1059,14 @@ const performUpdatePurpose = async (
     isRiskAnalysisValid: isRiskAnalysisFormValid(
       updatedPurpose.riskAnalysisForm,
       false,
-      tenant.kind
+      tenant.kind,
     ),
   };
 };
 
 const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
   const nonWaitingVersions = purposeToClone.versions.filter(
-    (v) => v.state !== purposeVersionState.waitingForApproval
+    (v) => v.state !== purposeVersionState.waitingForApproval,
   );
 
   const versionsToSearch =
@@ -1075,7 +1075,7 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
       : purposeToClone.versions;
 
   const sortedVersions = [...versionsToSearch].sort(
-    (v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime()
+    (v1, v2) => v2.createdAt.getTime() - v1.createdAt.getTime(),
   );
 
   return sortedVersions[0];

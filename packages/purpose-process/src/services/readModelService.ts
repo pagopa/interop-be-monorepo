@@ -37,7 +37,7 @@ export type GetPurposesFilters = {
 
 async function getPurpose(
   purposes: PurposeCollection,
-  filter: Filter<WithId<WithMetadata<PurposeReadModel>>>
+  filter: Filter<WithId<WithMetadata<PurposeReadModel>>>,
 ): Promise<WithMetadata<Purpose> | undefined> {
   const data = await purposes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -54,8 +54,8 @@ async function getPurpose(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse purpose item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return result.data;
@@ -64,7 +64,7 @@ async function getPurpose(
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>,
 ): Promise<EService | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true },
@@ -76,8 +76,8 @@ async function getEService(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse eService item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return result.data;
@@ -86,7 +86,7 @@ async function getEService(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<Tenant>>>,
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true },
@@ -98,8 +98,8 @@ async function getTenant(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return result.data;
@@ -108,7 +108,7 @@ async function getTenant(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
+  readModelRepository: ReadModelRepository,
 ) {
   const { eservices, purposes, tenants, agreements } = readModelRepository;
 
@@ -120,14 +120,14 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.id": id });
     },
     async getPurposeById(
-      id: PurposeId
+      id: PurposeId,
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
     },
     async getPurpose(
       eserviceId: EServiceId,
       consumerId: TenantId,
-      title: string
+      title: string,
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, {
         "data.eserviceId": eserviceId,
@@ -140,7 +140,7 @@ export function readModelServiceBuilder(
     },
     async getPurposes(
       filters: GetPurposesFilters,
-      { offset, limit }: { offset: number; limit: number }
+      { offset, limit }: { offset: number; limit: number },
     ): Promise<ListResult<Purpose>> {
       const {
         title,
@@ -171,7 +171,7 @@ export function readModelServiceBuilder(
         });
 
       const notArchivedStates = Object.values(
-        PurposeVersionState.Values
+        PurposeVersionState.Values,
       ).filter((state) => state !== purposeVersionState.archived);
 
       const versionStateFilter: ReadModelFilter<Purpose> =
@@ -186,7 +186,7 @@ export function readModelServiceBuilder(
                     })),
                   ],
                 }
-              : { "data.versions.state": { $eq: state } }
+              : { "data.versions.state": { $eq: state } },
           ),
         });
 
@@ -214,7 +214,7 @@ export function readModelServiceBuilder(
               .find({ "data.producerId": { $in: producersIds } })
               .toArray()
               .then((results) =>
-                results.map((eservice) => eservice.data.id.toString())
+                results.map((eservice) => eservice.data.id.toString()),
               )
           : [];
 
@@ -248,7 +248,7 @@ export function readModelServiceBuilder(
       const data = await purposes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
+          { allowDiskUse: true },
         )
         .toArray();
 
@@ -256,8 +256,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse purposes items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -266,13 +266,13 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           purposes,
           aggregationPipeline,
-          false
+          false,
         ),
       };
     },
     async getActiveAgreement(
       eserviceId: EServiceId,
-      consumerId: TenantId
+      consumerId: TenantId,
     ): Promise<Agreement | undefined> {
       const data = await agreements.findOne({
         "data.eserviceId": eserviceId,

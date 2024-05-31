@@ -23,7 +23,7 @@ const getPurpose = (event: PurposeEventEnvelopeV2): PurposeV1Notification => {
 };
 
 export const toPurposeEventNotification = (
-  event: PurposeEventEnvelopeV2
+  event: PurposeEventEnvelopeV2,
 ): PurposeEventNotification =>
   match(event)
     .with(
@@ -43,27 +43,27 @@ export const toPurposeEventNotification = (
       { type: "PurposeVersionOverQuotaUnsuspended" },
       (event): PurposeNotification => ({
         purpose: getPurpose(event),
-      })
+      }),
     )
     .with(
       { type: "PurposeVersionRejected" },
       (event): PurposeAndVersionIdNotification => ({
         purpose: getPurpose(event),
         versionId: event.data.versionId,
-      })
+      }),
     )
     .with(
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
       (event): PurposeIdNotification => ({
         purposeId: getPurpose(event).id,
-      })
+      }),
     )
     .with(
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       (event): PurposeIdAndVersionIdNotification => ({
         purposeId: getPurpose(event).id,
         versionId: event.data.versionId,
-      })
+      }),
     )
     .exhaustive();

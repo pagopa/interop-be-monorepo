@@ -35,7 +35,7 @@ import {
 } from "./models.js";
 
 export const singleAnswersToApiSingleAnswers = (
-  singleAnswers: RiskAnalysisSingleAnswer[]
+  singleAnswers: RiskAnalysisSingleAnswer[],
 ): Record<string, string[]> =>
   singleAnswers.reduce<Record<string, string[]>>((acc, curr) => {
     if (!curr.value) {
@@ -47,7 +47,7 @@ export const singleAnswersToApiSingleAnswers = (
   }, {});
 
 export const multiAnswersToApiMultiAnswers = (
-  multiAnswers: RiskAnalysisMultiAnswer[]
+  multiAnswers: RiskAnalysisMultiAnswer[],
 ): Record<string, string[]> =>
   multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
     if (curr.values.length === 0) {
@@ -59,13 +59,13 @@ export const multiAnswersToApiMultiAnswers = (
   }, {});
 
 export const riskAnalysisFormToApiRiskAnalysisForm = (
-  riskAnalysisForm: PurposeRiskAnalysisForm
+  riskAnalysisForm: PurposeRiskAnalysisForm,
 ): ApiRiskAnalysisForm => {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
-    riskAnalysisForm.singleAnswers
+    riskAnalysisForm.singleAnswers,
   );
   const apiMultiAnswersMap = multiAnswersToApiMultiAnswers(
-    riskAnalysisForm.multiAnswers
+    riskAnalysisForm.multiAnswers,
   );
   return {
     version: riskAnalysisForm.version,
@@ -75,7 +75,7 @@ export const riskAnalysisFormToApiRiskAnalysisForm = (
 };
 
 export const purposeVersionStateToApiPurposeVersionState = (
-  state: PurposeVersionState
+  state: PurposeVersionState,
 ): ApiPurposeVersionState =>
   match<PurposeVersionState, ApiPurposeVersionState>(state)
     .with(purposeVersionState.active, () => "ACTIVE")
@@ -87,7 +87,7 @@ export const purposeVersionStateToApiPurposeVersionState = (
     .exhaustive();
 
 export const apiPurposeVersionStateToPurposeVersionState = (
-  state: ApiPurposeVersionState
+  state: ApiPurposeVersionState,
 ): PurposeVersionState =>
   match<ApiPurposeVersionState, PurposeVersionState>(state)
     .with("ACTIVE", () => purposeVersionState.active)
@@ -99,7 +99,7 @@ export const apiPurposeVersionStateToPurposeVersionState = (
     .exhaustive();
 
 export const purposeVersionDocumentToApiPurposeVersionDocument = (
-  document: PurposeVersionDocument
+  document: PurposeVersionDocument,
 ): ApiPurposeVersionDocument => ({
   id: document.id,
   contentType: document.contentType,
@@ -108,7 +108,7 @@ export const purposeVersionDocumentToApiPurposeVersionDocument = (
 });
 
 export const purposeVersionToApiPurposeVersion = (
-  version: PurposeVersion
+  version: PurposeVersion,
 ): ApiPurposeVersion => ({
   id: version.id,
   state: purposeVersionStateToApiPurposeVersionState(version.state),
@@ -124,7 +124,7 @@ export const purposeVersionToApiPurposeVersion = (
 
 export const purposeToApiPurpose = (
   purpose: Purpose,
-  isRiskAnalysisValid: boolean
+  isRiskAnalysisValid: boolean,
 ): ApiPurpose => ({
   id: purpose.id,
   eserviceId: purpose.eserviceId,
@@ -145,7 +145,7 @@ export const purposeToApiPurpose = (
 });
 
 export const localizedTextToApiLocalizedText = (
-  localizedText: LocalizedText
+  localizedText: LocalizedText,
 ): ApiLocalizedText => ({
   it: localizedText.it,
   en: localizedText.en,
@@ -159,37 +159,37 @@ export const dataTypeToApiDataType = (type: DataType): ApiDataType =>
     .exhaustive();
 
 export const dependencyToApiDependency = (
-  dependency: Dependency
+  dependency: Dependency,
 ): ApiDependency => ({
   id: dependency.id,
   value: dependency.value,
 });
 
 export const hideOptionConfigToApiHideOptionConfig = (
-  hideOptionConfig: HideOptionConfig
+  hideOptionConfig: HideOptionConfig,
 ): ApiHideOptionConfig => ({
   id: hideOptionConfig.id,
   value: hideOptionConfig.value,
 });
 export const mapHideOptionToApiMapHideOption = (
-  mapHideOptionConfig: Record<string, HideOptionConfig[]>
+  mapHideOptionConfig: Record<string, HideOptionConfig[]>,
 ): Record<string, ApiHideOptionConfig[]> =>
   Object.fromEntries(
     Object.entries(mapHideOptionConfig).map(([key, value]) => [
       key,
       value.map(hideOptionConfigToApiHideOptionConfig),
-    ])
+    ]),
   );
 
 export const labeledValueToApiLabeledValue = (
-  labeledValue: LabeledValue
+  labeledValue: LabeledValue,
 ): ApiLabeledValue => ({
   label: localizedTextToApiLocalizedText(labeledValue.label),
   value: labeledValue.value,
 });
 
 export const formConfigQuestionToApiFormConfigQuestion = (
-  question: FormQuestionRules
+  question: FormQuestionRules,
 ): ApiFormQuestionRules => {
   const commonFields = {
     id: question.id,
@@ -217,10 +217,10 @@ export const formConfigQuestionToApiFormConfigQuestion = (
 };
 
 export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
-  configuration: RiskAnalysisFormRules
+  configuration: RiskAnalysisFormRules,
 ): ApiRiskAnalysisFormRules => ({
   version: configuration.version,
   questions: configuration.questions.map(
-    formConfigQuestionToApiFormConfigQuestion
+    formConfigQuestionToApiFormConfigQuestion,
   ),
 });

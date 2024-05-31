@@ -7,7 +7,7 @@ import {
 
 export const toCreateEventAttributeAdded = (
   attribute: Attribute,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<AttributeEvent> => ({
   streamId: attribute.id,
   version: 0,

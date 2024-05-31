@@ -22,7 +22,7 @@ export const readCorrelationIdHeader = (req: Request): string | undefined =>
   match(req.headers)
     .with(
       { "x-correlation-id": P.string },
-      (headers) => headers["x-correlation-id"]
+      (headers) => headers["x-correlation-id"],
     )
     .otherwise(() => undefined);
 
@@ -51,7 +51,7 @@ export const readHeaders = (req: Request): ParsedHeaders | undefined => {
             ...authData,
             correlationId: headers["x-correlation-id"],
           };
-        }
+        },
       )
       .otherwise(() => undefined);
   } catch (error) {

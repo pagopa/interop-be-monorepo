@@ -38,7 +38,7 @@ export class InteropTokenGenerator {
     };
 
     const serializedToken = `${b64UrlEncode(
-      JSON.stringify(header)
+      JSON.stringify(header),
     )}.${b64UrlEncode(JSON.stringify(payload))}`;
 
     const commandParams: SignCommandInput = {

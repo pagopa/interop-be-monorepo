@@ -20,21 +20,21 @@ export const getTenantByIdErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getTenantByExternalIdErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getTenantBySelfcareIdErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("tenantBySelfcareIdNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTenantVerifiedAttributeErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -44,7 +44,7 @@ export const updateTenantVerifiedAttributeErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateVerifiedAttributeExtensionDateErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("verifiedAttributeNotFoundInTenant", () => 404)
@@ -53,7 +53,7 @@ export const updateVerifiedAttributeExtensionDateErrorMapper = (
     .with("tenantNotFound", () => 404)
     .otherwise(() => 500);
 export const selfcareUpsertTenantErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -61,7 +61,7 @@ export const selfcareUpsertTenantErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)

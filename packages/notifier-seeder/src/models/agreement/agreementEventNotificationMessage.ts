@@ -5,7 +5,7 @@ import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { AgreementEventNotification } from "./agreementEventNotification.js";
 
 export const eventV2TypeMapper = (
-  eventType: AgreementEventEnvelopeV2["type"]
+  eventType: AgreementEventEnvelopeV2["type"],
 ): string =>
   match(eventType)
     .with("AgreementAdded", "AgreementUpgraded", () => "agreement_added")
@@ -25,21 +25,21 @@ export const eventV2TypeMapper = (
       "AgreementRejected",
       "AgreementArchivedByUpgrade",
       "AgreementArchivedByConsumer",
-      () => "agreement_updated"
+      () => "agreement_updated",
     )
     .with(
       "AgreementConsumerDocumentAdded",
-      () => "agreement_consumer_document_added"
+      () => "agreement_consumer_document_added",
     )
     .with(
       "AgreementConsumerDocumentRemoved",
-      () => "agreement_consumer_document_removed"
+      () => "agreement_consumer_document_removed",
     )
     .exhaustive();
 
 export const buildAgreementMessage = (
   event: AgreementEventEnvelopeV2,
-  agreementEvent: AgreementEventNotification
+  agreementEvent: AgreementEventNotification,
 ): QueueMessage => ({
   messageUUID: uuidv4(),
   eventJournalPersistenceId: event.stream_id,

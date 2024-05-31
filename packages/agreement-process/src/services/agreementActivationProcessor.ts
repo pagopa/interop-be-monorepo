@@ -66,7 +66,7 @@ export function createActivationUpdateAgreementSeed({
         verifiedAttributes: matchingVerifiedAttributes(
           eservice,
           descriptor,
-          consumer
+          consumer,
         ),
         suspendedByConsumer,
         suspendedByProducer,
@@ -85,13 +85,13 @@ export function createActivationUpdateAgreementSeed({
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
           ),
           suspensionByProducer: suspendedByProducerStamp(
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
           ),
         },
         suspendedAt:
@@ -111,7 +111,7 @@ export async function createActivationEvent(
   producer: Tenant,
   authData: AuthData,
   correlationId: string,
-  contractBuilder: ContractBuilder
+  contractBuilder: ContractBuilder,
 ): Promise<CreateEvent<AgreementEventV2>> {
   if (firstActivation) {
     const agreementContract = await contractBuilder.createContract(
@@ -120,7 +120,7 @@ export async function createActivationEvent(
       eservice,
       consumer,
       producer,
-      updatedAgreementSeed
+      updatedAgreementSeed,
     );
 
     return toCreateEventAgreementActivated(
@@ -129,24 +129,24 @@ export async function createActivationEvent(
         contract: apiAgreementDocumentToAgreementDocument(agreementContract),
       },
       agreement.metadata.version,
-      correlationId
+      correlationId,
     );
   } else {
     if (authData.organizationId === agreement.data.producerId) {
       return toCreateEventAgreementUnsuspendedByProducer(
         updatedAgreement,
         agreement.metadata.version,
-        correlationId
+        correlationId,
       );
     } else if (authData.organizationId === agreement.data.consumerId) {
       return toCreateEventAgreementUnsuspendedByConsumer(
         updatedAgreement,
         agreement.metadata.version,
-        correlationId
+        correlationId,
       );
     } else {
       throw genericError(
-        `Unexpected organizationId ${authData.organizationId} in activateAgreement`
+        `Unexpected organizationId ${authData.organizationId} in activateAgreement`,
       );
     }
   }
@@ -156,7 +156,7 @@ export const archiveRelatedToAgreements = async (
   agreement: Agreement,
   userId: UserId,
   readModelService: ReadModelService,
-  correlationId: string
+  correlationId: string,
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
@@ -166,10 +166,10 @@ export const archiveRelatedToAgreements = async (
   const archivables = existingAgreements.filter(
     (a) =>
       agreementArchivableStates.includes(a.data.state) &&
-      a.data.id !== agreement.id
+      a.data.id !== agreement.id,
   );
 
   return archivables.map((agreementData) =>
-    createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
+    createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId),
   );
 };

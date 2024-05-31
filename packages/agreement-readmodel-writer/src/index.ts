@@ -37,7 +37,7 @@ async function processMessage({
     .exhaustive();
 
   loggerInstance.info(
-    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`,
   );
 }
 

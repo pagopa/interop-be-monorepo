@@ -22,7 +22,7 @@ export const toReadModelDocument = (doc: Document): DocumentReadModel => ({
 });
 
 export const toReadModelDescriptor = (
-  descriptor: Descriptor
+  descriptor: Descriptor,
 ): DescriptorReadModel => ({
   ...descriptor,
   docs: descriptor.docs.map(toReadModelDocument),
@@ -45,7 +45,7 @@ export const toReadModelDescriptor = (
 });
 
 export const toReadModelRiskAnalysis = (
-  riskAnalysis: RiskAnalysis
+  riskAnalysis: RiskAnalysis,
 ): RiskAnalysisReadModel => ({
   ...riskAnalysis,
   createdAt: riskAnalysis.createdAt.toISOString(),

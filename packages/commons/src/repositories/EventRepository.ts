@@ -17,7 +17,7 @@ export type CreateEvent<T extends Event> = {
 async function internalCreateEvents<T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array,
-  createEvents: Array<CreateEvent<T>>
+  createEvents: Array<CreateEvent<T>>,
 ): Promise<string[]> {
   try {
     return await db.tx(
@@ -41,8 +41,8 @@ async function internalCreateEvents<T extends Event>(
             });
 
             return createEvent.streamId;
-          })
-        )
+          }),
+        ),
     );
   } catch (error) {
     throw genericInternalError(`Error creating event: ${error}`);
@@ -51,7 +51,7 @@ async function internalCreateEvents<T extends Event>(
 
 export const eventRepository = <T extends Event>(
   db: DB,
-  toBinaryData: (event: T) => Uint8Array
+  toBinaryData: (event: T) => Uint8Array,
 ): {
   createEvent: (createEvent: CreateEvent<T>) => Promise<string>;
   createEvents: (createEvents: Array<CreateEvent<T>>) => Promise<string[]>;

@@ -14,12 +14,12 @@ export type QueueManager = {
   send: (message: QueueMessage, logger: Logger) => Promise<string>;
   receiveLast: (
     logger: Logger,
-    msgsToReceive?: number
+    msgsToReceive?: number,
   ) => Promise<QueueMessage[]>;
 };
 
 export function initQueueManager(
-  config: { queueUrl: string; messageGroupId: string } & LoggerConfig
+  config: { queueUrl: string; messageGroupId: string } & LoggerConfig,
 ): QueueManager {
   const client = new SQSClient({
     logger: config.logLevel === "debug" ? console : undefined,
@@ -28,18 +28,18 @@ export function initQueueManager(
   return {
     send: async (message: QueueMessage, logger: Logger): Promise<string> => {
       logger.debug(
-        `Sending message ${message.messageUUID} to queue ${config.queueUrl}`
+        `Sending message ${message.messageUUID} to queue ${config.queueUrl}`,
       );
       try {
         const response = await client.send(
           new SendMessageCommand({
             QueueUrl: config.queueUrl,
             MessageBody: JSON.stringify(message, (_, v) =>
-              typeof v === "bigint" ? v.toString() : v
+              typeof v === "bigint" ? v.toString() : v,
             ),
             MessageGroupId: config.messageGroupId,
             MessageDeduplicationId: `${message.eventJournalPersistenceId}_${message.eventJournalSequenceNumber}`,
-          })
+          }),
         );
         if (!response.MessageId) {
           throw new Error("Unexpected empty response from SQS");
@@ -51,17 +51,17 @@ export function initQueueManager(
     },
     receiveLast: async (
       logger: Logger,
-      msgsToReceive: number = 1
+      msgsToReceive: number = 1,
     ): Promise<QueueMessage[]> => {
       logger.debug(
-        `Receiving last ${msgsToReceive} messages from queue ${config.queueUrl}`
+        `Receiving last ${msgsToReceive} messages from queue ${config.queueUrl}`,
       );
       try {
         const response = await client.send(
           new ReceiveMessageCommand({
             QueueUrl: config.queueUrl,
             MaxNumberOfMessages: msgsToReceive,
-          })
+          }),
         );
 
         if (!response.Messages) {

@@ -27,7 +27,7 @@ import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
 export function assertRequesterAllowed(
   producerId: TenantId,
-  authData: AuthData
+  authData: AuthData,
 ): void {
   if (
     !authData.userRoles.includes("internal") &&
@@ -50,7 +50,7 @@ export function assertIsReceiveEservice(eservice: EService): void {
 }
 
 export function assertTenantKindExists(
-  tenant: Tenant
+  tenant: Tenant,
 ): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
   if (tenant.kind === undefined) {
     throw tenantKindNotFound(tenant.id);
@@ -59,7 +59,7 @@ export function assertTenantKindExists(
 
 export function assertHasNoDraftDescriptor(eservice: EService): void {
   const hasDraftDescriptor = eservice.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft
+    (d: Descriptor) => d.state === descriptorState.draft,
   );
   if (hasDraftDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);
@@ -68,7 +68,7 @@ export function assertHasNoDraftDescriptor(eservice: EService): void {
 
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
   if (result.type === "invalid") {
@@ -80,7 +80,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 
 export function assertRiskAnalysisIsValidForPublication(
   eservice: EService,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
@@ -89,10 +89,10 @@ export function assertRiskAnalysisIsValidForPublication(
   eservice.riskAnalysis.forEach((riskAnalysis) => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
-        riskAnalysis.riskAnalysisForm
+        riskAnalysis.riskAnalysisForm,
       ),
       false,
-      tenantKind
+      tenantKind,
     );
 
     if (result.type === "invalid") {

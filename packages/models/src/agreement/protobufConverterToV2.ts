@@ -26,26 +26,26 @@ export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
     .with(agreementState.rejected, () => AgreementStateV2.REJECTED)
     .with(
       agreementState.missingCertifiedAttributes,
-      () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
+      () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES,
     )
     .exhaustive();
 
 export const toAgreementDocumentV2 = (
-  input: AgreementDocument
+  input: AgreementDocument,
 ): AgreementDocumentV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toAgreementStampV2 = (
-  input: AgreementStamp
+  input: AgreementStamp,
 ): AgreementStampV2 => ({
   ...input,
   when: dateToBigInt(input.when),
 });
 
 export const toAgreementStampsV2 = (
-  input: AgreementStamps
+  input: AgreementStamps,
 ): AgreementStampsV2 => ({
   submission: input.submission
     ? toAgreementStampV2(input.submission)

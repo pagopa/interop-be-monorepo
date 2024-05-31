@@ -23,7 +23,7 @@ function getFormRules(ruleset: keyof typeof formRules): RiskAnalysisFormRules {
       .with("pa3", () => pa3)
       .with("private1", () => private1)
       .with("private2", () => private2)
-      .exhaustive()
+      .exhaustive(),
   );
 }
 

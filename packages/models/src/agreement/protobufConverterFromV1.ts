@@ -17,7 +17,7 @@ import {
 } from "./agreement.js";
 
 export const fromAgreementDocumentV1 = (
-  input: AgreementDocumentV1
+  input: AgreementDocumentV1,
 ): AgreementDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -25,7 +25,7 @@ export const fromAgreementDocumentV1 = (
 });
 
 export const fromAgreementStampV1 = (
-  input: StampV1 | undefined
+  input: StampV1 | undefined,
 ): AgreementStamp | undefined =>
   input
     ? {
@@ -35,7 +35,7 @@ export const fromAgreementStampV1 = (
     : undefined;
 
 export const fromAgreementStampsV1 = (
-  input: StampsV1 | undefined
+  input: StampsV1 | undefined,
 ): AgreementStamps => ({
   ...input,
   submission: input?.submission
@@ -60,7 +60,7 @@ export const fromAgreementStampsV1 = (
 });
 
 export const fromAgreementStateV1 = (
-  input: AgreementStateV1
+  input: AgreementStateV1,
 ): AgreementState => {
   switch (input) {
     case AgreementStateV1.ACTIVE:

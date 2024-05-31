@@ -180,7 +180,7 @@ export class ReadModelRepository {
 
   public static arrayToFilter<T>(
     array: unknown[],
-    filter: ReadModelFilter<T>
+    filter: ReadModelFilter<T>,
   ): ReadModelFilter<T> {
     return array.length > 0 ? filter : {};
   }
@@ -192,7 +192,7 @@ export class ReadModelRepository {
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[],
-    allowDiskUse: boolean
+    allowDiskUse: boolean,
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {
       allowDiskUse,
@@ -207,8 +207,8 @@ export class ReadModelRepository {
 
     throw genericInternalError(
       `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
+        result,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 }

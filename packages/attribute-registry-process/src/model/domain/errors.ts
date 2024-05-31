@@ -25,7 +25,7 @@ export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
 }
 
 export function attributeDuplicate(
-  attributeName: string
+  attributeName: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `ApiError during Attribute creation with name ${attributeName}`,
@@ -51,7 +51,7 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function OrganizationIsNotACertifier(
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a Certifier`,

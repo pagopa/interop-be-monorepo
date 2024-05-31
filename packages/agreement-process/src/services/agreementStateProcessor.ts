@@ -39,7 +39,7 @@ const {
 const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
 ): AgreementState => {
   if (agreement.consumerId === agreement.producerId) {
     return active;
@@ -64,7 +64,7 @@ const nextStateFromDraft = (
 const nextStateFromPending = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
 ): AgreementState => {
   if (!certifiedAttributesSatisfied(descriptor, tenant)) {
     return missingCertifiedAttributes;
@@ -81,7 +81,7 @@ const nextStateFromPending = (
 const nextStateFromActiveOrSuspended = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
 ): AgreementState => {
   if (agreement.consumerId === agreement.producerId) {
     return active;
@@ -98,7 +98,7 @@ const nextStateFromActiveOrSuspended = (
 
 const nextStateFromMissingCertifiedAttributes = (
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
 ): AgreementState => {
   if (certifiedAttributesSatisfied(descriptor, tenant)) {
     return draft;
@@ -109,21 +109,21 @@ const nextStateFromMissingCertifiedAttributes = (
 export const nextStateByAttributes = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  tenant: Tenant | CompactTenant,
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
-      nextStateFromDraft(agreement, descriptor, tenant)
+      nextStateFromDraft(agreement, descriptor, tenant),
     )
     .with(agreementState.pending, () =>
-      nextStateFromPending(agreement, descriptor, tenant)
+      nextStateFromPending(agreement, descriptor, tenant),
     )
     .with(agreementState.active, agreementState.suspended, () =>
-      nextStateFromActiveOrSuspended(agreement, descriptor, tenant)
+      nextStateFromActiveOrSuspended(agreement, descriptor, tenant),
     )
     .with(agreementState.archived, () => archived)
     .with(agreementState.missingCertifiedAttributes, () =>
-      nextStateFromMissingCertifiedAttributes(descriptor, tenant)
+      nextStateFromMissingCertifiedAttributes(descriptor, tenant),
     )
     .with(agreementState.rejected, () => rejected)
     .exhaustive();
@@ -132,7 +132,7 @@ export const agreementStateByFlags = (
   stateByAttribute: AgreementState,
   suspendedByProducer: boolean | undefined,
   suspendedByConsumer: boolean | undefined,
-  suspendedByPlatform: boolean | undefined
+  suspendedByPlatform: boolean | undefined,
 ): AgreementState =>
   match([
     stateByAttribute,
@@ -144,7 +144,7 @@ export const agreementStateByFlags = (
       [agreementState.active, true, P.any, P.any],
       [agreementState.active, P.any, true, P.any],
       [agreementState.active, P.any, P.any, true],
-      () => agreementState.suspended
+      () => agreementState.suspended,
     )
     .otherwise(() => stateByAttribute);
 
@@ -155,7 +155,7 @@ export const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
 export const suspendedByConsumerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  destinationState: AgreementState
+  destinationState: AgreementState,
 ): boolean | undefined =>
   requesterOrgId === agreement.consumerId
     ? destinationState === agreementState.suspended
@@ -164,7 +164,7 @@ export const suspendedByConsumerFlag = (
 export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  destinationState: AgreementState
+  destinationState: AgreementState,
 ): boolean | undefined =>
   requesterOrgId === agreement.producerId
     ? destinationState === agreementState.suspended
@@ -187,7 +187,7 @@ const allowedStateTransitions = (state: AgreementState): AgreementState[] =>
     .exhaustive();
 
 const updatableStates = Object.values(agreementState).filter(
-  (state) => allowedStateTransitions(state).length > 0
+  (state) => allowedStateTransitions(state).length > 0,
 );
 
 function updateAgreementState(
@@ -195,17 +195,17 @@ function updateAgreementState(
   consumer: CompactTenant,
   eservices: EService[],
   correlationId: string,
-  logger: Logger
+  logger: Logger,
 ): CreateEvent<AgreementEvent> | void {
   const descriptor = eservices
     .find((eservice) => eservice.id === agreement.data.eserviceId)
     ?.descriptors.find(
-      (descriptor) => descriptor.id === agreement.data.descriptorId
+      (descriptor) => descriptor.id === agreement.data.descriptorId,
     );
 
   if (!descriptor) {
     logger.error(
-      `Descriptor ${agreement.data.descriptorId} not found for Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId}`
+      `Descriptor ${agreement.data.descriptorId} not found for Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId}`,
     );
     return;
   }
@@ -218,7 +218,7 @@ function updateAgreementState(
     nextState,
     agreement.data.suspendedByProducer,
     agreement.data.suspendedByConsumer,
-    newSuspendedByPlatform
+    newSuspendedByPlatform,
   );
 
   const updatedAgreement: Agreement = {
@@ -236,8 +236,8 @@ function updateAgreementState(
         toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
-          correlationId
-        )
+          correlationId,
+        ),
       )
       .with(
         [agreementState.suspended, false],
@@ -246,35 +246,35 @@ function updateAgreementState(
           toCreateEventAgreementUnsuspendedByPlatform(
             updatedAgreement,
             agreement.metadata.version,
-            correlationId
-          )
+            correlationId,
+          ),
       )
       .with([agreementState.missingCertifiedAttributes, P._], () =>
         toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
           updatedAgreement,
           agreement.metadata.version,
-          correlationId
-        )
+          correlationId,
+        ),
       )
       .with([agreementState.draft, P._], () =>
         toCreateEventAgreementSetDraftByPlatform(
           updatedAgreement,
           agreement.metadata.version,
-          correlationId
-        )
+          correlationId,
+        ),
       )
       .otherwise(
         () =>
           void logger.error(
-            `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
-          )
+            `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`,
+          ),
       );
   }
 }
 
 function eserviceContainsAttribute(
   attributeId: AttributeId,
-  eservice: EService
+  eservice: EService,
 ): boolean {
   const allIds = eservice.descriptors
     .flatMap((descriptor) => [
@@ -292,7 +292,7 @@ export async function computeAgreementsStateByAttribute(
   consumer: CompactTenant,
   readModelService: ReadModelService,
   correlationId: string,
-  logger: Logger
+  logger: Logger,
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreements = await readModelService.getAllAgreements({
     consumerId: consumer.id,
@@ -300,21 +300,21 @@ export async function computeAgreementsStateByAttribute(
   });
 
   const uniqueEServiceIds = Array.from(
-    new Set(agreements.map((a) => a.data.eserviceId))
+    new Set(agreements.map((a) => a.data.eserviceId)),
   );
 
   const eservices: EService[] = await Promise.all(
-    uniqueEServiceIds.map((id) => retrieveEService(id, readModelService))
+    uniqueEServiceIds.map((id) => retrieveEService(id, readModelService)),
   );
 
   const eservicesWithAttribute = eservices.filter((eservice) =>
-    eserviceContainsAttribute(attributeId, eservice)
+    eserviceContainsAttribute(attributeId, eservice),
   );
 
   const agreementsToUpdate = agreements.filter((agreement) =>
     eservicesWithAttribute.some(
-      (eservice) => eservice.id === agreement.data.eserviceId
-    )
+      (eservice) => eservice.id === agreement.data.eserviceId,
+    ),
   );
 
   return agreementsToUpdate
@@ -324,11 +324,11 @@ export async function computeAgreementsStateByAttribute(
         consumer,
         eservicesWithAttribute,
         correlationId,
-        logger
-      )
+        logger,
+      ),
     )
     .filter(
       (event): event is NonNullable<CreateEvent<AgreementEvent>> =>
-        event !== undefined
+        event !== undefined,
     );
 }

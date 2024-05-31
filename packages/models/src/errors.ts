@@ -70,12 +70,12 @@ export type Problem = {
 export type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void }
+  logger: { error: (message: string) => void; warn: (message: string) => void },
 ) => Problem;
 
 const makeProblemLogString = (
   problem: Problem,
-  originalError: unknown
+  originalError: unknown,
 ): string => {
   const errorsString = problem.errors.map((e) => e.detail).join(" - ");
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
@@ -88,7 +88,7 @@ export function makeApiProblemBuilder<T extends string>(errors: {
   return (error, httpMapper, logger) => {
     const makeProblem = (
       httpStatus: number,
-      { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>
+      { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>,
     ): Problem => ({
       type: "about:blank",
       title,
@@ -155,7 +155,7 @@ export function parseErrorMessage(error: unknown): string {
 
 export function missingKafkaMessageDataError(
   dataName: string,
-  eventType: string
+  eventType: string,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "missingKafkaMessageData",
@@ -164,7 +164,7 @@ export function missingKafkaMessageDataError(
 }
 
 export function genericInternalError(
-  message: string
+  message: string,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "genericError",
@@ -174,7 +174,7 @@ export function genericInternalError(
 
 export function thirdPartyCallError(
   serviceName: string,
-  errorMessage: string
+  errorMessage: string,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "thirdPartyCallError",
@@ -183,7 +183,7 @@ export function thirdPartyCallError(
 }
 
 export function tokenGenerationError(
-  error: unknown
+  error: unknown,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "tokenGenerationError",
@@ -195,7 +195,7 @@ export function kafkaMessageProcessError(
   topic: string,
   partition: number,
   offset: string,
-  error?: unknown
+  error?: unknown,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "kafkaMessageProcessError",
@@ -206,7 +206,7 @@ export function kafkaMessageProcessError(
 }
 
 export function htmlTemplateInterpolationError(
-  error: unknown
+  error: unknown,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "htmlTemplateInterpolationError",
@@ -215,7 +215,7 @@ export function htmlTemplateInterpolationError(
 }
 
 export function pdfGenerationError(
-  error: unknown
+  error: unknown,
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "pdfGenerationError",
@@ -226,7 +226,7 @@ export function pdfGenerationError(
 /* ===== API Error ===== */
 
 export function authenticationSaslFailed(
-  message: string
+  message: string,
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     code: "authenticationSaslFailed",
@@ -253,7 +253,7 @@ export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
 
 export function badRequestError(
   detail: string,
-  errors?: Error[]
+  errors?: Error[],
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail,

@@ -46,37 +46,37 @@ export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
 export function purposeEventToBinaryDataV1(event: PurposeEventV1): Uint8Array {
   return match(event)
     .with({ type: "PurposeCreated" }, ({ data }) =>
-      PurposeCreatedV1.toBinary(data)
+      PurposeCreatedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionCreated" }, ({ data }) =>
-      PurposeVersionCreatedV1.toBinary(data)
+      PurposeVersionCreatedV1.toBinary(data),
     )
     .with({ type: "PurposeUpdated" }, ({ data }) =>
-      PurposeUpdatedV1.toBinary(data)
+      PurposeUpdatedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionUpdated" }, ({ data }) =>
-      PurposeVersionUpdatedV1.toBinary(data)
+      PurposeVersionUpdatedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionActivated" }, ({ data }) =>
-      PurposeVersionActivatedV1.toBinary(data)
+      PurposeVersionActivatedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionRejected" }, ({ data }) =>
-      PurposeVersionRejectedV1.toBinary(data)
+      PurposeVersionRejectedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionSuspended" }, ({ data }) =>
-      PurposeVersionSuspendedV1.toBinary(data)
+      PurposeVersionSuspendedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionArchived" }, ({ data }) =>
-      PurposeVersionArchivedV1.toBinary(data)
+      PurposeVersionArchivedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionWaitedForApproval" }, ({ data }) =>
-      PurposeVersionWaitedForApprovalV1.toBinary(data)
+      PurposeVersionWaitedForApprovalV1.toBinary(data),
     )
     .with({ type: "PurposeDeleted" }, ({ data }) =>
-      PurposeDeletedV1.toBinary(data)
+      PurposeDeletedV1.toBinary(data),
     )
     .with({ type: "PurposeVersionDeleted" }, ({ data }) =>
-      PurposeVersionDeletedV1.toBinary(data)
+      PurposeVersionDeletedV1.toBinary(data),
     )
     .exhaustive();
 }
@@ -85,55 +85,55 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
   return match(event)
     .with({ type: "PurposeAdded" }, ({ data }) => PurposeAddedV2.toBinary(data))
     .with({ type: "DraftPurposeUpdated" }, ({ data }) =>
-      DraftPurposeUpdatedV2.toBinary(data)
+      DraftPurposeUpdatedV2.toBinary(data),
     )
     .with({ type: "PurposeWaitingForApproval" }, ({ data }) =>
-      PurposeWaitingForApprovalV2.toBinary(data)
+      PurposeWaitingForApprovalV2.toBinary(data),
     )
     .with({ type: "PurposeActivated" }, ({ data }) =>
-      PurposeActivatedV2.toBinary(data)
+      PurposeActivatedV2.toBinary(data),
     )
     .with({ type: "DraftPurposeDeleted" }, ({ data }) =>
-      DraftPurposeDeletedV2.toBinary(data)
+      DraftPurposeDeletedV2.toBinary(data),
     )
     .with({ type: "WaitingForApprovalPurposeDeleted" }, ({ data }) =>
-      WaitingForApprovalPurposeDeletedV2.toBinary(data)
+      WaitingForApprovalPurposeDeletedV2.toBinary(data),
     )
     .with({ type: "NewPurposeVersionActivated" }, ({ data }) =>
-      NewPurposeVersionActivatedV2.toBinary(data)
+      NewPurposeVersionActivatedV2.toBinary(data),
     )
     .with({ type: "PurposeVersionActivated" }, ({ data }) =>
-      PurposeVersionActivatedV2.toBinary(data)
+      PurposeVersionActivatedV2.toBinary(data),
     )
     .with({ type: "PurposeVersionUnsuspendedByProducer" }, ({ data }) =>
-      PurposeVersionUnsuspendedByProducerV2.toBinary(data)
+      PurposeVersionUnsuspendedByProducerV2.toBinary(data),
     )
     .with({ type: "PurposeVersionUnsuspendedByConsumer" }, ({ data }) =>
-      PurposeVersionUnsuspendedByConsumerV2.toBinary(data)
+      PurposeVersionUnsuspendedByConsumerV2.toBinary(data),
     )
     .with({ type: "PurposeVersionSuspendedByProducer" }, ({ data }) =>
-      PurposeVersionSuspendedByProducerV2.toBinary(data)
+      PurposeVersionSuspendedByProducerV2.toBinary(data),
     )
     .with({ type: "PurposeVersionSuspendedByConsumer" }, ({ data }) =>
-      PurposeVersionSuspendedByConsumerV2.toBinary(data)
+      PurposeVersionSuspendedByConsumerV2.toBinary(data),
     )
     .with({ type: "NewPurposeVersionWaitingForApproval" }, ({ data }) =>
-      NewPurposeVersionWaitingForApprovalV2.toBinary(data)
+      NewPurposeVersionWaitingForApprovalV2.toBinary(data),
     )
     .with({ type: "PurposeVersionOverQuotaUnsuspended" }, ({ data }) =>
-      PurposeVersionOverQuotaUnsuspendedV2.toBinary(data)
+      PurposeVersionOverQuotaUnsuspendedV2.toBinary(data),
     )
     .with({ type: "PurposeArchived" }, ({ data }) =>
-      PurposeArchivedV2.toBinary(data)
+      PurposeArchivedV2.toBinary(data),
     )
     .with({ type: "WaitingForApprovalPurposeVersionDeleted" }, ({ data }) =>
-      WaitingForApprovalPurposeVersionDeletedV2.toBinary(data)
+      WaitingForApprovalPurposeVersionDeletedV2.toBinary(data),
     )
     .with({ type: "PurposeVersionRejected" }, ({ data }) =>
-      PurposeVersionRejectedV2.toBinary(data)
+      PurposeVersionRejectedV2.toBinary(data),
     )
     .with({ type: "PurposeCloned" }, ({ data }) =>
-      PurposeClonedV2.toBinary(data)
+      PurposeClonedV2.toBinary(data),
     )
     .exhaustive();
 }

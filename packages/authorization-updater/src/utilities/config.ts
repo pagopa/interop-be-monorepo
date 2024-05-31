@@ -8,7 +8,7 @@ import {
 import { z } from "zod";
 
 export const AuthorizationUpdaterConfig = KafkaConsumerConfig.and(
-  CatalogTopicConfig
+  CatalogTopicConfig,
 )
   .and(AgreementTopicConfig)
   .and(TokenGenerationConfig)
@@ -20,7 +20,7 @@ export const AuthorizationUpdaterConfig = KafkaConsumerConfig.and(
       })
       .transform((c) => ({
         authorizationManagementUrl: c.AUTHORIZATION_MANAGEMENT_URL,
-      }))
+      })),
   );
 
 export type AuthorizationUpdaterConfig = z.infer<

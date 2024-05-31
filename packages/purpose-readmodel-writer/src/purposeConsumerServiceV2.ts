@@ -8,7 +8,7 @@ import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: PurposeEventEnvelopeV2,
-  purposes: PurposeCollection
+  purposes: PurposeCollection,
 ): Promise<void> {
   const purpose = message.data.purpose;
 
@@ -21,7 +21,7 @@ export async function handleMessageV2(
           "data.id": message.stream_id,
           "metadata.version": { $lt: message.version },
         });
-      }
+      },
     )
     .with(
       { type: "PurposeAdded" },
@@ -56,8 +56,8 @@ export async function handleMessageV2(
               },
             },
           },
-          { upsert: true }
-        )
+          { upsert: true },
+        ),
     )
     .exhaustive();
 }

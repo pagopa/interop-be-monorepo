@@ -15,7 +15,7 @@ export function zodiosValidationErrorToApiProblem(
   },
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): void {
   const detail = `Incorrect value for ${zodError.context}`;
   const errors = zodError.error.map((e) => fromZodIssue(e));
@@ -26,8 +26,8 @@ export function zodiosValidationErrorToApiProblem(
       makeApiProblem(
         badRequestError(detail, errors),
         () => constants.HTTP_STATUS_BAD_REQUEST,
-        logger({ ...req.ctx })
-      )
+        logger({ ...req.ctx }),
+      ),
     )
     .send();
 }

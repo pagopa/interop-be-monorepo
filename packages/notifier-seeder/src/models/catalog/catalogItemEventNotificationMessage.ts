@@ -5,21 +5,21 @@ import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { CatalogItemEventNotification } from "./catalogItemEventNotification.js";
 
 export const eventV2TypeMapper = (
-  eventType: EServiceEventEnvelopeV2["type"]
+  eventType: EServiceEventEnvelopeV2["type"],
 ): string =>
   match(eventType)
     .with("EServiceAdded", () => "catalog_item_added")
     .with("DraftEServiceUpdated", () => "catalog_item_updated")
     .with(
       "EServiceDraftDescriptorDeleted",
-      () => "catalog_item_with_descriptors_deleted"
+      () => "catalog_item_with_descriptors_deleted",
     )
     .with("EServiceDeleted", () => "catalog_item_deleted")
     .with("EServiceCloned", () => "cloned_catalog_item_added")
     .with(
       "EServiceDescriptorAdded",
       "EServiceDraftDescriptorUpdated", // Avoid generating notification
-      () => "catalog_item_descriptor_added"
+      () => "catalog_item_descriptor_added",
     )
     .with(
       "EServiceDescriptorQuotasUpdated",
@@ -27,31 +27,31 @@ export const eventV2TypeMapper = (
       "EServiceDescriptorArchived",
       "EServiceDescriptorPublished",
       "EServiceDescriptorSuspended",
-      () => "catalog_item_descriptor_updated"
+      () => "catalog_item_descriptor_updated",
     )
     .with(
       "EServiceDescriptorInterfaceAdded",
       "EServiceDescriptorDocumentAdded",
-      () => "catalog_item_document_added"
+      () => "catalog_item_document_added",
     )
     .with(
       "EServiceDescriptorInterfaceUpdated",
       "EServiceDescriptorDocumentUpdated",
-      () => "catalog_item_document_updated"
+      () => "catalog_item_document_updated",
     )
     .with(
       "EServiceDescriptorInterfaceDeleted",
       "EServiceDescriptorDocumentDeleted",
-      () => "catalog_item_document_deleted"
+      () => "catalog_item_document_deleted",
     )
     .with("EServiceRiskAnalysisAdded", () => "catalog_item_risk_analysis_added")
     .with(
       "EServiceRiskAnalysisUpdated",
-      () => "catalog_item_risk_analysis_updated"
+      () => "catalog_item_risk_analysis_updated",
     )
     .with(
       "EServiceRiskAnalysisDeleted",
-      () => "catalog_item_risk_analysis_deleted"
+      () => "catalog_item_risk_analysis_deleted",
     )
     .exhaustive();
 
@@ -62,7 +62,7 @@ export const eventV2TypeMapper = (
 */
 export const buildCatalogMessage = (
   event: EServiceEventEnvelopeV2,
-  catalogItemEvent: CatalogItemEventNotification
+  catalogItemEvent: CatalogItemEventNotification,
 ): QueueMessage => ({
   messageUUID: uuidv4(),
   eventJournalPersistenceId: event.stream_id,

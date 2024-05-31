@@ -23,7 +23,7 @@ export class RiskAnalysisValidationIssue extends InternalError<RiskAnalysisValid
 }
 
 export function noRulesVersionFoundError(
-  kind: TenantKind
+  kind: TenantKind,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "noRulesVersionFoundError",
@@ -32,7 +32,7 @@ export function noRulesVersionFoundError(
 }
 
 export function unexpectedRulesVersionError(
-  version: string
+  version: string,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedRulesVersionError",
@@ -41,7 +41,7 @@ export function unexpectedRulesVersionError(
 }
 
 export function unexpectedFieldError(
-  fieldName: string
+  fieldName: string,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldError",
@@ -51,19 +51,19 @@ export function unexpectedFieldError(
 
 export function unexpectedFieldValueError(
   fieldName: string,
-  allowedValues: Set<string>
+  allowedValues: Set<string>,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldValueError",
     detail: `Field ${fieldName} should be one of [${Array.from(
-      allowedValues
+      allowedValues,
     ).join(",")}]`,
   });
 }
 
 export function dependencyNotFoundError(
   dependentField: string,
-  depencencyField: string
+  depencencyField: string,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "dependencyNotFoundError",
@@ -74,7 +74,7 @@ export function dependencyNotFoundError(
 export function unexpectedDependencyValueError(
   dependentField: string,
   depencencyField: string,
-  expectedValue: string
+  expectedValue: string,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedDependencyValueError",
@@ -83,7 +83,7 @@ export function unexpectedDependencyValueError(
 }
 
 export function unexpectedFieldFormatError(
-  fieldName: string
+  fieldName: string,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldFormatError",
@@ -92,7 +92,7 @@ export function unexpectedFieldFormatError(
 }
 
 export function missingExpectedFieldError(
-  fieldName: string
+  fieldName: string,
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "missingExpectedFieldError",

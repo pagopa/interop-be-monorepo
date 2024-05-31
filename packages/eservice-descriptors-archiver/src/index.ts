@@ -17,10 +17,10 @@ import { config } from "./utilities/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
 
 const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
+  ReadModelRepository.init(config),
 );
 const catalogProcessClient = catalogProcessClientBuilder(
-  config.catalogProcessUrl
+  config.catalogProcessUrl,
 );
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
@@ -54,7 +54,7 @@ async function processMessage({
       async ({ data: { agreement } }) => {
         if (agreement) {
           loggerInstance.info(
-            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
+            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`,
           );
           await archiveDescriptorForArchivedAgreement(
             fromAgreementV2(agreement),
@@ -62,14 +62,14 @@ async function processMessage({
             readModelService,
             catalogProcessClient,
             loggerInstance,
-            correlationId
+            correlationId,
           );
         } else {
           loggerInstance.error(
-            `Agreement not found in message ${decodedMsg.type}`
+            `Agreement not found in message ${decodedMsg.type}`,
           );
         }
-      }
+      },
     )
     .otherwise(() => undefined);
 }

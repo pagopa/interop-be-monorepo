@@ -47,7 +47,7 @@ const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
 const retrieveUser = async (
   selfcareId: SelfcareId,
-  id: UserId
+  id: UserId,
 ): Promise<UserResponse> => {
   const user = await selfcareV2Client.getUserInfoUsingGET({
     queries: { institutionId: selfcareId },
@@ -62,16 +62,16 @@ const retrieveUser = async (
 
 const createAgreementDocumentName = (
   consumerId: TenantId,
-  producerId: TenantId
+  producerId: TenantId,
 ): string =>
   `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    new Date()
+    new Date(),
   )}_agreement_contract.pdf`;
 
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<{
   certified: Array<[Attribute, CertifiedTenantAttribute]>;
   declared: Array<[Attribute, DeclaredTenantAttribute]>;
@@ -83,7 +83,7 @@ const getAttributeInvolved = async (
       | DeclaredTenantAttribute
       | VerifiedTenantAttribute,
   >(
-    type: TenantAttributeType
+    type: TenantAttributeType,
   ): Promise<Array<[Attribute, T]>> => {
     const seedAttributes = match(type)
       .with(tenantAttributeType.CERTIFIED, () => seed.certifiedAttributes || [])
@@ -93,30 +93,30 @@ const getAttributeInvolved = async (
       .map((attribute) => attribute.id);
 
     const tenantAttributes = consumer.attributes.filter(
-      (a) => a.type === type && seedAttributes.includes(a.id)
+      (a) => a.type === type && seedAttributes.includes(a.id),
     );
 
     return Promise.all(
       tenantAttributes.map(async (tenantAttribute) => {
         const attribute = await readModelService.getAttributeById(
-          tenantAttribute.id
+          tenantAttribute.id,
         );
         if (!attribute) {
           throw genericError(`Attribute ${tenantAttribute.id} not found`);
         }
         return [attribute, tenantAttribute as unknown as T];
-      })
+      }),
     );
   };
 
   const certified = await getAgreementAttributeByType<CertifiedTenantAttribute>(
-    tenantAttributeType.CERTIFIED
+    tenantAttributeType.CERTIFIED,
   );
   const declared = await getAgreementAttributeByType<DeclaredTenantAttribute>(
-    tenantAttributeType.DECLARED
+    tenantAttributeType.DECLARED,
   );
   const verified = await getAgreementAttributeByType<VerifiedTenantAttribute>(
-    tenantAttributeType.VERIFIED
+    tenantAttributeType.VERIFIED,
   );
 
   return {
@@ -128,7 +128,7 @@ const getAttributeInvolved = async (
 
 const getSubmissionInfo = async (
   selfcareId: SelfcareId,
-  seed: UpdateAgreementSeed
+  seed: UpdateAgreementSeed,
 ): Promise<[string, Date]> => {
   const submission = seed.stamps.submission;
   if (!submission) {
@@ -144,7 +144,7 @@ const getSubmissionInfo = async (
 
 const getActivationInfo = async (
   selfcareId: SelfcareId,
-  seed: UpdateAgreementSeed
+  seed: UpdateAgreementSeed,
 ): Promise<[string, Date]> => {
   const activation = seed.stamps.activation;
 
@@ -167,73 +167,73 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (
     name: string,
     origin: string,
-    value: string
+    value: string,
   ): string => (origin === "IPA" ? `"${name} (codice IPA: ${value})` : name);
 
   const getCertifiedAttributeHtml = (
-    certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
+    certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>,
   ): string =>
     certifiedAttributes
       .map(
         (attTuple: [Attribute, CertifiedTenantAttribute]) => `
         <div>
           In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
+            attTuple[1].assignmentTimestamp,
           )}</strong> alle ore <strong>${timeAtRomeZone(
-            attTuple[1].assignmentTimestamp
+            attTuple[1].assignmentTimestamp,
           )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
             attTuple[0].name
           }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
+        </div>`,
       )
       .join("");
 
   const getDeclaredAttributeHtml = (
-    declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>
+    declaredAttributes: Array<[Attribute, DeclaredTenantAttribute]>,
   ): string =>
     declaredAttributes
       .map(
         (attTuple: [Attribute, DeclaredTenantAttribute]) => `
       <div>
          In data <strong>${dateAtRomeZone(
-           attTuple[1].assignmentTimestamp
+           attTuple[1].assignmentTimestamp,
          )}</strong> alle ore <strong>${timeAtRomeZone(
-           attTuple[1].assignmentTimestamp
+           attTuple[1].assignmentTimestamp,
          )}</strong>,
          l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
            attTuple[0].name
          }</strong> dichiarato
          ed avente il seguente periodo di validità ________,
          necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-      </div>`
+      </div>`,
       )
       .join("");
 
   const getVerifiedAttributeHtml = (
-    verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>
+    verifiedAttributes: Array<[Attribute, VerifiedTenantAttribute]>,
   ): string =>
     verifiedAttributes
       .map(
         (attTuple: [Attribute, VerifiedTenantAttribute]) => `
         <div>
           In data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
+            attTuple[1].assignmentTimestamp,
           )}</strong> alle ore <strong>${timeAtRomeZone(
-            attTuple[1].assignmentTimestamp
+            attTuple[1].assignmentTimestamp,
           )}</strong>,
           l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
             attTuple[0].name
           }</strong>,
           verificata dall’aderente ________ OPPURE dall’Erogatore stesso in data <strong>${dateAtRomeZone(
-            attTuple[1].assignmentTimestamp
+            attTuple[1].assignmentTimestamp,
           )}</strong>,
           necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
-        </div>`
+        </div>`,
       )
       .join();
 
@@ -241,27 +241,27 @@ const getPdfPayload = async (
   const producerText = getTenantText(
     producer.name,
     producer.externalId.origin,
-    producer.externalId.value
+    producer.externalId.value,
   );
 
   const consumerText = getTenantText(
     consumer.name,
     consumer.externalId.origin,
-    consumer.externalId.value
+    consumer.externalId.value,
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareId,
-    seed
+    seed,
   );
   const [activator, activationTimestamp] = await getActivationInfo(
     selfcareId,
-    seed
+    seed,
   );
 
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
     seed,
-    readModelService
+    readModelService,
   );
 
   return {
@@ -289,7 +289,7 @@ export const contractBuilder = (
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   config: AgreementProcessConfig,
-  logger: Logger
+  logger: Logger,
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -301,13 +301,13 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      seed: UpdateAgreementSeed
+      seed: UpdateAgreementSeed,
     ): Promise<ApiAgreementDocumentSeed> => {
       const templateFilePath = path.resolve(
         dirname,
         "..",
         "resources/templates/documents",
-        "agreementContractTemplate.html"
+        "agreementContractTemplate.html",
       );
 
       const pdfPayload = await getPdfPayload(
@@ -317,18 +317,18 @@ export const contractBuilder = (
         consumer,
         producer,
         seed,
-        readModelService
+        readModelService,
       );
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
         templateFilePath,
-        pdfPayload
+        pdfPayload,
       );
 
       const documentId = generateId<AgreementDocumentId>();
       const documentName = createAgreementDocumentName(
         agreement.consumerId,
-        agreement.producerId
+        agreement.producerId,
       );
 
       const documentPath = await fileManager.storeBytes(
@@ -337,7 +337,7 @@ export const contractBuilder = (
         documentId,
         documentName,
         pdfBuffer,
-        logger
+        logger,
       );
 
       return {

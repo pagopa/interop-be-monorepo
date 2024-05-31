@@ -8,7 +8,7 @@ import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: AgreementEventEnvelopeV2,
-  agreements: AgreementCollection
+  agreements: AgreementCollection,
 ): Promise<void> {
   const agreement = message.data.agreement;
 
@@ -54,8 +54,8 @@ export async function handleMessageV2(
               },
             },
           },
-          { upsert: true }
-        )
+          { upsert: true },
+        ),
     )
     .exhaustive();
 }

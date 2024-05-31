@@ -11,7 +11,7 @@ import { AttributeReadmodel } from "../read-models/attributeReadModel.js";
 import { Attribute } from "./attribute.js";
 
 export const toReadModelAttribute = (
-  attribute: Attribute
+  attribute: Attribute,
 ): AttributeReadmodel => ({
   ...attribute,
   creationTime: attribute.creationTime.toISOString(),

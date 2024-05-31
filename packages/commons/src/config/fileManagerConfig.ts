@@ -27,8 +27,8 @@ const S3CustomServerConfig = z.preprocess(
           }
         : {
             s3CustomServer: false as const,
-          }
-    )
+          },
+    ),
 );
 
 export const S3Config = z

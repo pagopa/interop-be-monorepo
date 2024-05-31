@@ -36,7 +36,7 @@ import { ReadModelService } from "./readModelService.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeRegistryServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ) {
   const repository = eventRepository(dbInstance, attributeEventToBinaryData);
 
@@ -55,10 +55,10 @@ export function attributeRegistryServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      logger: Logger,
     ): Promise<ListResult<Attribute>> {
       logger.info(
-        `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
+        `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`,
       );
       return await readModelService.getAttributesByKindsNameOrigin({
         kinds,
@@ -71,7 +71,7 @@ export function attributeRegistryServiceBuilder(
 
     async getAttributeByName(
       name: string,
-      logger: Logger
+      logger: Logger,
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with name ${name}`);
       const attribute = await readModelService.getAttributeByName(name);
@@ -89,7 +89,7 @@ export function attributeRegistryServiceBuilder(
         origin: string;
         code: string;
       },
-      logger: Logger
+      logger: Logger,
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute ${origin}/${code}`);
       const attribute = await readModelService.getAttributeByOriginAndCode({
@@ -104,7 +104,7 @@ export function attributeRegistryServiceBuilder(
 
     async getAttributeById(
       id: AttributeId,
-      logger: Logger
+      logger: Logger,
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with ID ${id}`);
       const attribute = await readModelService.getAttributeById(id);
@@ -124,7 +124,7 @@ export function attributeRegistryServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      logger: Logger,
     ): Promise<ListResult<Attribute>> {
       logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
       return await readModelService.getAttributesByIds({ ids, offset, limit });
@@ -132,10 +132,10 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>,
     ): Promise<Attribute> {
       logger.info(
-        `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
+        `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`,
       );
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
@@ -143,7 +143,7 @@ export function attributeRegistryServiceBuilder(
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
-        apiDeclaredAttributeSeed.name
+        apiDeclaredAttributeSeed.name,
       );
       if (attributeWithSameName) {
         throw attributeDuplicate(apiDeclaredAttributeSeed.name);
@@ -160,12 +160,12 @@ export function attributeRegistryServiceBuilder(
       };
 
       logger.info(
-        `Declared attribute created with id ${newDeclaredAttribute.id}`
+        `Declared attribute created with id ${newDeclaredAttribute.id}`,
       );
 
       const event = toCreateEventAttributeAdded(
         newDeclaredAttribute,
-        correlationId
+        correlationId,
       );
       await repository.createEvent(event);
 
@@ -174,17 +174,17 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>,
     ): Promise<Attribute> {
       logger.info(
-        `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
+        `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`,
       );
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
-        apiVerifiedAttributeSeed.name
+        apiVerifiedAttributeSeed.name,
       );
       if (attributeWithSameName) {
         throw attributeDuplicate(apiVerifiedAttributeSeed.name);
@@ -201,12 +201,12 @@ export function attributeRegistryServiceBuilder(
       };
 
       logger.info(
-        `Verified attribute created with id ${newVerifiedAttribute.id}`
+        `Verified attribute created with id ${newVerifiedAttribute.id}`,
       );
 
       const event = toCreateEventAttributeAdded(
         newVerifiedAttribute,
-        correlationId
+        correlationId,
       );
       await repository.createEvent(event);
 
@@ -215,18 +215,18 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>,
     ): Promise<Attribute> {
       logger.info(
-        `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
+        `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`,
       );
       const certifierPromise = getCertifierId(
         authData.organizationId,
-        readModelService
+        readModelService,
       );
       const attributePromise = readModelService.getAttributeByCodeAndName(
         apiCertifiedAttributeSeed.code,
-        apiCertifiedAttributeSeed.name
+        apiCertifiedAttributeSeed.name,
       );
 
       const [certifier, attributeWithSameName] = await Promise.all([
@@ -249,12 +249,12 @@ export function attributeRegistryServiceBuilder(
       };
 
       logger.info(
-        `Certified attribute created with id ${newCertifiedAttribute.id}`
+        `Certified attribute created with id ${newCertifiedAttribute.id}`,
       );
 
       const event = toCreateEventAttributeAdded(
         newCertifiedAttribute,
-        correlationId
+        correlationId,
       );
       await repository.createEvent(event);
 
@@ -263,16 +263,16 @@ export function attributeRegistryServiceBuilder(
 
     async createInternalCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext>,
     ): Promise<Attribute> {
       logger.info(
-        `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
+        `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`,
       );
 
       const attributeWithSameNameAndCode =
         await readModelService.getAttributeByCodeAndName(
           apiInternalCertifiedAttributeSeed.code,
-          apiInternalCertifiedAttributeSeed.name
+          apiInternalCertifiedAttributeSeed.name,
         );
       if (attributeWithSameNameAndCode) {
         throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
@@ -289,12 +289,12 @@ export function attributeRegistryServiceBuilder(
       };
 
       logger.info(
-        `Certified attribute created with id ${newInternalCertifiedAttribute.id} - Internal Request`
+        `Certified attribute created with id ${newInternalCertifiedAttribute.id} - Internal Request`,
       );
 
       const event = toCreateEventAttributeAdded(
         newInternalCertifiedAttribute,
-        correlationId
+        correlationId,
       );
       await repository.createEvent(event);
 
@@ -305,7 +305,7 @@ export function attributeRegistryServiceBuilder(
 
 async function getCertifierId(
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<string> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {

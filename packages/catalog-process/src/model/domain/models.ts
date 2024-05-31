@@ -80,7 +80,7 @@ export type Consumer = z.infer<typeof consumer>;
 export const convertToDocumentEServiceEventData = (
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed
+  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed,
 ): EServiceDocument => ({
   eserviceId,
   descriptorId,
@@ -99,7 +99,7 @@ export const convertToDocumentEServiceEventData = (
 export const convertToDescriptorEServiceEventData = (
   eserviceDescriptorSeed: EServiceDescriptorSeed,
   descriptorId: DescriptorId,
-  version: string
+  version: string,
 ): EServiceDescriptor => ({
   id: descriptorId,
   description: eserviceDescriptorSeed.description,

@@ -37,12 +37,12 @@ export type AgremeentSubmissionResults = {
 
 export const validateConsumerEmail = async (
   agreement: Agreement,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
 ): Promise<void> => {
   const consumer = await retrieveTenant(agreement.consumerId, readModelService);
 
   const hasContactEmail = consumer.mails.some(
-    (mail) => mail.kind === tenantMailKind.ContactEmail
+    (mail) => mail.kind === tenantMailKind.ContactEmail,
   );
 
   if (!hasContactEmail) {
@@ -57,7 +57,7 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   newState: AgreementState,
-  userId: UserId
+  userId: UserId,
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
 
@@ -69,7 +69,7 @@ export const createSubmissionUpdateAgreementSeed = (
         verifiedAttributes: matchingVerifiedAttributes(
           eservice,
           descriptor,
-          consumer
+          consumer,
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
@@ -94,7 +94,7 @@ export const isActiveOrSuspended = (state: AgreementState): boolean =>
 export const calculateStamps = (
   agreement: Agreement,
   state: AgreementState,
-  stamp: AgreementStamp
+  stamp: AgreementStamp,
 ): AgreementStamps =>
   match<AgreementState, AgreementStamps>(state)
     .with(agreementState.draft, () => agreement.stamps)

@@ -101,7 +101,7 @@ export function initDB({
   });
 
   const conData = new ConnectionString(
-    `postgresql://${username}:${password}@${host}:${port}/${database}`
+    `postgresql://${username}:${password}@${host}:${port}/${database}`,
   );
 
   const dbConfig: IConnectionParameters<IClient> = {
@@ -141,7 +141,7 @@ const targetConnection = initDB({
 
 console.log("reading events from source database");
 const originalEvents = await sourceConnection.many(
-  "SELECT event_ser_manifest, event_payload, write_timestamp FROM event_journal order by ordering ASC"
+  "SELECT event_ser_manifest, event_payload, write_timestamp FROM event_journal order by ordering ASC",
 );
 
 const idVersionHashMap = new Map<string, number>();
@@ -159,14 +159,14 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
           event_ser_manifest
             .replace(
               "it.pagopa.interop.catalogmanagement.model.persistence.",
-              ""
+              "",
             )
-            .split("|")[0]
+            .split("|")[0],
         )
           .when(
             (originalType) => (originalType as string).includes("CatalogItem"),
             (originalType) =>
-              (originalType as string).replace("CatalogItem", "EService")
+              (originalType as string).replace("CatalogItem", "EService"),
           )
           .otherwise((originalType) => originalType);
 
@@ -181,7 +181,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
         anyPayload.eservice ? anyPayload.eservice.id : anyPayload.eserviceId;
 
       return { parseEventType, decodeEvent, parseId };
-    }
+    },
   )
   .with(
     "attribute",
@@ -196,9 +196,9 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
           event_ser_manifest
             .replace(
               "it.pagopa.interop.attributeregistrymanagement.model.persistence.",
-              ""
+              "",
             )
-            .split("|")[0]
+            .split("|")[0],
         )
           .with("AttributeDeleted", () => "MaintenanceAttributeDeleted")
           .otherwise((originalType) => originalType);
@@ -214,7 +214,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
         anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
 
       return { parseEventType, decodeEvent, parseId };
-    }
+    },
   )
   .with(
     "purpose",
@@ -239,7 +239,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
         anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
 
       return { parseEventType, decodeEvent, parseId };
-    }
+    },
   )
   .with(
     "agreement",
@@ -252,7 +252,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
         event_ser_manifest
           .replace(
             "it.pagopa.interop.agreementmanagement.model.persistence.",
-            ""
+            "",
           )
           .split("|")[0];
 
@@ -267,7 +267,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
         anyPayload.agreement ? anyPayload.agreement.id : anyPayload.agreementId;
 
       return { parseEventType, decodeEvent, parseId };
-    }
+    },
   )
   .exhaustive();
 
@@ -281,7 +281,7 @@ for (const event of originalEvents) {
 
   if (!decodedEvent.success) {
     console.error(
-      `Error decoding event ${parsedEventType} with payload ${event_payload}`
+      `Error decoding event ${parsedEventType} with payload ${event_payload}`,
     );
     throw new Error("Error decoding event");
   }
@@ -326,14 +326,14 @@ for (const event of originalEvents) {
       newEvent.eventVersion,
       newEvent.data,
       newEvent.logDate,
-    ]
+    ],
   );
 }
 
 function checkSchema(sourceSchema: string, schemaKind: string) {
   if (!sourceSchema.includes(schemaKind)) {
     throw new Error(
-      "Source and target databases are incompatible, please double-check the config"
+      "Source and target databases are incompatible, please double-check the config",
     );
   }
 }

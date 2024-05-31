@@ -42,19 +42,19 @@ export function createSuspensionUpdatedAgreement({
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement,
     authData.organizationId,
-    agreementState.suspended
+    agreementState.suspended,
   );
   const suspendedByProducer = suspendedByProducerFlag(
     agreement,
     authData.organizationId,
-    agreementState.suspended
+    agreementState.suspended,
   );
 
   const newState = agreementStateByFlags(
     nextState,
     suspendedByProducer,
     suspendedByConsumer,
-    undefined
+    undefined,
   );
 
   const stamp = createStamp(authData.userId);
@@ -63,14 +63,14 @@ export function createSuspensionUpdatedAgreement({
     agreement,
     authData.organizationId,
     agreementState.suspended,
-    stamp
+    stamp,
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
     agreement,
     authData.organizationId,
     agreementState.suspended,
-    stamp
+    stamp,
   );
 
   const updateSeed: UpdateAgreementSeed = {
@@ -95,14 +95,14 @@ export function createAgreementSuspendedEvent(
   organizationId: TenantId,
   correlationId: string,
   updatedAgreement: Agreement,
-  agreement: WithMetadata<Agreement>
+  agreement: WithMetadata<Agreement>,
 ): CreateEvent<AgreementEventV2> {
   const isProducer = organizationId === agreement.data.producerId;
   const isConsumer = organizationId === agreement.data.consumerId;
 
   if (!isProducer && !isConsumer) {
     throw genericError(
-      "Agreement can only be suspended by the consumer or producer."
+      "Agreement can only be suspended by the consumer or producer.",
     );
   }
 
@@ -110,11 +110,11 @@ export function createAgreementSuspendedEvent(
     ? toCreateEventAgreementSuspendedByProducer(
         updatedAgreement,
         agreement.metadata.version,
-        correlationId
+        correlationId,
       )
     : toCreateEventAgreementSuspendedByConsumer(
         updatedAgreement,
         agreement.metadata.version,
-        correlationId
+        correlationId,
       );
 }

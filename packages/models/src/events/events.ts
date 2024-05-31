@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 export const EventEnvelope = <TEventZodType extends z.ZodType>(
-  event: TEventZodType
+  event: TEventZodType,
 ) =>
   z.intersection(
     z.object({
@@ -12,14 +12,14 @@ export const EventEnvelope = <TEventZodType extends z.ZodType>(
       correlation_id: z.string().nullish(),
       log_date: z.coerce.date(),
     }),
-    event
+    event,
   );
 export type EventEnvelope<TEvent> = z.infer<
   ReturnType<typeof EventEnvelope<z.ZodType<TEvent>>>
 >;
 
 export const DebeziumCreatePayload = <TEventZodType extends z.ZodType>(
-  event: TEventZodType
+  event: TEventZodType,
 ) =>
   z.object({
     op: z.enum(["c", "r"]),
@@ -30,12 +30,12 @@ export type DebeziumCreatePayload<TEvent> = z.infer<
 >;
 
 export const Message = <TEventZodType extends z.ZodType>(
-  event: TEventZodType
+  event: TEventZodType,
 ) =>
   z.object({
     value: z.preprocess(
       (v) => (v != null ? JSON.parse(v.toString()) : null),
-      DebeziumCreatePayload(EventEnvelope(event))
+      DebeziumCreatePayload(EventEnvelope(event)),
     ),
   });
 export type Message<TEvent> = z.infer<

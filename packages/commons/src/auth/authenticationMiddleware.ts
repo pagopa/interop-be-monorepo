@@ -20,7 +20,7 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
 > = async (req, res, next): Promise<unknown> => {
   const addCtxAuthData = async (
     authHeader: string,
-    logger: Logger
+    logger: Logger,
   ): Promise<void> => {
     const authorizationHeader = authHeader.split(" ");
     if (
@@ -28,7 +28,7 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
       authorizationHeader[0] !== "Bearer"
     ) {
       logger.warn(
-        `No authentication has been provided for this call ${req.method} ${req.url}`
+        `No authentication has been provided for this call ${req.method} ${req.url}`,
       );
       throw missingBearer;
     }
@@ -63,7 +63,7 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
           "x-correlation-id": P.string,
         },
         async (headers) =>
-          await addCtxAuthData(headers.authorization, loggerInstance)
+          await addCtxAuthData(headers.authorization, loggerInstance),
       )
       .with(
         {
@@ -72,11 +72,11 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
         },
         () => {
           loggerInstance.warn(
-            `No authentication has been provided for this call ${req.method} ${req.url}`
+            `No authentication has been provided for this call ${req.method} ${req.url}`,
           );
 
           throw missingBearer;
-        }
+        },
       )
       .with(
         {
@@ -85,7 +85,7 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
         },
         () => {
           throw missingHeader("x-correlation-id");
-        }
+        },
       )
       .otherwise(() => {
         throw missingHeader();
@@ -99,7 +99,7 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
           .with("operationForbidden", () => 403)
           .with("missingHeader", () => 400)
           .otherwise(() => 500),
-      loggerInstance
+      loggerInstance,
     );
     return res.status(problem.status).json(problem).end();
   }

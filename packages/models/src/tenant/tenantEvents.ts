@@ -13,19 +13,19 @@ import { EventEnvelope } from "../events/events.js";
 export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
   return match(event)
     .with({ type: "TenantCreated" }, ({ data }) =>
-      TenantCreatedV1.toBinary(data)
+      TenantCreatedV1.toBinary(data),
     )
     .with({ type: "TenantUpdated" }, ({ data }) =>
-      TenantUpdatedV1.toBinary(data)
+      TenantUpdatedV1.toBinary(data),
     )
     .with({ type: "TenantDeleted" }, ({ data }) =>
-      TenantDeletedV1.toBinary(data)
+      TenantDeletedV1.toBinary(data),
     )
     .with({ type: "SelfcareMappingCreated" }, ({ data }) =>
-      SelfcareMappingCreatedV1.toBinary(data)
+      SelfcareMappingCreatedV1.toBinary(data),
     )
     .with({ type: "SelfcareMappingDeleted" }, ({ data }) =>
-      SelfcareMappingDeletedV1.toBinary(data)
+      SelfcareMappingDeletedV1.toBinary(data),
     )
     .exhaustive();
 }

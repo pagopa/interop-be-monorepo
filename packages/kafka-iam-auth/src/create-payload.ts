@@ -87,33 +87,33 @@ ${createHash("sha256").update(canonicalRequest, "utf8").digest("hex")}`;
   generateCanonicalQueryString(
     date: string,
     xAmzCredential: string,
-    sessionToken?: string
+    sessionToken?: string,
   ): string {
     let canonicalQueryString = "";
     canonicalQueryString += `${encodeURIComponent(
-      "Action"
+      "Action",
     )}=${encodeURIComponent(ACTION)}&`;
     canonicalQueryString += `${encodeURIComponent(
-      "X-Amz-Algorithm"
+      "X-Amz-Algorithm",
     )}=${encodeURIComponent(ALGORITHM)}&`;
     canonicalQueryString += `${encodeURIComponent(
-      "X-Amz-Credential"
+      "X-Amz-Credential",
     )}=${encodeURIComponent(xAmzCredential)}&`;
     canonicalQueryString += `${encodeURIComponent(
-      "X-Amz-Date"
+      "X-Amz-Date",
     )}=${encodeURIComponent(date)}&`;
     canonicalQueryString += `${encodeURIComponent(
-      "X-Amz-Expires"
+      "X-Amz-Expires",
     )}=${encodeURIComponent(this.ttl)}&`;
 
     if (sessionToken !== undefined) {
       canonicalQueryString += `${encodeURIComponent(
-        "X-Amz-Security-Token"
+        "X-Amz-Security-Token",
       )}=${encodeURIComponent(sessionToken)}&`;
     }
 
     canonicalQueryString += `${encodeURIComponent(
-      "X-Amz-SignedHeaders"
+      "X-Amz-SignedHeaders",
     )}=${encodeURIComponent(SIGNED_HEADERS)}`;
 
     return canonicalQueryString;
@@ -123,7 +123,7 @@ ${createHash("sha256").update(canonicalRequest, "utf8").digest("hex")}`;
     canonicalQueryString: string,
     canonicalHeaders: string,
     signedHeaders: string,
-    hashedPayload: string
+    hashedPayload: string,
   ): string {
     return (
       "GET\n" +
@@ -149,19 +149,19 @@ ${createHash("sha256").update(canonicalRequest, "utf8").digest("hex")}`;
     const now = Date.now();
     const xAmzCredential = this.generateXAmzCredential(
       accessKeyId,
-      this.timestampYYYYmmDDFormat(now)
+      this.timestampYYYYmmDDFormat(now),
     );
     const canonicalHeaders = this.generateCanonicalHeaders(brokerHost);
     const canonicalQueryString = this.generateCanonicalQueryString(
       this.timestampYYYYmmDDTHHMMSSZFormat(now),
       xAmzCredential,
-      sessionToken
+      sessionToken,
     );
     const canonicalRequest = this.generateCanonicalRequest(
       canonicalQueryString,
       canonicalHeaders,
       SIGNED_HEADERS,
-      HASHED_PAYLOAD
+      HASHED_PAYLOAD,
     ); //
     const stringToSign = this.generateStringToSign(now, canonicalRequest);
 

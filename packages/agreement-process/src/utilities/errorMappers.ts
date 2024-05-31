@@ -14,7 +14,7 @@ const {
 } = constants;
 
 export const createAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with(
@@ -22,13 +22,13 @@ export const createAgreementErrorMapper = (
       "descriptorNotInExpectedState",
       "missingCertifiedAttributesError",
       "eServiceNotFound",
-      () => HTTP_STATUS_BAD_REQUEST
+      () => HTTP_STATUS_BAD_REQUEST,
     )
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -37,7 +37,7 @@ export const deleteAgreementErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -46,7 +46,7 @@ export const updateAgreementErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const submitAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with(
@@ -56,32 +56,32 @@ export const submitAgreementErrorMapper = (
       "agreementSubmissionFailed",
       "missingCertifiedAttributesError",
       "descriptorNotInExpectedState",
-      () => HTTP_STATUS_BAD_REQUEST
+      () => HTTP_STATUS_BAD_REQUEST,
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "agreementAlreadyExists",
       "contractAlreadyExists",
-      () => HTTP_STATUS_CONFLICT
+      () => HTTP_STATUS_CONFLICT,
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addConsumerDocumentErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "operationNotAllowed",
       "documentsChangeNotAllowed",
-      () => HTTP_STATUS_FORBIDDEN
+      () => HTTP_STATUS_FORBIDDEN,
     )
     .with("agreementDocumentAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const upgradeAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -89,13 +89,13 @@ export const upgradeAgreementErrorMapper = (
       "agreementNotInExpectedState",
       "publishedDescriptorNotFound",
       "noNewerDescriptor",
-      () => HTTP_STATUS_BAD_REQUEST
+      () => HTTP_STATUS_BAD_REQUEST,
     )
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const cloneAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -103,21 +103,21 @@ export const cloneAgreementErrorMapper = (
       "agreementNotInExpectedState",
       "missingCertifiedAttributesError",
       "eServiceNotFound",
-      () => HTTP_STATUS_BAD_REQUEST
+      () => HTTP_STATUS_BAD_REQUEST,
     )
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getConsumerDocumentErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const suspendAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -126,19 +126,19 @@ export const suspendAgreementErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeConsumerDocumentErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "operationNotAllowed",
       "documentsChangeNotAllowed",
-      () => HTTP_STATUS_FORBIDDEN
+      () => HTTP_STATUS_FORBIDDEN,
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -147,7 +147,7 @@ export const rejectAgreementErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const activateAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with(
@@ -155,7 +155,7 @@ export const activateAgreementErrorMapper = (
       "agreementNotInExpectedState",
       "agreementActivationFailed",
       "descriptorNotInExpectedState",
-      () => HTTP_STATUS_BAD_REQUEST
+      () => HTTP_STATUS_BAD_REQUEST,
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
@@ -163,7 +163,7 @@ export const activateAgreementErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archiveAgreementErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -177,7 +177,7 @@ export const getAgreementErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const computeAgreementsStateErrorMapper = (
-  error: ApiError<ErrorCodes>
+  error: ApiError<ErrorCodes>,
 ): number =>
   match(error.code)
     .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)

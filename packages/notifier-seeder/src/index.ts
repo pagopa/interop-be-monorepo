@@ -44,14 +44,14 @@ const queueManager = initQueueManager({
 export function processMessage(
   catalogTopic: CatalogTopicConfig,
   purposeTopic: PurposeTopicConfig,
-  agreementTopic: AgreementTopicConfig
+  agreementTopic: AgreementTopicConfig,
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
     const { message, decodedMessage } = match(kafkaMessage.topic)
       .with(catalogTopic.catalogTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           kafkaMessage.message,
-          EServiceEventV2
+          EServiceEventV2,
         );
 
         const event = toCatalogItemEventNotification(decodedMessage);
@@ -61,7 +61,7 @@ export function processMessage(
       .with(purposeTopic.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           kafkaMessage.message,
-          PurposeEventV2
+          PurposeEventV2,
         );
 
         const event = toPurposeEventNotification(decodedMessage);
@@ -71,7 +71,7 @@ export function processMessage(
       .with(agreementTopic.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           kafkaMessage.message,
-          AgreementEventV2
+          AgreementEventV2,
         );
 
         const event = toAgreementEventNotification(decodedMessage);
@@ -91,7 +91,7 @@ export function processMessage(
     });
     if (decodedMessage.event_version !== 2) {
       loggerInstance.info(
-        `Event with version ${decodedMessage.event_version} skipped`
+        `Event with version ${decodedMessage.event_version} skipped`,
       );
       return;
     }
@@ -99,7 +99,7 @@ export function processMessage(
     await queueManager.send(message, loggerInstance);
 
     loggerInstance.info(
-      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
+      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`,
     );
   };
 }
@@ -111,5 +111,5 @@ await runConsumer(
     purposeTopicConf.purposeTopic,
     agreementTopicConf.agreementTopic,
   ],
-  processMessage(catalogTopicConf, purposeTopicConf, agreementTopicConf)
+  processMessage(catalogTopicConf, purposeTopicConf, agreementTopicConf),
 );

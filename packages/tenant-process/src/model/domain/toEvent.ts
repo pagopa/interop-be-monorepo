@@ -141,7 +141,7 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
 
 export const toCreateEventTenantAdded = (
   tenant: Tenant,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version: 0,
@@ -157,7 +157,7 @@ export const toCreateEventTenantUpdated = (
   streamId: string,
   version: number,
   updatedTenant: Tenant,
-  correlationId: string
+  correlationId: string,
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,

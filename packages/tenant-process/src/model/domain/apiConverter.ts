@@ -52,7 +52,7 @@ export function toApiTenantFeature(input: TenantFeature): ApiTenantFeature {
 }
 
 export function toApiTenantVerifier(
-  verifier: TenantVerifier
+  verifier: TenantVerifier,
 ): ApiTenantVerifier {
   return {
     id: verifier.id,
@@ -73,7 +73,7 @@ export function toApiTenantRevoker(revoker: TenantRevoker): ApiTenantRevoker {
 }
 
 export function toApiTenantAttribute(
-  input: TenantAttribute
+  input: TenantAttribute,
 ): ApiTenantAttribute {
   return match<TenantAttribute, ApiTenantAttribute>(input)
     .with({ type: tenantAttributeType.CERTIFIED }, (attribute) => ({

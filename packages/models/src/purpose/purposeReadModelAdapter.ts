@@ -6,14 +6,14 @@ import {
 import { Purpose, PurposeVersion, PurposeVersionDocument } from "./purpose.js";
 
 export const toReadModelPurposeVersionDocument = (
-  purposeVersionDocument: PurposeVersionDocument
+  purposeVersionDocument: PurposeVersionDocument,
 ): PurposeVersionDocumentReadModel => ({
   ...purposeVersionDocument,
   createdAt: purposeVersionDocument.createdAt.toISOString(),
 });
 
 export const toReadModelPurposeVersion = (
-  purposeVersion: PurposeVersion
+  purposeVersion: PurposeVersion,
 ): PurposeVersionReadModel => ({
   ...purposeVersion,
   createdAt: purposeVersion.createdAt.toISOString(),

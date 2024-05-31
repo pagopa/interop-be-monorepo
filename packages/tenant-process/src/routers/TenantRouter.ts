@@ -43,11 +43,11 @@ const tenantService = tenantServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
 );
 
 const tenantsRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const tenantsRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -81,7 +81,7 @@ const tenantsRouter = (
               offset,
               limit,
             },
-            logger
+            logger,
           );
 
           return res.status(200).json({
@@ -91,7 +91,7 @@ const tenantsRouter = (
         } catch (error) {
           return res.status(500).send();
         }
-      }
+      },
     )
     .get(
       "/producers",
@@ -112,7 +112,7 @@ const tenantsRouter = (
               offset,
               limit,
             },
-            logger
+            logger,
           );
 
           return res.status(200).json({
@@ -122,7 +122,7 @@ const tenantsRouter = (
         } catch (error) {
           return res.status(500).send();
         }
-      }
+      },
     )
     .get(
       "/tenants",
@@ -143,7 +143,7 @@ const tenantsRouter = (
               offset,
               limit,
             },
-            logger
+            logger,
           );
 
           return res.status(200).json({
@@ -153,7 +153,7 @@ const tenantsRouter = (
         } catch (error) {
           return res.status(500).end();
         }
-      }
+      },
     )
 
     .get(
@@ -172,7 +172,7 @@ const tenantsRouter = (
         try {
           const tenant = await tenantService.getTenantById(
             unsafeBrandId(req.params.id),
-            ctx.logger
+            ctx.logger,
           );
 
           if (tenant) {
@@ -184,8 +184,8 @@ const tenantsRouter = (
                 makeApiProblem(
                   tenantNotFound(unsafeBrandId(req.params.id)),
                   getTenantByIdErrorMapper,
-                  ctx.logger
-                )
+                  ctx.logger,
+                ),
               )
               .end();
           }
@@ -193,11 +193,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getTenantByIdErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .get(
       "/tenants/origin/:origin/code/:code",
@@ -219,7 +219,7 @@ const tenantsRouter = (
               value: code,
               origin,
             },
-            ctx.logger
+            ctx.logger,
           );
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
@@ -230,15 +230,15 @@ const tenantsRouter = (
                 makeApiProblem(
                   tenantFromExternalIdNotFound(origin, code),
                   getTenantByExternalIdErrorMapper,
-                  ctx.logger
-                )
+                  ctx.logger,
+                ),
               )
               .end();
           }
         } catch (error) {
           return res.status(500).end();
         }
-      }
+      },
     )
 
     .get(
@@ -257,7 +257,7 @@ const tenantsRouter = (
         try {
           const tenant = await tenantService.getTenantBySelfcareId(
             req.params.selfcareId,
-            ctx.logger
+            ctx.logger,
           );
 
           if (tenant) {
@@ -269,8 +269,8 @@ const tenantsRouter = (
                 makeApiProblem(
                   tenantBySelfcareIdNotFound(req.params.selfcareId),
                   getTenantBySelfcareIdErrorMapper,
-                  ctx.logger
-                )
+                  ctx.logger,
+                ),
               )
               .end();
           }
@@ -278,11 +278,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getTenantBySelfcareIdErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .get(
       "/tenants/attributes/certified",
@@ -313,26 +313,26 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getCertifiedAttributesErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/internal/tenants",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .post(
       "/m2m/tenants",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .post(
       "/selfcare/tenants",
@@ -352,16 +352,16 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             selfcareUpsertTenantErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/tenants/:tenantId/attributes/verified",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
@@ -378,18 +378,18 @@ const tenantsRouter = (
               attributeId: unsafeBrandId(attributeId),
               updateVerifiedTenantAttributeSeed: req.body,
             },
-            ctx
+            ctx,
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateTenantVerifiedAttributeErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
@@ -404,43 +404,43 @@ const tenantsRouter = (
               unsafeBrandId(tenantId),
               unsafeBrandId(attributeId),
               verifierId,
-              ctx
+              ctx,
             );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateVerifiedAttributeExtensionDateErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/tenants/attributes/declared",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .delete(
       "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     )
     .delete(
       "/tenants/attributes/declared/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (_req, res) => res.status(501).send(),
     );
 
   return tenantsRouter;

@@ -55,7 +55,7 @@ import {
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
+  ReadModelRepository.init(config),
 );
 
 const catalogService = catalogServiceBuilder(
@@ -69,11 +69,11 @@ const catalogService = catalogServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelService,
-  initFileManager(config)
+  initFileManager(config),
 );
 
 const eservicesRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eservicesRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -120,14 +120,14 @@ const eservicesRouter = (
               attributesIds: attributesIds.map<AttributeId>(unsafeBrandId),
               states: states.map(apiDescriptorStateToDescriptorState),
               agreementStates: agreementStates.map(
-                apiAgreementStateToAgreementState
+                apiAgreementStateToAgreementState,
               ),
               name,
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
             },
             offset,
             limit,
-            logger
+            logger,
           );
 
           return res
@@ -140,7 +140,7 @@ const eservicesRouter = (
         } catch (error) {
           return res.status(500).end();
         }
-      }
+      },
     )
     .post(
       "/eservices",
@@ -155,11 +155,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .get(
       "/eservices/:eServiceId",
@@ -177,18 +177,18 @@ const eservicesRouter = (
         try {
           const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
-            ctx
+            ctx,
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .put(
       "/eservices/:eServiceId",
@@ -200,7 +200,7 @@ const eservicesRouter = (
           const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            ctx
+            ctx,
           );
           return res
             .status(200)
@@ -210,11 +210,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .delete(
       "/eservices/:eServiceId",
@@ -225,18 +225,18 @@ const eservicesRouter = (
         try {
           await catalogService.deleteEService(
             unsafeBrandId(req.params.eServiceId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteEServiceErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .get(
       "/eservices/:eServiceId/consumers",
@@ -255,7 +255,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             req.query.offset,
             req.query.limit,
-            ctx.logger
+            ctx.logger,
           );
 
           return res
@@ -264,10 +264,10 @@ const eservicesRouter = (
               results: consumers.results.map((c) => ({
                 descriptorVersion: parseInt(c.descriptorVersion, 10),
                 descriptorState: descriptorStateToApiEServiceDescriptorState(
-                  c.descriptorState
+                  c.descriptorState,
                 ),
                 agreementState: agreementStateToApiAgreementState(
-                  c.agreementState
+                  c.agreementState,
                 ),
                 consumerName: c.consumerName,
                 consumerExternalId: c.consumerExternalId,
@@ -279,7 +279,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
@@ -302,7 +302,7 @@ const eservicesRouter = (
               descriptorId: unsafeBrandId(descriptorId),
               documentId: unsafeBrandId(documentId),
             },
-            ctx
+            ctx,
           );
 
           return res.status(200).json(documentToApiDocument(document)).end();
@@ -310,11 +310,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentGetErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
@@ -327,7 +327,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            ctx
+            ctx,
           );
           return res
             .status(200)
@@ -337,11 +337,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentCreateErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
@@ -354,18 +354,18 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             documentUpdateDeleteErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
@@ -379,7 +379,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
             req.body,
-            ctx
+            ctx,
           );
           return res
             .status(200)
@@ -389,11 +389,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentUpdateDeleteErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors",
@@ -405,7 +405,7 @@ const eservicesRouter = (
           const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            ctx
+            ctx,
           );
           return res
             .status(200)
@@ -415,11 +415,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
@@ -431,18 +431,18 @@ const eservicesRouter = (
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteDraftDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .put(
       "/eservices/:eServiceId/descriptors/:descriptorId",
@@ -455,7 +455,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            ctx
+            ctx,
           );
           return res
             .status(200)
@@ -465,11 +465,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
@@ -481,18 +481,18 @@ const eservicesRouter = (
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             publishDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
@@ -504,18 +504,18 @@ const eservicesRouter = (
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             suspendDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
@@ -527,18 +527,18 @@ const eservicesRouter = (
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             activateDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
@@ -551,7 +551,7 @@ const eservicesRouter = (
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
-              ctx
+              ctx,
             );
           return res
             .status(200)
@@ -561,11 +561,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             cloneEServiceByDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
@@ -577,18 +577,18 @@ const eservicesRouter = (
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
@@ -601,7 +601,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            ctx
+            ctx,
           );
           return res
             .status(200)
@@ -611,11 +611,11 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/riskAnalysis",
@@ -627,18 +627,18 @@ const eservicesRouter = (
           await catalogService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createRiskAnalysisErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
@@ -651,18 +651,18 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.body,
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     )
     .delete(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
@@ -674,18 +674,18 @@ const eservicesRouter = (
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
-            ctx
+            ctx,
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisErrorMapper,
-            ctx.logger
+            ctx.logger,
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }
+      },
     );
   return eservicesRouter;
 };

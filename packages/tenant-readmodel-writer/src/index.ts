@@ -26,7 +26,7 @@ async function processMessage({
 
   await handleMessage(decodedMessage, loggerInstance);
   loggerInstance.info(
-    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`,
   );
 }
 

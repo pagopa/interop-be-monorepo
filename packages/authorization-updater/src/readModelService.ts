@@ -6,14 +6,14 @@ export type ReadModelService = {
 };
 
 export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
+  readModelRepository: ReadModelRepository,
 ): ReadModelService {
   const eservices = readModelRepository.eservices;
 
   async function getEServiceById(id: string): Promise<EService | undefined> {
     const data = await eservices.findOne(
       { "data.id": id },
-      { projection: { data: true } }
+      { projection: { data: true } },
     );
 
     if (data) {
@@ -22,8 +22,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse eservices item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 

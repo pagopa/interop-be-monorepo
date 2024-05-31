@@ -29,7 +29,7 @@ export function initDB({
   });
 
   const conData = new ConnectionString(
-    `postgresql://${username}:${password}@${host}:${port}/${database}`
+    `postgresql://${username}:${password}@${host}:${port}/${database}`,
   );
 
   const dbConfig: IConnectionParameters<IClient> = {

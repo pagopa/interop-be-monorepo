@@ -25,7 +25,7 @@ export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
 const getKey =
   (
     clients: jwksClient.JwksClient[],
-    logger: Logger
+    logger: Logger,
   ): ((header: JwtHeader, callback: SigningKeyCallback) => void) =>
   (header, callback) => {
     for (const { client, last } of clients.map((c, i) => ({
@@ -45,13 +45,13 @@ const getKey =
 
 export const verifyJwtToken = (
   jwtToken: string,
-  logger: Logger
+  logger: Logger,
 ): Promise<boolean> => {
   const config = JWTConfig.parse(process.env);
   const clients = config.wellKnownUrls.map((url) =>
     jwksClient({
       jwksUri: url,
-    })
+    }),
   );
   return new Promise((resolve, _reject) => {
     jwt.verify(
@@ -66,13 +66,13 @@ export const verifyJwtToken = (
           return resolve(false);
         }
         return resolve(true);
-      }
+      },
     );
   });
 };
 
 export const hasPermission = (
   permissions: string[],
-  authData: AuthData
+  authData: AuthData,
 ): boolean =>
   authData.userRoles.some((role: string) => permissions.includes(role));

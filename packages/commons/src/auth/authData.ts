@@ -55,14 +55,14 @@ export const M2MAuthToken = SharedStandardJWTClaims.merge(
     organizationId: z.string().uuid(),
     client_id: z.string().uuid(),
     sub: z.string(),
-  })
+  }),
 );
 
 export const InternalAuthToken = SharedStandardJWTClaims.merge(
   z.object({
     role: z.literal("internal"),
     sub: z.string(),
-  })
+  }),
 );
 
 export const UIAuthToken = SharedStandardJWTClaims.merge(
@@ -81,7 +81,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
         z.object({
           partyRole: z.string().nullish(),
           role: UIUserRole,
-        })
+        }),
       ),
       fiscal_code: z.string().nullish(),
       ipaCode: z.string().nullish(),
@@ -93,7 +93,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
     name: z.string().nullish(),
     family_name: z.string().nullish(),
     email: z.string().nullish(),
-  })
+  }),
 );
 
 export const AuthToken = z.discriminatedUnion("role", [
@@ -143,7 +143,7 @@ const getUserRoles = (token: AuthToken): UserRole[] =>
 const getOrganizationId = (token: AuthToken): TenantId | undefined =>
   match(token)
     .with({ "user-roles": P.not(P.nullish) }, { role: "m2m" }, (t) =>
-      unsafeBrandId<TenantId>(t.organizationId)
+      unsafeBrandId<TenantId>(t.organizationId),
     )
     .with({ role: "internal" }, () => undefined)
     .exhaustive();
@@ -151,13 +151,13 @@ const getOrganizationId = (token: AuthToken): TenantId | undefined =>
 const getUserId = (token: AuthToken): UserId | undefined =>
   match(token)
     .with({ "user-roles": P.not(P.nullish) }, (t) =>
-      unsafeBrandId<UserId>(t.uid)
+      unsafeBrandId<UserId>(t.uid),
     )
     .with({ role: "m2m" }, { role: "internal" }, () => undefined)
     .exhaustive();
 
 const getExternalId = (
-  token: AuthToken
+  token: AuthToken,
 ): { value: string; origin: string } | undefined =>
   match(token)
     .with({ "user-roles": P.not(P.nullish) }, (t) => t.externalId)
@@ -167,7 +167,7 @@ const getExternalId = (
 const getSelfcareId = (token: AuthToken): SelfcareId | undefined =>
   match(token)
     .with({ "user-roles": P.not(P.nullish) }, (t) =>
-      unsafeBrandId<SelfcareId>(t.selfcareId)
+      unsafeBrandId<SelfcareId>(t.selfcareId),
     )
     .with({ role: "m2m" }, { role: "internal" }, () => undefined)
     .exhaustive();

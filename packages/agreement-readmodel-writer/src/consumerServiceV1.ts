@@ -10,7 +10,7 @@ import {
 
 export async function handleMessageV1(
   message: AgreementEventEnvelopeV1,
-  agreements: AgreementCollection
+  agreements: AgreementCollection,
 ): Promise<void> {
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {
@@ -28,7 +28,7 @@ export async function handleMessageV1(
             },
           },
         },
-        { upsert: true }
+        { upsert: true },
       );
     })
     .with({ type: "AgreementDeleted" }, async (msg) => {
@@ -52,7 +52,7 @@ export async function handleMessageV1(
               version: msg.version,
             },
           },
-        }
+        },
       );
     })
     .with({ type: "AgreementConsumerDocumentAdded" }, async (msg) => {
@@ -65,7 +65,7 @@ export async function handleMessageV1(
           $push: {
             "data.consumerDocuments": msg.data.document
               ? toReadModelAgreementDocument(
-                  fromAgreementDocumentV1(msg.data.document)
+                  fromAgreementDocumentV1(msg.data.document),
                 )
               : undefined,
           },
@@ -74,7 +74,7 @@ export async function handleMessageV1(
               version: msg.version,
             },
           },
-        }
+        },
       );
     })
     .with({ type: "AgreementConsumerDocumentRemoved" }, async (msg) => {
@@ -94,7 +94,7 @@ export async function handleMessageV1(
               version: msg.version,
             },
           },
-        }
+        },
       );
     })
     .with({ type: "AgreementContractAdded" }, async (msg) => {
@@ -107,14 +107,14 @@ export async function handleMessageV1(
           $set: {
             "data.contract": msg.data.contract
               ? toReadModelAgreementDocument(
-                  fromAgreementDocumentV1(msg.data.contract)
+                  fromAgreementDocumentV1(msg.data.contract),
                 )
               : undefined,
             metadata: {
               version: msg.version,
             },
           },
-        }
+        },
       );
     })
     .exhaustive();

@@ -60,7 +60,7 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 
 export function tenantFromExternalIdNotFound(
   origin: string,
-  code: string
+  code: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with externalId ${origin}/${code} not found`,
@@ -79,7 +79,7 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
 
 export function verifiedAttributeNotFoundInTenant(
   tenantId: TenantId,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
@@ -89,7 +89,7 @@ export function verifiedAttributeNotFoundInTenant(
 }
 
 export function expirationDateCannotBeInThePast(
-  date: Date
+  date: Date,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Expiration date ${date} cannot be in the past`,
@@ -101,7 +101,7 @@ export function expirationDateCannotBeInThePast(
 export function organizationNotFoundInVerifiers(
   requesterId: string,
   tenantId: TenantId,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
@@ -111,7 +111,7 @@ export function organizationNotFoundInVerifiers(
 }
 
 export function tenantBySelfcareIdNotFound(
-  selfcareId: string
+  selfcareId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found`,
@@ -123,7 +123,7 @@ export function tenantBySelfcareIdNotFound(
 export function expirationDateNotFoundInVerifier(
   verifierId: string,
   attributeId: string,
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,

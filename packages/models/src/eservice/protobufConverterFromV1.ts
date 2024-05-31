@@ -36,7 +36,7 @@ const defaultCreatedAt = new Date("2022-10-21T12:00:00");
 const defaultPublishedAt = new Date("2022-12-15T12:00:00");
 
 export const fromAgreementApprovalPolicyV1 = (
-  input: AgreementApprovalPolicyV1 | undefined
+  input: AgreementApprovalPolicyV1 | undefined,
 ): AgreementApprovalPolicy | undefined => {
   if (input == null) {
     return undefined;
@@ -53,7 +53,7 @@ export const fromAgreementApprovalPolicyV1 = (
 };
 
 export const fromEServiceDescriptorStateV1 = (
-  input: EServiceDescriptorStateV1
+  input: EServiceDescriptorStateV1,
 ): DescriptorState => {
   switch (input) {
     case EServiceDescriptorStateV1.DRAFT:
@@ -72,7 +72,7 @@ export const fromEServiceDescriptorStateV1 = (
 };
 
 export const fromEServiceTechnologyV1 = (
-  input: EServiceTechnologyV1
+  input: EServiceTechnologyV1,
 ): Technology => {
   switch (input) {
     case EServiceTechnologyV1.REST:
@@ -85,7 +85,7 @@ export const fromEServiceTechnologyV1 = (
 };
 
 export const fromEServiceModeV1 = (
-  input: EServiceModeV1 | undefined
+  input: EServiceModeV1 | undefined,
 ): EServiceMode => {
   switch (input) {
     case EServiceModeV1.RECEIVE:
@@ -99,17 +99,17 @@ export const fromEServiceModeV1 = (
 };
 
 export const fromEServiceAttributeV1 = (
-  input: EServiceAttributeV1
+  input: EServiceAttributeV1,
 ): EServiceAttribute[] =>
   match<EServiceAttributeV1, EServiceAttribute[]>(input)
     .with(
       {
         single: P.not(P.nullish),
       },
-      ({ single }) => [{ ...single, id: unsafeBrandId(single.id) }]
+      ({ single }) => [{ ...single, id: unsafeBrandId(single.id) }],
     )
     .otherwise(() =>
-      input.group.map((a) => ({ ...a, id: unsafeBrandId(a.id) }))
+      input.group.map((a) => ({ ...a, id: unsafeBrandId(a.id) })),
     );
 
 export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
@@ -141,7 +141,7 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
     interface:
       input.interface != null ? fromDocumentV1(input.interface) : undefined,
     agreementApprovalPolicy: fromAgreementApprovalPolicyV1(
-      input.agreementApprovalPolicy
+      input.agreementApprovalPolicy,
     ),
     // createdAt is required in EService definition but not in protobuf,
     // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
@@ -157,13 +157,13 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
 };
 
 export const fromRiskAnalysisFormV1 = (
-  input: EServiceRiskAnalysisFormV1 | undefined
+  input: EServiceRiskAnalysisFormV1 | undefined,
 ): RiskAnalysisForm => {
   if (!input) {
     // riskAnalysisForm is required in EService definition but not in protobuf
     // tracked in https://pagopa.atlassian.net/browse/IMN-171
     throw new Error(
-      "riskAnalysisForm field is required in EService definition but is not provided in serialized byte array events"
+      "riskAnalysisForm field is required in EService definition but is not provided in serialized byte array events",
     );
   }
 
@@ -182,7 +182,7 @@ export const fromRiskAnalysisFormV1 = (
 };
 
 export const fromRiskAnalysisV1 = (
-  input: EServiceRiskAnalysisV1
+  input: EServiceRiskAnalysisV1,
 ): RiskAnalysis => ({
   ...input,
   id: unsafeBrandId(input.id),

@@ -55,19 +55,19 @@ const FormQuestionRules = z.discriminatedUnion("dataType", [
   FormConfigQuestionCommonProps.merge(
     z.object({
       dataType: z.literal(dataType.freeText),
-    })
+    }),
   ),
   FormConfigQuestionCommonProps.merge(
     z.object({
       dataType: z.literal(dataType.single),
       options: z.array(LabeledValue),
-    })
+    }),
   ),
   FormConfigQuestionCommonProps.merge(
     z.object({
       dataType: z.literal(dataType.multi),
       options: z.array(LabeledValue),
-    })
+    }),
   ),
 ]);
 export type FormQuestionRules = z.infer<typeof FormQuestionRules>;

@@ -7,7 +7,7 @@ import {
 import { z } from "zod";
 
 export const EserviceDescriptorsArchiverConfig = KafkaConsumerConfig.and(
-  TokenGenerationConfig
+  TokenGenerationConfig,
 )
   .and(ReadModelDbConfig)
   .and(AgreementTopicConfig)
@@ -18,7 +18,7 @@ export const EserviceDescriptorsArchiverConfig = KafkaConsumerConfig.and(
       })
       .transform((c) => ({
         catalogProcessUrl: c.CATALOG_PROCESS_URL,
-      }))
+      })),
   );
 
 export type EserviceDescriptorsArchiverConfig = z.infer<

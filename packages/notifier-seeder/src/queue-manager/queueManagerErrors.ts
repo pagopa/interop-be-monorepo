@@ -18,24 +18,24 @@ export class QueueManagerError extends InternalError<QueueManagerErrorCode> {
 
 export function queueManagerSendError(
   queueUrl: string,
-  error: unknown
+  error: unknown,
 ): QueueManagerError {
   return new QueueManagerError({
     code: "queueManagerSendError",
     detail: `Error sending message to queue ${queueUrl}: ${parseErrorMessage(
-      error
+      error,
     )}`,
   });
 }
 
 export function queueManagerReceiveError(
   queueUrl: string,
-  error: unknown
+  error: unknown,
 ): QueueManagerError {
   return new QueueManagerError({
     code: "queueManagerReceiveError",
     detail: `Error receiving message from queue ${queueUrl}: ${parseErrorMessage(
-      error
+      error,
     )}`,
   });
 }

@@ -13,7 +13,7 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
   ) => Promise<void>;
 
   updateAgreementState: (
@@ -22,7 +22,7 @@ export type AuthorizationService = {
     eserviceId: EServiceId,
     consumerId: TenantId,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
   ) => Promise<void>;
 
   updateAgreementAndEServiceStates: (
@@ -35,13 +35,13 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
   ) => Promise<void>;
 };
 
 export const authorizationServiceBuilder = (
   authMgmtClient: AuthorizationManagementClient,
-  refreshableToken: RefreshableInteropToken
+  refreshableToken: RefreshableInteropToken,
 ): AuthorizationService => {
   const getHeaders = (correlationId: string, token: string) => ({
     "X-Correlation-Id": correlationId,
@@ -57,7 +57,7 @@ export const authorizationServiceBuilder = (
       audience: string[],
       voucherLifespan: number,
       logger: Logger,
-      correlationId: string
+      correlationId: string,
     ) {
       const clientEServiceDetailsUpdate = {
         state,
@@ -82,7 +82,7 @@ export const authorizationServiceBuilder = (
       eserviceId: EServiceId,
       consumerId: TenantId,
       logger: Logger,
-      correlationId: string
+      correlationId: string,
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -99,7 +99,7 @@ export const authorizationServiceBuilder = (
           },
           withCredentials: true,
           headers,
-        }
+        },
       );
 
       logger.info(`Updated Agreement ${agreementId} state for all clients`);
@@ -114,7 +114,7 @@ export const authorizationServiceBuilder = (
       audience: string[],
       voucherLifespan: number,
       logger: Logger,
-      correlationId: string
+      correlationId: string,
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
@@ -135,11 +135,11 @@ export const authorizationServiceBuilder = (
           },
           withCredentials: true,
           headers,
-        }
+        },
       );
 
       logger.info(
-        `Updated Agreement ${agreementId} and EService ${eserviceId} states for all clients`
+        `Updated Agreement ${agreementId} and EService ${eserviceId} states for all clients`,
       );
     },
   };

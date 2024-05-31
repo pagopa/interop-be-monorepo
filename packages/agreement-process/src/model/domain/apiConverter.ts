@@ -26,7 +26,7 @@ import {
 import { CompactTenant } from "./models.js";
 
 export function agreementStateToApiAgreementState(
-  input: AgreementState
+  input: AgreementState,
 ): ApiAgreementState {
   return match<AgreementState, ApiAgreementState>(input)
     .with(agreementState.pending, () => "PENDING")
@@ -37,13 +37,13 @@ export function agreementStateToApiAgreementState(
     .with(agreementState.draft, () => "DRAFT")
     .with(
       agreementState.missingCertifiedAttributes,
-      () => "MISSING_CERTIFIED_ATTRIBUTES"
+      () => "MISSING_CERTIFIED_ATTRIBUTES",
     )
     .exhaustive();
 }
 
 export function apiAgreementStateToAgreementState(
-  input: ApiAgreementState
+  input: ApiAgreementState,
 ): AgreementState {
   return match<ApiAgreementState, AgreementState>(input)
     .with("PENDING", () => agreementState.pending)
@@ -54,13 +54,13 @@ export function apiAgreementStateToAgreementState(
     .with("DRAFT", () => agreementState.draft)
     .with(
       "MISSING_CERTIFIED_ATTRIBUTES",
-      () => agreementState.missingCertifiedAttributes
+      () => agreementState.missingCertifiedAttributes,
     )
     .exhaustive();
 }
 
 export const agreementDocumentToApiAgreementDocument = (
-  input: AgreementDocument
+  input: AgreementDocument,
 ): ApiAgreementDocument => ({
   id: input.id,
   name: input.name,
@@ -71,7 +71,7 @@ export const agreementDocumentToApiAgreementDocument = (
 });
 
 export const agreementToApiAgreement = (
-  agreement: Agreement
+  agreement: Agreement,
 ): ApiAgreement => ({
   id: agreement.id,
   eserviceId: agreement.eserviceId,
@@ -88,7 +88,7 @@ export const agreementToApiAgreement = (
   consumerNotes: agreement.consumerNotes,
   rejectionReason: agreement.rejectionReason,
   consumerDocuments: agreement.consumerDocuments.map(
-    agreementDocumentToApiAgreementDocument
+    agreementDocumentToApiAgreementDocument,
   ),
   createdAt: agreement.createdAt?.toJSON(),
   updatedAt: agreement.updatedAt?.toJSON(),
@@ -99,7 +99,7 @@ export const agreementToApiAgreement = (
 });
 
 export const apiAgreementDocumentToAgreementDocument = (
-  input: ApiAgreementDocumentSeed
+  input: ApiAgreementDocumentSeed,
 ): AgreementDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -134,7 +134,7 @@ function fromApiTenantRevoker(revoker: ApiTenantRevoker): TenantRevoker {
 }
 
 export const fromApiTenantAttribute = (
-  input: ApiTenantAttribute
+  input: ApiTenantAttribute,
 ): TenantAttribute =>
   match(input)
     .with(
@@ -150,7 +150,7 @@ export const fromApiTenantAttribute = (
         revocationTimestamp: certified.revocationTimestamp
           ? new Date(certified.revocationTimestamp)
           : undefined,
-      })
+      }),
     )
     .with(
       {
@@ -164,7 +164,7 @@ export const fromApiTenantAttribute = (
         assignmentTimestamp: new Date(verified.assignmentTimestamp),
         verifiedBy: verified.verifiedBy.map(fromApiTenantVerifier),
         revokedBy: verified.revokedBy.map(fromApiTenantRevoker),
-      })
+      }),
     )
     .with(
       {
@@ -179,16 +179,16 @@ export const fromApiTenantAttribute = (
         revocationTimestamp: declared.revocationTimestamp
           ? new Date(declared.revocationTimestamp)
           : undefined,
-      })
+      }),
     )
     .otherwise(() => {
       throw badRequestError(
-        `Invalid tenant attribute in API request: ${JSON.stringify(input)}`
+        `Invalid tenant attribute in API request: ${JSON.stringify(input)}`,
       );
     });
 
 export const fromApiCompactTenant = (
-  input: ApiCompactTenant
+  input: ApiCompactTenant,
 ): CompactTenant => ({
   id: unsafeBrandId(input.id),
   attributes: input.attributes.map(fromApiTenantAttribute),

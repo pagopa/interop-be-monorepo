@@ -22,7 +22,7 @@ const CataloProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-      }))
+      })),
   );
 
 export type CatalogProcessConfig = z.infer<typeof CataloProcessConfig>;

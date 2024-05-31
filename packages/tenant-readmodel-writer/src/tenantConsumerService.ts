@@ -10,7 +10,7 @@ const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
 export async function handleMessage(
   message: TenantEventEnvelope,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {
@@ -26,7 +26,7 @@ export async function handleMessage(
             },
           },
         },
-        { upsert: true }
+        { upsert: true },
       );
     })
     .with({ type: "TenantDeleted" }, async (_msg) => {
@@ -47,8 +47,8 @@ export async function handleMessage(
                 version: msg.version,
               },
             },
-          }
-        )
+          },
+        ),
     )
     .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
       logger.info("TODO");

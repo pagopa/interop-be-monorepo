@@ -144,7 +144,7 @@ export async function compareReadModelsCollection<
 
 export function zipDataById<T extends { id: string }>(
   dataA: T[],
-  dataB: T[]
+  dataB: T[],
 ): Array<[T | undefined, T | undefined]> {
   const allIds = new Set([...dataA, ...dataB].map((d) => d.id));
   return Array.from(allIds).map((id) => [

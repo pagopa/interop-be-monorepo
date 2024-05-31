@@ -32,7 +32,7 @@ import { ReadModelService } from "./readModelService.js";
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -41,7 +41,7 @@ export const isRiskAnalysisFormValid = (
       validateRiskAnalysis(
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
-        tenantKind
+        tenantKind,
       ).type === "valid"
     );
   }
@@ -52,7 +52,7 @@ export const purposeIsDraft = (purpose: Purpose): boolean =>
 
 export const isDeletableVersion = (
   purposeVersion: PurposeVersion,
-  purpose: Purpose
+  purpose: Purpose,
 ): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval &&
   purpose.versions.length !== 1;
@@ -62,7 +62,7 @@ export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
 
 export const assertEserviceMode = (
   eservice: EService,
-  expectedMode: EServiceMode
+  expectedMode: EServiceMode,
 ): void => {
   if (eservice.mode !== expectedMode) {
     throw eServiceModeNotAllowed(eservice.id, expectedMode);
@@ -71,7 +71,7 @@ export const assertEserviceMode = (
 
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
-  freeOfChargeReason: string | undefined
+  freeOfChargeReason: string | undefined,
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
@@ -80,7 +80,7 @@ export const assertConsistentFreeOfCharge = (
 
 export const assertOrganizationIsAConsumer = (
   organizationId: TenantId,
-  consumerId: TenantId
+  consumerId: TenantId,
 ): void => {
   if (organizationId !== consumerId) {
     throw organizationIsNotTheConsumer(organizationId);
@@ -99,7 +99,7 @@ export function validateRiskAnalysisOrThrow({
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind
+    tenantKind,
   );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
@@ -111,7 +111,7 @@ export function validateRiskAnalysisOrThrow({
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -131,7 +131,7 @@ export function validateAndTransformRiskAnalysis(
 export function reverseValidateAndTransformRiskAnalysis(
   riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -152,7 +152,7 @@ export function reverseValidateAndTransformRiskAnalysis(
 }
 
 export function assertTenantKindExists(
-  tenant: Tenant
+  tenant: Tenant,
 ): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
   if (!tenant.kind) {
     throw tenantKindNotFound(tenant.id);
@@ -169,7 +169,7 @@ export const isDeletable = (purpose: Purpose): boolean =>
   purpose.versions.every(
     (v) =>
       v.state === purposeVersionState.draft ||
-      v.state === purposeVersionState.waitingForApproval
+      v.state === purposeVersionState.waitingForApproval,
   );
 
 export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
@@ -194,7 +194,7 @@ export const assertPurposeTitleIsNotDuplicated = async ({
   const purposeWithSameName = await readModelService.getPurpose(
     eserviceId,
     consumerId,
-    title
+    title,
   );
 
   if (purposeWithSameName) {

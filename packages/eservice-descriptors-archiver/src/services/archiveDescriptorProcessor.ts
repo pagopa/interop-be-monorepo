@@ -15,12 +15,12 @@ export async function archiveDescriptorForArchivedAgreement(
   readModelService: ReadModelService,
   catalogProcessClient: CatalogProcessClient,
   logger: Logger,
-  correlationId: string
+  correlationId: string,
 ): Promise<void> {
   const relatingNonArchivedAgreements = (
     await readModelService.getNonArchivedAgreementsByEserviceAndDescriptorId(
       archivedAgreement.eserviceId,
-      archivedAgreement.descriptorId
+      archivedAgreement.descriptorId,
     )
   ).filter((a) => a.id !== archivedAgreement.id);
 
@@ -28,28 +28,28 @@ export async function archiveDescriptorForArchivedAgreement(
 
   if (!allArchived) {
     logger.info(
-      `Skipping descriptors archiviation - not all agreements are archived for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId}`
+      `Skipping descriptors archiviation - not all agreements are archived for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId}`,
     );
     return undefined;
   }
 
   const eservice = await readModelService.getEServiceById(
-    archivedAgreement.eserviceId
+    archivedAgreement.eserviceId,
   );
 
   if (!eservice) {
     throw genericInternalError(
-      `EService not found for agreement ${archivedAgreement.id}`
+      `EService not found for agreement ${archivedAgreement.id}`,
     );
   }
 
   const descriptor = eservice.descriptors.find(
-    (d) => d.id === archivedAgreement.descriptorId
+    (d) => d.id === archivedAgreement.descriptorId,
   );
 
   if (!descriptor) {
     throw genericInternalError(
-      `Descriptor not found for agreement ${archivedAgreement.id}`
+      `Descriptor not found for agreement ${archivedAgreement.id}`,
     );
   }
 
@@ -72,7 +72,7 @@ export async function archiveDescriptorForArchivedAgreement(
       });
 
       logger.info(
-        `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
+        `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`,
       );
     })
     .with({ state: descriptorState.suspended }, async () => {
@@ -80,7 +80,7 @@ export async function archiveDescriptorForArchivedAgreement(
         (d) =>
           (d.state === descriptorState.published ||
             d.state === descriptorState.suspended) &&
-          Number(d.version) > Number(descriptor.version)
+          Number(d.version) > Number(descriptor.version),
       );
       if (newerDescriptorExists) {
         const token = (await refreshableToken.get()).serialized;
@@ -93,17 +93,17 @@ export async function archiveDescriptorForArchivedAgreement(
           headers,
         });
         logger.info(
-          `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
+          `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`,
         );
       } else {
         logger.info(
-          `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor suspended but no newer Descriptor found`
+          `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor suspended but no newer Descriptor found`,
         );
       }
     })
     .otherwise(() => {
       logger.info(
-        `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`
+        `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`,
       );
     });
 }

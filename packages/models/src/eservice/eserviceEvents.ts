@@ -52,46 +52,46 @@ export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
 export function catalogEventToBinaryDataV1(event: EServiceEventV1): Uint8Array {
   return match(event)
     .with({ type: "EServiceAdded" }, ({ data }) =>
-      EServiceAddedV1.toBinary(data)
+      EServiceAddedV1.toBinary(data),
     )
     .with({ type: "ClonedEServiceAdded" }, ({ data }) =>
-      ClonedEServiceAddedV1.toBinary(data)
+      ClonedEServiceAddedV1.toBinary(data),
     )
     .with({ type: "EServiceUpdated" }, ({ data }) =>
-      EServiceUpdatedV1.toBinary(data)
+      EServiceUpdatedV1.toBinary(data),
     )
     .with({ type: "EServiceWithDescriptorsDeleted" }, ({ data }) =>
-      EServiceWithDescriptorsDeletedV1.toBinary(data)
+      EServiceWithDescriptorsDeletedV1.toBinary(data),
     )
     .with({ type: "EServiceDocumentUpdated" }, ({ data }) =>
-      EServiceDocumentUpdatedV1.toBinary(data)
+      EServiceDocumentUpdatedV1.toBinary(data),
     )
     .with({ type: "EServiceDeleted" }, ({ data }) =>
-      EServiceDeletedV1.toBinary(data)
+      EServiceDeletedV1.toBinary(data),
     )
     .with({ type: "EServiceDocumentAdded" }, ({ data }) =>
-      EServiceDocumentAddedV1.toBinary(data)
+      EServiceDocumentAddedV1.toBinary(data),
     )
     .with({ type: "EServiceDocumentDeleted" }, ({ data }) =>
-      EServiceDocumentDeletedV1.toBinary(data)
+      EServiceDocumentDeletedV1.toBinary(data),
     )
     .with({ type: "EServiceDescriptorAdded" }, ({ data }) =>
-      EServiceDescriptorAddedV1.toBinary(data)
+      EServiceDescriptorAddedV1.toBinary(data),
     )
     .with({ type: "EServiceDescriptorUpdated" }, ({ data }) =>
-      EServiceDescriptorUpdatedV1.toBinary(data)
+      EServiceDescriptorUpdatedV1.toBinary(data),
     )
     .with({ type: "MovedAttributesFromEserviceToDescriptors" }, ({ data }) =>
-      MovedAttributesFromEserviceToDescriptorsV1.toBinary(data)
+      MovedAttributesFromEserviceToDescriptorsV1.toBinary(data),
     )
     .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
-      EServiceRiskAnalysisAddedV1.toBinary(data)
+      EServiceRiskAnalysisAddedV1.toBinary(data),
     )
     .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
-      EServiceRiskAnalysisUpdatedV1.toBinary(data)
+      EServiceRiskAnalysisUpdatedV1.toBinary(data),
     )
     .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
-      EServiceRiskAnalysisDeletedV1.toBinary(data)
+      EServiceRiskAnalysisDeletedV1.toBinary(data),
     )
     .exhaustive();
 }
@@ -99,67 +99,67 @@ export function catalogEventToBinaryDataV1(event: EServiceEventV1): Uint8Array {
 export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
   return match(event)
     .with({ type: "EServiceAdded" }, ({ data }) =>
-      EServiceAddedV2.toBinary(data)
+      EServiceAddedV2.toBinary(data),
     )
     .with({ type: "DraftEServiceUpdated" }, ({ data }) =>
-      DraftEServiceUpdatedV2.toBinary(data)
+      DraftEServiceUpdatedV2.toBinary(data),
     )
     .with({ type: "EServiceDeleted" }, ({ data }) =>
-      EServiceDeletedV2.toBinary(data)
+      EServiceDeletedV2.toBinary(data),
     )
     .with({ type: "EServiceCloned" }, ({ data }) =>
-      EServiceClonedV2.toBinary(data)
+      EServiceClonedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorAdded" }, ({ data }) =>
-      EServiceDescriptorAddedV2.toBinary(data)
+      EServiceDescriptorAddedV2.toBinary(data),
     )
     .with({ type: "EServiceDraftDescriptorUpdated" }, ({ data }) =>
-      EServiceDraftDescriptorUpdatedV2.toBinary(data)
+      EServiceDraftDescriptorUpdatedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorQuotasUpdated" }, ({ data }) =>
-      EServiceDescriptorQuotasUpdatedV2.toBinary(data)
+      EServiceDescriptorQuotasUpdatedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorActivated" }, ({ data }) =>
-      EServiceDescriptorActivatedV2.toBinary(data)
+      EServiceDescriptorActivatedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorArchived" }, ({ data }) =>
-      EServiceDescriptorArchivedV2.toBinary(data)
+      EServiceDescriptorArchivedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorPublished" }, ({ data }) =>
-      EServiceDescriptorPublishedV2.toBinary(data)
+      EServiceDescriptorPublishedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorSuspended" }, ({ data }) =>
-      EServiceDescriptorSuspendedV2.toBinary(data)
+      EServiceDescriptorSuspendedV2.toBinary(data),
     )
     .with({ type: "EServiceDraftDescriptorDeleted" }, ({ data }) =>
-      EServiceDraftDescriptorDeletedV2.toBinary(data)
+      EServiceDraftDescriptorDeletedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorInterfaceAdded" }, ({ data }) =>
-      EServiceDescriptorInterfaceAddedV2.toBinary(data)
+      EServiceDescriptorInterfaceAddedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorDocumentAdded" }, ({ data }) =>
-      EServiceDescriptorDocumentAddedV2.toBinary(data)
+      EServiceDescriptorDocumentAddedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorInterfaceUpdated" }, ({ data }) =>
-      EServiceDescriptorInterfaceUpdatedV2.toBinary(data)
+      EServiceDescriptorInterfaceUpdatedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorDocumentUpdated" }, ({ data }) =>
-      EServiceDescriptorDocumentUpdatedV2.toBinary(data)
+      EServiceDescriptorDocumentUpdatedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorInterfaceDeleted" }, ({ data }) =>
-      EServiceDescriptorInterfaceDeletedV2.toBinary(data)
+      EServiceDescriptorInterfaceDeletedV2.toBinary(data),
     )
     .with({ type: "EServiceDescriptorDocumentDeleted" }, ({ data }) =>
-      EServiceDescriptorDocumentDeletedV2.toBinary(data)
+      EServiceDescriptorDocumentDeletedV2.toBinary(data),
     )
     .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
-      EServiceRiskAnalysisAddedV2.toBinary(data)
+      EServiceRiskAnalysisAddedV2.toBinary(data),
     )
     .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
-      EServiceRiskAnalysisUpdatedV2.toBinary(data)
+      EServiceRiskAnalysisUpdatedV2.toBinary(data),
     )
     .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
-      EServiceRiskAnalysisDeletedV2.toBinary(data)
+      EServiceRiskAnalysisDeletedV2.toBinary(data),
     )
     .exhaustive();
 }

@@ -18,7 +18,7 @@ import {
 
 const adaptEserviceToReadModel = (
   version: number,
-  eservice?: EServiceV1
+  eservice?: EServiceV1,
 ): { data: EServiceReadModel | undefined; metadata: { version: number } } => ({
   data: eservice ? toReadModelEService(fromEServiceV1(eservice)) : undefined,
   metadata: {
@@ -27,18 +27,18 @@ const adaptEserviceToReadModel = (
 });
 
 const adaptDocumentToReadModel = (
-  document: EServiceDocumentV1 | undefined
+  document: EServiceDocumentV1 | undefined,
 ): DocumentReadModel | undefined =>
   document ? toReadModelDocument(fromDocumentV1(document)) : undefined;
 
 const adaptDescriptorToReadModel = (
-  descriptor: EServiceDescriptorV1 | undefined
+  descriptor: EServiceDescriptorV1 | undefined,
 ): DescriptorReadModel | undefined =>
   descriptor ? toReadModelDescriptor(fromDescriptorV1(descriptor)) : undefined;
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
-  eservices: EServiceCollection
+  eservices: EServiceCollection,
 ): Promise<void> {
   await match(message)
     .with(
@@ -50,11 +50,11 @@ export async function handleMessageV1(
           {
             $setOnInsert: adaptEserviceToReadModel(
               msg.version,
-              msg.data.eservice
+              msg.data.eservice,
             ),
           },
-          { upsert: true }
-        )
+          { upsert: true },
+        ),
     )
     .with(
       { type: "EServiceUpdated" },
@@ -69,8 +69,8 @@ export async function handleMessageV1(
           },
           {
             $set: adaptEserviceToReadModel(msg.version, msg.data.eservice),
-          }
-        )
+          },
+        ),
     )
     .with(
       { type: "EServiceWithDescriptorsDeleted" },
@@ -89,8 +89,8 @@ export async function handleMessageV1(
             $set: {
               "metadata.version": msg.version,
             },
-          }
-        )
+          },
+        ),
     )
     .with({ type: "EServiceDocumentUpdated" }, async (msg) => {
       await eservices.updateOne(
@@ -110,7 +110,7 @@ export async function handleMessageV1(
               "doc.id": msg.data.documentId,
             },
           ],
-        }
+        },
       );
       await eservices.updateOne(
         {
@@ -130,7 +130,7 @@ export async function handleMessageV1(
               "descriptor.interface.id": msg.data.documentId,
             },
           ],
-        }
+        },
       );
       await eservices.updateOne(
         {
@@ -141,7 +141,7 @@ export async function handleMessageV1(
           $set: {
             "metadata.version": msg.version,
           },
-        }
+        },
       );
     })
     .with(
@@ -150,7 +150,7 @@ export async function handleMessageV1(
         await eservices.deleteOne({
           "data.id": msg.stream_id,
           "metadata.version": { $lt: msg.version },
-        })
+        }),
     )
     .with({ type: "EServiceDocumentAdded" }, async (msg) => {
       if (msg.data.isInterface) {
@@ -173,7 +173,7 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.descriptorId,
               },
             ],
-          }
+          },
         );
       } else {
         await eservices.updateMany(
@@ -187,7 +187,7 @@ export async function handleMessageV1(
             },
             $push: {
               "data.descriptors.$[descriptor].docs": adaptDocumentToReadModel(
-                msg.data.document
+                msg.data.document,
               ),
             },
           },
@@ -197,7 +197,7 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.descriptorId,
               },
             ],
-          }
+          },
         );
       }
     })
@@ -217,7 +217,7 @@ export async function handleMessageV1(
               "descriptor.id": msg.data.descriptorId,
             },
           ],
-        }
+        },
       );
       await eservices.updateOne(
         { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
@@ -236,7 +236,7 @@ export async function handleMessageV1(
               "descriptor.interface.id": msg.data.documentId,
             },
           ],
-        }
+        },
       );
       await eservices.updateOne(
         { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
@@ -244,7 +244,7 @@ export async function handleMessageV1(
           $set: {
             "metadata.version": msg.version,
           },
-        }
+        },
       );
     })
     .with(
@@ -261,11 +261,11 @@ export async function handleMessageV1(
             },
             $push: {
               "data.descriptors": adaptDescriptorToReadModel(
-                msg.data.eserviceDescriptor
+                msg.data.eserviceDescriptor,
               ),
             },
-          }
-        )
+          },
+        ),
     )
     .with(
       { type: "EServiceDescriptorUpdated" },
@@ -279,7 +279,7 @@ export async function handleMessageV1(
             $set: {
               "metadata.version": msg.version,
               "data.descriptors.$[descriptor]": adaptDescriptorToReadModel(
-                msg.data.eserviceDescriptor
+                msg.data.eserviceDescriptor,
               ),
             },
           },
@@ -289,8 +289,8 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.eserviceDescriptor?.id,
               },
             ],
-          }
-        )
+          },
+        ),
     )
     .with(
       { type: "EServiceRiskAnalysisDeleted" },
@@ -309,8 +309,8 @@ export async function handleMessageV1(
             $set: {
               "metadata.version": msg.version,
             },
-          }
-        )
+          },
+        ),
     )
     .exhaustive();
 }

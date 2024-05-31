@@ -10,10 +10,10 @@ import { EventEnvelope } from "../events/events.js";
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)
     .with({ type: "MaintenanceAttributeDeleted" }, ({ data }) =>
-      MaintenanceAttributeDeletedV1.toBinary(data)
+      MaintenanceAttributeDeletedV1.toBinary(data),
     )
     .with({ type: "AttributeAdded" }, ({ data }) =>
-      AttributeAddedV1.toBinary(data)
+      AttributeAddedV1.toBinary(data),
     )
     .exhaustive();
 }

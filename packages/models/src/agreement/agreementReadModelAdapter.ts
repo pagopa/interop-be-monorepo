@@ -21,21 +21,21 @@ import {
 } from "./agreement.js";
 
 export const toReadModelAgreementDocument = (
-  doc: AgreementDocument
+  doc: AgreementDocument,
 ): AgreementDocumentReadModel => ({
   ...doc,
   createdAt: doc.createdAt.toISOString(),
 });
 
 export const toReadModelAgreementStamp = (
-  stamp: AgreementStamp
+  stamp: AgreementStamp,
 ): AgreementStampReadModel => ({
   ...stamp,
   when: stamp.when.toISOString(),
 });
 
 export const toReadModelAgreementStamps = (
-  stamps: AgreementStamps
+  stamps: AgreementStamps,
 ): AgreementStampsReadModel => ({
   ...stamps,
   submission: stamps.submission
@@ -62,11 +62,11 @@ export const toReadModelAgreementStamps = (
 });
 
 export const toReadModelAgreement = (
-  agreement: Agreement
+  agreement: Agreement,
 ): AgreementReadModel => ({
   ...agreement,
   consumerDocuments: agreement.consumerDocuments.map(
-    toReadModelAgreementDocument
+    toReadModelAgreementDocument,
   ),
   createdAt: agreement.createdAt.toISOString(),
   updatedAt: agreement.updatedAt?.toISOString(),

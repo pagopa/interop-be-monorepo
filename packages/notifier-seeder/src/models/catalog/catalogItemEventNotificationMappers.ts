@@ -46,7 +46,7 @@ export const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
 };
 
 export const toAgreementApprovalPolicyV1 = (
-  input: AgreementApprovalPolicy
+  input: AgreementApprovalPolicy,
 ): string => {
   switch (input) {
     case agreementApprovalPolicy.manual:
@@ -66,10 +66,10 @@ export const toCatalogItemModeV1 = (input: EServiceMode): string => {
 };
 
 export const toCatalogAttributeValueV1 = (
-  input: EServiceAttribute[][] | undefined
+  input: EServiceAttribute[][] | undefined,
 ): CatalogAttributeValueV1[][] => {
   const toCatalogAttributeValue = (
-    a: EServiceAttribute
+    a: EServiceAttribute,
   ): CatalogAttributeValueV1 => ({
     id: a.id,
     explicitAttributeVerification: a.explicitAttributeVerification,
@@ -79,7 +79,7 @@ export const toCatalogAttributeValueV1 = (
 };
 
 export const toCatalogDocumentV1 = (
-  doc: Document
+  doc: Document,
 ): CatalogDocumentV1Notification => ({
   id: doc.id,
   name: doc.name,
@@ -91,7 +91,7 @@ export const toCatalogDocumentV1 = (
 });
 
 export const toCatalogDescriptorV1 = (
-  descriptors: Descriptor[]
+  descriptors: Descriptor[],
 ): CatalogDescriptorV1Notification[] =>
   descriptors.map((d) => ({
     id: d.id,
@@ -121,7 +121,7 @@ export const toCatalogDescriptorV1 = (
   }));
 
 export const toCatalogItemRiskAnalysisV1 = (
-  riskAnalysis: RiskAnalysis[]
+  riskAnalysis: RiskAnalysis[],
 ): CatalogItemRiskAnalysisV1Notification[] =>
   riskAnalysis.map((riskAnalysis) => ({
     id: riskAnalysis.id,
@@ -136,7 +136,7 @@ export const toCatalogItemRiskAnalysisV1 = (
   }));
 
 export const toCatalogItemV1 = (
-  event: EService
+  event: EService,
 ): CatalogItemV1Notification => ({
   id: event.id,
   producerId: event.producerId,

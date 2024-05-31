@@ -59,7 +59,7 @@ const makeFilter = (
     AgreementDataFields,
     "producerId" | "consumerId" | "eserviceId" | "descriptorId" | "state"
   >,
-  value: string | string[] | undefined
+  value: string | string[] | undefined,
 ): ReadModelFilter<Agreement> | undefined =>
   match(value)
     .with(P.nullish, () => undefined)
@@ -67,7 +67,7 @@ const makeFilter = (
       [`data.${fieldName}`]: value,
     }))
     .with(P.array(P.string), (a) =>
-      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
+      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } },
     )
     .exhaustive();
 
@@ -76,7 +76,7 @@ const makeAttributesFilter = (
     AgreementDataFields,
     "certifiedAttributes" | "declaredAttributes" | "verifiedAttributes"
   >,
-  attributeIds: AttributeId | AttributeId[]
+  attributeIds: AttributeId | AttributeId[],
 ): ReadModelFilter<Agreement> | undefined =>
   match(attributeIds)
     .with(P.string, (id) => ({
@@ -89,13 +89,13 @@ const makeAttributesFilter = (
             [`data.${fieldName}`]: {
               $elemMatch: { id: { $in: ids } },
             },
-          }
+          },
     )
     .exhaustive();
 
 const makeRegexFilter = (
   fieldName: string,
-  value: string | undefined
+  value: string | undefined,
 ): ReadModelFilter<Agreement> | undefined =>
   match(value)
     .with(P.nullish, () => undefined)
@@ -107,7 +107,7 @@ const makeRegexFilter = (
     .exhaustive();
 
 const getAgreementsFilters = (
-  filters: AgreementQueryFilters
+  filters: AgreementQueryFilters,
 ): { $match: object } => {
   const upgradeableStates = [
     agreementState.draft,
@@ -129,16 +129,17 @@ const getAgreementsFilters = (
     .with(P.nullish, () => (showOnlyUpgradeable ? upgradeableStates : []))
     .with(
       P.when(
-        (agreementStates) => agreementStates.length === 0 && showOnlyUpgradeable
+        (agreementStates) =>
+          agreementStates.length === 0 && showOnlyUpgradeable,
       ),
-      () => upgradeableStates
+      () => upgradeableStates,
     )
     .with(
       P.when(
-        (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
+        (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable,
       ),
       (agreementStates) =>
-        upgradeableStates.filter((s) => agreementStates.includes(s))
+        upgradeableStates.filter((s) => agreementStates.includes(s)),
     )
     .otherwise((agreementStates) => agreementStates);
 
@@ -161,7 +162,7 @@ const getAgreementsFilters = (
 
 const getTenantsByNamePipeline = (
   tenantName: string | undefined,
-  tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">
+  tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">,
 ): Document[] => [
   {
     $lookup: {
@@ -202,7 +203,7 @@ const getTenantsByNamePipeline = (
 
 const getAllAgreements = async (
   agreements: AgreementCollection,
-  filters: AgreementQueryFilters
+  filters: AgreementQueryFilters,
 ): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
     .aggregate([getAgreementsFilters(filters)])
@@ -213,15 +214,15 @@ const getAllAgreements = async (
       z.object({
         data: Agreement,
         metadata: Metadata,
-      })
+      }),
     )
     .safeParse(data);
 
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse agreements items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
+        result,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
@@ -230,7 +231,7 @@ const getAllAgreements = async (
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: AttributeReadmodel }>
+  filter: Filter<{ data: AttributeReadmodel }>,
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true },
@@ -240,8 +241,8 @@ async function getAttribute(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return result.data;
@@ -255,11 +256,11 @@ async function searchTenantsByName(
   tenantName: string | undefined,
   tenantIdField: "producerId" | "consumerId",
   limit: number,
-  offset: number
+  offset: number,
 ): Promise<ListResult<CompactOrganization>> {
   const aggregationPipeline = getTenantsByNamePipeline(
     tenantName,
-    tenantIdField
+    tenantIdField,
   );
 
   const data = await agreements
@@ -272,8 +273,8 @@ async function searchTenantsByName(
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse compact organization items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
+        result,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
@@ -282,14 +283,14 @@ async function searchTenantsByName(
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
       aggregationPipeline,
-      false
+      false,
     ),
   };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
+  readModelRepository: ReadModelRepository,
 ) {
   const agreements = readModelRepository.agreements;
   const eservices = readModelRepository.eservices;
@@ -299,7 +300,7 @@ export function readModelServiceBuilder(
     async getAgreements(
       filters: AgreementQueryFilters,
       limit: number,
-      offset: number
+      offset: number,
     ): Promise<ListResult<Agreement>> {
       const aggregationPipeline = [
         getAgreementsFilters(filters),
@@ -392,8 +393,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -402,16 +403,16 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
           aggregationPipeline,
-          false
+          false,
         ),
       };
     },
     async getAgreementById(
-      agreementId: AgreementId
+      agreementId: AgreementId,
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
         { "data.id": agreementId },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true, metadata: true } },
       );
 
       if (data) {
@@ -433,14 +434,14 @@ export function readModelServiceBuilder(
       return undefined;
     },
     async getAllAgreements(
-      filters: AgreementQueryFilters
+      filters: AgreementQueryFilters,
     ): Promise<Array<WithMetadata<Agreement>>> {
       return getAllAgreements(agreements, filters);
     },
     async getEServiceById(id: string): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true } }
+        { projection: { data: true } },
       );
 
       if (data) {
@@ -449,8 +450,8 @@ export function readModelServiceBuilder(
         if (!result.success) {
           throw genericInternalError(
             `Unable to parse eservices item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
+              result,
+            )} - data ${JSON.stringify(data)} `,
           );
         }
 
@@ -462,7 +463,7 @@ export function readModelServiceBuilder(
     async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
-        { projection: { data: true } }
+        { projection: { data: true } },
       );
 
       if (data) {
@@ -471,8 +472,8 @@ export function readModelServiceBuilder(
         if (!result.success) {
           throw genericInternalError(
             `Unable to parse tenant item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
+              result,
+            )} - data ${JSON.stringify(data)} `,
           );
         }
 
@@ -486,21 +487,21 @@ export function readModelServiceBuilder(
     async getConsumers(
       name: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "consumerId", limit, offset);
     },
     async getProducers(
       name: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
-      offset: number
+      offset: number,
     ): Promise<ListResult<CompactEService>> {
       const aggregationPipeline = [
         {
@@ -557,8 +558,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse compact eservice items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -567,7 +568,7 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
           aggregationPipeline,
-          false
+          false,
         ),
       };
     },

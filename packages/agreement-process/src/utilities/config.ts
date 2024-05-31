@@ -20,7 +20,7 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
       .transform((c) => ({
         consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
-      }))
+      })),
   );
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 

@@ -39,7 +39,7 @@ export function apiTechnologyToTechnology(input: ApiTechnology): Technology {
 }
 
 export function descriptorStateToApiEServiceDescriptorState(
-  input: DescriptorState
+  input: DescriptorState,
 ): ApiEServiceDescriptorState {
   return match<DescriptorState, ApiEServiceDescriptorState>(input)
     .with(descriptorState.draft, () => "DRAFT")
@@ -51,7 +51,7 @@ export function descriptorStateToApiEServiceDescriptorState(
 }
 
 export function apiDescriptorStateToDescriptorState(
-  input: ApiEServiceDescriptorState
+  input: ApiEServiceDescriptorState,
 ): DescriptorState {
   return match<ApiEServiceDescriptorState, DescriptorState>(input)
     .with("DRAFT", () => descriptorState.draft)
@@ -63,10 +63,10 @@ export function apiDescriptorStateToDescriptorState(
 }
 
 export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
-  input: AgreementApprovalPolicy | undefined
+  input: AgreementApprovalPolicy | undefined,
 ): ApiAgreementApprovalPolicy {
   return match<AgreementApprovalPolicy | undefined, ApiAgreementApprovalPolicy>(
-    input
+    input,
   )
     .with(agreementApprovalPolicy.automatic, () => "AUTOMATIC")
     .with(agreementApprovalPolicy.manual, () => "MANUAL")
@@ -74,7 +74,7 @@ export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-  input: ApiAgreementApprovalPolicy
+  input: ApiAgreementApprovalPolicy,
 ): AgreementApprovalPolicy {
   return match<ApiAgreementApprovalPolicy, AgreementApprovalPolicy>(input)
     .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
@@ -83,7 +83,7 @@ export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
 }
 
 export function agreementStateToApiAgreementState(
-  input: AgreementState
+  input: AgreementState,
 ): ApiAgreementState {
   return match<AgreementState, ApiAgreementState>(input)
     .with(agreementState.pending, () => "PENDING")
@@ -94,13 +94,13 @@ export function agreementStateToApiAgreementState(
     .with(agreementState.draft, () => "DRAFT")
     .with(
       agreementState.missingCertifiedAttributes,
-      () => "MISSING_CERTIFIED_ATTRIBUTES"
+      () => "MISSING_CERTIFIED_ATTRIBUTES",
     )
     .exhaustive();
 }
 
 export function apiAgreementStateToAgreementState(
-  input: ApiAgreementState
+  input: ApiAgreementState,
 ): AgreementState {
   return match<ApiAgreementState, AgreementState>(input)
     .with("PENDING", () => agreementState.pending)
@@ -111,13 +111,13 @@ export function apiAgreementStateToAgreementState(
     .with("DRAFT", () => agreementState.draft)
     .with(
       "MISSING_CERTIFIED_ATTRIBUTES",
-      () => agreementState.missingCertifiedAttributes
+      () => agreementState.missingCertifiedAttributes,
     )
     .exhaustive();
 }
 
 export function apiEServiceModeToEServiceMode(
-  input: ApiEServiceMode
+  input: ApiEServiceMode,
 ): EServiceMode {
   return match<ApiEServiceMode, EServiceMode>(input)
     .with("RECEIVE", () => eserviceMode.receive)
@@ -126,7 +126,7 @@ export function apiEServiceModeToEServiceMode(
 }
 
 export function eServiceModeToApiEServiceMode(
-  input: EServiceMode
+  input: EServiceMode,
 ): ApiEServiceMode {
   return match<EServiceMode, ApiEServiceMode>(input)
     .with(eserviceMode.receive, () => "RECEIVE")
@@ -135,7 +135,7 @@ export function eServiceModeToApiEServiceMode(
 }
 
 export const documentToApiDocument = (
-  document: Document
+  document: Document,
 ): z.infer<typeof api.schemas.EServiceDoc> => ({
   id: document.id,
   name: document.name,
@@ -146,7 +146,7 @@ export const documentToApiDocument = (
 });
 
 export const descriptorToApiDescriptor = (
-  descriptor: Descriptor
+  descriptor: Descriptor,
 ): z.infer<typeof api.schemas.EServiceDescriptor> => ({
   id: descriptor.id,
   version: descriptor.version,
@@ -159,7 +159,7 @@ export const descriptorToApiDescriptor = (
   docs: descriptor.docs.map(documentToApiDocument),
   state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
   agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
-    descriptor.agreementApprovalPolicy
+    descriptor.agreementApprovalPolicy,
   ),
   serverUrls: descriptor.serverUrls,
   publishedAt: descriptor.publishedAt?.toJSON(),
@@ -174,7 +174,7 @@ export const descriptorToApiDescriptor = (
 });
 
 export const eServiceToApiEService = (
-  eservice: EService
+  eservice: EService,
 ): z.infer<typeof api.schemas.EService> => ({
   id: eservice.id,
   producerId: eservice.producerId,

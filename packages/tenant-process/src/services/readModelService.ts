@@ -25,7 +25,7 @@ import { TenantProcessConfig } from "../utilities/config.js";
 import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
 
 function listTenantsFilters(
-  name: string | undefined
+  name: string | undefined,
 ): Filter<{ data: Tenant }> {
   const nameFilter = name
     ? {
@@ -75,8 +75,8 @@ export const getTenants = async ({
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse tenants items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
+        result,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
   return {
@@ -84,14 +84,14 @@ export const getTenants = async ({
     totalCount: await ReadModelRepository.getTotalCount(
       tenants,
       aggregationPipeline,
-      allowDiskUse
+      allowDiskUse,
     ),
   };
 };
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>,
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -103,8 +103,8 @@ async function getAttribute(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
     return result.data;
@@ -113,7 +113,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<Tenant>>>,
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -132,8 +132,8 @@ async function getTenant(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
 
@@ -173,13 +173,13 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getTenantById(
-      id: TenantId
+      id: TenantId,
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.id": id });
     },
 
     async getTenantByName(
-      name: string
+      name: string,
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, {
         "data.name": {
@@ -190,7 +190,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getTenantByExternalId(
-      externalId: ExternalId
+      externalId: ExternalId,
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, {
         "data.externalId.value": externalId.value,
@@ -199,7 +199,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getTenantBySelfcareId(
-      selfcareId: string
+      selfcareId: string,
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.selfcareId": selfcareId });
     },
@@ -286,10 +286,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       });
     },
     async getAttributesByExternalIds(
-      externalIds: ExternalId[]
+      externalIds: ExternalId[],
     ): Promise<Attribute[]> {
       const fetchAttributeByExternalId = async (
-        externalId: ExternalId
+        externalId: ExternalId,
       ): Promise<Attribute> => {
         const data = await getAttribute(attributes, {
           "data.origin": externalId.origin,
@@ -307,7 +307,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
 
     async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
       const fetchAttributeById = async (
-        id: AttributeId
+        id: AttributeId,
       ): Promise<Attribute> => {
         const data = await getAttribute(attributes, { "data.id": id });
         if (!data) {
@@ -323,7 +323,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true, metadata: true } },
       );
 
       if (!data) {
@@ -334,8 +334,8 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         if (!result.success) {
           throw genericInternalError(
             `Unable to parse eservices item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
+              result,
+            )} - data ${JSON.stringify(data)} `,
           );
         }
 
@@ -410,7 +410,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       const data = await attributes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
+          { allowDiskUse: true },
         )
         .toArray();
 
@@ -419,8 +419,8 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse attributes items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
@@ -429,7 +429,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         totalCount: await ReadModelRepository.getTotalCount(
           attributes,
           aggregationPipeline,
-          false
+          false,
         ),
       };
     },

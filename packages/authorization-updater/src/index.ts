@@ -45,7 +45,7 @@ export async function sendAuthUpdate(
   readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
-  correlationId: string
+  correlationId: string,
 ): Promise<void> {
   const update: (() => Promise<void>) | undefined = await match(decodedMessage)
     .with(
@@ -65,9 +65,9 @@ export async function sendAuthUpdate(
             data.descriptor.audience,
             data.descriptor.voucherLifespan,
             logger,
-            correlationId
+            correlationId,
           );
-      }
+      },
     )
     .with(
       { type: "EServiceDescriptorSuspended" },
@@ -82,9 +82,9 @@ export async function sendAuthUpdate(
             data.descriptor.audience,
             data.descriptor.voucherLifespan,
             logger,
-            correlationId
+            correlationId,
           );
-      }
+      },
     )
     .with(
       { type: "AgreementSubmitted" },
@@ -107,27 +107,27 @@ export async function sendAuthUpdate(
             agreement.eserviceId,
             agreement.consumerId,
             logger,
-            correlationId
+            correlationId,
           );
-      }
+      },
     )
     .with({ type: "AgreementUpgraded" }, async (msg) => {
       const agreement = getAgreementFromEvent(msg, decodedMessage.type);
       const eservice = await readModelService.getEServiceById(
-        agreement.eserviceId
+        agreement.eserviceId,
       );
       if (!eservice) {
         throw genericInternalError(
-          `Unable to find EService with id ${agreement.eserviceId}`
+          `Unable to find EService with id ${agreement.eserviceId}`,
         );
       }
 
       const descriptor = eservice.descriptors.find(
-        (d) => d.id === agreement.descriptorId
+        (d) => d.id === agreement.descriptorId,
       );
       if (!descriptor) {
         throw genericInternalError(
-          `Unable to find descriptor with id ${agreement.descriptorId}`
+          `Unable to find descriptor with id ${agreement.descriptorId}`,
         );
       }
 
@@ -135,7 +135,7 @@ export async function sendAuthUpdate(
         .with(
           descriptorState.published,
           descriptorState.deprecated,
-          () => ApiClientComponent.Values.ACTIVE
+          () => ApiClientComponent.Values.ACTIVE,
         )
         .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
@@ -150,7 +150,7 @@ export async function sendAuthUpdate(
           descriptor.audience,
           descriptor.voucherLifespan,
           logger,
-          correlationId
+          correlationId,
         );
     })
     .with({ type: "EServiceAdded" }, () => undefined)
@@ -179,7 +179,7 @@ export async function sendAuthUpdate(
     .with({ type: "AgreementSetDraftByPlatform" }, () => undefined)
     .with(
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-      () => undefined
+      () => undefined,
     )
     .exhaustive();
 
@@ -194,16 +194,16 @@ function processMessage(
   catalogTopicConfig: CatalogTopicConfig,
   agreementTopicConfig: AgreementTopicConfig,
   readModelService: ReadModelService,
-  authService: AuthorizationService
+  authService: AuthorizationService,
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
       const decodedMessage = match(messagePayload.topic)
         .with(catalogTopicConfig.catalogTopic, () =>
-          decodeKafkaMessage(messagePayload.message, EServiceEventV2)
+          decodeKafkaMessage(messagePayload.message, EServiceEventV2),
         )
         .with(agreementTopicConfig.agreementTopic, () =>
-          decodeKafkaMessage(messagePayload.message, AgreementEventV2)
+          decodeKafkaMessage(messagePayload.message, AgreementEventV2),
         )
         .otherwise(() => {
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
@@ -220,7 +220,7 @@ function processMessage(
       });
 
       loggerInstance.info(
-        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`,
       );
 
       await sendAuthUpdate(
@@ -228,14 +228,14 @@ function processMessage(
         readModelService,
         authService,
         loggerInstance,
-        correlationId
+        correlationId,
       );
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
         messagePayload.partition,
         messagePayload.message.offset,
-        e
+        e,
       );
     }
   };
@@ -243,7 +243,7 @@ function processMessage(
 
 try {
   const authMgmtClient = authorizationManagementClientBuilder(
-    config.authorizationManagementUrl
+    config.authorizationManagementUrl,
   );
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
@@ -251,11 +251,11 @@ try {
 
   const authService = authorizationServiceBuilder(
     authMgmtClient,
-    refreshableToken
+    refreshableToken,
   );
 
   const readModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
+    ReadModelRepository.init(config),
   );
   await runConsumer(
     config,
@@ -268,8 +268,8 @@ try {
         agreementTopic: config.agreementTopic,
       },
       readModelService,
-      authService
-    )
+      authService,
+    ),
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);

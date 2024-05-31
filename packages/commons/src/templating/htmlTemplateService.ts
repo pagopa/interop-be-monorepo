@@ -9,7 +9,7 @@ export function buildHTMLTemplateService(): HtmlTemplateService {
   return {
     compileHtml: (
       htmlTemplate: string,
-      context: Record<string, unknown>
+      context: Record<string, unknown>,
     ): string => {
       try {
         const compileHtml = Handlebars.compile(htmlTemplate);

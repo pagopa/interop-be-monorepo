@@ -45,7 +45,7 @@ export const fromTenantKindV1 = (input: TenantKindV1): TenantKind => {
 };
 
 export const fromTenantMailKindV1 = (
-  input: TenantMailKindV1
+  input: TenantMailKindV1,
 ): TenantMailKind => {
   switch (input) {
     case TenantMailKindV1.CONTACT_EMAIL:
@@ -67,10 +67,10 @@ export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
 });
 
 export const fromTenantFeatureV1 = (
-  input: TenantFeatureV1
+  input: TenantFeatureV1,
 ): TenantFeatureCertifier =>
   match<TenantFeatureV1["sealedValue"], TenantFeatureCertifier>(
-    input.sealedValue
+    input.sealedValue,
   )
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
       type: "PersistentCertifier",
@@ -82,7 +82,7 @@ export const fromTenantFeatureV1 = (
     .exhaustive();
 
 export const fromTenantVerifierV1 = (
-  input: TenantVerifierV1
+  input: TenantVerifierV1,
 ): TenantVerifier => ({
   ...input,
   verificationDate: bigIntToDate(input.verificationDate),
@@ -99,7 +99,7 @@ export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
 });
 
 export const fromTenantAttributesV1 = (
-  input: TenantAttributeV1
+  input: TenantAttributeV1,
 ): TenantAttribute => {
   const { sealedValue } = input;
 
@@ -109,7 +109,7 @@ export const fromTenantAttributesV1 = (
       return {
         id: unsafeBrandId(certifiedAttribute.id),
         assignmentTimestamp: new Date(
-          Number(certifiedAttribute.assignmentTimestamp)
+          Number(certifiedAttribute.assignmentTimestamp),
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -118,7 +118,7 @@ export const fromTenantAttributesV1 = (
       return {
         id: unsafeBrandId(verifiedAttribute.id),
         assignmentTimestamp: new Date(
-          Number(verifiedAttribute.assignmentTimestamp)
+          Number(verifiedAttribute.assignmentTimestamp),
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
@@ -129,7 +129,7 @@ export const fromTenantAttributesV1 = (
       return {
         id: unsafeBrandId(declaredAttribute.id),
         assignmentTimestamp: new Date(
-          Number(declaredAttribute.assignmentTimestamp)
+          Number(declaredAttribute.assignmentTimestamp),
         ),
         type: tenantAttributeType.DECLARED,
       };
@@ -139,7 +139,7 @@ export const fromTenantAttributesV1 = (
 };
 
 export const fromTenantUnitTypeV1 = (
-  input: TenantUnitTypeV1
+  input: TenantUnitTypeV1,
 ): TenantUnitType => {
   switch (input) {
     case TenantUnitTypeV1.AOO:
@@ -160,7 +160,7 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
   const externalId = ExternalId.safeParse(input.externalId);
   if (!externalId.success) {
     throw genericError(
-      `Error while deserializing TenantV1 (${input.id}): missing externalId`
+      `Error while deserializing TenantV1 (${input.id}): missing externalId`,
     );
   }
 

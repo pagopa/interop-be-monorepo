@@ -22,12 +22,12 @@ export function fileManagerCopyError(
   filePathToCopy: string,
   key: string,
   bucket: string,
-  error: unknown
+  error: unknown,
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerCopyError",
     detail: `Error copying file ${filePathToCopy} to ${key} in bucket ${bucket}: ${parseErrorMessage(
-      error
+      error,
     )}`,
   });
 }
@@ -35,24 +35,24 @@ export function fileManagerCopyError(
 export function fileManagerDeleteError(
   path: string,
   bucket: string,
-  error: unknown
+  error: unknown,
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerDeleteError",
     detail: `Error deleting file ${path} from bucket ${bucket}: ${parseErrorMessage(
-      error
+      error,
     )}`,
   });
 }
 
 export function fileManagerListFilesError(
   bucket: string,
-  error: unknown
+  error: unknown,
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerListFilesError",
     detail: `Error listing files in bucket ${bucket}: ${parseErrorMessage(
-      error
+      error,
     )}`,
   });
 }
@@ -60,12 +60,12 @@ export function fileManagerListFilesError(
 export function fileManagerStoreBytesError(
   key: string,
   bucket: string,
-  error: unknown
+  error: unknown,
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerStoreBytesError",
     detail: `Error storing file ${key} in bucket ${bucket}: ${parseErrorMessage(
-      error
+      error,
     )}`,
   });
 }

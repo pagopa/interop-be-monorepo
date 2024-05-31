@@ -29,7 +29,7 @@ type RoleValidation =
 
 const hasValidRoles = (
   req: Request,
-  admittedRoles: UserRole[]
+  admittedRoles: UserRole[],
 ): RoleValidation => {
   const jwtToken = req.headers.authorization?.split(" ")[1];
   if (!jwtToken) {
@@ -44,11 +44,11 @@ const hasValidRoles = (
   }
 
   const admittedRolesStr = admittedRoles.map((role) =>
-    role.toString().toLowerCase()
+    role.toString().toLowerCase(),
   );
 
   const intersection = authData.userRoles.filter((value) =>
-    admittedRolesStr.includes(value)
+    admittedRolesStr.includes(value),
   );
 
   return intersection.length > 0
@@ -57,8 +57,8 @@ const hasValidRoles = (
         isValid: false,
         error: unauthorizedError(
           `Invalid user roles (${authData.userRoles.join(
-            ","
-          )}) to execute this request`
+            ",",
+          )}) to execute this request`,
         ),
       };
 };
@@ -73,7 +73,7 @@ export const authorizationMiddleware =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Context extends z.ZodObject<any>,
   >(
-    admittedRoles: UserRole[]
+    admittedRoles: UserRole[],
   ): Middleware<Api, M, Path, Context> =>
   (req, res, next) => {
     try {
@@ -102,17 +102,17 @@ export const authorizationMiddleware =
               correlationId: headers?.correlationId,
             }),
             (error) => (error.code === "unauthorizedError" ? 403 : 500),
-            loggerInstance
-          )
+            loggerInstance,
+          ),
         )
         .otherwise(() =>
           makeApiProblem(
             genericError(
-              "An unexpected error occurred during authorization checks"
+              "An unexpected error occurred during authorization checks",
             ),
             () => 500,
-            loggerInstance
-          )
+            loggerInstance,
+          ),
         );
 
       return (

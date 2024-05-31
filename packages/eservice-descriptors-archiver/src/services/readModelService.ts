@@ -12,21 +12,21 @@ import { z } from "zod";
 export type ReadModelService = {
   getNonArchivedAgreementsByEserviceAndDescriptorId: (
     eserviceId: EServiceId,
-    descriptorId: DescriptorId
+    descriptorId: DescriptorId,
   ) => Promise<Agreement[]>;
 
   getEServiceById: (id: string) => Promise<EService | undefined>;
 };
 
 export function readModelServiceBuilder(
-  readModelRepository: ReadModelRepository
+  readModelRepository: ReadModelRepository,
 ): ReadModelService {
   const agreements = readModelRepository.agreements;
   const eservices = readModelRepository.eservices;
 
   async function getNonArchivedAgreementsByEserviceAndDescriptorId(
     eserviceId: EServiceId,
-    descriptorId: DescriptorId
+    descriptorId: DescriptorId,
   ): Promise<Agreement[]> {
     const data = await agreements
       .find({
@@ -41,8 +41,8 @@ export function readModelServiceBuilder(
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse agreements: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+          result,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
 
@@ -52,7 +52,7 @@ export function readModelServiceBuilder(
   async function getEServiceById(id: string): Promise<EService | undefined> {
     const data = await eservices.findOne(
       { "data.id": id },
-      { projection: { data: true } }
+      { projection: { data: true } },
     );
 
     if (data) {
@@ -61,8 +61,8 @@ export function readModelServiceBuilder(
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse eservices item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 

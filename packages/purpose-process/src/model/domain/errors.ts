@@ -75,7 +75,7 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 
 export function purposeVersionNotFound(
   purposeId: PurposeId,
-  versionId: PurposeVersionId
+  versionId: PurposeVersionId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} not found for purpose ${purposeId}`,
@@ -87,7 +87,7 @@ export function purposeVersionNotFound(
 export function purposeVersionDocumentNotFound(
   purposeId: PurposeId,
   versionId: PurposeVersionId,
-  documentId: PurposeVersionDocumentId
+  documentId: PurposeVersionDocumentId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Document ${documentId} not found for version ${versionId} of purpose ${purposeId}`,
@@ -97,7 +97,7 @@ export function purposeVersionDocumentNotFound(
 }
 
 export function organizationNotAllowed(
-  organizationId: TenantId
+  organizationId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organization ${organizationId} is not allowed to perform the operation`,
@@ -107,7 +107,7 @@ export function organizationNotAllowed(
 }
 
 export function organizationIsNotTheConsumer(
-  organizationId: TenantId
+  organizationId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organization ${organizationId} is not allowed to perform the operation`,
@@ -118,7 +118,7 @@ export function organizationIsNotTheConsumer(
 
 export function purposeVersionCannotBeDeleted(
   purposeId: PurposeId,
-  versionId: PurposeVersionId
+  versionId: PurposeVersionId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
@@ -128,7 +128,7 @@ export function purposeVersionCannotBeDeleted(
 }
 
 export function organizationIsNotTheProducer(
-  organizationId: TenantId
+  organizationId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organization ${organizationId} is not allowed to perform the operation`,
@@ -139,7 +139,7 @@ export function organizationIsNotTheProducer(
 
 export function eServiceModeNotAllowed(
   eserviceId: EServiceId,
-  mode: EServiceMode
+  mode: EServiceMode,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} has not ${mode} mode`,
@@ -157,7 +157,7 @@ export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
 }
 
 export function riskAnalysisValidationFailed(
-  reasons: RiskAnalysisValidationIssue[]
+  reasons: RiskAnalysisValidationIssue[],
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis validation failed. Reasons: ${reasons}`,
@@ -167,7 +167,7 @@ export function riskAnalysisValidationFailed(
 }
 
 export function purposeNotInDraftState(
-  purposeId: PurposeId
+  purposeId: PurposeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} is not in draft state`,
@@ -178,7 +178,7 @@ export function purposeNotInDraftState(
 
 export function notValidVersionState(
   purposeVersionId: PurposeVersionId,
-  versionState: PurposeVersionState
+  versionState: PurposeVersionState,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
@@ -196,7 +196,7 @@ export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
 }
 
 export function purposeCannotBeDeleted(
-  purposeId: PurposeId
+  purposeId: PurposeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Versions in Purpose ${purposeId} do not allow deletion`,
@@ -207,7 +207,7 @@ export function purposeCannotBeDeleted(
 
 export function agreementNotFound(
   eserviceId: EServiceId,
-  consumerId: TenantId
+  consumerId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
@@ -218,7 +218,7 @@ export function agreementNotFound(
 
 export function eserviceRiskAnalysisNotFound(
   eserviceId: EServiceId,
-  riskAnalysisId: RiskAnalysisId
+  riskAnalysisId: RiskAnalysisId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
@@ -228,7 +228,7 @@ export function eserviceRiskAnalysisNotFound(
 }
 
 export function purposeCannotBeCloned(
-  purposeId: PurposeId
+  purposeId: PurposeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} cannot be cloned`,
@@ -239,7 +239,7 @@ export function purposeCannotBeCloned(
 
 export function riskAnalysisConfigVersionNotFound(
   version: string,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk Analysis Configuration version ${version} for tenant kind ${tenantKind} not found`,

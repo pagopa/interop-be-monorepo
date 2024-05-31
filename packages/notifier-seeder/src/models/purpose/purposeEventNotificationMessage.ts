@@ -5,7 +5,7 @@ import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { PurposeEventNotification } from "./purposeEventNotification.js";
 
 export const eventV2TypeMapper = (
-  eventType: PurposeEventEnvelopeV2["type"]
+  eventType: PurposeEventEnvelopeV2["type"],
 ): string =>
   match(eventType)
     .with("PurposeAdded", "PurposeCloned", () => "purpose_created")
@@ -14,7 +14,7 @@ export const eventV2TypeMapper = (
       "PurposeWaitingForApproval",
       "NewPurposeVersionWaitingForApproval",
       "PurposeVersionOverQuotaUnsuspended",
-      () => "purpose_version_waited_for_approval"
+      () => "purpose_version_waited_for_approval",
     )
     .with(
       "PurposeActivated",
@@ -22,29 +22,29 @@ export const eventV2TypeMapper = (
       "PurposeVersionActivated",
       "PurposeVersionUnsuspendedByProducer",
       "PurposeVersionUnsuspendedByConsumer",
-      () => "purpose_version_activated"
+      () => "purpose_version_activated",
     )
     .with(
       "DraftPurposeDeleted",
       "WaitingForApprovalPurposeDeleted",
-      () => "purpose_deleted"
+      () => "purpose_deleted",
     )
     .with(
       "PurposeVersionSuspendedByProducer",
       "PurposeVersionSuspendedByConsumer",
-      () => "purpose_version_suspended"
+      () => "purpose_version_suspended",
     )
     .with("PurposeArchived", () => "purpose_version_archived")
     .with(
       "WaitingForApprovalPurposeVersionDeleted",
-      () => "purpose_version_deleted"
+      () => "purpose_version_deleted",
     )
     .with("PurposeVersionRejected", () => "purpose_version_rejected")
     .exhaustive();
 
 export const buildPurposeMessage = (
   event: PurposeEventEnvelopeV2,
-  purposeEvent: PurposeEventNotification
+  purposeEvent: PurposeEventNotification,
 ): QueueMessage => ({
   messageUUID: uuidv4(),
   eventJournalPersistenceId: event.stream_id,

@@ -28,7 +28,7 @@ export type Options = {
 
 export const createMechanism = (
   options: Options,
-  mechanism: string = TYPE
+  mechanism: string = TYPE,
 ): Mechanism => ({
   mechanism,
   authenticationProvider: createAuthenticator(options),

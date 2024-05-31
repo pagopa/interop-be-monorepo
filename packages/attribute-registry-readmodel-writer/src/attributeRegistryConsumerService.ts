@@ -8,7 +8,7 @@ import {
 
 export async function handleMessage(
   message: AttributeEventEnvelope,
-  attributes: AttributeCollection
+  attributes: AttributeCollection,
 ): Promise<void> {
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
@@ -26,7 +26,7 @@ export async function handleMessage(
             },
           },
         },
-        { upsert: true }
+        { upsert: true },
       );
     })
     .with({ type: "MaintenanceAttributeDeleted" }, async (msg) => {

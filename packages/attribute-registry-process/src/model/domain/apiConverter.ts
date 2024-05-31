@@ -19,7 +19,7 @@ export const toAttributeKind = (input: ApiAttributeKind): AttributeKind =>
     .exhaustive();
 
 export const toApiAttribute = (
-  attribute: Attribute
+  attribute: Attribute,
 ): z.infer<typeof api.schemas.Attribute> => ({
   id: attribute.id,
   name: attribute.name,
