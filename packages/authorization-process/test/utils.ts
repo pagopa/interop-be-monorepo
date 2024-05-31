@@ -23,8 +23,8 @@ export const { cleanup, readModelRepository, postgresDB } =
 
 afterEach(cleanup);
 
-export const clients = readModelRepository.clients;
-export const tenants = readModelRepository.tenants;
+export const { agreements, clients, eservices, purposes, tenants } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
