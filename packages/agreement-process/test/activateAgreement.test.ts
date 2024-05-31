@@ -42,7 +42,6 @@ import {
   AgreementActivatedV2,
   UserId,
   pdfGenerationError,
-  AgreementUnsuspendedByPlatformV2,
 } from "pagopa-interop-models";
 import { UserResponse } from "pagopa-interop-selfcare-v2-client";
 import {
@@ -73,7 +72,6 @@ import {
   agreementService,
   closeTestBrowserInstance,
   fileManager,
-  readAgreementEventByVersion,
   readLastAgreementEvent,
   respawnTestBrowserInstance,
   selfcareV2ClientMock,
@@ -83,6 +81,7 @@ describe("activate agreement", () => {
   // TODO success case with requester === producer and ALSO CONSUMER and state Suspended >>> Active
   // TODO success case with requester === producer and state Pending >>> Suspended (suspendedByConsumer was true)
   //      But then.... the event should be AgreementSuspendedByProducer ?????? Not Unsuspended
+  // TODO test new cases after the suspendedByPlatform fixes PR
 
   // TODO also test manually
   // TODO verify logic in Scala to check if it is correct
@@ -190,7 +189,7 @@ describe("activate agreement", () => {
     });
   }
 
-  describe.only("activation of a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
+  it("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
     const producer = getMockTenant();
 
     const certifiedAttribute: Attribute = {
@@ -280,200 +279,83 @@ describe("activate agreement", () => {
       verifiedAttributes: [getMockAgreementAttribute()],
     };
 
-    it("should succeed and activate the Agreement when suspendedByPlatform starting value is false", async () => {
-      agreement.suspendedByPlatform = false;
-      await addOneAgreement(agreement);
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAttribute(certifiedAttribute);
-      await addOneAttribute(declaredAttribute);
-      await addOneAttribute(verifiedAttribute);
-      const relatedAgreements = await addRelatedAgreements(agreement);
+    await addOneAgreement(agreement);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+    await addOneAttribute(certifiedAttribute);
+    await addOneAttribute(declaredAttribute);
+    await addOneAttribute(verifiedAttribute);
+    const relatedAgreements = await addRelatedAgreements(agreement);
 
-      const acrivateAgreementReturnValue =
-        await agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        });
-
-      const agreementEvent = await readLastAgreementEvent(agreement.id);
-
-      expect(agreementEvent).toMatchObject({
-        type: "AgreementActivated",
-        event_version: 2,
-        version: "1",
-        stream_id: agreement.id,
+    const acrivateAgreementReturnValue =
+      await agreementService.activateAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
       });
 
-      const actualAgreementActivated = fromAgreementV2(
-        decodeProtobufPayload({
-          messageType: AgreementActivatedV2,
-          payload: agreementEvent.data,
-        }).agreement!
-      );
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
 
-      const contractDocumentId = actualAgreementActivated.contract!.id;
-      const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
-      const contractDocumentName = `${consumer.id}_${
-        producer.id
-      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
-
-      const expectedContract = {
-        id: contractDocumentId,
-        contentType: "application/pdf",
-        createdAt: contractCreatedAt,
-        path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
-        prettyName: "Richiesta di fruizione",
-        name: contractDocumentName,
-      };
-
-      const expectedActivatedAgreement: Agreement = {
-        ...agreement,
-        state: agreementState.active,
-        stamps: {
-          ...agreement.stamps,
-          activation: {
-            who: authData.userId,
-            when: actualAgreementActivated.stamps.activation!.when,
-          },
-        },
-        certifiedAttributes: [{ id: certifiedAttribute.id }],
-        declaredAttributes: [{ id: declaredAttribute.id }],
-        verifiedAttributes: [{ id: verifiedAttribute.id }],
-        contract: expectedContract,
-        suspendedByProducer: false,
-        suspendedByConsumer: false,
-      };
-
-      expect(actualAgreementActivated).toMatchObject(
-        expectedActivatedAgreement
-      );
-
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(expectedContract.path);
-
-      await testRelatedAgreementsArchiviation(relatedAgreements);
-      expect(acrivateAgreementReturnValue).toMatchObject(
-        expectedActivatedAgreement
-      );
+    expect(agreementEvent).toMatchObject({
+      type: "AgreementActivated",
+      event_version: 2,
+      version: "1",
+      stream_id: agreement.id,
     });
 
-    it("should succeed and activate the Agreement when suspendedByPlatform starting value is true, and also add an UnsuspendedByPlatform event", async () => {
-      agreement.suspendedByPlatform = true;
-      await addOneAgreement(agreement);
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAttribute(certifiedAttribute);
-      await addOneAttribute(declaredAttribute);
-      await addOneAttribute(verifiedAttribute);
-      const relatedAgreements = await addRelatedAgreements(agreement);
+    const actualAgreementActivated = fromAgreementV2(
+      decodeProtobufPayload({
+        messageType: AgreementActivatedV2,
+        payload: agreementEvent.data,
+      }).agreement!
+    );
 
-      const acrivateAgreementReturnValue =
-        await agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        });
+    const contractDocumentId = actualAgreementActivated.contract!.id;
+    const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
+    const contractDocumentName = `${consumer.id}_${
+      producer.id
+    }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
-      const activationEvent = await readAgreementEventByVersion(
-        agreement.id,
-        1
-      );
+    const expectedContract = {
+      id: contractDocumentId,
+      contentType: "application/pdf",
+      createdAt: contractCreatedAt,
+      path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+      prettyName: "Richiesta di fruizione",
+      name: contractDocumentName,
+    };
 
-      expect(activationEvent).toMatchObject({
-        type: "AgreementActivated",
-        event_version: 2,
-        version: "1",
-        stream_id: agreement.id,
-      });
-
-      const actualAgreementActivated = fromAgreementV2(
-        decodeProtobufPayload({
-          messageType: AgreementActivatedV2,
-          payload: activationEvent.data,
-        }).agreement!
-      );
-
-      const contractDocumentId = actualAgreementActivated.contract!.id;
-      const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
-      const contractDocumentName = `${consumer.id}_${
-        producer.id
-      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
-
-      const expectedContract = {
-        id: contractDocumentId,
-        contentType: "application/pdf",
-        createdAt: contractCreatedAt,
-        path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
-        prettyName: "Richiesta di fruizione",
-        name: contractDocumentName,
-      };
-
-      const expectedActivatedAgreement: Agreement = {
-        ...agreement,
-        state: agreementState.active,
-        stamps: {
-          ...agreement.stamps,
-          activation: {
-            who: authData.userId,
-            when: actualAgreementActivated.stamps.activation!.when,
-          },
+    const expectedActivatedAgreement: Agreement = {
+      ...agreement,
+      state: agreementState.active,
+      stamps: {
+        ...agreement.stamps,
+        activation: {
+          who: authData.userId,
+          when: actualAgreementActivated.stamps.activation!.when,
         },
-        certifiedAttributes: [{ id: certifiedAttribute.id }],
-        declaredAttributes: [{ id: declaredAttribute.id }],
-        verifiedAttributes: [{ id: verifiedAttribute.id }],
-        contract: expectedContract,
-        suspendedByProducer: false,
-        suspendedByConsumer: false,
-      };
+      },
+      certifiedAttributes: [{ id: certifiedAttribute.id }],
+      declaredAttributes: [{ id: declaredAttribute.id }],
+      verifiedAttributes: [{ id: verifiedAttribute.id }],
+      contract: expectedContract,
+      suspendedByProducer: false,
+      suspendedByConsumer: false,
+      suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
+    };
 
-      expect(actualAgreementActivated).toMatchObject(
-        expectedActivatedAgreement
-      );
+    expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
 
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(expectedContract.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(expectedContract.path);
 
-      await testRelatedAgreementsArchiviation(relatedAgreements);
-
-      const expectedActivatedAgreementUnsuspendByPlatform: Agreement = {
-        ...expectedActivatedAgreement,
-        suspendedByPlatform: false,
-      };
-
-      const unsuspensionEvent = await readAgreementEventByVersion(
-        expectedActivatedAgreement.id,
-        2
-      );
-
-      expect(unsuspensionEvent).toMatchObject({
-        type: "AgreementUnsuspendedByPlatform",
-        event_version: 2,
-        version: "2",
-        stream_id: expectedActivatedAgreement.id,
-      });
-
-      const actualAgreementUnsuspendByPlatform = fromAgreementV2(
-        decodeProtobufPayload({
-          messageType: AgreementUnsuspendedByPlatformV2,
-          payload: unsuspensionEvent.data,
-        }).agreement!
-      );
-
-      expect(actualAgreementUnsuspendByPlatform).toMatchObject(
-        expectedActivatedAgreementUnsuspendByPlatform
-      );
-      expect(acrivateAgreementReturnValue).toMatchObject(
-        expectedActivatedAgreementUnsuspendByPlatform
-      );
-    });
+    await testRelatedAgreementsArchiviation(relatedAgreements);
+    expect(acrivateAgreementReturnValue).toMatchObject(
+      expectedActivatedAgreement
+    );
   });
 
   it("should activate a Suspended Agreement when the requester is the Consumer or the Producer, and all attributes are valid", async () => {
@@ -613,9 +495,7 @@ describe("activate agreement", () => {
       },
       suspendedByConsumer: false,
       suspendedByProducer: false,
-      // suspendedByPlatform: false,
-      // TODO ^^ this makes the test flaky, is it ok to have it possibly true?
-      // Active with suspendedByPlatform = true should never be possible...
+      suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
     };
 
     expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
@@ -628,6 +508,7 @@ describe("activate agreement", () => {
   });
 
   it("should keep a Suspended Agreement in Suspended state when it was suspended both by Producer and Consumer", async () => {
+    // TODO distinguish cases where suspendedByPlatform was true or false. In one case, it also adds an unsuspend event
     const producer = getMockTenant();
 
     const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -764,6 +645,7 @@ describe("activate agreement", () => {
       },
       suspendedByConsumer: isProducer ? true : false,
       suspendedByProducer: !isProducer ? true : false,
+      suspendedByPlatform: false, // attributes are valid so this must be false
     };
 
     expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
