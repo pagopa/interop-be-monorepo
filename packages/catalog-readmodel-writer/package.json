@@ -20,7 +20,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
+    "@pagopa/eslint-config": "4.0.1",
     "@types/node": "20.12.13",
     "@types/uuid": "9.0.8",
     "date-fns": "3.6.0",
