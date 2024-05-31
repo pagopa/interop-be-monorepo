@@ -1492,7 +1492,13 @@ async function generateRiskAnalysisDocument({
     fileManager,
     config,
     logger
-  ).createRiskAnalysisDocument(purpose, dailyCalls, eserviceInfo, tenantKind);
+  ).createRiskAnalysisDocument(
+    purpose,
+    dailyCalls,
+    eserviceInfo,
+    tenantKind,
+    "it"
+  );
 }
 
 const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {

@@ -3,11 +3,16 @@ import { fileURLToPath } from "url";
 import {
   FileManager,
   FormQuestionRules,
+  LocalizedText,
   Logger,
   PDFGenerator,
   RiskAnalysisFormRules,
+  answerNotFoundInConfigError,
+  dataType,
   dateAtRomeZone,
   getFormRulesByVersion,
+  incompatibleConfigError,
+  unexpectedEmptyAnswerError,
 } from "pagopa-interop-commons";
 import {
   PurposeDocumentEServiceInfo,
@@ -22,7 +27,7 @@ import {
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import {
   missingRiskAnalysis,
   riskAnalysisConfigVersionNotFound,
@@ -32,6 +37,8 @@ import { PurposeProcessConfig } from "../utilities/config.js";
 const YES = "Sì";
 const NO = "No";
 const NOT_AVAILABLE = "N/A";
+
+type Language = keyof LocalizedText;
 
 const createRiskAnalysisDocumentName = (): string =>
   `${new Date().toISOString()}_${generateId()}_risk_analysis.pdf`;
@@ -51,7 +58,8 @@ export const riskAnalysisDocumentBuilder = (
       purpose: Purpose,
       dailyCalls: number,
       eserviceInfo: PurposeDocumentEServiceInfo,
-      tenantKind: TenantKind
+      tenantKind: TenantKind,
+      language: Language
     ): Promise<PurposeVersionDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -85,6 +93,7 @@ export const riskAnalysisDocumentBuilder = (
         eserviceInfo,
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
+        language,
       });
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
@@ -121,6 +130,7 @@ const getPdfPayload = ({
   eserviceInfo,
   isFreeOfCharge,
   freeOfChargeReason,
+  language,
 }: {
   riskAnalysisFormConfig: RiskAnalysisFormRules;
   riskAnalysisForm: PurposeRiskAnalysisForm;
@@ -128,15 +138,22 @@ const getPdfPayload = ({
   eserviceInfo: PurposeDocumentEServiceInfo;
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
+  language: Language;
 }): RiskAnalysisDocumentPDFPayload => {
-  const answers = formatAnswers(riskAnalysisFormConfig, riskAnalysisForm);
+  const answers = formatAnswers(
+    riskAnalysisFormConfig,
+    riskAnalysisForm,
+    language
+  );
   const { freeOfChargeHtml, freeOfChargeReasonHtml } = formatFreeOfCharge(
     isFreeOfCharge,
     freeOfChargeReason
   );
-  const eServiceMode = match(eserviceInfo.mode)
-    .with(eserviceMode.receive, () => "Riceve")
-    .with(eserviceMode.deliver, () => "Eroga")
+  const eServiceMode = match({ mode: eserviceInfo.mode, language })
+    .with({ mode: eserviceMode.receive, language: "it" }, () => "Riceve")
+    .with({ mode: eserviceMode.deliver, language: "it" }, () => "Eroga")
+    .with({ mode: eserviceMode.receive, language: "en" }, () => "Receives")
+    .with({ mode: eserviceMode.deliver, language: "en" }, () => "Delivers")
     .exhaustive();
 
   return {
@@ -160,35 +177,136 @@ const getPdfPayload = ({
   };
 };
 
-function formatSingleAnswer(
-  _questionRules: FormQuestionRules,
-  _singleAnswer: RiskAnalysisSingleAnswer
-): string {
-  return "";
-}
-
-function formatMultiAnswer(
-  _questionRules: FormQuestionRules,
-  _multiAnswer: RiskAnalysisMultiAnswer
-): string {
-  return "";
+function getLocalizedLabel(text: LocalizedText, language: Language): string {
+  return match(language)
+    .with("it", () => text.it)
+    .with("en", () => text.en)
+    .exhaustive();
 }
 
 function formatAnswers(
   formConfig: RiskAnalysisFormRules,
-  riskAnalysisForm: PurposeRiskAnalysisForm
+  riskAnalysisForm: PurposeRiskAnalysisForm,
+  language: Language
 ): string {
   return formConfig.questions
     .flatMap((questionRules) => {
       const singleAnswers = riskAnalysisForm.singleAnswers
         .filter((a) => a.key === questionRules.id)
-        .map((a) => formatSingleAnswer(questionRules, a));
+        .map((a) => formatSingleAnswer(questionRules, a, language));
       const multiAnswers = riskAnalysisForm.multiAnswers
         .filter((a) => a.key === questionRules.id)
-        .map((a) => formatMultiAnswer(questionRules, a));
+        .map((a) => formatMultiAnswer(questionRules, a, language));
       return singleAnswers.concat(multiAnswers);
     })
     .join("\n");
+}
+
+function getSingleAnswerText(
+  language: Language,
+  questionRules: FormQuestionRules,
+  answer: RiskAnalysisSingleAnswer
+): string {
+  return match(questionRules)
+    .with({ dataType: dataType.freeText }, (questionConfig) => {
+      if (!answer.value) {
+        throw unexpectedEmptyAnswerError(questionConfig.id);
+      }
+      return answer.value;
+    })
+    .with({ dataType: dataType.single }, (questionConfig) => {
+      if (!answer.value) {
+        throw unexpectedEmptyAnswerError(questionConfig.id);
+      }
+      const labeledValue = questionConfig.options.find(
+        (q) => q.value === answer.value
+      );
+      if (!labeledValue) {
+        throw answerNotFoundInConfigError(questionConfig.id, questionRules.id);
+      }
+      return getLocalizedLabel(labeledValue.label, language);
+    })
+    .with({ dataType: dataType.multi }, (questionConfig) => {
+      throw incompatibleConfigError(questionConfig.id, questionRules.id);
+    })
+    .exhaustive();
+}
+
+function getMultiAnswerText(
+  language: Language,
+  questionRules: FormQuestionRules,
+  answer: RiskAnalysisMultiAnswer
+): string {
+  return match(questionRules)
+    .returnType<string>()
+    .with(
+      { dataType: P.union(dataType.freeText, dataType.single) },
+      (questionConfig) => {
+        throw incompatibleConfigError(questionConfig.id, questionRules.id);
+      }
+    )
+    .with({ dataType: dataType.multi }, (questionConfig) =>
+      answer.values
+        .map((value) => {
+          const labeledValue = questionConfig.options.find(
+            (q) => q.value === value
+          );
+          if (!labeledValue) {
+            throw answerNotFoundInConfigError(
+              questionConfig.id,
+              questionRules.id
+            );
+          }
+          return getLocalizedLabel(labeledValue.label, language);
+        })
+        .join(", ")
+    )
+    .exhaustive();
+}
+
+function formatSingleAnswer(
+  questionRules: FormQuestionRules,
+  singleAnswer: RiskAnalysisSingleAnswer,
+  language: Language
+): string {
+  return formatAnswer(
+    questionRules,
+    singleAnswer,
+    language,
+    getSingleAnswerText.bind(null, language)
+  );
+}
+
+function formatMultiAnswer(
+  questionRules: FormQuestionRules,
+  multiAnswer: RiskAnalysisMultiAnswer,
+  language: Language
+): string {
+  return formatAnswer(
+    questionRules,
+    multiAnswer,
+    language,
+    getMultiAnswerText.bind(null, language)
+  );
+}
+
+function formatAnswer<T>(
+  questionRules: FormQuestionRules,
+  answer: T,
+  language: Language,
+  getAnswerText: (questionRules: FormQuestionRules, answer: T) => string
+): string {
+  const questionLabel = getLocalizedLabel(questionRules.label, language);
+  const infoLabel =
+    questionRules.infoLabel &&
+    getLocalizedLabel(questionRules.infoLabel, language);
+  const answerText = getAnswerText(questionRules, answer);
+  return `<div class="item">
+  <div class="label">${questionLabel}</div>
+  ${infoLabel ? `<div class="info-label">${infoLabel}</div>` : ""}
+  <div class="answer">${answerText}</div>s
+</div>
+`;
 }
 
 function formatFreeOfCharge(
