@@ -106,7 +106,7 @@ import {
   archiveRelatedToAgreements,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
-  createSuspensionByPlatformEvent,
+  maybeCreateSuspensionByPlatformEvent,
 } from "./agreementActivationProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -1004,12 +1004,15 @@ export function agreementServiceBuilder(
         contractBuilderInstance
       );
 
+      /* We update the suspendedByPlatform flag after creating the activation event,
+      so that, if changed, the suspendedByPlatform flag is updated only in the
+      dedicated event */
       const updatedAgreement = {
         ...updatedAgreementWithoutSuspendedByPlatform,
         suspendedByPlatform,
       };
 
-      const suspensionByPlatformEvent = createSuspensionByPlatformEvent(
+      const suspensionByPlatformEvent = maybeCreateSuspensionByPlatformEvent(
         agreement,
         updatedAgreement,
         correlationId

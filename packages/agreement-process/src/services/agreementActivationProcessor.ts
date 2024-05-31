@@ -175,7 +175,7 @@ export const archiveRelatedToAgreements = async (
   );
 };
 
-export function createSuspensionByPlatformEvent(
+export function maybeCreateSuspensionByPlatformEvent(
   agreement: WithMetadata<Agreement>,
   updatedAgreement: Agreement,
   correlationId: string
