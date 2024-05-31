@@ -462,7 +462,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      assertIsPurposeConsumer(organizationId, purpose);
+      assertOrganizationIsPurposeConsumer(organizationId, purpose);
 
       const eservice = await retrieveEService(
         purpose.eserviceId,
@@ -553,7 +553,7 @@ const assertSecurityUser = async (
   }
 };
 
-const assertIsPurposeConsumer = (
+const assertOrganizationIsPurposeConsumer = (
   organizationId: TenantId,
   purpose: Purpose
 ): void => {
