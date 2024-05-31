@@ -106,6 +106,7 @@ import {
   archiveRelatedToAgreements,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
+  createSuspensionByPlatformEvent,
 } from "./agreementActivationProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -922,7 +923,8 @@ export function agreementServiceBuilder(
       if (
         agreement.data.state === agreementState.pending &&
         nextStateByAttributes === agreementState.missingCertifiedAttributes &&
-        suspendedByPlatform
+        suspendedByPlatform &&
+        suspendedByPlatform !== agreement.data.suspendedByPlatform
       ) {
         /* In this case, it means that one of the certified attributes is not
           valid anymore. We put the agreement in the missingCertifiedAttributes state
@@ -977,10 +979,9 @@ export function agreementServiceBuilder(
           agreement: agreement.data,
           suspendedByConsumer,
           suspendedByProducer,
-          suspendedByPlatform,
         });
 
-      const updatedAgreement: Agreement = {
+      const updatedAgreementWithoutSuspendedByPlatform: Agreement = {
         ...agreement.data,
         ...updatedAgreementSeed,
       };
@@ -988,7 +989,7 @@ export function agreementServiceBuilder(
       const activationEvent = await createActivationEvent(
         firstActivation,
         agreement,
-        updatedAgreement,
+        updatedAgreementWithoutSuspendedByPlatform,
         updatedAgreementSeed,
         eservice,
         consumer,
@@ -998,6 +999,17 @@ export function agreementServiceBuilder(
         contractBuilderInstance
       );
 
+      const updatedAgreement = {
+        ...updatedAgreementWithoutSuspendedByPlatform,
+        suspendedByPlatform,
+      };
+
+      const suspensionByPlatformEvent = createSuspensionByPlatformEvent(
+        agreement,
+        updatedAgreement,
+        correlationId
+      );
+
       const archiveEvents = await archiveRelatedToAgreements(
         agreement.data,
         authData.userId,
@@ -1005,7 +1017,11 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await repository.createEvents([activationEvent, ...archiveEvents]);
+      await repository.createEvents([
+        activationEvent,
+        ...(suspensionByPlatformEvent ? [suspensionByPlatformEvent] : []),
+        ...archiveEvents,
+      ]);
 
       return updatedAgreement;
     },
