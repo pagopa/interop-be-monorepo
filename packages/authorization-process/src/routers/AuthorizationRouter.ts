@@ -17,10 +17,7 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import {
-  createClientErrorMapper,
-  getClientErrorMapper,
-} from "../utilities/errorMappers.js";
+import { getClientErrorMapper } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
