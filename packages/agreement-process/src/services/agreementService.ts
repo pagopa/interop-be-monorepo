@@ -396,12 +396,6 @@ export function agreementServiceBuilder(
         consumer
       );
 
-      /* TODO: 
-        FIX the newstate by flag should considerer the suspendedByPlatformFlag, 
-        it's necesary to evaluate again the falg, if it is true, stop submit flow and return 
-        event type AgreementSetToMissingCertifiedAttributesByPlatform, after save event 
-        in the eventstore to update agreemnt's state to MISSING_CERTIFIED_ATTRBUTES
-      */
       const newState = agreementStateByFlags(
         nextState,
         undefined,
