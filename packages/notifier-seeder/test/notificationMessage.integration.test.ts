@@ -144,7 +144,7 @@ describe("Notification tests", async () => {
     await startedElasticMQContainer.stop();
   });
 
-  describe("Catalog, Purpose, Agreement Event Message", async () => {
+  describe("Catalog, Purpose, Agreement, Authorization Event Message", async () => {
     it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
