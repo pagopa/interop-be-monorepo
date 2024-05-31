@@ -493,7 +493,7 @@ export function authorizationServiceBuilder(
         purposeVersionState.draft,
         purposeVersionState.waitingForApproval,
       ];
-      const purposeVersion = purpose.versions.filter(
+      const purposeVersion = purpose.versions.find(
         (v) => !invalidPurposeVersionStates.includes(v.state)
       );
 
