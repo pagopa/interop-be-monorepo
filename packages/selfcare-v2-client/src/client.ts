@@ -8,3 +8,4 @@ export const selfcareV2Client = createApiClient(config.selfcare_baseUrl, {
     },
   },
 });
+export type SelfcareV2Client = typeof selfcareV2Client;
