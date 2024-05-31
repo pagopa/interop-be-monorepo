@@ -1,12 +1,12 @@
 import {
-  AuthData,
-  CreateEvent,
   DB,
   FileManager,
   Logger,
   WithLogger,
   AppContext,
+  PDFGenerator,
   eventRepository,
+  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -14,33 +14,51 @@ import {
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
+  AttributeId,
+  Descriptor,
+  DescriptorId,
+  EService,
+  EServiceId,
   ListResult,
+  Tenant,
+  TenantId,
+  UserId,
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
   generateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import {
   agreementAlreadyExists,
+  agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
+  agreementNotFound,
   descriptorNotFound,
+  eServiceNotFound,
   noNewerDescriptor,
   publishedDescriptorNotFound,
+  tenantNotFound,
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
   CompactEService,
   CompactOrganization,
+  CompactTenant,
+  UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
+  toCreateEventAgreementActivated,
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchivedByConsumer,
   toCreateEventAgreementArchivedByUpgrade,
+  toCreateEventAgreementConsumerDocumentAdded,
+  toCreateEventAgreementConsumerDocumentRemoved,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
-  toCreateEventAgreementUpgraded,
+  toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -49,23 +67,30 @@ import {
   agreementCloningConflictingStates,
   agreementDeletableStates,
   agreementRejectableStates,
+  agreementSuspendableStates,
   agreementUpdatableStates,
   agreementUpgradableStates,
-  assertAgreementExist,
-  assertDescriptorExist,
-  assertEServiceExist,
+  assertActivableState,
+  assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
-  assertTenantExist,
+  assertSubmittableState,
   declaredAttributesSatisfied,
+  failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
+  validateActivationOnDescriptor,
+  validateActiveOrPendingAgreement,
   validateCertifiedAttributes,
+  validateCreationOnDescriptor,
+  validateSubmitOnDescriptor,
   verifiedAttributesSatisfied,
-  verifyConflictingAgreements,
+  verifyConsumerDoesNotActivatePending,
+  verifyCreationConflictingAgreements,
+  verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import {
   ApiAgreementDocumentSeed,
@@ -74,34 +99,103 @@ import {
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { activateAgreementLogic } from "./agreementActivationProcessor.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
-  addConsumerDocumentLogic,
-  removeAgreementConsumerDocumentLogic,
-} from "./agreementConsumerDocumentProcessor.js";
+  archiveRelatedToAgreements,
+  createActivationEvent,
+  createActivationUpdateAgreementSeed,
+} from "./agreementActivationProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
-import { createAgreementLogic } from "./agreementCreationProcessor.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
-import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import {
+  createAgreementSuspendedEvent,
+  createSuspensionUpdatedAgreement,
+} from "./agreementSuspensionProcessor.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
-} from "./readmodel/readModelService.js";
+  ReadModelService,
+} from "./readModelService.js";
+import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
+import {
+  suspendedByConsumerFlag,
+  suspendedByProducerFlag,
+  agreementStateByFlags,
+  nextStateByAttributes,
+} from "./agreementStateProcessor.js";
+import {
+  createSubmissionUpdateAgreementSeed,
+  isActiveOrSuspended,
+  validateConsumerEmail,
+} from "./agreementSubmissionProcessor.js";
+import { computeAgreementsStateByAttribute } from "./agreementStateProcessor.js";
 
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
+export const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (!eservice) {
+    throw eServiceNotFound(eserviceId);
+  }
+  return eservice;
+};
+
+export const retrieveAgreement = async (
+  agreementId: AgreementId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Agreement>> => {
+  const agreement = await readModelService.getAgreementById(agreementId);
+  if (!agreement) {
+    throw agreementNotFound(agreementId);
+  }
+  return agreement;
+};
+
+export const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+const retrieveDescriptor = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
+};
+
+function retrieveAgreementDocument(
+  agreement: Agreement,
+  documentId: AgreementDocumentId
+): AgreementDocument {
+  const document = agreement.consumerDocuments.find((d) => d.id === documentId);
+
+  if (!document) {
+    throw agreementDocumentNotFound(documentId, agreement.id);
+  }
+  return document;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
-  eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery,
-  fileManager: FileManager
+  readModelService: ReadModelService,
+  fileManager: FileManager,
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -112,7 +206,7 @@ export function agreementServiceBuilder(
       logger: Logger
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await agreementQuery.getAgreements(filters, limit, offset);
+      return await readModelService.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
       agreementId: AgreementId,
@@ -120,8 +214,7 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
-      const agreement = await agreementQuery.getAgreementById(agreementId);
-      assertAgreementExist(agreementId, agreement);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       return agreement.data;
     },
     async createAgreement(
@@ -131,15 +224,49 @@ export function agreementServiceBuilder(
       logger.info(
         `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
       );
-      const [agreement, createAgreementEvent] = await createAgreementLogic(
-        agreementPayload,
-        authData,
-        agreementQuery,
-        eserviceQuery,
-        tenantQuery,
-        correlationId
+
+      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
+        agreementPayload.eserviceId
       );
-      await repository.createEvent(createAgreementEvent);
+      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
+        agreementPayload.descriptorId
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const descriptor = validateCreationOnDescriptor(eservice, descriptorId);
+
+      await verifyCreationConflictingAgreements(
+        authData.organizationId,
+        agreementPayload,
+        readModelService
+      );
+      const consumer = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      if (eservice.producerId !== consumer.id) {
+        validateCertifiedAttributes({ descriptor, consumer });
+      }
+
+      const agreement: Agreement = {
+        id: generateId(),
+        eserviceId,
+        descriptorId,
+        producerId: eservice.producerId,
+        consumerId: authData.organizationId,
+        state: agreementState.draft,
+        verifiedAttributes: [],
+        certifiedAttributes: [],
+        declaredAttributes: [],
+        consumerDocuments: [],
+        createdAt: new Date(),
+        stamps: {},
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementAdded(agreement, correlationId)
+      );
 
       return agreement;
     },
@@ -152,7 +279,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await agreementQuery.getProducers(producerName, limit, offset);
+      return await readModelService.getProducers(producerName, limit, offset);
     },
     async getAgreementConsumers(
       consumerName: string | undefined,
@@ -163,7 +290,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      return await agreementQuery.getConsumers(consumerName, limit, offset);
+      return await readModelService.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
       agreementId: AgreementId,
@@ -171,18 +298,28 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Updating agreement ${agreementId}`);
-      const agreementToBeUpdated = await agreementQuery.getAgreementById(
-        agreementId
+      const agreementToBeUpdated = await retrieveAgreement(
+        agreementId,
+        readModelService
       );
 
+      assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeUpdated.data.state,
+        agreementUpdatableStates
+      );
+
+      const updatedAgreement: Agreement = {
+        ...agreementToBeUpdated.data,
+        consumerNotes: agreement.consumerNotes,
+      };
+
       await repository.createEvent(
-        await updateAgreementLogic(
-          {
-            agreementId,
-            agreement,
-            authData,
-            agreementToBeUpdated,
-          },
+        toCreateEventDraftAgreementUpdated(
+          updatedAgreement,
+          agreementToBeUpdated.metadata.version,
           correlationId
         )
       );
@@ -192,69 +329,249 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
-      const agreement = await agreementQuery.getAgreementById(agreementId);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumer(agreement.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementDeletableStates
+      );
+
+      for (const d of agreement.data.consumerDocuments) {
+        await fileManager.delete(config.s3Bucket, d.path, logger);
+      }
 
       await repository.createEvent(
-        await deleteAgreementLogic(
-          {
-            agreementId,
-            authData,
-            deleteFile: fileManager.delete,
-            agreement,
-          },
-          correlationId,
-          logger
+        toCreateEventAgreementDeleted(
+          agreement.data,
+          agreement.metadata.version,
+          correlationId
         )
       );
     },
     async submitAgreement(
       agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload,
-      ctx: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
-      ctx.logger.info(`Submitting agreement ${agreementId}`);
-      const [agreement, updatesEvents] = await submitAgreementLogic(
-        agreementId,
-        payload,
-        contractBuilder(
-          ctx.authData.selfcareId,
-          attributeQuery,
-          fileManager.storeBytes,
-          ctx.logger
-        ),
-        eserviceQuery,
-        agreementQuery,
-        tenantQuery,
-        ctx
+      logger.info(`Submitting agreement ${agreementId}`);
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertSubmittableState(agreement.data.state, agreement.data.id);
+      await verifySubmissionConflictingAgreements(
+        agreement.data,
+        readModelService
       );
 
-      for (const event of updatesEvents) {
-        await repository.createEvent(event);
+      if (agreement.data.state === agreementState.draft) {
+        await validateConsumerEmail(agreement.data, readModelService);
       }
 
-      return agreement;
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = await validateSubmitOnDescriptor(
+        eservice,
+        agreement.data.descriptorId
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
+        readModelService
+      );
+
+      const nextState = nextStateByAttributes(
+        agreement.data,
+        descriptor,
+        consumer
+      );
+
+      const newState = agreementStateByFlags(
+        nextState,
+        undefined,
+        undefined,
+        undefined
+      );
+
+      validateActiveOrPendingAgreement(agreement.data.id, newState);
+
+      const updateSeed = createSubmissionUpdateAgreementSeed(
+        descriptor,
+        consumer,
+        eservice,
+        agreement.data,
+        payload,
+        newState,
+        authData.userId
+      );
+
+      const agreements = (
+        await readModelService.getAllAgreements({
+          consumerId: agreement.data.consumerId,
+          eserviceId: agreement.data.eserviceId,
+          agreementStates: [agreementState.active, agreementState.suspended],
+        })
+      ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
+
+      const updatedAgreement = {
+        ...agreement.data,
+        ...updateSeed,
+      };
+
+      const contract = await contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        config,
+        logger
+      ).createContract(
+        authData.selfcareId,
+        agreement.data,
+        eservice,
+        consumer,
+        producer,
+        updateSeed
+      );
+
+      const submittedAgreement =
+        updatedAgreement.state === agreementState.active &&
+        agreements.length === 0
+          ? {
+              ...updatedAgreement,
+              contract: apiAgreementDocumentToAgreementDocument(contract),
+            }
+          : updatedAgreement;
+
+      const agreementEvent =
+        newState === agreementState.active
+          ? toCreateEventAgreementActivated(
+              submittedAgreement,
+              agreement.metadata.version,
+              correlationId
+            )
+          : toCreateEventAgreementSubmitted(
+              submittedAgreement,
+              agreement.metadata.version,
+              correlationId
+            );
+
+      const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+        isActiveOrSuspended(newState)
+          ? agreements.map((agreement) =>
+              createAgreementArchivedByUpgradeEvent(
+                agreement,
+                authData.userId,
+                correlationId
+              )
+            )
+          : [];
+
+      await repository.createEvents([
+        agreementEvent,
+        ...archivedAgreementsUpdates,
+      ]);
+
+      return submittedAgreement;
     },
     async upgradeAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Upgrading agreement ${agreementId}`);
-      const [agreement, events] = await upgradeAgreementLogic(
-        {
-          agreementId,
-          authData,
-          agreementQuery,
-          eserviceQuery,
-          tenantQuery,
-          copyFile: fileManager.copy,
-        },
-        correlationId,
-        logger
+
+      const agreementToBeUpgraded = await retrieveAgreement(
+        agreementId,
+        readModelService
       );
 
-      for (const event of events) {
-        await repository.createEvent(event);
+      assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeUpgraded.data.state,
+        agreementUpgradableStates
+      );
+
+      const eservice = await retrieveEService(
+        agreementToBeUpgraded.data.eserviceId,
+        readModelService
+      );
+
+      const newDescriptor = eservice.descriptors.find(
+        (d) => d.state === descriptorState.published
+      );
+      if (newDescriptor === undefined) {
+        throw publishedDescriptorNotFound(eservice.id);
       }
+      const latestDescriptorVersion = z
+        .preprocess((x) => Number(x), z.number())
+        .safeParse(newDescriptor.version);
+      if (!latestDescriptorVersion.success) {
+        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
+      }
+
+      const currentDescriptor = retrieveDescriptor(
+        agreementToBeUpgraded.data.descriptorId,
+        eservice
+      );
+
+      const currentVersion = z
+        .preprocess((x) => Number(x), z.number())
+        .safeParse(currentDescriptor.version);
+      if (!currentVersion.success) {
+        throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
+      }
+
+      if (latestDescriptorVersion.data <= currentVersion.data) {
+        throw noNewerDescriptor(eservice.id, currentDescriptor.id);
+      }
+
+      const consumer = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
+        validateCertifiedAttributes({
+          descriptor: newDescriptor,
+          consumer,
+        });
+      }
+
+      const verifiedValid = verifiedAttributesSatisfied(
+        agreementToBeUpgraded.data.producerId,
+        newDescriptor,
+        consumer
+      );
+
+      const declaredValid = declaredAttributesSatisfied(
+        newDescriptor,
+        consumer
+      );
+
+      const [agreement, events] = await createUpgradeOrNewDraft({
+        agreement: agreementToBeUpgraded,
+        descriptorId: newDescriptor.id,
+        readModelService,
+        canBeUpgraded: verifiedValid && declaredValid,
+        copyFile: fileManager.copy,
+        userId: authData.userId,
+        correlationId,
+        logger,
+      });
+
+      await repository.createEvents(events);
 
       return agreement;
     },
@@ -263,39 +580,108 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Cloning agreement ${agreementId}`);
-      const [agreement, event] = await cloneAgreementLogic(
-        {
-          agreementId,
-          authData,
-          agreementQuery,
-          eserviceQuery,
-          tenantQuery,
-          copyFile: fileManager.copy,
-        },
-        correlationId,
-        logger
+
+      const agreementToBeCloned = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+      assertRequesterIsConsumer(agreementToBeCloned.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeCloned.data.state,
+        agreementClonableStates
       );
 
-      await repository.createEvent(event);
+      const activeAgreement = await readModelService.getAllAgreements({
+        consumerId: authData.organizationId,
+        eserviceId: agreementToBeCloned.data.eserviceId,
+        agreementStates: agreementCloningConflictingStates,
+      });
+      if (activeAgreement.length > 0) {
+        throw agreementAlreadyExists(
+          authData.organizationId,
+          agreementToBeCloned.data.eserviceId
+        );
+      }
 
-      return agreement;
+      const eservice = await retrieveEService(
+        agreementToBeCloned.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(
+        agreementToBeCloned.data.descriptorId,
+        eservice
+      );
+
+      validateCertifiedAttributes({
+        descriptor,
+        consumer: await retrieveTenant(
+          agreementToBeCloned.data.consumerId,
+          readModelService
+        ),
+      });
+
+      const id = generateId<AgreementId>();
+      const newAgreement: Agreement = {
+        ...agreementToBeCloned.data,
+        id,
+        verifiedAttributes: [],
+        certifiedAttributes: [],
+        declaredAttributes: [],
+        state: agreementState.draft,
+        createdAt: new Date(),
+        consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+          id,
+          agreementToBeCloned.data,
+          fileManager.copy,
+          logger
+        ),
+        stamps: {},
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementAdded(newAgreement, correlationId)
+      );
+
+      return newAgreement;
     },
     async addConsumerDocument(
       agreementId: AgreementId,
       documentSeed: ApiAgreementDocumentSeed,
-      ctx: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<AgreementDocument> {
-      ctx.logger.info(`Adding a consumer document to agreement ${agreementId}`);
+      logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
-      const [document, addDocumentEvent] = await addConsumerDocumentLogic(
-        agreementId,
-        documentSeed,
-        agreementQuery,
-        ctx
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+      const existentDocument = agreement.data.consumerDocuments.find(
+        (d) => d.id === documentSeed.id
       );
-      await repository.createEvent(addDocumentEvent);
 
-      return document;
+      if (existentDocument) {
+        throw agreementDocumentAlreadyExists(agreementId);
+      }
+      const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
+
+      const updatedAgreement = {
+        ...agreement.data,
+        consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementConsumerDocumentAdded(
+          newDocument.id,
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
+
+      return newDocument;
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
@@ -305,36 +691,59 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
-      const agreement = await agreementQuery.getAgreementById(agreementId);
-      assertAgreementExist(agreementId, agreement);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
-      const document = agreement.data.consumerDocuments.find(
-        (d) => d.id === documentId
-      );
-
-      if (!document) {
-        throw agreementDocumentNotFound(documentId, agreementId);
-      }
-
-      return document;
+      return retrieveAgreementDocument(agreement.data, documentId);
     },
     async suspendAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Suspending agreement ${agreementId}`);
-      const [agreement, events] = await suspendAgreementLogic({
-        agreementId,
-        authData,
-        agreementQuery,
-        tenantQuery,
-        eserviceQuery,
-        correlationId,
-      });
-      await repository.createEvent(events);
 
-      return agreement;
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementSuspendableStates
+      );
+
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(
+        agreement.data.descriptorId,
+        eservice
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      const updatedAgreement: Agreement = createSuspensionUpdatedAgreement({
+        agreement: agreement.data,
+        authData,
+        descriptor,
+        consumer,
+      });
+
+      await repository.createEvent(
+        createAgreementSuspendedEvent(
+          authData.organizationId,
+          correlationId,
+          updatedAgreement,
+          agreement
+        )
+      );
+
+      return updatedAgreement;
     },
     async getAgreementEServices(
       filters: AgreementEServicesQueryFilters,
@@ -346,7 +755,11 @@ export function agreementServiceBuilder(
         `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
 
-      return await agreementQuery.getEServices(filters, limit, offset);
+      return await readModelService.getAgreementsEServices(
+        filters,
+        limit,
+        offset
+      );
     },
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
@@ -357,17 +770,32 @@ export function agreementServiceBuilder(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
 
-      const removeDocumentEvent = await removeAgreementConsumerDocumentLogic(
-        agreementId,
-        documentId,
-        agreementQuery,
-        authData,
-        fileManager.delete,
-        correlationId,
-        logger
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+      const existentDocument = retrieveAgreementDocument(
+        agreement.data,
+        documentId
       );
 
-      return await repository.createEvent(removeDocumentEvent);
+      await fileManager.delete(config.s3Bucket, existentDocument.path, logger);
+
+      const updatedAgreement = {
+        ...agreement.data,
+        consumerDocuments: agreement.data.consumerDocuments.filter(
+          (d) => d.id !== documentId
+        ),
+      };
+
+      return await repository.createEvent(
+        toCreateEventAgreementConsumerDocumentRemoved(
+          documentId,
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
     },
     async rejectAgreement(
       agreementId: AgreementId,
@@ -375,41 +803,175 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Rejecting agreement ${agreementId}`);
-      const [agreement, event] = await rejectAgreementLogic(
-        {
-          agreementId,
-          rejectionReason,
-          authData,
-          agreementQuery,
-          tenantQuery,
-          eserviceQuery,
-        },
-        correlationId
+
+      const agreementToBeRejected = await retrieveAgreement(
+        agreementId,
+        readModelService
       );
-      await repository.createEvent(event);
-      return agreement;
+
+      assertRequesterIsProducer(agreementToBeRejected.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeRejected.data.state,
+        agreementRejectableStates
+      );
+
+      const eservice = await retrieveEService(
+        agreementToBeRejected.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(
+        agreementToBeRejected.data.descriptorId,
+        eservice
+      );
+
+      const consumer = await retrieveTenant(
+        agreementToBeRejected.data.consumerId,
+        readModelService
+      );
+
+      const rejectedAgreement: Agreement = {
+        ...agreementToBeRejected.data,
+        state: agreementState.rejected,
+        certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
+        verifiedAttributes: matchingVerifiedAttributes(
+          eservice,
+          descriptor,
+          consumer
+        ),
+        rejectionReason,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedByPlatform: undefined,
+        stamps: {
+          ...agreementToBeRejected.data.stamps,
+          rejection: createStamp(authData.userId),
+        },
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementRejected(
+          rejectedAgreement,
+          agreementToBeRejected.metadata.version,
+          correlationId
+        )
+      );
+      return rejectedAgreement;
     },
     async activateAgreement(
-      agreementId: Agreement["id"],
+      agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
-      const [agreement, updatesEvents] = await activateAgreementLogic(
-        agreementId,
-        agreementQuery,
-        eserviceQuery,
-        tenantQuery,
-        attributeQuery,
-        authData,
-        fileManager.storeBytes,
-        correlationId,
+
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        config,
         logger
       );
 
-      for (const event of updatesEvents) {
-        await repository.createEvent(event);
-      }
-      return agreement;
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      verifyConsumerDoesNotActivatePending(agreement.data, authData);
+      assertActivableState(agreement.data);
+
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = validateActivationOnDescriptor(
+        eservice,
+        agreement.data.descriptorId
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
+        readModelService
+      );
+
+      const nextState = nextStateByAttributes(
+        agreement.data,
+        descriptor,
+        consumer
+      );
+
+      const suspendedByConsumer = suspendedByConsumerFlag(
+        agreement.data,
+        authData.organizationId,
+        agreementState.active
+      );
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        agreementState.active
+      );
+
+      const newState = agreementStateByFlags(
+        nextState,
+        suspendedByProducer,
+        suspendedByConsumer,
+        undefined
+      );
+
+      failOnActivationFailure(newState, agreement.data);
+
+      const firstActivation =
+        agreement.data.state === agreementState.pending &&
+        newState === agreementState.active;
+
+      const updatedAgreementSeed: UpdateAgreementSeed =
+        createActivationUpdateAgreementSeed({
+          firstActivation,
+          newState,
+          descriptor,
+          consumer,
+          eservice,
+          authData,
+          agreement: agreement.data,
+          suspendedByConsumer,
+          suspendedByProducer,
+        });
+
+      const updatedAgreement: Agreement = {
+        ...agreement.data,
+        ...updatedAgreementSeed,
+      };
+
+      const activationEvent = await createActivationEvent(
+        firstActivation,
+        agreement,
+        updatedAgreement,
+        updatedAgreementSeed,
+        eservice,
+        consumer,
+        producer,
+        authData,
+        correlationId,
+        contractBuilderInstance
+      );
+
+      const archiveEvents = await archiveRelatedToAgreements(
+        agreement.data,
+        authData.userId,
+        readModelService,
+        correlationId
+      );
+
+      await repository.createEvents([activationEvent, ...archiveEvents]);
+
+      return updatedAgreement;
     },
     async archiveAgreement(
       agreementId: AgreementId,
@@ -417,22 +979,60 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Archiving agreement ${agreementId}`);
 
-      const [agreement, event] = await archiveAgreementLogic(
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertExpectedState(
         agreementId,
-        authData,
-        agreementQuery,
-        correlationId
+        agreement.data.state,
+        agreementArchivableStates
       );
-      await repository.createEvent(event);
 
-      return agreement;
+      const updatedAgreement: Agreement = {
+        ...agreement.data,
+        state: agreementState.archived,
+        stamps: {
+          ...agreement.data.stamps,
+          archiving: createStamp(authData.userId),
+        },
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementArchivedByConsumer(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
+
+      return updatedAgreement;
+    },
+    async computeAgreementsStateByAttribute(
+      attributeId: AttributeId,
+      consumer: CompactTenant,
+      { logger, correlationId }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Recalculating agreements state for Attribute ${attributeId} - Consumer Tenant ${consumer.id}`
+      );
+
+      const events = await computeAgreementsStateByAttribute(
+        attributeId,
+        consumer,
+        readModelService,
+        correlationId,
+        logger
+      );
+
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
     },
   };
 }
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
-async function createAndCopyDocumentsForClonedAgreement(
+export async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
   clonedAgreement: Agreement,
   copyFile: FileManager["copy"],
@@ -467,451 +1067,25 @@ async function createAndCopyDocumentsForClonedAgreement(
   }));
 }
 
-export async function deleteAgreementLogic(
-  {
-    agreementId,
-    authData,
-    deleteFile,
-    agreement,
-  }: {
-    agreementId: AgreementId;
-    authData: AuthData;
-    deleteFile: FileManager["delete"];
-    agreement: WithMetadata<Agreement> | undefined;
-  },
-  correlationId: string,
-  logger: Logger
-): Promise<CreateEvent<AgreementEvent>> {
-  assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreement.data.state,
-    agreementDeletableStates
-  );
-
-  for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(config.s3Bucket, d.path, logger);
-  }
-
-  return toCreateEventAgreementDeleted(
-    agreement.data,
-    agreement.metadata.version,
-    correlationId
-  );
-}
-
-export async function updateAgreementLogic(
-  {
-    agreementId,
-    agreement,
-    authData,
-    agreementToBeUpdated,
-  }: {
-    agreementId: AgreementId;
-    agreement: ApiAgreementUpdatePayload;
-    authData: AuthData;
-    agreementToBeUpdated: WithMetadata<Agreement> | undefined;
-  },
+export function createAgreementArchivedByUpgradeEvent(
+  agreement: WithMetadata<Agreement>,
+  userId: UserId,
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
-  assertAgreementExist(agreementId, agreementToBeUpdated);
-  assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeUpdated.data.state,
-    agreementUpdatableStates
-  );
-
-  const agreementUpdated: Agreement = {
-    ...agreementToBeUpdated.data,
-    consumerNotes: agreement.consumerNotes,
-  };
-
-  return toCreateEventDraftAgreementUpdated(
-    agreementUpdated,
-    agreementToBeUpdated.metadata.version,
-    correlationId
-  );
-}
-
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export async function upgradeAgreementLogic(
-  {
-    agreementId,
-    authData,
-    agreementQuery,
-    eserviceQuery,
-    tenantQuery,
-    copyFile,
-  }: {
-    agreementId: AgreementId;
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    eserviceQuery: EserviceQuery;
-    tenantQuery: TenantQuery;
-    copyFile: FileManager["copy"];
-  },
-  correlationId: string,
-  logger: Logger
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const agreementToBeUpgraded = await agreementQuery.getAgreementById(
-    agreementId
-  );
-  const tenant = await tenantQuery.getTenantById(authData.organizationId);
-  assertTenantExist(authData.organizationId, tenant);
-  assertAgreementExist(agreementId, agreementToBeUpgraded);
-  assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeUpgraded.data.state,
-    agreementUpgradableStates
-  );
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeUpgraded.data.eserviceId
-  );
-  assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
-
-  const newDescriptor = eservice.descriptors.find(
-    (d) => d.state === descriptorState.published
-  );
-  if (newDescriptor === undefined) {
-    throw publishedDescriptorNotFound(agreementToBeUpgraded.data.eserviceId);
-  }
-  const latestDescriptorVersion = z
-    .preprocess((x) => Number(x), z.number())
-    .safeParse(newDescriptor.version);
-  if (!latestDescriptorVersion.success) {
-    throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-  }
-
-  const currentDescriptor = eservice.descriptors.find(
-    (d) => d.id === agreementToBeUpgraded.data.descriptorId
-  );
-  if (currentDescriptor === undefined) {
-    throw descriptorNotFound(
-      eservice.id,
-      agreementToBeUpgraded.data.descriptorId
-    );
-  }
-
-  const currentVersion = z
-    .preprocess((x) => Number(x), z.number())
-    .safeParse(currentDescriptor.version);
-  if (!currentVersion.success) {
-    throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
-  }
-
-  if (latestDescriptorVersion.data <= currentVersion.data) {
-    throw noNewerDescriptor(eservice.id, currentDescriptor.id);
-  }
-
-  if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
-    validateCertifiedAttributes(newDescriptor, tenant);
-  }
-
-  const verifiedValid = verifiedAttributesSatisfied(
-    agreementToBeUpgraded.data.producerId,
-    newDescriptor,
-    tenant
-  );
-
-  const declaredValid = declaredAttributesSatisfied(newDescriptor, tenant);
-
-  if (verifiedValid && declaredValid) {
-    // upgradeAgreement
-    const stamp = createStamp(authData);
-    const archived: Agreement = {
-      ...agreementToBeUpgraded.data,
-      state: agreementState.archived,
-      stamps: {
-        ...agreementToBeUpgraded.data.stamps,
-        archiving: stamp,
-      },
-    };
-    const newAgreementId = generateId<AgreementId>();
-    const upgraded: Agreement = {
-      ...agreementToBeUpgraded.data,
-      id: newAgreementId,
-      descriptorId: newDescriptor.id,
-      createdAt: new Date(),
-      updatedAt: undefined,
-      rejectionReason: undefined,
-      stamps: {
-        ...agreementToBeUpgraded.data.stamps,
-        upgrade: stamp,
-      },
-      consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
-        newAgreementId,
-        agreementToBeUpgraded.data,
-        copyFile,
-        logger
-      ),
-    };
-
-    return [
-      upgraded,
-      [
-        toCreateEventAgreementArchivedByUpgrade(
-          archived,
-          agreementToBeUpgraded.metadata.version,
-          correlationId
-        ),
-        toCreateEventAgreementUpgraded(upgraded, correlationId),
-      ],
-    ];
-  } else {
-    // createNewDraftAgreement
-    await verifyConflictingAgreements(
-      agreementToBeUpgraded.data.consumerId,
-      agreementToBeUpgraded.data.eserviceId,
-      [agreementState.draft],
-      agreementQuery
-    );
-
-    const id = generateId<AgreementId>();
-    const newAgreement: Agreement = {
-      id,
-      eserviceId: agreementToBeUpgraded.data.eserviceId,
-      descriptorId: newDescriptor.id,
-      producerId: agreementToBeUpgraded.data.producerId,
-      consumerId: agreementToBeUpgraded.data.consumerId,
-      verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
-      certifiedAttributes: agreementToBeUpgraded.data.certifiedAttributes,
-      declaredAttributes: agreementToBeUpgraded.data.declaredAttributes,
-      consumerNotes: agreementToBeUpgraded.data.consumerNotes,
-      state: agreementState.draft,
-      createdAt: new Date(),
-      consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
-        id,
-        agreementToBeUpgraded.data,
-        copyFile,
-        logger
-      ),
-      stamps: {},
-    };
-
-    const createEvent = toCreateEventAgreementAdded(
-      newAgreement,
-      correlationId
-    );
-
-    return [newAgreement, [createEvent]];
-  }
-}
-
-export async function cloneAgreementLogic(
-  {
-    agreementId,
-    authData,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-    copyFile,
-  }: {
-    agreementId: AgreementId;
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    tenantQuery: TenantQuery;
-    eserviceQuery: EserviceQuery;
-    copyFile: FileManager["copy"];
-  },
-  correlationId: string,
-  logger: Logger
-): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
-  const agreementToBeCloned = await agreementQuery.getAgreementById(
-    agreementId
-  );
-  assertAgreementExist(agreementId, agreementToBeCloned);
-  assertRequesterIsConsumer(agreementToBeCloned.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeCloned.data.state,
-    agreementClonableStates
-  );
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeCloned.data.eserviceId
-  );
-  assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
-
-  const activeAgreement = await agreementQuery.getAllAgreements({
-    consumerId: authData.organizationId,
-    eserviceId: agreementToBeCloned.data.eserviceId,
-    agreementStates: agreementCloningConflictingStates,
-  });
-  if (activeAgreement.length > 0) {
-    throw agreementAlreadyExists(
-      authData.organizationId,
-      agreementToBeCloned.data.eserviceId
-    );
-  }
-
-  const consumer = await tenantQuery.getTenantById(
-    agreementToBeCloned.data.consumerId
-  );
-  assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreementToBeCloned.data.descriptorId
-  );
-  assertDescriptorExist(
-    eservice.id,
-    agreementToBeCloned.data.descriptorId,
-    descriptor
-  );
-
-  validateCertifiedAttributes(descriptor, consumer);
-
-  const id = generateId<AgreementId>();
-  const newAgreement: Agreement = {
-    id,
-    eserviceId: agreementToBeCloned.data.eserviceId,
-    descriptorId: agreementToBeCloned.data.descriptorId,
-    producerId: agreementToBeCloned.data.producerId,
-    consumerId: agreementToBeCloned.data.consumerId,
-    consumerNotes: agreementToBeCloned.data.consumerNotes,
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    state: agreementState.draft,
-    createdAt: new Date(),
-    consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
-      id,
-      agreementToBeCloned.data,
-      copyFile,
-      logger
-    ),
-    stamps: {},
-  };
-
-  return [
-    newAgreement,
-    toCreateEventAgreementAdded(newAgreement, correlationId),
-  ];
-}
-
-export async function rejectAgreementLogic(
-  {
-    agreementId,
-    rejectionReason,
-    authData,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-  }: {
-    agreementId: AgreementId;
-    rejectionReason: string;
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    tenantQuery: TenantQuery;
-    eserviceQuery: EserviceQuery;
-  },
-  correlationId: string
-): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
-  const agreementToBeRejected = await agreementQuery.getAgreementById(
-    agreementId
-  );
-  assertAgreementExist(agreementId, agreementToBeRejected);
-
-  assertRequesterIsProducer(agreementToBeRejected.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeRejected.data.state,
-    agreementRejectableStates
-  );
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeRejected.data.eserviceId
-  );
-  assertEServiceExist(agreementToBeRejected.data.eserviceId, eservice);
-
-  const consumer = await tenantQuery.getTenantById(
-    agreementToBeRejected.data.consumerId
-  );
-  assertTenantExist(agreementToBeRejected.data.consumerId, consumer);
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreementToBeRejected.data.descriptorId
-  );
-  assertDescriptorExist(
-    eservice.id,
-    agreementToBeRejected.data.descriptorId,
-    descriptor
-  );
-
-  const stamp = createStamp(authData);
-  const rejected: Agreement = {
-    ...agreementToBeRejected.data,
-    state: agreementState.rejected,
-    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
-    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
-    verifiedAttributes: matchingVerifiedAttributes(
-      eservice,
-      descriptor,
-      consumer
-    ),
-    rejectionReason,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    suspendedByPlatform: undefined,
-    stamps: {
-      ...agreementToBeRejected.data.stamps,
-      rejection: stamp,
-    },
-  };
-
-  return [
-    rejected,
-    toCreateEventAgreementRejected(
-      rejected,
-      agreementToBeRejected.metadata.version,
-      correlationId
-    ),
-  ];
-}
-
-export async function archiveAgreementLogic(
-  agreementId: Agreement["id"],
-  authData: AuthData,
-  agreementQuery: AgreementQuery,
-  correlationId: string
-): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-  assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data, authData);
-  assertExpectedState(
-    agreementId,
-    agreement.data.state,
-    agreementArchivableStates
-  );
-
-  const updateSeed = {
-    ...agreement.data,
+): CreateEvent<AgreementEvent> {
+  const updateSeed: UpdateAgreementSeed = {
     state: agreementState.archived,
     stamps: {
       ...agreement.data.stamps,
-      archiving: createStamp(authData),
+      archiving: createStamp(userId),
     },
   };
 
-  const updatedAgreement = {
-    ...agreement.data,
-    ...updateSeed,
-  };
-
-  return [
-    updatedAgreement,
-    toCreateEventAgreementArchivedByConsumer(
-      updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    ),
-  ];
+  return toCreateEventAgreementArchivedByUpgrade(
+    {
+      ...agreement.data,
+      ...updateSeed,
+    },
+    agreement.metadata.version,
+    correlationId
+  );
 }

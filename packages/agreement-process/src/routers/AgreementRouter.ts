@@ -2,12 +2,13 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
+  ReadModelRepository,
   ZodiosContext,
-  userRoles,
   authorizationMiddleware,
   initDB,
-  ReadModelRepository,
   initFileManager,
+  initPDFGenerator,
+  userRoles,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
@@ -17,44 +18,39 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
+  fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
-import { config } from "../utilities/config.js";
+import { api } from "../model/generated/api.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
-import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
-import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
-import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
-import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
-import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
 import {
-  cloneAgreementErrorMapper,
-  addConsumerDocumentErrorMapper,
   activateAgreementErrorMapper,
+  addConsumerDocumentErrorMapper,
+  archiveAgreementErrorMapper,
+  cloneAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
+  getAgreementErrorMapper,
   getConsumerDocumentErrorMapper,
   rejectAgreementErrorMapper,
+  removeConsumerDocumentErrorMapper,
   submitAgreementErrorMapper,
   suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
-  removeConsumerDocumentErrorMapper,
-  archiveAgreementErrorMapper,
-  getAgreementErrorMapper,
+  computeAgreementsStateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-const agreementQuery = agreementQueryBuilder(readModelService);
-const tenantQuery = tenantQueryBuilder(readModelService);
-const eserviceQuery = eserviceQueryBuilder(readModelService);
-const attributeQuery = attributeQueryBuilder(readModelService);
+const pdfGenerator = await initPDFGenerator();
 
 const agreementService = agreementServiceBuilder(
   initDB({
@@ -66,11 +62,9 @@ const agreementService = agreementServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  agreementQuery,
-  tenantQuery,
-  eserviceQuery,
-  attributeQuery,
-  initFileManager(config)
+  readModelService,
+  initFileManager(config),
+  pdfGenerator
 );
 
 const {
@@ -543,9 +537,30 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post("/compute/agreementsState", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/compute/agreementsState",
+    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE, M2M_ROLE]),
+    async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        await agreementService.computeAgreementsStateByAttribute(
+          unsafeBrandId(req.body.attributeId),
+          fromApiCompactTenant(req.body.consumer),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          computeAgreementsStateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get(
     "/agreements/filter/eservices",

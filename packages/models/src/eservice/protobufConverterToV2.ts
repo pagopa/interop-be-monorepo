@@ -11,6 +11,7 @@ import {
   EServiceV2,
 } from "../gen/v2/eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
   Descriptor,
@@ -98,31 +99,25 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   agreementApprovalPolicy: toAgreementApprovalPolicyV2(
     input.agreementApprovalPolicy
   ),
-  createdAt: BigInt(input.createdAt.getTime()),
-  publishedAt: input.publishedAt
-    ? BigInt(input.publishedAt.getTime())
-    : undefined,
-  suspendedAt: input.suspendedAt
-    ? BigInt(input.suspendedAt.getTime())
-    : undefined,
-  deprecatedAt: input.deprecatedAt
-    ? BigInt(input.deprecatedAt.getTime())
-    : undefined,
-  archivedAt: input.archivedAt ? BigInt(input.archivedAt.getTime()) : undefined,
+  createdAt: dateToBigInt(input.createdAt),
+  publishedAt: dateToBigInt(input.publishedAt),
+  suspendedAt: dateToBigInt(input.suspendedAt),
+  deprecatedAt: dateToBigInt(input.deprecatedAt),
+  archivedAt: dateToBigInt(input.archivedAt),
 });
 
 export const toRiskAnalysisV2 = (
   input: RiskAnalysis
 ): EServiceRiskAnalysisV2 => ({
   ...input,
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   ...eservice,
   technology: toEServiceTechnologyV2(eservice.technology),
   descriptors: eservice.descriptors.map(toDescriptorV2),
-  createdAt: BigInt(eservice.createdAt.getTime()),
+  createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
 });
