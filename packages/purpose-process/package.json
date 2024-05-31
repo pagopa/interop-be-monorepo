@@ -24,7 +24,7 @@
     "@types/express": "4.17.21",
     "@types/node": "20.12.13",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
+    "prettier": "3.2.5",
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",

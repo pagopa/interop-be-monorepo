@@ -35,7 +35,7 @@
   "devDependencies": {
     "eslint": "8.57.0",
     "mkdirp": "3.0.1",
-    "prettier": "2.8.8",
+    "prettier": "3.2.5",
     "tsc-esm-fix": "2.20.27",
     "typescript": "5.4.5"
   }
