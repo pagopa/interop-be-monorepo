@@ -190,7 +190,7 @@ export function maybeCreateSuspensionByPlatformEvent(
     ) {
       toCreateEventAgreementSuspendedByPlatform(
         updatedAgreement,
-        agreement.metadata.version,
+        agreement.metadata.version + 1,
         correlationId
       );
     }
@@ -202,7 +202,7 @@ export function maybeCreateSuspensionByPlatformEvent(
     ) {
       return toCreateEventAgreementUnsuspendedByPlatform(
         updatedAgreement,
-        agreement.metadata.version,
+        agreement.metadata.version + 1,
         correlationId
       );
     }
