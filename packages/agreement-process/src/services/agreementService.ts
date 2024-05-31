@@ -14,6 +14,7 @@ import {
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
+  AgreementState,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -405,25 +406,21 @@ export function agreementServiceBuilder(
         nextStateByAttributes
       );
 
-      if (
-        nextStateByAttributes === agreementState.missingCertifiedAttributes &&
-        suspendedByPlatform &&
-        suspendedByPlatform !== agreement.data.suspendedByPlatform
-      ) {
+      const setToMissingCertifiedAttributesByPlatformEvent =
+        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+          agreement,
+          nextStateByAttributes,
+          suspendedByPlatform,
+          correlationId
+        );
+
+      if (setToMissingCertifiedAttributesByPlatformEvent) {
         /* In this case, it means that one of the certified attributes is not
           valid anymore. We put the agreement in the missingCertifiedAttributes state
           and fail the submission */
-        const missingCertifiedAttributesByPlatformAgreement = {
-          ...agreement.data,
-          state: agreementState.missingCertifiedAttributes,
-          suspendedByPlatform,
-        };
+
         await repository.createEvent(
-          toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
-            missingCertifiedAttributesByPlatformAgreement,
-            agreement.metadata.version,
-            correlationId
-          )
+          setToMissingCertifiedAttributesByPlatformEvent
         );
         throw agreementSubmissionFailed(agreement.data.id);
       }
@@ -943,26 +940,19 @@ export function agreementServiceBuilder(
         nextStateByAttributes
       );
 
-      if (
-        agreement.data.state === agreementState.pending &&
-        nextStateByAttributes === agreementState.missingCertifiedAttributes &&
-        suspendedByPlatform &&
-        suspendedByPlatform !== agreement.data.suspendedByPlatform
-      ) {
+      const setToMissingCertifiedAttributesByPlatformEvent =
+        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+          agreement,
+          nextStateByAttributes,
+          suspendedByPlatform,
+          correlationId
+        );
+      if (setToMissingCertifiedAttributesByPlatformEvent) {
         /* In this case, it means that one of the certified attributes is not
           valid anymore. We put the agreement in the missingCertifiedAttributes state
           and fail the activation */
-        const missingCertifiedAttributesByPlatformAgreement = {
-          ...agreement.data,
-          state: agreementState.missingCertifiedAttributes,
-          suspendedByPlatform,
-        };
         await repository.createEvent(
-          toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
-            missingCertifiedAttributesByPlatformAgreement,
-            agreement.metadata.version,
-            correlationId
-          )
+          setToMissingCertifiedAttributesByPlatformEvent
         );
         throw agreementActivationFailed(agreement.data.id);
       }
@@ -1166,4 +1156,33 @@ export function createAgreementArchivedByUpgradeEvent(
     agreement.metadata.version,
     correlationId
   );
+}
+
+function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+  agreement: WithMetadata<Agreement>,
+  nextStateByAttributes: AgreementState,
+  newSuspendedByPlatform: boolean,
+  correlationId: string
+): CreateEvent<AgreementEvent> | undefined {
+  if (
+    nextStateByAttributes === agreementState.missingCertifiedAttributes &&
+    newSuspendedByPlatform &&
+    newSuspendedByPlatform !== agreement.data.suspendedByPlatform
+  ) {
+    /* In this case, it means that one of the certified attributes is not
+      valid anymore. We put the agreement in the missingCertifiedAttributes state
+      and fail the submission */
+    const missingCertifiedAttributesByPlatformAgreement = {
+      ...agreement.data,
+      state: agreementState.missingCertifiedAttributes,
+      newSuspendedByPlatform,
+    };
+
+    return toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
+      missingCertifiedAttributesByPlatformAgreement,
+      agreement.metadata.version,
+      correlationId
+    );
+  }
+  return undefined;
 }
