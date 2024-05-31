@@ -108,7 +108,6 @@ import {
   archiveRelatedToAgreements,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
-  maybeCreateSuspensionByPlatformEvent,
 } from "./agreementActivationProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -992,17 +991,18 @@ export function agreementServiceBuilder(
           agreement: agreement.data,
           suspendedByConsumer,
           suspendedByProducer,
+          suspendedByPlatform,
         });
 
-      const updatedAgreementWithoutSuspendedByPlatform: Agreement = {
+      const updatedAgreement: Agreement = {
         ...agreement.data,
         ...updatedAgreementSeed,
       };
 
-      const activationEvent = await createActivationEvent(
+      const activationEvents = await createActivationEvent(
         firstActivation,
         agreement,
-        updatedAgreementWithoutSuspendedByPlatform,
+        updatedAgreement,
         updatedAgreementSeed,
         eservice,
         consumer,
@@ -1012,20 +1012,6 @@ export function agreementServiceBuilder(
         contractBuilderInstance
       );
 
-      /* We update the suspendedByPlatform flag after creating the activation event,
-      so that, if changed, the suspendedByPlatform flag is updated only in the
-      dedicated event */
-      const updatedAgreement = {
-        ...updatedAgreementWithoutSuspendedByPlatform,
-        suspendedByPlatform,
-      };
-
-      const suspensionByPlatformEvent = maybeCreateSuspensionByPlatformEvent(
-        agreement,
-        updatedAgreement,
-        correlationId
-      );
-
       const archiveEvents = await archiveRelatedToAgreements(
         agreement.data,
         authData.userId,
@@ -1033,11 +1019,7 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await repository.createEvents([
-        activationEvent,
-        ...(suspensionByPlatformEvent ? [suspensionByPlatformEvent] : []),
-        ...archiveEvents,
-      ]);
+      await repository.createEvents([...activationEvents, ...archiveEvents]);
 
       return updatedAgreement;
     },
