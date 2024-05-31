@@ -1,0 +1,56 @@
+{
+  "name": "pagopa-interop-agreement-email-sender",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pagopa Interop Agreement Email Sender",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:it": "vitest integration",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/dotenv-flow": "3.3.3",
+    "@types/node": "20.3.1",
+    "@types/nodemailer": "^6.4.15",
+    "@types/uuid": "9.0.8",
+    "axios": "1.7.2",
+    "kafkajs": "2.2.4",
+    "mkdirp": "3.0.1",
+    "pagopa-interop-commons-test": "workspace:*",
+    "prettier": "2.8.8",
+    "testcontainers": "10.2.2",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5",
+    "vitest": "1.6.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "3.577.0",
+    "@protobuf-ts/plugin": "2.9.4",
+    "@protobuf-ts/protoc": "2.9.4",
+    "@protobuf-ts/runtime": "2.9.4",
+    "dotenv-flow": "3.3.0",
+    "kafka-iam-auth": "workspace:*",
+    "nodemailer": "^6.9.13",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:^",
+    "pagopa-interop-selfcare-v2-client": "workspace:*",
+    "ts-pattern": "5.1.1",
+    "uuid": "9.0.1",
+    "zod": "3.22.3"
+  }
+}
