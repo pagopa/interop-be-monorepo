@@ -195,6 +195,28 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
+    (targetSchema) => targetSchema.includes("purpose"),
+    () => {
+      checkSchema(config.sourceDbSchema, "purpose");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace("it.pagopa.interop.purposemanagement.model.persistence.", "")
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        PurposeEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .when(
     (targetSchema) => targetSchema.includes("agreement"),
     () => {
       checkSchema(config.sourceDbSchema, "agreement");
@@ -215,28 +237,6 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
 
       const parseId = (anyPayload: any) =>
         anyPayload.agreement ? anyPayload.agreement.id : anyPayload.agreementId;
-
-      return { parseEventType, decodeEvent, parseId };
-    }
-  )
-  .when(
-    (targetSchema) => targetSchema.includes("purpose"),
-    () => {
-      checkSchema(config.sourceDbSchema, "purpose");
-      const parseEventType = (event_ser_manifest: any) =>
-        event_ser_manifest
-          .replace("it.pagopa.interop.purposemanagement.model.persistence.", "")
-          .split("|")[0];
-
-      const decodeEvent = (eventType: string, event_payload: any) =>
-        PurposeEventV1.safeParse({
-          type: eventType,
-          event_version: 1,
-          data: event_payload,
-        });
-
-      const parseId = (anyPayload: any) =>
-        anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
 
       return { parseEventType, decodeEvent, parseId };
     }
