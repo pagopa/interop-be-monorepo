@@ -17,6 +17,7 @@ const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
 
 export const fromKeyV2 = (input: KeyV2): Key => ({
   ...input,
+  userId: input.userId ? unsafeBrandId<UserId>(input.userId) : undefined,
   use: fromKeyUseV2(input.use),
   createdAt: bigIntToDate(input.createdAt),
 });

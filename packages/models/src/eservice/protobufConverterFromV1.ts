@@ -16,6 +16,7 @@ import {
   RiskAnalysis,
   RiskAnalysisForm,
 } from "../risk-analysis/riskAnalysis.js";
+import { bigIntToDate } from "../utils.js";
 import {
   AgreementApprovalPolicy,
   Descriptor,
@@ -144,24 +145,14 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
     ),
     // createdAt is required in EService definition but not in protobuf,
     // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
-    createdAt: input.createdAt
-      ? new Date(Number(input.createdAt))
-      : defaultCreatedAt,
+    createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
     publishedAt:
       state === descriptorState.draft
         ? undefined
-        : input.publishedAt
-        ? new Date(Number(input.publishedAt))
-        : defaultPublishedAt,
-    suspendedAt: input.suspendedAt
-      ? new Date(Number(input.suspendedAt))
-      : undefined,
-    deprecatedAt: input.deprecatedAt
-      ? new Date(Number(input.deprecatedAt))
-      : undefined,
-    archivedAt: input.archivedAt
-      ? new Date(Number(input.archivedAt))
-      : undefined,
+        : bigIntToDate(input.publishedAt) || defaultPublishedAt,
+    suspendedAt: bigIntToDate(input.suspendedAt),
+    deprecatedAt: bigIntToDate(input.deprecatedAt),
+    archivedAt: bigIntToDate(input.archivedAt),
   };
 };
 
@@ -195,7 +186,7 @@ export const fromRiskAnalysisV1 = (
 ): RiskAnalysis => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
   riskAnalysisForm: fromRiskAnalysisFormV1(input.riskAnalysisForm),
 });
 
@@ -215,9 +206,7 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   descriptors: input.descriptors.map(fromDescriptorV1),
   // createdAt is required in EService definition but not in protobuf
   // tracked in https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: input.createdAt
-    ? new Date(Number(input.createdAt))
-    : defaultCreatedAt,
+  createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
   mode: fromEServiceModeV1(input.mode),
 });

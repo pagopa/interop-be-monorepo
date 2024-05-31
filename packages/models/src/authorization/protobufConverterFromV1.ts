@@ -20,6 +20,7 @@ const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
 
 export const fromKeyV1 = (input: KeyV1): Key => ({
   ...input,
+  userId: input.userId ? unsafeBrandId<UserId>(input.userId) : undefined,
   use: fromKeyUseV1(input.use),
   createdAt: new Date(input.createdAt),
 });
