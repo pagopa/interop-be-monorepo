@@ -65,7 +65,7 @@ export const riskAnalysisDocumentBuilder = (
         dirname,
         "..",
         "resources/templates/documents",
-        "agreementContractTemplate.html"
+        "riskAnalysisTemplate.html"
       );
 
       if (!purpose.riskAnalysisForm) {

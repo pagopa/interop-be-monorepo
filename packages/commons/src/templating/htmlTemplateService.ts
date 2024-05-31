@@ -12,7 +12,9 @@ export function buildHTMLTemplateService(): HtmlTemplateService {
       context: Record<string, unknown>
     ): string => {
       try {
-        const compileHtml = Handlebars.compile(htmlTemplate);
+        const compileHtml = Handlebars.compile(htmlTemplate, {
+          noEscape: true,
+        });
 
         return compileHtml(context);
       } catch (error) {
