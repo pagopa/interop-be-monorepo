@@ -188,7 +188,7 @@ export async function createActivationEvent(
       ])
       .otherwise(() => {
         throw genericError(
-          `Unexpected organizationId - nextState pair in activateAgreement - organizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
+          `Unexpected organizationId - nextState pair in activateAgreement. OrganizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
         );
       });
   }
