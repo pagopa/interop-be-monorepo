@@ -37,6 +37,7 @@ import {
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
   agreementNotFound,
+  agreementSubmissionFailed,
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
@@ -404,6 +405,29 @@ export function agreementServiceBuilder(
       const suspendedByPlatform = suspendedByPlatformFlag(
         nextStateByAttributes
       );
+
+      if (
+        nextStateByAttributes === agreementState.missingCertifiedAttributes &&
+        suspendedByPlatform &&
+        suspendedByPlatform !== agreement.data.suspendedByPlatform
+      ) {
+        /* In this case, it means that one of the certified attributes is not
+          valid anymore. We put the agreement in the missingCertifiedAttributes state
+          and fail the submission */
+        const missingCertifiedAttributesByPlatformAgreement = {
+          ...agreement.data,
+          state: agreementState.missingCertifiedAttributes,
+          suspendedByPlatform,
+        };
+        await repository.createEvent(
+          toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
+            missingCertifiedAttributesByPlatformAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
+        );
+        throw agreementSubmissionFailed(agreement.data.id);
+      }
 
       const newState = agreementStateByFlags(
         nextStateByAttributes,
