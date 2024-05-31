@@ -1,6 +1,8 @@
 import {
   ApiError,
   ClientId,
+  DescriptorId,
+  EServiceId,
   PurposeId,
   TenantId,
   UserId,
@@ -16,6 +18,13 @@ export const errorCodes = {
   purposeIdNotFound: "0005",
   securityUserNotFound: "0006",
   userAlreadyAssigned: "0007",
+  eserviceNotFound: "0008",
+  purposeNotFound: "0009",
+  noVersionsFoundInPurpose: "0010",
+  descriptorNotFound: "0011",
+  agreementNotFound: "0012",
+  purposeAlreadyLinkedToClient: "0013",
+  organizationNotAllowedOnPurpose: "0014",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -101,5 +110,75 @@ export function userAlreadyAssigned(
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "userAlreadyAssigned",
     title: "user Already Assigned",
+  });
+}
+
+export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} not found`,
+    code: "eserviceNotFound",
+    title: "EService not found",
+  });
+}
+
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
+  });
+}
+
+export function noVersionsFoundInPurpose(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No versions found in purpose ${purposeId}`,
+    code: "noVersionsFoundInPurpose",
+    title: "No versions found in purpose",
+  });
+}
+
+export function descriptorNotFound(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
+    code: "descriptorNotFound",
+    title: "Descriptor not found",
+  });
+}
+
+export function agreementNotFound(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement not found for eservice ${eserviceId} and consumer ${consumerId}`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
+  });
+}
+
+export function purposeAlreadyLinkedToClient(
+  purposeId: PurposeId,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} is already linked to client ${clientId}`,
+    code: "purposeAlreadyLinkedToClient",
+    title: "Purpose already linked to client",
+  });
+}
+
+export function organizationNotAllowedOnPurpose(
+  organizationId: TenantId,
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
+    code: "organizationNotAllowedOnPurpose",
+    title: "Organization not allowed on purpose",
   });
 }
