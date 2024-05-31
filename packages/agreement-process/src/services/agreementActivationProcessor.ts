@@ -23,6 +23,7 @@ import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByConsumer,
+  toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -71,6 +72,7 @@ export function createActivationUpdateAgreementSeed({
         ),
         suspendedByConsumer,
         suspendedByProducer,
+        suspendedByPlatform: false,
         stamps: {
           ...agreement.stamps,
           activation: stamp,
@@ -180,13 +182,31 @@ export function maybeCreateSuspensionByPlatformEvent(
   updatedAgreement: Agreement,
   correlationId: string
 ): CreateEvent<AgreementEvent> | undefined {
-  return updatedAgreement.state === agreementState.suspended &&
-    updatedAgreement.suspendedByPlatform &&
+  if (
     updatedAgreement.suspendedByPlatform !== agreement.data.suspendedByPlatform
-    ? toCreateEventAgreementSuspendedByPlatform(
+  ) {
+    if (
+      updatedAgreement.state === agreementState.suspended &&
+      updatedAgreement.suspendedByPlatform
+    ) {
+      toCreateEventAgreementSuspendedByPlatform(
         updatedAgreement,
         agreement.metadata.version,
         correlationId
-      )
-    : undefined;
+      );
+    }
+
+    if (
+      !updatedAgreement.suspendedByPlatform &&
+      (updatedAgreement.state === agreementState.suspended ||
+        updatedAgreement.state === agreementState.active)
+    ) {
+      return toCreateEventAgreementUnsuspendedByPlatform(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    }
+  }
+  return undefined;
 }
