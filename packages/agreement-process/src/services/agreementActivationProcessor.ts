@@ -13,6 +13,7 @@ import {
   WithMetadata,
   UserId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -140,71 +141,56 @@ export async function createActivationEvent(
       ),
     ];
   } else {
-    if (authData.organizationId === agreement.data.producerId) {
-      if (updatedAgreement.state === agreementState.active) {
-        return [
-          toCreateEventAgreementUnsuspendedByProducer(
-            updatedAgreement,
-            agreement.metadata.version,
-            correlationId
-          ),
-        ];
-      } else if (updatedAgreement.state === agreementState.suspended) {
-        return [
-          toCreateEventAgreementUnsuspendedByProducer(
-            {
-              ...updatedAgreement,
-              suspendedByPlatform: agreement.data.suspendedByPlatform,
-            },
-            agreement.metadata.version,
-            correlationId
-          ),
-          ...maybeCreateSuspensionByPlatformEvents(
-            agreement,
-            updatedAgreement,
-            correlationId
-          ),
-        ];
-      } else {
+    return match([authData.organizationId, updatedAgreement.state])
+      .with([agreement.data.producerId, agreementState.active], () => [
+        toCreateEventAgreementUnsuspendedByProducer(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        ),
+      ])
+      .with([agreement.data.producerId, agreementState.suspended], () => [
+        toCreateEventAgreementUnsuspendedByProducer(
+          {
+            ...updatedAgreement,
+            suspendedByPlatform: agreement.data.suspendedByPlatform,
+          },
+          agreement.metadata.version,
+          correlationId
+        ),
+        ...maybeCreateSuspensionByPlatformEvents(
+          agreement,
+          updatedAgreement,
+          correlationId
+        ),
+      ])
+      .with([agreement.data.consumerId, agreementState.active], () => [
+        toCreateEventAgreementUnsuspendedByConsumer(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        ),
+      ])
+      .with([agreement.data.consumerId, agreementState.suspended], () => [
+        toCreateEventAgreementUnsuspendedByConsumer(
+          {
+            ...updatedAgreement,
+            suspendedByPlatform: agreement.data.suspendedByPlatform,
+          },
+          agreement.metadata.version,
+          correlationId
+        ),
+        ...maybeCreateSuspensionByPlatformEvents(
+          agreement,
+          updatedAgreement,
+          correlationId
+        ),
+      ])
+      .otherwise(() => {
         throw genericError(
-          `Unexpected next state ${updatedAgreement.state} in activateAgreement`
+          `Unexpected organizationId - nextState pair in activateAgreement - organizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
         );
-      }
-    } else if (authData.organizationId === agreement.data.consumerId) {
-      if (updatedAgreement.state === agreementState.active) {
-        return [
-          toCreateEventAgreementUnsuspendedByConsumer(
-            updatedAgreement,
-            agreement.metadata.version,
-            correlationId
-          ),
-        ];
-      } else if (updatedAgreement.state === agreementState.suspended) {
-        return [
-          toCreateEventAgreementUnsuspendedByConsumer(
-            {
-              ...updatedAgreement,
-              suspendedByPlatform: agreement.data.suspendedByPlatform,
-            },
-            agreement.metadata.version,
-            correlationId
-          ),
-          ...maybeCreateSuspensionByPlatformEvents(
-            agreement,
-            updatedAgreement,
-            correlationId
-          ),
-        ];
-      } else {
-        throw genericError(
-          `Unexpected next state ${updatedAgreement.state} in activateAgreement`
-        );
-      }
-    } else {
-      throw genericError(
-        `Unexpected organizationId ${authData.organizationId} in activateAgreement`
-      );
-    }
+      });
   }
 }
 
