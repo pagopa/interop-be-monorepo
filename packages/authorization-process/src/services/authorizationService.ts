@@ -26,10 +26,12 @@ import {
   organizationNotAllowedOnClient,
   purposeIdNotFound,
   securityUserNotFound,
+  tooManyKeysPerClient,
   userAlreadyAssigned,
   userIdNotFound,
+  userNotFound,
 } from "../model/domain/errors.js";
-import { ApiClientSeed, ApiKeySeed } from "../model/domain/models.js";
+import { ApiClientSeed, ApiKeysSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
@@ -37,7 +39,9 @@ import {
   toCreateEventClientPurposeRemoved,
   toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
+  toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
+import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import { isClientConsumer } from "./validators.js";
 
@@ -398,11 +402,68 @@ export function authorizationServiceBuilder(
 
     async createKeys(
       clientId: ClientId,
-      keysSeeds: ApiKeySeed,
+      authData: AuthData,
+      keysSeeds: ApiKeysSeed,
       correlationId: string,
       logger: Logger
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Creating keys for client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(
+        unsafeBrandId(authData.organizationId),
+        client.data
+      );
+      const keys = await this.getClientKeys(
+        clientId,
+        unsafeBrandId(authData.organizationId),
+        logger
+      );
+      assertKeyIsBelowThreshold(clientId, keys.length + keysSeeds.length);
+      if (!client.data.users.includes(authData.userId)) {
+        throw userNotFound(authData.userId, authData.selfcareId);
+      }
+      await assertSecurityUser(
+        authData.selfcareId,
+        authData.userId,
+        authData.userId
+      );
+
+      const newKeys = await Promise.all(
+        keysSeeds.map(async (k) => {
+          const key = {
+            name: k.name,
+            createdAt: new Date(),
+            kid: "",
+            encodedPem: "",
+            algorithm: k.alg,
+            use: ApiKeyUseToKeyUse(k.use),
+            userId: authData.userId,
+          };
+          const clientForTheEvent = {
+            ...client.data,
+            keys: [...client.data.keys, key],
+          };
+          await repository.createEvent(
+            toCreateEventKeyAdded(
+              "kid",
+              clientForTheEvent,
+              client.metadata.version,
+              correlationId
+            )
+          );
+          return key;
+        })
+      );
+
+      const newClient: Client = {
+        ...client.data,
+        keys: [...client.data.keys, ...newKeys],
+      };
+
+      return {
+        client: newClient,
+        showUsers: newClient.consumerId === authData.organizationId,
+      };
     },
   };
 }
@@ -434,5 +495,11 @@ const assertSecurityUser = async (
   });
   if (users.length === 0) {
     throw securityUserNotFound(requesterUserId, userId);
+  }
+};
+
+const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
+  if (size > 100) {
+    throw tooManyKeysPerClient(clientId, size);
   }
 };

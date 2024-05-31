@@ -16,6 +16,8 @@ export const errorCodes = {
   purposeIdNotFound: "0005",
   securityUserNotFound: "0006",
   userAlreadyAssigned: "0007",
+  tooManyKeysPerClient: "0008",
+  userNotFound: "0009",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -101,5 +103,27 @@ export function userAlreadyAssigned(
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "userAlreadyAssigned",
     title: "user Already Assigned",
+  });
+}
+
+export function tooManyKeysPerClient(
+  clientId: ClientId,
+  size: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `he number of the keys ${size} for the client ${clientId.toString} exceed maximun allowed`,
+    code: "tooManyKeysPerClient",
+    title: "too Many Keys Per Client",
+  });
+}
+
+export function userNotFound(
+  userId: UserId,
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
+    code: "userNotFound",
+    title: "User not found",
   });
 }

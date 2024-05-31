@@ -68,3 +68,9 @@ export const keyToApiKey = (key: Key): ApiKey => {
     };
   }
 };
+
+export const ApiKeyUseToKeyUse = (kid: ApiKeyUse): KeyUse =>
+  match<ApiKeyUse, KeyUse>(kid)
+    .with("ENC", () => keyUse.enc)
+    .with("SIG", () => keyUse.sig)
+    .exhaustive();
