@@ -461,6 +461,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+      assertIsPurposeConsumer(organizationId, purpose);
 
       const eservice = await retrieveEService(
         purpose.eserviceId,
@@ -532,6 +533,7 @@ const assertOrganizationIsClientConsumer = (
     throw organizationNotAllowedOnClient(organizationId, client.id);
   }
 };
+
 const assertSecurityUser = async (
   selfcareId: string,
   requesterUserId: UserId,
@@ -547,5 +549,14 @@ const assertSecurityUser = async (
   });
   if (users.length === 0) {
     throw securityUserNotFound(requesterUserId, userId);
+  }
+};
+
+const assertIsPurposeConsumer = (
+  organizationId: TenantId,
+  purpose: Purpose
+) => {
+  if (organizationId !== purpose.consumerId) {
+    throw ;
   }
 };
