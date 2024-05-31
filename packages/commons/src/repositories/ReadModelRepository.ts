@@ -49,16 +49,16 @@ type BuilIndexedQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
 
 type ExtractQueryKeysFromRecord<
   T extends Record<string, unknown>,
-  TPrefix extends string
+  TPrefix extends string,
 > = {
   [TKey in keyof T]: T[TKey] extends Record<string, unknown>
     ? MongoQueryKeys<T[TKey], BuildQueryKey<TPrefix, TKey>>
     : T[TKey] extends unknown[]
-    ? MongoQueryKeys<
-        T[TKey],
-        BuildQueryKey<TPrefix, TKey> | BuilIndexedQueryKey<TPrefix, TKey>
-      >
-    : BuildQueryKey<TPrefix, TKey>;
+      ? MongoQueryKeys<
+          T[TKey],
+          BuildQueryKey<TPrefix, TKey> | BuilIndexedQueryKey<TPrefix, TKey>
+        >
+      : BuildQueryKey<TPrefix, TKey>;
 }[keyof T];
 
 /**
@@ -105,8 +105,8 @@ export type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
   | (T extends unknown[]
       ? MongoQueryKeys<T[number], TPrefix>
       : T extends Record<string, unknown>
-      ? ExtractQueryKeysFromRecord<T, TPrefix>
-      : never)
+        ? ExtractQueryKeysFromRecord<T, TPrefix>
+        : never)
 >;
 
 /**

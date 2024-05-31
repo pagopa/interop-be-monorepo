@@ -424,7 +424,7 @@ export const matchingCertifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.certified,
     certifiedAttributes
-  ).map((id) => ({ id } as CertifiedAgreementAttribute));
+  ).map((id) => ({ id }) as CertifiedAgreementAttribute);
 };
 
 export const matchingDeclaredAttributes = (
@@ -438,7 +438,7 @@ export const matchingDeclaredAttributes = (
   return matchingAttributes(
     descriptor.attributes.declared,
     declaredAttributes
-  ).map((id) => ({ id } as DeclaredAgreementAttribute));
+  ).map((id) => ({ id }) as DeclaredAgreementAttribute);
 };
 
 export const matchingVerifiedAttributes = (
@@ -454,7 +454,7 @@ export const matchingVerifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.verified,
     verifiedAttributes
-  ).map((id) => ({ id } as VerifiedAgreementAttribute));
+  ).map((id) => ({ id }) as VerifiedAgreementAttribute);
 };
 
 /* ========= FILTERS ========= */

@@ -290,9 +290,8 @@ async function parseAndCheckAttributes(
     const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
       unsafeBrandId(attr.id)
     );
-    const attributes = await readModelService.getAttributesByIds(
-      attributesSeedsIds
-    );
+    const attributes =
+      await readModelService.getAttributesByIds(attributesSeedsIds);
     const attributesIds = attributes.map((attr) => attr.id);
     for (const attributeSeedId of attributesSeedsIds) {
       if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {

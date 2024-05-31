@@ -112,7 +112,7 @@ function connectToReadModel({
 
 export async function compareReadModelsCollection<
   TSchema extends z.ZodSchema<any>, // eslint-disable-line @typescript-eslint/no-explicit-any
-  TCollectionData extends z.infer<TSchema>
+  TCollectionData extends z.infer<TSchema>,
 >({
   readmodelA,
   readmodelB,

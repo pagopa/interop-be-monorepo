@@ -81,7 +81,7 @@ const getAttributeInvolved = async (
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
-      | VerifiedTenantAttribute
+      | VerifiedTenantAttribute,
   >(
     type: TenantAttributeType
   ): Promise<Array<[Attribute, T]>> => {
@@ -169,8 +169,11 @@ const getPdfPayload = async (
   seed: UpdateAgreementSeed,
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
-  const getTenantText = (name: string, origin: string, value: string): string =>
-    origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
+  const getTenantText = (
+    name: string,
+    origin: string,
+    value: string
+  ): string => (origin === "IPA" ? `"${name} (codice IPA: ${value})` : name);
 
   const getCertifiedAttributeHtml = (
     certifiedAttributes: Array<[Attribute, CertifiedTenantAttribute]>
@@ -182,10 +185,10 @@ const getPdfPayload = async (
           In data <strong>${dateAtRomeZone(
             attTuple[1].assignmentTimestamp
           )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
-          attTuple[0].name
-        }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
+            attTuple[1].assignmentTimestamp
+          )}</strong>,l’Infrastruttura ha registrato il possesso da parte del Fruitore del seguente attributo <strong>${
+            attTuple[0].name
+          }</strong> certificato,necessario a soddisfare il requisito di fruizione stabilito dall’Erogatore per l’accesso all’E-service.
         </div>`
       )
       .join("");
@@ -200,8 +203,8 @@ const getPdfPayload = async (
          In data <strong>${dateAtRomeZone(
            attTuple[1].assignmentTimestamp
          )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
+           attTuple[1].assignmentTimestamp
+         )}</strong>,
          l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
            attTuple[0].name
          }</strong> dichiarato
@@ -221,8 +224,8 @@ const getPdfPayload = async (
           In data <strong>${dateAtRomeZone(
             attTuple[1].assignmentTimestamp
           )}</strong> alle ore <strong>${timeAtRomeZone(
-          attTuple[1].assignmentTimestamp
-        )}</strong>,
+            attTuple[1].assignmentTimestamp
+          )}</strong>,
           l’Infrastruttura ha registrato la dichiarazione del Fruitore di possedere il seguente attributo <strong>${
             attTuple[0].name
           }</strong>,
