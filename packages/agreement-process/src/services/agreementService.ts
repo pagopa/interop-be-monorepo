@@ -32,6 +32,7 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import {
+  agreementActivationFailed,
   agreementAlreadyExists,
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
@@ -58,6 +59,7 @@ import {
   toCreateEventAgreementConsumerDocumentRemoved,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
+  toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
@@ -918,6 +920,33 @@ export function agreementServiceBuilder(
         consumer
       );
 
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
+
+      if (
+        agreement.data.state === agreementState.pending &&
+        nextStateByAttributes === agreementState.missingCertifiedAttributes &&
+        suspendedByPlatform
+      ) {
+        /* In this case, it means that one of the certified attributes is not
+          valid anymore. We put the agreement in the missingCertifiedAttributes state
+          and fail the activation */
+        const missingCertifiedAttributesByPlatformAgreement = {
+          ...agreement.data,
+          state: agreementState.missingCertifiedAttributes,
+          suspendedByPlatform,
+        };
+        await repository.createEvent(
+          toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
+            missingCertifiedAttributesByPlatformAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
+        );
+        throw agreementActivationFailed(agreement.data.id);
+      }
+
       const suspendedByConsumer = suspendedByConsumerFlag(
         agreement.data,
         authData.organizationId,
@@ -927,9 +956,6 @@ export function agreementServiceBuilder(
         agreement.data,
         authData.organizationId,
         targetDestinationState
-      );
-      const suspendedByPlatform = suspendedByPlatformFlag(
-        nextStateByAttributes
       );
 
       const newState = agreementStateByFlags(
