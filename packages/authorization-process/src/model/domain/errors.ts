@@ -24,6 +24,7 @@ export const errorCodes = {
   descriptorNotFound: "0011",
   agreementNotFound: "0012",
   purposeAlreadyLinkedToClient: "0013",
+  organizationNotAllowedOnPurpose: "0014",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -168,5 +169,16 @@ export function purposeAlreadyLinkedToClient(
     detail: `Purpose ${purposeId} is already linked to client ${clientId}`,
     code: "purposeAlreadyLinkedToClient",
     title: "Purpose already linked to client",
+  });
+}
+
+export function organizationNotAllowedOnPurpose(
+  organizationId: TenantId,
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
+    code: "organizationNotAllowedOnPurpose",
+    title: "Organization not allowed on purpose",
   });
 }
