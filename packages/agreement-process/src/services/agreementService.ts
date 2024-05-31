@@ -445,7 +445,6 @@ export function agreementServiceBuilder(
         agreement.data,
         payload,
         newState,
-        suspendedByPlatform,
         authData.userId
       );
 
