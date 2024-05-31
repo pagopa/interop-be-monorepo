@@ -190,7 +190,7 @@ describe("activate agreement", () => {
     });
   }
 
-  it.only.each([false, true])(
+  it.each([false, true])(
     "should activate a Pending Agreement when the requester is the Producer and all attributes are valid (suspendedByPlatform starting value %s)",
     async (suspendedByPlatform) => {
       const producer = getMockTenant();
