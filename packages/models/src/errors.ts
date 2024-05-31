@@ -129,6 +129,7 @@ const errorCodes = {
   missingKafkaMessageData: "9997",
   kafkaMessageProcessError: "9998",
   badRequestError: "9999",
+  jwkDecodingError: "10000",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -281,3 +282,11 @@ export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   code: "operationForbidden",
   title: "Insufficient privileges",
 });
+
+export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected error on JWK decoding: ${parseErrorMessage(error)}`,
+    code: "jwkDecodingError",
+    title: "JWK decoding error",
+  });
+}

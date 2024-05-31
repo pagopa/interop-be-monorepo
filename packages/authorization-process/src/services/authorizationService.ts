@@ -31,7 +31,11 @@ import {
   userIdNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
-import { ApiClientSeed, ApiKeysSeed } from "../model/domain/models.js";
+import {
+  ApiClientSeed,
+  ApiKeySeed,
+  ApiKeysSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
@@ -44,6 +48,7 @@ import {
 import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import { isClientConsumer } from "./validators.js";
+import { decodeBase64ToPem } from "./../../../commons/src/auth/jwk.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -430,11 +435,11 @@ export function authorizationServiceBuilder(
 
       const newKeys = await Promise.all(
         keysSeeds.map(async (k) => {
-          const key = {
+          const key: Key = {
             name: k.name,
             createdAt: new Date(),
             kid: "",
-            encodedPem: "",
+            encodedPem: validateKey(k),
             algorithm: k.alg,
             use: ApiKeyUseToKeyUse(k.use),
             userId: authData.userId,
@@ -503,3 +508,6 @@ const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
     throw tooManyKeysPerClient(clientId, size);
   }
 };
+
+const validateKey = (keySeed: ApiKeySeed): string =>
+  decodeBase64ToPem(keySeed.key);
