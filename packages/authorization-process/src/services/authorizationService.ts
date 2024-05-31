@@ -384,15 +384,27 @@ export function authorizationServiceBuilder(
         showUsers: updatedClient.consumerId === authData.organizationId,
       };
     },
-    async getClientKeys(
-      clientId: ClientId,
-      organizationId: TenantId,
-      logger: Logger
-    ): Promise<Key[]> {
+    async getClientKeys({
+      clientId,
+      userIds,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      userIds: UserId[];
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key[]> {
       logger.info(`Retrieving keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
-      return client.data.keys;
+      if (userIds.length > 0) {
+        return client.data.keys.filter(
+          (k) => k.userId && userIds.includes(k.userId)
+        );
+      } else {
+        return client.data.keys;
+      }
     },
   };
 }

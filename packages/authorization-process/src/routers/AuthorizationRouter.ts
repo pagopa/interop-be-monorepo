@@ -351,11 +351,12 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const keys = await authorizationService.getClientKeys(
-            unsafeBrandId(req.params.clientId),
-            ctx.authData.organizationId,
-            ctx.logger
-          );
+          const keys = await authorizationService.getClientKeys({
+            clientId: unsafeBrandId(req.params.clientId),
+            userIds: req.query.userIds.map(unsafeBrandId<UserId>),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
 
           return res
             .status(200)
