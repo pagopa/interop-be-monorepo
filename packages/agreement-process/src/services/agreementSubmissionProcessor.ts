@@ -59,7 +59,6 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   newState: AgreementState,
-  suspendedByPlatform: boolean,
   userId: UserId
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
@@ -77,7 +76,6 @@ export const createSubmissionUpdateAgreementSeed = (
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
-        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       }
@@ -88,7 +86,6 @@ export const createSubmissionUpdateAgreementSeed = (
         verifiedAttributes: [],
         suspendedByConsumer: undefined,
         suspendedByProducer: undefined,
-        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       };
