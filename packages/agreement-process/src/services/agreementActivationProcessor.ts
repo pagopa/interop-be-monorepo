@@ -72,7 +72,6 @@ export function createActivationUpdateAgreementSeed({
         ),
         suspendedByConsumer,
         suspendedByProducer,
-        suspendedByPlatform: false,
         stamps: {
           ...agreement.stamps,
           activation: stamp,
