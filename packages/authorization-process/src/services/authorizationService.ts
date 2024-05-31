@@ -36,6 +36,7 @@ import {
   keyNotFound,
   noVersionsFoundInPurpose,
   organizationNotAllowedOnClient,
+  organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeIdNotFound,
   purposeNotFound,
@@ -555,8 +556,8 @@ const assertSecurityUser = async (
 const assertIsPurposeConsumer = (
   organizationId: TenantId,
   purpose: Purpose
-) => {
+): void => {
   if (organizationId !== purpose.consumerId) {
-    throw ;
+    throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
   }
 };
