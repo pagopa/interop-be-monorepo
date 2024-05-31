@@ -4,9 +4,11 @@
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
 import {
+  AgreementEventV1,
   AttributeEvent,
   AuthorizationEvent,
   EServiceEventV1,
+  PurposeEventV1,
 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
@@ -193,6 +195,53 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
+    (targetSchema) => targetSchema.includes("agreement"),
+    () => {
+      checkSchema(config.sourceDbSchema, "agreement");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace(
+            "it.pagopa.interop.agreementmanagement.model.persistence.",
+            ""
+          )
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AgreementEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.agreement ? anyPayload.agreement.id : anyPayload.agreementId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .when(
+    (targetSchema) => targetSchema.includes("purpose"),
+    () => {
+      checkSchema(config.sourceDbSchema, "purpose");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace("it.pagopa.interop.purposemanagement.model.persistence.", "")
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        PurposeEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .when(
     (targetSchema) => targetSchema.includes("authorization"),
     () => {
       checkSchema(config.sourceDbSchema, "authorization");
@@ -214,7 +263,6 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
 
       const parseId = (anyPayload: any) =>
         anyPayload.client ? anyPayload.client.id : anyPayload.clientId;
-
       return { parseEventType, decodeEvent, parseId };
     }
   )
