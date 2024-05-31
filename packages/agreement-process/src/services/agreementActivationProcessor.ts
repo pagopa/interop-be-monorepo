@@ -21,6 +21,7 @@ import {
 } from "../model/domain/validators.js";
 import {
   toCreateEventAgreementActivated,
+  toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByConsumer,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
@@ -45,7 +46,6 @@ export function createActivationUpdateAgreementSeed({
   agreement,
   suspendedByConsumer,
   suspendedByProducer,
-  suspendedByPlatform,
 }: {
   firstActivation: boolean;
   newState: AgreementState;
@@ -56,7 +56,6 @@ export function createActivationUpdateAgreementSeed({
   agreement: Agreement;
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
-  suspendedByPlatform: boolean;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData.userId);
 
@@ -72,7 +71,6 @@ export function createActivationUpdateAgreementSeed({
         ),
         suspendedByConsumer,
         suspendedByProducer,
-        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           activation: stamp,
@@ -82,7 +80,6 @@ export function createActivationUpdateAgreementSeed({
         state: newState,
         suspendedByConsumer,
         suspendedByProducer,
-        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           suspensionByConsumer: suspendedByConsumerStamp(
@@ -177,3 +174,19 @@ export const archiveRelatedToAgreements = async (
     createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
   );
 };
+
+export function createSuspensionByPlatformEvent(
+  agreement: WithMetadata<Agreement>,
+  updatedAgreement: Agreement,
+  correlationId: string
+): CreateEvent<AgreementEvent> | undefined {
+  return updatedAgreement.state === agreementState.suspended &&
+    updatedAgreement.suspendedByPlatform &&
+    updatedAgreement.suspendedByPlatform !== agreement.data.suspendedByPlatform
+    ? toCreateEventAgreementSuspendedByPlatform(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      )
+    : undefined;
+}
