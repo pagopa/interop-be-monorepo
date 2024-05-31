@@ -47,6 +47,7 @@ export function createActivationUpdateAgreementSeed({
   agreement,
   suspendedByConsumer,
   suspendedByProducer,
+  suspendedByPlatform,
 }: {
   firstActivation: boolean;
   newState: AgreementState;
@@ -57,6 +58,7 @@ export function createActivationUpdateAgreementSeed({
   agreement: Agreement;
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
+  suspendedByPlatform: boolean | undefined;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData.userId);
 
@@ -72,6 +74,7 @@ export function createActivationUpdateAgreementSeed({
         ),
         suspendedByConsumer,
         suspendedByProducer,
+        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           activation: stamp,
@@ -96,6 +99,7 @@ export function createActivationUpdateAgreementSeed({
             stamp
           ),
         },
+        suspendedByPlatform,
         suspendedAt:
           newState === agreementState.active
             ? undefined
@@ -114,7 +118,7 @@ export async function createActivationEvent(
   authData: AuthData,
   correlationId: string,
   contractBuilder: ContractBuilder
-): Promise<CreateEvent<AgreementEventV2>> {
+): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (firstActivation) {
     const agreementContract = await contractBuilder.createContract(
       authData.selfcareId,
@@ -125,27 +129,77 @@ export async function createActivationEvent(
       updatedAgreementSeed
     );
 
-    return toCreateEventAgreementActivated(
-      {
-        ...updatedAgreement,
-        contract: apiAgreementDocumentToAgreementDocument(agreementContract),
-      },
-      agreement.metadata.version,
-      correlationId
-    );
+    return [
+      toCreateEventAgreementActivated(
+        {
+          ...updatedAgreement,
+          contract: apiAgreementDocumentToAgreementDocument(agreementContract),
+        },
+        agreement.metadata.version,
+        correlationId
+      ),
+    ];
   } else {
     if (authData.organizationId === agreement.data.producerId) {
-      return toCreateEventAgreementUnsuspendedByProducer(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      );
+      if (updatedAgreement.state === agreementState.active) {
+        return [
+          toCreateEventAgreementUnsuspendedByProducer(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          ),
+        ];
+      } else if (updatedAgreement.state === agreementState.suspended) {
+        return [
+          toCreateEventAgreementUnsuspendedByProducer(
+            {
+              ...updatedAgreement,
+              suspendedByPlatform: agreement.data.suspendedByPlatform,
+            },
+            agreement.metadata.version,
+            correlationId
+          ),
+          ...maybeCreateSuspensionByPlatformEvents(
+            agreement,
+            updatedAgreement,
+            correlationId
+          ),
+        ];
+      } else {
+        throw genericError(
+          `Unexpected next state ${updatedAgreement.state} in activateAgreement`
+        );
+      }
     } else if (authData.organizationId === agreement.data.consumerId) {
-      return toCreateEventAgreementUnsuspendedByConsumer(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      );
+      if (updatedAgreement.state === agreementState.active) {
+        return [
+          toCreateEventAgreementUnsuspendedByConsumer(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          ),
+        ];
+      } else if (updatedAgreement.state === agreementState.suspended) {
+        return [
+          toCreateEventAgreementUnsuspendedByConsumer(
+            {
+              ...updatedAgreement,
+              suspendedByPlatform: agreement.data.suspendedByPlatform,
+            },
+            agreement.metadata.version,
+            correlationId
+          ),
+          ...maybeCreateSuspensionByPlatformEvents(
+            agreement,
+            updatedAgreement,
+            correlationId
+          ),
+        ];
+      } else {
+        throw genericError(
+          `Unexpected next state ${updatedAgreement.state} in activateAgreement`
+        );
+      }
     } else {
       throw genericError(
         `Unexpected organizationId ${authData.organizationId} in activateAgreement`
@@ -176,36 +230,35 @@ export const archiveRelatedToAgreements = async (
   );
 };
 
-export function maybeCreateSuspensionByPlatformEvent(
+export function maybeCreateSuspensionByPlatformEvents(
   agreement: WithMetadata<Agreement>,
   updatedAgreement: Agreement,
   correlationId: string
-): CreateEvent<AgreementEvent> | undefined {
+): Array<CreateEvent<AgreementEventV2>> {
   if (
-    updatedAgreement.suspendedByPlatform !== agreement.data.suspendedByPlatform
+    updatedAgreement.suspendedByPlatform !==
+      agreement.data.suspendedByPlatform &&
+    updatedAgreement.state === agreementState.suspended
   ) {
-    if (
-      updatedAgreement.state === agreementState.suspended &&
-      updatedAgreement.suspendedByPlatform
-    ) {
-      toCreateEventAgreementSuspendedByPlatform(
-        updatedAgreement,
-        agreement.metadata.version + 1,
-        correlationId
-      );
+    if (updatedAgreement.suspendedByPlatform) {
+      return [
+        toCreateEventAgreementSuspendedByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        ),
+      ];
     }
 
-    if (
-      !updatedAgreement.suspendedByPlatform &&
-      (updatedAgreement.state === agreementState.suspended ||
-        updatedAgreement.state === agreementState.active)
-    ) {
-      return toCreateEventAgreementUnsuspendedByPlatform(
-        updatedAgreement,
-        agreement.metadata.version + 1,
-        correlationId
-      );
+    if (updatedAgreement.suspendedByPlatform === false) {
+      return [
+        toCreateEventAgreementUnsuspendedByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        ),
+      ];
     }
   }
-  return undefined;
+  return [];
 }
