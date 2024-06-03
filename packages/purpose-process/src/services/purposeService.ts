@@ -6,6 +6,7 @@ import {
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
+  getLatestVersionFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -53,6 +54,8 @@ import {
   purposeVersionNotFound,
   tenantNotFound,
   riskAnalysisConfigVersionNotFound,
+  riskAnalysisConfigLatestVersionNotFound,
+  tenantKindNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -81,7 +84,6 @@ import {
   isRiskAnalysisFormValid,
   isDeletableVersion,
   purposeIsDraft,
-  assertTenantKindExists,
   reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
@@ -189,6 +191,17 @@ const retrieveRiskAnalysis = (
   return riskAnalysis;
 };
 
+async function retrieveTenantKind(
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<TenantKind> {
+  const tenant = await retrieveTenant(tenantId, readModelService);
+  if (!tenant.kind) {
+    throw tenantKindNotFound(tenant.id);
+  }
+  return tenant.kind;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
@@ -209,15 +222,12 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenant = await retrieveTenant(organizationId, readModelService);
-
-      assertTenantKindExists(tenant);
 
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
         organizationId,
-        tenantKind: tenant.kind,
+        tenantKind: await retrieveTenantKind(organizationId, readModelService),
       });
     },
     async getRiskAnalysisDocument({
@@ -622,14 +632,10 @@ export function purposeServiceBuilder(
         purposeSeed.freeOfChargeReason
       );
 
-      const tenant = await retrieveTenant(organizationId, readModelService);
-
-      assertTenantKindExists(tenant);
-
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
-        tenant.kind
+        await retrieveTenantKind(organizationId, readModelService)
       );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
@@ -689,12 +695,10 @@ export function purposeServiceBuilder(
         seed.freeOfChargeReason
       );
 
-      const producer = await retrieveTenant(
+      const producerKind = await retrieveTenantKind(
         eservice.producerId,
         readModelService
       );
-
-      assertTenantKindExists(producer);
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
@@ -710,7 +714,7 @@ export function purposeServiceBuilder(
           riskAnalysis.riskAnalysisForm
         ),
         schemaOnlyValidation: false,
-        tenantKind: producer.kind,
+        tenantKind: producerKind,
       });
 
       const newVersion: PurposeVersion = {
@@ -756,8 +760,10 @@ export function purposeServiceBuilder(
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Cloning Purpose ${purposeId}`);
 
-      const tenant = await retrieveTenant(organizationId, readModelService);
-      assertTenantKindExists(tenant);
+      const tenantKind = await retrieveTenantKind(
+        organizationId,
+        readModelService
+      );
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
@@ -835,7 +841,7 @@ export function purposeServiceBuilder(
               clonedRiskAnalysisForm
             ),
             false,
-            tenant.kind
+            tenantKind
           ).type === "valid"
         : false;
 
@@ -867,24 +873,44 @@ export function purposeServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      const tenant = await getInvolvedTenantByEServiceMode(
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
         eservice,
         organizationId,
         readModelService
       );
 
-      assertTenantKindExists(tenant);
-
       const riskAnalysisFormConfig = getFormRulesByVersion(
-        tenant.kind,
+        tenantKind,
         riskAnalysisVersion
       );
 
       if (!riskAnalysisFormConfig) {
         throw riskAnalysisConfigVersionNotFound(
           riskAnalysisVersion,
-          tenant.kind
+          tenantKind
         );
+      }
+
+      return riskAnalysisFormConfig;
+    },
+    async retrieveLatestRiskAnalysisConfiguration({
+      tenantKind,
+      organizationId,
+      logger,
+    }: {
+      tenantKind: TenantKind | undefined;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<RiskAnalysisFormRules> {
+      logger.info(`Retrieve latest risk analysis configuration`);
+
+      const kind =
+        tenantKind ||
+        (await retrieveTenantKind(organizationId, readModelService));
+
+      const riskAnalysisFormConfig = getLatestVersionFormRules(kind);
+      if (!riskAnalysisFormConfig) {
+        throw riskAnalysisConfigLatestVersionNotFound(kind);
       }
 
       return riskAnalysisFormConfig;
@@ -959,15 +985,15 @@ const replacePurposeVersion = (
   };
 };
 
-const getInvolvedTenantByEServiceMode = async (
+const retrieveKindOfInvolvedTenantByEServiceMode = async (
   eservice: EService,
   consumerId: TenantId,
   readModelService: ReadModelService
-): Promise<Tenant> => {
+): Promise<TenantKind> => {
   if (eservice.mode === eserviceMode.deliver) {
-    return retrieveTenant(consumerId, readModelService);
+    return retrieveTenantKind(consumerId, readModelService);
   } else {
-    return retrieveTenant(eservice.producerId, readModelService);
+    return retrieveTenantKind(eservice.producerId, readModelService);
   }
 };
 
@@ -1009,25 +1035,23 @@ const performUpdatePurpose = async (
     updateContent.freeOfChargeReason
   );
 
-  const tenant = await getInvolvedTenantByEServiceMode(
+  const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
     eservice,
     purpose.data.consumerId,
     readModelService
   );
-
-  assertTenantKindExists(tenant);
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           updateContent.riskAnalysisForm,
           true,
-          tenant.kind
+          tenantKind
         )
       : reverseValidateAndTransformRiskAnalysis(
           purpose.data.riskAnalysisForm,
           true,
-          tenant.kind
+          tenantKind
         );
 
   const updatedPurpose: Purpose = {
@@ -1059,7 +1083,7 @@ const performUpdatePurpose = async (
     isRiskAnalysisValid: isRiskAnalysisFormValid(
       updatedPurpose.riskAnalysisForm,
       false,
-      tenant.kind
+      tenantKind
     ),
   };
 };
