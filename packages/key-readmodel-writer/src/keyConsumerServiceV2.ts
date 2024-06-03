@@ -57,8 +57,8 @@ export async function handleMessageV2(
         )?.metadata.version || 0;
 
       await keys.deleteOne({
-        "data.id": message.data.kid,
-        "metadata.version": { $lt: version },
+        "data.kid": message.data.kid,
+        "metadata.version": { $lt: version + 1 },
       });
     })
     .with(

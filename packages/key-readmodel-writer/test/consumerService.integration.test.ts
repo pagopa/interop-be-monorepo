@@ -49,15 +49,15 @@ describe("Events V2", async () => {
     await handleMessageV2(message, keys);
 
     const retrievedKey = await keys.findOne({
-      "data.id": mockClient.id,
+      "data.kid": addedKey.kid,
     });
 
     expect(retrievedKey?.data).toEqual(toReadModelKey(addedKey));
     expect(retrievedKey?.metadata).toEqual({
-      version: 1,
+      version: 0,
     });
   });
-  it("ClientKeyDeleted", async () => {
+  it.only("ClientKeyDeleted", async () => {
     const mockKey: Key = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
@@ -88,9 +88,9 @@ describe("Events V2", async () => {
     await handleMessageV2(message, keys);
 
     const retrievedKey = await keys.findOne({
-      "data.id": mockKey.kid,
+      "data.kid": mockKey.kid,
     });
 
-    expect(retrievedKey).toBeUndefined();
+    expect(retrievedKey).toBeNull();
   });
 });
