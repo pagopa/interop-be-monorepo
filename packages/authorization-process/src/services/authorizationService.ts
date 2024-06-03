@@ -45,14 +45,6 @@ const retrieveClient = async (
   return client;
 };
 
-const retrieveKey = (client: Client, keyId: string): Key => {
-  const key = client.keys.find((key) => key.kid === keyId);
-  if (!key) {
-    throw keyNotFound(keyId, client.id);
-  }
-  return key;
-};
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
@@ -238,7 +230,12 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      retrieveKey(client.data, keyIdToRemove);
+      const keyToRemove = client.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+      if (!keyToRemove) {
+        throw keyNotFound(keyIdToRemove, client.data.id);
+      }
 
       const updatedClient: Client = {
         ...client.data,
