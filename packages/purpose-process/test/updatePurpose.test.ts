@@ -137,7 +137,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
     await writeInReadmodel(tenant, tenants);
 
-    await purposeService.updatePurpose({
+    const { purpose } = await purposeService.updatePurpose({
       purposeId: purposeForDeliver.id,
       purposeUpdateContent,
       organizationId: tenant.id,
@@ -167,6 +167,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     );
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
   });
 
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
@@ -179,7 +181,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       title: purposeForDeliver.title,
     };
 
-    await purposeService.updatePurpose({
+    const { purpose } = await purposeService.updatePurpose({
       purposeId: purposeForDeliver.id,
       purposeUpdateContent: updateContentWithoutTitle,
       organizationId: tenant.id,
@@ -209,13 +211,15 @@ describe("updatePurpose and updateReversePurpose", () => {
     );
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
   });
   it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
     await addOnePurpose(purposeForReceive);
     await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
     await writeInReadmodel(tenant, tenants);
 
-    await purposeService.updateReversePurpose({
+    const { purpose } = await purposeService.updateReversePurpose({
       purposeId: purposeForReceive.id,
       reversePurposeUpdateContent,
       organizationId: tenant.id,
@@ -244,6 +248,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     );
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
   });
   it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);

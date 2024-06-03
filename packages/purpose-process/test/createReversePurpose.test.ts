@@ -146,6 +146,8 @@ describe("createReversePurpose", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
 
     vi.useRealTimers();
   });

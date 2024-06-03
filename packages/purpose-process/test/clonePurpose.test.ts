@@ -116,6 +116,8 @@ describe("clonePurpose", async () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
 
     vi.useRealTimers();
   });
@@ -190,6 +192,8 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(expectedPurpose.title.length).toBe(60);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
 
     vi.useRealTimers();
   });

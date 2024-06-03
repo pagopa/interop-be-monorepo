@@ -161,6 +161,9 @@ describe("createPurpose", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    // TODO: should we check also isRiskAnalysisValid??
+
     vi.useRealTimers();
   });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {

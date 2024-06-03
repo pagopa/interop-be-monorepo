@@ -18,6 +18,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  toPurposeVersionV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -52,7 +53,7 @@ describe("suspendPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.suspendPurposeVersion({
+    const returnedPurposeVersion = await purposeService.suspendPurposeVersion({
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion1.id,
       organizationId: mockPurpose.consumerId,
@@ -89,6 +90,11 @@ describe("suspendPurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(
+      writtenPayload.purpose?.versions.find(
+        (v) => v.id == returnedPurposeVersion.id
+      )
+    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
     vi.useRealTimers();
   });
@@ -109,7 +115,7 @@ describe("suspendPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.suspendPurposeVersion({
+    const returnedPurposeVersion = await purposeService.suspendPurposeVersion({
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion1.id,
       organizationId: mockEService.producerId,
@@ -146,6 +152,11 @@ describe("suspendPurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(
+      writtenPayload.purpose?.versions.find(
+        (v) => v.id == returnedPurposeVersion.id
+      )
+    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
     vi.useRealTimers();
   });
@@ -167,7 +178,7 @@ describe("suspendPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.suspendPurposeVersion({
+    const returnedPurposeVersion = await purposeService.suspendPurposeVersion({
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion1.id,
       organizationId: mockEService.producerId,
@@ -204,6 +215,11 @@ describe("suspendPurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(
+      writtenPayload.purpose?.versions.find(
+        (v) => v.id == returnedPurposeVersion.id
+      )
+    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
     vi.useRealTimers();
   });
