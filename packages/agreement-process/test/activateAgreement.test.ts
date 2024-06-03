@@ -585,8 +585,8 @@ describe("activate agreement", () => {
 
   describe("Agreement Suspended", () => {
     it.each([
-      "suspendedByProducer === true and Requester === Producer",
-      "suspendedByConsumer === true and Requester === Consumer",
+      "Requester === Producer, suspendedByProducer === true, suspendedByConsumer === false",
+      "Requester === Consumer, suspendedByProducer === false, suspendedByConsumer === true",
     ])(
       "Agreement Suspended, valid attributes, %s -- success case: Suspended >> Activated",
       async (s) => {
@@ -622,7 +622,7 @@ describe("activate agreement", () => {
           ],
         };
 
-        const isProducer = s.startsWith("suspendedByProducer");
+        const isProducer = s.startsWith("Requester === Producer");
         const authData = getRandomAuthData(
           isProducer ? producer.id : consumer.id
         );
@@ -877,241 +877,255 @@ describe("activate agreement", () => {
       await testRelatedAgreementsArchiviation(relatedAgreements);
     });
 
-    describe("Agreement Suspended, valid attributes, suspendedByProducer: true, suspendedByConsumer: true -- success case: Suspended >> Suspended", async () => {
-      const producer = getMockTenant();
+    describe.each([
+      "Requester === Producer, suspendedByProducer === true, suspendedByConsumer === true",
+      "Requester === Consumer, suspendedByProducer === true, suspendedByConsumer === true",
+      "Requester === Producer, suspendedByProducer === false, suspendedByConsumer === true",
+      "Requester === Consumer, suspendedByProducer === true, suspendedByConsumer === false",
+    ])(
+      "Agreement Suspended, valid attributes, %s -- success case: Suspended >> Suspended",
+      async (s) => {
+        const producer = getMockTenant();
 
-      const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-        ...getMockCertifiedTenantAttribute(),
-        revocationTimestamp: undefined,
-      };
+        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
 
-      const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(),
-        revocationTimestamp: undefined,
-      };
+        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+          ...getMockDeclaredTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
 
-      const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [
-          {
-            id: producer.id,
-            verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-          },
-        ],
-      };
-
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        attributes: [
-          validTenantCertifiedAttribute,
-          validTenantDeclaredAttribute,
-          validTenantVerifiedAttribute,
-        ],
-      };
-
-      const authData = getRandomAuthData(
-        randomArrayItem([producer.id, consumer.id])
-      );
-      const isProducer = authData.organizationId === producer.id;
-
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-        attributes: {
-          certified: [
-            [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
+        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producer.id,
+              verificationDate: new Date(),
+              extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+            },
           ],
-          declared: [
-            [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
+        };
+
+        const consumer: Tenant = {
+          ...getMockTenant(),
+          attributes: [
+            validTenantCertifiedAttribute,
+            validTenantDeclaredAttribute,
+            validTenantVerifiedAttribute,
           ],
-          verified: [
-            [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
-          ],
-        },
-      };
+        };
 
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
+        const isProducer = s.startsWith("Requester === Producer");
+        const authData = getRandomAuthData(
+          isProducer ? producer.id : consumer.id
+        );
 
-      const mockAgreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.suspended,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByProducer: true,
-        suspendedByConsumer: true,
-        suspendedAt: new Date(),
-        stamps: {
-          ...getMockAgreement().stamps,
-          suspensionByProducer: {
-            who: authData.userId,
-            when: new Date(),
+        const descriptor: Descriptor = {
+          ...getMockDescriptorPublished(),
+          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          attributes: {
+            certified: [
+              [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
+            ],
+            declared: [
+              [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
+            ],
+            verified: [
+              [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
+            ],
           },
-          suspensionByConsumer: {
-            who: authData.userId,
-            when: new Date(),
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId: producer.id,
+          descriptors: [descriptor],
+        };
+
+        const suspendedByProducer = s.includes("suspendedByProducer === true");
+        const suspendedByConsumer = s.includes("suspendedByConsumer === true");
+        const mockAgreement: Agreement = {
+          ...getMockAgreement(),
+          state: agreementState.suspended,
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+          producerId: producer.id,
+          consumerId: consumer.id,
+          suspendedByProducer,
+          suspendedByConsumer,
+          suspendedAt: new Date(),
+          stamps: {
+            ...getMockAgreement().stamps,
+            suspensionByProducer: suspendedByProducer
+              ? {
+                  who: authData.userId,
+                  when: new Date(),
+                }
+              : undefined,
+            suspensionByConsumer: suspendedByConsumer
+              ? {
+                  who: authData.userId,
+                  when: new Date(),
+                }
+              : undefined,
           },
-        },
-        // Adding some random attributes to check that they are not modified by the Unsuspension
-        certifiedAttributes: [getMockAgreementAttribute()],
-        declaredAttributes: [getMockAgreementAttribute()],
-        verifiedAttributes: [getMockAgreementAttribute()],
-      };
+          // Adding some random attributes to check that they are not modified by the Unsuspension
+          certifiedAttributes: [getMockAgreementAttribute()],
+          declaredAttributes: [getMockAgreementAttribute()],
+          verifiedAttributes: [getMockAgreementAttribute()],
+        };
 
-      const expectedStamps = {
-        suspensionByProducer: isProducer
-          ? undefined
-          : mockAgreement.stamps.suspensionByProducer,
-        suspensionByConsumer: !isProducer
-          ? undefined
-          : mockAgreement.stamps.suspensionByConsumer,
-      };
+        const expectedStamps = {
+          suspensionByProducer: isProducer
+            ? undefined
+            : mockAgreement.stamps.suspensionByProducer,
+          suspensionByConsumer: !isProducer
+            ? undefined
+            : mockAgreement.stamps.suspensionByConsumer,
+        };
 
-      const expectedUnsuspendedAgreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.suspended,
-        suspendedAt: mockAgreement.suspendedAt,
-        stamps: {
-          ...mockAgreement.stamps,
-          ...expectedStamps,
-        },
-        suspendedByConsumer: isProducer ? true : false,
-        suspendedByProducer: !isProducer ? true : false,
-      };
-
-      it("if suspendedByPlatform === false, unsuspends by Producer or Consumer and remains in a Suspended state", async () => {
-        const agreement: Agreement = {
+        const expectedUnsuspendedAgreement: Agreement = {
           ...mockAgreement,
-          suspendedByPlatform: false,
+          state: agreementState.suspended,
+          suspendedAt: mockAgreement.suspendedAt,
+          stamps: {
+            ...mockAgreement.stamps,
+            ...expectedStamps,
+          },
+          suspendedByConsumer: isProducer ? true : false,
+          suspendedByProducer: !isProducer ? true : false,
         };
-        const expected = {
-          ...expectedUnsuspendedAgreement,
-          suspendedByPlatform: false,
-        };
-        await addOneTenant(consumer);
-        await addOneTenant(producer);
-        await addOneEService(eservice);
-        await addOneAgreement(agreement);
-        const relatedAgreements = await addRelatedAgreements(agreement);
 
-        const activateAgreementReturnValue =
-          await agreementService.activateAgreement(agreement.id, {
-            authData,
-            serviceName: "",
-            correlationId: "",
-            logger: genericLogger,
+        it("if suspendedByPlatform === false, unsuspends by Producer or Consumer and remains in a Suspended state", async () => {
+          const agreement: Agreement = {
+            ...mockAgreement,
+            suspendedByPlatform: false,
+          };
+          const expected = {
+            ...expectedUnsuspendedAgreement,
+            suspendedByPlatform: false,
+          };
+          await addOneTenant(consumer);
+          await addOneTenant(producer);
+          await addOneEService(eservice);
+          await addOneAgreement(agreement);
+          const relatedAgreements = await addRelatedAgreements(agreement);
+
+          const activateAgreementReturnValue =
+            await agreementService.activateAgreement(agreement.id, {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            });
+
+          const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+          expect(agreementEvent).toMatchObject({
+            type: isProducer
+              ? "AgreementUnsuspendedByProducer"
+              : "AgreementUnsuspendedByConsumer",
+            event_version: 2,
+            version: "1",
+            stream_id: agreement.id,
           });
 
-        const agreementEvent = await readLastAgreementEvent(agreement.id);
+          const actualAgreementUnsuspended = fromAgreementV2(
+            decodeProtobufPayload({
+              messageType: isProducer
+                ? AgreementUnsuspendedByProducerV2
+                : AgreementUnsuspendedByConsumerV2,
+              payload: agreementEvent.data,
+            }).agreement!
+          );
 
-        expect(agreementEvent).toMatchObject({
-          type: isProducer
-            ? "AgreementUnsuspendedByProducer"
-            : "AgreementUnsuspendedByConsumer",
-          event_version: 2,
-          version: "1",
-          stream_id: agreement.id,
+          await testRelatedAgreementsArchiviation(relatedAgreements);
+
+          expect(actualAgreementUnsuspended).toMatchObject(expected);
+
+          expect(activateAgreementReturnValue).toMatchObject(expected);
         });
 
-        const actualAgreementUnsuspended = fromAgreementV2(
-          decodeProtobufPayload({
-            messageType: isProducer
-              ? AgreementUnsuspendedByProducerV2
-              : AgreementUnsuspendedByConsumerV2,
-            payload: agreementEvent.data,
-          }).agreement!
-        );
+        it("if suspendedByPlatform === true, unsuspends by Producer or Consumer and also by platform, and remains in a Suspended state", async () => {
+          const agreement: Agreement = {
+            ...mockAgreement,
+            suspendedByPlatform: true,
+          };
 
-        await testRelatedAgreementsArchiviation(relatedAgreements);
+          const expected1 = {
+            ...expectedUnsuspendedAgreement,
+            suspendedByPlatform: true,
+          };
 
-        expect(actualAgreementUnsuspended).toMatchObject(expected);
+          const expected2 = {
+            ...expected1,
+            suspendedByPlatform: false,
+          };
 
-        expect(activateAgreementReturnValue).toMatchObject(expected);
-      });
+          await addOneTenant(consumer);
+          await addOneTenant(producer);
+          await addOneEService(eservice);
+          await addOneAgreement(agreement);
+          const relatedAgreements = await addRelatedAgreements(agreement);
 
-      it("if suspendedByPlatform === true, unsuspends by Producer or Consumer and also by platform, and remains in a Suspended state", async () => {
-        const agreement: Agreement = {
-          ...mockAgreement,
-          suspendedByPlatform: true,
-        };
+          const activateAgreementReturnValue =
+            await agreementService.activateAgreement(agreement.id, {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            });
 
-        const expected1 = {
-          ...expectedUnsuspendedAgreement,
-          suspendedByPlatform: true,
-        };
+          const agreementEvent = await readAgreementEventByVersion(
+            agreement.id,
+            1
+          );
 
-        const expected2 = {
-          ...expected1,
-          suspendedByPlatform: false,
-        };
-
-        await addOneTenant(consumer);
-        await addOneTenant(producer);
-        await addOneEService(eservice);
-        await addOneAgreement(agreement);
-        const relatedAgreements = await addRelatedAgreements(agreement);
-
-        const activateAgreementReturnValue =
-          await agreementService.activateAgreement(agreement.id, {
-            authData,
-            serviceName: "",
-            correlationId: "",
-            logger: genericLogger,
+          expect(agreementEvent).toMatchObject({
+            type: isProducer
+              ? "AgreementUnsuspendedByProducer"
+              : "AgreementUnsuspendedByConsumer",
+            event_version: 2,
+            version: "1",
+            stream_id: agreement.id,
           });
 
-        const agreementEvent = await readAgreementEventByVersion(
-          agreement.id,
-          1
-        );
+          const actualAgreementUnsuspended = fromAgreementV2(
+            decodeProtobufPayload({
+              messageType: isProducer
+                ? AgreementUnsuspendedByProducerV2
+                : AgreementUnsuspendedByConsumerV2,
+              payload: agreementEvent.data,
+            }).agreement!
+          );
 
-        expect(agreementEvent).toMatchObject({
-          type: isProducer
-            ? "AgreementUnsuspendedByProducer"
-            : "AgreementUnsuspendedByConsumer",
-          event_version: 2,
-          version: "1",
-          stream_id: agreement.id,
+          expect(actualAgreementUnsuspended).toMatchObject(expected1);
+
+          const agreementUnsuspendedByPlatformEvent =
+            await readAgreementEventByVersion(agreement.id, 2);
+
+          expect(agreementUnsuspendedByPlatformEvent).toMatchObject({
+            type: "AgreementUnsuspendedByPlatform",
+            event_version: 2,
+            version: "2",
+            stream_id: agreement.id,
+          });
+
+          const actualAgreementUnsuspendedByPlatform = fromAgreementV2(
+            decodeProtobufPayload({
+              messageType: AgreementUnsuspendedByPlatformV2,
+              payload: agreementUnsuspendedByPlatformEvent.data,
+            }).agreement!
+          );
+
+          await testRelatedAgreementsArchiviation(relatedAgreements);
+          expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject(expected2);
         });
-
-        const actualAgreementUnsuspended = fromAgreementV2(
-          decodeProtobufPayload({
-            messageType: isProducer
-              ? AgreementUnsuspendedByProducerV2
-              : AgreementUnsuspendedByConsumerV2,
-            payload: agreementEvent.data,
-          }).agreement!
-        );
-
-        expect(actualAgreementUnsuspended).toMatchObject(expected1);
-
-        const agreementUnsuspendedByPlatformEvent =
-          await readAgreementEventByVersion(agreement.id, 2);
-
-        expect(agreementUnsuspendedByPlatformEvent).toMatchObject({
-          type: "AgreementUnsuspendedByPlatform",
-          event_version: 2,
-          version: "2",
-          stream_id: agreement.id,
-        });
-
-        const actualAgreementUnsuspendedByPlatform = fromAgreementV2(
-          decodeProtobufPayload({
-            messageType: AgreementUnsuspendedByPlatformV2,
-            payload: agreementUnsuspendedByPlatformEvent.data,
-          }).agreement!
-        );
-
-        await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-        expect(activateAgreementReturnValue).toMatchObject(expected2);
-      });
-    });
+      }
+    );
   });
 
   describe("All other erorr cases", () => {
