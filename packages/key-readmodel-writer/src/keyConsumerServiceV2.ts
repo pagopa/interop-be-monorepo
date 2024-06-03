@@ -18,7 +18,13 @@ export async function handleMessageV2(
 
       const key = client?.keys.find((key) => key.kid === message.data.kid);
 
-      // to do: double-check version retrieval
+      /*
+      to do: double-check version retrieval.
+      the implementation below retrieves the version number by reading the existing key (if any) in readmodel.
+      
+      Alternative implementation: we could use the version number of the client, but this means that the key will "skip" some versions.
+      For example, if a key is created at the 7th update of the client, this means that the key will be inserted in the keys collection with version 7
+      */
       const version =
         (
           await keys.findOne({
