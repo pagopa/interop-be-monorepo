@@ -372,7 +372,7 @@ const authorizationRouter = (
       }
     )
     .get(
-      "/clients/:clientId/keys/:keyId",
+      "/clients/:clientId/keys/:keyId", // to do
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
