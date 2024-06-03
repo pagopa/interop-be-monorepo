@@ -10,7 +10,6 @@ import {
   Descriptor,
   genericError,
   AgreementEventV2,
-  WithMetadata,
   UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -110,12 +109,14 @@ export function createActivationUpdateAgreementSeed({
 
 export async function createActivationEvent(
   firstActivation: boolean,
-  agreement: WithMetadata<Agreement>,
   updatedAgreement: Agreement,
   updatedAgreementSeed: UpdateAgreementSeed,
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
+  originalSuspendedByPlatform: boolean | undefined,
+  suspendedByPlatformChanged: boolean,
+  agreementEventStoreVersion: number,
   authData: AuthData,
   correlationId: string,
   contractBuilder: ContractBuilder
@@ -137,7 +138,7 @@ export async function createActivationEvent(
           ...updatedAgreement,
           contract: apiAgreementDocumentToAgreementDocument(agreementContract),
         },
-        agreement.metadata.version,
+        agreementEventStoreVersion,
         correlationId
       ),
     ];
@@ -167,47 +168,49 @@ export async function createActivationEvent(
     */
 
     return match([authData.organizationId, updatedAgreement.state])
-      .with([agreement.data.producerId, agreementState.active], () => [
+      .with([updatedAgreement.producerId, agreementState.active], () => [
         toCreateEventAgreementUnsuspendedByProducer(
           updatedAgreement,
-          agreement.metadata.version,
+          agreementEventStoreVersion,
           correlationId
         ),
       ])
-      .with([agreement.data.producerId, agreementState.suspended], () => [
+      .with([updatedAgreement.producerId, agreementState.suspended], () => [
         toCreateEventAgreementUnsuspendedByProducer(
           {
             ...updatedAgreement,
-            suspendedByPlatform: agreement.data.suspendedByPlatform,
+            suspendedByPlatform: originalSuspendedByPlatform,
           },
-          agreement.metadata.version,
+          agreementEventStoreVersion,
           correlationId
         ),
         ...maybeCreateSuspensionByPlatformEvents(
-          agreement,
           updatedAgreement,
+          suspendedByPlatformChanged,
+          agreementEventStoreVersion + 1,
           correlationId
         ),
       ])
-      .with([agreement.data.consumerId, agreementState.active], () => [
+      .with([updatedAgreement.consumerId, agreementState.active], () => [
         toCreateEventAgreementUnsuspendedByConsumer(
           updatedAgreement,
-          agreement.metadata.version,
+          agreementEventStoreVersion,
           correlationId
         ),
       ])
-      .with([agreement.data.consumerId, agreementState.suspended], () => [
+      .with([updatedAgreement.consumerId, agreementState.suspended], () => [
         toCreateEventAgreementUnsuspendedByConsumer(
           {
             ...updatedAgreement,
-            suspendedByPlatform: agreement.data.suspendedByPlatform,
+            suspendedByPlatform: originalSuspendedByPlatform,
           },
-          agreement.metadata.version,
+          agreementEventStoreVersion,
           correlationId
         ),
         ...maybeCreateSuspensionByPlatformEvents(
-          agreement,
           updatedAgreement,
+          suspendedByPlatformChanged,
+          agreementEventStoreVersion + 1,
           correlationId
         ),
       ])
@@ -242,27 +245,27 @@ export const archiveRelatedToAgreements = async (
 };
 
 export function maybeCreateSuspensionByPlatformEvents(
-  agreement: WithMetadata<Agreement>,
   updatedAgreement: Agreement,
+  suspendedByPlatformChanged: boolean,
+  agreementEventStoreVersion: number,
   correlationId: string
 ): Array<CreateEvent<AgreementEventV2>> {
   if (
-    updatedAgreement.suspendedByPlatform !==
-      agreement.data.suspendedByPlatform &&
+    suspendedByPlatformChanged &&
     updatedAgreement.state === agreementState.suspended
   ) {
     return updatedAgreement.suspendedByPlatform
       ? [
           toCreateEventAgreementSuspendedByPlatform(
             updatedAgreement,
-            agreement.metadata.version + 1,
+            agreementEventStoreVersion,
             correlationId
           ),
         ]
       : [
           toCreateEventAgreementUnsuspendedByPlatform(
             updatedAgreement,
-            agreement.metadata.version + 1,
+            agreementEventStoreVersion,
             correlationId
           ),
         ];

@@ -1000,14 +1000,19 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
+      const suspendedByPlatformChanged =
+        agreement.data.suspendedByPlatform !==
+        updatedAgreement.suspendedByPlatform;
       const activationEvents = await createActivationEvent(
         firstActivation,
-        agreement,
         updatedAgreement,
         updatedAgreementSeed,
         eservice,
         consumer,
         producer,
+        agreement.data.suspendedByPlatform,
+        suspendedByPlatformChanged,
+        agreement.metadata.version,
         authData,
         correlationId,
         contractBuilderInstance
