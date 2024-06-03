@@ -67,6 +67,7 @@ describe("Events V2", async () => {
 
     const updatedClient = {
       ...mockClient,
+      keys: [],
     };
 
     const payload: ClientKeyDeletedV2 = {
