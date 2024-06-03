@@ -62,7 +62,7 @@ export const createSubmissionUpdateAgreementSeed = (
   userId: UserId
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
-  const isActivation = agreement.state === agreementState.active;
+  const isActivation = newState === agreementState.active;
 
   return isActivation
     ? {
