@@ -81,10 +81,6 @@ import {
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  // TODO Add case where the agreement is suspended by platform even if it was suspended only by consumer or producer
-
-  // TODO also test manually
-
   const mockSelfcareUserResponse: UserResponse = {
     email: "test@test.com",
     name: "Test Name",
@@ -188,176 +184,428 @@ describe("activate agreement", () => {
     });
   }
 
-  it("should activate a Pending Agreement when the requester is the Producer and all attributes are valid", async () => {
-    const producer = getMockTenant();
+  describe("Agreement Pending", () => {
+    it("Agreement Pending, Requester === Producer, valid attributes -- success case: Pending >> Activated", async () => {
+      const producer = getMockTenant();
 
-    const certifiedAttribute: Attribute = {
-      ...getMockAttribute(),
-      kind: "Certified",
-    };
+      const certifiedAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: "Certified",
+      };
 
-    const declaredAttribute: Attribute = {
-      ...getMockAttribute(),
-      kind: "Declared",
-    };
+      const declaredAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: "Declared",
+      };
 
-    const verifiedAttribute: Attribute = {
-      ...getMockAttribute(),
-      kind: "Verified",
-    };
+      const verifiedAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: "Verified",
+      };
 
-    const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
-      revocationTimestamp: undefined,
-    };
+      const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+        revocationTimestamp: undefined,
+      };
 
-    const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(declaredAttribute.id),
-      revocationTimestamp: undefined,
-    };
+      const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+        revocationTimestamp: undefined,
+      };
 
-    const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
-      verifiedBy: [
-        {
-          id: producer.id,
-          verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-        },
-      ],
-    };
-
-    const consumer: Tenant = {
-      ...getMockTenant(),
-      attributes: [
-        validTenantCertifiedAttribute,
-        validTenantDeclaredAttribute,
-        validTenantVerifiedAttribute,
-      ],
-    };
-
-    const authData = getRandomAuthData(producer.id);
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      attributes: {
-        certified: [
-          [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
+      const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+        verifiedBy: [
+          {
+            id: producer.id,
+            verificationDate: new Date(),
+            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+          },
         ],
-        declared: [[getMockEServiceAttribute(validTenantDeclaredAttribute.id)]],
-        verified: [[getMockEServiceAttribute(validTenantVerifiedAttribute.id)]],
-      },
-    };
+      };
 
-    const eservice: EService = {
-      ...getMockEService(),
-      producerId: producer.id,
-      descriptors: [descriptor],
-    };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          validTenantCertifiedAttribute,
+          validTenantDeclaredAttribute,
+          validTenantVerifiedAttribute,
+        ],
+      };
 
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.pending,
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-      producerId: producer.id,
-      consumerId: consumer.id,
-      suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
-      suspendedByProducer: randomBoolean(), // will be set to false by the activation
-      stamps: {
-        submission: {
-          who: authData.userId,
-          when: new Date(),
+      const authData = getRandomAuthData(producer.id);
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        attributes: {
+          certified: [
+            [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
+          ],
+          declared: [
+            [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
+          ],
+          verified: [
+            [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
+          ],
         },
-        activation: undefined,
-      },
+      };
 
-      // Adding some random attributes to check that they are overwritten by the activation
-      certifiedAttributes: [getMockAgreementAttribute()],
-      declaredAttributes: [getMockAgreementAttribute()],
-      verifiedAttributes: [getMockAgreementAttribute()],
-    };
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        descriptors: [descriptor],
+      };
 
-    await addOneAgreement(agreement);
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneEService(eservice);
-    await addOneAttribute(certifiedAttribute);
-    await addOneAttribute(declaredAttribute);
-    await addOneAttribute(verifiedAttribute);
-    const relatedAgreements = await addRelatedAgreements(agreement);
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
+        suspendedByProducer: randomBoolean(), // will be set to false by the activation
+        stamps: {
+          submission: {
+            who: authData.userId,
+            when: new Date(),
+          },
+          activation: undefined,
+        },
 
-    const acrivateAgreementReturnValue =
-      await agreementService.activateAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
+        // Adding some random attributes to check that they are overwritten by the activation
+        certifiedAttributes: [getMockAgreementAttribute()],
+        declaredAttributes: [getMockAgreementAttribute()],
+        verifiedAttributes: [getMockAgreementAttribute()],
+      };
+
+      await addOneAgreement(agreement);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(eservice);
+      await addOneAttribute(certifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+      await addOneAttribute(verifiedAttribute);
+      const relatedAgreements = await addRelatedAgreements(agreement);
+
+      const acrivateAgreementReturnValue =
+        await agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        });
+
+      const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementActivated",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
       });
 
-    const agreementEvent = await readLastAgreementEvent(agreement.id);
+      const actualAgreementActivated = fromAgreementV2(
+        decodeProtobufPayload({
+          messageType: AgreementActivatedV2,
+          payload: agreementEvent.data,
+        }).agreement!
+      );
 
-    expect(agreementEvent).toMatchObject({
-      type: "AgreementActivated",
-      event_version: 2,
-      version: "1",
-      stream_id: agreement.id,
+      const contractDocumentId = actualAgreementActivated.contract!.id;
+      const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
+      const contractDocumentName = `${consumer.id}_${
+        producer.id
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+
+      const expectedContract = {
+        id: contractDocumentId,
+        contentType: "application/pdf",
+        createdAt: contractCreatedAt,
+        path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+        prettyName: "Richiesta di fruizione",
+        name: contractDocumentName,
+      };
+
+      const expectedActivatedAgreement: Agreement = {
+        ...agreement,
+        state: agreementState.active,
+        stamps: {
+          ...agreement.stamps,
+          activation: {
+            who: authData.userId,
+            when: actualAgreementActivated.stamps.activation!.when,
+          },
+        },
+        certifiedAttributes: [{ id: certifiedAttribute.id }],
+        declaredAttributes: [{ id: declaredAttribute.id }],
+        verifiedAttributes: [{ id: verifiedAttribute.id }],
+        contract: expectedContract,
+        suspendedByProducer: false,
+        suspendedByConsumer: false,
+        suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
+      };
+
+      expect(actualAgreementActivated).toMatchObject(
+        expectedActivatedAgreement
+      );
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContain(expectedContract.path);
+
+      await testRelatedAgreementsArchiviation(relatedAgreements);
+      expect(acrivateAgreementReturnValue).toMatchObject(
+        expectedActivatedAgreement
+      );
     });
 
-    const actualAgreementActivated = fromAgreementV2(
-      decodeProtobufPayload({
-        messageType: AgreementActivatedV2,
-        payload: agreementEvent.data,
-      }).agreement!
-    );
+    it("Agreement Pending, Requester === Producer, invalid certified attributes -- error case: throws agreementActivationFailed and sets the agreement to MissingCertifiedAttributes", async () => {
+      const producer = getMockTenant();
 
-    const contractDocumentId = actualAgreementActivated.contract!.id;
-    const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
-    const contractDocumentName = `${consumer.id}_${
-      producer.id
-    }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+      const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
 
-    const expectedContract = {
-      id: contractDocumentId,
-      contentType: "application/pdf",
-      createdAt: contractCreatedAt,
-      path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
-      prettyName: "Richiesta di fruizione",
-      name: contractDocumentName,
-    };
+      const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
 
-    const expectedActivatedAgreement: Agreement = {
-      ...agreement,
-      state: agreementState.active,
-      stamps: {
-        ...agreement.stamps,
-        activation: {
-          who: authData.userId,
-          when: actualAgreementActivated.stamps.activation!.when,
+      const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [
+          {
+            id: producer.id,
+            verificationDate: new Date(),
+            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+          },
+        ],
+      };
+
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          revokedTenantCertifiedAttribute,
+          validTenantDeclaredAttribute,
+          validTenantVerifiedAttribute,
+        ],
+      };
+
+      const authData = getRandomAuthData(producer.id);
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        attributes: {
+          certified: [
+            [getMockEServiceAttribute(revokedTenantCertifiedAttribute.id)],
+          ],
+          declared: [
+            [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
+          ],
+          verified: [
+            [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
+          ],
         },
-      },
-      certifiedAttributes: [{ id: certifiedAttribute.id }],
-      declaredAttributes: [{ id: declaredAttribute.id }],
-      verifiedAttributes: [{ id: verifiedAttribute.id }],
-      contract: expectedContract,
-      suspendedByProducer: false,
-      suspendedByConsumer: false,
-      suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
-    };
+      };
 
-    expect(actualAgreementActivated).toMatchObject(expectedActivatedAgreement);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        descriptors: [descriptor],
+      };
 
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(expectedContract.path);
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedByPlatform: false, // Must be false, otherwise no event is created
+      };
 
-    await testRelatedAgreementsArchiviation(relatedAgreements);
-    expect(acrivateAgreementReturnValue).toMatchObject(
-      expectedActivatedAgreement
-    );
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(agreementActivationFailed(agreement.id));
+
+      const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementSetMissingCertifiedAttributesByPlatform",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
+      });
+
+      const actualAgreement = fromAgreementV2(
+        decodeProtobufPayload({
+          messageType: AgreementSetMissingCertifiedAttributesByPlatformV2,
+          payload: agreementEvent.data,
+        }).agreement!
+      );
+
+      const expectedAgreement: Agreement = {
+        ...agreement,
+        state: agreementState.missingCertifiedAttributes,
+        suspendedByPlatform: true,
+      };
+
+      expect(actualAgreement).toMatchObject(expectedAgreement);
+    });
+
+    it("Agreement Pending, Requester === Producer, invalid attributes -- error case: throws agreementActivationFailed", async () => {
+      const producer = getMockTenant();
+
+      const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
+
+      const revokedTenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
+
+      const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            { id: generateId<TenantId>(), verificationDate: new Date() },
+          ],
+        };
+
+      const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producer.id,
+              verificationDate: new Date(),
+              extensionDate: new Date(),
+            },
+          ],
+        };
+
+      const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
+        revokedTenantCertifiedAttribute,
+        revokedTenantDeclaredAttribute,
+        tenantVerifiedAttributeByAnotherProducer,
+        tenantVerfiedAttributeWithExpiredExtension,
+      ]);
+
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [consumerInvalidAttribute],
+      };
+
+      const authData = getRandomAuthData(producer.id);
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        attributes: {
+          certified:
+            consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
+              ? [[getMockEServiceAttribute(consumerInvalidAttribute.id)]]
+              : [[]],
+
+          declared:
+            consumerInvalidAttribute.type === "PersistentDeclaredAttribute"
+              ? [[getMockEServiceAttribute(consumerInvalidAttribute.id)]]
+              : [],
+          verified:
+            consumerInvalidAttribute.type === "PersistentVerifiedAttribute"
+              ? [[getMockEServiceAttribute(consumerInvalidAttribute.id)]]
+              : [],
+        },
+      };
+
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        descriptors: [descriptor],
+      };
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+      };
+
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(agreementActivationFailed(agreement.id));
+
+      const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+      if (
+        consumer.attributes[0].type === "PersistentCertifiedAttribute" &&
+        agreement.suspendedByPlatform === false
+      ) {
+        // This is the case where the agreement is set to MissingCertifiedAttributes by the platform,
+        // also tested above in a dedicated test case
+        expect(agreementEvent).toMatchObject({
+          type: "AgreementSetMissingCertifiedAttributesByPlatform",
+          event_version: 2,
+          version: "1",
+          stream_id: agreement.id,
+        });
+      } else {
+        expect(agreementEvent).toMatchObject({
+          type: "AgreementAdded",
+          event_version: 2,
+          version: "0",
+          stream_id: agreement.id,
+        });
+      }
+    });
+
+    it("Agreement Pending, Requester === Consumer -- error case: throws operationNotAllowed", async () => {
+      const consumerId = generateId<TenantId>();
+      const authData = getRandomAuthData(consumerId);
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        consumerId,
+      };
+      await addOneAgreement(agreement);
+      await expect(
+        agreementService.activateAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
   });
 
-  it("should activate a Suspended Agreement when the requester is the Consumer or the Producer, and all attributes are valid", async () => {
+  it("should activate a Suspended Agreement when the requester is the Consumer or the Producer and also the one that suspended the agreement, and all attributes are valid", async () => {
     const producer = getMockTenant();
 
     const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -636,7 +884,7 @@ describe("activate agreement", () => {
     await testRelatedAgreementsArchiviation(relatedAgreements);
   });
 
-  describe("a Suspended Agreement with valid attributes that was suspended both by Producer and Consumer", () => {
+  describe("given a Suspended Agreement with valid attributes that was suspended both by Producer and Consumer", () => {
     const producer = getMockTenant();
 
     const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -865,107 +1113,6 @@ describe("activate agreement", () => {
     });
   });
 
-  it("should set a Pending agreement to MissingCertifiedAttributes and throw an agreementActivationFailed when the requester is the Producer and there are invalid certified attributes", async () => {
-    const producer = getMockTenant();
-
-    const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: new Date(),
-    };
-
-    const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-
-    const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producer.id,
-          verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-        },
-      ],
-    };
-
-    const consumer: Tenant = {
-      ...getMockTenant(),
-      attributes: [
-        revokedTenantCertifiedAttribute,
-        validTenantDeclaredAttribute,
-        validTenantVerifiedAttribute,
-      ],
-    };
-
-    const authData = getRandomAuthData(producer.id);
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      attributes: {
-        certified: [
-          [getMockEServiceAttribute(revokedTenantCertifiedAttribute.id)],
-        ],
-        declared: [[getMockEServiceAttribute(validTenantDeclaredAttribute.id)]],
-        verified: [[getMockEServiceAttribute(validTenantVerifiedAttribute.id)]],
-      },
-    };
-
-    const eservice: EService = {
-      ...getMockEService(),
-      producerId: producer.id,
-      descriptors: [descriptor],
-    };
-
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.pending,
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-      producerId: producer.id,
-      consumerId: consumer.id,
-      suspendedByPlatform: false, // Must be false, otherwise no event is created
-    };
-
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneEService(eservice);
-    await addOneAgreement(agreement);
-
-    await expect(
-      agreementService.activateAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(agreementActivationFailed(agreement.id));
-
-    const agreementEvent = await readLastAgreementEvent(agreement.id);
-
-    expect(agreementEvent).toMatchObject({
-      type: "AgreementSetMissingCertifiedAttributesByPlatform",
-      event_version: 2,
-      version: "1",
-      stream_id: agreement.id,
-    });
-
-    const actualAgreement = fromAgreementV2(
-      decodeProtobufPayload({
-        messageType: AgreementSetMissingCertifiedAttributesByPlatformV2,
-        payload: agreementEvent.data,
-      }).agreement!
-    );
-
-    const expectedAgreement: Agreement = {
-      ...agreement,
-      state: agreementState.missingCertifiedAttributes,
-      suspendedByPlatform: true,
-    };
-
-    expect(actualAgreement).toMatchObject(expectedAgreement);
-  });
-
   it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
@@ -983,26 +1130,6 @@ describe("activate agreement", () => {
   it("should throw an operationNotAllowed error when the requester is not the Consumer or Producer", async () => {
     const authData = getRandomAuthData();
     const agreement: Agreement = getMockAgreement();
-    await addOneAgreement(agreement);
-    await expect(
-      agreementService.activateAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
-  });
-
-  it("should throw an operationNotAllowed error when the requester is the Consumer and the Agreement is Pending", async () => {
-    const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
-
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.pending,
-      consumerId,
-    };
     await addOneAgreement(agreement);
     await expect(
       agreementService.activateAgreement(agreement.id, {
@@ -1237,124 +1364,6 @@ describe("activate agreement", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(producerId));
-  });
-
-  it("should throw an agreementActivationFailed when the requester is the Producer, the Agreement is Pending and there are invalid attributes", async () => {
-    const producer = getMockTenant();
-
-    const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: new Date(),
-    };
-
-    const revokedTenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: new Date(),
-    };
-
-    const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        { id: generateId<TenantId>(), verificationDate: new Date() },
-      ],
-    };
-
-    const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
-      {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [
-          {
-            id: producer.id,
-            verificationDate: new Date(),
-            extensionDate: new Date(),
-          },
-        ],
-      };
-
-    const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
-      revokedTenantCertifiedAttribute,
-      revokedTenantDeclaredAttribute,
-      tenantVerifiedAttributeByAnotherProducer,
-      tenantVerfiedAttributeWithExpiredExtension,
-    ]);
-
-    const consumer: Tenant = {
-      ...getMockTenant(),
-      attributes: [consumerInvalidAttribute],
-    };
-
-    const authData = getRandomAuthData(producer.id);
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      attributes: {
-        certified:
-          consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
-            ? [[getMockEServiceAttribute(consumerInvalidAttribute.id)]]
-            : [[]],
-
-        declared:
-          consumerInvalidAttribute.type === "PersistentDeclaredAttribute"
-            ? [[getMockEServiceAttribute(consumerInvalidAttribute.id)]]
-            : [],
-        verified:
-          consumerInvalidAttribute.type === "PersistentVerifiedAttribute"
-            ? [[getMockEServiceAttribute(consumerInvalidAttribute.id)]]
-            : [],
-      },
-    };
-
-    const eservice: EService = {
-      ...getMockEService(),
-      producerId: producer.id,
-      descriptors: [descriptor],
-    };
-
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.pending,
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-      producerId: producer.id,
-      consumerId: consumer.id,
-    };
-
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-    await addOneEService(eservice);
-    await addOneAgreement(agreement);
-
-    await expect(
-      agreementService.activateAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(agreementActivationFailed(agreement.id));
-
-    const agreementEvent = await readLastAgreementEvent(agreement.id);
-
-    if (
-      consumer.attributes[0].type === "PersistentCertifiedAttribute" &&
-      agreement.suspendedByPlatform === false
-    ) {
-      // This is the case where the agreement is set to MissingCertifiedAttributes by the platform,
-      // also tested above in a dedicated test case
-      expect(agreementEvent).toMatchObject({
-        type: "AgreementSetMissingCertifiedAttributesByPlatform",
-        event_version: 2,
-        version: "1",
-        stream_id: agreement.id,
-      });
-    } else {
-      expect(agreementEvent).toMatchObject({
-        type: "AgreementAdded",
-        event_version: 2,
-        version: "0",
-        stream_id: agreement.id,
-      });
-    }
   });
 
   it("should throw agreementStampNotFound when the contract builder cannot find the submission stamp", async () => {
