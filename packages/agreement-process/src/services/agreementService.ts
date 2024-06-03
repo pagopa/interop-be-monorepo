@@ -1,12 +1,12 @@
 import {
+  AppContext,
+  CreateEvent,
   DB,
   FileManager,
   Logger,
-  WithLogger,
-  AppContext,
   PDFGenerator,
+  WithLogger,
   eventRepository,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -31,6 +31,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementAlreadyExists,
   agreementDocumentAlreadyExists,
@@ -99,7 +100,6 @@ import {
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   archiveRelatedToAgreements,
   createActivationEvent,
@@ -108,27 +108,28 @@ import {
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import {
+  agreementStateByFlags,
+  computeAgreementsStateByAttribute,
+  nextStateByAttributes,
+  suspendedByConsumerFlag,
+  suspendedByProducerFlag,
+} from "./agreementStateProcessor.js";
+import {
+  addContractOnFirstActivation,
+  createSubmissionUpdateAgreementSeed,
+  isActiveOrSuspended,
+  validateConsumerEmail,
+} from "./agreementSubmissionProcessor.js";
+import {
   createAgreementSuspendedEvent,
   createSuspensionUpdatedAgreement,
 } from "./agreementSuspensionProcessor.js";
+import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
   ReadModelService,
 } from "./readModelService.js";
-import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
-import {
-  suspendedByConsumerFlag,
-  suspendedByProducerFlag,
-  agreementStateByFlags,
-  nextStateByAttributes,
-} from "./agreementStateProcessor.js";
-import {
-  createSubmissionUpdateAgreementSeed,
-  isActiveOrSuspended,
-  validateConsumerEmail,
-} from "./agreementSubmissionProcessor.js";
-import { computeAgreementsStateByAttribute } from "./agreementStateProcessor.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
@@ -367,9 +368,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      if (agreement.data.state === agreementState.draft) {
-        await validateConsumerEmail(agreement.data, readModelService);
-      }
+      await validateConsumerEmail(agreement.data, readModelService);
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -424,37 +423,33 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
+      const hasRelatedAgreements = agreements.length > 0;
       const updatedAgreement = {
         ...agreement.data,
         ...updateSeed,
       };
 
-      const contract = await contractBuilder(
+      const contractBuilderInstance = contractBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
         config,
         logger
-      ).createContract(
-        authData.selfcareId,
-        agreement.data,
+      );
+
+      const submittedAgreement = await addContractOnFirstActivation(
+        contractBuilderInstance,
         eservice,
         consumer,
         producer,
-        updateSeed
+        updateSeed,
+        authData,
+        updatedAgreement,
+        hasRelatedAgreements
       );
 
-      const submittedAgreement =
-        updatedAgreement.state === agreementState.active &&
-        agreements.length === 0
-          ? {
-              ...updatedAgreement,
-              contract: apiAgreementDocumentToAgreementDocument(contract),
-            }
-          : updatedAgreement;
-
       const agreementEvent =
-        newState === agreementState.active
+        submittedAgreement.state === agreementState.active
           ? toCreateEventAgreementActivated(
               submittedAgreement,
               agreement.metadata.version,
@@ -467,7 +462,7 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        isActiveOrSuspended(newState)
+        isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
                 agreement,
