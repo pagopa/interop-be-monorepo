@@ -1144,13 +1144,13 @@ export function createAgreementArchivedByUpgradeEvent(
 function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
   agreement: WithMetadata<Agreement>,
   nextStateByAttributes: AgreementState,
-  newSuspendedByPlatform: boolean,
+  recalculatedSuspendedByPlatform: boolean,
   correlationId: string
 ): CreateEvent<AgreementEvent> | undefined {
   if (
     nextStateByAttributes === agreementState.missingCertifiedAttributes &&
-    newSuspendedByPlatform &&
-    newSuspendedByPlatform !== agreement.data.suspendedByPlatform
+    recalculatedSuspendedByPlatform &&
+    recalculatedSuspendedByPlatform !== agreement.data.suspendedByPlatform
   ) {
     /* In this case, it means that one of the certified attributes is not
       valid anymore. We put the agreement in the missingCertifiedAttributes state
