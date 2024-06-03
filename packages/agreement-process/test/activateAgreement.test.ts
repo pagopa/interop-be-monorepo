@@ -865,6 +865,111 @@ describe("activate agreement", () => {
     });
   });
 
+  it.only("should set a Pending agreement to MissingCertifiedAttributes and throw an agreementActivationFailed when the requester is the Producer and there are invalid certified attributes", async () => {
+    const producer = getMockTenant();
+
+    const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: new Date(),
+    };
+
+    const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        {
+          id: producer.id,
+          verificationDate: new Date(),
+          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+        },
+      ],
+    };
+
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      attributes: [
+        revokedTenantCertifiedAttribute,
+        validTenantDeclaredAttribute,
+        validTenantVerifiedAttribute,
+      ],
+    };
+
+    const authData = getRandomAuthData(producer.id);
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+      attributes: {
+        certified: [
+          [getMockEServiceAttribute(revokedTenantCertifiedAttribute.id)],
+        ],
+        declared: [[getMockEServiceAttribute(validTenantDeclaredAttribute.id)]],
+        verified: [[getMockEServiceAttribute(validTenantVerifiedAttribute.id)]],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      descriptors: [descriptor],
+    };
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.pending,
+      eserviceId: eservice.id,
+      descriptorId: descriptor.id,
+      producerId: producer.id,
+      consumerId: consumer.id,
+
+      // Adding some random attributes to check that they are not modified
+      certifiedAttributes: [getMockAgreementAttribute()],
+      declaredAttributes: [getMockAgreementAttribute()],
+      verifiedAttributes: [getMockAgreementAttribute()],
+    };
+
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+
+    await expect(
+      agreementService.activateAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(agreementActivationFailed(agreement.id));
+
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+    expect(agreementEvent).toMatchObject({
+      type: "AgreementSetMissingCertifiedAttributesByPlatform",
+      event_version: 2,
+      version: "1",
+      stream_id: agreement.id,
+    });
+
+    const actualAgreement = fromAgreementV2(
+      decodeProtobufPayload({
+        messageType: AgreementSetMissingCertifiedAttributesByPlatformV2,
+        payload: agreementEvent.data,
+      }).agreement!
+    );
+
+    const expectedAgreement: Agreement = {
+      ...agreement,
+      state: agreementState.missingCertifiedAttributes,
+      suspendedByPlatform: true,
+    };
+
+    expect(actualAgreement).toMatchObject(expectedAgreement);
+  });
+
   it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
