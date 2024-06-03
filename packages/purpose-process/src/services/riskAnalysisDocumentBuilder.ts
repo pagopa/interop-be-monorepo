@@ -1,5 +1,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
+import { writeFileSync } from "fs";
 import {
   FileManager,
   FormQuestionRules,
@@ -10,6 +11,7 @@ import {
   answerNotFoundInConfigError,
   dataType,
   dateAtRomeZone,
+  formatDateyyyyMMddHHmmss,
   getFormRulesByVersion,
   incompatibleConfigError,
   unexpectedEmptyAnswerError,
@@ -37,11 +39,12 @@ import { PurposeProcessConfig } from "../utilities/config.js";
 const YES = "Sì";
 const NO = "No";
 const NOT_AVAILABLE = "N/A";
+const CONTENT_TYPE_PDF = "application/pdf";
 
 type Language = keyof LocalizedText;
 
 const createRiskAnalysisDocumentName = (): string =>
-  `${new Date().toISOString()}_${generateId()}_risk_analysis.pdf`;
+  `${formatDateyyyyMMddHHmmss(new Date())}_${generateId()}_risk_analysis.pdf`;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const riskAnalysisDocumentBuilder = (
@@ -106,7 +109,7 @@ export const riskAnalysisDocumentBuilder = (
 
       const documentPath = await fileManager.storeBytes(
         config.s3Bucket,
-        `TODO`,
+        config.riskAnalysisPath,
         documentId,
         documentName,
         pdfBuffer,
@@ -115,7 +118,7 @@ export const riskAnalysisDocumentBuilder = (
 
       return {
         id: documentId,
-        contentType: "application/pdf",
+        contentType: CONTENT_TYPE_PDF,
         path: documentPath,
         createdAt: new Date(),
       };

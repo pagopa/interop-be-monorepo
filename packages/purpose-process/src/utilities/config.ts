@@ -13,11 +13,11 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
     z
       .object({
         S3_BUCKET: z.string(),
-        RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_PATH: z.string(),
       })
       .transform((c) => ({
         s3Bucket: c.S3_BUCKET,
-        riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+        riskAnalysisPath: c.RISK_ANALYSIS_PATH,
       }))
   );
 

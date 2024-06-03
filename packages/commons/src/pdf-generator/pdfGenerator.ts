@@ -27,8 +27,6 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
       "--allow-file-access-from-files",
       "--enable-local-file-accesses",
     ],
-    pipe: true,
-    headless: true,
   });
 
   const getBrowser = async (): Promise<Browser> => {
