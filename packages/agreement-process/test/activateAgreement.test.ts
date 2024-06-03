@@ -1240,7 +1240,6 @@ describe("activate agreement", () => {
   });
 
   it("should throw an agreementActivationFailed when the requester is the Producer, the Agreement is Pending and there are invalid attributes", async () => {
-    // TODO NOT NEEDED??? OR MAYBE NEEDED WHEN ALSO OTHER ATTRIBUTES ARE INVALID???? NOT ONLY CERTIFIED???
     const producer = getMockTenant();
 
     const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -1333,6 +1332,29 @@ describe("activate agreement", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(agreementActivationFailed(agreement.id));
+
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+    if (
+      consumer.attributes[0].type === "PersistentCertifiedAttribute" &&
+      agreement.suspendedByPlatform === false
+    ) {
+      // This is the case where the agreement is set to MissingCertifiedAttributes by the platform,
+      // also tested above in a dedicated test case
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementSetMissingCertifiedAttributesByPlatform",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
+      });
+    } else {
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementAdded",
+        event_version: 2,
+        version: "0",
+        stream_id: agreement.id,
+      });
+    }
   });
 
   it("should throw agreementStampNotFound when the contract builder cannot find the submission stamp", async () => {
