@@ -17,6 +17,7 @@ import {
   genericError,
   AgreementEventV2,
   UserId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
