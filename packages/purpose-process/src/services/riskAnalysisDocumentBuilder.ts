@@ -98,6 +98,8 @@ export const riskAnalysisDocumentBuilder = (
         language,
       });
 
+      console.log(pdfPayload);
+
       const pdfBuffer: Buffer = await pdfGenerator.generate(
         templateFilePath,
         pdfPayload
@@ -306,7 +308,7 @@ function formatAnswer<T>(
   return `<div class="item">
   <div class="label">${questionLabel}</div>
   ${infoLabel ? `<div class="info-label">${infoLabel}</div>` : ""}
-  <div class="answer">${answerText}</div>s
+  <div class="answer">${answerText}</div>
 </div>
 `;
 }
