@@ -115,7 +115,6 @@ export const purposeVersionToApiPurposeVersion = (
   createdAt: version.createdAt.toJSON(),
   updatedAt: version.updatedAt?.toJSON(),
   firstActivationAt: version.firstActivationAt?.toJSON(),
-  expectedApprovalDate: version.expectedApprovalDate?.toJSON(),
   riskAnalysis: version.riskAnalysis
     ? purposeVersionDocumentToApiPurposeVersionDocument(version.riskAnalysis)
     : undefined,

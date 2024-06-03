@@ -36,6 +36,8 @@ export async function handleMessageV2(
       { type: "AgreementConsumerDocumentAdded" },
       { type: "AgreementConsumerDocumentRemoved" },
       { type: "AgreementArchivedByUpgrade" },
+      { type: "AgreementSetDraftByPlatform" },
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       async (message) =>
         await agreements.updateOne(
           {
