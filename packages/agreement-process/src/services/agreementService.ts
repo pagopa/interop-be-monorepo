@@ -1160,10 +1160,10 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
     /* In this case, it means that one of the certified attributes is not
       valid anymore. We put the agreement in the missingCertifiedAttributes state
       and fail the submission */
-    const missingCertifiedAttributesByPlatformAgreement = {
+    const missingCertifiedAttributesByPlatformAgreement: Agreement = {
       ...agreement.data,
       state: agreementState.missingCertifiedAttributes,
-      newSuspendedByPlatform,
+      suspendedByPlatform: true,
     };
 
     return toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
