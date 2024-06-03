@@ -18,16 +18,24 @@ export async function handleMessageV2(
 
       const key = client?.keys.find((key) => key.kid === message.data.kid);
 
+      // to do: double-check version retrieval
+      const version =
+        (
+          await keys.findOne({
+            "data.id": message.data.kid,
+          })
+        )?.metadata.version || 0;
+
       await keys.updateOne(
         {
           "data.id": message.data.kid,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lt: version },
         },
         {
           $set: {
             data: key,
             metadata: {
-              version: message.version, // double-check version assignment
+              version,
             },
           },
         },
@@ -35,9 +43,16 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ClientKeyDeleted" }, async (message) => {
+      const version =
+        (
+          await keys.findOne({
+            "data.id": message.data.kid,
+          })
+        )?.metadata.version || 0;
+
       await keys.deleteOne({
         "data.id": message.data.kid,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lt: version },
       });
     })
     .with(
