@@ -585,21 +585,11 @@ describe("activate agreement", () => {
 
   describe("Agreement Suspended", () => {
     it.each([
-      {
-        suspendedByConsumer: true,
-        isConsumer: true,
-        suspendedByProducer: false,
-        isProducer: false,
-      },
-      {
-        suspendedByProducer: true,
-        isProducer: true,
-        suspendedByConsumer: false,
-        isConsumer: false,
-      },
+      "suspendedByProducer === true and Requester === Producer",
+      "suspendedByConsumer === true and Requester === Consumer",
     ])(
       "Agreement Suspended, valid attributes, %s -- success case: Suspended >> Activated",
-      async ({ suspendedByConsumer, suspendedByProducer, isProducer }) => {
+      async (s) => {
         const producer = getMockTenant();
 
         const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -632,6 +622,7 @@ describe("activate agreement", () => {
           ],
         };
 
+        const isProducer = s.startsWith("suspendedByProducer");
         const authData = getRandomAuthData(
           isProducer ? producer.id : consumer.id
         );
@@ -659,6 +650,8 @@ describe("activate agreement", () => {
         };
 
         // Only one of the two flags is true, so that the next state is active
+        const suspendedByConsumer = !isProducer ? true : false;
+        const suspendedByProducer = isProducer ? true : false;
         const mockAgreement = getMockAgreement();
         const agreement: Agreement = {
           ...mockAgreement,
