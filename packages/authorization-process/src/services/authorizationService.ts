@@ -22,7 +22,11 @@ import {
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
+  keyAlreadyExist,
+  keyAlreadyExists,
   keyNotFound,
+  keysAlreadyExist,
+  notAllowedPrivateKeyException,
   organizationNotAllowedOnClient,
   purposeIdNotFound,
   securityUserNotFound,
@@ -46,9 +50,14 @@ import {
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
 import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
+import { config } from "../utilities/config.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import { isClientConsumer } from "./validators.js";
-import { decodeBase64ToPem } from "./../../../commons/src/auth/jwk.js";
+import {
+  calculateKid,
+  decodeBase64ToPem,
+  isPublicKey,
+} from "./../../../commons/src/auth/jwk.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -418,12 +427,10 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      const keys = await this.getClientKeys(
+      assertKeyIsBelowThreshold(
         clientId,
-        unsafeBrandId(authData.organizationId),
-        logger
+        client.data.keys.length + keysSeeds.length
       );
-      assertKeyIsBelowThreshold(clientId, keys.length + keysSeeds.length);
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
       }
@@ -433,41 +440,71 @@ export function authorizationServiceBuilder(
         authData.userId
       );
 
-      const newKeys = await Promise.all(
-        keysSeeds.map(async (k) => {
-          const key: Key = {
-            name: k.name,
-            createdAt: new Date(),
-            kid: "",
-            encodedPem: validateKey(k),
-            algorithm: k.alg,
-            use: ApiKeyUseToKeyUse(k.use),
-            userId: authData.userId,
-          };
-          const clientForTheEvent = {
-            ...client.data,
-            keys: [...client.data.keys, key],
-          };
-          await repository.createEvent(
-            toCreateEventKeyAdded(
-              "kid",
-              clientForTheEvent,
-              client.metadata.version,
-              correlationId
-            )
-          );
-          return key;
-        })
-      );
+      // const newKeys = await Promise.all(
+      //   keysSeeds.map(async (keySeed) => {
+      //     assertValidatedKey(keySeed);
+      //     const newKey: Key = {
+      //       name: keySeed.name,
+      //       createdAt: new Date(),
+      //       kid: calculateKid(keySeed.key),
+      //       encodedPem: keySeed.key,
+      //       algorithm: keySeed.alg,
+      //       use: ApiKeyUseToKeyUse(keySeed.use),
+      //       userId: authData.userId,
+      //     };
+      //     if (client.data.keys.find((key) => key.kid === newKey.kid)) {
+      //       throw keyAlreadyExists(newKey.kid);
+      //     }
+      //     const updatedClient: Client = {
+      //       ...client.data,
+      //       keys: [...client.data.keys, newKey],
+      //     };
+      //     await repository.createEvent(
+      //       toCreateEventKeyAdded(
+      //         newKey.kid,
+      //         updatedClient,
+      //         client.metadata.version,
+      //         correlationId
+      //       )
+      //     );
+      //     return newKey;
+      //   })
+      // );
 
-      const newClient: Client = {
-        ...client.data,
-        keys: [...client.data.keys, ...newKeys],
-      };
+      // eslint-disable-next-line functional/no-let
+      let updatedClient: Client = client.data;
+
+      for (const keySeed of keysSeeds) {
+        assertValidatedKey(keySeed);
+        const newKey: Key = {
+          name: keySeed.name,
+          createdAt: new Date(),
+          kid: calculateKid(keySeed.key),
+          encodedPem: keySeed.key,
+          algorithm: keySeed.alg,
+          use: ApiKeyUseToKeyUse(keySeed.use),
+          userId: authData.userId,
+        };
+        if (client.data.keys.find((key) => key.kid === newKey.kid)) {
+          throw keyAlreadyExists(newKey.kid);
+        }
+        updatedClient = {
+          ...updatedClient,
+          keys: [...updatedClient.keys, newKey],
+        };
+        await repository.createEvent(
+          toCreateEventKeyAdded(
+            newKey.kid,
+            updatedClient,
+            client.metadata.version,
+            correlationId
+          )
+        );
+      }
 
       return {
-        client: newClient,
-        showUsers: newClient.consumerId === authData.organizationId,
+        client: updatedClient,
+        showUsers: updatedClient.consumerId === authData.organizationId,
       };
     },
   };
@@ -504,10 +541,13 @@ const assertSecurityUser = async (
 };
 
 const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
-  if (size > 100) {
+  if (size > config.maxKeysPerClient) {
     throw tooManyKeysPerClient(clientId, size);
   }
 };
 
-const validateKey = (keySeed: ApiKeySeed): string =>
-  decodeBase64ToPem(keySeed.key);
+const assertValidatedKey = (keySeed: ApiKeySeed): void => {
+  if (!isPublicKey(decodeBase64ToPem(keySeed.key))) {
+    throw notAllowedPrivateKeyException();
+  }
+};
