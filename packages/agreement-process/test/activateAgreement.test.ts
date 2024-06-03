@@ -865,7 +865,7 @@ describe("activate agreement", () => {
     });
   });
 
-  it.only("should set a Pending agreement to MissingCertifiedAttributes and throw an agreementActivationFailed when the requester is the Producer and there are invalid certified attributes", async () => {
+  it("should set a Pending agreement to MissingCertifiedAttributes and throw an agreementActivationFailed when the requester is the Producer and there are invalid certified attributes", async () => {
     const producer = getMockTenant();
 
     const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -924,11 +924,7 @@ describe("activate agreement", () => {
       descriptorId: descriptor.id,
       producerId: producer.id,
       consumerId: consumer.id,
-
-      // Adding some random attributes to check that they are not modified
-      certifiedAttributes: [getMockAgreementAttribute()],
-      declaredAttributes: [getMockAgreementAttribute()],
-      verifiedAttributes: [getMockAgreementAttribute()],
+      suspendedByPlatform: false, // Must be false, otherwise no event is created
     };
 
     await addOneTenant(consumer);
