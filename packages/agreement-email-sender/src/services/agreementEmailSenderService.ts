@@ -3,23 +3,20 @@ import path from "path";
 import fs from "fs/promises";
 import { AgreementV2, genericInternalError } from "pagopa-interop-models";
 import {
+  EmailManager,
   buildHTMLTemplateService,
   dateAtRomeZone,
-  emailManagerConfig,
 } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { ReadModelService } from "./readModelService.js";
 
-const { emailManagerSender } = emailManagerConfig();
-
-export async function getActivationMailFromAgreement(
+async function getActivationMailFromAgreement(
   agreement: AgreementV2,
   readModelService: ReadModelService,
   selfcareV2Client: SelfcareV2Client
 ): Promise<{
   subject: string;
   body: string;
-  from: string;
   to: string[];
 }> {
   const templateService = buildHTMLTemplateService();
@@ -93,16 +90,31 @@ export async function getActivationMailFromAgreement(
 
   return {
     subject: `Richiesta di fruizione ${agreement.id} attiva`,
-    from: emailManagerSender,
     to: [producerEmail, consumerEmail],
     body: templateService.compileHtml(htmlTemplate, {
       activationDate: formattedActivationDate,
       agreementId: agreement.id,
       eserviceName: eservice?.name,
-      eserviceVersion: eservice?.descriptors.find((d) => d.id === agreement.id)
-        ?.version,
+      eserviceVersion: eservice?.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      )?.version,
       producerName: producer?.name,
       consumerName: consumer?.name,
     }),
   };
+}
+
+export async function sendAgreementEmail(
+  agreement: AgreementV2,
+  readModelService: ReadModelService,
+  selfcareV2Client: SelfcareV2Client,
+  emailManager: EmailManager
+): Promise<void> {
+  const { to, subject, body } = await getActivationMailFromAgreement(
+    agreement,
+    readModelService,
+    selfcareV2Client
+  );
+
+  await emailManager.send(emailManager.getSender(), to, subject, body);
 }

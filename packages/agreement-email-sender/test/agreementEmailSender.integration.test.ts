@@ -18,7 +18,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { InstitutionResponse } from "pagopa-interop-selfcare-v2-client";
-import { getActivationMailFromAgreement } from "../src/services/agreementEmailSenderService.js";
+import { sendAgreementEmail } from "../src/services/agreementEmailSenderService.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -36,10 +36,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
+    const descriptror = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [{ ...getMockDescriptor(), id: agreementId, version: "1" }],
+      descriptors: [descriptror],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -47,13 +48,15 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: tenant.id,
+      descriptorId: descriptror.id,
     };
     await addOneAgreement(agreement);
 
-    const { from, to, subject, body } = await getActivationMailFromAgreement(
+    await sendAgreementEmail(
       toAgreementV2(agreement),
       readModelService,
-      selfcareV2ClientMock
+      selfcareV2ClientMock,
+      emailManager
     );
 
     const expectedBody = `<!DOCTYPE html>
@@ -90,8 +93,6 @@ describe("agreement email sender", () => {
 </html>
 `;
 
-    await emailManager.send(from, to, subject, body);
-
     const { data } = await axios.get(
       `http://${emailManagerConfig?.emailManagerHost}:${emailManagerConfig?.emailManagerHTTPPort}/api/v1/message/latest`
     );
@@ -108,10 +109,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
+    const descriptror = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [{ ...getMockDescriptor(), id: agreementId, version: "1" }],
+      descriptors: [descriptror],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -119,14 +121,16 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: {},
       producerId: tenant.id,
+      descriptrorId: descriptror.id,
     };
     await addOneAgreement(agreement);
 
     await expect(
-      getActivationMailFromAgreement(
+      sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock
+        selfcareV2ClientMock,
+        emailManager
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -150,10 +154,11 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      getActivationMailFromAgreement(
+      sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock
+        selfcareV2ClientMock,
+        emailManager
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -168,10 +173,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
+    const descriptror = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [{ ...getMockDescriptor(), id: agreementId, version: "1" }],
+      descriptors: [descriptror],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -179,14 +185,16 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: generateId<TenantId>(),
+      descriptrorId: descriptror.id,
     };
     await addOneAgreement(agreement);
 
     await expect(
-      getActivationMailFromAgreement(
+      sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock
+        selfcareV2ClientMock,
+        emailManager
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -201,10 +209,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
+    const descriptror = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [{ ...getMockDescriptor(), id: agreementId, version: "1" }],
+      descriptors: [descriptror],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -213,14 +222,16 @@ describe("agreement email sender", () => {
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: tenant.id,
       consumerId: generateId<TenantId>(),
+      descriptrorId: descriptror.id,
     };
     await addOneAgreement(agreement);
 
     await expect(
-      getActivationMailFromAgreement(
+      sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock
+        selfcareV2ClientMock,
+        emailManager
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -235,10 +246,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
+    const descriptror = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [{ ...getMockDescriptor(), id: agreementId, version: "1" }],
+      descriptors: [descriptror],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -246,6 +258,7 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: tenant.id,
+      descriptrorId: descriptror.id,
     };
     await addOneAgreement(agreement);
 
@@ -255,10 +268,11 @@ describe("agreement email sender", () => {
     );
 
     await expect(
-      getActivationMailFromAgreement(
+      sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock
+        selfcareV2ClientMock,
+        emailManager
       )
     ).rejects.toThrowError(
       genericInternalError(

@@ -13,3 +13,6 @@ export const EmailManagerConfig = z
   }));
 
 export type EmailManagerConfig = z.infer<typeof EmailManagerConfig>;
+
+export const emailManagerConfig: () => EmailManagerConfig = () =>
+  EmailManagerConfig.parse(process.env);

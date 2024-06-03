@@ -8,6 +8,7 @@ export type EmailManager = {
     subject: string,
     body: string
   ) => Promise<void>;
+  getSender: () => string;
 };
 
 export function initEmailManager(config: EmailManagerConfig): EmailManager {
@@ -27,8 +28,9 @@ export function initEmailManager(config: EmailManagerConfig): EmailManager {
         from,
         to,
         subject,
-        html: body, // html body
+        html: body,
       });
     },
+    getSender: () => config.emailManagerSender,
   };
 }

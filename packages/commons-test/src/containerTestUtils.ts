@@ -18,7 +18,6 @@ export const TEST_MINIO_IMAGE =
 export const TEST_MAILPIT_HTTP_PORT = 8025;
 export const TEST_MAILPIT_SMTP_PORT = 1025;
 export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
-export const TEST_EMAIL_MANAGER_SENDER = "sender@test.com";
 
 /**
  * Starts a MongoDB container for testing purposes.

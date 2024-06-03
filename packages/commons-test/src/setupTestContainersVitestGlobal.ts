@@ -26,7 +26,6 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
-  TEST_EMAIL_MANAGER_SENDER,
 } from "./containerTestUtils.js";
 
 const EmailManagerConfigTest = EmailManagerConfig.and(
@@ -130,7 +129,6 @@ export function setupTestContainersVitestGlobal() {
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
       emailManagerConfig.data.emailManagerHost =
         startedMailpitContainer.getHost();
-      emailManagerConfig.data.emailManagerSender = TEST_EMAIL_MANAGER_SENDER;
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 

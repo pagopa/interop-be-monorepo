@@ -1,10 +1,5 @@
-import {
-  ReadModelRepository,
-  // readModelWriterConfig,
-} from "pagopa-interop-commons";
+import { ReadModelRepository } from "pagopa-interop-commons";
 import { EService, Tenant, genericInternalError } from "pagopa-interop-models";
-// const readModelConfig = readModelWriterConfig();
-// const { eservices, tenants } = ReadModelRepository.init(readModelConfig);
 
 export type ReadModelService = {
   getEServiceById: (id: string) => Promise<EService | undefined>;

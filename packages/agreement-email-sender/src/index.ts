@@ -14,17 +14,17 @@ import { AgreementEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { getActivationMailFromAgreement } from "./services/agreementEmailSenderService.js";
+import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
 
 const config = kafkaConsumerConfig();
 const readModelConfig = readModelWriterConfig();
 const topicsConfig = agreementTopicConfig();
+const emailConfig = emailManagerConfig();
+const emailManager = initEmailManager(emailConfig);
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(readModelConfig)
 );
-
-const emailManager = initEmailManager(emailManagerConfig());
 
 export async function processMessage({
   message,
@@ -44,14 +44,12 @@ export async function processMessage({
     { event_version: 2, type: "AgreementSubmitted" },
     async ({ data: { agreement } }) => {
       if (agreement) {
-        const { from, to, subject, body } =
-          await getActivationMailFromAgreement(
-            agreement,
-            readModelService,
-            selfcareV2Client
-          );
-        loggerInstance.debug(body);
-        await emailManager.send(from, to, subject, body);
+        await sendAgreementEmail(
+          agreement,
+          readModelService,
+          selfcareV2Client,
+          emailManager
+        );
       } else {
         loggerInstance.error(
           `Agreement not found in message: ${decodedMessage.type}`
