@@ -20,6 +20,8 @@ export const eventV2TypeMapper = (
       "AgreementSuspendedByProducer",
       "AgreementSuspendedByConsumer",
       "AgreementSuspendedByPlatform",
+      "AgreementSetDraftByPlatform",
+      "AgreementSetMissingCertifiedAttributesByPlatform",
       "AgreementRejected",
       "AgreementArchivedByUpgrade",
       "AgreementArchivedByConsumer",
