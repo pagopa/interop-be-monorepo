@@ -1,6 +1,5 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { writeFileSync } from "fs";
 import {
   FileManager,
   FormQuestionRules,
