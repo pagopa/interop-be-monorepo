@@ -1,32 +1,32 @@
 /* Load fonts */
 @font-face {
-  font-family: 'Montserrat';
-  src: url('../assets/font/Montserrat-Regular.ttf') format('truetype');
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Regular.ttf") format("truetype");
   font-weight: 400;
 }
 
 @font-face {
-  font-family: 'Montserrat';
-  src: url('../assets/font/Montserrat-Italic.ttf') format('truetype');
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Italic.ttf") format("truetype");
   font-weight: 400;
   font-style: italic;
 }
 
 @font-face {
-  font-family: 'Montserrat';
-  src: url('../assets/font/Montserrat-Medium.ttf') format('truetype');
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Medium.ttf") format("truetype");
   font-weight: 500;
 }
 
 @font-face {
-  font-family: 'Montserrat';
-  src: url('../assets/font/Montserrat-SemiBold.ttf') format('truetype');
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-SemiBold.ttf") format("truetype");
   font-weight: 600;
 }
 
 @font-face {
-  font-family: 'Montserrat';
-  src: url('../assets/font/Montserrat-Bold.ttf') format('truetype');
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Bold.ttf") format("truetype");
   font-weight: 700;
 }
 
@@ -58,7 +58,7 @@
 }
 
 body {
-  font-family: 'Montserrat', arial, sans-serif;
+  font-family: "Montserrat", arial, sans-serif;
   font-size: 12px;
   line-height: 18px;
   margin: 0;
@@ -113,7 +113,7 @@ h1 {
   margin: 16px 0;
 }
 
-.free-of-charge  .item-not-visible {
+.free-of-charge .item-not-visible {
   display: none;
 }
 
@@ -130,7 +130,7 @@ h1 {
 }
 
 .signature::after {
-  content: '';
+  content: "";
   display: block;
   clear: both;
 }
@@ -151,7 +151,7 @@ h1 {
 
 .footer hr {
   border: 0;
-  border-top: 1px solid #E3E7EB;
+  border-top: 1px solid #e3e7eb;
   margin: 8px 0;
   padding: 0;
   height: 1px;
@@ -163,13 +163,13 @@ h1 {
 }
 
 .footer .pagopa {
-  content: '';
+  content: "";
   display: block;
   clear: both;
 }
 
 .footer .pagopa-data {
-  color: #475A6D;
+  color: #475a6d;
   display: inline-block;
 }
 
