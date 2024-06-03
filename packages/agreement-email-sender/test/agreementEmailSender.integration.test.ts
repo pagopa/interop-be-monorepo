@@ -36,11 +36,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
-    const descriptror = { ...getMockDescriptor(), version: "1" };
+    const descriptor = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [descriptror],
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -48,7 +48,7 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: tenant.id,
-      descriptorId: descriptror.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
 
@@ -109,11 +109,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
-    const descriptror = { ...getMockDescriptor(), version: "1" };
+    const descriptor = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [descriptror],
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -121,7 +121,7 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: {},
       producerId: tenant.id,
-      descriptrorId: descriptror.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
 
@@ -173,11 +173,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
-    const descriptror = { ...getMockDescriptor(), version: "1" };
+    const descriptor = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [descriptror],
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -185,7 +185,7 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: generateId<TenantId>(),
-      descriptrorId: descriptror.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
 
@@ -209,11 +209,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
-    const descriptror = { ...getMockDescriptor(), version: "1" };
+    const descriptor = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [descriptror],
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -222,7 +222,7 @@ describe("agreement email sender", () => {
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: tenant.id,
       consumerId: generateId<TenantId>(),
-      descriptrorId: descriptror.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
 
@@ -246,11 +246,11 @@ describe("agreement email sender", () => {
     const agreementId = unsafeBrandId<DescriptorId>(
       "a8f059b2-3931-4802-ad9d-203936e98c22"
     );
-    const descriptror = { ...getMockDescriptor(), version: "1" };
+    const descriptor = { ...getMockDescriptor(), version: "1" };
     const eservice = {
       ...getMockEService(),
       name: "eService",
-      descriptors: [descriptror],
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
@@ -258,7 +258,7 @@ describe("agreement email sender", () => {
       id: unsafeBrandId<AgreementId>(agreementId),
       stamps: { activation: { when: new Date(0), who: generateId<UserId>() } },
       producerId: tenant.id,
-      descriptrorId: descriptror.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
 
