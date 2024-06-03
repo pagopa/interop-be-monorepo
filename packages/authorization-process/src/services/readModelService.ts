@@ -92,10 +92,7 @@ export function readModelServiceBuilder(
 
       const kindFilter: ReadModelFilter<Client> = kind
         ? {
-            "data.kind": {
-              $regex: ReadModelRepository.escapeRegExp(kind),
-              $options: "i",
-            },
+            "data.kind": { $eq: kind },
           }
         : {};
 
