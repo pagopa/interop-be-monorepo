@@ -52,7 +52,7 @@ export async function handleMessageV2(
       const version =
         (
           await keys.findOne({
-            "data.id": message.data.kid,
+            "data.kid": message.data.kid,
           })
         )?.metadata.version || 0;
 
