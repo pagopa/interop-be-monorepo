@@ -98,8 +98,6 @@ export const riskAnalysisDocumentBuilder = (
         language,
       });
 
-      console.log(pdfPayload);
-
       const pdfBuffer: Buffer = await pdfGenerator.generate(
         templateFilePath,
         pdfPayload
