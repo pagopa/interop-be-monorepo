@@ -471,13 +471,13 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.updateAgreement(
+        const agreement = await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
           ctx
         );
 
-        return res.status(200).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
