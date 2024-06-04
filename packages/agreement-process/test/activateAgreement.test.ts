@@ -1,7 +1,15 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -80,8 +88,8 @@ import {
   fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
-  respawnTestBrowserInstance,
   selfcareV2ClientMock,
+  testBrowserInstance,
 } from "./utils.js";
 
 describe("activate agreement", () => {
@@ -99,6 +107,8 @@ describe("activate agreement", () => {
     surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
     taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
   };
+
+  afterAll(closeTestBrowserInstance);
 
   beforeEach(async () => {
     selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
@@ -2156,8 +2166,7 @@ describe("activate agreement", () => {
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);
 
-      await closeTestBrowserInstance();
-
+      await testBrowserInstance.disconnect();
       await expect(
         agreementService.activateAgreement(agreement.id, {
           authData,
@@ -2168,8 +2177,6 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(
         pdfGenerationError("Protocol error: Connection closed.")
       );
-
-      await respawnTestBrowserInstance();
     });
   });
 });
