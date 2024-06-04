@@ -12,32 +12,25 @@ export interface PDFGenerator {
   ) => Promise<Buffer>;
 }
 
-export async function initPDFGenerator(
-  existingBrowserInstance?: Browser
-): Promise<PDFGenerator> {
+export async function initPDFGenerator(): Promise<PDFGenerator> {
   const templateService = buildHTMLTemplateService();
-  let browserInstance =
-    existingBrowserInstance ??
-    (await puppeteer.launch({
-      /* NOTE
+
+  let browserInstance = await puppeteer.launch({
+    /* NOTE
       those configurations allow link (file://) usages for
       resources files in template's folder
     */
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--allow-file-access-from-files",
-        "--enable-local-file-accesses",
-      ],
-    }));
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--allow-file-access-from-files",
+      "--enable-local-file-accesses",
+    ],
+  });
 
   const getBrowser = async (): Promise<Browser> => {
-    if (existingBrowserInstance) {
-      return existingBrowserInstance;
-    }
-
     if (browserInstance?.connected) {
       return browserInstance;
     } else {
@@ -48,7 +41,7 @@ export async function initPDFGenerator(
 
   // During unexpected browser crash restarts browser handling "disconnected" event
   browserInstance.on("disconnected", async () => {
-    browserInstance = existingBrowserInstance ?? (await puppeteer.launch());
+    browserInstance = await puppeteer.launch();
   });
 
   return {

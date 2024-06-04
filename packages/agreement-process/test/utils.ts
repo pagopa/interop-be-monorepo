@@ -10,7 +10,7 @@ import {
   readEventByStreamIdAndVersion,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { afterEach, expect, inject } from "vitest";
+import { afterEach, expect, inject, vi } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -44,7 +44,12 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 afterEach(cleanup);
 
 export let testBrowserInstance: Browser = await puppeteer.launch();
-const pdfGenerator = await initPDFGenerator(testBrowserInstance);
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
+const pdfGenerator = await initPDFGenerator();
 
 export const respawnBrowserInstance = async (): Promise<Browser> =>
   (testBrowserInstance = await puppeteer.launch());
