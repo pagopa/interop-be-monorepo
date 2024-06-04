@@ -32,7 +32,6 @@ import {
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
-  retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
