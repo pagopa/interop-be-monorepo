@@ -88,6 +88,7 @@ import {
   fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
+  respawnBrowserInstance,
   selfcareV2ClientMock,
   testBrowserInstance,
 } from "./utils.js";
@@ -2166,7 +2167,7 @@ describe("activate agreement", () => {
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);
 
-      await testBrowserInstance.disconnect();
+      await testBrowserInstance.close();
       await expect(
         agreementService.activateAgreement(agreement.id, {
           authData,
@@ -2177,6 +2178,8 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(
         pdfGenerationError("Protocol error: Connection closed.")
       );
+
+      await respawnBrowserInstance();
     });
   });
 });
