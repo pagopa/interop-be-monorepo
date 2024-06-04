@@ -27,7 +27,6 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
@@ -35,7 +34,6 @@ import {
 } from "./agreementStampUtils.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
 
 export function createActivationUpdateAgreementSeed({
   isFirstActivation,
