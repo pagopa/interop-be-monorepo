@@ -10,9 +10,9 @@ import {
   Descriptor,
   genericError,
   AgreementEventV2,
-  WithMetadata,
   UserId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -21,7 +21,9 @@ import {
 } from "../model/domain/validators.js";
 import {
   toCreateEventAgreementActivated,
+  toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByConsumer,
+  toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -45,6 +47,7 @@ export function createActivationUpdateAgreementSeed({
   agreement,
   suspendedByConsumer,
   suspendedByProducer,
+  suspendedByPlatform,
 }: {
   firstActivation: boolean;
   newState: AgreementState;
@@ -55,6 +58,7 @@ export function createActivationUpdateAgreementSeed({
   agreement: Agreement;
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
+  suspendedByPlatform: boolean | undefined;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData.userId);
 
@@ -70,6 +74,7 @@ export function createActivationUpdateAgreementSeed({
         ),
         suspendedByConsumer,
         suspendedByProducer,
+        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           activation: stamp,
@@ -94,6 +99,7 @@ export function createActivationUpdateAgreementSeed({
             stamp
           ),
         },
+        suspendedByPlatform,
         suspendedAt:
           newState === agreementState.active
             ? undefined
@@ -103,17 +109,20 @@ export function createActivationUpdateAgreementSeed({
 
 export async function createActivationEvent(
   firstActivation: boolean,
-  agreement: WithMetadata<Agreement>,
   updatedAgreement: Agreement,
   updatedAgreementSeed: UpdateAgreementSeed,
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
+  originalSuspendedByPlatform: boolean | undefined,
+  suspendedByPlatformChanged: boolean,
+  agreementEventStoreVersion: number,
   authData: AuthData,
   correlationId: string,
   contractBuilder: ContractBuilder
-): Promise<CreateEvent<AgreementEventV2>> {
+): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (firstActivation) {
+    // Pending >>> Active
     const agreementContract = await contractBuilder.createContract(
       authData.selfcareId,
       updatedAgreement,
@@ -123,32 +132,93 @@ export async function createActivationEvent(
       updatedAgreementSeed
     );
 
-    return toCreateEventAgreementActivated(
-      {
-        ...updatedAgreement,
-        contract: apiAgreementDocumentToAgreementDocument(agreementContract),
-      },
-      agreement.metadata.version,
-      correlationId
-    );
+    return [
+      toCreateEventAgreementActivated(
+        {
+          ...updatedAgreement,
+          contract: apiAgreementDocumentToAgreementDocument(agreementContract),
+        },
+        agreementEventStoreVersion,
+        correlationId
+      ),
+    ];
   } else {
-    if (authData.organizationId === agreement.data.producerId) {
-      return toCreateEventAgreementUnsuspendedByProducer(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      );
-    } else if (authData.organizationId === agreement.data.consumerId) {
-      return toCreateEventAgreementUnsuspendedByConsumer(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      );
-    } else {
-      throw genericError(
-        `Unexpected organizationId ${authData.organizationId} in activateAgreement`
-      );
-    }
+    // Suspended >>> Active
+    // Suspended >>> Suspended
+
+    /* Not a first activation, meaning that the agreement was already active
+    and it was then suspended. If the requester is the producer (or producer === consumer),
+    the updatedAgreement was updated setting the suspendedByProducer flag to false,
+    and here we create the unsuspension by producer event.
+    Otherwise, the requester is the consumer, and the updatedAgreement was updated setting
+    the suspendedByConsumer flag to false, so we create the unsuspension by consumer event.
+
+    Still, these events could result in activating the agreement or not, depending on the
+    other suspension flags:
+
+    - In case that the consumer/producer flag was the only suspension flag set to true,
+      the updated ugreement has no more suspension flags set to true, so it becomes active.
+      We just create corresponding unsuspension event, containing the updated (active) agreement.
+
+    - In case that the agreement has still some suspension flags set to true, the updated agreement
+      is still suspended. We still create the corresponding unsuspension event containing
+      the updated agreement. Furthermore, in this cases, where the agreement is still suspended,
+      also the platform flag could have been updated due to attribute changes. If that's the case,
+      we also create the corresponding suspension/unsuspension by platform event.
+    */
+
+    return match([authData.organizationId, updatedAgreement.state])
+      .with([updatedAgreement.producerId, agreementState.active], () => [
+        toCreateEventAgreementUnsuspendedByProducer(
+          updatedAgreement,
+          agreementEventStoreVersion,
+          correlationId
+        ),
+      ])
+      .with([updatedAgreement.producerId, agreementState.suspended], () => [
+        toCreateEventAgreementUnsuspendedByProducer(
+          {
+            ...updatedAgreement,
+            suspendedByPlatform: originalSuspendedByPlatform,
+          },
+          agreementEventStoreVersion,
+          correlationId
+        ),
+        ...maybeCreateSuspensionByPlatformEvents(
+          updatedAgreement,
+          suspendedByPlatformChanged,
+          agreementEventStoreVersion + 1,
+          correlationId
+        ),
+      ])
+      .with([updatedAgreement.consumerId, agreementState.active], () => [
+        toCreateEventAgreementUnsuspendedByConsumer(
+          updatedAgreement,
+          agreementEventStoreVersion,
+          correlationId
+        ),
+      ])
+      .with([updatedAgreement.consumerId, agreementState.suspended], () => [
+        toCreateEventAgreementUnsuspendedByConsumer(
+          {
+            ...updatedAgreement,
+            suspendedByPlatform: originalSuspendedByPlatform,
+          },
+          agreementEventStoreVersion,
+          correlationId
+        ),
+        ...maybeCreateSuspensionByPlatformEvents(
+          updatedAgreement,
+          suspendedByPlatformChanged,
+          agreementEventStoreVersion + 1,
+          correlationId
+        ),
+      ])
+      .otherwise(() => {
+        throw genericError(
+          `Unexpected organizationId - nextState pair in activateAgreement. OrganizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
+        );
+      });
   }
 }
 
@@ -173,3 +243,32 @@ export const archiveRelatedToAgreements = async (
     createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
   );
 };
+
+export function maybeCreateSuspensionByPlatformEvents(
+  updatedAgreement: Agreement,
+  suspendedByPlatformChanged: boolean,
+  agreementEventStoreVersion: number,
+  correlationId: string
+): Array<CreateEvent<AgreementEventV2>> {
+  if (
+    suspendedByPlatformChanged &&
+    updatedAgreement.state === agreementState.suspended
+  ) {
+    return updatedAgreement.suspendedByPlatform
+      ? [
+          toCreateEventAgreementSuspendedByPlatform(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ]
+      : [
+          toCreateEventAgreementUnsuspendedByPlatform(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ];
+  }
+  return [];
+}
