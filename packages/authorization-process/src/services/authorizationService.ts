@@ -22,10 +22,8 @@ import {
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
-  keyAlreadyExist,
   keyAlreadyExists,
   keyNotFound,
-  keysAlreadyExist,
   notAllowedPrivateKeyException,
   organizationNotAllowedOnClient,
   purposeIdNotFound,
