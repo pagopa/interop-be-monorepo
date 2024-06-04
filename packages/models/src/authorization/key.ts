@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UserId } from "../brandedIds.js";
 
 export const keyUse = {
   sig: "Sig",
@@ -12,7 +13,7 @@ export type KeyUse = z.infer<typeof KeyUse>;
 
 export const Key = z.object({
   relationshipId: z.string().uuid().optional(),
-  userId: z.string().uuid().optional(),
+  userId: UserId.optional(),
   kid: z.string(),
   name: z.string(),
   encodedPem: z.string(),
