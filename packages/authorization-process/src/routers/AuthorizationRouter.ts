@@ -374,7 +374,12 @@ const authorizationRouter = (
     )
     .get(
       "/clients/:clientId/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
