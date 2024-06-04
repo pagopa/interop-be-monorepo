@@ -13,9 +13,6 @@ import {
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 
-export const DEFAULT_AUTHENTICATION_TIMEOUT = 60 * 60 * 1000;
-export const REAUTHENTICATION_THRESHOLD = 20 * 1000;
-
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
@@ -104,7 +101,7 @@ async function oauthBearerTokenProvider(
   });
 
   logger.debug(
-    `Token fetched from AWS expires in ${authTokenResponse.expiryTime}`
+    `Token fetched from AWS expires at ${authTokenResponse.expiryTime}`
   );
 
   return {
@@ -132,7 +129,7 @@ const initConsumer = async (
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
         logLevel: config.kafkaLogLevel,
-        reauthenticationThreshold: REAUTHENTICATION_THRESHOLD,
+        reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
         sasl: {
           mechanism: "oauthbearer",
