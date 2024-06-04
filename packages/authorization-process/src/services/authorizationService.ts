@@ -22,10 +22,8 @@ import {
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
-  keyAlreadyExist,
   keyAlreadyExists,
   keyNotFound,
-  keysAlreadyExist,
   notAllowedPrivateKeyException,
   organizationNotAllowedOnClient,
   purposeIdNotFound,
@@ -439,37 +437,6 @@ export function authorizationServiceBuilder(
         authData.userId,
         authData.userId
       );
-
-      // const newKeys = await Promise.all(
-      //   keysSeeds.map(async (keySeed) => {
-      //     assertValidatedKey(keySeed);
-      //     const newKey: Key = {
-      //       name: keySeed.name,
-      //       createdAt: new Date(),
-      //       kid: calculateKid(keySeed.key),
-      //       encodedPem: keySeed.key,
-      //       algorithm: keySeed.alg,
-      //       use: ApiKeyUseToKeyUse(keySeed.use),
-      //       userId: authData.userId,
-      //     };
-      //     if (client.data.keys.find((key) => key.kid === newKey.kid)) {
-      //       throw keyAlreadyExists(newKey.kid);
-      //     }
-      //     const updatedClient: Client = {
-      //       ...client.data,
-      //       keys: [...client.data.keys, newKey],
-      //     };
-      //     await repository.createEvent(
-      //       toCreateEventKeyAdded(
-      //         newKey.kid,
-      //         updatedClient,
-      //         client.metadata.version,
-      //         correlationId
-      //       )
-      //     );
-      //     return newKey;
-      //   })
-      // );
 
       // eslint-disable-next-line functional/no-let
       let updatedClient: Client = client.data;
