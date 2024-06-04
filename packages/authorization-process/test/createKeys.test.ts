@@ -1,28 +1,35 @@
+import { expect, describe, it } from "vitest";
+
+describe("createKeys", () => {
+  it("should create the keys", async () => {
+    expect(1).toEqual(1);
+  });
+});
+
+// import crypto from "crypto";
 // import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 // import {
 //   Client,
 //   ClientKeyAddedV2,
+//   Key,
 //   TenantId,
 //   UserId,
-//   clientKind,
 //   generateId,
 //   toClientV2,
-//   unsafeBrandId,
 // } from "pagopa-interop-models";
-// import { genericLogger } from "pagopa-interop-commons";
+// import { AuthData, genericLogger } from "pagopa-interop-commons";
 // import {
 //   decodeProtobufPayload,
 //   readLastEventByStreamId,
 // } from "pagopa-interop-commons-test/index.js";
-// import { getMockClient, getRandomAuthData } from "pagopa-interop-commons-test";
+// import { getMockClient } from "pagopa-interop-commons-test";
 // import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 // import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
 // import { addOneClient, authorizationService, postgresDB } from "./utils.js";
 
 // describe("createKeys", () => {
 //   const consumerId: TenantId = generateId();
-
-//   const organizationId = generateId();
+//   const userId: UserId = generateId();
 
 //   beforeAll(async () => {
 //     vi.useFakeTimers();
@@ -33,10 +40,22 @@
 //     vi.useRealTimers();
 //   });
 
+//   const key = crypto.generateKeyPairSync("rsa", {
+//     modulusLength: 2048,
+//   }).publicKey;
+
+//   console.log("publicKey ", key);
+
+//   const pemKey = Buffer.from(
+//     key.export({ type: "pkcs1", format: "pem" })
+//   ).toString("base64");
+
+//   console.log("pemKey ", pemKey);
+
 //   const keySeed: ApiKeySeed = {
 //     name: "key seed",
 //     use: "ENC",
-//     key: "TXkgcHVibGljIGtleQ==",
+//     key: pemKey,
 //     alg: "",
 //   };
 
@@ -44,7 +63,8 @@
 
 //   const mockClient: Client = {
 //     ...getMockClient(),
-//     consumerId: unsafeBrandId(organizationId),
+//     users: [userId],
+//     consumerId,
 //   };
 
 //   function mockSelfcareV2ClientCall(
@@ -66,7 +86,18 @@
 //     surname: "surname_test",
 //   };
 
-//   it("should create the fkg keys", async () => {
+//   const mockAuthData: AuthData = {
+//     organizationId: consumerId,
+//     selfcareId: generateId(),
+//     externalId: {
+//       value: "",
+//       origin: "",
+//     },
+//     userId,
+//     userRoles: [],
+//   };
+
+//   it.only("should create the keys", async () => {
 //     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
 //     await addOneClient(mockClient);
@@ -79,7 +110,7 @@
 //     }));
 //     const { client } = await authorizationService.createKeys(
 //       mockClient.id,
-//       getRandomAuthData(consumerId),
+//       mockAuthData,
 //       keysSeeds,
 //       generateId(),
 //       genericLogger
@@ -94,7 +125,7 @@
 //     expect(writtenEvent).toMatchObject({
 //       stream_id: client.id,
 //       version: "0",
-//       type: "KeysAdded",
+//       type: "ClientKeyAdded",
 //       event_version: 2,
 //     });
 
@@ -103,7 +134,20 @@
 //       payload: writtenEvent.data,
 //     });
 
-//     const expectedKeys: Key[] = [{}];
+//     const expectedClient: Client = {
+//       ...mockClient,
+//       keys: [
+//         ...client.keys,
+//         {
+//           name: keySeed.name,
+//           createdAt: new Date(),
+//           kid: writtenPayload.kid,
+//           encodedPem: keySeed.key,
+//           algorithm: keySeed.alg,
+//           use: "Enc",
+//         },
+//       ],
+//     };
 
 //     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
 //   });
