@@ -3,22 +3,24 @@ import { runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
 import {
-  messageDecoderSupplier,
-  kafkaConsumerConfig,
   logger,
   CatalogTopicConfig,
-  catalogTopicConfig,
   Logger,
   genericLogger,
+  AgreementTopicConfig,
+  ReadModelRepository,
+  InteropTokenGenerator,
+  RefreshableInteropToken,
+  decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import {
-  Descriptor,
-  EServiceV2,
-  fromEServiceV2,
-  missingKafkaMessageDataError,
   kafkaMessageProcessError,
-  EServiceId,
-  EService,
+  genericInternalError,
+  descriptorState,
+  EServiceEventEnvelopeV2,
+  EServiceEventV2,
+  AgreementEventV2,
+  AgreementEventEnvelopeV2,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -26,134 +28,208 @@ import {
   authorizationServiceBuilder,
 } from "./authorizationService.js";
 import { ApiClientComponent } from "./model/models.js";
+import { config } from "./utilities/config.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "./readModelService.js";
+import { authorizationManagementClientBuilder } from "./authorizationManagementClient.js";
+import {
+  getDescriptorFromEvent,
+  getAgreementFromEvent,
+  agreementStateToClientState,
+} from "./utils.js";
 
-const getDescriptorFromEvent = (
-  msg: {
-    data: {
-      descriptorId: string;
-      eservice?: EServiceV2;
-    };
-  },
-  eventType: string
-): {
-  eserviceId: EServiceId;
-  descriptor: Descriptor;
-} => {
-  if (!msg.data.eservice) {
-    throw missingKafkaMessageDataError("eservice", eventType);
-  }
-
-  const eservice: EService = fromEServiceV2(msg.data.eservice);
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === msg.data.descriptorId
-  );
-
-  if (!descriptor) {
-    throw missingKafkaMessageDataError("descriptor", eventType);
-  }
-
-  return { eserviceId: eservice.id, descriptor };
-};
-
-async function executeUpdate(
-  eventType: string,
-  messagePayload: EachMessagePayload,
-  update: () => Promise<void>,
-  logger: Logger
+export async function sendAuthUpdate(
+  decodedMessage: EServiceEventEnvelopeV2 | AgreementEventEnvelopeV2,
+  readModelService: ReadModelService,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
 ): Promise<void> {
-  await update();
-  logger.info(
-    `Authorization updated after ${JSON.stringify(
-      eventType
-    )} event - Partition number: ${messagePayload.partition} - Offset: ${
-      messagePayload.message.offset
-    }`
-  );
+  const update: (() => Promise<void>) | undefined = await match(decodedMessage)
+    .with(
+      {
+        type: "EServiceDescriptorPublished",
+      },
+      {
+        type: "EServiceDescriptorActivated",
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        return (): Promise<void> =>
+          authService.updateEServiceState(
+            ApiClientComponent.Values.ACTIVE,
+            data.descriptor.id,
+            data.eserviceId,
+            data.descriptor.audience,
+            data.descriptor.voucherLifespan,
+            logger,
+            correlationId
+          );
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorSuspended" },
+      { type: "EServiceDescriptorArchived" },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        return (): Promise<void> =>
+          authService.updateEServiceState(
+            ApiClientComponent.Values.INACTIVE,
+            data.descriptor.id,
+            data.eserviceId,
+            data.descriptor.audience,
+            data.descriptor.voucherLifespan,
+            logger,
+            correlationId
+          );
+      }
+    )
+    .with(
+      { type: "AgreementSubmitted" },
+      { type: "AgreementActivated" },
+      { type: "AgreementUnsuspendedByPlatform" },
+      { type: "AgreementUnsuspendedByConsumer" },
+      { type: "AgreementUnsuspendedByProducer" },
+      { type: "AgreementSuspendedByPlatform" },
+      { type: "AgreementSuspendedByConsumer" },
+      { type: "AgreementSuspendedByProducer" },
+      { type: "AgreementArchivedByConsumer" },
+      { type: "AgreementArchivedByUpgrade" },
+      async (msg) => {
+        const agreement = getAgreementFromEvent(msg, decodedMessage.type);
+
+        return (): Promise<void> =>
+          authService.updateAgreementState(
+            agreementStateToClientState(agreement),
+            agreement.id,
+            agreement.eserviceId,
+            agreement.consumerId,
+            logger,
+            correlationId
+          );
+      }
+    )
+    .with({ type: "AgreementUpgraded" }, async (msg) => {
+      const agreement = getAgreementFromEvent(msg, decodedMessage.type);
+      const eservice = await readModelService.getEServiceById(
+        agreement.eserviceId
+      );
+      if (!eservice) {
+        throw genericInternalError(
+          `Unable to find EService with id ${agreement.eserviceId}`
+        );
+      }
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (!descriptor) {
+        throw genericInternalError(
+          `Unable to find descriptor with id ${agreement.descriptorId}`
+        );
+      }
+
+      const eserviceClientState = match(descriptor.state)
+        .with(
+          descriptorState.published,
+          descriptorState.deprecated,
+          () => ApiClientComponent.Values.ACTIVE
+        )
+        .otherwise(() => ApiClientComponent.Values.INACTIVE);
+
+      return (): Promise<void> =>
+        authService.updateAgreementAndEServiceStates(
+          agreementStateToClientState(agreement),
+          eserviceClientState,
+          agreement.id,
+          agreement.eserviceId,
+          agreement.descriptorId,
+          agreement.consumerId,
+          descriptor.audience,
+          descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+    })
+    .with({ type: "EServiceAdded" }, () => undefined)
+    .with({ type: "EServiceCloned" }, () => undefined)
+    .with({ type: "EServiceDeleted" }, () => undefined)
+    .with({ type: "DraftEServiceUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorAdded" }, () => undefined)
+    .with({ type: "EServiceDraftDescriptorDeleted" }, () => undefined)
+    .with({ type: "EServiceDraftDescriptorUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorDocumentAdded" }, () => undefined)
+    .with({ type: "EServiceDescriptorDocumentUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorDocumentDeleted" }, () => undefined)
+    .with({ type: "EServiceDescriptorInterfaceAdded" }, () => undefined)
+    .with({ type: "EServiceDescriptorInterfaceUpdated" }, () => undefined)
+    .with({ type: "EServiceDescriptorInterfaceDeleted" }, () => undefined)
+    .with({ type: "EServiceRiskAnalysisAdded" }, () => undefined)
+    .with({ type: "EServiceRiskAnalysisUpdated" }, () => undefined)
+    .with({ type: "EServiceRiskAnalysisDeleted" }, () => undefined)
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, () => undefined)
+    .with({ type: "AgreementAdded" }, () => undefined)
+    .with({ type: "AgreementDeleted" }, () => undefined)
+    .with({ type: "AgreementRejected" }, () => undefined)
+    .with({ type: "DraftAgreementUpdated" }, () => undefined)
+    .with({ type: "AgreementConsumerDocumentAdded" }, () => undefined)
+    .with({ type: "AgreementConsumerDocumentRemoved" }, () => undefined)
+    .with({ type: "AgreementSetDraftByPlatform" }, () => undefined)
+    .with(
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      () => undefined
+    )
+    .exhaustive();
+
+  if (update) {
+    await update();
+  } else {
+    logger.info(`No auth update needed for ${decodedMessage.type} message`);
+  }
 }
 
 function processMessage(
-  topicConfig: CatalogTopicConfig,
+  catalogTopicConfig: CatalogTopicConfig,
+  agreementTopicConfig: AgreementTopicConfig,
+  readModelService: ReadModelService,
   authService: AuthorizationService
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const messageDecoder = messageDecoderSupplier(
-        topicConfig,
-        messagePayload.topic
-      );
-      const decodedMsg = messageDecoder(messagePayload.message);
-      const correlationId = decodedMsg.correlation_id || uuidv4();
+      const decodedMessage = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () =>
+          decodeKafkaMessage(messagePayload.message, EServiceEventV2)
+        )
+        .with(agreementTopicConfig.agreementTopic, () =>
+          decodeKafkaMessage(messagePayload.message, AgreementEventV2)
+        )
+        .otherwise(() => {
+          throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
+        });
+
+      const correlationId = decodedMessage.correlation_id || uuidv4();
 
       const loggerInstance = logger({
         serviceName: "authorization-updater",
-        eventType: decodedMsg.type,
-        eventVersion: decodedMsg.event_version,
-        streamId: decodedMsg.stream_id,
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
         correlationId,
       });
 
-      const updateSeed = match(decodedMsg)
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorPublished",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorActivated",
-          },
-          (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "ACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
-          }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorSuspended",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorArchived",
-          },
-          (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "INACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
-          }
-        )
-        .otherwise(() => undefined);
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      );
 
-      if (updateSeed) {
-        await executeUpdate(
-          updateSeed.eventType,
-          messagePayload,
-          () =>
-            authService.updateEServiceState(
-              ApiClientComponent.parse(updateSeed.state),
-              updateSeed.descriptorId,
-              updateSeed.eserviceId,
-              updateSeed.audience,
-              updateSeed.voucherLifespan,
-              loggerInstance,
-              correlationId
-            ),
-          loggerInstance
-        );
-      }
+      await sendAuthUpdate(
+        decodedMessage,
+        readModelService,
+        authService,
+        loggerInstance,
+        correlationId
+      );
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
@@ -166,13 +242,34 @@ function processMessage(
 }
 
 try {
-  const authService = await authorizationServiceBuilder();
-  const config = kafkaConsumerConfig();
-  const topicConfig: CatalogTopicConfig = catalogTopicConfig();
+  const authMgmtClient = authorizationManagementClientBuilder(
+    config.authorizationManagementUrl
+  );
+  const tokenGenerator = new InteropTokenGenerator(config);
+  const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+  await refreshableToken.init();
+
+  const authService = authorizationServiceBuilder(
+    authMgmtClient,
+    refreshableToken
+  );
+
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
   await runConsumer(
     config,
-    [topicConfig.catalogTopic],
-    processMessage(topicConfig, authService)
+    [config.catalogTopic, config.agreementTopic],
+    processMessage(
+      {
+        catalogTopic: config.catalogTopic,
+      },
+      {
+        agreementTopic: config.agreementTopic,
+      },
+      readModelService,
+      authService
+    )
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);
