@@ -1,5 +1,6 @@
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -107,11 +108,13 @@ import {
 import { config } from "../utilities/config.js";
 import {
   archiveRelatedToAgreements,
-  createActivationContract,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
+import {
+  ContractBuilder,
+  contractBuilder,
+} from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
@@ -122,7 +125,6 @@ import {
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
-  addContractOnFirstActivation,
   createSubmissionUpdateAgreementSeed,
   isActiveOrSuspended,
   validateConsumerEmail,
@@ -470,15 +472,19 @@ export function agreementServiceBuilder(
         logger
       );
 
+      const isFirstActivation =
+        updatedAgreement.state === agreementState.active &&
+        !hasRelatedAgreements;
+
       const submittedAgreement = await addContractOnFirstActivation(
+        isFirstActivation,
         contractBuilderInstance,
         eservice,
         consumer,
         producer,
         updateSeed,
-        authData,
         updatedAgreement,
-        hasRelatedAgreements
+        authData
       );
 
       const agreementEvent =
@@ -999,26 +1005,25 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const contract = await createActivationContract(
-        agreement,
-        firstActivation,
+      const contractBuilderInstance = contractBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
         selfcareV2Client,
-        logger,
-        authData,
-        updatedAgreementWithoutContract,
-        updatedAgreementSeed,
-        eservice,
-        consumer,
-        producer
+        config,
+        logger
       );
 
-      const updatedAgreement: Agreement = {
-        ...updatedAgreementWithoutContract,
-        contract,
-      };
+      const updatedAgreement: Agreement = await addContractOnFirstActivation(
+        firstActivation,
+        contractBuilderInstance,
+        eservice,
+        consumer,
+        producer,
+        updatedAgreementSeed,
+        updatedAgreementWithoutContract,
+        authData
+      );
 
       const suspendedByPlatformChanged =
         agreement.data.suspendedByPlatform !==
@@ -1189,4 +1194,37 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
     );
   }
   return undefined;
+}
+
+// eslint-disable-next-line max-params
+async function addContractOnFirstActivation(
+  isFirstActivation: boolean,
+  contractBuilder: ContractBuilder,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant,
+  updateSeed: UpdateAgreementSeed,
+  agreement: Agreement,
+  authData: AuthData
+): Promise<Agreement> {
+  if (isFirstActivation) {
+    const { contractSeed, createdAt } = await contractBuilder.createContract(
+      authData.selfcareId,
+      agreement,
+      eservice,
+      consumer,
+      producer,
+      updateSeed
+    );
+
+    return {
+      ...agreement,
+      contract: apiAgreementDocumentToAgreementDocument(
+        contractSeed,
+        createdAt
+      ),
+    };
+  }
+
+  return agreement;
 }
