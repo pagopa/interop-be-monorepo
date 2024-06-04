@@ -10,7 +10,7 @@ import {
   readEventByStreamIdAndVersion,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { afterAll, afterEach, expect, inject } from "vitest";
+import { afterEach, expect, inject } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -43,15 +43,11 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
-export let browserInstance: Browser | undefined;
-export const respawnTestBrowserInstance = async (): Promise<void> => {
-  browserInstance = await puppeteer.launch();
-};
+export const testBrowserInstance: Browser = await puppeteer.launch();
+const pdfGenerator = await initPDFGenerator(testBrowserInstance);
 
 export const closeTestBrowserInstance = async (): Promise<void> =>
-  browserInstance && (await browserInstance.close());
-
-afterAll(closeTestBrowserInstance);
+  testBrowserInstance && (await testBrowserInstance.close());
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
@@ -59,9 +55,6 @@ export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
-
-await respawnTestBrowserInstance();
-const pdfGenerator = await initPDFGenerator(browserInstance);
 
 export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
 
