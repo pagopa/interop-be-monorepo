@@ -434,7 +434,7 @@ try {
   );
   await runConsumer(
     config,
-    [config.catalogTopic, config.agreementTopic],
+    [config.catalogTopic, config.agreementTopic, config.purposeTopic],
     processMessage(
       {
         catalogTopic: config.catalogTopic,
