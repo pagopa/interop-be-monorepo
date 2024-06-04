@@ -23,6 +23,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   addUserErrorMapper,
   createClientErrorMapper,
+  createKeysErrorMapper,
   deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
@@ -337,8 +338,30 @@ const authorizationRouter = (
     )
     .post(
       "/clients/:clientId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { client, showUsers } = await authorizationService.createKeys(
+            unsafeBrandId(req.params.clientId),
+            req.ctx.authData,
+            req.body,
+            req.ctx.correlationId,
+            ctx.logger
+          );
+          return res
+            .status(200)
+            .json(clientToApiClient(client, { includeKeys: true, showUsers }))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createKeysErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId/keys",

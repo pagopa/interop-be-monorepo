@@ -11,14 +11,8 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const isPublicKey = (pemKey: string): boolean => {
-  try {
-    const cert = new crypto.X509Certificate(Buffer.from(pemKey, "base64"));
-    return !!cert.publicKey;
-  } catch (error) {
-    return false;
-  }
-};
+export const isPublicKey = (pemKey: string): boolean =>
+  pemKey.includes("PUBLIC");
 
 export const calculateKid = (key: string): string =>
   crypto.createHash("sha256").update(key).digest("base64");
