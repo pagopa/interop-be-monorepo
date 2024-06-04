@@ -18,6 +18,8 @@ export const errorCodes = {
   userAlreadyAssigned: "0007",
   tooManyKeysPerClient: "0008",
   userNotFound: "0009",
+  notAllowedPrivateKeyException: "0010",
+  keyAlreadyExists: "0011",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -125,5 +127,21 @@ export function userNotFound(
     detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
     code: "userNotFound",
     title: "User not found",
+  });
+}
+
+export function notAllowedPrivateKeyException(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `This contains a private key!`,
+    code: "notAllowedPrivateKeyException",
+    title: "Not allowed private key exception",
+  });
+}
+
+export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key with kid: ${kid} already exists: `,
+    code: "keyAlreadyExists",
+    title: "Key already exists",
   });
 }
