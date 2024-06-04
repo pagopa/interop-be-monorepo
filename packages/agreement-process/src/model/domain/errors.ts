@@ -236,7 +236,7 @@ export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
 }
 
 export function agreementSelfcareIdNotFound(
-  tenantId: string
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Selfcare id not found for tenant ${tenantId}`,

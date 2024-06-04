@@ -484,7 +484,28 @@ const purposeRouter = (
     .get(
       "/purposes/riskAnalysis/latest",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const riskAnalysisConfiguration =
+            await purposeService.retrieveLatestRiskAnalysisConfiguration({
+              tenantKind: req.query.tenantKind,
+              organizationId: req.ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(
+              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                riskAnalysisConfiguration
+              )
+            )
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
