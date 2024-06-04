@@ -20,30 +20,26 @@ async function internalCreateEvents<T extends Event>(
   createEvents: Array<CreateEvent<T>>
 ): Promise<string[]> {
   try {
-    return await db.tx(
-      async (t) =>
-        await Promise.all(
-          createEvents.map(async (createEvent) => {
-            const data = await t.oneOrNone(sql.checkEventVersionExists, {
-              stream_id: createEvent.streamId,
-              version: createEvent.version,
-            });
+    await db.tx(async (t) => {
+      for (const createEvent of createEvents) {
+        const data = await t.oneOrNone(sql.checkEventVersionExists, {
+          stream_id: createEvent.streamId,
+          version: createEvent.version,
+        });
 
-            const newVersion = data != null ? createEvent.version + 1 : 0;
+        const newVersion = data != null ? createEvent.version + 1 : 0;
 
-            await t.none(sql.insertEvent, {
-              stream_id: createEvent.streamId,
-              version: newVersion,
-              correlation_id: createEvent.correlationId,
-              type: createEvent.event.type,
-              event_version: createEvent.event.event_version,
-              data: Buffer.from(toBinaryData(createEvent.event)),
-            });
-
-            return createEvent.streamId;
-          })
-        )
-    );
+        await t.none(sql.insertEvent, {
+          stream_id: createEvent.streamId,
+          version: newVersion,
+          correlation_id: createEvent.correlationId,
+          type: createEvent.event.type,
+          event_version: createEvent.event.event_version,
+          data: Buffer.from(toBinaryData(createEvent.event)),
+        });
+      }
+    });
+    return createEvents.map((createEvent) => createEvent.streamId);
   } catch (error) {
     throw genericInternalError(`Error creating event: ${error}`);
   }
