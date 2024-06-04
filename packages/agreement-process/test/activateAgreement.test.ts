@@ -78,7 +78,6 @@ import {
   fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
-  respawnTestBrowserInstance,
   selfcareV2ClientMock,
 } from "./utils.js";
 
@@ -2320,8 +2319,6 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(
         pdfGenerationError("Protocol error: Connection closed.")
       );
-
-      await respawnTestBrowserInstance();
     });
   });
 });
