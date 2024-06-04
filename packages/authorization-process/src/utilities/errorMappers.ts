@@ -9,6 +9,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -64,7 +65,27 @@ export const addUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("securityUserNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("userAlreadyAssigned", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const addClientPurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "clientNotFound",
+      "purposeNotFound",
+      "eserviceNotFound",
+      "agreementNotFound",
+      "descriptorNotFound",
+      "noVersionsFoundInPurpose",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "organizationNotAllowedOnClient",
+      "organizationNotAllowedOnPurpose",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 // eslint-disable-next-line sonarjs/no-identical-functions

@@ -9,3 +9,6 @@ export type ApiKeyUse = z.infer<typeof api.schemas.KeyUse>;
 export type ApiClientSeed = z.infer<typeof api.schemas.ClientSeed>;
 export type ApiKeysSeed = z.infer<typeof api.schemas.KeysSeed>;
 export type ApiKeySeed = z.infer<typeof api.schemas.KeySeed>;
+export type ApiPurposeAdditionSeed = z.infer<
+  typeof api.schemas.PurposeAdditionDetails
+>;
