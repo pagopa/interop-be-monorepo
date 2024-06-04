@@ -26,6 +26,7 @@ import {
   generateId,
   genericError,
   tenantAttributeType,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   UserResponse,
@@ -34,6 +35,7 @@ import {
 import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
+  agreementSelfcareIdNotFound,
   agreementStampNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
@@ -127,16 +129,29 @@ const getAttributeInvolved = async (
 };
 
 const getSubmissionInfo = async (
-  selfcareId: SelfcareId,
+  consumer: Tenant,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const submission = seed.stamps.submission;
   if (!submission) {
     throw agreementStampNotFound("submission");
   }
-  const user: UserResponse = await retrieveUser(selfcareId, submission.who);
-  if (user.name && user.surname && user.taxCode) {
-    return [`${user.name} ${user.surname} (${user.taxCode})`, submission.when];
+
+  if (!consumer.selfcareId) {
+    throw agreementSelfcareIdNotFound(consumer.id);
+  }
+
+  const consumerSelfcareId: SelfcareId = unsafeBrandId(consumer.selfcareId);
+
+  const consumerUser: UserResponse = await retrieveUser(
+    consumerSelfcareId,
+    unsafeBrandId(submission.who)
+  );
+  if (consumerUser.name && consumerUser.surname && consumerUser.taxCode) {
+    return [
+      `${consumerUser.name} ${consumerUser.surname} (${consumerUser.taxCode})`,
+      submission.when,
+    ];
   }
 
   throw agreementMissingUserInfo(submission.who);
@@ -247,7 +262,7 @@ const getPdfPayload = async (
     consumer.externalId.value
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
-    selfcareId,
+    consumer,
     seed
   );
   const [activator, activationTimestamp] = await getActivationInfo(

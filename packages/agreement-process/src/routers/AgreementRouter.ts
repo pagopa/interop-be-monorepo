@@ -22,6 +22,7 @@ import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
+  fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
@@ -42,6 +43,7 @@ import {
   suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
+  computeAgreementsStateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -535,9 +537,30 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post("/compute/agreementsState", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/compute/agreementsState",
+    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE, M2M_ROLE]),
+    async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        await agreementService.computeAgreementsStateByAttribute(
+          unsafeBrandId(req.body.attributeId),
+          fromApiCompactTenant(req.body.consumer),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          computeAgreementsStateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get(
     "/agreements/filter/eservices",

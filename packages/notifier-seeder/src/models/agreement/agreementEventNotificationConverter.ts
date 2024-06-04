@@ -56,6 +56,8 @@ export const toAgreementEventNotification = (
       { type: "AgreementSuspendedByProducer" },
       { type: "AgreementSuspendedByConsumer" },
       { type: "AgreementSuspendedByPlatform" },
+      { type: "AgreementSetDraftByPlatform" },
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       { type: "AgreementRejected" },
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementArchivedByConsumer" },
