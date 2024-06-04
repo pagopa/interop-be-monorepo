@@ -3,7 +3,11 @@ import { genericLogger } from "pagopa-interop-commons";
 import { Client, TenantId, generateId } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
-import { clientNotFound, keyNotFound } from "../src/model/domain/errors.js";
+import {
+  clientNotFound,
+  keyNotFound,
+  organizationNotAllowedOnClient,
+} from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getClientKeyById", async () => {
@@ -24,6 +28,26 @@ describe("getClientKeyById", async () => {
       logger: genericLogger,
     });
     expect(retrievedKey).toEqual(mockKey);
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is not the  if the client doesn't exist", async () => {
+    const organizationId: TenantId = generateId();
+    const mockKey = getMockKey();
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: generateId(),
+      keys: [mockKey],
+    };
+
+    expect(
+      authorizationService.getClientKeyById({
+        clientId: mockClient.id,
+        kid: mockKey.kid,
+        organizationId,
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(organizationId, mockClient.id)
+    );
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {
     const consumerId: TenantId = generateId();
