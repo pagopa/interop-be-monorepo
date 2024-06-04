@@ -37,6 +37,7 @@ describe("getClientKeyById", async () => {
       consumerId: generateId(),
       keys: [mockKey],
     };
+    await addOneClient(mockClient);
 
     expect(
       authorizationService.getClientKeyById({
@@ -75,6 +76,7 @@ describe("getClientKeyById", async () => {
       consumerId,
       keys: [],
     };
+    await addOneClient(mockClient);
 
     expect(
       authorizationService.getClientKeyById({
