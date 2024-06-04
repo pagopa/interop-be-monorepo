@@ -1264,7 +1264,9 @@ async function generateRiskAnalysisDocument({
   };
 
   function getTenantKind(tenant: Tenant): TenantKind {
-    assertTenantKindExists(tenant);
+    if (!tenant.kind) {
+      throw tenantKindNotFound(tenant.id);
+    }
     return tenant.kind;
   }
 
