@@ -19,71 +19,69 @@ import {
   tenantNotFound,
   riskAnalysisConfigLatestVersionNotFound,
 } from "../src/model/domain/errors.js";
-import { purposeService, tenants } from "./purposeService.integration.test.js";
-export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
-  typeof describe
-> =>
-  describe("retrieveLatestRiskAnalysisConfiguration", async () => {
-    it.each(Object.values(tenantKind))(
-      "should retrieve latest risk analysis configuration for kind %s",
-      async (kind) => {
-        const mockTenant = {
-          ...getMockTenant(),
-          kind,
-        };
-        await writeInReadmodel(mockTenant, tenants);
+import { tenants, purposeService } from "./utils.js";
 
-        const result =
-          await purposeService.retrieveLatestRiskAnalysisConfiguration({
-            tenantKind: kind,
-            organizationId: mockTenant.id,
-            logger: genericLogger,
-          });
-
-        expect(result).toEqual(getLatestVersionFormRules(kind));
-      }
-    );
-    it("should throw tenantNotFound if the tenant doesn't exist", async () => {
-      const randomId = generateId<TenantId>();
-
-      expect(
-        purposeService.retrieveLatestRiskAnalysisConfiguration({
-          tenantKind: undefined,
-          organizationId: randomId,
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(tenantNotFound(randomId));
-    });
-    it("should throw tenantKindNotFound if the tenant kind is undefined", async () => {
+describe("retrieveLatestRiskAnalysisConfiguration", async () => {
+  it.each(Object.values(tenantKind))(
+    "should retrieve latest risk analysis configuration for kind %s",
+    async (kind) => {
       const mockTenant = {
         ...getMockTenant(),
-        kind: undefined,
+        kind,
       };
       await writeInReadmodel(mockTenant, tenants);
 
-      expect(
-        purposeService.retrieveLatestRiskAnalysisConfiguration({
-          tenantKind: undefined,
-          organizationId: mockTenant.id,
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
-    });
-    it("should throw riskAnalysisConfigLatestVersionNotFound if a config with that kind doesn't exist", async () => {
-      const mockTenant = {
-        ...getMockTenant(),
-        kind: tenantKind.PA,
-      };
-      await writeInReadmodel(mockTenant, tenants);
-
-      const kind = "unkown" as TenantKind;
-
-      expect(
-        purposeService.retrieveLatestRiskAnalysisConfiguration({
+      const result =
+        await purposeService.retrieveLatestRiskAnalysisConfiguration({
           tenantKind: kind,
           organizationId: mockTenant.id,
           logger: genericLogger,
-        })
-      ).rejects.toThrowError(riskAnalysisConfigLatestVersionNotFound(kind));
-    });
+        });
+
+      expect(result).toEqual(getLatestVersionFormRules(kind));
+    }
+  );
+  it("should throw tenantNotFound if the tenant doesn't exist", async () => {
+    const randomId = generateId<TenantId>();
+
+    expect(
+      purposeService.retrieveLatestRiskAnalysisConfiguration({
+        tenantKind: undefined,
+        organizationId: randomId,
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantNotFound(randomId));
   });
+  it("should throw tenantKindNotFound if the tenant kind is undefined", async () => {
+    const mockTenant = {
+      ...getMockTenant(),
+      kind: undefined,
+    };
+    await writeInReadmodel(mockTenant, tenants);
+
+    expect(
+      purposeService.retrieveLatestRiskAnalysisConfiguration({
+        tenantKind: undefined,
+        organizationId: mockTenant.id,
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
+  });
+  it("should throw riskAnalysisConfigLatestVersionNotFound if a config with that kind doesn't exist", async () => {
+    const mockTenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+    await writeInReadmodel(mockTenant, tenants);
+
+    const kind = "unkown" as TenantKind;
+
+    expect(
+      purposeService.retrieveLatestRiskAnalysisConfiguration({
+        tenantKind: kind,
+        organizationId: mockTenant.id,
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(riskAnalysisConfigLatestVersionNotFound(kind));
+  });
+});
