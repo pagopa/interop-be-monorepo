@@ -149,7 +149,7 @@ const getSubmissionInfo = async (
   const consumerUser: UserResponse = await retrieveUser(
     selfcareV2Client,
     consumerSelfcareId,
-    unsafeBrandId(submission.who)
+    submission.who
   );
   if (consumerUser.name && consumerUser.surname && consumerUser.taxCode) {
     return [
