@@ -24,6 +24,7 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
   createPurposeVersionErrorMapper,
   clonePurposeErrorMapper,
@@ -397,7 +398,30 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purposeId, versionId } = req.params;
+          const purposeVersion = await purposeService.activatePurposeVersion({
+            purposeId: unsafeBrandId(purposeId),
+            versionId: unsafeBrandId(versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(purposeVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            activatePurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/clone",

@@ -180,3 +180,26 @@ export const retrieveLatestRiskAnalysisConfigurationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const activatePurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "missingRiskAnalysis",
+      "agreementNotFound",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "organizationIsNotTheConsumer",
+      "organizationIsNotTheProducer",
+      "organizationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "purposeNotFound",
+      "purposeVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
