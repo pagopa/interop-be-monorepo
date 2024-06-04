@@ -108,7 +108,6 @@ import {
 import { config } from "../utilities/config.js";
 import {
   archiveRelatedToAgreements,
-  createActivationContract,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
