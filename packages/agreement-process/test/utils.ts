@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   StoredEvent,
@@ -9,7 +10,7 @@ import {
   readEventByStreamIdAndVersion,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { afterEach, expect, inject } from "vitest";
+import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -22,8 +23,14 @@ import {
   AgreementDocumentId,
   generateId,
   AgreementDocument,
+  Attribute,
+  toReadModelAttribute,
+  AttributeEvent,
+  toAttributeV1,
 } from "pagopa-interop-models";
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
@@ -37,20 +44,32 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   );
 
 afterEach(cleanup);
+export const testBrowserInstance: Browser = await puppeteer.launch();
+export const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
+afterAll(closeTestBrowserInstance);
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
+export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const pdfGenerator = await initPDFGenerator();
+export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
+export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
   fileManager,
-  pdfGenerator
+  pdfGenerator,
+  selfcareV2ClientMock
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement
@@ -70,6 +89,24 @@ export const writeAgreementInEventstore = async (
   await writeInEventstore(eventToWrite, "agreement", postgresDB);
 };
 
+export const writeAttributeInEventstore = async (
+  attribute: Attribute
+): Promise<void> => {
+  const attributeEvent: AttributeEvent = {
+    type: "AttributeAdded",
+    event_version: 1,
+    data: { attribute: toAttributeV1(attribute) },
+  };
+  const eventToWrite: StoredEvent<AttributeEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: attributeEvent.data.attribute!.id,
+    version: 0,
+    event: attributeEvent,
+  };
+
+  await writeInEventstore(eventToWrite, "attribute", postgresDB);
+};
+
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
@@ -83,6 +120,10 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(tenant, tenants);
 };
 
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeAttributeInEventstore(attribute);
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+};
 export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
