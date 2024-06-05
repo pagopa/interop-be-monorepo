@@ -116,6 +116,7 @@ export async function createActivationEvent(
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
+
     return [
       toCreateEventAgreementActivated(
         updatedAgreement,

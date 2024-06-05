@@ -15,8 +15,8 @@ export interface PDFGenerator {
 export async function initPDFGenerator(): Promise<PDFGenerator> {
   const templateService = buildHTMLTemplateService();
   let browserInstance = await puppeteer.launch({
-    /* NOTE
-      those configurations allow link (file://) usages for
+    /* NOTE 
+      those configurations allow link (file://) usages for 
       resources files in template's folder
     */
     args: [
