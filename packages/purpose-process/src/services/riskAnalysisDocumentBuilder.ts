@@ -1,5 +1,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
+import Handlebars from "handlebars";
 import {
   FileManager,
   FormQuestionRules,
@@ -214,7 +215,7 @@ function getSingleAnswerText(
       if (!answer.value) {
         throw unexpectedEmptyAnswerError(questionConfig.id);
       }
-      return answer.value;
+      return Handlebars.escapeExpression(answer.value);
     })
     .with({ dataType: dataType.single }, (questionConfig) => {
       if (!answer.value) {
