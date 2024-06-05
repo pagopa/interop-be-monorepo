@@ -324,7 +324,11 @@ function formatFreeOfCharge(
   const freeOfChargeReasonHtml = isFreeOfCharge
     ? `<div class="item">
   <div class="label">Motivazione titolo gratuito</div>
-  <div class="value">${freeOfChargeReason ?? NOT_AVAILABLE}</div>
+  <div class="value">${
+    freeOfChargeReason
+      ? Handlebars.escapeExpression(freeOfChargeReason)
+      : NOT_AVAILABLE
+  }</div>
 </div>`
     : '<div class="item-not-visible"></div>';
 
