@@ -1214,7 +1214,7 @@ async function addContractOnFirstActivation(
 
     return {
       ...agreement,
-      contract: apiAgreementDocumentToAgreementDocument(contract),
+      contract,
     };
   }
 
