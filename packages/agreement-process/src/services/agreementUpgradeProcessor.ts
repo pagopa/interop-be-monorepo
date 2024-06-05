@@ -91,11 +91,14 @@ export async function createUpgradeOrNewDraft({
 
     const id = generateId<AgreementId>();
     const newAgreement: Agreement = {
-      ...agreement.data,
       id,
-      descriptorId,
       state: agreementState.draft,
       createdAt: new Date(),
+      descriptorId,
+      eserviceId: agreement.data.eserviceId,
+      producerId: agreement.data.producerId,
+      consumerId: agreement.data.consumerId,
+      consumerNotes: agreement.data.consumerNotes,
       consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
         id,
         agreement.data,
@@ -103,6 +106,18 @@ export async function createUpgradeOrNewDraft({
         logger
       ),
       stamps: {},
+      // TODO should we bring attributes with us?
+      // It should not have attributes, if it was never activaetd
+      verifiedAttributes: agreement.data.verifiedAttributes,
+      certifiedAttributes: agreement.data.certifiedAttributes,
+      declaredAttributes: agreement.data.declaredAttributes,
+      contract: undefined,
+      suspendedAt: undefined,
+      suspendedByConsumer: undefined,
+      suspendedByPlatform: undefined,
+      suspendedByProducer: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
     };
 
     const createEvent = toCreateEventAgreementAdded(
