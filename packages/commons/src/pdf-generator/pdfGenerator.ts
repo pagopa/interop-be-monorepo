@@ -12,7 +12,9 @@ export interface PDFGenerator {
   ) => Promise<Buffer>;
 }
 
-export async function initPDFGenerator(): Promise<PDFGenerator> {
+export async function initPDFGenerator(
+  existingBrowserInstance?: Browser
+): Promise<PDFGenerator> {
   const templateService = buildHTMLTemplateService();
 
   let browserInstance = await puppeteer.launch({
@@ -31,6 +33,10 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
   });
 
   const getBrowser = async (): Promise<Browser> => {
+    if (existingBrowserInstance) {
+      return existingBrowserInstance;
+    }
+
     if (browserInstance?.connected) {
       return browserInstance;
     } else {
@@ -41,7 +47,7 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
 
   // During unexpected browser crash restarts browser handling "disconnected" event
   browserInstance.on("disconnected", async () => {
-    browserInstance = await puppeteer.launch();
+    browserInstance = existingBrowserInstance ?? (await puppeteer.launch());
   });
 
   return {
