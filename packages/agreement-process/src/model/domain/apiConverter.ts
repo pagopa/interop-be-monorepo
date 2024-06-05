@@ -99,12 +99,11 @@ export const agreementToApiAgreement = (
 });
 
 export const apiAgreementDocumentToAgreementDocument = (
-  input: ApiAgreementDocumentSeed,
-  createdAt: Date
+  input: ApiAgreementDocumentSeed
 ): AgreementDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt,
+  createdAt: new Date(),
 });
 
 function fromApiTenantVerifier(verifier: ApiTenantVerifier): TenantVerifier {

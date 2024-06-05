@@ -701,10 +701,7 @@ export function agreementServiceBuilder(
       if (existentDocument) {
         throw agreementDocumentAlreadyExists(agreementId);
       }
-      const newDocument = apiAgreementDocumentToAgreementDocument(
-        documentSeed,
-        new Date()
-      );
+      const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
 
       const updatedAgreement = {
         ...agreement.data,
