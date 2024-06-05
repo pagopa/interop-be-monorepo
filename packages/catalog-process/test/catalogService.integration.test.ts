@@ -3636,32 +3636,36 @@ describe("database test", async () => {
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
         );
       });
-      it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.archived,
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-        expect(
-          catalogService.uploadDocument(
-            eservice.id,
-            descriptor.id,
-            buildInterfaceSeed(),
-            {
-              authData: getMockAuthData(eservice.producerId),
-              correlationId: "",
-              serviceName: "",
-              logger: genericLogger,
-            }
-          )
-        ).rejects.toThrowError(
-          notValidDescriptor(descriptor.id, descriptorState.archived)
-        );
-      });
+      it.each(
+        Object.values(descriptorState).filter(
+          (state) => state === descriptorState.archived
+        )
+      )(
+        "should throw notValidDescriptor if the descriptor is in %s state",
+        async (state) => {
+          const descriptor: Descriptor = {
+            ...getMockDescriptor(state),
+          };
+          const eservice: EService = {
+            ...mockEService,
+            descriptors: [descriptor],
+          };
+          await addOneEService(eservice, postgresDB, eservices);
+          expect(
+            catalogService.uploadDocument(
+              eservice.id,
+              descriptor.id,
+              buildInterfaceSeed(),
+              {
+                authData: getMockAuthData(eservice.producerId),
+                correlationId: "",
+                serviceName: "",
+                logger: genericLogger,
+              }
+            )
+          ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+        }
+      );
       it("should throw interfaceAlreadyExists if the descriptor already contains an interface", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
