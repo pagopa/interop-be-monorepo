@@ -36,6 +36,16 @@ const agreementRouter = (
       async (_req, res) => res.status(501).send()
     )
     .get(
+      "/producers/agreements/eservices",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/consumers/agreements/eservices",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
       "/agreements/filter/producers",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()

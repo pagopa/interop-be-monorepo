@@ -25,6 +25,24 @@ const catalogRouter = (
   } = userRoles;
 
   catalogRouter
+    .get("/catalog", authorizationMiddleware([ADMIN_ROLE]), async (_req, res) =>
+      res.status(501).send()
+    )
+    .get(
+      "/producers/eservices",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producers/eservices/:eserviceId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producers/eservices/:eserviceId/descriptors/:descriptorId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
     .get(
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE]),
