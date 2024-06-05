@@ -1,12 +1,12 @@
 import {
+  AppContext,
+  CreateEvent,
   DB,
   FileManager,
   Logger,
-  WithLogger,
-  AppContext,
   PDFGenerator,
+  WithLogger,
   eventRepository,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -14,6 +14,7 @@ import {
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
+  AgreementState,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -31,11 +32,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
+  agreementActivationFailed,
   agreementAlreadyExists,
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
   agreementNotFound,
+  agreementSubmissionFailed,
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
@@ -58,6 +62,7 @@ import {
   toCreateEventAgreementConsumerDocumentRemoved,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
+  toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
@@ -99,7 +104,6 @@ import {
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   archiveRelatedToAgreements,
   createActivationEvent,
@@ -108,27 +112,29 @@ import {
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import {
+  agreementStateByFlags,
+  computeAgreementsStateByAttribute,
+  nextStateByAttributesFSM,
+  suspendedByConsumerFlag,
+  suspendedByPlatformFlag,
+  suspendedByProducerFlag,
+} from "./agreementStateProcessor.js";
+import {
+  addContractOnFirstActivation,
+  createSubmissionUpdateAgreementSeed,
+  isActiveOrSuspended,
+  validateConsumerEmail,
+} from "./agreementSubmissionProcessor.js";
+import {
   createAgreementSuspendedEvent,
   createSuspensionUpdatedAgreement,
 } from "./agreementSuspensionProcessor.js";
+import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
   ReadModelService,
 } from "./readModelService.js";
-import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
-import {
-  suspendedByConsumerFlag,
-  suspendedByProducerFlag,
-  agreementStateByFlags,
-  nextStateByAttributes,
-} from "./agreementStateProcessor.js";
-import {
-  createSubmissionUpdateAgreementSeed,
-  isActiveOrSuspended,
-  validateConsumerEmail,
-} from "./agreementSubmissionProcessor.js";
-import { computeAgreementsStateByAttribute } from "./agreementStateProcessor.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
@@ -296,7 +302,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       agreement: ApiAgreementUpdatePayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<void> {
+    ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await retrieveAgreement(
         agreementId,
@@ -323,6 +329,8 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
+
+      return updatedAgreement;
     },
     async deleteAgreementById(
       agreementId: AgreementId,
@@ -367,9 +375,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      if (agreement.data.state === agreementState.draft) {
-        await validateConsumerEmail(agreement.data, readModelService);
-      }
+      await validateConsumerEmail(agreement.data, readModelService);
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -391,17 +397,40 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const nextState = nextStateByAttributes(
+      const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
         consumer
       );
 
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
+
+      const setToMissingCertifiedAttributesByPlatformEvent =
+        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+          agreement,
+          nextStateByAttributes,
+          suspendedByPlatform,
+          correlationId
+        );
+
+      if (setToMissingCertifiedAttributesByPlatformEvent) {
+        /* In this case, it means that one of the certified attributes is not
+          valid anymore. We put the agreement in the missingCertifiedAttributes state
+          and fail the submission */
+
+        await repository.createEvent(
+          setToMissingCertifiedAttributesByPlatformEvent
+        );
+        throw agreementSubmissionFailed(agreement.data.id);
+      }
+
       const newState = agreementStateByFlags(
-        nextState,
+        nextStateByAttributes,
         undefined,
         undefined,
-        undefined
+        suspendedByPlatform
       );
 
       validateActiveOrPendingAgreement(agreement.data.id, newState);
@@ -413,7 +442,8 @@ export function agreementServiceBuilder(
         agreement.data,
         payload,
         newState,
-        authData.userId
+        authData.userId,
+        suspendedByPlatform
       );
 
       const agreements = (
@@ -424,37 +454,33 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
+      const hasRelatedAgreements = agreements.length > 0;
       const updatedAgreement = {
         ...agreement.data,
         ...updateSeed,
       };
 
-      const contract = await contractBuilder(
+      const contractBuilderInstance = contractBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
         config,
         logger
-      ).createContract(
-        authData.selfcareId,
-        agreement.data,
+      );
+
+      const submittedAgreement = await addContractOnFirstActivation(
+        contractBuilderInstance,
         eservice,
         consumer,
         producer,
-        updateSeed
+        updateSeed,
+        authData,
+        updatedAgreement,
+        hasRelatedAgreements
       );
 
-      const submittedAgreement =
-        updatedAgreement.state === agreementState.active &&
-        agreements.length === 0
-          ? {
-              ...updatedAgreement,
-              contract: apiAgreementDocumentToAgreementDocument(contract),
-            }
-          : updatedAgreement;
-
       const agreementEvent =
-        newState === agreementState.active
+        submittedAgreement.state === agreementState.active
           ? toCreateEventAgreementActivated(
               submittedAgreement,
               agreement.metadata.version,
@@ -467,7 +493,7 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        isActiveOrSuspended(newState)
+        isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
                 agreement,
@@ -901,28 +927,54 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const nextState = nextStateByAttributes(
+      /* nextAttributesState VS targetDestinationState
+      -- targetDestinationState is the state where the caller wants to go (active, in this case)
+      -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+      */
+      const targetDestinationState = agreementState.active;
+      const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
         consumer
       );
 
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
+
+      const setToMissingCertifiedAttributesByPlatformEvent =
+        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+          agreement,
+          nextStateByAttributes,
+          suspendedByPlatform,
+          correlationId
+        );
+      if (setToMissingCertifiedAttributesByPlatformEvent) {
+        /* In this case, it means that one of the certified attributes is not
+          valid anymore. We put the agreement in the missingCertifiedAttributes state
+          and fail the activation */
+        await repository.createEvent(
+          setToMissingCertifiedAttributesByPlatformEvent
+        );
+        throw agreementActivationFailed(agreement.data.id);
+      }
+
       const suspendedByConsumer = suspendedByConsumerFlag(
         agreement.data,
         authData.organizationId,
-        agreementState.active
+        targetDestinationState
       );
       const suspendedByProducer = suspendedByProducerFlag(
         agreement.data,
         authData.organizationId,
-        agreementState.active
+        targetDestinationState
       );
 
       const newState = agreementStateByFlags(
-        nextState,
+        nextStateByAttributes,
         suspendedByProducer,
         suspendedByConsumer,
-        undefined
+        suspendedByPlatform
       );
 
       failOnActivationFailure(newState, agreement.data);
@@ -942,6 +994,7 @@ export function agreementServiceBuilder(
           agreement: agreement.data,
           suspendedByConsumer,
           suspendedByProducer,
+          suspendedByPlatform,
         });
 
       const updatedAgreement: Agreement = {
@@ -949,14 +1002,19 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const activationEvent = await createActivationEvent(
+      const suspendedByPlatformChanged =
+        agreement.data.suspendedByPlatform !==
+        updatedAgreement.suspendedByPlatform;
+      const activationEvents = await createActivationEvent(
         firstActivation,
-        agreement,
         updatedAgreement,
         updatedAgreementSeed,
         eservice,
         consumer,
         producer,
+        agreement.data.suspendedByPlatform,
+        suspendedByPlatformChanged,
+        agreement.metadata.version,
         authData,
         correlationId,
         contractBuilderInstance
@@ -969,7 +1027,7 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await repository.createEvents([activationEvent, ...archiveEvents]);
+      await repository.createEvents([...activationEvents, ...archiveEvents]);
 
       return updatedAgreement;
     },
@@ -1088,4 +1146,33 @@ export function createAgreementArchivedByUpgradeEvent(
     agreement.metadata.version,
     correlationId
   );
+}
+
+function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+  agreement: WithMetadata<Agreement>,
+  nextStateByAttributes: AgreementState,
+  recalculatedSuspendedByPlatform: boolean,
+  correlationId: string
+): CreateEvent<AgreementEvent> | undefined {
+  if (
+    nextStateByAttributes === agreementState.missingCertifiedAttributes &&
+    recalculatedSuspendedByPlatform &&
+    recalculatedSuspendedByPlatform !== agreement.data.suspendedByPlatform
+  ) {
+    /* In this case, it means that one of the certified attributes is not
+      valid anymore. We put the agreement in the missingCertifiedAttributes state
+      and fail the submission */
+    const missingCertifiedAttributesByPlatformAgreement: Agreement = {
+      ...agreement.data,
+      state: agreementState.missingCertifiedAttributes,
+      suspendedByPlatform: true,
+    };
+
+    return toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
+      missingCertifiedAttributesByPlatformAgreement,
+      agreement.metadata.version,
+      correlationId
+    );
+  }
+  return undefined;
 }
