@@ -9,10 +9,10 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 
-const genericRouter = (
+const selfcareRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const genericRouter = ctx.router(api.api, {
+  const selfcareRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {
@@ -24,29 +24,24 @@ const genericRouter = (
     // SUPPORT_ROLE,
   } = userRoles;
 
-  genericRouter
-    .post(
-      "/session/tokens",
+  selfcareRouter
+    .get(
+      "/users/:userId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .post(
-      "/tools/validateTokenGeneration",
+    .get(
+      "/selfcare/institutions/products",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .post(
-      "/support",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/session/saml2/tokens",
+    .get(
+      "/selfcare/institutions",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     );
 
-  return genericRouter;
+  return selfcareRouter;
 };
 
-export default genericRouter;
+export default selfcareRouter;

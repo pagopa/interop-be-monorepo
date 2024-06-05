@@ -9,10 +9,10 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 
-const genericRouter = (
+const privacyNoticeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const genericRouter = ctx.router(api.api, {
+  const privacyNoticeRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {
@@ -24,29 +24,24 @@ const genericRouter = (
     // SUPPORT_ROLE,
   } = userRoles;
 
-  genericRouter
-    .post(
-      "/session/tokens",
+  privacyNoticeRouter
+    .get(
+      "/user/consent/:consentType",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
     .post(
-      "/tools/validateTokenGeneration",
+      "/user/consent/:consentType",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .post(
-      "/support",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/session/saml2/tokens",
+    .get(
+      "/privacyNotices/:consentType",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     );
 
-  return genericRouter;
+  return privacyNoticeRouter;
 };
 
-export default genericRouter;
+export default privacyNoticeRouter;
