@@ -36,7 +36,7 @@ import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({
-  firstActivation,
+  isFirstActivation,
   newState,
   descriptor,
   consumer,
@@ -47,7 +47,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByProducer,
   suspendedByPlatform,
 }: {
-  firstActivation: boolean;
+  isFirstActivation: boolean;
   newState: AgreementState;
   descriptor: Descriptor;
   consumer: Tenant;
@@ -60,7 +60,7 @@ export function createActivationUpdateAgreementSeed({
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData.userId);
 
-  return firstActivation
+  return isFirstActivation
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -106,7 +106,7 @@ export function createActivationUpdateAgreementSeed({
 }
 
 export async function createActivationEvent(
-  firstActivation: boolean,
+  isFirstActivation: boolean,
   updatedAgreement: Agreement,
   originalSuspendedByPlatform: boolean | undefined,
   suspendedByPlatformChanged: boolean,
@@ -114,7 +114,7 @@ export async function createActivationEvent(
   authData: AuthData,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
-  if (firstActivation) {
+  if (isFirstActivation) {
     // Pending >>> Active
     return [
       toCreateEventAgreementActivated(

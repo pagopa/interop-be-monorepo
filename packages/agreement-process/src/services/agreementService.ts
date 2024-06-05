@@ -307,7 +307,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       agreement: ApiAgreementUpdatePayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<void> {
+    ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await retrieveAgreement(
         agreementId,
@@ -334,6 +334,8 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
+
+      return updatedAgreement;
     },
     async deleteAgreementById(
       agreementId: AgreementId,
@@ -904,6 +906,15 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
 
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
@@ -982,13 +993,13 @@ export function agreementServiceBuilder(
 
       failOnActivationFailure(newState, agreement.data);
 
-      const firstActivation =
+      const isFirstActivation =
         agreement.data.state === agreementState.pending &&
         newState === agreementState.active;
 
       const updatedAgreementSeed: UpdateAgreementSeed =
         createActivationUpdateAgreementSeed({
-          firstActivation,
+          isFirstActivation,
           newState,
           descriptor,
           consumer,
@@ -1005,17 +1016,8 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const contractBuilderInstance = contractBuilder(
-        readModelService,
-        pdfGenerator,
-        fileManager,
-        selfcareV2Client,
-        config,
-        logger
-      );
-
       const updatedAgreement: Agreement = await addContractOnFirstActivation(
-        firstActivation,
+        isFirstActivation,
         contractBuilderInstance,
         eservice,
         consumer,
@@ -1030,7 +1032,7 @@ export function agreementServiceBuilder(
         updatedAgreement.suspendedByPlatform;
 
       const activationEvents = await createActivationEvent(
-        firstActivation,
+        isFirstActivation,
         updatedAgreement,
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
