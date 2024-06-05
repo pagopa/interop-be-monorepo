@@ -3506,250 +3506,74 @@ describe("database test", async () => {
     });
 
     describe("upload Document", () => {
-      it("should write on event-store for the upload of a document when descriptor is draft", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.draft,
-          serverUrls: [],
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
+      it.each(
+        Object.values(descriptorState).filter(
+          (state) => state !== descriptorState.archived
+        )
+      )(
+        "should write on event-store for the upload of a document when descriptor state is %s",
+        async (state) => {
+          const descriptor: Descriptor = {
+            ...getMockDescriptor(state),
+            serverUrls: [],
+          };
+          const eservice: EService = {
+            ...mockEService,
+            descriptors: [descriptor],
+          };
+          await addOneEService(eservice, postgresDB, eservices);
 
-        await catalogService.uploadDocument(
-          eservice.id,
-          descriptor.id,
-          buildInterfaceSeed(),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
-            serviceName: "",
-            logger: genericLogger,
-          }
-        );
-
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-        expect(writtenEvent.event_version).toBe(2);
-        const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorInterfaceDeletedV2,
-          payload: writtenEvent.data,
-        });
-
-        const expectedEservice = toEServiceV2({
-          ...eservice,
-          descriptors: [
+          await catalogService.uploadDocument(
+            eservice.id,
+            descriptor.id,
+            buildInterfaceSeed(),
             {
-              ...descriptor,
-              interface: {
-                ...mockDocument,
-                id: unsafeBrandId(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.id
-                ),
-                checksum:
-                  writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-                uploadDate: new Date(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-                ),
+              authData: getMockAuthData(eservice.producerId),
+              correlationId: "",
+              serviceName: "",
+              logger: genericLogger,
+            }
+          );
+
+          const writtenEvent = await readLastEserviceEvent(
+            eservice.id,
+            postgresDB
+          );
+          expect(writtenEvent.stream_id).toBe(eservice.id);
+          expect(writtenEvent.version).toBe("1");
+          expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+          expect(writtenEvent.event_version).toBe(2);
+          const writtenPayload = decodeProtobufPayload({
+            messageType: EServiceDescriptorInterfaceDeletedV2,
+            payload: writtenEvent.data,
+          });
+
+          const expectedEservice = toEServiceV2({
+            ...eservice,
+            descriptors: [
+              {
+                ...descriptor,
+                interface: {
+                  ...mockDocument,
+                  id: unsafeBrandId(
+                    writtenPayload.eservice!.descriptors[0]!.interface!.id
+                  ),
+                  checksum:
+                    writtenPayload.eservice!.descriptors[0]!.interface!
+                      .checksum,
+                  uploadDate: new Date(
+                    writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+                  ),
+                },
+                serverUrls: ["pagopa.it"],
               },
-              serverUrls: ["pagopa.it"],
-            },
-          ],
-        });
+            ],
+          });
 
-        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
-      });
-      it("should write on event-store for the upload of a document when descriptor is suspended", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.suspended,
-          serverUrls: [],
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-
-        await catalogService.uploadDocument(
-          eservice.id,
-          descriptor.id,
-          buildInterfaceSeed(),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
-            serviceName: "",
-            logger: genericLogger,
-          }
-        );
-
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-        expect(writtenEvent.event_version).toBe(2);
-        const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorInterfaceDeletedV2,
-          payload: writtenEvent.data,
-        });
-
-        const expectedEservice = toEServiceV2({
-          ...eservice,
-          descriptors: [
-            {
-              ...descriptor,
-              interface: {
-                ...mockDocument,
-                id: unsafeBrandId(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.id
-                ),
-                checksum:
-                  writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-                uploadDate: new Date(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-                ),
-              },
-              serverUrls: ["pagopa.it"],
-            },
-          ],
-        });
-
-        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
-      });
-      it("should write on event-store for the upload of a document when descriptor is deprecated", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.deprecated,
-          serverUrls: [],
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-
-        await catalogService.uploadDocument(
-          eservice.id,
-          descriptor.id,
-          buildInterfaceSeed(),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
-            serviceName: "",
-            logger: genericLogger,
-          }
-        );
-
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-        expect(writtenEvent.event_version).toBe(2);
-        const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorInterfaceDeletedV2,
-          payload: writtenEvent.data,
-        });
-
-        const expectedEservice = toEServiceV2({
-          ...eservice,
-          descriptors: [
-            {
-              ...descriptor,
-              interface: {
-                ...mockDocument,
-                id: unsafeBrandId(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.id
-                ),
-                checksum:
-                  writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-                uploadDate: new Date(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-                ),
-              },
-              serverUrls: ["pagopa.it"],
-            },
-          ],
-        });
-
-        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
-      });
-      it("should write on event-store for the upload of a document when descriptor is published", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.published,
-          serverUrls: [],
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-
-        await catalogService.uploadDocument(
-          eservice.id,
-          descriptor.id,
-          buildInterfaceSeed(),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
-            serviceName: "",
-            logger: genericLogger,
-          }
-        );
-
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-        expect(writtenEvent.event_version).toBe(2);
-        const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorInterfaceDeletedV2,
-          payload: writtenEvent.data,
-        });
-
-        const expectedEservice = toEServiceV2({
-          ...eservice,
-          descriptors: [
-            {
-              ...descriptor,
-              interface: {
-                ...mockDocument,
-                id: unsafeBrandId(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.id
-                ),
-                checksum:
-                  writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-                uploadDate: new Date(
-                  writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-                ),
-              },
-              serverUrls: ["pagopa.it"],
-            },
-          ],
-        });
-
-        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
-      });
+          expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+          expect(writtenPayload.eservice).toEqual(expectedEservice);
+        }
+      );
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
         expect(
           catalogService.uploadDocument(
