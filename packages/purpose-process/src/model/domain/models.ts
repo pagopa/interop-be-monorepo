@@ -51,3 +51,7 @@ export type ApiHideOptionConfig = z.infer<
 >;
 
 export type ApiLabeledValue = z.infer<typeof api.schemas.LabeledValueResponse>;
+
+export type ApiPurposeVersionSeed = z.infer<
+  typeof api.schemas.PurposeVersionSeed
+>;
