@@ -32,6 +32,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -201,7 +202,8 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator
+  pdfGenerator: PDFGenerator,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -375,7 +377,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      await validateConsumerEmail(agreement.data, readModelService);
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      await validateConsumerEmail(consumer, agreement.data);
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -385,11 +392,6 @@ export function agreementServiceBuilder(
       const descriptor = await validateSubmitOnDescriptor(
         eservice,
         agreement.data.descriptorId
-      );
-
-      const consumer = await retrieveTenant(
-        agreement.data.consumerId,
-        readModelService
       );
 
       const producer = await retrieveTenant(
@@ -464,6 +466,7 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       );
@@ -493,6 +496,11 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+        /* 
+          This condition can only check if state is ACTIVE
+          at this point the SUSPENDED state is not available 
+          after validateActiveOrPendingAgreement validation
+        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
@@ -897,6 +905,7 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       );
