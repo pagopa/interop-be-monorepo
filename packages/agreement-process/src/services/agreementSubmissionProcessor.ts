@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { CreateEvent } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -14,17 +14,19 @@ import {
   tenantMailKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
 } from "../model/domain/errors.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import { ContractBuilder } from "./agreementContractBuilder.js";
 import { retrieveTenant } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
@@ -57,11 +59,13 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   newState: AgreementState,
-  userId: UserId
+  userId: UserId,
+  suspendedByPlatform: boolean | undefined
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
+  const isActivation = newState === agreementState.active;
 
-  return newState === agreementState.active
+  return isActivation
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -73,6 +77,7 @@ export const createSubmissionUpdateAgreementSeed = (
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
+        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       }
@@ -83,6 +88,7 @@ export const createSubmissionUpdateAgreementSeed = (
         verifiedAttributes: [],
         suspendedByConsumer: undefined,
         suspendedByProducer: undefined,
+        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       };
@@ -111,3 +117,35 @@ export const calculateStamps = (
     .otherwise(() => {
       throw agreementNotInExpectedState(agreement.id, state);
     });
+
+export const addContractOnFirstActivation = async (
+  contractBuilder: ContractBuilder,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant,
+  updateSeed: UpdateAgreementSeed,
+  authData: AuthData,
+  agreement: Agreement,
+  hasRelatedAgreements: boolean
+): Promise<Agreement> => {
+  const isFirstActivation =
+    agreement.state === agreementState.active && !hasRelatedAgreements;
+
+  if (isFirstActivation) {
+    const contract = await contractBuilder.createContract(
+      authData.selfcareId,
+      agreement,
+      eservice,
+      consumer,
+      producer,
+      updateSeed
+    );
+
+    return {
+      ...agreement,
+      contract: apiAgreementDocumentToAgreementDocument(contract),
+    };
+  }
+
+  return agreement;
+};

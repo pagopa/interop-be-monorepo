@@ -3,20 +3,20 @@ import {
   ReadModelDbConfig,
   EventStoreConfig,
   FileManagerConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
   .and(FileManagerConfig)
+  .and(S3Config)
   .and(
     z
       .object({
-        S3_BUCKET: z.string(),
         RISK_ANALYSIS_PATH: z.string(),
       })
       .transform((c) => ({
-        s3Bucket: c.S3_BUCKET,
         riskAnalysisPath: c.RISK_ANALYSIS_PATH,
       }))
   );

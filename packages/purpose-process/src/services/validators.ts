@@ -5,7 +5,6 @@ import {
   PurposeVersion,
   PurposeRiskAnalysisForm,
   RiskAnalysisForm,
-  Tenant,
   TenantId,
   TenantKind,
   purposeVersionState,
@@ -25,7 +24,6 @@ import {
   organizationIsNotTheConsumer,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
   unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
@@ -152,14 +150,6 @@ export function reverseValidateAndTransformRiskAnalysis(
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
     riskAnalysisId: riskAnalysisForm.riskAnalysisId,
   };
-}
-
-export function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (!tenant.kind) {
-    throw tenantKindNotFound(tenant.id);
-  }
 }
 
 export function assertPurposeIsDraft(purpose: Purpose): void {

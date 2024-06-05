@@ -40,6 +40,7 @@ export const errorCodes = {
   unchangedDailyCalls: "0023",
   missingRiskAnalysis: "0024",
   purposeVersionStateConflict: "0025",
+  riskAnalysisConfigLatestVersionNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -250,6 +251,16 @@ export function riskAnalysisConfigVersionNotFound(
     detail: `Risk Analysis Configuration version ${version} for tenant kind ${tenantKind} not found`,
     code: "riskAnalysisConfigVersionNotFound",
     title: "Risk Analysis config version not found",
+  });
+}
+
+export function riskAnalysisConfigLatestVersionNotFound(
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Latest Risk Analysis Configuration for tenant kind ${tenantKind} not found`,
+    code: "riskAnalysisConfigLatestVersionNotFound",
+    title: "Risk Analysis config latest version not found",
   });
 }
 
