@@ -9,6 +9,8 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
+  AgreementActivatedV1,
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementConsumerDocumentRemovedV1,
@@ -17,14 +19,19 @@ import {
   AgreementDocument,
   AgreementEventEnvelope,
   AgreementStateV1,
+  AgreementSuspendedV1,
   AgreementUpdatedV1,
+  agreementState,
   fromAgreementV1,
   generateId,
   toReadModelAgreement,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import { toAgreementDocumentV1 } from "./protobufConverterToV1.js";
+import {
+  toAgreementDocumentV1,
+  toAgreementV1,
+} from "./protobufConverterToV1.js";
 import { agreements } from "./utils.js";
 
 describe("events V1", async () => {
@@ -244,6 +251,158 @@ describe("events V1", async () => {
         ...agreement,
         contract: agreementContract,
       })
+    );
+  });
+
+  it("should activate an agreement", async () => {
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.pending,
+    };
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+    const activatedAgreement: Agreement = {
+      ...agreement,
+      state: agreementState.active,
+    };
+    const payload: AgreementActivatedV1 = {
+      agreement: toAgreementV1(activatedAgreement),
+    };
+
+    const message: AgreementEventEnvelope = {
+      event_version: 1,
+      sequence_num: 1,
+      stream_id: agreement.id,
+      version: 1,
+      type: "AgreementActivated",
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV1(message, agreements);
+
+    const retrievedAgreement = await agreements.findOne({
+      "data.id": agreement.id.toString(),
+    });
+
+    expect(retrievedAgreement).not.toBeNull();
+
+    expect(retrievedAgreement?.data).toEqual(
+      toReadModelAgreement(activatedAgreement)
+    );
+  });
+
+  it("should suspend an agreement", async () => {
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+    };
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+    const suspendedAgreement: Agreement = {
+      ...agreement,
+      state: agreementState.active,
+    };
+    const payload: AgreementActivatedV1 = {
+      agreement: toAgreementV1(suspendedAgreement),
+    };
+
+    const message: AgreementEventEnvelope = {
+      event_version: 1,
+      sequence_num: 1,
+      stream_id: agreement.id,
+      version: 1,
+      type: "AgreementSuspended",
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV1(message, agreements);
+
+    const retrievedAgreement = await agreements.findOne({
+      "data.id": agreement.id.toString(),
+    });
+
+    expect(retrievedAgreement).not.toBeNull();
+
+    expect(retrievedAgreement?.data).toEqual(
+      toReadModelAgreement(suspendedAgreement)
+    );
+  });
+
+  it("should deactivate an agreement", async () => {
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+    };
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+    const deactivatedAgreement: Agreement = {
+      ...agreement,
+      state: agreementState.active,
+    };
+    const payload: AgreementActivatedV1 = {
+      agreement: toAgreementV1(deactivatedAgreement),
+    };
+
+    const message: AgreementEventEnvelope = {
+      event_version: 1,
+      sequence_num: 1,
+      stream_id: agreement.id,
+      version: 1,
+      type: "AgreementDeactivated",
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV1(message, agreements);
+
+    const retrievedAgreement = await agreements.findOne({
+      "data.id": agreement.id.toString(),
+    });
+
+    expect(retrievedAgreement).not.toBeNull();
+
+    expect(retrievedAgreement?.data).toEqual(
+      toReadModelAgreement(deactivatedAgreement)
+    );
+  });
+
+  it("should update the verified attributes of an agreement", async () => {
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+    };
+    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+    const updatedAgreement: Agreement = {
+      ...agreement,
+      verifiedAttributes: [{ id: generateId() }],
+    };
+    const payload: AgreementActivatedV1 = {
+      agreement: toAgreementV1(updatedAgreement),
+    };
+
+    const message: AgreementEventEnvelope = {
+      event_version: 1,
+      sequence_num: 1,
+      stream_id: agreement.id,
+      version: 1,
+      type: "VerifiedAttributeUpdated",
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV1(message, agreements);
+
+    const retrievedAgreement = await agreements.findOne({
+      "data.id": agreement.id.toString(),
+    });
+
+    expect(retrievedAgreement).not.toBeNull();
+
+    expect(retrievedAgreement?.data).toEqual(
+      toReadModelAgreement(updatedAgreement)
     );
   });
 });
