@@ -3704,11 +3704,11 @@ describe("database test", async () => {
           vi.spyOn(fileManager, "delete");
 
           const document = {
-            ...getMockDescriptor(state),
+            ...mockDocument,
             path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
           };
           const descriptor: Descriptor = {
-            ...mockDescriptor,
+            ...getMockDescriptor(state),
             docs: [document],
           };
           const eservice: EService = {
