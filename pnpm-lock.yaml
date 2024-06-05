@@ -982,6 +982,9 @@ importers:
       '@types/node':
         specifier: 20.14.1
         version: 20.14.1
+      cpx2:
+        specifier: 7.0.1
+        version: 7.0.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
