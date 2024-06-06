@@ -5,6 +5,7 @@ import {
   Kafka,
   KafkaConfig,
   OauthbearerProviderResponse,
+  logLevel,
 } from "kafkajs";
 import {
   KafkaConsumerConfig,
@@ -12,6 +13,7 @@ import {
   genericLogger,
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
@@ -138,7 +140,36 @@ const initConsumer = async (
         },
       };
 
-  const kafka = new Kafka(kafkaConfig);
+  const kafka = new Kafka({
+    ...kafkaConfig,
+    logCreator:
+      (_logLevel) =>
+      ({ level, log }) => {
+        const { message, error } = log;
+
+        const filteredLevel = match(error)
+          .with(
+            P.string,
+            (error) =>
+              (level === logLevel.ERROR || level === logLevel.WARN) &&
+              error.includes("The group is rebalancing, so a rejoin is needed"),
+            () => logLevel.INFO
+          )
+          .otherwise(() => level);
+
+        // eslint-disable-next-line sonarjs/no-nested-template-literals
+        const msg = `${message}${error ? ` - ${error}` : ""}`;
+
+        match(filteredLevel)
+          .with(logLevel.NOTHING, logLevel.ERROR, () =>
+            genericLogger.error(msg)
+          )
+          .with(logLevel.WARN, () => genericLogger.warn(msg))
+          .with(logLevel.INFO, () => genericLogger.info(msg))
+          .with(logLevel.DEBUG, () => genericLogger.debug(msg))
+          .otherwise(() => genericLogger.error(msg));
+      },
+  });
 
   const consumer = kafka.consumer({
     groupId: config.kafkaGroupId,
