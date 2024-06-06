@@ -109,7 +109,7 @@ export const riskAnalysisDocumentBuilder = (
 
       const documentPath = await fileManager.storeBytes(
         config.s3Bucket,
-        config.riskAnalysisPath,
+        config.riskAnalysisDocumentsPath,
         documentId,
         documentName,
         pdfBuffer,

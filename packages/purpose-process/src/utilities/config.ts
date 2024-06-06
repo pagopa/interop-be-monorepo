@@ -14,10 +14,10 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(
     z
       .object({
-        RISK_ANALYSIS_PATH: z.string(),
+        RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
       })
       .transform((c) => ({
-        riskAnalysisPath: c.RISK_ANALYSIS_PATH,
+        riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
       }))
   );
 
