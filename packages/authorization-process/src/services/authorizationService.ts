@@ -343,7 +343,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         users: client.data.users,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: true,
       };
     },
   };
