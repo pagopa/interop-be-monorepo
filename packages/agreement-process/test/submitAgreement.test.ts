@@ -282,7 +282,7 @@ describe("submit agreement", () => {
     );
   });
 
-  it("should throw an consumerWithNotValidEmail error when consumer has not a contact email", async () => {
+  it("should throw a consumerWithNotValidEmail error when consumer has not a contact email", async () => {
     const consumer = {
       ...getMockTenant(),
       mails: [],
@@ -357,7 +357,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
-  it("should throw an notLatestEServiceDescriptor error when eservice don't have any descriptors with DRAFT state", async () => {
+  it("should throw a notLatestEServiceDescriptor error when eservice doesn't have descriptors with DRAFT state", async () => {
     const producer = getMockTenant();
     const consumer = {
       ...getMockTenant(),
@@ -406,7 +406,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
 
-  it("should throw an notLatestEServiceDescriptor error when eservice have a valid descriptor with different ID from agreement", async () => {
+  it("should throw a notLatestEServiceDescriptor error when eservice has a valid descriptor with different ID from agreement", async () => {
     const producer = getMockTenant();
     const consumer = {
       ...getMockTenant(),
@@ -455,7 +455,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
 
-  it("should throw an descriptorNotInExpectedState error when eservice have latest descriptor with invalid state", async () => {
+  it("should throw a descriptorNotInExpectedState error when eservice latest descriptor has invalid state", async () => {
     const producer = getMockTenant();
     const consumer = {
       ...getMockTenant(),
@@ -514,7 +514,7 @@ describe("submit agreement", () => {
     );
   });
 
-  it("should throw an tenantNotFound error when producer not exists in tenant collection", async () => {
+  it("should throw a tenantNotFound error when producer does not exist in tenant collection", async () => {
     const producer = getMockTenant();
     const consumer = {
       ...getMockTenant(),
@@ -618,7 +618,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementSubmissionFailed(agreement.id));
   });
 
-  it("should throw an userNotFound error when selfcare id not found for current UserId in getSubmissionInfo", async () => {
+  it("should throw an userNotFound error when selfcare id is not found for current UserId in getSubmissionInfo", async () => {
     const consumer = {
       ...getMockTenant(),
       selfcareId: generateId<SelfcareId>(),
@@ -675,7 +675,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(userNotFound(consumer.selfcareId, authData.userId));
   });
 
-  it("should throw an agreementSelfcareIdNotFound error when selfcare id not found for current UserId", async () => {
+  it("should throw an agreementSelfcareIdNotFound error when selfcare id is not found for current UserId", async () => {
     const consumer = {
       ...getMockTenant(),
       selfcareId: undefined,
@@ -731,7 +731,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementSelfcareIdNotFound(consumer.id));
   });
 
-  it("should throw an agreementMissingUserInfo error when selfcare missing who property", async () => {
+  it("should throw an agreementMissingUserInfo error when who property is missing", async () => {
     const consumer = {
       ...getMockTenant(),
       selfcareId: generateId<SelfcareId>(),
@@ -788,7 +788,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementMissingUserInfo(authData.userId));
   });
 
-  it("should throw an agreementSubmissionFailed error when recalulation of suspendByPlatform return true", async () => {
+  it("should throw an agreementSubmissionFailed error when recalulation of suspendByPlatform returns true", async () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
     const consumerNotesText = "This is a test";
@@ -1411,7 +1411,7 @@ describe("submit agreement", () => {
     });
   });
 
-  it("should create a new agreement contract for first activation with new state ACTIVE when producer and consumer are differents, generates AgreementActivated", async () => {
+  it("should create a new agreement contract for first activation with new state ACTIVE when producer and consumer are different, generates AgreementActivated", async () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant(consumerId);
     const consumerNotesText = "This is a test";
@@ -1567,7 +1567,7 @@ describe("submit agreement", () => {
     });
   });
 
-  it("should submit agreement contract with new state PENDING when producer is different from consumer and not related agreements, generates AgreementSubmitted event", async () => {
+  it("should submit agreement with new state PENDING when producer is different from consumer and no related agreements exist, generates AgreementSubmitted event", async () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
     const consumerNotesText = "This is a test";
