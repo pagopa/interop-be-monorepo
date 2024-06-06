@@ -225,7 +225,7 @@ describe("database test", async () => {
         };
         const updatedName = "eservice new name";
         await addOneEService(eservice, postgresDB, eservices);
-        await catalogService.updateEService(
+        const returnedEService = await catalogService.updateEService(
           mockEService.id,
           {
             name: updatedName,
@@ -260,6 +260,7 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
         expect(fileManager.delete).not.toHaveBeenCalled();
       });
 
@@ -297,7 +298,7 @@ describe("database test", async () => {
           await fileManager.listFiles(config.s3Bucket, genericLogger)
         ).toContain(interfaceDocument.path);
 
-        await catalogService.updateEService(
+        const returnedEService = await catalogService.updateEService(
           eservice.id,
           {
             name: updatedName,
@@ -349,6 +350,7 @@ describe("database test", async () => {
         expect(
           await fileManager.listFiles(config.s3Bucket, genericLogger)
         ).not.toContain(interfaceDocument.path);
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
@@ -393,7 +395,7 @@ describe("database test", async () => {
       it("should write on event-store for the update of an eService (update description only)", async () => {
         const updatedDescription = "eservice new description";
         await addOneEService(mockEService, postgresDB, eservices);
-        await catalogService.updateEService(
+        const returnedEService = await catalogService.updateEService(
           mockEService.id,
           {
             name: mockEService.name,
@@ -430,6 +432,7 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
@@ -442,7 +445,7 @@ describe("database test", async () => {
         };
         await addOneEService(eservice, postgresDB, eservices);
 
-        await catalogService.updateEService(
+        const returnedEService = await catalogService.updateEService(
           eservice.id,
           {
             name: eservice.name,
@@ -480,6 +483,7 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -821,14 +825,19 @@ describe("database test", async () => {
           descriptors: [],
         };
         await addOneEService(eservice, postgresDB, eservices);
-        const newDescriptorId = (
-          await catalogService.createDescriptor(eservice.id, descriptorSeed, {
+
+        const returnedDescriptor = await catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          {
             authData: getMockAuthData(eservice.producerId),
             correlationId: "",
             serviceName: "",
             logger: genericLogger,
-          })
-        ).id;
+          }
+        );
+        const newDescriptorId = returnedDescriptor.id;
+
         const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
@@ -870,6 +879,13 @@ describe("database test", async () => {
           descriptorId: newDescriptorId,
           eservice: expectedEservice,
         });
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: toEServiceV2({
+            ...eservice,
+            descriptors: [returnedDescriptor],
+          }),
+        });
       });
 
       it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
@@ -901,14 +917,18 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
         await addOneEService(eservice, postgresDB, eservices);
-        const newDescriptorId = (
-          await catalogService.createDescriptor(eservice.id, descriptorSeed, {
+        const returnedDescriptor = await catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          {
             authData: getMockAuthData(eservice.producerId),
             correlationId: "",
             serviceName: "",
             logger: genericLogger,
-          })
-        ).id;
+          }
+        );
+        const newDescriptorId = returnedDescriptor.id;
+
         const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
@@ -949,6 +969,13 @@ describe("database test", async () => {
         expect(writtenPayload).toEqual({
           descriptorId: newDescriptorId,
           eservice: expectedEservice,
+        });
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: toEServiceV2({
+            ...eservice,
+            descriptors: [...eservice.descriptors, returnedDescriptor],
+          }),
         });
       });
 
@@ -1133,7 +1160,7 @@ describe("database test", async () => {
             },
           ],
         };
-        await catalogService.updateDraftDescriptor(
+        const returnedEService = await catalogService.updateDraftDescriptor(
           eservice.id,
           descriptor.id,
           updatedDescriptorSeed,
@@ -1159,6 +1186,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
@@ -2894,6 +2922,7 @@ describe("database test", async () => {
           createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
         };
         expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(newEService));
 
         expect(fileManager.copy).toHaveBeenCalledWith(
           config.s3Bucket,
@@ -3166,7 +3195,7 @@ describe("database test", async () => {
             },
           ],
         };
-        await catalogService.updateDescriptor(
+        const returnedEService = await catalogService.updateDescriptor(
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
@@ -3192,6 +3221,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should write on event-store for the update of a suspended descriptor", async () => {
@@ -3226,7 +3256,7 @@ describe("database test", async () => {
             },
           ],
         };
-        await catalogService.updateDescriptor(
+        const returnedEService = await catalogService.updateDescriptor(
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
@@ -3252,6 +3282,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should write on event-store for the update of an deprecated descriptor", async () => {
@@ -3286,7 +3317,7 @@ describe("database test", async () => {
             },
           ],
         };
-        await catalogService.updateDescriptor(
+        const returnedEService = await catalogService.updateDescriptor(
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
@@ -3312,6 +3343,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
 
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
@@ -3518,7 +3550,7 @@ describe("database test", async () => {
         };
         await addOneEService(eservice, postgresDB, eservices);
 
-        await catalogService.uploadDocument(
+        const returnedEService = await catalogService.uploadDocument(
           eservice.id,
           descriptor.id,
           buildInterfaceSeed(),
@@ -3566,6 +3598,7 @@ describe("database test", async () => {
 
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
       });
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
         expect(
@@ -4167,7 +4200,7 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
         await addOneEService(eservice, postgresDB, eservices);
-        await catalogService.updateDocument(
+        const returnedDocument = await catalogService.updateDocument(
           eservice.id,
           descriptor.id,
           mockDocument.id,
@@ -4210,6 +4243,17 @@ describe("database test", async () => {
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(writtenPayload.documentId).toEqual(mockDocument.id);
         expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenPayload.eservice).toEqual(
+          toEServiceV2({
+            ...eservice,
+            descriptors: [
+              {
+                ...descriptor,
+                docs: [returnedDocument],
+              },
+            ],
+          })
+        );
       });
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
         expect(
