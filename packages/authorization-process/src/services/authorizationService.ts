@@ -19,13 +19,11 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   keyNotFound,
   organizationNotAllowedOnClient,
   purposeIdNotFound,
-  securityUserNotFound,
   userAlreadyAssigned,
   userIdNotFound,
 } from "../model/domain/errors.js";
@@ -39,7 +37,7 @@ import {
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
-import { isClientConsumer } from "./validators.js";
+import { isClientConsumer, assertSelfcareUser } from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -161,9 +159,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
-      const userIds = authData.userRoles.includes("security")
+      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
         ? [authData.userId]
-        : filters.userIds.map(unsafeBrandId<UserId>);
+        : filters.userIds;
 
       return await readModelService.getClients(
         { ...filters, userIds },
@@ -305,11 +303,15 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removePurposeFromClients(
-      purposeIdToRemove: PurposeId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removePurposeFromClients({
+      purposeIdToRemove,
+      correlationId,
+      logger,
+    }: {
+      purposeIdToRemove: PurposeId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
       const clients = await readModelService.getClientsRelatedToPurpose(
@@ -343,7 +345,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         users: client.data.users,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: true,
       };
     },
     async addUser(
@@ -362,7 +364,7 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertSecurityUser(authData.selfcareId, authData.userId, userId);
+      await assertSelfcareUser(authData.selfcareId, authData.userId, userId);
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -381,7 +383,7 @@ export function authorizationServiceBuilder(
       );
       return {
         client: updatedClient,
-        showUsers: updatedClient.consumerId === authData.organizationId,
+        showUsers: true,
       };
     },
   };
@@ -397,22 +399,5 @@ const assertOrganizationIsClientConsumer = (
 ): void => {
   if (client.consumerId !== organizationId) {
     throw organizationNotAllowedOnClient(organizationId, client.id);
-  }
-};
-const assertSecurityUser = async (
-  selfcareId: string,
-  requesterUserId: UserId,
-  userId: UserId
-): Promise<void> => {
-  const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
-    params: { institutionId: selfcareId },
-    queries: {
-      userIdForAuth: requesterUserId,
-      userId,
-      productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
-    },
-  });
-  if (users.length === 0) {
-    throw securityUserNotFound(requesterUserId, userId);
   }
 };
