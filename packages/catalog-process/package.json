@@ -30,7 +30,7 @@
     "@types/uuid": "9.0.8",
     "date-fns": "3.6.0",
     "pagopa-interop-commons-test": "workspace:*",
-    "pg-promise": "11.7.8",
+    "pg-promise": "11.8.0",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
