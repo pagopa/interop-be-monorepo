@@ -7,6 +7,7 @@ import {
   EService,
   Tenant,
   WithMetadata,
+  agreementApprovalPolicy,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -49,7 +50,7 @@ const nextStateFromDraft = (
   }
 
   if (
-    descriptor.agreementApprovalPolicy?.includes("Automatic") &&
+    descriptor.agreementApprovalPolicy === agreementApprovalPolicy.automatic &&
     declaredAttributesSatisfied(descriptor, tenant) &&
     verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)
   ) {
