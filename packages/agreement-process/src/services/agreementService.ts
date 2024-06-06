@@ -1,5 +1,6 @@
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -32,6 +33,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -109,7 +111,10 @@ import {
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
+import {
+  ContractBuilder,
+  contractBuilder,
+} from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
@@ -120,7 +125,6 @@ import {
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
-  addContractOnFirstActivation,
   createSubmissionUpdateAgreementSeed,
   isActiveOrSuspended,
   validateConsumerEmail,
@@ -201,7 +205,8 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator
+  pdfGenerator: PDFGenerator,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -375,7 +380,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      await validateConsumerEmail(agreement.data, readModelService);
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      await validateConsumerEmail(consumer, agreement.data);
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -385,11 +395,6 @@ export function agreementServiceBuilder(
       const descriptor = await validateSubmitOnDescriptor(
         eservice,
         agreement.data.descriptorId
-      );
-
-      const consumer = await retrieveTenant(
-        agreement.data.consumerId,
-        readModelService
       );
 
       const producer = await retrieveTenant(
@@ -464,19 +469,24 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       );
 
+      const isFirstActivation =
+        updatedAgreement.state === agreementState.active &&
+        !hasRelatedAgreements;
+
       const submittedAgreement = await addContractOnFirstActivation(
+        isFirstActivation,
         contractBuilderInstance,
         eservice,
         consumer,
         producer,
         updateSeed,
-        authData,
         updatedAgreement,
-        hasRelatedAgreements
+        authData
       );
 
       const agreementEvent =
@@ -493,6 +503,11 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+        /* 
+          This condition can only check if state is ACTIVE
+          at this point the SUSPENDED state is not available 
+          after validateActiveOrPendingAgreement validation
+        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
@@ -897,6 +912,7 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       );
@@ -979,13 +995,13 @@ export function agreementServiceBuilder(
 
       failOnActivationFailure(newState, agreement.data);
 
-      const firstActivation =
+      const isFirstActivation =
         agreement.data.state === agreementState.pending &&
         newState === agreementState.active;
 
       const updatedAgreementSeed: UpdateAgreementSeed =
         createActivationUpdateAgreementSeed({
-          firstActivation,
+          isFirstActivation,
           newState,
           descriptor,
           consumer,
@@ -997,27 +1013,34 @@ export function agreementServiceBuilder(
           suspendedByPlatform,
         });
 
-      const updatedAgreement: Agreement = {
+      const updatedAgreementWithoutContract: Agreement = {
         ...agreement.data,
         ...updatedAgreementSeed,
       };
 
-      const suspendedByPlatformChanged =
-        agreement.data.suspendedByPlatform !==
-        updatedAgreement.suspendedByPlatform;
-      const activationEvents = await createActivationEvent(
-        firstActivation,
-        updatedAgreement,
-        updatedAgreementSeed,
+      const updatedAgreement: Agreement = await addContractOnFirstActivation(
+        isFirstActivation,
+        contractBuilderInstance,
         eservice,
         consumer,
         producer,
+        updatedAgreementSeed,
+        updatedAgreementWithoutContract,
+        authData
+      );
+
+      const suspendedByPlatformChanged =
+        agreement.data.suspendedByPlatform !==
+        updatedAgreement.suspendedByPlatform;
+
+      const activationEvents = await createActivationEvent(
+        isFirstActivation,
+        updatedAgreement,
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId,
-        contractBuilderInstance
+        correlationId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
@@ -1175,4 +1198,34 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
     );
   }
   return undefined;
+}
+
+// eslint-disable-next-line max-params
+async function addContractOnFirstActivation(
+  isFirstActivation: boolean,
+  contractBuilder: ContractBuilder,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant,
+  updateSeed: UpdateAgreementSeed,
+  agreement: Agreement,
+  authData: AuthData
+): Promise<Agreement> {
+  if (isFirstActivation) {
+    const contract = await contractBuilder.createContract(
+      authData.selfcareId,
+      agreement,
+      eservice,
+      consumer,
+      producer,
+      updateSeed
+    );
+
+    return {
+      ...agreement,
+      contract,
+    };
+  }
+
+  return agreement;
 }

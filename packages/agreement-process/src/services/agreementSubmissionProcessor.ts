@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -14,7 +14,6 @@ import {
   tenantMailKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
@@ -26,10 +25,7 @@ import {
   matchingVerifiedAttributes,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
-import { retrieveTenant } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { ReadModelService } from "./readModelService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -38,11 +34,9 @@ export type AgremeentSubmissionResults = {
 };
 
 export const validateConsumerEmail = async (
-  agreement: Agreement,
-  readModelService: ReadModelService
+  consumer: Tenant,
+  agreement: Agreement
 ): Promise<void> => {
-  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
-
   const hasContactEmail = consumer.mails.some(
     (mail) => mail.kind === tenantMailKind.ContactEmail
   );
@@ -117,35 +111,3 @@ export const calculateStamps = (
     .otherwise(() => {
       throw agreementNotInExpectedState(agreement.id, state);
     });
-
-export const addContractOnFirstActivation = async (
-  contractBuilder: ContractBuilder,
-  eservice: EService,
-  consumer: Tenant,
-  producer: Tenant,
-  updateSeed: UpdateAgreementSeed,
-  authData: AuthData,
-  agreement: Agreement,
-  hasRelatedAgreements: boolean
-): Promise<Agreement> => {
-  const isFirstActivation =
-    agreement.state === agreementState.active && !hasRelatedAgreements;
-
-  if (isFirstActivation) {
-    const contract = await contractBuilder.createContract(
-      authData.selfcareId,
-      agreement,
-      eservice,
-      consumer,
-      producer,
-      updateSeed
-    );
-
-    return {
-      ...agreement,
-      contract: apiAgreementDocumentToAgreementDocument(contract),
-    };
-  }
-
-  return agreement;
-};

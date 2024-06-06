@@ -21,13 +21,18 @@ import {
   minioContainer,
   mongoDBContainer,
   postgreSQLContainer,
+  mailpitContainer,
+  TEST_MAILPIT_SMTP_PORT,
+  TEST_MAILPIT_HTTP_PORT,
 } from "./containerTestUtils.js";
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    emailManagerConfig?: EmailManagerConfigTest;
   }
 }
 
@@ -46,6 +51,7 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
+  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
 
   return async function ({
     provide,
@@ -53,6 +59,7 @@ export function setupTestContainersVitestGlobal() {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
+    let startedMailpitContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -106,10 +113,22 @@ export function setupTestContainersVitestGlobal() {
       provide("fileManagerConfig", fileManagerConfig.data);
     }
 
+    if (emailManagerConfig.success) {
+      startedMailpitContainer = await mailpitContainer().start();
+      emailManagerConfig.data.smtpPort = startedMailpitContainer.getMappedPort(
+        TEST_MAILPIT_SMTP_PORT
+      );
+      emailManagerConfig.data.mailpitAPIPort =
+        startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
+      emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
+      provide("emailManagerConfig", emailManagerConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
+      await startedMailpitContainer?.stop();
     };
   };
 }
