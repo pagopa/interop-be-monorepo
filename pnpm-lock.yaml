@@ -1630,28 +1630,28 @@ packages:
       '@aws-sdk/util-endpoints': 3.583.0
       '@aws-sdk/util-user-agent-browser': 3.577.0
       '@aws-sdk/util-user-agent-node': 3.577.0
-      '@smithy/config-resolver': 3.0.0
-      '@smithy/core': 2.0.1
+      '@smithy/config-resolver': 3.0.1
+      '@smithy/core': 2.1.1
       '@smithy/fetch-http-handler': 3.0.1
       '@smithy/hash-node': 3.0.0
       '@smithy/invalid-dependency': 3.0.0
       '@smithy/middleware-content-length': 3.0.0
-      '@smithy/middleware-endpoint': 3.0.0
-      '@smithy/middleware-retry': 3.0.1
+      '@smithy/middleware-endpoint': 3.0.1
+      '@smithy/middleware-retry': 3.0.3
       '@smithy/middleware-serde': 3.0.0
       '@smithy/middleware-stack': 3.0.0
-      '@smithy/node-config-provider': 3.0.0
+      '@smithy/node-config-provider': 3.1.0
       '@smithy/node-http-handler': 3.0.0
       '@smithy/protocol-http': 4.0.0
-      '@smithy/smithy-client': 3.0.1
+      '@smithy/smithy-client': 3.1.1
       '@smithy/types': 3.0.0
       '@smithy/url-parser': 3.0.0
       '@smithy/util-base64': 3.0.0
       '@smithy/util-body-length-browser': 3.0.0
       '@smithy/util-body-length-node': 3.0.0
-      '@smithy/util-defaults-mode-browser': 3.0.1
-      '@smithy/util-defaults-mode-node': 3.0.1
-      '@smithy/util-endpoints': 2.0.0
+      '@smithy/util-defaults-mode-browser': 3.0.3
+      '@smithy/util-defaults-mode-node': 3.0.3
+      '@smithy/util-endpoints': 2.0.1
       '@smithy/util-middleware': 3.0.0
       '@smithy/util-retry': 3.0.0
       '@smithy/util-utf8': 3.0.0
@@ -2001,10 +2001,10 @@ packages:
     resolution: {integrity: sha512-ofmD96IQc9g1dbyqlCyxu5fCG7kIl9p1NoN5+vGBUyLdbmPCV3Pdg99nRHYEJuv2MgGx5AUFGDPMHcqbJpnZIw==}
     engines: {node: '>=16.0.0'}
     dependencies:
-      '@smithy/core': 2.0.1
+      '@smithy/core': 2.1.1
       '@smithy/protocol-http': 4.0.0
       '@smithy/signature-v4': 3.0.0
-      '@smithy/smithy-client': 3.0.1
+      '@smithy/smithy-client': 3.1.1
       '@smithy/types': 3.0.0
       fast-xml-parser: 4.2.5
       tslib: 2.6.2
@@ -2239,9 +2239,9 @@ packages:
       '@aws-sdk/credential-provider-sso': 3.583.0(@aws-sdk/client-sso-oidc@3.583.0)
       '@aws-sdk/credential-provider-web-identity': 3.577.0(@aws-sdk/client-sts@3.583.0)
       '@aws-sdk/types': 3.577.0
-      '@smithy/credential-provider-imds': 3.0.0
-      '@smithy/property-provider': 3.0.0
-      '@smithy/shared-ini-file-loader': 3.0.0
+      '@smithy/credential-provider-imds': 3.1.0
+      '@smithy/property-provider': 3.1.0
+      '@smithy/shared-ini-file-loader': 3.1.0
       '@smithy/types': 3.0.0
       tslib: 2.6.2
     transitivePeerDependencies:
@@ -2261,9 +2261,9 @@ packages:
       '@aws-sdk/credential-provider-sso': 3.583.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/credential-provider-web-identity': 3.577.0(@aws-sdk/client-sts@3.583.0)
       '@aws-sdk/types': 3.577.0
-      '@smithy/credential-provider-imds': 3.0.0
-      '@smithy/property-provider': 3.0.0
-      '@smithy/shared-ini-file-loader': 3.0.0
+      '@smithy/credential-provider-imds': 3.1.0
+      '@smithy/property-provider': 3.1.0
+      '@smithy/shared-ini-file-loader': 3.1.0
       '@smithy/types': 3.0.0
       tslib: 2.6.2
     transitivePeerDependencies:
@@ -2708,7 +2708,7 @@ packages:
     engines: {node: '>=16.0.0'}
     dependencies:
       '@aws-sdk/types': 3.577.0
-      '@smithy/node-config-provider': 3.0.0
+      '@smithy/node-config-provider': 3.1.0
       '@smithy/types': 3.0.0
       '@smithy/util-config-provider': 3.0.0
       '@smithy/util-middleware': 3.0.0
@@ -2872,7 +2872,7 @@ packages:
     dependencies:
       '@aws-sdk/types': 3.577.0
       '@smithy/types': 3.0.0
-      '@smithy/util-endpoints': 2.0.0
+      '@smithy/util-endpoints': 2.0.1
       tslib: 2.6.2
     dev: false
 
@@ -2946,7 +2946,7 @@ packages:
         optional: true
     dependencies:
       '@aws-sdk/types': 3.577.0
-      '@smithy/node-config-provider': 3.0.0
+      '@smithy/node-config-provider': 3.1.0
       '@smithy/types': 3.0.0
       tslib: 2.6.2
     dev: false
@@ -4859,7 +4859,6 @@ packages:
     requiresBuild: true
     dependencies:
       '@types/node': 20.14.2
-    dev: false
     optional: true
 
   /@typescript-eslint/eslint-plugin@5.60.0(@typescript-eslint/parser@5.60.0)(eslint@8.57.0)(typescript@5.4.5):
