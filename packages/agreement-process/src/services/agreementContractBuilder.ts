@@ -24,9 +24,9 @@ import {
   VerifiedTenantAttribute,
   UserId,
   generateId,
-  genericError,
   tenantAttributeType,
   unsafeBrandId,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import {
   SelfcareV2Client,
@@ -37,10 +37,10 @@ import {
   agreementMissingUserInfo,
   agreementSelfcareIdNotFound,
   agreementStampNotFound,
+  attributeNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { AgreementProcessConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -65,10 +65,11 @@ const retrieveUser = async (
 
 const createAgreementDocumentName = (
   consumerId: TenantId,
-  producerId: TenantId
+  producerId: TenantId,
+  documentCreatedAt: Date
 ): string =>
   `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    new Date()
+    documentCreatedAt
   )}_agreement_contract.pdf`;
 
 const getAttributeInvolved = async (
@@ -105,7 +106,7 @@ const getAttributeInvolved = async (
           tenantAttribute.id
         );
         if (!attribute) {
-          throw genericError(`Attribute ${tenantAttribute.id} not found`);
+          throw attributeNotFound(tenantAttribute.id);
         }
         return [attribute, tenantAttribute as unknown as T];
       })
@@ -326,7 +327,7 @@ export const contractBuilder = (
       consumer: Tenant,
       producer: Tenant,
       seed: UpdateAgreementSeed
-    ): Promise<ApiAgreementDocumentSeed> => {
+    ): Promise<AgreementDocument> => {
       const templateFilePath = path.resolve(
         dirname,
         "..",
@@ -351,9 +352,11 @@ export const contractBuilder = (
       );
 
       const documentId = generateId<AgreementDocumentId>();
+      const documentCreatedAt = new Date();
       const documentName = createAgreementDocumentName(
         agreement.consumerId,
-        agreement.producerId
+        agreement.producerId,
+        documentCreatedAt
       );
 
       const documentPath = await fileManager.storeBytes(
@@ -371,6 +374,7 @@ export const contractBuilder = (
         contentType: CONTENT_TYPE_PDF,
         prettyName: AGREEMENT_CONTRACT_PRETTY_NAME,
         path: documentPath,
+        createdAt: documentCreatedAt,
       };
     },
   };

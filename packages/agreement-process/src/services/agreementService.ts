@@ -1,5 +1,6 @@
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -110,7 +111,10 @@ import {
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
+import {
+  ContractBuilder,
+  contractBuilder,
+} from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
@@ -121,7 +125,6 @@ import {
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
-  addContractOnFirstActivation,
   createSubmissionUpdateAgreementSeed,
   isActiveOrSuspended,
   validateConsumerEmail,
@@ -471,15 +474,19 @@ export function agreementServiceBuilder(
         logger
       );
 
+      const isFirstActivation =
+        updatedAgreement.state === agreementState.active &&
+        !hasRelatedAgreements;
+
       const submittedAgreement = await addContractOnFirstActivation(
+        isFirstActivation,
         contractBuilderInstance,
         eservice,
         consumer,
         producer,
         updateSeed,
-        authData,
         updatedAgreement,
-        hasRelatedAgreements
+        authData
       );
 
       const agreementEvent =
@@ -988,13 +995,13 @@ export function agreementServiceBuilder(
 
       failOnActivationFailure(newState, agreement.data);
 
-      const firstActivation =
+      const isFirstActivation =
         agreement.data.state === agreementState.pending &&
         newState === agreementState.active;
 
       const updatedAgreementSeed: UpdateAgreementSeed =
         createActivationUpdateAgreementSeed({
-          firstActivation,
+          isFirstActivation,
           newState,
           descriptor,
           consumer,
@@ -1006,27 +1013,34 @@ export function agreementServiceBuilder(
           suspendedByPlatform,
         });
 
-      const updatedAgreement: Agreement = {
+      const updatedAgreementWithoutContract: Agreement = {
         ...agreement.data,
         ...updatedAgreementSeed,
       };
 
-      const suspendedByPlatformChanged =
-        agreement.data.suspendedByPlatform !==
-        updatedAgreement.suspendedByPlatform;
-      const activationEvents = await createActivationEvent(
-        firstActivation,
-        updatedAgreement,
-        updatedAgreementSeed,
+      const updatedAgreement: Agreement = await addContractOnFirstActivation(
+        isFirstActivation,
+        contractBuilderInstance,
         eservice,
         consumer,
         producer,
+        updatedAgreementSeed,
+        updatedAgreementWithoutContract,
+        authData
+      );
+
+      const suspendedByPlatformChanged =
+        agreement.data.suspendedByPlatform !==
+        updatedAgreement.suspendedByPlatform;
+
+      const activationEvents = await createActivationEvent(
+        isFirstActivation,
+        updatedAgreement,
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId,
-        contractBuilderInstance
+        correlationId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
@@ -1184,4 +1198,34 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
     );
   }
   return undefined;
+}
+
+// eslint-disable-next-line max-params
+async function addContractOnFirstActivation(
+  isFirstActivation: boolean,
+  contractBuilder: ContractBuilder,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant,
+  updateSeed: UpdateAgreementSeed,
+  agreement: Agreement,
+  authData: AuthData
+): Promise<Agreement> {
+  if (isFirstActivation) {
+    const contract = await contractBuilder.createContract(
+      authData.selfcareId,
+      agreement,
+      eservice,
+      consumer,
+      producer,
+      updateSeed
+    );
+
+    return {
+      ...agreement,
+      contract,
+    };
+  }
+
+  return agreement;
 }
