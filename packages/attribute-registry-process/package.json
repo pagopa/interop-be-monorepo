@@ -45,7 +45,7 @@
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg-promise": "11.7.8",
+    "pg-promise": "11.8.0",
     "ts-pattern": "5.1.2",
     "uuid": "9.0.1",
     "zod": "3.23.8"
