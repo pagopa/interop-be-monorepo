@@ -86,7 +86,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async createApiClient(
@@ -117,7 +117,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async getClients(

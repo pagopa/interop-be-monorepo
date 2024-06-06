@@ -17,7 +17,7 @@ import { ApiClientSeed } from "../src/model/domain/models.js";
 import { authorizationService, postgresDB } from "./utils.js";
 
 describe("createConsumerClient", () => {
-  const organizationId = generateId();
+  const userId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -31,12 +31,12 @@ describe("createConsumerClient", () => {
   const clientSeed: ApiClientSeed = {
     name: "Seed name",
     description: "Description",
-    members: [organizationId],
+    members: [userId],
   };
   it("should write on event-store for the creation of a api client", async () => {
     const { client } = await authorizationService.createApiClient(
       clientSeed,
-      unsafeBrandId(organizationId),
+      unsafeBrandId(userId),
       generateId(),
       genericLogger
     );
@@ -64,7 +64,7 @@ describe("createConsumerClient", () => {
       keys: [],
       name: clientSeed.name,
       createdAt: new Date(),
-      consumerId: unsafeBrandId(organizationId),
+      consumerId: unsafeBrandId(userId),
       kind: clientKind.api,
       purposes: [],
       relationships: [],
