@@ -12,7 +12,13 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData, DB, Logger, eventRepository } from "pagopa-interop-commons";
+import {
+  AuthData,
+  DB,
+  Logger,
+  eventRepository,
+  userRoles,
+} from "pagopa-interop-commons";
 import {
   clientNotFound,
   keyNotFound,
@@ -151,9 +157,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
-      const userIds = authData.userRoles.includes("security")
+      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
         ? [authData.userId]
-        : filters.userIds.map(unsafeBrandId<UserId>);
+        : filters.userIds;
 
       return await readModelService.getClients(
         { ...filters, userIds },
@@ -295,11 +301,15 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removePurposeFromClients(
-      purposeIdToRemove: PurposeId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removePurposeFromClients({
+      purposeIdToRemove,
+      correlationId,
+      logger,
+    }: {
+      purposeIdToRemove: PurposeId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
       const clients = await readModelService.getClientsRelatedToPurpose(

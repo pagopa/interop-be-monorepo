@@ -322,8 +322,8 @@ const authorizationRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/clients/:clientId/keys/:keyId", // to do
-      authorizationMiddleware([ADMIN_ROLE]),
+      "/clients/:clientId/keys/:keyId",
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -356,7 +356,7 @@ const authorizationRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/clients/:clientId/purposes/:purposeId", // to do
+      "/clients/:clientId/purposes/:purposeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -385,11 +385,11 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.removePurposeFromClients(
-            unsafeBrandId(req.params.purposeId),
-            ctx.correlationId,
-            ctx.logger
-          );
+          await authorizationService.removePurposeFromClients({
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);
