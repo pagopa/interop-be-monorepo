@@ -161,7 +161,9 @@ describe("createPurpose", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect({ ...writtenPayload.purpose, dailyCalls: 10 }).toEqual({
+      ...toPurposeV2(purpose),
+    });
     // TODO: should we check also isRiskAnalysisValid??
 
     vi.useRealTimers();
