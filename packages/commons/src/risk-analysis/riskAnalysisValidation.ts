@@ -99,7 +99,7 @@ function getSanitizedAnswers(
   );
 }
 
-function getLatestVersionFormRules(
+export function getLatestVersionFormRules(
   tenantKind: TenantKind
 ): RiskAnalysisFormRules | undefined {
   const rules = riskAnalysisFormRules[tenantKind];

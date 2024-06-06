@@ -8,6 +8,7 @@ import {
   zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
+  initFileManager,
   fromAppContext,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
@@ -23,7 +24,9 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
+  createPurposeVersionErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createReversePurposeErrorMapper,
@@ -42,6 +45,7 @@ import { purposeServiceBuilder } from "../services/purposeService.js";
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const fileManager = initFileManager(config);
 
 const purposeService = purposeServiceBuilder(
   initDB({
@@ -53,7 +57,8 @@ const purposeService = purposeServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  fileManager
 );
 
 const purposeRouter = (
@@ -290,7 +295,29 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const purposeVersion = await purposeService.createPurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            seed: req.body,
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(purposeVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createPurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/purposes/:purposeId/versions/:versionId",
@@ -371,7 +398,30 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purposeId, versionId } = req.params;
+          const purposeVersion = await purposeService.activatePurposeVersion({
+            purposeId: unsafeBrandId(purposeId),
+            versionId: unsafeBrandId(versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(purposeVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            activatePurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/clone",
@@ -458,7 +508,28 @@ const purposeRouter = (
     .get(
       "/purposes/riskAnalysis/latest",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const riskAnalysisConfiguration =
+            await purposeService.retrieveLatestRiskAnalysisConfiguration({
+              tenantKind: req.query.tenantKind,
+              organizationId: req.ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(
+              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                riskAnalysisConfiguration
+              )
+            )
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
