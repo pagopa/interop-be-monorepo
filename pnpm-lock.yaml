@@ -810,6 +810,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      ts-pattern:
+        specifier: 5.1.2
+        version: 5.1.2
     devDependencies:
       typescript:
         specifier: 5.4.5
