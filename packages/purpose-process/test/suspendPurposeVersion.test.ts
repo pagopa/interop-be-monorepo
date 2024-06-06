@@ -92,7 +92,7 @@ describe("suspendPurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
       writtenPayload.purpose?.versions.find(
-        (v) => v.id == returnedPurposeVersion.id
+        (v) => v.id === returnedPurposeVersion.id
       )
     ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
@@ -154,7 +154,7 @@ describe("suspendPurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
       writtenPayload.purpose?.versions.find(
-        (v) => v.id == returnedPurposeVersion.id
+        (v) => v.id === returnedPurposeVersion.id
       )
     ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
@@ -217,7 +217,7 @@ describe("suspendPurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
       writtenPayload.purpose?.versions.find(
-        (v) => v.id == returnedPurposeVersion.id
+        (v) => v.id === returnedPurposeVersion.id
       )
     ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
