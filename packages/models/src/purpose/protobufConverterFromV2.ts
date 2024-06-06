@@ -82,9 +82,6 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   eserviceId: unsafeBrandId(input.eserviceId),
   consumerId: unsafeBrandId(input.consumerId),
   versions: input.versions.map(fromPurposeVersionV2),
-  freeOfChargeReason: input.isFreeOfCharge
-    ? input.freeOfChargeReason
-    : "Sono una Pubblica Amministrazione",
   createdAt: bigIntToDate(input.createdAt),
   updatedAt: bigIntToDate(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm

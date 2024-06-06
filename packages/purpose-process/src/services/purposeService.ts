@@ -1007,8 +1007,9 @@ export function purposeServiceBuilder(
       });
 
       const purpose: Purpose = {
-        ...purposeSeed,
         id: generateId(),
+        title: purposeSeed.title,
+        description: purposeSeed.description,
         createdAt: new Date(),
         eserviceId,
         consumerId,
@@ -1021,6 +1022,11 @@ export function purposeServiceBuilder(
           },
         ],
         riskAnalysisForm: validatedFormSeed,
+        isFreeOfCharge: purposeSeed.isFreeOfCharge,
+        freeOfChargeReason: purposeSeed.isFreeOfCharge
+          ? purposeSeed.freeOfChargeReason ||
+            "Sono una Pubblica Amministrazione"
+          : undefined,
       };
 
       await repository.createEvent(
@@ -1431,7 +1437,9 @@ const performUpdatePurpose = async (
     title: updateContent.title,
     description: updateContent.description,
     isFreeOfCharge: updateContent.isFreeOfCharge,
-    freeOfChargeReason: updateContent.freeOfChargeReason,
+    freeOfChargeReason: updateContent.isFreeOfCharge
+      ? updateContent.freeOfChargeReason || "Sono una Pubblica Amministrazione"
+      : undefined,
     versions: [
       {
         ...purpose.data.versions[0],
