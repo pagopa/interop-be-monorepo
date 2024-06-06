@@ -85,11 +85,7 @@ const authorizationRouter = (
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createClientErrorMapper,
-            ctx.logger
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
