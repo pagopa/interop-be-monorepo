@@ -10,6 +10,7 @@ import {
   initDB,
   initFileManager,
   fromAppContext,
+  initPDFGenerator,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -46,6 +47,7 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const fileManager = initFileManager(config);
+const pdfGenerator = await initPDFGenerator();
 
 const purposeService = purposeServiceBuilder(
   initDB({
@@ -58,7 +60,8 @@ const purposeService = purposeServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelService,
-  fileManager
+  fileManager,
+  pdfGenerator
 );
 
 const purposeRouter = (
