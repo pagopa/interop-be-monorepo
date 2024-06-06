@@ -615,7 +615,7 @@ export function authorizationServiceBuilder(
 
       return {
         client: updatedClient,
-        showUsers: updatedClient.consumerId === authData.organizationId,
+        showUsers: true,
       };
     },
   };
