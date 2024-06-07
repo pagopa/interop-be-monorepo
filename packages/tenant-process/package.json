@@ -11,10 +11,12 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc",
+    "build": "tsc && pnpm copy-openapi-spec",
+    "build:declaration": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/tenant-service-spec.yml' -o './src/model/generated/api.ts'",
-    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
+    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts",
+    "copy-openapi-spec": "cp ./open-api/tenant-service-spec.yml ./dist/tenant-service-spec.yml"
   },
   "keywords": [],
   "author": "",

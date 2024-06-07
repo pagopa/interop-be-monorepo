@@ -29,21 +29,6 @@ const clientRouter = (
       res.status(501).send()
     )
     .get(
-      "/clients/:clientId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
-      "/clients/:clientId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
-      "/clients/:clientId/purposes/:purposeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .get(
       "/clients/:clientId/keys/:keyId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
