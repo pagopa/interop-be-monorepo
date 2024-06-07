@@ -3565,20 +3565,7 @@ describe("database test", async () => {
               serviceName: "",
               logger: genericLogger,
             }
-        );
-
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-        expect(writtenEvent.event_version).toBe(2);
-        const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorInterfaceDeletedV2,
-          payload: writtenEvent.data,
-        });
+          );
 
           await catalogService.uploadDocument(
             eservice.id,
@@ -3627,10 +3614,13 @@ describe("database test", async () => {
             ],
           });
 
-        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
-        expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-      });
+          expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+          expect(writtenPayload.eservice).toEqual(expectedEservice);
+          expect(writtenPayload.eservice).toEqual(
+            toEServiceV2(returnedEService)
+          );
+        }
+      );
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
         expect(
           catalogService.uploadDocument(
