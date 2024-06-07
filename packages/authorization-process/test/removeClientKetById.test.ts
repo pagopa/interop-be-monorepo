@@ -9,14 +9,18 @@ import {
 import {
   Client,
   ClientKeyDeletedV2,
+  Key,
+  UserId,
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   clientNotFound,
   keyNotFound,
   organizationNotAllowedOnClient,
+  userNotAllowedOnClient,
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -41,7 +45,7 @@ describe("remove client key", () => {
     await authorizationService.deleteClientKeyById({
       clientId: mockClient.id,
       keyIdToRemove: keyToRemove.kid,
-      organizationId: mockConsumer.id,
+      authData: getMockAuthData(mockConsumer.id),
       correlationId: generateId(),
       logger: genericLogger,
     });
@@ -81,7 +85,7 @@ describe("remove client key", () => {
       authorizationService.deleteClientKeyById({
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
-        organizationId: mockConsumer.id,
+        authData: getMockAuthData(mockConsumer.id),
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -104,7 +108,7 @@ describe("remove client key", () => {
       authorizationService.deleteClientKeyById({
         clientId: mockClient.id,
         keyIdToRemove: notExistingKeyId,
-        organizationId: mockConsumer.id,
+        authData: getMockAuthData(mockConsumer.id),
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -126,12 +130,38 @@ describe("remove client key", () => {
       authorizationService.deleteClientKeyById({
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
-        organizationId: mockConsumer2.id,
+        authData: getMockAuthData(mockConsumer2.id),
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
+  });
+  it("should throw userNotAllowedOnClient if a security user tries to delete another user's key", async () => {
+    const mockConsumer = getMockTenant();
+    const mockUserId: UserId = generateId();
+    const keyToRemove: Key = { ...getMockKey(), userId: generateId() };
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumer.id,
+      keys: [keyToRemove],
+    };
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.deleteClientKeyById({
+        clientId: mockClient.id,
+        keyIdToRemove: keyToRemove.kid,
+        authData: {
+          ...getMockAuthData(mockConsumer.id),
+          userRoles: [userRoles.SECURITY_ROLE],
+          userId: mockUserId,
+        },
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(userNotAllowedOnClient(mockUserId, mockClient.id));
   });
 });
