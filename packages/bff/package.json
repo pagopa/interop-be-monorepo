@@ -13,7 +13,9 @@
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/bff-spec.yml' -o './src/model/generated/api.ts'",
+    "generate-model": "pnpm generate-model-bff && pnpm generate-model-tenant-process",
+    "generate-model-bff": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/bff-spec.yml' -o './src/model/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
+    "generate-model-tenant-process": "mkdir -p ./src/model/tenant-process/generated && pnpm openapi-zod-client '../tenant-process/open-api/tenant-service-spec.yml' -o './src/model/tenant-process/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
   "keywords": [],
@@ -39,6 +41,8 @@
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-catalog-process": "workspace:*",
+    "pagopa-interop-tenant-process": "workspace:*",
     "ts-pattern": "5.1.2",
     "zod": "3.23.8"
   }
