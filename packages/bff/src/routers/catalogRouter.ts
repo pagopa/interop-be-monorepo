@@ -10,7 +10,7 @@ import { PagoPaClients } from "../providers/clientProvider.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
-  _clients: PagoPaClients
+  _: PagoPaClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
