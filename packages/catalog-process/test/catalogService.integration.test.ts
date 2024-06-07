@@ -4022,7 +4022,7 @@ describe("database test", async () => {
           (state) => state !== descriptorState.archived
         )
       )(
-        "should write on event-store for the update of a document for draft descriptor",
+        "should write on event-store for the update of a document in a descriptor in %s state",
         async (state) => {
           const descriptor: Descriptor = {
             ...getMockDescriptor(state),
