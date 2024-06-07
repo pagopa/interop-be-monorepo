@@ -26,6 +26,9 @@ import {
   Logger,
   eventRepository,
   userRoles,
+  calculateKid,
+  decodeBase64ToPem,
+  isPublicKey,
 } from "pagopa-interop-commons";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
@@ -68,11 +71,6 @@ import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import { isClientConsumer } from "./validators.js";
-import {
-  calculateKid,
-  decodeBase64ToPem,
-  isPublicKey,
-} from "./../../../commons/src/auth/jwk.js";
 
 const retrieveClient = async (
   clientId: ClientId,

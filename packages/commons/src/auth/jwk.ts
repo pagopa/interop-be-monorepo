@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import crypto from "crypto";
 import { jwkDecodingError } from "../../../models/dist/errors.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {

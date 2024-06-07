@@ -14,3 +14,4 @@ export * from "./router/zodiosValidationErrorHandler.js";
 export * from "./interop-token/interopTokenService.js";
 export * from "./interop-token/refreshableInteropTokenService.js";
 export * from "./utils/date.js";
+export * from "./auth/jwk.js";
