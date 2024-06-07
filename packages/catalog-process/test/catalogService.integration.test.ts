@@ -3567,18 +3567,6 @@ describe("database test", async () => {
             }
           );
 
-          await catalogService.uploadDocument(
-            eservice.id,
-            descriptor.id,
-            buildInterfaceSeed(),
-            {
-              authData: getMockAuthData(eservice.producerId),
-              correlationId: "",
-              serviceName: "",
-              logger: genericLogger,
-            }
-          );
-
           const writtenEvent = await readLastEserviceEvent(
             eservice.id,
             postgresDB
