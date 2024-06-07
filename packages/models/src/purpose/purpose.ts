@@ -8,7 +8,6 @@ import {
 } from "../brandedIds.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import { EServiceMode } from "../eservice/eservice.js";
-import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeVersionState = {
   draft: "Draft",
@@ -87,12 +86,14 @@ export type PurposeDocumentEServiceInfo = z.infer<
   typeof PurposeDocumentEServiceInfo
 >;
 
-export const RiskAnalysisPDFPayload = z.object({
-  riskAnalysisForm: PurposeRiskAnalysisForm,
-  dailyCalls: z.number(),
-  eserviceInfo: PurposeDocumentEServiceInfo,
-  isFreeOfCharge: z.boolean(),
-  freeOfChargeReason: z.string().optional(),
-  kind: TenantKind,
-});
-export type RiskAnalysisPDFPayload = z.infer<typeof RiskAnalysisPDFPayload>;
+export type RiskAnalysisDocumentPDFPayload = {
+  dailyCalls: string;
+  answers: string;
+  eServiceName: string;
+  producerText: string;
+  consumerText: string;
+  freeOfCharge: string;
+  freeOfChargeReason: string;
+  date: string;
+  eServiceMode: string;
+};
