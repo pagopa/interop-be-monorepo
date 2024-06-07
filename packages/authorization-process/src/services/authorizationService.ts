@@ -22,6 +22,7 @@ import {
   keyNotFound,
   organizationNotAllowedOnClient,
   userIdNotFound,
+  userNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import {
@@ -214,26 +215,32 @@ export function authorizationServiceBuilder(
     async deleteClientKeyById({
       clientId,
       keyIdToRemove,
-      organizationId,
+      authData,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       keyIdToRemove: string;
-      organizationId: TenantId;
+      authData: AuthData;
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
       const keyToRemove = client.data.keys.find(
         (key) => key.kid === keyIdToRemove
       );
       if (!keyToRemove) {
         throw keyNotFound(keyIdToRemove, client.data.id);
+      }
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !client.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
       }
 
       const updatedClient: Client = {
