@@ -4068,25 +4068,25 @@ describe("database test", async () => {
             descriptors: [descriptor],
           };
           await addOneEService(eservice, postgresDB, eservices);
-          await catalogService.updateDocument(
+          const returnedDocument = await catalogService.updateDocument(
             eservice.id,
             descriptor.id,
             mockDocument.id,
             { prettyName: "updated prettyName" },
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
-            serviceName: "",
-            logger: genericLogger,
-          }
-        );
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        const expectedEservice = toEServiceV2({
-          ...eservice,
-          descriptors: [
+            {
+              authData: getMockAuthData(eservice.producerId),
+              correlationId: "",
+              serviceName: "",
+              logger: genericLogger,
+            }
+          );
+          const writtenEvent = await readLastEserviceEvent(
+            eservice.id,
+            postgresDB
+          );
+          const expectedEservice = toEServiceV2({
+            ...eservice,
+            descriptors: [
               {
                 ...descriptor,
                 docs: [
@@ -4108,21 +4108,22 @@ describe("database test", async () => {
             payload: writtenEvent.data,
           });
 
-        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.documentId).toEqual(mockDocument.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
-        expect(writtenPayload.eservice).toEqual(
-          toEServiceV2({
-            ...eservice,
-            descriptors: [
-              {
-                ...descriptor,
-                docs: [returnedDocument],
-              },
-            ],
-          })
-        );
-      });
+          expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+          expect(writtenPayload.documentId).toEqual(mockDocument.id);
+          expect(writtenPayload.eservice).toEqual(expectedEservice);
+          expect(writtenPayload.eservice).toEqual(
+            toEServiceV2({
+              ...eservice,
+              descriptors: [
+                {
+                  ...descriptor,
+                  docs: [returnedDocument],
+                },
+              ],
+            })
+          );
+        }
+      );
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
         expect(
           catalogService.updateDocument(
