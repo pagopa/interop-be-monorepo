@@ -2,7 +2,9 @@ import { ClientCollection } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   fromClientV1,
+  fromKeyV1,
   toReadModelClient,
+  toReadModelKey,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -92,7 +94,13 @@ export async function handleMessageV1(
         },
         {
           $push: {
-            "data.keys": message.data.keys,
+            "data.keys": {
+              $each: message.data.keys
+                .map((v) =>
+                  v.value ? toReadModelKey(fromKeyV1(v.value)) : undefined
+                )
+                .filter((k) => k !== undefined),
+            },
           },
           $set: {
             "metadata.version": message.version,
@@ -108,7 +116,7 @@ export async function handleMessageV1(
         },
         {
           $pull: {
-            "data.keys": message.data.keyId,
+            "data.keys": { kid: message.data.keyId },
           },
           $set: {
             "metadata.version": message.version,

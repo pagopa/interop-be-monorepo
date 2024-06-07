@@ -1,6 +1,7 @@
 import { describe } from "node:test";
 import {
   getMockClient,
+  getMockKey,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -12,7 +13,10 @@ import {
   ClientId,
   ClientPurposeAddedV1,
   ClientPurposeRemovedV1,
+  Key,
+  KeyDeletedV1,
   KeyRelationshipToUserMigratedV1,
+  KeysAddedV1,
   PurposeId,
   RelationshipAddedV1,
   RelationshipRemovedV1,
@@ -21,6 +25,7 @@ import {
   UserRemovedV1,
   generateId,
   toClientV1,
+  toKeyV1,
   toReadModelClient,
 } from "pagopa-interop-models";
 import { expect, it } from "vitest";
@@ -302,87 +307,83 @@ describe("Events V1", async () => {
       version: 2,
     });
   });
-  //   it("KeysAdded", async () => {
-  //     const mockClient: Client = {
-  //       ...getMockClient(),
-  //       keys: [],
-  //     };
-  //     await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+  it("KeysAdded", async () => {
+    const mockClient: Client = {
+      ...getMockClient(),
+      keys: [],
+    };
+    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
 
-  //     const keyId = generateId();
-  //     const addedKey: Key = getMockKey();
+    const keyId = generateId();
+    const addedKey: Key = { ...getMockKey(), kid: keyId };
 
-  //     const updatedClient: Client = {
-  //       ...mockClient,
-  //       keys: [
-  //         {
-  //           ...addedKey,
-  //           kid: keyId,
-  //         },
-  //       ],
-  //     };
+    const updatedClient: Client = {
+      ...mockClient,
+      keys: [
+        {
+          ...addedKey,
+        },
+      ],
+    };
 
-  //     const payload: KeysAddedV1 = {
-  //       clientId: mockClient.id,
-  //       keys: [
-  //         {
-  //           keyId,
-  //           value: toKeyV1(addedKey),
-  //         },
-  //       ],
-  //     };
+    const payload: KeysAddedV1 = {
+      clientId: updatedClient.id,
+      keys: [
+        {
+          keyId,
+          value: {
+            ...toKeyV1(addedKey),
+          },
+        },
+      ],
+    };
 
-  //     const message: AuthorizationEventEnvelopeV1 = {
-  //       sequence_num: 1,
-  //       stream_id: updatedClient.id,
-  //       version: 1,
-  //       type: "KeysAdded",
-  //       event_version: 1,
-  //       data: payload,
-  //       log_date: new Date(),
-  //     };
+    const message: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      stream_id: updatedClient.id,
+      version: 2,
+      type: "KeysAdded",
+      data: payload,
+    };
 
-  //     await handleMessageV1(message, clients);
+    await handleMessageV1(message, clients);
 
-  //     const retrievedClient = await clients.findOne({
-  //       "data.id": updatedClient.id,
-  //     });
+    const retrievedClient = await clients.findOne({
+      "data.id": updatedClient.id,
+    });
 
-  //     expect(retrievedClient?.data).toEqual(toReadModelClient(updatedClient));
-  //     expect(retrievedClient?.metadata).toEqual({
-  //       version: 2,
-  //     });
-  //   });
-  //   it("KeyDeleted", async () => {
-  //     const mockKey: Key = getMockKey();
-  //     const mockClient: Client = {
-  //       ...getMockClient(),
-  //       keys: [mockKey],
-  //     };
-  //     await writeInReadmodel(toReadModelKey(mockKey), keys);
+    expect(retrievedClient?.data).toEqual(toReadModelClient(updatedClient));
+    expect(retrievedClient?.metadata).toEqual({
+      version: 2,
+    });
+  });
+  it("KeyDeleted", async () => {
+    const mockKey: Key = getMockKey();
+    const mockClient: Client = {
+      ...getMockClient(),
+      keys: [mockKey],
+    };
+    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
 
-  //     const payload: KeyDeletedV1 = {
-  //       clientId: mockClient.id,
-  //       keyId: mockKey.kid,
-  //       deactivationTimestamp: "",
-  //     };
+    const payload: KeyDeletedV1 = {
+      clientId: mockClient.id,
+      keyId: mockKey.kid,
+      deactivationTimestamp: "",
+    };
 
-  //     const message: AuthorizationEventEnvelopeV1 = {
-  //       sequence_num: 1,
-  //       stream_id: mockClient.id,
-  //       version: 1,
-  //       type: "KeyDeleted",
-  //       event_version: 1,
-  //       data: payload,
-  //       log_date: new Date(),
-  //     };
+    const message: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      stream_id: mockClient.id,
+      type: "KeyDeleted",
+      data: payload,
+      version: 2,
+    };
 
-  //     await handleMessageV1(message, keys);
+    await handleMessageV1(message, clients);
 
-  //     const retrievedKey = await keys.findOne({
-  //       "data.kid": mockKey.kid,
-  //     });
-
-  //     expect(retrievedKey).toBeNull();
-  //   });
+    const retrievedClient = await clients.findOne({
+      "data.id": mockClient.id,
+    });
+    expect(retrievedClient?.data.keys).toHaveLength(0);
+  });
 });

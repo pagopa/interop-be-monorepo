@@ -22,7 +22,7 @@ const ClientComponentState = z.enum([
 ]);
 type ClientComponentState = z.infer<typeof ClientComponentState>;
 
-const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
+export const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
   match(input)
     .with(keyUse.sig, () => KeyUseV1.SIG)
     .with(keyUse.enc, () => KeyUseV1.ENC)
