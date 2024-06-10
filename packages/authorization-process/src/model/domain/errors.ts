@@ -73,7 +73,7 @@ export function userNotAllowedOnClient(
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User ${userId} is not member of client ${clientId}`,
+    detail: `User ${userId} is not allowed on client ${clientId}`,
     code: "userNotAllowedOnClient",
     title: "User not allowed on client",
   });
