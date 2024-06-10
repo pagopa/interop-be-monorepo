@@ -35,8 +35,8 @@
     "@tsconfig/node-lts": "20.1.3",
     "turbo": "2.0.3"
   },
-  "config":  { 
+  "config": {
     "protocVersion": "26.1"
-   },
+  },
   "packageManager": "pnpm@8.15.8"
 }
