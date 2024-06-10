@@ -1023,10 +1023,7 @@ export function purposeServiceBuilder(
         ],
         riskAnalysisForm: validatedFormSeed,
         isFreeOfCharge: purposeSeed.isFreeOfCharge,
-        freeOfChargeReason: purposeSeed.isFreeOfCharge
-          ? purposeSeed.freeOfChargeReason ||
-            "Sono una Pubblica Amministrazione"
-          : undefined,
+        freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
 
       await repository.createEvent(
