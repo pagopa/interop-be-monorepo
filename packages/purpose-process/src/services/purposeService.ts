@@ -4,6 +4,7 @@ import {
   DB,
   FileManager,
   Logger,
+  PDFGenerator,
   RiskAnalysisFormRules,
   eventRepository,
   formatDateddMMyyyyHHmmss,
@@ -90,6 +91,7 @@ import {
   ApiReversePurposeSeed,
   ApiPurposeCloneSeed,
 } from "../model/domain/models.js";
+import { config } from "../utilities/config.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
@@ -110,7 +112,7 @@ import {
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
 } from "./validators.js";
-import { pdfGenerator } from "./pdfGenerator.js";
+import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -223,7 +225,8 @@ async function retrieveTenantKind(
 export function purposeServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  fileManager: FileManager
+  fileManager: FileManager,
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
@@ -717,7 +720,8 @@ export function purposeServiceBuilder(
         purpose: purpose.data,
         dailyCalls: seed.dailyCalls,
         readModelService,
-        storeFile: fileManager.storeBytes,
+        fileManager,
+        pdfGenerator,
         logger,
       });
 
@@ -835,7 +839,8 @@ export function purposeServiceBuilder(
               purposeVersion,
               eservice,
               readModelService,
-              storeFile: fileManager.storeBytes,
+              fileManager,
+              pdfGenerator,
               correlationId,
               logger,
             });
@@ -874,7 +879,8 @@ export function purposeServiceBuilder(
               purposeVersion,
               eservice,
               readModelService,
-              storeFile: fileManager.storeBytes,
+              fileManager,
+              pdfGenerator,
               correlationId,
               logger,
             })
@@ -1470,18 +1476,18 @@ async function generateRiskAnalysisDocument({
   purpose,
   dailyCalls,
   readModelService,
-  storeFile,
+  fileManager,
+  pdfGenerator,
   logger,
 }: {
   eservice: EService;
   purpose: Purpose;
   dailyCalls: number;
   readModelService: ReadModelService;
-  storeFile: FileManager["storeBytes"];
+  fileManager: FileManager;
+  pdfGenerator: PDFGenerator;
   logger: Logger;
 }): Promise<PurposeVersionDocument> {
-  const documentId = generateId<PurposeVersionDocumentId>();
-
   const [producer, consumer] = await Promise.all([
     retrieveTenant(eservice.producerId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
@@ -1510,14 +1516,17 @@ async function generateRiskAnalysisDocument({
     .with(eserviceMode.receive, () => getTenantKind(producer))
     .exhaustive();
 
-  return await pdfGenerator.createRiskAnalysisDocument(
-    documentId,
+  return await riskAnalysisDocumentBuilder(
+    pdfGenerator,
+    fileManager,
+    config,
+    logger
+  ).createRiskAnalysisDocument(
     purpose,
     dailyCalls,
     eserviceInfo,
     tenantKind,
-    storeFile,
-    logger
+    "it"
   );
 }
 
@@ -1609,7 +1618,8 @@ async function activatePurposeLogic({
   purposeVersion,
   eservice,
   readModelService,
-  storeFile,
+  fileManager,
+  pdfGenerator,
   correlationId,
   logger,
 }: {
@@ -1620,7 +1630,8 @@ async function activatePurposeLogic({
   purposeVersion: PurposeVersion;
   eservice: EService;
   readModelService: ReadModelService;
-  storeFile: FileManager["storeBytes"];
+  fileManager: FileManager;
+  pdfGenerator: PDFGenerator;
   correlationId: string;
   logger: Logger;
 }): Promise<{
@@ -1635,7 +1646,8 @@ async function activatePurposeLogic({
       purpose: purpose.data,
       dailyCalls: purposeVersion.dailyCalls,
       readModelService,
-      storeFile,
+      fileManager,
+      pdfGenerator,
       logger,
     }),
     updatedAt: new Date(),
