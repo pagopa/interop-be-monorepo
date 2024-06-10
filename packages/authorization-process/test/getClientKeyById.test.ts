@@ -13,21 +13,22 @@ import { addOneClient, authorizationService } from "./utils.js";
 describe("getClientKeyById", async () => {
   it("should get the client key if it exists", async () => {
     const consumerId: TenantId = generateId();
-    const mockKey = getMockKey();
+    const mockKey1 = getMockKey();
+    const mockKey2 = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
       consumerId,
-      keys: [mockKey],
+      keys: [mockKey1, mockKey2],
     };
     await addOneClient(mockClient);
 
     const retrievedKey = await authorizationService.getClientKeyById({
       clientId: mockClient.id,
-      kid: mockKey.kid,
+      kid: mockKey1.kid,
       organizationId: consumerId,
       logger: genericLogger,
     });
-    expect(retrievedKey).toEqual(mockKey);
+    expect(retrievedKey).toEqual(mockKey1);
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     const organizationId: TenantId = generateId();
