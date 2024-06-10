@@ -3,6 +3,7 @@
   "globalDependencies": [
     "tsconfig.json"
   ],
+  "globalEnv": ["CI"],
   "tasks": {
     "start": {
       "persistent": true,
