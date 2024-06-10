@@ -96,11 +96,7 @@ describe("Upgrade suspended agreement activation", () => {
 
     const consumer: Tenant = {
       ...getMockTenant(),
-      attributes: [
-        validCertifiedTenantAttribute,
-        validDeclaredTenantAttribute,
-        // validVerifiedTenantAttribute,
-      ],
+      attributes: [validCertifiedTenantAttribute, validDeclaredTenantAttribute],
       selfcareId: generateId(),
       mails: [
         {
@@ -148,7 +144,7 @@ describe("Upgrade suspended agreement activation", () => {
     });
 
     /* ================================= 
-        1) Consumer creates an Agreement
+      1) Consumer create Agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getRandomAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
@@ -158,8 +154,8 @@ describe("Upgrade suspended agreement activation", () => {
       },
       {
         authData: consumerAuthData,
-        serviceName: "",
-        correlationId: "",
+        serviceName: "AgreementService",
+        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
         logger: genericLogger,
       }
     );
@@ -168,7 +164,7 @@ describe("Upgrade suspended agreement activation", () => {
     await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
 
     /* ================================= 
-       2) Consumer submits the agreement (making it Active)
+      2) Consumer submits the agreement (making it Active)
     ================================= */
     const submittedAgreement = await agreementService.submitAgreement(
       createdAgreement.id,
@@ -177,8 +173,8 @@ describe("Upgrade suspended agreement activation", () => {
       },
       {
         authData: consumerAuthData,
-        serviceName: "",
-        correlationId: "",
+        serviceName: "AgreementService",
+        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
         logger: genericLogger,
       }
     );
@@ -187,14 +183,14 @@ describe("Upgrade suspended agreement activation", () => {
     await updateAgreementInReadModel(submittedAgreement, 0);
 
     /* ================================= 
-        3) Consumer suspends agreement
+      3) Consumer suspend agreement (make it SUSPENDED byConsumer)
     ================================= */
     const suspendedAgreement = await agreementService.suspendAgreement(
       submittedAgreement.id,
       {
         authData: consumerAuthData,
-        serviceName: "",
-        correlationId: "",
+        serviceName: "Agreement Service",
+        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
         logger: genericLogger,
       }
     );
@@ -206,7 +202,7 @@ describe("Upgrade suspended agreement activation", () => {
     await updateAgreementInReadModel(suspendedAgreement, 1);
 
     /* ================================= 
-        4) creazione nuovo descriptor V2
+      4) Someone add a new descriptor (V2) with verified attributes
     ================================= */
 
     const validVerifiedEserviceAttribute = getMockEServiceAttribute();
@@ -249,15 +245,15 @@ describe("Upgrade suspended agreement activation", () => {
     );
 
     /* ================================= 
-        5) upgrade da parte del fruitore
+      5) Consumer upgrade Agreement
     ================================= */
 
     const upgradedAgreement = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
       {
         authData: consumerAuthData,
-        serviceName: "",
-        correlationId: "",
+        serviceName: "Agreement Service",
+        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
         logger: genericLogger,
       }
     );
@@ -269,8 +265,8 @@ describe("Upgrade suspended agreement activation", () => {
     await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
 
     /* ================================= 
-      6) Submit da parte del fruitore per far andare l'agreement in stato di PENDING
-       (valid att CERTIFIED and DECLARED)
+      6) Producer submit agreement to make it PENDING 
+      (valid att CERTIFIED and DECLARED)
     ================================= */
 
     const submittedUpgradedAgreement = await agreementService.submitAgreement(
@@ -281,8 +277,8 @@ describe("Upgrade suspended agreement activation", () => {
       },
       {
         authData: consumerAuthData,
-        serviceName: "",
-        correlationId: "",
+        serviceName: "Agreement Service",
+        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
         logger: genericLogger,
       }
     );
@@ -291,7 +287,7 @@ describe("Upgrade suspended agreement activation", () => {
     await updateAgreementInReadModel(submittedUpgradedAgreement, 0);
 
     /* ================================= 
-      7) Verifica attributi da parte dell'erogatore
+      7) Producer Update Verified Attributes
     ================================= */
 
     const validVerifiedTenantAttribute: VerifiedTenantAttribute = {
@@ -335,7 +331,13 @@ describe("Upgrade suspended agreement activation", () => {
     });
 
     /* ================================= 
-      7) Attivazione dell'Agreement da parte dell'erogatore
+      8) Agreement activation by producer (state remains SUSPENDED)
+      
+      After the producer attempted to activate the upgraded agreement, 
+      it was expected that the state would remain SUSPENDED. 
+      In this case, the agreement was originally suspended by the consumer, 
+      but the activation was performed by the producer, so it must remain suspended.
+      During this execution flow, the newly created draft agreement still preserves the suspension flags and PENDING state.
     ================================= */
 
     const producerAuthData = getRandomAuthData(producer.id);
@@ -352,11 +354,6 @@ describe("Upgrade suspended agreement activation", () => {
 
     await updateAgreementInReadModel(activatedAgreement, 1);
 
-    // Expected
-    // Perché era stato sospeso dal fruitore, e ad attivarlo è stato l'erogatore
     expect(activatedAgreement.state).toEqual(agreementState.suspended);
-
-    // Actual
-    // expect(activatedAgreement.state).toEqual(agreementState.active);
   });
 });

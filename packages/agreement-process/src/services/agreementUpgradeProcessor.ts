@@ -105,21 +105,19 @@ export async function createUpgradeOrNewDraft({
         copyFile,
         logger
       ),
-      stamps: {},
-      // TODO should we bring attributes with us?
-      // It should not have attributes, if it was never activaetd
       verifiedAttributes: agreement.data.verifiedAttributes,
       certifiedAttributes: agreement.data.certifiedAttributes,
       declaredAttributes: agreement.data.declaredAttributes,
       contract: undefined,
-      suspendedAt: undefined,
-      // suspendedByConsumer: undefined,
-      // suspendedByPlatform: undefined,
-      // suspendedByProducer: undefined,
+      suspendedByProducer: agreement.data.suspendedByProducer,
       suspendedByConsumer: agreement.data.suspendedByConsumer,
       suspendedByPlatform: agreement.data.suspendedByPlatform,
-      suspendedByProducer: agreement.data.suspendedByProducer,
-      updatedAt: undefined,
+      suspendedAt: agreement.data.suspendedAt,
+      stamps: {
+        suspensionByConsumer: agreement.data.stamps.suspensionByConsumer,
+        suspensionByProducer: agreement.data.stamps.suspensionByProducer,
+      },
+      updatedAt: agreement.data.updatedAt,
       rejectionReason: undefined,
     };
 
