@@ -19,23 +19,13 @@ COPY ./packages/catalog-process /app/packages/catalog-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 
-RUN pnpm build && \
-    rm -rf /app/node_modules/.modules.yaml && \
-    rm -rf /app/node_modules/.cache && \
-    mkdir /out && \
-    cp -a --parents -t /out \
-      node_modules packages/catalog-process/node_modules \
-      package*.json packages/catalog-process/package*.json \
-      packages/commons \
-      packages/models \
-      packages/catalog-process/dist && \
-    find /out -exec touch -h --date=@0 {} \;
+RUN pnpm build && find /app/packages/catalog-process/dist -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0-slim@sha256:a16301294ba66d2ad22d3beded4a52720f96ab208c1db0973c034d0127a4ccb0 as final 
+FROM node:20.14.0-slim@sha256:a16301294ba66d2ad22d3beded4a52720f96ab208c1db0973c034d0127a4ccb0 as final
 
-COPY --from=build /out /app
+COPY --from=build /app/packages/catalog-process/dist /app
 
-WORKDIR /app/packages/catalog-process
+WORKDIR /app
 EXPOSE 3000
 
-CMD [ "node", "." ]
+CMD [ "node", "--enable-source-maps", "." ]
