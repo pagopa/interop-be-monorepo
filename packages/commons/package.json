@@ -15,9 +15,8 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm --watch ./src/index.ts",
-    "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
-    "check": "tsc --project tsconfig.check.json",
-    "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
+    "build": "tsc && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
+    "check": "tsc --project tsconfig.check.json"
   },
   "license": "Apache-2.0",
   "dependencies": {
