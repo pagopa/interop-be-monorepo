@@ -20,8 +20,6 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@anatine/zod-mock": "3.13.4",
-    "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.2",
     "@types/uuid": "9.0.8",
@@ -31,7 +29,8 @@
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
     "uuid": "9.0.1",
-    "vitest": "1.6.0"
+    "vitest": "1.6.0",
+    "@anatine/zod-mock": "3.13.4"
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
