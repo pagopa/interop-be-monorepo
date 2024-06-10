@@ -37,6 +37,7 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "dotenv-flow": "4.1.0",
+    "axios": "1.7.2",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
