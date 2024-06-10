@@ -12,7 +12,7 @@ import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 
-const serviceName = "tenant-process";
+const serviceName = "bff-process";
 
 const app = zodiosCtx.app();
 

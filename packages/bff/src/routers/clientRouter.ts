@@ -4,8 +4,6 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  authorizationMiddleware,
-  userRoles,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 
@@ -15,93 +13,43 @@ const clientRouter = (
   const clientRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-  const {
-    ADMIN_ROLE,
-    // SECURITY_ROLE,
-    // API_ROLE,
-    // M2M_ROLE,
-    // INTERNAL_ROLE,
-    // SUPPORT_ROLE,
-  } = userRoles;
 
   clientRouter
-    .get("/clients", authorizationMiddleware([ADMIN_ROLE]), async (_req, res) =>
+    .get("/clients", async (_req, res) => res.status(501).send())
+    .get("/clients/:clientId", async (_req, res) => res.status(501).send())
+    .delete("/clients/:clientId", async (_req, res) => res.status(501).send())
+    .delete("/clients/:clientId/purposes/:purposeId", async (_req, res) =>
       res.status(501).send()
     )
-    .get(
-      "/clients/:clientId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .get("/clients/:clientId/keys/:keyId", async (_req, res) =>
+      res.status(501).send()
     )
-    .delete(
-      "/clients/:clientId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .delete("/clients/:clientId/keys/:keyId", async (_req, res) =>
+      res.status(501).send()
     )
-    .delete(
-      "/clients/:clientId/purposes/:purposeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .post("/clients/:clientId/users/:userId", async (_req, res) =>
+      res.status(501).send()
     )
-    .get(
-      "/clients/:clientId/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .delete("/clients/:clientId/users/:userId", async (_req, res) =>
+      res.status(501).send()
     )
-    .delete(
-      "/clients/:clientId/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .post("/clients/:clientId/purposes", async (_req, res) =>
+      res.status(501).send()
     )
-    .post(
-      "/clients/:clientId/users/:userId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .get("/clients/:clientId/users", async (_req, res) =>
+      res.status(501).send()
     )
-    .delete(
-      "/clients/:clientId/users/:userId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .post("/clients/:clientId/keys", async (_req, res) =>
+      res.status(501).send()
     )
-    .post(
-      "/clients/:clientId/purposes",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .get("/clients/:clientId/keys", async (_req, res) => res.status(501).send())
+    .get("/clients/:clientId/encoded/keys/:keyId", async (_req, res) =>
+      res.status(501).send()
     )
-    .get(
-      "/clients/:clientId/users",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/clients/:clientId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .get(
-      "/clients/:clientId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .get(
-      "/clients/:clientId/encoded/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/clientsConsumer",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/clientsApi",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .get(
-      "/clients/:clientId/users/:userId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .post("/clientsConsumer", async (_req, res) => res.status(501).send())
+    .post("/clientsApi", async (_req, res) => res.status(501).send())
+    .get("/clients/:clientId/users/:userId/keys", async (_req, res) =>
+      res.status(501).send()
     );
 
   return clientRouter;
