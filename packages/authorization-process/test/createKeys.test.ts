@@ -1,110 +1,321 @@
-// import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
-// import {
-//   Client,
-//   ClientKeyAddedV2,
-//   TenantId,
-//   UserId,
-//   clientKind,
-//   generateId,
-//   toClientV2,
-//   unsafeBrandId,
-// } from "pagopa-interop-models";
-// import { genericLogger } from "pagopa-interop-commons";
-// import {
-//   decodeProtobufPayload,
-//   readLastEventByStreamId,
-// } from "pagopa-interop-commons-test/index.js";
-// import { getMockClient, getRandomAuthData } from "pagopa-interop-commons-test";
-// import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
-// import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
-// import { addOneClient, authorizationService, postgresDB } from "./utils.js";
+/* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import {
+  Client,
+  ClientKeyAddedV2,
+  Key,
+  TenantId,
+  UserId,
+  generateId,
+  toClientV2,
+} from "pagopa-interop-models";
+import { AuthData, genericLogger } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockKey,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
+import { getMockClient } from "pagopa-interop-commons-test";
+import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
+import {
+  clientNotFound,
+  keyAlreadyExists,
+  notAllowedPrivateKeyException,
+  organizationNotAllowedOnClient,
+  securityUserNotFound,
+  tooManyKeysPerClient,
+  userNotFound,
+} from "../src/model/domain/errors.js";
+import { calculateKid } from "../../commons/src/auth/jwk.js";
+import { addOneClient, authorizationService, postgresDB } from "./utils.js";
 
-// describe("createKeys", () => {
-//   const consumerId: TenantId = generateId();
+describe("createKeys", () => {
+  const consumerId: TenantId = generateId();
+  const userId: UserId = generateId();
 
-//   const organizationId = generateId();
+  beforeAll(async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
 
-//   beforeAll(async () => {
-//     vi.useFakeTimers();
-//     vi.setSystemTime(new Date());
-//   });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
 
-//   afterAll(() => {
-//     vi.useRealTimers();
-//   });
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
 
-//   const keySeed: ApiKeySeed = {
-//     name: "key seed",
-//     use: "ENC",
-//     key: "TXkgcHVibGljIGtleQ==",
-//     alg: "",
-//   };
+  const pemKey = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64");
 
-//   const keysSeeds: ApiKeysSeed = [keySeed];
+  const keySeed: ApiKeySeed = {
+    name: "key seed",
+    use: "ENC",
+    key: pemKey,
+    alg: "",
+  };
 
-//   const mockClient: Client = {
-//     ...getMockClient(),
-//     consumerId: unsafeBrandId(organizationId),
-//   };
+  const keysSeeds: ApiKeysSeed = [keySeed];
 
-//   function mockSelfcareV2ClientCall(
-//     value: Awaited<
-//       ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
-//     >
-//   ): void {
-//     vi.spyOn(
-//       selfcareV2Client,
-//       "getInstitutionProductUsersUsingGET"
-//     ).mockImplementationOnce(() => Promise.resolve(value));
-//   }
+  function mockSelfcareV2ClientCall(
+    value: Awaited<
+      ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+    >
+  ): void {
+    vi.spyOn(
+      selfcareV2Client,
+      "getInstitutionProductUsersUsingGET"
+    ).mockImplementationOnce(() => Promise.resolve(value));
+  }
 
-//   const mockSelfCareUsers = {
-//     id: generateId(),
-//     name: "test",
-//     roles: [],
-//     email: "test@test.it",
-//     surname: "surname_test",
-//   };
+  const mockSelfCareUsers = {
+    id: generateId(),
+    name: "test",
+    roles: [],
+    email: "test@test.it",
+    surname: "surname_test",
+  };
 
-//   it("should create the fkg keys", async () => {
-//     mockSelfcareV2ClientCall([mockSelfCareUsers]);
+  const mockAuthData: AuthData = {
+    organizationId: consumerId,
+    selfcareId: generateId(),
+    externalId: {
+      value: "",
+      origin: "",
+    },
+    userId,
+    userRoles: [],
+  };
 
-//     await addOneClient(mockClient);
+  const mockClient: Client = {
+    ...getMockClient(),
+    users: [userId],
+    consumerId,
+  };
 
-//     vi.mock("pagopa-interop-selfcare-v2-client", () => ({
-//       selfcareV2Client: {
-//         getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
-//           Promise.resolve(true),
-//       },
-//     }));
-//     const { client } = await authorizationService.createKeys(
-//       mockClient.id,
-//       getRandomAuthData(consumerId),
-//       keysSeeds,
-//       generateId(),
-//       genericLogger
-//     );
+  it("should create the keys and add it to client", async () => {
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
-//     const writtenEvent = await readLastEventByStreamId(
-//       client.id,
-//       '"authorization"',
-//       postgresDB
-//     );
+    await addOneClient(mockClient);
 
-//     expect(writtenEvent).toMatchObject({
-//       stream_id: client.id,
-//       version: "0",
-//       type: "KeysAdded",
-//       event_version: 2,
-//     });
+    vi.mock("pagopa-interop-selfcare-v2-client", () => ({
+      selfcareV2Client: {
+        getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
+          Promise.resolve(true),
+      },
+    }));
+    const { client } = await authorizationService.createKeys(
+      mockClient.id,
+      mockAuthData,
+      keysSeeds,
+      generateId(),
+      genericLogger
+    );
 
-//     const writtenPayload = decodeProtobufPayload({
-//       messageType: ClientKeyAddedV2,
-//       payload: writtenEvent.data,
-//     });
+    const writtenEvent = await readLastEventByStreamId(
+      client.id,
+      '"authorization"',
+      postgresDB
+    );
 
-//     const expectedKeys: Key[] = [{}];
+    expect(writtenEvent).toMatchObject({
+      stream_id: client.id,
+      version: "1",
+      type: "ClientKeyAdded",
+      event_version: 2,
+    });
 
-//     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
-//   });
-// });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: ClientKeyAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedClient: Client = {
+      ...mockClient,
+      keys: [
+        {
+          name: keySeed.name,
+          createdAt: new Date(),
+          kid: writtenPayload.kid,
+          encodedPem: keySeed.key,
+          algorithm: keySeed.alg,
+          use: "Enc",
+          userId,
+        },
+      ],
+    };
+
+    expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+  });
+
+  it("should throw clientNotFound if the client doesn't exist ", async () => {
+    await addOneClient(getMockClient());
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys(
+        mockClient.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(clientNotFound(mockClient.id));
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+    const notConsumerClient: Client = {
+      ...getMockClient(),
+      consumerId: generateId(),
+    };
+
+    await addOneClient(notConsumerClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    expect(
+      authorizationService.createKeys(
+        notConsumerClient.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(consumerId, notConsumerClient.id)
+    );
+  });
+  it("should throw securityUserNotFound if the Security user is not found", async () => {
+    await addOneClient(mockClient);
+
+    mockSelfcareV2ClientCall([]);
+
+    expect(
+      authorizationService.createKeys(
+        mockClient.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(securityUserNotFound(mockAuthData.userId, userId));
+  });
+  it("should throw tooManyKeysPerClient if the keys number greater than maxKeysPerClient ", async () => {
+    function get100Keys(): Key[] {
+      const arrayKeys = [];
+      for (let index = 0; index < 101; index++) {
+        arrayKeys.push(getMockKey());
+      }
+      return arrayKeys;
+    }
+    const clientWith100Keys: Client = {
+      ...getMockClient(),
+      keys: get100Keys(),
+      consumerId,
+      users: [userId],
+    };
+
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    await addOneClient(clientWith100Keys);
+
+    vi.mock("pagopa-interop-selfcare-v2-client", () => ({
+      selfcareV2Client: {
+        getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
+          Promise.resolve(true),
+      },
+    }));
+
+    expect(
+      authorizationService.createKeys(
+        clientWith100Keys.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      tooManyKeysPerClient(
+        clientWith100Keys.id,
+        clientWith100Keys.keys.length + keysSeeds.length
+      )
+    );
+  });
+  it("should throw userNotFound if the user doesn't exist ", async () => {
+    const noUsersClient: Client = {
+      ...getMockClient(),
+      consumerId,
+    };
+
+    await addOneClient(noUsersClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys(
+        noUsersClient.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      userNotFound(mockAuthData.userId, mockAuthData.selfcareId)
+    );
+  });
+  it("should throw notAllowedPrivateKeyException if the key is a private key", async () => {
+    const key = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    }).privateKey;
+
+    const pemKey = Buffer.from(
+      key.export({ type: "pkcs1", format: "pem" })
+    ).toString("base64");
+
+    const keySeed: ApiKeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: pemKey,
+      alg: "",
+    };
+
+    const keysSeeds: ApiKeysSeed = [keySeed];
+
+    await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys(
+        mockClient.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(notAllowedPrivateKeyException());
+  });
+  it("should throw keyAlreadyExists if the kid already exist in  the client keys ", async () => {
+    const duplicatedKidClient: Client = {
+      ...getMockClient(),
+      keys: [
+        {
+          ...getMockKey(),
+          kid: calculateKid(keySeed.key),
+        },
+      ],
+      consumerId,
+      users: [userId],
+    };
+
+    await addOneClient(duplicatedKidClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys(
+        duplicatedKidClient.id,
+        mockAuthData,
+        keysSeeds,
+        generateId(),
+        genericLogger
+      )
+    ).rejects.toThrowError(keyAlreadyExists(calculateKid(keySeed.key)));
+  });
+});

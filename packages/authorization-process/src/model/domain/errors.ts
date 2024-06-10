@@ -192,9 +192,9 @@ export function tooManyKeysPerClient(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `he number of the keys ${size} for the client ${clientId.toString} exceed maximun allowed`,
+    detail: `the number of the keys ${size} for the client ${clientId} exceed maximun allowed`,
     code: "tooManyKeysPerClient",
-    title: "too Many Keys Per Client",
+    title: "Too many Keys per client",
   });
 }
 
