@@ -16,8 +16,9 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
-import { UserRole, readHeaders } from "../index.js";
-import { logger } from "../logging/index.js";
+import { logger } from "../logging/logger.js";
+import { UserRole } from "./authData.js";
+import { readHeaders } from "./headers.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
 type RoleValidation =
