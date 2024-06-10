@@ -29,7 +29,7 @@ describe("getClientKeyById", async () => {
     });
     expect(retrievedKey).toEqual(mockKey);
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the  if the client doesn't exist", async () => {
+  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     const organizationId: TenantId = generateId();
     const mockKey = getMockKey();
     const mockClient: Client = {
