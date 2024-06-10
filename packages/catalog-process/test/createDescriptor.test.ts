@@ -61,14 +61,17 @@ describe("create descriptor", async () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    const newDescriptorId = (
-      await catalogService.createDescriptor(eservice.id, descriptorSeed, {
+    const returnedDescriptor = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      {
         authData: getMockAuthData(eservice.producerId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,
-      })
-    ).id;
+      }
+    );
+    const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -107,6 +110,13 @@ describe("create descriptor", async () => {
       descriptorId: newDescriptorId,
       eservice: expectedEservice,
     });
+    expect(writtenPayload).toEqual({
+      descriptorId: newDescriptorId,
+      eservice: toEServiceV2({
+        ...eservice,
+        descriptors: [returnedDescriptor],
+      }),
+    });
   });
 
   it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
@@ -138,14 +148,17 @@ describe("create descriptor", async () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const newDescriptorId = (
-      await catalogService.createDescriptor(eservice.id, descriptorSeed, {
+    const returnedDescriptor = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      {
         authData: getMockAuthData(eservice.producerId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,
-      })
-    ).id;
+      }
+    );
+    const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -183,6 +196,13 @@ describe("create descriptor", async () => {
     expect(writtenPayload).toEqual({
       descriptorId: newDescriptorId,
       eservice: expectedEservice,
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: newDescriptorId,
+      eservice: toEServiceV2({
+        ...eservice,
+        descriptors: [...eservice.descriptors, returnedDescriptor],
+      }),
     });
   });
 

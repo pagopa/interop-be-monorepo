@@ -61,7 +61,7 @@ describe("update descriptor", () => {
         },
       ],
     };
-    await catalogService.updateDescriptor(
+    const returnedEService = await catalogService.updateDescriptor(
       eservice.id,
       descriptor.id,
       updatedDescriptorQuotasSeed,
@@ -84,6 +84,7 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
   it("should write on event-store for the update of a suspended descriptor", async () => {
@@ -117,7 +118,7 @@ describe("update descriptor", () => {
         },
       ],
     };
-    await catalogService.updateDescriptor(
+    const returnedEService = await catalogService.updateDescriptor(
       eservice.id,
       descriptor.id,
       updatedDescriptorQuotasSeed,
@@ -140,6 +141,7 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
   it("should write on event-store for the update of an deprecated descriptor", async () => {
@@ -173,7 +175,7 @@ describe("update descriptor", () => {
         },
       ],
     };
-    await catalogService.updateDescriptor(
+    const returnedEService = await catalogService.updateDescriptor(
       eservice.id,
       descriptor.id,
       updatedDescriptorQuotasSeed,
@@ -196,6 +198,7 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

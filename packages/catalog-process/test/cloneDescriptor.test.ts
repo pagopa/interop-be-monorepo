@@ -14,12 +14,12 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
+import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
   eServiceDuplicate,
   eServiceNotFound,
   eServiceDescriptorNotFound,
 } from "../src/model/domain/errors.js";
-import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import { config } from "../src/utilities/config.js";
 import {
   fileManager,
@@ -171,13 +171,14 @@ describe("clone descriptor", () => {
     const expectedEService: EService = {
       ...eservice,
       id: unsafeBrandId(writtenPayload.eservice!.id),
-      name: `${eservice.name} - clone - ${formatClonedEServiceDate(
+      name: `${eservice.name} - clone - ${formatDateddMMyyyyHHmmss(
         cloneTimestamp
       )}`,
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
     };
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(newEService));
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -252,7 +253,7 @@ describe("clone descriptor", () => {
     const cloneTimestamp = new Date();
     const conflictEServiceName = `${
       eservice1.name
-    } - clone - ${formatClonedEServiceDate(cloneTimestamp)}`;
+    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
 
     const eservice2: EService = {
       ...mockEService,

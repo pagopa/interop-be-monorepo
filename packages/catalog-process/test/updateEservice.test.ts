@@ -49,7 +49,7 @@ describe("update eService", () => {
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
-    await catalogService.updateEService(
+    const returnedEService = await catalogService.updateEService(
       mockEService.id,
       {
         name: updatedName,
@@ -81,6 +81,7 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -118,7 +119,7 @@ describe("update eService", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
 
-    await catalogService.updateEService(
+    const returnedEService = await catalogService.updateEService(
       eservice.id,
       {
         name: updatedName,
@@ -167,6 +168,7 @@ describe("update eService", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
   it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
@@ -210,7 +212,7 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (update description only)", async () => {
     const updatedDescription = "eservice new description";
     await addOneEService(mockEService);
-    await catalogService.updateEService(
+    const returnedEService = await catalogService.updateEService(
       mockEService.id,
       {
         name: mockEService.name,
@@ -244,6 +246,7 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
@@ -256,7 +259,7 @@ describe("update eService", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.updateEService(
+    const returnedEService = await catalogService.updateEService(
       eservice.id,
       {
         name: eservice.name,
@@ -291,6 +294,7 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
