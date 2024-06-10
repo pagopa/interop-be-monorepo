@@ -8,7 +8,8 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ExpressContext } from "../index.js";
-import { Logger, logger } from "../logging/index.js";
+import { Logger } from "../logging/index.js";
+import { logger } from "../logging/logger.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
