@@ -51,7 +51,7 @@ export type Collections =
   | AttributeCollection
   | PurposeCollection
   | ClientCollection
-  | KeyCollection;
+  | KeyCollection
   | ClientCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
