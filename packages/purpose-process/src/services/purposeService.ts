@@ -1013,8 +1013,9 @@ export function purposeServiceBuilder(
       });
 
       const purpose: Purpose = {
-        ...purposeSeed,
         id: generateId(),
+        title: purposeSeed.title,
+        description: purposeSeed.description,
         createdAt: new Date(),
         eserviceId,
         consumerId,
@@ -1027,6 +1028,8 @@ export function purposeServiceBuilder(
           },
         ],
         riskAnalysisForm: validatedFormSeed,
+        isFreeOfCharge: purposeSeed.isFreeOfCharge,
+        freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
 
       await repository.createEvent(
