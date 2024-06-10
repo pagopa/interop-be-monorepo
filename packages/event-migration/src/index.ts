@@ -271,11 +271,17 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   )
   .exhaustive();
 
+let skippedEvents = 0;
 for (const event of originalEvents) {
   console.log(event);
   const { event_ser_manifest, event_payload, write_timestamp } = event;
 
   const parsedEventType = parseEventType(event_ser_manifest);
+
+  if (parsedEventType === "") {
+    skippedEvents++;
+    continue;
+  }
 
   const decodedEvent = decodeEvent(parsedEventType, event_payload);
 
@@ -329,6 +335,8 @@ for (const event of originalEvents) {
     ]
   );
 }
+
+console.log(`Count of skipped events: ${skippedEvents}`);
 
 function checkSchema(sourceSchema: string, schemaKind: string) {
   if (!sourceSchema.includes(schemaKind)) {
