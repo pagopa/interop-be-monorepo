@@ -134,16 +134,17 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.cloneAgreement(agreementToBeCloned.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.cloneAgreement(
+      agreementToBeCloned.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const agreementClonedEvent = await readAgreementEventByVersion(
       newAgreementId,
@@ -194,6 +195,9 @@ describe("clone agreement", () => {
 
     expect(agreementClonedEventPayload).toMatchObject({
       agreement: expectedAgreementCloned,
+    });
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: toAgreementV2(returnedAgreement),
     });
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {

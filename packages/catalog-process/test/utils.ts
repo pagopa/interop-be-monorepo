@@ -30,6 +30,7 @@ import {
   toReadModelAttribute,
   toReadModelEService,
   toReadModelAgreement,
+  DescriptorState,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -93,11 +94,11 @@ export const getMockEService = (): EService => ({
   riskAnalysis: [],
 });
 
-export const getMockDescriptor = (): Descriptor => ({
+export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
   docs: [],
-  state: descriptorState.draft,
+  state: state || descriptorState.draft,
   audience: [],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
@@ -110,6 +111,10 @@ export const getMockDescriptor = (): Descriptor => ({
     verified: [],
     declared: [],
   },
+  ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
+  ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
+  ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
+  ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
 });
 
 export const getMockEServiceAttribute = (): EServiceAttribute => ({
