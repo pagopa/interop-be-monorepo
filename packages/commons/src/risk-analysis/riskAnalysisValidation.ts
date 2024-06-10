@@ -19,7 +19,7 @@ import {
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
   unexpectedRulesVersionError,
-} from "./riskAnalysisErrors.js";
+} from "./riskAnalysisValidationErrors.js";
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
@@ -99,7 +99,7 @@ function getSanitizedAnswers(
   );
 }
 
-function getLatestVersionFormRules(
+export function getLatestVersionFormRules(
   tenantKind: TenantKind
 ): RiskAnalysisFormRules | undefined {
   const rules = riskAnalysisFormRules[tenantKind];
