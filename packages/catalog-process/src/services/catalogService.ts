@@ -94,6 +94,7 @@ import {
   originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
+  riskAnalysisDuplicated,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -1372,6 +1373,18 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
+
+      if (isDuplicateRiskAnalysis) {
+        throw riskAnalysisDuplicated(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind
@@ -1424,6 +1437,19 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
+
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.id !== riskAnalysisId &&
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
+
+      if (isDuplicateRiskAnalysis) {
+        throw riskAnalysisDuplicated(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
