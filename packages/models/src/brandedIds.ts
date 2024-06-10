@@ -68,6 +68,9 @@ export type ClientId = z.infer<typeof ClientId>;
 export const SelfcareId = z.string().uuid().brand("SelfcareId");
 export type SelfcareId = z.infer<typeof SelfcareId>;
 
+export const ClientId = z.string().uuid().brand("ClientId");
+export type ClientId = z.infer<typeof ClientId>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -85,7 +88,8 @@ type IDS =
   | PurposeVersionDocumentId
   | ClientId
   | UserId
-  | SelfcareId;
+  | SelfcareId
+  | ClientId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
