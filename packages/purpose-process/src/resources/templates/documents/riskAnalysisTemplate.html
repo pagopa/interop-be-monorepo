@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisi del rischio</title>
+    <link rel="stylesheet" href="./riskAnalysisTemplate.css" type="text/css" />
+    {{{paged-pdf-polyfill}}}
+  </head>
+
+  <body>
+    <!--  Footer and header must be placed before other elements.
+          See https://github.com/danfickle/openhtmltopdf/issues/661#issuecomment-787961020
+    -->
+    <!-- Pié di pagina -->
+    <div class="footer">
+      <hr />
+      <div class="pagopa">
+        <div class="pagopa-data">
+          PagoPA S.p.A.<br />
+          società per azioni con socio unico<br />
+          capitale sociale di euro 1,000,000 interamente versato<br />
+          sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
+          n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+        </div>
+        <div class="pictogram">
+          <img src="../assets/media/pictogram_pagopa.svg" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Intestazione di pagina -->
+    <div class="header">
+      <div class="logo">
+        <img src="../assets/media/logo_pagopa.png" />
+      </div>
+    </div>
+
+    <!-- Titolo del documento -->
+    <h1>Analisi del rischio</h1>
+
+    <!-- Informazioni di contesto -->
+    <div class="purpose-info">
+      <div class="item">
+        <div class="label">E-Service</div>
+        <div class="value">{{eServiceName}}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Erogatore</div>
+        <div class="value">{{producerText}}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Fruitore</div>
+        <div class="value">{{consumerText}}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Numero chiamate API/giorno</div>
+        <div class="value">{{dailyCalls}}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">L’e-service riceve o eroga dati?</div>
+        <div class="value">{{eServiceMode}}</div>
+      </div>
+    </div>
+
+    <!-- Blocco titolo gratuito -->
+    <div class="free-of-charge">
+      {{{freeOfCharge}}} {{{freeOfChargeReason}}}
+    </div>
+
+    <!-- Blocco dell'analisi del rischio -->
+    <div class="purpose-answers">{{{answers}}}</div>
+
+    <!-- Sigla documento -->
+    <div class="signature">
+      <div class="date">{{date}}</div>
+      <div class="message">Firmato digitalmente da PagoPA S.p.A.</div>
+    </div>
+  </body>
+</html>

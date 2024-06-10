@@ -130,7 +130,7 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     : T extends "tenant"
     ? TenantId
     : T extends "purpose"
-    ? never // Purpose events not implemented yet
+    ? PurposeId
     : never,
   version: number,
   schema: T,
@@ -146,7 +146,7 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
       : T extends "tenant"
       ? TenantEvent
       : T extends "purpose"
-      ? never // Purpose events not implemented yet
+      ? PurposeEvent
       : never
   >
 > {

@@ -18,13 +18,13 @@ import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
 } from "../model/domain/errors.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { retrieveTenant } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
@@ -57,11 +57,13 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   newState: AgreementState,
-  userId: UserId
+  userId: UserId,
+  suspendedByPlatform: boolean | undefined
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
+  const isActivation = newState === agreementState.active;
 
-  return newState === agreementState.active
+  return isActivation
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -73,6 +75,7 @@ export const createSubmissionUpdateAgreementSeed = (
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
+        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       }
@@ -83,6 +86,7 @@ export const createSubmissionUpdateAgreementSeed = (
         verifiedAttributes: [],
         suspendedByConsumer: undefined,
         suspendedByProducer: undefined,
+        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       };

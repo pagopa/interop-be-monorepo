@@ -39,6 +39,11 @@ export type PurposeCollection = GenericCollection<PurposeReadModel>;
 export type ClientCollection = GenericCollection<Client>;
 export type KeyCollection = GenericCollection<Key>;
 
+// Client model is not yet migrated to the repo, so we use any for now
+// For now the client collection is only required in the authorization-updater.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ClientCollection = GenericCollection<any>;
+
 export type Collections =
   | EServiceCollection
   | AgreementCollection
@@ -47,6 +52,7 @@ export type Collections =
   | PurposeCollection
   | ClientCollection
   | KeyCollection;
+  | ClientCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -176,7 +182,7 @@ export class ReadModelRepository {
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
-    this.purposes = this.db.collection("purpose", { ignoreUndefined: true });
+    this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
     this.keys = this.db.collection("keys", { ignoreUndefined: true });
   }
