@@ -1440,9 +1440,7 @@ const performUpdatePurpose = async (
     title: updateContent.title,
     description: updateContent.description,
     isFreeOfCharge: updateContent.isFreeOfCharge,
-    freeOfChargeReason: updateContent.isFreeOfCharge
-      ? updateContent.freeOfChargeReason || "Sono una Pubblica Amministrazione"
-      : undefined,
+    freeOfChargeReason: updateContent.freeOfChargeReason,
     versions: [
       {
         ...purpose.data.versions[0],
