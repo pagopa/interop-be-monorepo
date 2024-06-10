@@ -5,6 +5,7 @@
   "description": "PagoPA Interoperability common utilities",
   "main": "dist",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./dist/index.js"
   },
