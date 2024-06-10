@@ -172,7 +172,7 @@ describe("reject agreement", () => {
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(agreement.producerId);
-    await agreementService.rejectAgreement(
+    const returnedAgreement = await agreementService.rejectAgreement(
       agreement.id,
       "Rejected by producer due to test reasons",
       {
@@ -222,6 +222,7 @@ describe("reject agreement", () => {
     expect(actualAgreementRejected).toMatchObject(
       toAgreementV2(expectedAgreemenentRejected)
     );
+    expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
     vi.useRealTimers();
   });
 
