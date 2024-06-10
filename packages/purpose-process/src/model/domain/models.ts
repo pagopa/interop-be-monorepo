@@ -28,3 +28,30 @@ export type ApiReversePurposeUpdateContent = z.infer<
 export type ApiReversePurposeSeed = z.infer<
   typeof api.schemas.EServicePurposeSeed
 >;
+
+export type ApiPurposeCloneSeed = z.infer<typeof api.schemas.PurposeCloneSeed>;
+
+export type ApiFormQuestionRules = z.infer<
+  typeof api.schemas.FormConfigQuestionResponse
+>;
+export type ApiRiskAnalysisFormRules = z.infer<
+  typeof api.schemas.RiskAnalysisFormConfigResponse
+>;
+
+export type ApiLocalizedText = z.infer<
+  typeof api.schemas.LocalizedTextResponse
+>;
+
+export type ApiDataType = z.infer<typeof api.schemas.DataTypeResponse>;
+
+export type ApiDependency = z.infer<typeof api.schemas.DependencyResponse>;
+
+export type ApiHideOptionConfig = z.infer<
+  typeof api.schemas.HideOptionResponse
+>;
+
+export type ApiLabeledValue = z.infer<typeof api.schemas.LabeledValueResponse>;
+
+export type ApiPurposeVersionSeed = z.infer<
+  typeof api.schemas.PurposeVersionSeed
+>;
