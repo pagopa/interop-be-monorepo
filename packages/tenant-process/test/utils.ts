@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  AttributeReadmodel,
   CertifiedTenantAttribute,
   Descriptor,
   DescriptorId,
@@ -18,6 +19,7 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   agreementState,
+  attributeKind,
   descriptorState,
   generateId,
   technology,
@@ -69,6 +71,14 @@ export const getMockTenant = (): Tenant => ({
 });
 
 export const currentDate = new Date();
+
+export const getMockReadModelAttribute = (): AttributeReadmodel => ({
+  name: "attribute",
+  id: generateId(),
+  kind: attributeKind.certified,
+  description: "description",
+  creationTime: currentDate.toISOString(),
+});
 
 export const getMockVerifiedBy = (): TenantVerifier => ({
   id: generateId(),

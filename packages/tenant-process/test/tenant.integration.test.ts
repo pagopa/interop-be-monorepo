@@ -8,6 +8,7 @@ import { fail } from "assert";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
@@ -19,12 +20,16 @@ import {
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
   postgreSQLContainer,
+  readLastEventByStreamId,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
+  AttributeReadmodel,
   Descriptor,
   EService,
   Tenant,
+  TenantAttribute,
   TenantCreatedV1,
   TenantId,
   TenantUpdatedV1,
@@ -67,6 +72,7 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
+  getMockReadModelAttribute,
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
@@ -77,6 +83,7 @@ describe("Integration tests", () => {
   let tenants: TenantCollection;
   let agreements: AgreementCollection;
   let eservices: EServiceCollection;
+  let attributes: AttributeCollection;
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
@@ -92,7 +99,8 @@ describe("Integration tests", () => {
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+    ({ tenants, agreements, eservices, attributes } =
+      ReadModelRepository.init(config));
 
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
@@ -1669,6 +1677,163 @@ describe("Integration tests", () => {
           }
         );
         expect(tenantByExternalId?.data.externalId).toBeUndefined();
+      });
+    });
+    describe("getCertifiedAttributes", () => {
+      type GetCertifiedAttributesResult = Awaited<
+        ReturnType<typeof readModelService.getCertifiedAttributes>
+      >;
+      it("should get certified attributes certified by the passed certifier id", async () => {
+        const tenantCertifiedAttribute1: TenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+        const tenantCertifiedAttribute2: TenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+
+        const readModelCertifiedAttribute1: AttributeReadmodel = {
+          ...getMockReadModelAttribute(),
+          id: tenantCertifiedAttribute1.id,
+          origin: tenant1.id,
+        };
+        const readModelCertifiedAttribute2: AttributeReadmodel = {
+          ...getMockReadModelAttribute(),
+          id: tenantCertifiedAttribute2.id,
+          origin: tenant1.id,
+        };
+
+        await writeInReadmodel(readModelCertifiedAttribute1, attributes);
+        await writeInReadmodel(readModelCertifiedAttribute2, attributes);
+
+        const tenantWithCertifiedAttributes: Tenant = {
+          ...tenant2,
+          attributes: [
+            ...tenant2.attributes,
+            tenantCertifiedAttribute1,
+            tenantCertifiedAttribute2,
+          ],
+        };
+
+        await addOneTenant(tenantWithCertifiedAttributes, postgresDB, tenants);
+
+        const result = await readModelService.getCertifiedAttributes({
+          certifierId: tenant1.id,
+          offset: 0,
+          limit: 50,
+        });
+
+        const expectedResult: GetCertifiedAttributesResult = {
+          results: [
+            {
+              id: tenant2.id,
+              name: tenant2.name,
+              attributeId: tenantCertifiedAttribute1.id,
+              attributeName: readModelCertifiedAttribute1.name,
+            },
+            {
+              id: tenant2.id,
+              name: tenant2.name,
+              attributeId: tenantCertifiedAttribute2.id,
+              attributeName: readModelCertifiedAttribute1.name,
+            },
+          ],
+          totalCount: 2,
+        };
+
+        expect(result).toEqual(expectedResult);
+      });
+      it("should not return the attributes when they are revoked", async () => {
+        const tenantCertifiedAttribute: TenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+        const revokedAttribute: TenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: new Date(),
+        };
+
+        const readModelCertifiedAttribute: AttributeReadmodel = {
+          ...getMockReadModelAttribute(),
+          id: tenantCertifiedAttribute.id,
+          origin: tenant1.id,
+        };
+        const readModelRevokedCertifiedAttribute: AttributeReadmodel = {
+          ...getMockReadModelAttribute(),
+          id: revokedAttribute.id,
+          origin: tenant1.id,
+        };
+
+        await writeInReadmodel(readModelCertifiedAttribute, attributes);
+        await writeInReadmodel(readModelRevokedCertifiedAttribute, attributes);
+
+        const tenantWithCertifiedAttributes: Tenant = {
+          ...tenant2,
+          attributes: [
+            ...tenant2.attributes,
+            tenantCertifiedAttribute,
+            revokedAttribute,
+          ],
+        };
+
+        await addOneTenant(tenantWithCertifiedAttributes, postgresDB, tenants);
+
+        const result = await readModelService.getCertifiedAttributes({
+          certifierId: tenant1.id,
+          offset: 0,
+          limit: 50,
+        });
+
+        expect(result.results).not.toContainEqual({
+          id: tenant2.id,
+          name: tenant2.name,
+          attributeId: revokedAttribute.id,
+          attributeName: readModelRevokedCertifiedAttribute.name,
+        });
+      });
+      it("should correctly manage pagination params (offset, limit)", async () => {
+        const tenantCertifiedAttribute1: TenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+        const tenantCertifiedAttribute2: TenantAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+
+        const readModelCertifiedAttribute1: AttributeReadmodel = {
+          ...getMockReadModelAttribute(),
+          id: tenantCertifiedAttribute1.id,
+          origin: tenant1.id,
+        };
+        const readModelCertifiedAttribute2: AttributeReadmodel = {
+          ...getMockReadModelAttribute(),
+          id: tenantCertifiedAttribute2.id,
+          origin: tenant1.id,
+        };
+
+        await writeInReadmodel(readModelCertifiedAttribute1, attributes);
+        await writeInReadmodel(readModelCertifiedAttribute2, attributes);
+
+        const tenantWithCertifiedAttributes: Tenant = {
+          ...tenant2,
+          attributes: [
+            ...tenant2.attributes,
+            tenantCertifiedAttribute1,
+            tenantCertifiedAttribute2,
+          ],
+        };
+
+        await addOneTenant(tenantWithCertifiedAttributes, postgresDB, tenants);
+
+        const { results } = await readModelService.getCertifiedAttributes({
+          certifierId: tenant1.id,
+          offset: 1,
+          limit: 1,
+        });
+
+        expect(results).lengthOf(1);
       });
     });
   });

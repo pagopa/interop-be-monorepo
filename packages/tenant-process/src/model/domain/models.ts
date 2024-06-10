@@ -29,7 +29,8 @@ export type ApiCertifiedAttribute = z.infer<
   typeof api.schemas.CertifiedAttribute
 >;
 
-export const CertifiedAttributeQueryResult = api.schemas.CertifiedAttribute;
+export const CertifiedAttributeQueryResult =
+  api.schemas.CertifiedAttribute.strip();
 export type CertifiedAttributeQueryResult = z.infer<
   typeof CertifiedAttributeQueryResult
 >;
