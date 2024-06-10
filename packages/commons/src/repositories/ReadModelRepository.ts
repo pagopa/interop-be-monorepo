@@ -174,7 +174,7 @@ export class ReadModelRepository {
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
-    this.purposes = this.db.collection("purpose", { ignoreUndefined: true });
+    this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
   }
 
