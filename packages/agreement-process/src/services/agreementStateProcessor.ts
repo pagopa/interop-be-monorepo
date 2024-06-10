@@ -7,6 +7,7 @@ import {
   EService,
   Tenant,
   WithMetadata,
+  agreementApprovalPolicy,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -49,7 +50,7 @@ const nextStateFromDraft = (
   }
 
   if (
-    descriptor.agreementApprovalPolicy?.includes("Automatic") &&
+    descriptor.agreementApprovalPolicy === agreementApprovalPolicy.automatic &&
     declaredAttributesSatisfied(descriptor, tenant) &&
     verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)
   ) {
@@ -106,7 +107,7 @@ const nextStateFromMissingCertifiedAttributes = (
   return missingCertifiedAttributes;
 };
 
-export const nextStateByAttributes = (
+export const nextStateByAttributesFSM = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
@@ -129,13 +130,13 @@ export const nextStateByAttributes = (
     .exhaustive();
 
 export const agreementStateByFlags = (
-  stateByAttribute: AgreementState,
+  nextStateByAttributes: AgreementState,
   suspendedByProducer: boolean | undefined,
   suspendedByConsumer: boolean | undefined,
   suspendedByPlatform: boolean | undefined
 ): AgreementState =>
   match([
-    stateByAttribute,
+    nextStateByAttributes,
     suspendedByProducer,
     suspendedByConsumer,
     suspendedByPlatform,
@@ -146,28 +147,30 @@ export const agreementStateByFlags = (
       [agreementState.active, P.any, P.any, true],
       () => agreementState.suspended
     )
-    .otherwise(() => stateByAttribute);
+    .otherwise(() => nextStateByAttributes);
 
-export const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
-  fsmState === agreementState.suspended ||
-  fsmState === agreementState.missingCertifiedAttributes;
+export const suspendedByPlatformFlag = (
+  nextStateByAttributes: AgreementState
+): boolean =>
+  nextStateByAttributes === agreementState.suspended ||
+  nextStateByAttributes === agreementState.missingCertifiedAttributes;
 
 export const suspendedByConsumerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  destinationState: AgreementState
+  targetDestinationState: AgreementState
 ): boolean | undefined =>
   requesterOrgId === agreement.consumerId
-    ? destinationState === agreementState.suspended
+    ? targetDestinationState === agreementState.suspended
     : agreement.suspendedByConsumer;
 
 export const suspendedByProducerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],
-  destinationState: AgreementState
+  targetDestinationState: AgreementState
 ): boolean | undefined =>
   requesterOrgId === agreement.producerId
-    ? destinationState === agreementState.suspended
+    ? targetDestinationState === agreementState.suspended
     : agreement.suspendedByProducer;
 
 const allowedStateTransitions = (state: AgreementState): AgreementState[] =>
@@ -210,12 +213,16 @@ function updateAgreementState(
     return;
   }
 
-  const nextState = nextStateByAttributes(agreement.data, descriptor, consumer);
+  const nextStateByAttributes = nextStateByAttributesFSM(
+    agreement.data,
+    descriptor,
+    consumer
+  );
 
-  const newSuspendedByPlatform = suspendedByPlatformFlag(nextState);
+  const newSuspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
 
   const finalState = agreementStateByFlags(
-    nextState,
+    nextStateByAttributes,
     agreement.data.suspendedByProducer,
     agreement.data.suspendedByConsumer,
     newSuspendedByPlatform
