@@ -5,6 +5,7 @@
   "description": "PagoPA Interoperability models",
   "main": "dist",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./dist/index.js"
   },
