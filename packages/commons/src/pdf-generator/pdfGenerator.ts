@@ -52,9 +52,11 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
       const dirname = path.dirname(filename);
       const polyfillFilePath = path.resolve(dirname, "paged.polyfill.js");
 
+      let page: puppeteer.Page | undefined;
+
       try {
         const browser = await getBrowser();
-        const page = await browser.newPage();
+        page = await browser.newPage();
         await page.goto(`file://${templatePath}`);
 
         // Injecting polyfill paged.js to current html and set in the page
@@ -77,6 +79,8 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
         });
       } catch (error) {
         throw pdfGenerationError(error);
+      } finally {
+        await page?.close();
       }
     },
   };

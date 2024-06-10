@@ -567,7 +567,12 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
+      if (
+        descriptor.state !== descriptorState.draft &&
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
@@ -643,7 +648,12 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
+      if (
+        descriptor.state !== descriptorState.draft &&
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
@@ -709,7 +719,12 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
+      if (
+        descriptor.state !== descriptorState.draft &&
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
