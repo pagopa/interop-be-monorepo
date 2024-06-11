@@ -1,14 +1,17 @@
-import { GenericContainer } from "testcontainers";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { inject } from "vitest";
+import { initQueueManager } from "../src/queue-manager/queueManager.js";
 
-export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:1.5.7";
-export const TEST_ELASTIC_MQ_PORT = 9324;
+export const queueWriter = initQueueManager({
+  queueUrl: inject("elasticMQConfig")!.queueUrl!,
+  messageGroupId: "test-message-group-id",
+  logLevel: "info",
+});
 
-export const elasticMQContainer = (): GenericContainer =>
-  new GenericContainer(TEST_ELASTIC_MQ_IMAGE)
-    .withCopyFilesToContainer([
-      {
-        source: "elasticmq.local.conf",
-        target: "/opt/elasticmq.conf",
-      },
-    ])
-    .withExposedPorts(TEST_ELASTIC_MQ_PORT);
+export const nonExistingQueueUrl =
+  inject("elasticMQConfig")!.queueUrl! + "nonexisting";
+export const nonExistingQueueWriter = initQueueManager({
+  queueUrl: nonExistingQueueUrl,
+  messageGroupId: "test-message-group-id",
+  logLevel: "info",
+});

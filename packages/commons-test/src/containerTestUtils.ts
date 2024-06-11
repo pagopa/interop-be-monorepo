@@ -19,6 +19,9 @@ export const TEST_MAILPIT_HTTP_PORT = 8025;
 export const TEST_MAILPIT_SMTP_PORT = 1025;
 export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
 
+export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:1.5.7";
+export const TEST_ELASTIC_MQ_PORT = 9324;
+
 /**
  * Starts a MongoDB container for testing purposes.
  *
@@ -63,7 +66,6 @@ export const postgreSQLContainer = (
  * @param config - The configuration for the MinIO container.
  * @returns A promise that resolves to the started test container.
  */
-
 export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
@@ -82,3 +84,13 @@ export const mailpitContainer = (): GenericContainer =>
     TEST_MAILPIT_HTTP_PORT,
     TEST_MAILPIT_SMTP_PORT
   );
+
+export const elasticMQContainer = (): GenericContainer =>
+  new GenericContainer(TEST_ELASTIC_MQ_IMAGE)
+    .withCopyFilesToContainer([
+      {
+        source: "elasticmq.local.conf",
+        target: "/opt/elasticmq.conf",
+      },
+    ])
+    .withExposedPorts(TEST_ELASTIC_MQ_PORT);

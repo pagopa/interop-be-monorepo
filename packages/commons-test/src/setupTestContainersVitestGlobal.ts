@@ -26,6 +26,8 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
+  elasticMQContainer,
+  TEST_ELASTIC_MQ_PORT,
 } from "./containerTestUtils.js";
 
 const EmailManagerConfigTest = EmailManagerConfig.and(
@@ -35,12 +37,18 @@ const EmailManagerConfigTest = EmailManagerConfig.and(
 );
 type EmailManagerConfigTest = z.infer<typeof EmailManagerConfigTest>;
 
+const ElasticMQConfigTest = z.object({
+  queueUrl: z.string().optional(),
+});
+type ElasticMQConfigTest = z.infer<typeof ElasticMQConfigTest>;
+
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
     emailManagerConfig?: EmailManagerConfigTest;
+    elasticMQConfig?: ElasticMQConfigTest;
   }
 }
 
@@ -52,7 +60,9 @@ declare module "vitest" {
  *
  * @see https://vitest.dev/config/#globalsetup).
  */
-export function setupTestContainersVitestGlobal() {
+export function setupTestContainersVitestGlobal(params?: {
+  enableElasitcMQContainer?: boolean;
+}) {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
@@ -68,6 +78,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
+    let startedElasticMQContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -132,11 +143,20 @@ export function setupTestContainersVitestGlobal() {
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 
+    if (params?.enableElasitcMQContainer) {
+      startedElasticMQContainer = await elasticMQContainer().start();
+      const queueUrl = `http://localhost:${startedElasticMQContainer.getMappedPort(
+        TEST_ELASTIC_MQ_PORT
+      )}/000000000000/sqsLocalQueue.fifo`;
+      provide("elasticMQConfig", { queueUrl });
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
+      await startedElasticMQContainer?.stop();
     };
   };
 }
