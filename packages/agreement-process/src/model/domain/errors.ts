@@ -10,6 +10,7 @@ import {
   makeApiProblemBuilder,
   UserId,
   SelfcareId,
+  AttributeId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -236,7 +237,7 @@ export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
 }
 
 export function agreementSelfcareIdNotFound(
-  tenantId: string
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Selfcare id not found for tenant ${tenantId}`,
@@ -295,5 +296,15 @@ export function userNotFound(
     detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
     code: "userNotFound",
     title: "User not found",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }
