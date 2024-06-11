@@ -121,7 +121,6 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeAttributeInEventstore(attribute);
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 export const readLastAgreementEvent = async (
