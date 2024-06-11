@@ -212,7 +212,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
-  it("should throw an agreementNotInExpectedState error when the agreement is not in a submittable state", async () => {
+  it("should throw an agreementNotInExpectedState error when the agreement is state different from DRAFT", async () => {
     const consumer = getMockTenant();
     const producer = getMockTenant();
 
@@ -220,7 +220,11 @@ describe("submit agreement", () => {
       ...getMockAgreement(
         generateId<EServiceId>(),
         consumer.id,
-        randomArrayItem(agreementSubmissionConflictingStates)
+        randomArrayItem(
+          Object.values(agreementState).filter(
+            (s) => s !== agreementState.draft
+          )
+        )
       ),
       producerId: producer.id,
     };
