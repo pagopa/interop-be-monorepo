@@ -130,6 +130,7 @@ const errorCodes = {
   kafkaMessageProcessError: "9998",
   badRequestError: "9999",
   jwkDecodingError: "10000",
+  notAllowedPrivateKeyException: "10001",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -288,5 +289,13 @@ export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
     detail: `Unexpected error on JWK decoding: ${parseErrorMessage(error)}`,
     code: "jwkDecodingError",
     title: "JWK decoding error",
+  });
+}
+
+export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `This contains a private key!`,
+    code: "notAllowedPrivateKeyException",
+    title: "Not allowed private key exception",
   });
 }
