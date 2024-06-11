@@ -261,7 +261,7 @@ describe("Upgrade suspended agreement activation", () => {
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
     expect(upgradedAgreement.suspendedByConsumer).toEqual(true);
     expect(upgradedAgreement.suspendedByProducer).toEqual(undefined);
-    expect(upgradedAgreement.suspendedByPlatform).toEqual(false);
+    expect(upgradedAgreement.suspendedByPlatform).toEqual(undefined);
     await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
 
     /* ================================= 
