@@ -13,7 +13,7 @@ export const errorCodes = {
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
   keyNotFound: "0005",
-  purposeIdNotFound: "0005",
+  purposeIdNotFound: "0006",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
