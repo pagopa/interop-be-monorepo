@@ -56,12 +56,6 @@ const retrieveKey = (client: Client, keyId: string): Key => {
   return key;
 };
 
-const retrievePurposeId = (client: Client, purposeId: PurposeId): void => {
-  if (!client.purposes.find((id) => id === purposeId)) {
-    throw purposeIdNotFound(purposeId, client.id);
-  }
-};
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
@@ -283,7 +277,9 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      retrievePurposeId(client.data, purposeIdToRemove);
+      if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+        throw purposeIdNotFound(purposeIdToRemove, client.data.id);
+      }
 
       const updatedClient: Client = {
         ...client.data,
