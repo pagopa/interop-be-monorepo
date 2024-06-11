@@ -5,7 +5,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { AuthData } from "../auth/authData.js";
-import { Logger, logger } from "../logging/index.js";
+import { Logger } from "../logging/index.js";
+import { logger } from "../logging/logger.js";
 import { readCorrelationIdHeader } from "../auth/headers.js";
 
 export const AppContext = z.object({
