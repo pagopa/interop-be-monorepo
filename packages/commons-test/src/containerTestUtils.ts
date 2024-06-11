@@ -15,6 +15,10 @@ export const TEST_MINIO_PORT = 9000;
 export const TEST_MINIO_IMAGE =
   "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z";
 
+export const TEST_MAILPIT_HTTP_PORT = 8025;
+export const TEST_MAILPIT_SMTP_PORT = 1025;
+export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
+
 /**
  * Starts a MongoDB container for testing purposes.
  *
@@ -72,3 +76,9 @@ export const minioContainer = (config: S3Config): GenericContainer =>
       `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
     ])
     .withExposedPorts(TEST_MINIO_PORT);
+
+export const mailpitContainer = (): GenericContainer =>
+  new GenericContainer(TEST_MAILPIT_IMAGE).withExposedPorts(
+    TEST_MAILPIT_HTTP_PORT,
+    TEST_MAILPIT_SMTP_PORT
+  );
