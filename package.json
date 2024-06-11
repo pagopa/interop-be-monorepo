@@ -17,6 +17,7 @@
     "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
     "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
+    "start:bff": "turbo start --filter pagopa-interop-bff",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
@@ -33,10 +34,10 @@
   },
   "devDependencies": {
     "@tsconfig/node-lts": "20.1.3",
-    "turbo": "1.13.4"
+    "turbo": "2.0.3"
   },
-  "config":  { 
+  "config": {
     "protocVersion": "26.1"
-   },
+  },
   "packageManager": "pnpm@8.15.8"
 }
