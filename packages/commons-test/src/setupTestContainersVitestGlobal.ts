@@ -24,10 +24,8 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
-  elasticMQContainer,
-  TEST_ELASTIC_MQ_PORT,
 } from "./containerTestUtils.js";
-import { ElasticMQConfigTest, EmailManagerConfigTest } from "./testConfig.js";
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -35,7 +33,6 @@ declare module "vitest" {
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
     emailManagerConfig?: EmailManagerConfigTest;
-    elasticMQConfig?: ElasticMQConfigTest;
   }
 }
 
@@ -47,9 +44,7 @@ declare module "vitest" {
  *
  * @see https://vitest.dev/config/#globalsetup).
  */
-export function setupTestContainersVitestGlobal(params?: {
-  enableElasitcMQContainer?: boolean;
-}) {
+export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
@@ -128,14 +123,6 @@ export function setupTestContainersVitestGlobal(params?: {
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
       emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
       provide("emailManagerConfig", emailManagerConfig.data);
-    }
-
-    if (params?.enableElasitcMQContainer) {
-      startedElasticMQContainer = await elasticMQContainer().start();
-      const queueUrl = `http://localhost:${startedElasticMQContainer.getMappedPort(
-        TEST_ELASTIC_MQ_PORT
-      )}/000000000000/sqsLocalQueue.fifo`;
-      provide("elasticMQConfig", { queueUrl });
     }
 
     return async (): Promise<void> => {

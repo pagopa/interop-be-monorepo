@@ -7,8 +7,3 @@ export const EmailManagerConfigTest = EmailManagerConfig.and(
   })
 );
 export type EmailManagerConfigTest = z.infer<typeof EmailManagerConfigTest>;
-
-export const ElasticMQConfigTest = z.object({
-  queueUrl: z.string().optional(),
-});
-export type ElasticMQConfigTest = z.infer<typeof ElasticMQConfigTest>;
