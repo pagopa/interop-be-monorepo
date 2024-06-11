@@ -318,6 +318,49 @@ describe("submit agreement", () => {
     );
   });
 
+  it("should throw a consumerWithNotValidEmail error when the consumer has only a different mail kind", async () => {
+    const consumer = {
+      ...getMockTenant(),
+      mails: [
+        {
+          id: generateId(),
+          kind: tenantMailKind.DigitalAddress,
+          address: "A fake digital Address",
+          createdAt: new Date(),
+        },
+      ],
+    };
+    const producer = getMockTenant();
+
+    const agreement = {
+      ...getMockAgreement(
+        generateId<EServiceId>(),
+        consumer.id,
+        agreementState.draft
+      ),
+      producerId: producer.id,
+    };
+    await addOneTenant(consumer);
+    await addOneAgreement(agreement);
+
+    const authData = getRandomAuthData(consumer.id);
+
+    await expect(
+      agreementService.submitAgreement(
+        agreement.id,
+        { consumerNotes: "This is a test" },
+        {
+          authData,
+          correlationId: randomUUID(),
+          serviceName: "AgreementServiceTest",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(
+      consumerWithNotValidEmail(agreement.id, consumer.id)
+    );
+  });
+
   it("should throw an eServiceNotFound error when eservice does not exist", async () => {
     const consumer = {
       ...getMockTenant(),
