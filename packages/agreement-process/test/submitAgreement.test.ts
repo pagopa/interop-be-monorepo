@@ -503,6 +503,73 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
 
+  it("should throw a notLatestEServiceDescriptor error when the agreement descriptor is not the latest published", async () => {
+    const producer = getMockTenant();
+    const descriptorId = generateId<DescriptorId>();
+    const consumer = {
+      ...getMockTenant(),
+      mails: [
+        {
+          id: generateId(),
+          kind: tenantMailKind.ContactEmail,
+          address: "avalidemailaddressfortenant@testingagreement.com",
+          createdAt: new Date(),
+        },
+      ],
+    };
+
+    const oldDescriptor = {
+      ...getMockDescriptor(),
+      id: descriptorId,
+      state: randomArrayItem(
+        Object.values(descriptorState).filter(
+          (state: DescriptorState) => state !== descriptorState.draft
+        )
+      ),
+      version: "1",
+    };
+
+    const newDescriptor = {
+      ...getMockDescriptor(),
+      state: randomArrayItem(
+        Object.values(descriptorState).filter(
+          (state: DescriptorState) => state !== descriptorState.draft
+        )
+      ),
+      version: "2",
+    };
+    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+      oldDescriptor,
+      newDescriptor,
+    ]);
+
+    const agreement = {
+      ...getMockAgreement(eservice.id, consumer.id),
+      producerId: producer.id,
+      descriptorId,
+    };
+
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneAgreement(agreement);
+
+    const authData = getRandomAuthData(consumer.id);
+
+    await expect(
+      agreementService.submitAgreement(
+        agreement.id,
+        { consumerNotes: "This is a test" },
+        {
+          authData,
+          correlationId: randomUUID(),
+          serviceName: "AgreementServiceTest",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
+  });
+
   it("should throw a descriptorNotInExpectedState error when eservice latest descriptor has invalid state", async () => {
     const producer = getMockTenant();
     const consumer = {
