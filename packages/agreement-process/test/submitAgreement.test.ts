@@ -248,7 +248,7 @@ describe("submit agreement", () => {
     );
   });
 
-  it.only("should throw an agreementAlreadyExists error when a conflicting agreement already exists", async () => {
+  it("should throw an agreementAlreadyExists error when a conflicting agreement already exists", async () => {
     const consumer = getMockTenant();
     const producer = getMockTenant();
 
