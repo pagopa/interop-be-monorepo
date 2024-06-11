@@ -260,7 +260,7 @@ describe("submit agreement", () => {
 
     const pendingAgreement = {
       ...getMockAgreement(),
-      state: agreementState.pending,
+      state: randomArrayItem(agreementSubmissionConflictingStates),
       consumerId: agreement.consumerId,
       producerId: agreement.producerId,
       eserviceId: agreement.eserviceId,
