@@ -4,33 +4,26 @@ import fs from "fs/promises";
 import {
   AgreementV2,
   fromAgreementV2,
-  genericInternalError,
+  tenantMailKind,
 } from "pagopa-interop-models";
 import {
   EmailManager,
-  Logger,
   buildHTMLTemplateService,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
 import {
-  InstitutionResponse,
-  SelfcareV2Client,
-  mapInstitutionError,
-} from "pagopa-interop-selfcare-v2-client";
-import {
+  activationDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
-  institutionNotFound,
-  selfcareIdNotFound,
+  tenantDigitalAddressNotFound,
+  tenantNotFound,
 } from "../models/errors.js";
 import { agreementEmailSenderConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 async function getActivationMailFromAgreement(
   agreementV2: AgreementV2,
-  readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client,
-  logger: Logger
+  readModelService: ReadModelService
 ): Promise<{
   subject: string;
   body: string;
@@ -51,9 +44,7 @@ async function getActivationMailFromAgreement(
   const activationDate = agreement.stamps.activation?.when;
 
   if (activationDate === undefined) {
-    throw genericInternalError(
-      `Activation date not found for agreement ${agreement.id}`
-    );
+    throw activationDateNotFound(agreement.id);
   }
   const formattedActivationDate = dateAtRomeZone(
     new Date(Number(activationDate))
@@ -70,52 +61,30 @@ async function getActivationMailFromAgreement(
   }
 
   if (!producer) {
-    throw genericInternalError(
-      `Produce tenant not found for agreement ${agreement.id}`
-    );
+    throw tenantNotFound(agreement.producerId);
   }
 
   if (!consumer) {
-    throw genericInternalError(
-      `Consumer tenant not found for agreement ${agreement.id}`
-    );
+    throw tenantNotFound(agreement.consumerId);
   }
 
-  const producerSelfcareId = producer.selfcareId;
-  if (!producerSelfcareId) {
-    throw selfcareIdNotFound(producer.id);
-  }
-
-  const consumerSelfcareId = consumer.selfcareId;
-  if (!consumerSelfcareId) {
-    throw selfcareIdNotFound(consumer.id);
-  }
-
-  const producerInstitution = await getInstitution(
-    producerSelfcareId,
-    selfcareV2Client,
-    logger
-  );
-
-  const consumerInstitution = await getInstitution(
-    consumerSelfcareId,
-    selfcareV2Client,
-    logger
-  );
-
-  const producerEmail = producerInstitution?.digitalAddress;
-  const consumerEmail = consumerInstitution?.digitalAddress;
+  /* No need to call selfcare API anymore.
+  We now have the producer and consumer digital addresses in their respective tenant object,
+  kept up to date through a queue.
+  We only expect one digital address per tenant, so we can safely use the first one we find. */
+  const producerEmail = producer.mails.find(
+    (m) => m.kind === tenantMailKind.DigitalAddress
+  )?.address;
+  const consumerEmail = consumer.mails.find(
+    (m) => m.kind === tenantMailKind.DigitalAddress
+  )?.address;
 
   if (!producerEmail) {
-    throw genericInternalError(
-      `Producer digital address not found for agreement ${agreement.id}`
-    );
+    throw tenantDigitalAddressNotFound(agreement.producerId);
   }
 
   if (!consumerEmail) {
-    throw genericInternalError(
-      `Consumer digital address not found for agreement ${agreement.id}`
-    );
+    throw tenantDigitalAddressNotFound(agreement.consumerId);
   }
 
   const descriptor = eservice.descriptors.find(
@@ -144,37 +113,13 @@ async function getActivationMailFromAgreement(
 export async function sendAgreementEmail(
   agreement: AgreementV2,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client,
   emailManager: EmailManager,
-  logger: Logger,
   { agreementEmailSender } = agreementEmailSenderConfig()
 ): Promise<void> {
   const { to, subject, body } = await getActivationMailFromAgreement(
     agreement,
-    readModelService,
-    selfcareV2Client,
-    logger
+    readModelService
   );
 
   await emailManager.send(agreementEmailSender, to, subject, body);
-}
-
-async function getInstitution(
-  id: string,
-  selfcareV2Client: SelfcareV2Client,
-  logger: Logger
-): Promise<InstitutionResponse> {
-  try {
-    return await selfcareV2Client.getInstitution({
-      params: { id },
-    });
-  } catch (error) {
-    logger.error(`Error calling selfcare API for institution ${id} - ${error}`);
-
-    const code = mapInstitutionError(error);
-    if (code === 404) {
-      throw institutionNotFound(id);
-    }
-    throw genericInternalError(`Error getting institution ${id}`);
-  }
 }

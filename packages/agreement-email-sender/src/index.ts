@@ -15,7 +15,6 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
 
@@ -46,13 +45,7 @@ export async function processMessage({
     { event_version: 2, type: "AgreementActivated" },
     async ({ data: { agreement } }) => {
       if (agreement) {
-        await sendAgreementEmail(
-          agreement,
-          readModelService,
-          selfcareV2Client,
-          emailManager,
-          loggerInstance
-        );
+        await sendAgreementEmail(agreement, readModelService, emailManager);
       } else {
         throw missingKafkaMessageDataError("agreement", decodedMessage.type);
       }
