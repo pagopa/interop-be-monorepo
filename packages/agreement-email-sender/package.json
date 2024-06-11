@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-notifier-seeder",
+  "name": "pagopa-interop-agreement-email-sender",
   "private": true,
   "version": "1.0.0",
-  "description": "Pagopa Interop notifier seeder",
+  "description": "Pagopa Interop Agreement Email Sender",
   "main": "dist",
   "type": "module",
   "exports": {
@@ -15,7 +15,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch  ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -25,27 +25,25 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.2",
+    "@types/uuid": "9.0.8",
+    "axios": "1.7.2",
+    "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
+    "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
-    "kafkajs": "2.2.4",
-    "@types/uuid": "9.0.8",
-    "mkdirp": "3.0.1",
-    "pagopa-interop-commons-test": "workspace:*",
-    "testcontainers": "10.9.0",
+    "uuid": "9.0.1",
     "vitest": "1.6.0"
   },
   "dependencies": {
-    "@protobuf-ts/plugin": "2.9.4",
-    "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.4",
-    "@aws-sdk/client-sqs": "3.592.0",
+    "kafkajs": "2.2.4",
     "dotenv-flow": "4.1.0",
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-selfcare-v2-client": "workspace:*",
     "ts-pattern": "5.1.2",
-    "uuid": "9.0.1",
     "zod": "3.23.8"
   }
 }
