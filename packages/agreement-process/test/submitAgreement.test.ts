@@ -677,6 +677,54 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
 
+  it("should throw a tenantNotFound error when consumer does not exist in tenant collection", async () => {
+    const producer = getMockTenant();
+    const consumer = {
+      ...getMockTenant(),
+      mails: [
+        {
+          id: generateId(),
+          kind: tenantMailKind.ContactEmail,
+          address: "avalidemailaddressfortenant@testingagreement.com",
+          createdAt: new Date(),
+        },
+      ],
+    };
+
+    const descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.suspended,
+    };
+    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+      descriptor,
+    ]);
+
+    const agreement = {
+      ...getMockAgreement(eservice.id, consumer.id),
+      producerId: producer.id,
+      descriptorId: eservice.descriptors[0].id,
+    };
+
+    await addOneEService(eservice);
+    await addOneTenant(producer);
+    await addOneAgreement(agreement);
+
+    const authData = getRandomAuthData(consumer.id);
+
+    await expect(
+      agreementService.submitAgreement(
+        agreement.id,
+        { consumerNotes: "This is a test" },
+        {
+          authData,
+          correlationId: randomUUID(),
+          serviceName: "AgreementServiceTest",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
+  });
+
   it("should throw an agreementSubmissionFailed error when new agreement state is not ACTIVE or PENDING", async () => {
     const producer = getMockTenant();
     const consumer = {
