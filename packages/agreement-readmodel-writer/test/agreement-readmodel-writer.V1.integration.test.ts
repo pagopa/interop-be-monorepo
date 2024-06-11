@@ -303,7 +303,7 @@ describe("events V1", async () => {
       ...agreement,
       state: agreementState.active,
     };
-    const payload: AgreementActivatedV1 = {
+    const payload: AgreementSuspendedV1 = {
       agreement: toAgreementV1(suspendedAgreement),
     };
 
