@@ -8,10 +8,9 @@ import {
   fileManagerStoreBytesError,
   genericLogger,
 } from "pagopa-interop-commons";
-import { fileManager } from "./utils.js";
+import { fileManager, s3Bucket } from "./utils.js";
 
 describe("FileManager tests", async () => {
-  const s3Bucket = "interop-be-test-bucket";
   describe("FileManager storeBytes", () => {
     it("should store a file in the bucket", async () => {
       const result = await fileManager.storeBytes(
