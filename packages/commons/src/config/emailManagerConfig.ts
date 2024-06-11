@@ -2,12 +2,12 @@ import { z } from "zod";
 
 export const EmailManagerConfig = z
   .object({
-    EMAIL_MANAGER_HOST: z.string(),
-    EMAIL_MANAGER_PORT: z.coerce.number().min(1001),
+    SMTP_ADDRESS: z.string(),
+    SMTP_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
-    emailManagerHost: c.EMAIL_MANAGER_HOST,
-    emailManagerPort: c.EMAIL_MANAGER_PORT,
+    smtpAddress: c.SMTP_ADDRESS,
+    smtpPort: c.SMTP_PORT,
   }));
 
 export type EmailManagerConfig = z.infer<typeof EmailManagerConfig>;

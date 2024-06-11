@@ -19,9 +19,9 @@ export function initEmailManager(config: EmailManagerConfig): EmailManager {
       body: string
     ): Promise<void> => {
       const transporter = nodemailer.createTransport({
-        host: config.emailManagerHost,
-        port: config.emailManagerPort,
-        secure: config.emailManagerPort === 465, // Use `true` for port 465, `false` for all other ports
+        host: config.smtpAddress,
+        port: config.smtpPort,
+        secure: config.smtpPort === 465, // Use `true` for port 465, `false` for all other ports
       });
       await transporter.sendMail({
         from,

@@ -30,7 +30,7 @@ import {
 
 const EmailManagerConfigTest = EmailManagerConfig.and(
   z.object({
-    emailManagerHTTPPort: z.number().optional(),
+    smtpHTTPPort: z.number().optional(),
   })
 );
 type EmailManagerConfigTest = z.infer<typeof EmailManagerConfigTest>;
@@ -123,12 +123,12 @@ export function setupTestContainersVitestGlobal() {
 
     if (emailManagerConfig.success) {
       startedMailpitContainer = await mailpitContainer().start();
-      emailManagerConfig.data.emailManagerPort =
-        startedMailpitContainer.getMappedPort(TEST_MAILPIT_SMTP_PORT);
-      emailManagerConfig.data.emailManagerHTTPPort =
+      emailManagerConfig.data.smtpPort = startedMailpitContainer.getMappedPort(
+        TEST_MAILPIT_SMTP_PORT
+      );
+      emailManagerConfig.data.smtpHTTPPort =
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
-      emailManagerConfig.data.emailManagerHost =
-        startedMailpitContainer.getHost();
+      emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 
