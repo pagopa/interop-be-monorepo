@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-models";
 import {
   EmailManager,
+  Logger,
   buildHTMLTemplateService,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
@@ -28,7 +29,8 @@ import { ReadModelService } from "./readModelService.js";
 async function getActivationMailFromAgreement(
   agreementV2: AgreementV2,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2Client: SelfcareV2Client,
+  logger: Logger
 ): Promise<{
   subject: string;
   body: string;
@@ -91,12 +93,14 @@ async function getActivationMailFromAgreement(
 
   const producerInstitution = await getInstitution(
     producerSelfcareId,
-    selfcareV2Client
+    selfcareV2Client,
+    logger
   );
 
   const consumerInstitution = await getInstitution(
     consumerSelfcareId,
-    selfcareV2Client
+    selfcareV2Client,
+    logger
   );
 
   const producerEmail = producerInstitution?.digitalAddress;
@@ -136,17 +140,20 @@ async function getActivationMailFromAgreement(
   };
 }
 
+// eslint-disable-next-line max-params
 export async function sendAgreementEmail(
   agreement: AgreementV2,
   readModelService: ReadModelService,
   selfcareV2Client: SelfcareV2Client,
   emailManager: EmailManager,
+  logger: Logger,
   { agreementEmailSender } = agreementEmailSenderConfig()
 ): Promise<void> {
   const { to, subject, body } = await getActivationMailFromAgreement(
     agreement,
     readModelService,
-    selfcareV2Client
+    selfcareV2Client,
+    logger
   );
 
   await emailManager.send(agreementEmailSender, to, subject, body);
@@ -154,13 +161,16 @@ export async function sendAgreementEmail(
 
 async function getInstitution(
   id: string,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2Client: SelfcareV2Client,
+  logger: Logger
 ): Promise<InstitutionResponse> {
   try {
     return await selfcareV2Client.getInstitution({
       params: { id },
     });
   } catch (error) {
+    logger.error(`Error calling selfcare API for institution ${id} - ${error}`);
+
     const code = mapInstitutionError(error);
     if (code === 404) {
       throw institutionNotFound(id);

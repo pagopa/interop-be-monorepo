@@ -50,7 +50,8 @@ export async function processMessage({
           agreement,
           readModelService,
           selfcareV2Client,
-          emailManager
+          emailManager,
+          loggerInstance
         );
       } else {
         throw missingKafkaMessageDataError("agreement", decodedMessage.type);

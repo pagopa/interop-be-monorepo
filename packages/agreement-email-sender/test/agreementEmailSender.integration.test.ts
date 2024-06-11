@@ -18,6 +18,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { InstitutionResponse } from "pagopa-interop-selfcare-v2-client";
+import { genericLogger } from "pagopa-interop-commons";
 import { sendAgreementEmail } from "../src/services/agreementEmailSenderService.js";
 import {
   descriptorNotFound,
@@ -62,7 +63,8 @@ describe("agreement email sender", () => {
       toAgreementV2(agreement),
       readModelService,
       selfcareV2ClientMock,
-      emailManager
+      emailManager,
+      genericLogger
     );
 
     const expectedBody = `<!DOCTYPE html>
@@ -136,7 +138,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -164,7 +167,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -196,7 +200,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -233,7 +238,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(
       genericInternalError(
@@ -274,7 +280,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(selfcareIdNotFound(tenant.id));
   });
@@ -311,7 +318,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(
       descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
@@ -350,7 +358,8 @@ describe("agreement email sender", () => {
         toAgreementV2(agreement),
         readModelService,
         selfcareV2ClientMock,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(
       genericInternalError(
