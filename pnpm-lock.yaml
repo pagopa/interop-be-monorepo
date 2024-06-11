@@ -29,9 +29,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      nodemailer:
-        specifier: 6.9.13
-        version: 6.9.13
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -54,9 +51,6 @@ importers:
       '@types/node':
         specifier: 20.14.2
         version: 20.14.2
-      '@types/nodemailer':
-        specifier: 6.4.15
-        version: 6.4.15
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
