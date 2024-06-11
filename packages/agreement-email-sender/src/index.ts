@@ -10,7 +10,10 @@ import {
   logger,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
-import { AgreementEvent } from "pagopa-interop-models";
+import {
+  AgreementEvent,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -51,9 +54,7 @@ export async function processMessage({
           emailManager
         );
       } else {
-        loggerInstance.error(
-          `Agreement not found in message: ${decodedMessage.type}`
-        );
+        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
       }
     }
   );
