@@ -11,11 +11,9 @@ import {
   EventStoreConfig,
   FileManagerConfig,
   LoggerConfig,
-  EmailManagerConfig,
   ReadModelDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
-import { z } from "zod";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -29,18 +27,7 @@ import {
   elasticMQContainer,
   TEST_ELASTIC_MQ_PORT,
 } from "./containerTestUtils.js";
-
-const EmailManagerConfigTest = EmailManagerConfig.and(
-  z.object({
-    smtpHTTPPort: z.number().optional(),
-  })
-);
-type EmailManagerConfigTest = z.infer<typeof EmailManagerConfigTest>;
-
-const ElasticMQConfigTest = z.object({
-  queueUrl: z.string().optional(),
-});
-type ElasticMQConfigTest = z.infer<typeof ElasticMQConfigTest>;
+import { ElasticMQConfigTest, EmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
