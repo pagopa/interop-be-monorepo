@@ -105,19 +105,19 @@ export async function createUpgradeOrNewDraft({
         copyFile,
         logger
       ),
-      verifiedAttributes: agreement.data.verifiedAttributes,
-      certifiedAttributes: agreement.data.certifiedAttributes,
-      declaredAttributes: agreement.data.declaredAttributes,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
       contract: undefined,
       suspendedByProducer: agreement.data.suspendedByProducer,
       suspendedByConsumer: agreement.data.suspendedByConsumer,
-      suspendedByPlatform: agreement.data.suspendedByPlatform,
+      suspendedByPlatform: undefined,
       suspendedAt: agreement.data.suspendedAt,
       stamps: {
         suspensionByConsumer: agreement.data.stamps.suspensionByConsumer,
         suspensionByProducer: agreement.data.stamps.suspensionByProducer,
       },
-      updatedAt: agreement.data.updatedAt,
+      updatedAt: undefined,
       rejectionReason: undefined,
     };
 
