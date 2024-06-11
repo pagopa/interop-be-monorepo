@@ -14,6 +14,7 @@ import {
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
@@ -25,7 +26,6 @@ import {
   addOneTenant,
   readLastAttributeEvent,
   attributeRegistryService,
-  getMockAuthData,
   getMockTenant,
 } from "./utils.js";
 

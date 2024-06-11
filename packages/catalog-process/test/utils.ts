@@ -1,7 +1,6 @@
 import {
   AgreementCollection,
   AttributeCollection,
-  AuthData,
   EServiceCollection,
   TenantCollection,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -43,17 +42,6 @@ import {
   EServiceRiskAnalysisSeed,
 } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
 
 export const buildDescriptorSeed = (
   descriptor: Descriptor
