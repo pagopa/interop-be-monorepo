@@ -278,13 +278,20 @@ for (const event of originalEvents) {
 
   const parsedEventType = parseEventType(event_ser_manifest);
 
+  // Agreement has some event-store entries with no details about the event
+  // the data updates related to these missing entries are going to be fixed by a custom script
+  if (parsedEventType === "") {
+    skippedEvents++;
+    continue;
+  }
+
   const authorizationEventsToSkip = [
     "EServiceStateUpdated",
     "AgreementStateUpdated",
     "PurposeStateUpdated",
     "AgreementAndEServiceStatesUpdated",
   ];
-
+  // Authorization has some event-store entries that don't have to be migrated
   if (
     config.targetDbSchema.includes("authorization") &&
     authorizationEventsToSkip.includes(parsedEventType)
