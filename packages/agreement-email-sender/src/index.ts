@@ -44,7 +44,6 @@ export async function processMessage({
 
   match(decodedMessage).with(
     { event_version: 2, type: "AgreementActivated" },
-    { event_version: 2, type: "AgreementSubmitted" },
     async ({ data: { agreement } }) => {
       if (agreement) {
         await sendAgreementEmail(
