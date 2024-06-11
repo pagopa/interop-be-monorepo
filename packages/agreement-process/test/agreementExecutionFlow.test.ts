@@ -144,7 +144,7 @@ describe("Upgrade suspended agreement activation", () => {
     });
 
     /* ================================= 
-      1) Consumer create Agreement (state DRAFT)
+      1) Consumer creates the agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getRandomAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
@@ -183,7 +183,7 @@ describe("Upgrade suspended agreement activation", () => {
     await updateAgreementInReadModel(submittedAgreement, 0);
 
     /* ================================= 
-      3) Consumer suspend agreement (make it SUSPENDED byConsumer)
+      3) Consumer suspends the agreement (make it SUSPENDED byConsumer)
     ================================= */
     const suspendedAgreement = await agreementService.suspendAgreement(
       submittedAgreement.id,
@@ -202,7 +202,7 @@ describe("Upgrade suspended agreement activation", () => {
     await updateAgreementInReadModel(suspendedAgreement, 1);
 
     /* ================================= 
-      4) Someone add a new descriptor (V2) with verified attributes
+      4) Someone adds a new descriptor (V2) with verified attributes
     ================================= */
 
     const validVerifiedEserviceAttribute = getMockEServiceAttribute();
@@ -245,7 +245,7 @@ describe("Upgrade suspended agreement activation", () => {
     );
 
     /* ================================= 
-      5) Consumer upgrade Agreement
+      5) Consumer upgrades the Agreement
     ================================= */
 
     const upgradedAgreement = await agreementService.upgradeAgreement(
@@ -265,7 +265,7 @@ describe("Upgrade suspended agreement activation", () => {
     await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
 
     /* ================================= 
-      6) Producer submit agreement to make it PENDING 
+      6) Producer submits the agreement to make it PENDING 
       (valid att CERTIFIED and DECLARED)
     ================================= */
 
@@ -287,7 +287,7 @@ describe("Upgrade suspended agreement activation", () => {
     await updateAgreementInReadModel(submittedUpgradedAgreement, 0);
 
     /* ================================= 
-      7) Producer Update Verified Attributes
+      7) Producer updates Verified Attributes
     ================================= */
 
     const validVerifiedTenantAttribute: VerifiedTenantAttribute = {
