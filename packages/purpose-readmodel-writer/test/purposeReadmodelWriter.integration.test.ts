@@ -1,18 +1,11 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
-import {
-  PurposeCollection,
-  ReadModelRepository,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
 import {
   getMockPurpose,
   getMockPurposeVersion,
-  mongoDBContainer,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
-import { StartedTestContainer } from "testcontainers";
 import {
   DraftPurposeDeletedV2,
   DraftPurposeUpdatedV2,
@@ -53,30 +46,9 @@ import {
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
 import { toPurposeV1, toPurposeVersionV1 } from "./protobufConverterToV1.js";
+import { purposes } from "./utils.js";
 
 describe("Integration tests", async () => {
-  let purposes: PurposeCollection;
-  let startedMongoDBContainer: StartedTestContainer;
-
-  const config = readModelWriterConfig();
-
-  beforeAll(async () => {
-    startedMongoDBContainer = await mongoDBContainer(config).start();
-
-    config.readModelDbPort = startedMongoDBContainer.getMappedPort(27017);
-
-    const readModelRepository = ReadModelRepository.init(config);
-    purposes = readModelRepository.purposes;
-  });
-
-  afterEach(async () => {
-    await purposes.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await startedMongoDBContainer.stop();
-  });
-
   describe("Events V1", () => {
     const mockPurpose = getMockPurpose();
     const mockPurposeVersion = getMockPurposeVersion();
