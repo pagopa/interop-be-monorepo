@@ -588,11 +588,21 @@ describe("activate agreement", () => {
 
   describe("Agreement Suspended", () => {
     it.each([
-      "Requester === Producer, suspendedByProducer === true, suspendedByConsumer === false",
-      "Requester === Consumer, suspendedByProducer === false, suspendedByConsumer === true",
+      {
+        isProducer: true,
+        // Only suspendedByProducer is true, so that the next state is active
+        suspendedByProducer: true,
+        suspendedByConsumer: false,
+      },
+      {
+        isProducer: false,
+        // Only suspendedByConsumer is true, so that the next state is active
+        suspendedByProducer: false,
+        suspendedByConsumer: true,
+      },
     ])(
-      "Agreement Suspended, valid attributes, %s -- success case: Suspended >> Activated",
-      async (s) => {
+      "Agreement Suspended, valid attributes, requester is producer: $isProducer, suspendedByProducer: $suspendedByProducer, suspendedByConsumer: $suspendedByConsumer -- success case: Suspended >> Activated",
+      async ({ isProducer, suspendedByConsumer, suspendedByProducer }) => {
         const producer: Tenant = getMockTenant();
 
         const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -625,7 +635,6 @@ describe("activate agreement", () => {
           ],
         };
 
-        const isProducer = s.startsWith("Requester === Producer");
         const authData = getRandomAuthData(
           isProducer ? producer.id : consumer.id
         );
@@ -652,9 +661,6 @@ describe("activate agreement", () => {
           descriptors: [descriptor],
         };
 
-        // Only one of the two flags is true, so that the next state is active
-        const suspendedByConsumer = !isProducer ? true : false;
-        const suspendedByProducer = isProducer ? true : false;
         const mockAgreement = getMockAgreement();
         const agreement: Agreement = {
           ...mockAgreement,
@@ -881,13 +887,29 @@ describe("activate agreement", () => {
     });
 
     describe.each([
-      "Requester === Producer, suspendedByProducer === true, suspendedByConsumer === true",
-      "Requester === Consumer, suspendedByProducer === true, suspendedByConsumer === true",
-      "Requester === Producer, suspendedByProducer === false, suspendedByConsumer === true",
-      "Requester === Consumer, suspendedByProducer === true, suspendedByConsumer === false",
+      {
+        isProducer: true,
+        suspendedByProducer: true,
+        suspendedByConsumer: true,
+      },
+      {
+        isProducer: false,
+        suspendedByProducer: true,
+        suspendedByConsumer: true,
+      },
+      {
+        isProducer: true,
+        suspendedByProducer: false,
+        suspendedByConsumer: true,
+      },
+      {
+        isProducer: false,
+        suspendedByProducer: true,
+        suspendedByConsumer: false,
+      },
     ])(
-      "Agreement Suspended, valid attributes, %s -- success case: Suspended >> Suspended",
-      async (s) => {
+      "Agreement Suspended, valid attributes, requester is producer: $isProducer, suspendedByProducer: $suspendedByProducer, suspendedByConsumer: $suspendedByConsumer -- success case: Suspended >> Suspended",
+      async ({ isProducer, suspendedByConsumer, suspendedByProducer }) => {
         const producer: Tenant = getMockTenant();
 
         const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -920,7 +942,6 @@ describe("activate agreement", () => {
           ],
         };
 
-        const isProducer = s.startsWith("Requester === Producer");
         const authData = getRandomAuthData(
           isProducer ? producer.id : consumer.id
         );
@@ -947,8 +968,6 @@ describe("activate agreement", () => {
           descriptors: [descriptor],
         };
 
-        const suspendedByProducer = s.includes("suspendedByProducer === true");
-        const suspendedByConsumer = s.includes("suspendedByConsumer === true");
         const mockAgreement: Agreement = {
           ...getMockAgreement(),
           state: agreementState.suspended,
@@ -1131,13 +1150,29 @@ describe("activate agreement", () => {
     );
 
     describe.each([
-      "Requester === Producer, suspendedByProducer === true, suspendedByConsumer === true",
-      "Requester === Consumer, suspendedByProducer === true, suspendedByConsumer === true",
-      "Requester === Producer, suspendedByProducer === false, suspendedByConsumer === true",
-      "Requester === Consumer, suspendedByProducer === true, suspendedByConsumer === false",
+      {
+        isProducer: true,
+        suspendedByProducer: true,
+        suspendedByConsumer: true,
+      },
+      {
+        isProducer: false,
+        suspendedByProducer: true,
+        suspendedByConsumer: true,
+      },
+      {
+        isProducer: true,
+        suspendedByProducer: false,
+        suspendedByConsumer: true,
+      },
+      {
+        isProducer: false,
+        suspendedByProducer: true,
+        suspendedByConsumer: false,
+      },
     ])(
-      "Agreement Suspended, invalid attributes, %s -- success case: Suspended >> Suspended",
-      async (s) => {
+      "Agreement Suspended, invalid attributes, requester is producer: $isProducer, suspendedByProducer: $suspendedByProducer, suspendedByConsumer: $suspendedByConsumer -- success case: Suspended >> Suspended",
+      async ({ isProducer, suspendedByProducer, suspendedByConsumer }) => {
         const producer: Tenant = getMockTenant();
 
         const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -1182,7 +1217,6 @@ describe("activate agreement", () => {
           attributes: [consumerInvalidAttribute],
         };
 
-        const isProducer = s.startsWith("Requester === Producer");
         const authData = getRandomAuthData(
           isProducer ? producer.id : consumer.id
         );
@@ -1213,8 +1247,6 @@ describe("activate agreement", () => {
           descriptors: [descriptor],
         };
 
-        const suspendedByProducer = s.includes("suspendedByProducer === true");
-        const suspendedByConsumer = s.includes("suspendedByConsumer === true");
         const mockAgreement: Agreement = {
           ...getMockAgreement(),
           state: agreementState.suspended,
