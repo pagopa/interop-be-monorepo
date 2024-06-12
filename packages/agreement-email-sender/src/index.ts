@@ -23,7 +23,6 @@ const readModelConfig = readModelWriterConfig();
 const topicsConfig = agreementTopicConfig();
 const emailConfig = emailManagerConfig();
 const emailManager = initEmailManager(emailConfig);
-
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(readModelConfig)
 );
