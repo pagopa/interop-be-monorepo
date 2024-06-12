@@ -118,7 +118,7 @@ export function setupTestContainersVitestGlobal() {
       emailManagerConfig.data.smtpPort = startedMailpitContainer.getMappedPort(
         TEST_MAILPIT_SMTP_PORT
       );
-      emailManagerConfig.data.smtpHTTPPort =
+      emailManagerConfig.data.mailpitAPIPort =
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
       emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
       provide("emailManagerConfig", emailManagerConfig.data);
