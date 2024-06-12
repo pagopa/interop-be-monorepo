@@ -19,7 +19,7 @@ import {
   AgreementConsumerDocumentRemovedV2,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { describe, beforeEach, it, expect, vi } from "vitest";
+import { describe, beforeEach, it, expect } from "vitest";
 import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   agreementNotFound,
@@ -129,12 +129,6 @@ describe("agreement consumer document", () => {
   });
 
   describe("add", () => {
-    beforeEach(async () => {
-      const TEST_EXECUTION_DATE = new Date();
-      vi.useFakeTimers();
-      vi.setSystemTime(TEST_EXECUTION_DATE);
-    });
-
     it("should succeed on happy path", async () => {
       const authData = getRandomAuthData();
       const organizationId = authData.organizationId;
@@ -165,9 +159,17 @@ describe("agreement consumer document", () => {
         payload,
       });
 
+      const expectedConsumerDocument = {
+        ...consumerDocument,
+        createdAt: returnedConsumerDocument.createdAt,
+      };
+
       const expectedAgreement = {
         ...agreement,
-        consumerDocuments: [...agreement.consumerDocuments, consumerDocument],
+        consumerDocuments: [
+          ...agreement.consumerDocuments,
+          expectedConsumerDocument,
+        ],
       };
 
       expect(actualConsumerDocument).toMatchObject({
