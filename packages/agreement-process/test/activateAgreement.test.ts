@@ -1439,31 +1439,34 @@ describe("activate agreement", () => {
       ).rejects.not.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    it("should throw an agreementNotInExpectedState error when the Agreement is not in an activable state", async () => {
-      const consumerId = generateId<TenantId>();
-      const authData = getRandomAuthData(consumerId);
+    it.only.each(
+      Object.values(agreementState).filter(
+        (state) => !agreementActivableStates.includes(state)
+      )
+    )(
+      "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
+      async (agreementState) => {
+        const consumerId = generateId<TenantId>();
+        const authData = getRandomAuthData(consumerId);
 
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: randomArrayItem(
-          Object.values(agreementState).filter(
-            (state) => !agreementActivableStates.includes(state)
-          )
-        ),
-        consumerId,
-      };
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        agreementNotInExpectedState(agreement.id, agreement.state)
-      );
-    });
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          state: agreementState,
+          consumerId,
+        };
+        await addOneAgreement(agreement);
+        await expect(
+          agreementService.activateAgreement(agreement.id, {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          })
+        ).rejects.toThrowError(
+          agreementNotInExpectedState(agreement.id, agreement.state)
+        );
+      }
+    );
 
     it("should throw an eServiceNotFound error when the EService does not exist", async () => {
       const consumerId = generateId<TenantId>();
@@ -1519,54 +1522,56 @@ describe("activate agreement", () => {
       );
     });
 
-    it("should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state", async () => {
-      const consumerId = generateId<TenantId>();
-      const producerId = generateId<TenantId>();
-      const authData = getRandomAuthData(producerId);
+    it.each(
+      Object.values(descriptorState).filter(
+        (state) => !agreementActivationAllowedDescriptorStates.includes(state)
+      )
+    )(
+      "should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state - descriptor state: %s",
+      async (descriptorState) => {
+        const consumerId = generateId<TenantId>();
+        const producerId = generateId<TenantId>();
+        const authData = getRandomAuthData(producerId);
 
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(
-          Object.values(descriptorState).filter(
-            (state) =>
-              !agreementActivationAllowedDescriptorStates.includes(state)
+        const descriptor: Descriptor = {
+          ...getMockDescriptorPublished(),
+          state: descriptorState,
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId,
+          descriptors: [descriptor],
+        };
+
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          state: randomArrayItem(agreementActivableStates),
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+          producerId,
+          consumerId,
+        };
+
+        await addOneEService(eservice);
+        await addOneAgreement(agreement);
+
+        await expect(
+          agreementService.activateAgreement(agreement.id, {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          })
+        ).rejects.toThrowError(
+          descriptorNotInExpectedState(
+            eservice.id,
+            descriptor.id,
+            agreementActivationAllowedDescriptorStates
           )
-        ),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [descriptor],
-      };
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: randomArrayItem(agreementActivableStates),
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId,
-        consumerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        descriptorNotInExpectedState(
-          eservice.id,
-          descriptor.id,
-          agreementActivationAllowedDescriptorStates
-        )
-      );
-    });
+        );
+      }
+    );
 
     it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
       const consumerId = generateId<TenantId>();
