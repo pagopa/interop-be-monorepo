@@ -13,6 +13,7 @@ import {
   decodeProtobufPayload,
   getMockVerifiedTenantAttribute,
   getMockCertifiedTenantAttribute,
+  getMockDeclaredTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -1082,7 +1083,7 @@ describe("submit agreement", () => {
     );
   });
 
-  it.only("should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements", async () => {
+  it("should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements", async () => {
     const producerAndConsumerId = generateId<TenantId>();
     const producer = getMockTenant(producerAndConsumerId);
     const consumerNotesText = "This is a test";
@@ -1242,8 +1243,22 @@ describe("submit agreement", () => {
       ],
     };
 
+    const validCertifiedTenantAttribute: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const validDeclaredTenantAttribute: TenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
     const consumer = {
-      ...getMockTenant(producerAndConsumerId, [validVerifiedTenantAttribute]),
+      ...getMockTenant(producerAndConsumerId, [
+        validVerifiedTenantAttribute,
+        validCertifiedTenantAttribute,
+        validDeclaredTenantAttribute,
+      ]),
       selfcareId: generateId<SelfcareId>(),
       mails: [
         {
@@ -1258,9 +1273,12 @@ describe("submit agreement", () => {
     const descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       attributes: {
-        certified: [],
-        declared: [],
+        certified: [
+          [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
+        ],
+        declared: [[getMockEServiceAttribute(validDeclaredTenantAttribute.id)]],
         verified: [[getMockEServiceAttribute(validVerifiedTenantAttribute.id)]],
       },
     };
@@ -1279,7 +1297,7 @@ describe("submit agreement", () => {
       suspendedByPlatform: false,
     };
 
-    const attribute: Attribute = {
+    const validAttribute: Attribute = {
       id: validVerifiedTenantAttribute.id,
       kind: attributeKind.verified,
       description: "A verified attribute",
@@ -1287,10 +1305,28 @@ describe("submit agreement", () => {
       creationTime: new Date(new Date().getFullYear() - 1),
     };
 
+    const declaredAttribute: Attribute = {
+      id: validDeclaredTenantAttribute.id,
+      kind: attributeKind.declared,
+      description: "A declared attribute",
+      name: "A declared attribute name",
+      creationTime: new Date(new Date().getFullYear() - 1),
+    };
+
+    const certifiedAttribute: Attribute = {
+      id: validCertifiedTenantAttribute.id,
+      kind: attributeKind.certified,
+      description: "A certified attribute",
+      name: "A certified attribute name",
+      creationTime: new Date(new Date().getFullYear() - 1),
+    };
+
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(attribute);
+    await addOneAttribute(validAttribute);
+    await addOneAttribute(declaredAttribute);
+    await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
