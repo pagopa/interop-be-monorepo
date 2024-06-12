@@ -1746,30 +1746,19 @@ describe("submit agreement", () => {
     const producer = getMockTenant();
     const consumerNotesText = "This is a test";
 
-    const validVerifiedTenantAttribute: TenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: consumerId,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
-          extensionDate: undefined,
-        },
-      ],
-    };
-
     const certifiedTenantAttribute: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
-    const declareTenantAttributeMissingInDescriptor: TenantAttribute =
-      getMockCertifiedTenantAttribute();
+    const declareTenantAttribute: TenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
 
     const consumer = {
       ...getMockTenant(consumerId, [
-        validVerifiedTenantAttribute,
         certifiedTenantAttribute,
-        declareTenantAttributeMissingInDescriptor,
+        declareTenantAttribute,
       ]),
       selfcareId: generateId<SelfcareId>(),
       mails: [
@@ -1782,11 +1771,11 @@ describe("submit agreement", () => {
       ],
     };
 
-    const verifiedDescriptorAttribute = getMockEServiceAttribute(
-      validVerifiedTenantAttribute.id
-    );
     const certifiedDescriptorAttribute = getMockEServiceAttribute(
       certifiedTenantAttribute.id
+    );
+    const declaredDescriptorAttribute = getMockEServiceAttribute(
+      declareTenantAttribute.id
     );
 
     const descriptor = {
@@ -1795,8 +1784,8 @@ describe("submit agreement", () => {
       agreementApprovalPolicy: agreementApprovalPolicy.manual,
       attributes: {
         certified: [[certifiedDescriptorAttribute]],
-        declared: [],
-        verified: [[verifiedDescriptorAttribute]],
+        declared: [[declaredDescriptorAttribute]],
+        verified: [],
       },
     };
     const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
@@ -1813,18 +1802,27 @@ describe("submit agreement", () => {
       suspendedByPlatform: false,
     };
 
-    const attribute: Attribute = {
-      id: validVerifiedTenantAttribute.id,
-      kind: attributeKind.verified,
-      description: "A verified attribute",
-      name: "A verified attribute name",
+    const declaredAttribute: Attribute = {
+      id: declareTenantAttribute.id,
+      kind: attributeKind.declared,
+      description: "A declared attribute",
+      name: "A declared attribute name",
+      creationTime: new Date(new Date().getFullYear() - 1),
+    };
+
+    const certifiedAttribute: Attribute = {
+      id: certifiedTenantAttribute.id,
+      kind: attributeKind.certified,
+      description: "A certified attribute",
+      name: "A certified attribute name",
       creationTime: new Date(new Date().getFullYear() - 1),
     };
 
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(attribute);
+    await addOneAttribute(declaredAttribute);
+    await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
