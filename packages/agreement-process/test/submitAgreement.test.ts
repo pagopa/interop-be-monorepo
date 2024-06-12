@@ -1128,7 +1128,7 @@ describe("submit agreement", () => {
       suspendedByConsumer: false,
       suspendedByProducer: false,
       suspendedByPlatform: false,
-      // The agreement is draft, so it doens't have a contract, attributes, etc.
+      // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
       declaredAttributes: [],
@@ -1456,7 +1456,7 @@ describe("submit agreement", () => {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
         {
-          id: consumerId,
+          id: producer.id,
           verificationDate: new Date(new Date().getFullYear() - 1),
           expirationDate: new Date(new Date().getFullYear() + 1),
           extensionDate: undefined,
@@ -1464,8 +1464,22 @@ describe("submit agreement", () => {
       ],
     };
 
+    const validCertifiedTenantAttribute: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const validDeclaredTenantAttribute: TenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
     const consumer = {
-      ...getMockTenant(consumerId, [validVerifiedTenantAttribute]),
+      ...getMockTenant(consumerId, [
+        validVerifiedTenantAttribute,
+        validCertifiedTenantAttribute,
+        validDeclaredTenantAttribute,
+      ]),
       selfcareId: generateId<SelfcareId>(),
       mails: [
         {
@@ -1481,8 +1495,10 @@ describe("submit agreement", () => {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
       attributes: {
-        certified: [],
-        declared: [],
+        certified: [
+          [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
+        ],
+        declared: [[getMockEServiceAttribute(validDeclaredTenantAttribute.id)]],
         verified: [[getMockEServiceAttribute(validVerifiedTenantAttribute.id)]],
       },
     };
@@ -1499,20 +1515,16 @@ describe("submit agreement", () => {
       suspendedByConsumer: false,
       suspendedByProducer: false,
       suspendedByPlatform: false,
-    };
-
-    const attribute: Attribute = {
-      id: validVerifiedTenantAttribute.id,
-      kind: attributeKind.verified,
-      description: "A verified attribute",
-      name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      // The agreement is draft, so it doens't have a contract or attributes
+      contract: undefined,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      verifiedAttributes: [],
     };
 
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(attribute);
     await addOneAgreement(agreement);
 
     const {
@@ -1544,17 +1556,6 @@ describe("submit agreement", () => {
       }
     );
 
-    expect(submittedAgreement).toBeDefined();
-    expect(submittedAgreement.state).toBe(agreementState.active);
-
-    const uploadedFiles = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
-
-    expect(submittedAgreement.contract).toBeDefined();
-    expect(uploadedFiles.length).toEqual(0);
-
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
     if (!actualAgreementData) {
       fail("Creation fails: agreement not found in event-store");
@@ -1577,36 +1578,51 @@ describe("submit agreement", () => {
       fail("impossible to decode AgreementAddedV1 data");
     }
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-    expect(actualAgreement).toMatchObject({
-      id: submittedAgreement.id,
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-      producerId: producer.id,
-      consumerId: consumer.id,
-      state: toAgreementStateV2(agreementState.active),
-      contract: {
-        id: expect.any(String),
-        name: expect.any(String),
-        prettyName: expect.any(String),
-        contentType: expect.any(String),
-        path: expect.any(String),
-        createdAt: expect.any(BigInt),
-      },
+    const uploadedFiles = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+
+    expect(uploadedFiles.length).toEqual(0);
+
+    // TODO verify if this logic is correct: we have a resulting agreement
+    // in state ACTIVE but with contract undefined and no attribute
+    expect(submittedAgreement.contract).not.toBeDefined();
+
+    const expectedAgreement = {
+      ...agreement,
+      state: agreementState.active,
       consumerNotes: consumerNotesText,
+      certifiedAttributes: [
+        {
+          id: validCertifiedTenantAttribute.id,
+        },
+      ],
+      declaredAttributes: [
+        {
+          id: validDeclaredTenantAttribute.id,
+        },
+      ],
       verifiedAttributes: [
         {
           id: validVerifiedTenantAttribute.id,
         },
       ],
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
-    });
-    expect(actualAgreement.stamps?.activation).toMatchObject({
-      who: authData.userId,
-      when: expect.any(BigInt),
-    });
+      stamps: {
+        ...agreement.stamps,
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps?.submission?.when,
+        },
+        activation: {
+          who: authData.userId,
+          when: submittedAgreement.stamps?.activation?.when,
+        },
+      },
+    };
+
+    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(submittedAgreement).toEqual(expectedAgreement);
 
     await testRelatedAgreementsArchiviation({
       archivableRelatedAgreement1,
