@@ -11,11 +11,9 @@ import {
   EventStoreConfig,
   FileManagerConfig,
   LoggerConfig,
-  EmailManagerConfig,
   ReadModelDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
-import { z } from "zod";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -27,13 +25,7 @@ import {
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
 } from "./containerTestUtils.js";
-
-const EmailManagerConfigTest = EmailManagerConfig.and(
-  z.object({
-    smtpHTTPPort: z.number().optional(),
-  })
-);
-type EmailManagerConfigTest = z.infer<typeof EmailManagerConfigTest>;
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -126,7 +118,7 @@ export function setupTestContainersVitestGlobal() {
       emailManagerConfig.data.smtpPort = startedMailpitContainer.getMappedPort(
         TEST_MAILPIT_SMTP_PORT
       );
-      emailManagerConfig.data.smtpHTTPPort =
+      emailManagerConfig.data.mailpitAPIPort =
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
       emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
       provide("emailManagerConfig", emailManagerConfig.data);
