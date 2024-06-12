@@ -11,9 +11,11 @@ import {
   EventStoreConfig,
   FileManagerConfig,
   LoggerConfig,
+  EmailManagerConfig,
   ReadModelDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -21,13 +23,24 @@ import {
   minioContainer,
   mongoDBContainer,
   postgreSQLContainer,
+  mailpitContainer,
+  TEST_MAILPIT_SMTP_PORT,
+  TEST_MAILPIT_HTTP_PORT,
 } from "./containerTestUtils.js";
+
+const EmailManagerConfigTest = EmailManagerConfig.and(
+  z.object({
+    smtpHTTPPort: z.number().optional(),
+  })
+);
+type EmailManagerConfigTest = z.infer<typeof EmailManagerConfigTest>;
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    emailManagerConfig?: EmailManagerConfigTest;
   }
 }
 
@@ -46,6 +59,7 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
+  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
 
   return async function ({
     provide,
@@ -53,6 +67,7 @@ export function setupTestContainersVitestGlobal() {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
+    let startedMailpitContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -106,10 +121,22 @@ export function setupTestContainersVitestGlobal() {
       provide("fileManagerConfig", fileManagerConfig.data);
     }
 
+    if (emailManagerConfig.success) {
+      startedMailpitContainer = await mailpitContainer().start();
+      emailManagerConfig.data.smtpPort = startedMailpitContainer.getMappedPort(
+        TEST_MAILPIT_SMTP_PORT
+      );
+      emailManagerConfig.data.smtpHTTPPort =
+        startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
+      emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
+      provide("emailManagerConfig", emailManagerConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
+      await startedMailpitContainer?.stop();
     };
   };
 }
