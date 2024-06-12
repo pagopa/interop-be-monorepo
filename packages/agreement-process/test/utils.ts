@@ -25,8 +25,6 @@ import {
   AgreementDocument,
   Attribute,
   toReadModelAttribute,
-  AttributeEvent,
-  toAttributeV1,
 } from "pagopa-interop-models";
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
@@ -88,24 +86,6 @@ export const writeAgreementInEventstore = async (
   };
 
   await writeInEventstore(eventToWrite, "agreement", postgresDB);
-};
-
-export const writeAttributeInEventstore = async (
-  attribute: Attribute
-): Promise<void> => {
-  const attributeEvent: AttributeEvent = {
-    type: "AttributeAdded",
-    event_version: 1,
-    data: { attribute: toAttributeV1(attribute) },
-  };
-  const eventToWrite: StoredEvent<AttributeEvent> = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: attributeEvent.data.attribute!.id,
-    version: 0,
-    event: attributeEvent,
-  };
-
-  await writeInEventstore(eventToWrite, "attribute", postgresDB);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
