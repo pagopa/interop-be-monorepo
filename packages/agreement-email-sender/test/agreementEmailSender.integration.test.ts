@@ -106,14 +106,14 @@ describe("agreement email sender", () => {
 `;
 
     const messagesResponse = await axios.get(
-      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.smtpHTTPPort}/api/v1/messages`
+      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
     );
 
     expect(messagesResponse.status).toBe(200);
     expect(messagesResponse.data.messages.length).toBe(1);
 
     const { data: emailData } = await axios.get(
-      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.smtpHTTPPort}/api/v1/message/latest`
+      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
     );
 
     const html = emailData.HTML.replace(/\r\n/g, "\n");

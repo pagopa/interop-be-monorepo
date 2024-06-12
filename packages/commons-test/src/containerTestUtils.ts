@@ -63,7 +63,6 @@ export const postgreSQLContainer = (
  * @param config - The configuration for the MinIO container.
  * @returns A promise that resolves to the started test container.
  */
-
 export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({

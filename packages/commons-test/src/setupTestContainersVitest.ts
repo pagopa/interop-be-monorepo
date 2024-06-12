@@ -158,9 +158,12 @@ export function setupTestContainersVitest(
         fileManagerConfig.s3Bucket = s3OriginalBucket;
       }
 
-      if (emailManagerConfig?.smtpAddress && emailManagerConfig?.smtpHTTPPort) {
+      if (
+        emailManagerConfig?.smtpAddress &&
+        emailManagerConfig?.mailpitAPIPort
+      ) {
         await axios.delete(
-          `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.smtpHTTPPort}/api/v1/messages`
+          `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
         );
       }
     },
