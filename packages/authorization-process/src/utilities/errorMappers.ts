@@ -110,4 +110,3 @@ export const getClientKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
