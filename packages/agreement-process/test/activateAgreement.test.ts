@@ -1419,7 +1419,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    it.only.each(
+    it.each(
       Object.values(agreementState).filter(
         (state) => !agreementActivableStates.includes(state)
       )
