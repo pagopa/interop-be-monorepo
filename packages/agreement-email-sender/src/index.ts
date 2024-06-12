@@ -15,7 +15,10 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import {
+  selfcareConfig,
+  selfcareV2ClientBuilder,
+} from "pagopa-interop-selfcare-v2-client";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
 
@@ -24,7 +27,7 @@ const readModelConfig = readModelWriterConfig();
 const topicsConfig = agreementTopicConfig();
 const emailConfig = emailManagerConfig();
 const emailManager = initEmailManager(emailConfig);
-
+const selfcareV2Client = selfcareV2ClientBuilder(selfcareConfig());
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(readModelConfig)
 );
