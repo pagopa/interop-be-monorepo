@@ -1390,7 +1390,7 @@ describe("activate agreement", () => {
     );
   });
 
-  describe("All other erorr cases", () => {
+  describe("All other error cases", () => {
     it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
       await addOneAgreement(getMockAgreement());
       const authData = getRandomAuthData();
