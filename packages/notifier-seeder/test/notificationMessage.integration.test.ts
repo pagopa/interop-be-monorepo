@@ -1,7 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   Agreement,
@@ -26,10 +25,6 @@ import {
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
 import { getMockAgreement, getMockPurpose } from "pagopa-interop-commons-test";
-import {
-  QueueManager,
-  initQueueManager,
-} from "../src/queue-manager/queueManager.js";
 import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
 import { buildAgreementMessage } from "../src/models/agreement/agreementEventNotificationMessage.js";
 import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
@@ -37,7 +32,7 @@ import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificat
 import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
 import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
-import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
+import { queueWriter } from "./utils.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
@@ -110,30 +105,6 @@ const getMockEService = (id: string): EServiceV2 =>
   });
 
 describe("Notification tests", async () => {
-  process.env.AWS_CONFIG_FILE = "aws.config.local";
-
-  let startedElasticMQContainer: StartedTestContainer;
-  let queueUrl: string;
-  let queueWriter: QueueManager;
-
-  beforeAll(async () => {
-    startedElasticMQContainer = await elasticMQContainer().start();
-
-    queueUrl = `http://localhost:${startedElasticMQContainer.getMappedPort(
-      TEST_ELASTIC_MQ_PORT
-    )}/000000000000/sqsLocalQueue.fifo`;
-
-    queueWriter = initQueueManager({
-      queueUrl,
-      messageGroupId: "test-message-group-id",
-      logLevel: "info",
-    });
-  });
-
-  afterAll(async () => {
-    await startedElasticMQContainer.stop();
-  });
-
   describe("Catalog, Purpose, Agreement Event Message", async () => {
     it("should send a message to the queue", async () => {
       vi.useFakeTimers();

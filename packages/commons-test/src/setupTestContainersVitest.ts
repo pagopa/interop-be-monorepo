@@ -6,7 +6,6 @@
 import {
   DB,
   EmailManager,
-  EmailManagerConfig,
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
@@ -19,6 +18,7 @@ import {
   initEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -67,7 +67,7 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfig
+  emailManagerConfig?: EmailManagerConfigTest
 ): {
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -79,7 +79,7 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfig
+  emailManagerConfig?: EmailManagerConfigTest
 ): {
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;

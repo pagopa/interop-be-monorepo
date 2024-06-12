@@ -102,7 +102,7 @@ describe("agreement email sender", () => {
 `;
 
     const { data } = await axios.get(
-      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.smtpHTTPPort}/api/v1/message/latest`
+      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
     );
 
     const html = data.HTML.replace(/\r\n/g, "\n");
