@@ -60,7 +60,6 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
-    let startedElasticMQContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -130,7 +129,6 @@ export function setupTestContainersVitestGlobal() {
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
-      await startedElasticMQContainer?.stop();
     };
   };
 }
