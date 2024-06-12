@@ -54,6 +54,16 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
 
 afterAll(closeTestBrowserInstance);
 
+const testBrowserInstance: Browser = await puppeteer.launch();
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;

@@ -2,16 +2,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  AttributeCollection,
-  ReadModelRepository,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
-import {
-  TEST_MONGO_DB_PORT,
   getMockAttribute,
-  mongoDBContainer,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
@@ -23,32 +16,10 @@ import {
   toAttributeV1,
   toReadModelAttribute,
 } from "pagopa-interop-models";
-import { StartedTestContainer } from "testcontainers";
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
+import { attributes } from "./utils.js";
 
 describe("database test", async () => {
-  let attributes: AttributeCollection;
-  let startedMongoDBContainer: StartedTestContainer;
-
-  const config = readModelWriterConfig();
-  beforeAll(async () => {
-    startedMongoDBContainer = await mongoDBContainer(config).start();
-
-    config.readModelDbPort =
-      startedMongoDBContainer.getMappedPort(TEST_MONGO_DB_PORT);
-
-    const readModelRepository = ReadModelRepository.init(config);
-    attributes = readModelRepository.attributes;
-  });
-
-  afterEach(async () => {
-    await attributes.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await startedMongoDBContainer.stop();
-  });
-
   describe("Events V1", () => {
     it("AttributeAdded - certified", async () => {
       const certifiedAttribute: Attribute = {

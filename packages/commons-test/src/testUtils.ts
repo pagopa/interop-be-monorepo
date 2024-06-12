@@ -161,6 +161,7 @@ export const getMockPurpose = (): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
+  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
