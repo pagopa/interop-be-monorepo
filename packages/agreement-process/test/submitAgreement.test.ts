@@ -1191,8 +1191,6 @@ describe("submit agreement", () => {
       fail("impossible to decode AgreementAddedV1 data");
     }
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-
     const uploadedFiles = await fileManager.listFiles(
       config.s3Bucket,
       genericLogger
@@ -1221,6 +1219,7 @@ describe("submit agreement", () => {
       },
     };
 
+    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
     expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
     expect(submittedAgreement).toEqual(expectedAgreement);
 
@@ -1278,7 +1277,6 @@ describe("submit agreement", () => {
     const descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
-      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       attributes: {
         certified: [
           [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
@@ -1494,6 +1492,7 @@ describe("submit agreement", () => {
     const descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       attributes: {
         certified: [
           [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
@@ -1679,6 +1678,7 @@ describe("submit agreement", () => {
     const descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       attributes: {
         certified: [
           [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
@@ -1852,7 +1852,7 @@ describe("submit agreement", () => {
     expect(submittedAgreement).toEqual(expectedAgreement);
   });
 
-  it("should submit agreement with new state PENDING when producer is different from consumer and no related agreements exist, generates AgreementSubmitted event", async () => {
+  it("should submit agreement with new state PENDING when producer is different from consumer and no related agreements exist, and approval policy is manual, generates AgreementSubmitted event", async () => {
     const consumerId = generateId<TenantId>();
     const producer = getMockTenant();
     const consumerNotesText = "This is a test";
@@ -1911,29 +1911,16 @@ describe("submit agreement", () => {
       suspendedByConsumer: false,
       suspendedByProducer: false,
       suspendedByPlatform: false,
-    };
-
-    const declaredAttribute: Attribute = {
-      id: declareTenantAttribute.id,
-      kind: attributeKind.declared,
-      description: "A declared attribute",
-      name: "A declared attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
-    };
-
-    const certifiedAttribute: Attribute = {
-      id: certifiedTenantAttribute.id,
-      kind: attributeKind.certified,
-      description: "A certified attribute",
-      name: "A certified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
+      // The agreement is draft, so it doens't have a contract or attributes
+      contract: undefined,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      verifiedAttributes: [],
     };
 
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(declaredAttribute);
-    await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
@@ -1959,16 +1946,154 @@ describe("submit agreement", () => {
       }
     );
 
-    expect(submittedAgreement).toBeDefined();
-    expect(submittedAgreement.state).toBe(agreementState.pending);
+    const actualAgreementData = await readLastAgreementEvent(agreement.id);
+    if (!actualAgreementData) {
+      fail("Creation fails: agreement not found in event-store");
+    }
+
+    expect(actualAgreementData.type).toEqual("AgreementSubmitted");
+    expect(actualAgreementData).toMatchObject({
+      type: "AgreementSubmitted",
+      event_version: 2,
+      version: "1",
+      stream_id: submittedAgreement.id,
+    });
+
+    const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+      messageType: AgreementSubmittedV2,
+      payload: actualAgreementData.data,
+    }).agreement;
+
+    if (!actualAgreement) {
+      fail("impossible to decode AgreementActivatedV2 data");
+    }
 
     const uploadedFiles = await fileManager.listFiles(
       config.s3Bucket,
       genericLogger
     );
 
-    expect(submittedAgreement.contract).toBeDefined();
     expect(uploadedFiles.length).toEqual(0);
+
+    expect(submittedAgreement.contract).not.toBeDefined();
+
+    const expectedAgreement = {
+      ...agreement,
+      state: agreementState.pending,
+      consumerNotes: consumerNotesText,
+      suspendedByConsumer: undefined,
+      suspendedByProducer: undefined,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      verifiedAttributes: [],
+      stamps: {
+        ...agreement.stamps,
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps?.submission?.when,
+        },
+      },
+    };
+
+    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
+    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(submittedAgreement).toEqual(expectedAgreement);
+  });
+
+  it("should submit agreement with new state PENDING when producer is different from consumer and no related agreements exist and verified att are not satisfied, generates AgreementSubmitted event", async () => {
+    const consumerId = generateId<TenantId>();
+    const producer = getMockTenant();
+    const consumerNotesText = "This is a test";
+
+    const certifiedTenantAttribute: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+    const declareTenantAttribute: TenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const consumer = {
+      ...getMockTenant(consumerId, [
+        certifiedTenantAttribute,
+        declareTenantAttribute,
+      ]),
+      selfcareId: generateId<SelfcareId>(),
+      mails: [
+        {
+          id: generateId(),
+          kind: tenantMailKind.ContactEmail,
+          address: "avalidemailaddressfortenant@testingagreement.com",
+          createdAt: new Date(),
+        },
+      ],
+    };
+
+    const certifiedDescriptorAttribute = getMockEServiceAttribute(
+      certifiedTenantAttribute.id
+    );
+    const declaredDescriptorAttribute = getMockEServiceAttribute(
+      declareTenantAttribute.id
+    );
+
+    const descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.suspended,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+      attributes: {
+        certified: [[certifiedDescriptorAttribute]],
+        declared: [[declaredDescriptorAttribute]],
+        // Adding a verified attribute that is not satisfied
+        verified: [[getMockEServiceAttribute()]],
+      },
+    };
+    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+      descriptor,
+    ]);
+
+    const agreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumer.id),
+      producerId: producer.id,
+      descriptorId: eservice.descriptors[0].id,
+      state: agreementState.draft,
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      suspendedByPlatform: false,
+      // The agreement is draft, so it doens't have a contract or attributes
+      contract: undefined,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      verifiedAttributes: [],
+    };
+
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneAgreement(agreement);
+
+    const authData = getRandomAuthData(consumer.id);
+    const mockUserResponse: UserResponse = {
+      email: "selfcare.test.submitagreement@test.org",
+      name: "Test Name",
+      surname: "Test Surname",
+      id: generateId(),
+      taxCode: "TAXCODE",
+    };
+
+    mockSelfCareResponse(mockUserResponse);
+    const submittedAgreement = await agreementService.submitAgreement(
+      agreement.id,
+      {
+        consumerNotes: consumerNotesText,
+      },
+      {
+        authData,
+        correlationId: randomUUID(),
+        serviceName: "AgreementServiceTest",
+        logger: genericLogger,
+      }
+    );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
     if (!actualAgreementData) {
@@ -1992,34 +2117,34 @@ describe("submit agreement", () => {
       fail("impossible to decode AgreementActivatedV2 data");
     }
 
-    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
-    expect(actualAgreement.suspendedByConsumer).toBeUndefined();
-    expect(actualAgreement.suspendedByProducer).toBeUndefined();
-    expect(actualAgreement.suspendedByPlatform).toBeFalsy();
-    expect(actualAgreement).toMatchObject({
-      id: submittedAgreement.id,
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
-      producerId: producer.id,
-      consumerId: consumer.id,
-      state: toAgreementStateV2(agreementState.pending),
-      contract: {
-        id: expect.any(String),
-        name: expect.any(String),
-        prettyName: expect.any(String),
-        contentType: expect.any(String),
-        path: expect.any(String),
-        createdAt: expect.any(BigInt),
-      },
+    const uploadedFiles = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+
+    expect(submittedAgreement.contract).not.toBeDefined();
+    expect(uploadedFiles.length).toEqual(0);
+
+    const expectedAgreement = {
+      ...agreement,
+      state: agreementState.pending,
       consumerNotes: consumerNotesText,
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
-    });
+      suspendedByConsumer: undefined,
+      suspendedByProducer: undefined,
+      stamps: {
+        ...agreement.stamps,
+        submission: {
+          who: authData.userId,
+          when: submittedAgreement.stamps?.submission?.when,
+        },
+      },
+    };
 
-    expect(actualAgreement.stamps?.submission).toMatchObject({
-      who: authData.userId,
-      when: expect.any(BigInt),
-    });
+    expect(selfcareV2ClientMock.getUserInfoUsingGET).not.toHaveBeenCalled();
+    expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+    expect(submittedAgreement).toEqual(expectedAgreement);
   });
 });
