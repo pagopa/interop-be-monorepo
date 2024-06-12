@@ -27,7 +27,6 @@ export const errorCodes = {
   organizationNotAllowedOnPurpose: "0014",
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
-  notAllowedPrivateKeyException: "0017",
   keyAlreadyExists: "0018",
 };
 
@@ -206,14 +205,6 @@ export function userNotFound(
     detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
     code: "userNotFound",
     title: "User not found",
-  });
-}
-
-export function notAllowedPrivateKeyException(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `This contains a private key!`,
-    code: "notAllowedPrivateKeyException",
-    title: "Not allowed private key exception",
   });
 }
 

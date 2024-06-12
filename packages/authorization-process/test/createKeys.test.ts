@@ -9,6 +9,7 @@ import {
   TenantId,
   UserId,
   generateId,
+  notAllowedPrivateKeyException,
   toClientV2,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
@@ -23,13 +24,16 @@ import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
 import {
   clientNotFound,
   keyAlreadyExists,
-  notAllowedPrivateKeyException,
   organizationNotAllowedOnClient,
   securityUserNotFound,
   tooManyKeysPerClient,
   userNotFound,
 } from "../src/model/domain/errors.js";
-import { calculateKid } from "../../commons/src/auth/jwk.js";
+import {
+  calculateKid,
+  createJWK,
+  decodeBase64ToPem,
+} from "../../commons/src/auth/jwk.js";
 import { addOneClient, authorizationService, postgresDB } from "./utils.js";
 
 describe("createKeys", () => {
@@ -149,10 +153,8 @@ describe("createKeys", () => {
         },
       ],
     };
-
     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
   });
-
   it("should throw clientNotFound if the client doesn't exist ", async () => {
     await addOneClient(getMockClient());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
@@ -264,22 +266,22 @@ describe("createKeys", () => {
     );
   });
   it("should throw notAllowedPrivateKeyException if the key is a private key", async () => {
-    const key = crypto.generateKeyPairSync("rsa", {
+    const privateKey = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).privateKey;
 
-    const pemKey = Buffer.from(
-      key.export({ type: "pkcs1", format: "pem" })
+    const privatePemKey = Buffer.from(
+      privateKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64");
 
-    const keySeed: ApiKeySeed = {
+    const keySeedByPrivateKey: ApiKeySeed = {
       name: "key seed",
       use: "ENC",
-      key: pemKey,
+      key: privatePemKey,
       alg: "",
     };
 
-    const keysSeeds: ApiKeysSeed = [keySeed];
+    const keysSeeds: ApiKeysSeed = [keySeedByPrivateKey];
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
@@ -299,7 +301,7 @@ describe("createKeys", () => {
       keys: [
         {
           ...getMockKey(),
-          kid: calculateKid(keySeed.key),
+          kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
         },
       ],
       consumerId,
@@ -316,6 +318,6 @@ describe("createKeys", () => {
         generateId(),
         genericLogger
       )
-    ).rejects.toThrowError(keyAlreadyExists(calculateKid(keySeed.key)));
+    ).rejects.toThrowError(keyAlreadyExists(duplicatedKidClient.keys[0].kid));
   });
 });

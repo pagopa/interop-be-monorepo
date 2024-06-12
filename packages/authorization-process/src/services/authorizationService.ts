@@ -28,7 +28,7 @@ import {
   userRoles,
   calculateKid,
   decodeBase64ToPem,
-  isPublicKey,
+  createJWK,
 } from "pagopa-interop-commons";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
@@ -39,7 +39,6 @@ import {
   keyAlreadyExists,
   keyNotFound,
   noVersionsFoundInPurpose,
-  notAllowedPrivateKeyException,
   organizationNotAllowedOnClient,
   organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
@@ -53,7 +52,6 @@ import {
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
-  ApiKeySeed,
   ApiKeysSeed,
   ApiPurposeAdditionSeed,
 } from "../model/domain/models.js";
@@ -584,11 +582,11 @@ export function authorizationServiceBuilder(
       let updatedClient: Client = client.data;
 
       for (const keySeed of keysSeeds) {
-        assertValidatedKey(keySeed);
+        const jwk = createJWK(decodeBase64ToPem(keySeed.key));
         const newKey: Key = {
           name: keySeed.name,
           createdAt: new Date(),
-          kid: calculateKid(keySeed.key),
+          kid: calculateKid(jwk),
           encodedPem: keySeed.key,
           algorithm: keySeed.alg,
           use: ApiKeyUseToKeyUse(keySeed.use),
@@ -684,11 +682,5 @@ const assertOrganizationIsPurposeConsumer = (
 const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
   if (size > config.maxKeysPerClient) {
     throw tooManyKeysPerClient(clientId, size);
-  }
-};
-
-const assertValidatedKey = (keySeed: ApiKeySeed): void => {
-  if (!isPublicKey(decodeBase64ToPem(keySeed.key))) {
-    throw notAllowedPrivateKeyException();
   }
 };

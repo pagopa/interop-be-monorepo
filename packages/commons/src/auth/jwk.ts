@@ -1,5 +1,8 @@
-import crypto from "crypto";
-import { jwkDecodingError } from "../../../models/dist/errors.js";
+import crypto, { JsonWebKey } from "crypto";
+import {
+  jwkDecodingError,
+  notAllowedPrivateKeyException,
+} from "pagopa-interop-models";
 
 export const decodeBase64ToPem = (base64String: string): string => {
   try {
@@ -11,8 +14,16 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const isPublicKey = (pemKey: string): boolean =>
-  pemKey.includes("PUBLIC");
+// This method is to check if the key is public and to create the JWK If you don't add the if condition, createPublicKey turns any key into a public key
+export const createJWK = (pemKey: string): JsonWebKey => {
+  if (pemKey.includes("-----BEGIN RSA PUBLIC KEY-----")) {
+    return crypto.createPublicKey(pemKey).export({ format: "jwk" });
+  } else {
+    throw notAllowedPrivateKeyException();
+  }
+};
 
-export const calculateKid = (key: string): string =>
-  crypto.createHash("sha256").update(key).digest("base64");
+export const calculateKid = (jwk: JsonWebKey): string => {
+  const jwkString = JSON.stringify(jwk);
+  return crypto.createHash("sha256").update(jwkString).digest("base64");
+};
