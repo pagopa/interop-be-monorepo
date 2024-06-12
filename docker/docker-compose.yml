@@ -47,7 +47,7 @@ services:
       - kafka
 
   readmodel:
-    image: mongo:4
+    image: mongo:4.0
     ports:
       - 27017:27017
     environment:
@@ -130,3 +130,12 @@ services:
     volumes:
       - ./elasticmq.local.conf:/opt/elasticmq.conf
     restart: always
+
+  # Mailpit is a local SMTP server, to replace AWS SES in local development
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - 8025:8025
+      - 1025:1025
+
+  
