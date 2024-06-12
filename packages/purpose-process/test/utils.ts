@@ -53,7 +53,7 @@ export const purposes = readModelRepository.purposes;
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 const testBrowserInstance: Browser = await puppeteer.launch({ pipe: true });
-export const closeTestBrowserInstance = async (): Promise<void> =>
+const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
 afterAll(closeTestBrowserInstance);
