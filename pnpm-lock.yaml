@@ -15,6 +15,70 @@ importers:
         specifier: 2.0.3
         version: 2.0.3
 
+  packages/agreement-email-sender:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-selfcare-v2-client:
+        specifier: workspace:*
+        version: link:../selfcare-v2-client
+      ts-pattern:
+        specifier: 5.1.2
+        version: 5.1.2
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.2
+        version: 20.14.2
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      axios:
+        specifier: 1.7.2
+        version: 1.7.2
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.2)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.2)
+
   packages/agreement-process:
     dependencies:
       '@zodios/core':
@@ -48,8 +112,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -155,8 +219,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.2)
@@ -200,8 +264,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -331,14 +395,14 @@ importers:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../models
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -465,8 +529,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -575,8 +639,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.2)
@@ -622,6 +686,9 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0
+      nodemailer:
+        specifier: 6.9.13
+        version: 6.9.13
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -629,14 +696,14 @@ importers:
         specifier: 11.8.0
         version: 11.8.0
       puppeteer:
-        specifier: 22.10.0
-        version: 22.10.0(typescript@5.4.5)
+        specifier: 22.10.1
+        version: 22.10.1(typescript@5.4.5)
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       winston:
         specifier: 3.13.0
         version: 3.13.0
@@ -656,6 +723,9 @@ importers:
       '@types/node':
         specifier: 20.14.2
         version: 20.14.2
+      '@types/nodemailer':
+        specifier: 6.4.15
+        version: 6.4.15
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -723,8 +793,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.2)
@@ -759,8 +829,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -866,7 +936,7 @@ importers:
         specifier: 2.2.4
         version: 2.2.4
       pagopa-interop-commons:
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
@@ -900,8 +970,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -949,14 +1019,14 @@ importers:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../models
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1056,8 +1126,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       puppeteer:
-        specifier: 22.10.0
-        version: 22.10.0(typescript@5.4.5)
+        specifier: 22.10.1
+        version: 22.10.1(typescript@5.4.5)
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -1095,8 +1165,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1193,8 +1263,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -3477,6 +3547,11 @@ packages:
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
     dev: true
 
+  /@eslint-community/regexpp@4.5.1:
+    resolution: {integrity: sha512-Z5ba73P98O1KUYCCJTUeVpja9RcGoMdncZ6T49FCUl2lN38JtCJ+3WgIDBv0AuY4WChU5PmtJmOCTlN6FZTFKQ==}
+    engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
+    dev: true
+
   /@eslint/eslintrc@2.1.4:
     resolution: {integrity: sha512-269Z39MS6wVJtsoUl10L60WdkhJVdPG24Q4eZTH3nnF6lpvSShEK3wQjDX9JRWAUPvPh7COouPpU9IrqaZFvtQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -3683,6 +3758,7 @@ packages:
 
   /@protobuf-ts/plugin@2.9.4:
     resolution: {integrity: sha512-Db5Laq5T3mc6ERZvhIhkj1rn57/p8gbWiCKxQWbZBBl20wMuqKoHbRw4tuD7FyXi+IkwTToaNVXymv5CY3E8Rw==}
+    hasBin: true
     dependencies:
       '@protobuf-ts/plugin-framework': 2.9.4
       '@protobuf-ts/protoc': 2.9.4
@@ -3693,6 +3769,7 @@ packages:
 
   /@protobuf-ts/protoc@2.9.4:
     resolution: {integrity: sha512-hQX+nOhFtrA+YdAXsXEDrLoGJqXHpgv4+BueYF0S9hy/Jq0VRTVlJS1Etmf4qlMt/WdigEes5LOd/LDzui4GIQ==}
+    hasBin: true
     dev: false
 
   /@protobuf-ts/runtime-rpc@2.9.4:
@@ -4880,6 +4957,12 @@ packages:
     dependencies:
       undici-types: 5.26.5
 
+  /@types/nodemailer@6.4.15:
+    resolution: {integrity: sha512-0EBJxawVNjPkng1zm2vopRctuWVCxk34JcIlRuXSf54habUWdz1FB7wHDqOqvDa8Mtpt0Q3LTXQkAs2LNyK5jQ==}
+    dependencies:
+      '@types/node': 20.14.2
+    dev: true
+
   /@types/qs@6.9.7:
     resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==}
 
@@ -4950,7 +5033,7 @@ packages:
       typescript:
         optional: true
     dependencies:
-      '@eslint-community/regexpp': 4.10.0
+      '@eslint-community/regexpp': 4.5.1
       '@typescript-eslint/parser': 5.60.0(eslint@8.57.0)(typescript@5.4.5)
       '@typescript-eslint/scope-manager': 5.60.0
       '@typescript-eslint/type-utils': 5.60.0(eslint@8.57.0)(typescript@5.4.5)
@@ -5616,15 +5699,15 @@ packages:
     resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
     dev: true
 
-  /chromium-bidi@0.5.19(devtools-protocol@0.0.1286932):
-    resolution: {integrity: sha512-UA6zL77b7RYCjJkZBsZ0wlvCTD+jTjllZ8f6wdO4buevXgTZYjV+XLB9CiEa2OuuTGGTLnI7eN9I60YxuALGQg==}
+  /chromium-bidi@0.5.23(devtools-protocol@0.0.1286932):
+    resolution: {integrity: sha512-1o/gLU9wDqbN5nL2MtfjykjOuighGXc3/hnWueO1haiEoFgX8h5vbvcA4tgdQfjw1mkZ1OEF4x/+HVeqEX6NoA==}
     peerDependencies:
       devtools-protocol: '*'
     dependencies:
       devtools-protocol: 0.0.1286932
       mitt: 3.0.1
       urlpattern-polyfill: 10.0.0
-      zod: 3.22.4
+      zod: 3.23.8
 
   /cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
@@ -5868,6 +5951,17 @@ packages:
 
   /debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+
+  /debug@4.3.5:
+    resolution: {integrity: sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==}
     engines: {node: '>=6.0'}
     peerDependencies:
       supports-color: '*'
@@ -7645,11 +7739,13 @@ packages:
   /mkdirp@1.0.4:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
     engines: {node: '>=10'}
+    hasBin: true
     dev: true
 
   /mkdirp@3.0.1:
     resolution: {integrity: sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==}
     engines: {node: '>=10'}
+    hasBin: true
     dev: true
 
   /mlly@1.6.1:
@@ -7755,6 +7851,11 @@ packages:
 
   /node-releases@2.0.12:
     resolution: {integrity: sha512-QzsYKWhXTWx8h1kIvqfnC++o0pEmpRQA/aenALsL2F4pqNVr7YzcdMlDij5WBnwftRbJCNJL/O7zdKaxKPHqgQ==}
+
+  /nodemailer@6.9.13:
+    resolution: {integrity: sha512-7o38Yogx6krdoBf3jCAqnIN4oSQFx+fMa0I7dK1D+me9kBxx12D+/33wSb+fhOCtIxvYJ+4x4IMEhmhCKfAiOA==}
+    engines: {node: '>=6.0.0'}
+    dev: false
 
   /normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -8251,13 +8352,13 @@ packages:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
     engines: {node: '>=6'}
 
-  /puppeteer-core@22.10.0:
-    resolution: {integrity: sha512-I54J4Vy4I07UHsgB1QSmuFoF7KNQjJWcvFBPhtY+ezMdBfwgGDr8dzYrJa11aPgP9kxIUHjhktcMmmfJkOAtTw==}
+  /puppeteer-core@22.10.1:
+    resolution: {integrity: sha512-t98x55ohn6eioM/e1dmhy6bG9iuQ+mvpNXyr+UppB789uvNKKOvy9YnWpKp4mVyKxi9BGsceHAFuovQGqQKyCQ==}
     engines: {node: '>=18'}
     dependencies:
       '@puppeteer/browsers': 2.2.3
-      chromium-bidi: 0.5.19(devtools-protocol@0.0.1286932)
-      debug: 4.3.4
+      chromium-bidi: 0.5.23(devtools-protocol@0.0.1286932)
+      debug: 4.3.5
       devtools-protocol: 0.0.1286932
       ws: 8.17.0
     transitivePeerDependencies:
@@ -8265,8 +8366,8 @@ packages:
       - supports-color
       - utf-8-validate
 
-  /puppeteer@22.10.0(typescript@5.4.5):
-    resolution: {integrity: sha512-ZOkZd6a6t0BdKcWb0wAYHWQqCfdlN1PPnXOmg/XNrbo6gJhYWFX4qCNb6ahSn8TpAqBqLCoD4Q010F7GwOM7mA==}
+  /puppeteer@22.10.1(typescript@5.4.5):
+    resolution: {integrity: sha512-yFT7BlyIa4B1SnE6ccBVt+nYpDNTtZtwNh9tL79d6eWlGh94YrdzQDH+WtG88mCuQIcjjcJgvTRfm8uljuMgUQ==}
     engines: {node: '>=18'}
     hasBin: true
     requiresBuild: true
@@ -8274,7 +8375,7 @@ packages:
       '@puppeteer/browsers': 2.2.3
       cosmiconfig: 9.0.0(typescript@5.4.5)
       devtools-protocol: 0.0.1286932
-      puppeteer-core: 22.10.0
+      puppeteer-core: 22.10.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -9202,8 +9303,14 @@ packages:
     engines: {node: '>= 0.4.0'}
     dev: false
 
+  /uuid@10.0.0:
+    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    hasBin: true
+
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
+    dev: false
 
   /v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -9217,6 +9324,7 @@ packages:
   /vite-node@1.6.0(@types/node@20.14.2):
     resolution: {integrity: sha512-de6HJgzC+TFzOu0NTC4RAIsyf/DY/ibWDYQUcuEA84EMHhcefTUGkjFHKKEJhQN4A+6I0u++kr3l36ZF2d7XRw==}
     engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
     dependencies:
       cac: 6.7.14
       debug: 4.3.4
@@ -9531,9 +9639,6 @@ packages:
     dependencies:
       zod: 3.23.8
     dev: false
-
-  /zod@3.22.4:
-    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
 
   /zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
