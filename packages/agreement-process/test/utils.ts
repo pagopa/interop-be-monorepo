@@ -44,7 +44,7 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 afterEach(cleanup);
 
 const testBrowserInstance: Browser = await puppeteer.launch();
-export const closeTestBrowserInstance = async (): Promise<void> =>
+const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
 afterAll(closeTestBrowserInstance);

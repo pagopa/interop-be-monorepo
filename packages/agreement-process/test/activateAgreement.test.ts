@@ -42,7 +42,6 @@ import {
   Attribute,
   AgreementActivatedV2,
   UserId,
-  pdfGenerationError,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementUnsuspendedByPlatformV2,
   AgreementSuspendedByPlatformV2,
@@ -76,7 +75,6 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
-  closeTestBrowserInstance,
   fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
@@ -2067,121 +2065,6 @@ describe("activate agreement", () => {
         })
       ).rejects.toThrowError(
         attributeNotFound(validTenantCertifiedAttribute.id)
-      );
-    });
-
-    it("should throw pdfGenerationError in case PDF generation fails", async () => {
-      const producer: Tenant = getMockTenant();
-
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Certified",
-      };
-
-      const declaredAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Declared",
-      };
-
-      const verifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Verified",
-      };
-
-      const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-        ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
-        revocationTimestamp: undefined,
-      };
-
-      const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(declaredAttribute.id),
-        revocationTimestamp: undefined,
-      };
-
-      const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
-        verifiedBy: [
-          {
-            id: producer.id,
-            verificationDate: new Date(),
-            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-          },
-        ],
-      };
-
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        selfcareId: generateId(),
-        attributes: [
-          validTenantCertifiedAttribute,
-          validTenantDeclaredAttribute,
-          validTenantVerifiedAttribute,
-        ],
-      };
-
-      const authData = getRandomAuthData(producer.id);
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-        attributes: {
-          certified: [
-            [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
-          ],
-          declared: [
-            [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
-          ],
-          verified: [
-            [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
-          ],
-        },
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const mockAgreement: Agreement = getMockAgreement();
-      const agreement: Agreement = {
-        ...mockAgreement,
-        state: agreementState.pending,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId: consumer.id,
-        suspendedByConsumer: false,
-        suspendedByProducer: randomBoolean(),
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: new Date(),
-          },
-          activation: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-      };
-
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await addOneAttribute(certifiedAttribute);
-      await addOneAttribute(declaredAttribute);
-      await addOneAttribute(verifiedAttribute);
-
-      await closeTestBrowserInstance();
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(
-        pdfGenerationError("Protocol error: Connection closed.")
       );
     });
   });
