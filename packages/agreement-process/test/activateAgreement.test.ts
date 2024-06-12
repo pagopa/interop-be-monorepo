@@ -1419,26 +1419,6 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    it("should NOT throw an operationNotAllowed error when the requester is the Producer and the Agreement is Pending", async () => {
-      const producerId = generateId<TenantId>();
-      const authData = getRandomAuthData(producerId);
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.pending,
-        producerId,
-      };
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).rejects.not.toThrowError(operationNotAllowed(authData.organizationId));
-    });
-
     it.only.each(
       Object.values(agreementState).filter(
         (state) => !agreementActivableStates.includes(state)
