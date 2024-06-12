@@ -44,15 +44,6 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   );
 
 afterEach(cleanup);
-export const testBrowserInstance: Browser = await puppeteer.launch();
-export const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-
-afterAll(closeTestBrowserInstance);
 
 const testBrowserInstance: Browser = await puppeteer.launch();
 const closeTestBrowserInstance = async (): Promise<void> =>
