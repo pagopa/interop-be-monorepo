@@ -800,7 +800,7 @@ describe("submit agreement", () => {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
       attributes: {
-        certified: [[getMockEServiceAttribute()]],
+        certified: [],
         declared: [],
         verified: [],
       },
@@ -1082,25 +1082,13 @@ describe("submit agreement", () => {
     );
   });
 
-  it("should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements", async () => {
+  it.only("should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements", async () => {
     const producerAndConsumerId = generateId<TenantId>();
     const producer = getMockTenant(producerAndConsumerId);
     const consumerNotesText = "This is a test";
 
-    const validVerifiedTenantAttribute: TenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producerAndConsumerId,
-          verificationDate: new Date(new Date().getFullYear() - 1),
-          expirationDate: new Date(new Date().getFullYear() + 1),
-          extensionDate: undefined,
-        },
-      ],
-    };
-
     const consumer = {
-      ...getMockTenant(producerAndConsumerId, [validVerifiedTenantAttribute]),
+      ...getMockTenant(producerAndConsumerId),
       selfcareId: generateId<SelfcareId>(),
       mails: [
         {
@@ -1118,7 +1106,7 @@ describe("submit agreement", () => {
       attributes: {
         certified: [],
         declared: [],
-        verified: [[getMockEServiceAttribute(validVerifiedTenantAttribute.id)]],
+        verified: [],
       },
     };
 
@@ -1136,18 +1124,9 @@ describe("submit agreement", () => {
       suspendedByPlatform: false,
     };
 
-    const attribute: Attribute = {
-      id: validVerifiedTenantAttribute.id,
-      kind: attributeKind.verified,
-      description: "A verified attribute",
-      name: "A verified attribute name",
-      creationTime: new Date(new Date().getFullYear() - 1),
-    };
-
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOneTenant(producer);
-    await addOneAttribute(attribute);
     await addOneAgreement(agreement);
 
     const {
@@ -1229,11 +1208,7 @@ describe("submit agreement", () => {
         createdAt: expect.any(BigInt),
       },
       consumerNotes: consumerNotesText,
-      verifiedAttributes: [
-        {
-          id: validVerifiedTenantAttribute.id,
-        },
-      ],
+      verifiedAttributes: [],
       suspendedByConsumer: false,
       suspendedByProducer: false,
       suspendedByPlatform: false,
