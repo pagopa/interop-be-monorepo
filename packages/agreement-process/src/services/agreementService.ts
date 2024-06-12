@@ -33,6 +33,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -204,7 +205,8 @@ export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator
+  pdfGenerator: PDFGenerator,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -467,6 +469,7 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       );
@@ -904,6 +907,7 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
+        selfcareV2Client,
         config,
         logger
       );
