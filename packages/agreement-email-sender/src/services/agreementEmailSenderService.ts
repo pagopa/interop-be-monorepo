@@ -171,7 +171,7 @@ async function getInstitution(
   } catch (error) {
     logger.error(`Error calling selfcare API for institution ${id} - ${error}`);
 
-    const code = mapInstitutionError(error);
+    const code = mapInstitutionError(error, selfcareV2Client.api);
     if (code === 404) {
       throw institutionNotFound(id);
     }
