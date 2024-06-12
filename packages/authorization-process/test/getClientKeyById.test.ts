@@ -75,7 +75,7 @@ describe("getClientKeyById", async () => {
     const mockClient: Client = {
       ...getMockClient(),
       consumerId,
-      keys: [],
+      keys: [getMockKey()],
     };
     await addOneClient(mockClient);
 
