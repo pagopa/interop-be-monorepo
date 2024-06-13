@@ -19,7 +19,7 @@ import {
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
   unexpectedRulesVersionError,
-} from "./riskAnalysisErrors.js";
+} from "./riskAnalysisValidationErrors.js";
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
@@ -99,7 +99,7 @@ function getSanitizedAnswers(
   );
 }
 
-function getLatestVersionFormRules(
+export function getLatestVersionFormRules(
   tenantKind: TenantKind
 ): RiskAnalysisFormRules | undefined {
   const rules = riskAnalysisFormRules[tenantKind];
@@ -114,6 +114,15 @@ function getLatestVersionFormRules(
   } catch {
     return undefined;
   }
+}
+
+export function getFormRulesByVersion(
+  tenantKind: TenantKind,
+  version: string
+): RiskAnalysisFormRules | undefined {
+  return riskAnalysisFormRules[tenantKind].find(
+    (config) => config.version === version
+  );
 }
 
 function questionRulesDepsToValidationRuleDeps(

@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   Purpose,
   PurposeEventV2,
+  PurposeId,
   PurposeVersionId,
   toPurposeV2,
 } from "pagopa-interop-models";
@@ -166,6 +167,219 @@ export const toCreateEventPurposeSuspendedByProducer = ({
     type: "PurposeVersionSuspendedByProducer",
     event_version: 2,
     data: { purpose: toPurposeV2(purpose), versionId: purposeVersionId },
+  },
+  correlationId,
+});
+
+export function toCreateEventPurposeAdded(
+  purpose: Purpose,
+  correlationId: string
+): CreateEvent<PurposeEventV2> {
+  return {
+    streamId: purpose.id,
+    version: 0,
+    event: {
+      type: "PurposeAdded",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+      },
+    },
+    correlationId,
+  };
+}
+
+export const toCreateEventPurposeCloned = ({
+  purpose,
+  sourcePurposeId,
+  sourceVersionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  sourcePurposeId: PurposeId;
+  sourceVersionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version: 0,
+  event: {
+    type: "PurposeCloned",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), sourcePurposeId, sourceVersionId },
+  },
+  correlationId,
+});
+
+export function toCreateEventNewPurposeVersionActivated({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> {
+  return {
+    streamId: purpose.id,
+    version,
+    event: {
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+        versionId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventNewPurposeVersionWaitingForApproval({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> {
+  return {
+    streamId: purpose.id,
+    version,
+    event: {
+      type: "NewPurposeVersionWaitingForApproval",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+        versionId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export const toCreateEventPurposeActivated = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeActivated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeWaitingForApproval = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeWaitingForApproval",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeVersionActivated = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionActivated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeVersionUnsuspenedByProducer = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionUnsuspendedByProducer",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeVersionUnsuspenedByConsumer = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionUnsuspendedByConsumer",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionOverQuotaUnsuspended",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
   },
   correlationId,
 });
