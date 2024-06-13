@@ -1,14 +1,24 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 
 import {
+  DB,
+  EmailManager,
+  EventStoreConfig,
+  FileManager,
+  FileManagerConfig,
+  LoggerConfig,
+  ReadModelDbConfig,
   ReadModelRepository,
+  S3Config,
   genericLogger,
   initDB,
+  initEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
-import { TestContainersConfig } from "./containerTestUtils.js";
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -29,52 +39,122 @@ import { TestContainersConfig } from "./containerTestUtils.js";
  * afterEach(cleanup);
  * ```
  */
-export function setupTestContainersVitest(config: TestContainersConfig) {
-  const s3OriginalBucket = config.s3Bucket;
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig
+): {
+  readModelRepository: ReadModelRepository;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  emailManagerConfig?: EmailManagerConfigTest
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  emailManager: EmailManager;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  emailManagerConfig?: EmailManagerConfigTest
+): {
+  readModelRepository?: ReadModelRepository;
+  postgresDB?: DB;
+  fileManager?: FileManager;
+  emailManager?: EmailManager;
+  cleanup: () => Promise<void>;
+} {
+  const s3OriginalBucket = fileManagerConfig?.s3Bucket;
 
-  const readModelRepository = ReadModelRepository.init(config);
+  let readModelRepository: ReadModelRepository | undefined;
+  let postgresDB: DB | undefined;
+  let fileManager: FileManager | undefined;
+  let emailManager: EmailManager | undefined;
 
-  const postgresDB = initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  });
+  if (readModelDbConfig) {
+    readModelRepository = ReadModelRepository.init(readModelDbConfig);
+  }
 
-  const fileManager = initFileManager(config);
+  if (eventStoreConfig) {
+    postgresDB = initDB({
+      username: eventStoreConfig.eventStoreDbUsername,
+      password: eventStoreConfig.eventStoreDbPassword,
+      host: eventStoreConfig.eventStoreDbHost,
+      port: eventStoreConfig.eventStoreDbPort,
+      database: eventStoreConfig.eventStoreDbName,
+      schema: eventStoreConfig.eventStoreDbSchema,
+      useSSL: eventStoreConfig.eventStoreDbUseSSL,
+    });
+  }
+
+  if (fileManagerConfig) {
+    fileManager = initFileManager(fileManagerConfig);
+  }
+
+  if (emailManagerConfig) {
+    emailManager = initEmailManager(emailManagerConfig);
+  }
 
   return {
     readModelRepository,
     postgresDB,
     fileManager,
+    emailManager,
     cleanup: async (): Promise<void> => {
-      await readModelRepository.agreements.deleteMany({});
-      await readModelRepository.eservices.deleteMany({});
-      await readModelRepository.tenants.deleteMany({});
-      await readModelRepository.purposes.deleteMany({});
-      await readModelRepository.attributes.deleteMany({});
+      await readModelRepository?.agreements.deleteMany({});
+      await readModelRepository?.eservices.deleteMany({});
+      await readModelRepository?.tenants.deleteMany({});
+      await readModelRepository?.purposes.deleteMany({});
+      await readModelRepository?.attributes.deleteMany({});
+      await readModelRepository?.clients.deleteMany({});
 
-      await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
-      await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        "TRUNCATE TABLE agreement.events RESTART IDENTITY"
+      );
+      await postgresDB?.none(
+        "TRUNCATE TABLE attribute.events RESTART IDENTITY"
+      );
+      await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+      await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
+      await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
 
-      if (s3OriginalBucket) {
+      if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
           s3OriginalBucket,
           genericLogger
         );
         await Promise.all(
-          files.map((file) =>
-            fileManager.delete(s3OriginalBucket, file, genericLogger)
-          )
+          files.map(async (file) => {
+            if (fileManager) {
+              await fileManager.delete(s3OriginalBucket, file, genericLogger);
+            }
+          })
         );
         // Some tests change the bucket name, so we need to reset it
-        config.s3Bucket = s3OriginalBucket;
+        fileManagerConfig.s3Bucket = s3OriginalBucket;
       }
     },
   };

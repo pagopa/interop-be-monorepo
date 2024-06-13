@@ -6,6 +6,7 @@ import {
   AgreementStateV2,
   AgreementV2,
 } from "../gen/v2/agreement/agreement.js";
+import { dateToBigInt } from "../utils.js";
 import {
   Agreement,
   AgreementDocument,
@@ -33,14 +34,14 @@ export const toAgreementDocumentV2 = (
   input: AgreementDocument
 ): AgreementDocumentV2 => ({
   ...input,
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toAgreementStampV2 = (
   input: AgreementStamp
 ): AgreementStampV2 => ({
   ...input,
-  when: BigInt(input.when.getTime()),
+  when: dateToBigInt(input.when),
 });
 
 export const toAgreementStampsV2 = (
@@ -66,11 +67,9 @@ export const toAgreementStampsV2 = (
 export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
   ...input,
   state: toAgreementStateV2(input.state),
-  createdAt: BigInt(input.createdAt.getTime()),
-  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
-  suspendedAt: input.suspendedAt
-    ? BigInt(input.suspendedAt.getTime())
-    : undefined,
+  createdAt: dateToBigInt(input.createdAt),
+  updatedAt: dateToBigInt(input.updatedAt),
+  suspendedAt: dateToBigInt(input.suspendedAt),
   consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
   contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
   stamps: toAgreementStampsV2(input.stamps),
