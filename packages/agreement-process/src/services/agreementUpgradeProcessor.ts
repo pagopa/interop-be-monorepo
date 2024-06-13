@@ -139,9 +139,9 @@ export async function createUpgradeOrNewDraft({
       verifiedAttributes: [],
       certifiedAttributes: [],
       declaredAttributes: [],
-      /* We copy suspensionByConsumer, suspensionByProducer, suspendedAt, and
+      /* We copy suspendedByProducer, suspendedByProducer, suspendedAt, and
       the corresponding stamps, even if this is a Draft Agreement and suspension
-      makes sense only after activation.
+      should not make sense on a Draft Agreement.
       In this way, when the new agreement gets activated
       by the producer, it will be suspended right away if the original
       agreement was suspended by the consumer, and viceversa. */
