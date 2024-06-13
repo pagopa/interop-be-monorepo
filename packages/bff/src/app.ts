@@ -11,6 +11,7 @@ import attributeRouter from "./routers/attributeRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
+import selfcareRouter from "./routers/selfcareRouter.js";
 
 const serviceName = "bff-process";
 
@@ -29,6 +30,7 @@ app.use(catalogRouter(zodiosCtx));
 app.use(attributeRouter(zodiosCtx));
 app.use(purposeRouter(zodiosCtx));
 app.use(agreementRouter(zodiosCtx));
+app.use(selfcareRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx));
 
 export default app;
