@@ -69,4 +69,5 @@ export const toClientV1 = (input: Client): ClientV1 => ({
   })),
   kind: toClientKindV1(input.kind),
   createdAt: dateToBigInt(input.createdAt),
+  relationships: [],
 });
