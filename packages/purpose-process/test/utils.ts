@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   initPDFGenerator,
+  launchBrowser,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -25,7 +26,7 @@ import {
   PurposeId,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
-import puppeteer, { Browser } from "puppeteer";
+import puppeteer from "puppeteer";
 import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
@@ -52,15 +53,14 @@ export const purposes = readModelRepository.purposes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const testBrowserInstance: Browser = await puppeteer.launch({ pipe: true });
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
+const testBrowserInstance = await launchBrowser({ pipe: true });
 
 vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
+
+afterAll(async () => await testBrowserInstance.close());
+
 const pdfGenerator = await initPDFGenerator();
 
 export const purposeService = purposeServiceBuilder(
