@@ -32,7 +32,7 @@ import {
   launchBrowser,
 } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
@@ -47,6 +47,16 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
+const testBrowserInstance: Browser = await launchBrowser({ pipe: true });
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
@@ -54,17 +64,9 @@ export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const testBrowserInstance = await launchBrowser({ pipe: true });
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-
-afterAll(async () => await testBrowserInstance.close());
-
+export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
 export const pdfGenerator = await initPDFGenerator();
 
-export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,

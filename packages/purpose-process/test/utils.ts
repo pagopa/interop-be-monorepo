@@ -26,7 +26,7 @@ import {
   PurposeId,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
@@ -53,14 +53,15 @@ export const purposes = readModelRepository.purposes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const testBrowserInstance = await launchBrowser({ pipe: true });
+const testBrowserInstance: Browser = await launchBrowser({ pipe: true });
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
 
 vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
-
-afterAll(async () => await testBrowserInstance.close());
-
 const pdfGenerator = await initPDFGenerator();
 
 export const purposeService = purposeServiceBuilder(
