@@ -12,25 +12,33 @@ export interface PDFGenerator {
   ) => Promise<Buffer>;
 }
 
-export const launchBrowser = (
-  launchoptions: puppeteer.LaunchOptions = {}
-): Promise<Browser> =>
-  puppeteer.launch({
-    ...launchoptions,
+/* Exporting a function for the launch options of puppeteer instead
+of the launchBrowser function itself. This avoids exporting the puppeteer
+module types, that cause ESLint to reach max heap size and crash.
 
-    /* NOTE
-    those configurations allow link (file://) usages for
-    resources files in template's folder
-    */
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-gpu",
-      "--disable-dev-shm-usage",
-      "--allow-file-access-from-files",
-      "--enable-local-file-accesses",
-    ],
-  });
+These reaused to launch puppeteer for testing
+with the same params used in production, but allowing to set
+pipe option to true. Pipe true allows test suites to run
+without spawning a new browser instance for each test.
+*/
+export const puppeteerLaunchOptions = (
+  options: { pipe: boolean } = { pipe: false }
+): object => ({
+  ...options,
+  /* the following args allow file:// usages for
+  resources files in template's folder */
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--allow-file-access-from-files",
+    "--enable-local-file-accesses",
+  ],
+});
+
+const launchBrowser = (): Promise<Browser> =>
+  puppeteer.launch(puppeteerLaunchOptions());
 
 export async function initPDFGenerator(): Promise<PDFGenerator> {
   const templateService = buildHTMLTemplateService();

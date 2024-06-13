@@ -30,6 +30,7 @@ import {
   genericLogger,
   initPDFGenerator,
   launchBrowser,
+  puppeteerLaunchOptions,
 } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
@@ -47,7 +48,9 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
-const testBrowserInstance: Browser = await launchBrowser({ pipe: true });
+const testBrowserInstance: Browser = await puppeteer.launch(
+  puppeteerLaunchOptions({ pipe: true })
+);
 const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 

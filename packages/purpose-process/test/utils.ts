@@ -2,6 +2,7 @@
 import {
   initPDFGenerator,
   launchBrowser,
+  puppeteerLaunchOptions,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -53,7 +54,9 @@ export const purposes = readModelRepository.purposes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const testBrowserInstance: Browser = await launchBrowser({ pipe: true });
+const testBrowserInstance: Browser = await puppeteer.launch(
+  puppeteerLaunchOptions({ pipe: true })
+);
 const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
