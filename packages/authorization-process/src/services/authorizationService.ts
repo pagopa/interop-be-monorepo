@@ -17,17 +17,17 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
-import {
-  clientNotFound,
-  organizationNotAllowedOnClient,
-} from "../model/domain/errors.js";
+import { clientNotFound } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
-import { isClientConsumer } from "./validators.js";
+import {
+  assertOrganizationIsClientConsumer,
+  isClientConsumer,
+} from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -177,12 +177,3 @@ export function authorizationServiceBuilder(
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const assertOrganizationIsClientConsumer = (
-  organizationId: TenantId,
-  client: Client
-): void => {
-  if (client.consumerId !== organizationId) {
-    throw organizationNotAllowedOnClient(organizationId, client.id);
-  }
-};
