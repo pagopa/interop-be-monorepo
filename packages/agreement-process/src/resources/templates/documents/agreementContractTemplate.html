@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Richiesta di fruizione</title>
+  <link rel="stylesheet" href="./agreementContractTemplate.css" type="text/css" />
+  {{{paged-pdf-polyfill}}}
+</head>
+  
+<body>
+  <!-- Pié di pagina -->
+  <div class="footer">
+    <hr />
+    <div class="pagopa">
+      <div class="pagopa-data">
+        PagoPA S.p.A.<br />
+        società per azioni con socio unico<br />
+        capitale sociale di euro 1,000,000 interamente versato<br />
+        sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
+        n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+      </div>
+      <div class="pictogram">
+        <img src="../assets/media/pictogram_pagopa.svg" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Intestazione di pagina -->
+  <div class="header">
+    <div class="logo">
+      <img src="../assets/media/logo_pagopa.png" />
+    </div>
+  </div>
+
+  <!-- Titolo del documento -->
+  <h1>Richiesta di fruizione</h1>
+
+  <!-- Intro legale -->
+  <div class="legal-intro">
+    In data <strong>{{todayDate}}</strong> alle ore
+    <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
+    di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
+    seguito “Richiesta di Fruizione”), inviata dall’aderente
+    <strong>{{consumerText}}</strong> (di seguito “Fruitore”), tramite
+    l’operatore amministrativo <strong>{{submitter}}</strong>, per l’E-service
+    <strong>{{eServiceName}}</strong> reso disponibile dall’aderente
+    <strong>{{producerText}}</strong>
+    (di seguito “Erogatore”) di cui il Fruitore soddisfa i seguenti requisiti
+    di fruizione per lo stesso previsti dall’Erogatore.
+  </div>
+  <div class="content">
+    <h2>Attributi dichiarati</h2>
+
+    {{{declaredAttributes}}}
+
+    <h2>Attributi verificati</h2>
+
+    {{{verifiedAttributes}}}
+
+    <h2>Attributi certificati</h2>
+
+    {{{certifiedAttributes}}}
+
+    <h2>Registrazione</h2>
+
+    <div>
+      In data <strong>{{submissionDate}}</strong> alle ore
+      <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
+      all’Erogatore la Richiesta di Fruizione.
+    </div>
+
+    <div>
+      In data <strong>{{activationDate}}</strong> alle ore
+      <strong>{{activationTime}}</strong>, l’Infrastruttura ha ricevuto la
+      dichiarazione di accettazione della Richiesta di Fruizione (di seguito
+      “Dichiarazione Accettazione”) inviata dall’Erogatore, tramite
+      l’operatore amministrativo <strong>{{activator}}</strong>.
+    </div>
+
+    <div>
+      In data <strong>{{activationDate}}</strong> alle ore
+      <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
+      Fruitore la Dichiarazione Accettazione inviata dall’Erogatore.
+    </div>
+
+    <div>
+      In data <strong>{{activationDate}}</strong> alle ore
+      <strong>{{activationTime}}</strong>, l’Infrastruttura ha registrato il
+      Fruitore quale soggetto titolato ad accedere all’E-service.
+    </div>
+  </div>
+</body>
+
+</html>

@@ -52,7 +52,6 @@ export const fromPurposeVersionV1 = (
   ...input,
   id: unsafeBrandId(input.id),
   state: fromPurposeVersionStateV1(input.state),
-  expectedApprovalDate: bigIntToDate(input.expectedApprovalDate),
   riskAnalysis: input.riskAnalysis
     ? fromPurposeVersionDocumentV1(input.riskAnalysis)
     : undefined,
@@ -80,16 +79,24 @@ export const fromPurposeRiskAnalysisFormV1 = (
   })),
 });
 
-export const fromPurposeV1 = (input: PurposeV1): Purpose => ({
-  ...input,
-  id: unsafeBrandId(input.id),
-  eserviceId: unsafeBrandId(input.eserviceId),
-  consumerId: unsafeBrandId(input.consumerId),
-  versions: input.versions.map(fromPurposeVersionV1),
-  isFreeOfCharge: input.isFreeOfCharge || true,
-  createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDate(input.updatedAt),
-  riskAnalysisForm: input.riskAnalysisForm
-    ? fromPurposeRiskAnalysisFormV1(input.riskAnalysisForm)
-    : undefined,
-});
+export const fromPurposeV1 = (input: PurposeV1): Purpose => {
+  const parsedIsFreeOfCharge =
+    input.isFreeOfCharge === undefined ? true : input.isFreeOfCharge;
+
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    eserviceId: unsafeBrandId(input.eserviceId),
+    consumerId: unsafeBrandId(input.consumerId),
+    versions: input.versions.map(fromPurposeVersionV1),
+    isFreeOfCharge: parsedIsFreeOfCharge,
+    freeOfChargeReason: parsedIsFreeOfCharge
+      ? input.freeOfChargeReason || "Sono una Pubblica Amministrazione"
+      : undefined,
+    createdAt: bigIntToDate(input.createdAt),
+    updatedAt: bigIntToDate(input.updatedAt),
+    riskAnalysisForm: input.riskAnalysisForm
+      ? fromPurposeRiskAnalysisFormV1(input.riskAnalysisForm)
+      : undefined,
+  };
+};
