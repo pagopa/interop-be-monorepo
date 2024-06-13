@@ -380,7 +380,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      await validateConsumerEmail(agreement.data, readModelService);
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      await validateConsumerEmail(consumer, agreement.data);
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -390,11 +395,6 @@ export function agreementServiceBuilder(
       const descriptor = await validateSubmitOnDescriptor(
         eservice,
         agreement.data.descriptorId
-      );
-
-      const consumer = await retrieveTenant(
-        agreement.data.consumerId,
-        readModelService
       );
 
       const producer = await retrieveTenant(
@@ -503,6 +503,11 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+        /* 
+          This condition can only check if state is ACTIVE
+          at this point the SUSPENDED state is not available 
+          after validateActiveOrPendingAgreement validation
+        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
