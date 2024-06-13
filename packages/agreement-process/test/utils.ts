@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import {
@@ -10,6 +11,7 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
+import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
   Agreement,
   AgreementDocument,
@@ -26,7 +28,6 @@ import {
   toReadModelEService,
 } from "pagopa-interop-models";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
 import { ApiTenantAttribute } from "../src/model/types.js";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
@@ -51,7 +52,6 @@ afterAll(closeTestBrowserInstance);
 vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
-const pdfGenerator = await initPDFGenerator();
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
@@ -61,6 +61,7 @@ export const attributes = readModelRepository.attributes;
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
+export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
@@ -103,7 +104,6 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
-
 export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>

@@ -47,6 +47,13 @@ export const agreementActivableStates: AgreementState[] = [
   agreementState.pending,
   agreementState.suspended,
 ];
+
+export const agreementActivationAllowedDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+];
+
 export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
@@ -373,12 +380,6 @@ export const validateActivationOnDescriptor = (
   eservice: EService,
   descriptorId: Descriptor["id"]
 ): Descriptor => {
-  const allowedState: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.deprecated,
-    descriptorState.suspended,
-  ];
-
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
     throw descriptorNotFound(eservice.id, descriptorId);
@@ -388,7 +389,7 @@ export const validateActivationOnDescriptor = (
     eservice.id,
     descriptor.id,
     descriptor.state,
-    allowedState
+    agreementActivationAllowedDescriptorStates
   );
 
   return descriptor;
