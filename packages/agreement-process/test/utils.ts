@@ -1,38 +1,38 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import {
-  ReadEvent,
   StoredEvent,
-  randomArrayItem,
-  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
+  ReadEvent,
+  readEventByStreamIdAndVersion,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
   Agreement,
-  AgreementDocument,
-  AgreementDocumentId,
   AgreementEvent,
   AgreementId,
-  Attribute,
   EService,
   Tenant,
-  generateId,
   toAgreementV2,
-  toReadModelAgreement,
-  toReadModelAttribute,
   toReadModelEService,
+  toReadModelAgreement,
+  AgreementDocumentId,
+  generateId,
+  AgreementDocument,
+  Attribute,
+  toReadModelAttribute,
 } from "pagopa-interop-models";
+import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
-import { ApiTenantAttribute } from "../src/model/types.js";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
+import { ApiTenantAttribute } from "../src/model/types.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   setupTestContainersVitest(
@@ -44,7 +44,7 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 afterEach(cleanup);
 
 const testBrowserInstance: Browser = await puppeteer.launch();
-export const closeTestBrowserInstance = async (): Promise<void> =>
+const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
 afterAll(closeTestBrowserInstance);

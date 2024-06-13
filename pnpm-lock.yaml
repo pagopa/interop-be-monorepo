@@ -108,9 +108,6 @@ importers:
       pagopa-interop-selfcare-v2-client:
         specifier: workspace:*
         version: link:../selfcare-v2-client
-      puppeteer:
-        specifier: 22.10.0
-        version: 22.10.0(typescript@5.4.5)
       ts-pattern:
         specifier: 5.1.2
         version: 5.1.2
