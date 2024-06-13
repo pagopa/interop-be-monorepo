@@ -1,4 +1,3 @@
-import { AxiosHeaders } from "axios";
 import { createApiClient as createApiClientTenantProcess } from "../model/generated/tenant-process/api.js";
 import { createApiClient as createApiClientAgreementProcess } from "../model/generated/agreement-process/api.js";
 import { createApiClient as createApiClientCatalogProcess } from "../model/generated/catalog-process/api.js";
@@ -6,7 +5,7 @@ import { createApiClient as createApiClientAttributeProcess } from "../model/gen
 import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
 import { config } from "../utilities/config.js";
 
-export type Headers = AxiosHeaders & { "X-Correlation-Id": string };
+export type Headers = { "X-Correlation-Id": string, Authorization: string };
 
 export type PagoPaClients = {
   tenantProcessClient: ReturnType<typeof createApiClientTenantProcess>;
