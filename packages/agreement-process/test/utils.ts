@@ -52,7 +52,6 @@ afterAll(closeTestBrowserInstance);
 vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
-const pdfGenerator = await initPDFGenerator();
 
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
@@ -62,6 +61,7 @@ export const attributes = readModelRepository.attributes;
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
+export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
@@ -104,7 +104,6 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
-
 export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
