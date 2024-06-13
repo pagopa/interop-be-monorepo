@@ -29,7 +29,6 @@ import {
 import {
   genericLogger,
   initPDFGenerator,
-  launchBrowser,
   puppeteerLaunchOptions,
 } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
