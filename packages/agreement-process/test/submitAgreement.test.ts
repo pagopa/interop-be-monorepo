@@ -1194,7 +1194,8 @@ describe("submit agreement", () => {
     expect(uploadedFiles.length).toEqual(0);
 
     // TODO verify if this logic is correct: we have a resulting agreement
-    // in state ACTIVE but with contract undefined and no attributes
+    // in state ACTIVE but with contract undefined and no attributes.
+    // https://pagopa.atlassian.net/browse/IMN-623
     expect(submittedAgreement.contract).not.toBeDefined();
 
     const expectedAgreement = {
@@ -1576,7 +1577,8 @@ describe("submit agreement", () => {
     expect(uploadedFiles.length).toEqual(0);
 
     // TODO verify if this logic is correct: we have a resulting agreement
-    // in state ACTIVE but with contract undefined and no attribute
+    // in state ACTIVE but with contract undefined and no attribute.
+    // https://pagopa.atlassian.net/browse/IMN-623
     expect(submittedAgreement.contract).not.toBeDefined();
 
     const expectedAgreement = {
