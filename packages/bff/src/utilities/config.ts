@@ -45,10 +45,22 @@ export type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
+export const PurposeProcessServerConfig = z
+  .object({
+    PURPOSE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    purposeUrl: c.PURPOSE_PROCESS_URL,
+  }));
+export type PurposeProcessServerConfig = z.infer<
+  typeof PurposeProcessServerConfig
+>;
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
-  .and(AttributeRegistryProcessServerConfig);
+  .and(AttributeRegistryProcessServerConfig)
+  .and(PurposeProcessServerConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

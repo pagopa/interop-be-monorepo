@@ -107,6 +107,10 @@ export function makeApiProblemBuilder<T extends string>(errors: {
         logger.warn(makeProblemLogString(problem, error));
         return problem;
       })
+      .with(
+        { response: { status: P.number, data: P.any } },
+        (e) => e.response.data as Problem
+      )
       .otherwise((error: unknown) => {
         const problem = makeProblem(500, genericError("Unexpected error"));
         logger.error(makeProblemLogString(problem, error));

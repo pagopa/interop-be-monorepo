@@ -11613,8 +11613,12 @@ components:
       properties:
         title:
           type: string
+          minLength: 5
+          maxLength: 60
         description:
           type: string
+          minLength: 10
+          maxLength: 250
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -11623,6 +11627,7 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
+          minimum: 0
       required:
         - title
         - description
