@@ -503,9 +503,9 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        /* 
+        /*
           This condition can only check if state is ACTIVE
-          at this point the SUSPENDED state is not available 
+          at this point the SUSPENDED state is not available
           after validateActiveOrPendingAgreement validation
         */
         isActiveOrSuspended(submittedAgreement.state)
@@ -603,7 +603,9 @@ export function agreementServiceBuilder(
 
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
-        descriptorId: newDescriptor.id,
+        newDescriptor,
+        eservice,
+        consumer,
         readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,

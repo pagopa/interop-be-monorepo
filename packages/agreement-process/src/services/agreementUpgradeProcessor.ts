@@ -2,7 +2,6 @@ import { FileManager, Logger, CreateEvent } from "pagopa-interop-commons";
 import {
   WithMetadata,
   Agreement,
-  DescriptorId,
   AgreementEvent,
   agreementState,
   generateId,
