@@ -15,6 +15,7 @@ import {
   getMockVerifiedTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -62,6 +63,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { agreementSubmissionConflictingStates } from "../src/model/domain/validators.js";
 import { config } from "../src/utilities/config.js";
+import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   agreementService,
   addOneAgreement,
@@ -1118,6 +1120,8 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
+    const authData = getRandomAuthData(consumer.id);
+
     const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
@@ -1128,6 +1132,13 @@ describe("submit agreement", () => {
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
     };
 
     await addOneEService(eservice);
@@ -1141,7 +1152,6 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
     const mockUserResponse: UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
@@ -1287,11 +1297,19 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
+    const authData = getRandomAuthData(consumer.id);
     const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
     };
 
     const validAttribute: Attribute = {
@@ -1326,7 +1344,6 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
     const mockUserResponse: UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
@@ -1501,11 +1518,19 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
+    const authData = getRandomAuthData(consumer.id);
     const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1524,7 +1549,6 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
     const mockUserResponse: UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
@@ -1686,11 +1710,19 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
+    const authData = getRandomAuthData(consumer.id);
     const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1730,7 +1762,6 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
     const mockUserResponse: UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
@@ -1895,11 +1926,19 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
+    const authData = getRandomAuthData(consumer.id);
     const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1912,7 +1951,6 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
     const mockUserResponse: UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
@@ -2040,11 +2078,19 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
+    const authData = getRandomAuthData(consumer.id);
     const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      suspendedAt: new Date(),
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -2057,7 +2103,6 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
     const mockUserResponse: UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",

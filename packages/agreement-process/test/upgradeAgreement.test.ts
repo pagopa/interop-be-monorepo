@@ -15,6 +15,7 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
+  randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -160,6 +161,8 @@ describe("upgrade Agreement", () => {
       producerId: producerAndConsumer.id,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: agreementConsumerDocuments,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
       stamps: {
         submission: createStamp(authData.userId),
         activation: createStamp(authData.userId),
@@ -370,6 +373,8 @@ describe("upgrade Agreement", () => {
       producerId,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
       stamps: {
         submission: createStamp(authData.userId),
         activation: createStamp(authData.userId),
@@ -572,6 +577,8 @@ describe("upgrade Agreement", () => {
       producerId,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
       stamps: {
         submission: createStamp(authData.userId),
         activation: createStamp(authData.userId),
@@ -752,6 +759,8 @@ describe("upgrade Agreement", () => {
       producerId,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
       stamps: {
         submission: createStamp(authData.userId),
         activation: createStamp(authData.userId),
@@ -929,6 +938,8 @@ describe("upgrade Agreement", () => {
       producerId,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: agreementConsumerDocuments,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
       stamps: {
         submission: createStamp(authData.userId),
         activation: createStamp(authData.userId),
