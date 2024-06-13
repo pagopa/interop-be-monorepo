@@ -38,7 +38,7 @@ export const toAuthorizationEventNotification = (
       }
       return {
         clientId: event.data.client.id,
-        keyId: event.data.kid, // To do: double-check
+        keyId: event.data.kid,
         deactivationTimestamp: new Date().toISOString(),
       };
     })
