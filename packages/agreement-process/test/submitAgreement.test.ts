@@ -1006,8 +1006,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
       suspendedByPlatform: false,
     };
 
@@ -1125,9 +1123,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1206,6 +1201,7 @@ describe("submit agreement", () => {
       ...agreement,
       state: agreementState.active,
       consumerNotes: consumerNotesText,
+      suspendedByPlatform: false,
       stamps: {
         ...agreement.stamps,
         submission: {
@@ -1295,9 +1291,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
     };
 
     const validAttribute: Attribute = {
@@ -1408,6 +1401,7 @@ describe("submit agreement", () => {
       state: agreementState.active,
       consumerNotes: consumerNotesText,
       contract: expectedContract,
+      suspendedByPlatform: false,
       verifiedAttributes: [
         {
           id: validVerifiedTenantAttribute.id,
@@ -1511,9 +1505,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1592,6 +1583,7 @@ describe("submit agreement", () => {
       ...agreement,
       state: agreementState.active,
       consumerNotes: consumerNotesText,
+      suspendedByPlatform: false,
       certifiedAttributes: [
         {
           id: validCertifiedTenantAttribute.id,
@@ -1697,9 +1689,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1815,6 +1804,7 @@ describe("submit agreement", () => {
       state: agreementState.active,
       consumerNotes: consumerNotesText,
       contract: expectedContract,
+      suspendedByPlatform: false,
       certifiedAttributes: [
         {
           id: validCertifiedTenantAttribute.id,
@@ -1908,9 +1898,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -1981,11 +1968,10 @@ describe("submit agreement", () => {
       ...agreement,
       state: agreementState.pending,
       consumerNotes: consumerNotesText,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
+      suspendedByPlatform: false,
       stamps: {
         ...agreement.stamps,
         submission: {
@@ -2057,9 +2043,6 @@ describe("submit agreement", () => {
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
       state: agreementState.draft,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      suspendedByPlatform: false,
       // The agreement is draft, so it doens't have a contract or attributes
       contract: undefined,
       certifiedAttributes: [],
@@ -2132,8 +2115,7 @@ describe("submit agreement", () => {
       certifiedAttributes: [],
       declaredAttributes: [],
       verifiedAttributes: [],
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
+      suspendedByPlatform: false,
       stamps: {
         ...agreement.stamps,
         submission: {
