@@ -41,7 +41,7 @@ import {
   tenants,
 } from "./utils.js";
 
-describe("Upgrade suspended agreement activation", () => {
+describe("Agreeement states flows", () => {
   const mockSelfcareUserResponse: UserResponse = {
     email: "test@test.com",
     name: "Test Name",
@@ -75,7 +75,7 @@ describe("Upgrade suspended agreement activation", () => {
     );
   }
 
-  it("should keep an agreement suspended if it was already suspended", async () => {
+  it("agreement for descriptor V1 >> suspended by consumer >> V2 with new verified attributes >> upgrade >> producer verifies attributes and activates >> should still be SUSPENDED by consumer", async () => {
     const producer = getMockTenant();
 
     const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
@@ -143,7 +143,7 @@ describe("Upgrade suspended agreement activation", () => {
       creationTime: new Date(new Date().getFullYear() - 1),
     });
 
-    /* ================================= 
+    /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getRandomAuthData(consumer.id);
@@ -163,7 +163,7 @@ describe("Upgrade suspended agreement activation", () => {
     expect(createdAgreement.state).toEqual(agreementState.draft);
     await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
 
-    /* ================================= 
+    /* =================================
       2) Consumer submits the agreement (making it Active)
     ================================= */
     const submittedAgreement = await agreementService.submitAgreement(
@@ -182,7 +182,7 @@ describe("Upgrade suspended agreement activation", () => {
     expect(submittedAgreement.state).toEqual(agreementState.active);
     await updateAgreementInReadModel(submittedAgreement, 0);
 
-    /* ================================= 
+    /* =================================
       3) Consumer suspends the agreement (make it SUSPENDED byConsumer)
     ================================= */
     const suspendedAgreement = await agreementService.suspendAgreement(
@@ -201,10 +201,9 @@ describe("Upgrade suspended agreement activation", () => {
     expect(suspendedAgreement.suspendedByPlatform).toEqual(false);
     await updateAgreementInReadModel(suspendedAgreement, 1);
 
-    /* ================================= 
+    /* =================================
       4) Someone adds a new descriptor (V2) with verified attributes
     ================================= */
-
     const validVerifiedEserviceAttribute = getMockEServiceAttribute();
 
     const descriptorV2: Descriptor = {
@@ -244,10 +243,9 @@ describe("Upgrade suspended agreement activation", () => {
       }
     );
 
-    /* ================================= 
+    /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-
     const upgradedAgreement = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
       {
@@ -264,11 +262,10 @@ describe("Upgrade suspended agreement activation", () => {
     expect(upgradedAgreement.suspendedByPlatform).toEqual(undefined);
     await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
 
-    /* ================================= 
-      6) Producer submits the agreement to make it PENDING 
+    /* =================================
+      6) Producer submits the agreement to make it PENDING
       (valid att CERTIFIED and DECLARED)
     ================================= */
-
     const submittedUpgradedAgreement = await agreementService.submitAgreement(
       upgradedAgreement.id,
       {
@@ -286,10 +283,9 @@ describe("Upgrade suspended agreement activation", () => {
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
     await updateAgreementInReadModel(submittedUpgradedAgreement, 0);
 
-    /* ================================= 
+    /* =================================
       7) Producer updates Verified Attributes
     ================================= */
-
     const validVerifiedTenantAttribute: VerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(validVerifiedEserviceAttribute.id),
       verifiedBy: [
@@ -330,12 +326,12 @@ describe("Upgrade suspended agreement activation", () => {
       creationTime: new Date(new Date().getFullYear() - 1),
     });
 
-    /* ================================= 
+    /* =================================
       8) Agreement activation by producer (state remains SUSPENDED)
-      
-      After the producer attempted to activate the upgraded agreement, 
-      it was expected that the state would remain SUSPENDED. 
-      In this case, the agreement was originally suspended by the consumer, 
+
+      After the producer attempted to activate the upgraded agreement,
+      it was expected that the state would remain SUSPENDED.
+      In this case, the agreement was originally suspended by the consumer,
       but the activation was performed by the producer, so it must remain suspended.
       During this execution flow, the newly created draft agreement still preserves the suspension flags and PENDING state.
     ================================= */
