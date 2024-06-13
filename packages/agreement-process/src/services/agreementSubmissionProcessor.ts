@@ -25,9 +25,7 @@ import {
   matchingVerifiedAttributes,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { retrieveTenant } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { ReadModelService } from "./readModelService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -36,11 +34,9 @@ export type AgremeentSubmissionResults = {
 };
 
 export const validateConsumerEmail = async (
-  agreement: Agreement,
-  readModelService: ReadModelService
+  consumer: Tenant,
+  agreement: Agreement
 ): Promise<void> => {
-  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
-
   const hasContactEmail = consumer.mails.some(
     (mail) => mail.kind === tenantMailKind.ContactEmail
   );
