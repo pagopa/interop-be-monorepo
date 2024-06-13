@@ -25,7 +25,7 @@
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
-    "lint": "NODE_OPTIONS='--max-old-space-size=4096' turbo lint --concurrency=2",
+    "lint": "turbo lint --concurrency=4",
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
