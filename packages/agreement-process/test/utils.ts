@@ -25,8 +25,10 @@ import {
   AgreementDocument,
   Attribute,
   toReadModelAttribute,
+  TenantId,
 } from "pagopa-interop-models";
 import {
+  formatDateyyyyMMddHHmmss,
   genericLogger,
   initPDFGenerator,
   puppeteerLaunchOptions,
@@ -159,6 +161,26 @@ export function getMockConsumerDocument(
     prettyName: "pretty name",
     contentType: "application/pdf",
     createdAt: new Date(),
+  };
+}
+
+export function getMockContract(
+  agreementId: AgreementId,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  const createdAt = new Date();
+  const contractDocumentName = `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
+    createdAt
+  )}_agreement_contract.pdf`;
+  return {
+    id,
+    contentType: "application/pdf",
+    createdAt,
+    path: `${config.agreementContractsPath}/${agreementId}/${id}/${contractDocumentName}`,
+    prettyName: "Richiesta di fruizione",
+    name: contractDocumentName,
   };
 }
 
