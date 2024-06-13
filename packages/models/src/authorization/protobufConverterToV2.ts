@@ -13,8 +13,6 @@ const toKeyUseV2 = (input: KeyUse): KeyUseV2 =>
 
 export const toKeyV2 = (input: Key): KeyV2 => ({
   ...input,
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  userId: input.userId!,
   use: toKeyUseV2(input.use),
   createdAt: dateToBigInt(input.createdAt),
 });
