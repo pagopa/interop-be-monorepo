@@ -17,7 +17,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
-  purposeIdNotFound,
+  purposeNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -91,7 +91,7 @@ describe("remove client purpose", () => {
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw purposeIdNotFound if that purposeId is not related to that client", async () => {
+  it("should throw purposeNotFound if that purposeId is not related to that client", async () => {
     const mockConsumer = getMockTenant();
     const notExistingPurposeId: PurposeId = generateId();
     const purposeIdToNotRemove: PurposeId = generateId();
@@ -113,9 +113,7 @@ describe("remove client purpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      purposeIdNotFound(notExistingPurposeId, mockClient.id)
-    );
+    ).rejects.toThrowError(purposeNotFound(notExistingPurposeId));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     const mockConsumer1 = getMockTenant();

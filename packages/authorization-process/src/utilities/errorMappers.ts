@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -47,7 +48,7 @@ export const removeClientPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("clientNotFound", "purposeIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -74,11 +75,13 @@ export const addClientPurposeErrorMapper = (
     .with(
       "clientNotFound",
       "purposeNotFound",
-      "eserviceNotFound",
-      "agreementNotFound",
-      "descriptorNotFound",
-      "noVersionsFoundInPurpose",
+
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "agreementNotFound",
+      "noVersionsFoundInPurpose",
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
     .with(

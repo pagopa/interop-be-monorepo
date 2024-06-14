@@ -36,9 +36,7 @@ import {
   keyNotFound,
   noVersionsFoundInPurpose,
   organizationNotAllowedOnClient,
-  organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
-  purposeIdNotFound,
   purposeNotFound,
   securityUserNotFound,
   userAlreadyAssigned,
@@ -58,7 +56,10 @@ import {
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
-import { isClientConsumer } from "./validators.js";
+import {
+  assertOrganizationIsPurposeConsumer,
+  isClientConsumer,
+} from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -81,7 +82,7 @@ const retrieveKey = (client: Client, keyId: string): Key => {
 
 const retrievePurposeId = (client: Client, purposeId: PurposeId): void => {
   if (!client.purposes.find((id) => id === purposeId)) {
-    throw purposeIdNotFound(purposeId, client.id);
+    throw purposeNotFound(purposeId);
   }
 };
 
@@ -464,6 +465,10 @@ export function authorizationServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
       assertOrganizationIsPurposeConsumer(organizationId, purpose);
 
+      if (client.data.purposes.includes(purposeId)) {
+        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+      }
+
       const eservice = await retrieveEService(
         purpose.eserviceId,
         readModelService
@@ -473,13 +478,11 @@ export function authorizationServiceBuilder(
         eservice.id,
         organizationId
       );
-      const agreement = agreements
-        .filter(
-          (a) =>
-            a.state === agreementState.active ||
-            a.state === agreementState.suspended
-        )
-        .sort((a1, a2) => a1.createdAt.getTime() - a2.createdAt.getTime())[0];
+      const agreement = agreements.filter(
+        (a) =>
+          a.state === agreementState.active ||
+          a.state === agreementState.suspended
+      )[0];
 
       if (agreement === undefined) {
         throw agreementNotFound(eservice.id, organizationId);
@@ -487,22 +490,16 @@ export function authorizationServiceBuilder(
 
       retrieveDescriptor(agreement.descriptorId, eservice);
 
-      const invalidPurposeVersionStates: PurposeVersionState[] = [
-        purposeVersionState.archived,
-        purposeVersionState.rejected,
-        purposeVersionState.draft,
-        purposeVersionState.waitingForApproval,
-      ];
-      const purposeVersion = purpose.versions.find(
-        (v) => !invalidPurposeVersionStates.includes(v.state)
+      const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
+        purposeVersionState.active,
+        purposeVersionState.suspended,
+      ]);
+      const purposeVersion = purpose.versions.find((v) =>
+        validPurposeVersionStates.has(v.state)
       );
 
       if (purposeVersion === undefined) {
         throw noVersionsFoundInPurpose(purpose.id);
-      }
-
-      if (client.data.purposes.includes(purposeId)) {
-        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
       }
 
       const updatedClient: Client = {
@@ -550,14 +547,5 @@ const assertSecurityUser = async (
   });
   if (users.length === 0) {
     throw securityUserNotFound(requesterUserId, userId);
-  }
-};
-
-const assertOrganizationIsPurposeConsumer = (
-  organizationId: TenantId,
-  purpose: Purpose
-): void => {
-  if (organizationId !== purpose.consumerId) {
-    throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
   }
 };

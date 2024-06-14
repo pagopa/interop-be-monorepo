@@ -15,16 +15,15 @@ export const errorCodes = {
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
   keyNotFound: "0005",
-  purposeIdNotFound: "0005",
+  purposeNotFound: "0005",
   securityUserNotFound: "0006",
   userAlreadyAssigned: "0007",
   eserviceNotFound: "0008",
-  purposeNotFound: "0009",
-  noVersionsFoundInPurpose: "0010",
-  descriptorNotFound: "0011",
-  agreementNotFound: "0012",
-  purposeAlreadyLinkedToClient: "0013",
-  organizationNotAllowedOnPurpose: "0014",
+  noVersionsFoundInPurpose: "009",
+  descriptorNotFound: "0010",
+  agreementNotFound: "0011",
+  purposeAlreadyLinkedToClient: "0012",
+  organizationNotAllowedOnPurpose: "0013",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -80,14 +79,11 @@ export function keyNotFound(
   });
 }
 
-export function purposeIdNotFound(
-  purposeId: PurposeId,
-  clientId: ClientId
-): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} not found in client ${clientId}`,
-    code: "purposeIdNotFound",
-    title: "Purpose id not found",
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
   });
 }
 
@@ -118,14 +114,6 @@ export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
     detail: `EService ${eserviceId} not found`,
     code: "eserviceNotFound",
     title: "EService not found",
-  });
-}
-
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
   });
 }
 
