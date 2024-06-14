@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -114,6 +114,8 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
       it("Should create a tenant by the upsert if it does not exist", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
         const mockAuthData = getMockAuthData();
         const tenantSeed = {
           externalId: {
@@ -142,16 +144,19 @@ describe("Integration tests", () => {
         const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
           TenantOnboardedV2
         ).parse(writtenEvent.data);
+
         const expectedTenant: Tenant = {
           ...mockTenant,
           externalId: tenantSeed.externalId,
           id: unsafeBrandId(id),
           kind: getTenantKind([], tenantSeed.externalId),
           selfcareId: tenantSeed.selfcareId,
-          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
+          onboardedAt: new Date(),
+          createdAt: new Date(),
         };
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+        vi.useRealTimers();
       });
       it("Should throw operation forbidden if role isn't internal", async () => {
         await addOneTenant(mockTenant);
