@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   EService,
+  genericError,
   WithMetadata,
   EServiceId,
   TenantId,
@@ -16,9 +17,23 @@ import {
   PurposeId,
   genericInternalError,
   PurposeReadModel,
+  ListResult,
+  purposeVersionState,
+  Agreement,
+  agreementState,
+  PurposeVersionState,
 } from "pagopa-interop-models";
-import { Filter, WithId } from "mongodb";
+import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
+
+export type GetPurposesFilters = {
+  title?: string;
+  eservicesIds: EServiceId[];
+  consumersIds: TenantId[];
+  producersIds: TenantId[];
+  states: PurposeVersionState[];
+  excludeDraft: boolean | undefined;
+};
 
 async function getPurpose(
   purposes: PurposeCollection,
@@ -91,11 +106,119 @@ async function getTenant(
   }
 }
 
+async function buildGetPurposesAggregation(
+  filters: GetPurposesFilters,
+  eservices: EServiceCollection
+): Promise<Document[]> {
+  const {
+    title,
+    eservicesIds,
+    consumersIds,
+    producersIds,
+    states,
+    excludeDraft,
+  } = filters;
+
+  const titleFilter: ReadModelFilter<Purpose> = title
+    ? {
+        "data.title": {
+          $regex: ReadModelRepository.escapeRegExp(title),
+          $options: "i",
+        },
+      }
+    : {};
+
+  const eservicesIdsFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(eservicesIds, {
+      "data.eserviceId": { $in: eservicesIds },
+    });
+
+  const consumersIdsFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(consumersIds, {
+      "data.consumerId": { $in: consumersIds },
+    });
+
+  const notArchivedStates = Object.values(PurposeVersionState.Values).filter(
+    (state) => state !== purposeVersionState.archived
+  );
+
+  const versionStateFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(states, {
+      $or: states.map((state) =>
+        state === purposeVersionState.archived
+          ? {
+              $and: [
+                { "data.versions.state": { $eq: state } },
+                ...notArchivedStates.map((otherState) => ({
+                  "data.versions.state": { $ne: otherState },
+                })),
+              ],
+            }
+          : { "data.versions.state": { $eq: state } }
+      ),
+    });
+
+  const draftFilter: ReadModelFilter<Purpose> = excludeDraft
+    ? {
+        $nor: [
+          { "data.versions": { $size: 0 } },
+          {
+            $and: [
+              { "data.versions": { $size: 1 } },
+              {
+                "data.versions.state": {
+                  $eq: purposeVersionState.draft,
+                },
+              },
+            ],
+          },
+        ],
+      }
+    : {};
+
+  const eserviceIds =
+    producersIds.length > 0
+      ? await eservices
+          .find({ "data.producerId": { $in: producersIds } })
+          .toArray()
+          .then((results) =>
+            results.map((eservice) => eservice.data.id.toString())
+          )
+      : [];
+
+  const producerIdsFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(eserviceIds, {
+      "data.eserviceId": { $in: eserviceIds },
+    });
+
+  return [
+    {
+      $match: {
+        ...titleFilter,
+        ...eservicesIdsFilter,
+        ...consumersIdsFilter,
+        ...versionStateFilter,
+        ...draftFilter,
+        ...producerIdsFilter,
+      } satisfies ReadModelFilter<Purpose>,
+    },
+    {
+      $project: {
+        data: 1,
+        computedColumn: { $toLower: ["$data.title"] },
+      },
+    },
+    {
+      $sort: { computedColumn: 1 },
+    },
+  ];
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants } = readModelRepository;
+  const { eservices, purposes, tenants, agreements } = readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -122,6 +245,79 @@ export function readModelServiceBuilder(
           $options: "i",
         },
       } satisfies ReadModelFilter<Purpose>);
+    },
+    async getPurposes(
+      filters: GetPurposesFilters,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<Purpose>> {
+      const aggregationPipeline = await buildGetPurposesAggregation(
+        filters,
+        eservices
+      );
+      const data = await purposes
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z.array(Purpose).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse purposes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          purposes,
+          aggregationPipeline,
+          false
+        ),
+      };
+    },
+    async getActiveAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": agreementState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
+      }
+    },
+    async getAllPurposes(filters: GetPurposesFilters): Promise<Purpose[]> {
+      const aggregationPipeline = await buildGetPurposesAggregation(
+        filters,
+        eservices
+      );
+
+      const data = await purposes
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .toArray();
+
+      const result = z.array(Purpose).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse purposes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }

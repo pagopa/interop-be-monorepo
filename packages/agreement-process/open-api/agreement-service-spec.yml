@@ -71,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -109,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -161,7 +161,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Document"
         "400":
           description: Bad Request
           content:
@@ -258,7 +258,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -305,7 +305,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -346,7 +346,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -380,7 +380,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -690,7 +690,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "404":
           description: Agreement not found
           content:
@@ -726,7 +726,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -769,6 +769,12 @@ paths:
       responses:
         "204":
           description: Bulk operation executed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/agreements/filter/eservices":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -850,14 +856,6 @@ components:
       schema:
         type: string
   schemas:
-    ResourceId:
-      type: object
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     AgreementPayload:
       type: object
       description: contains the information for agreement creation.
