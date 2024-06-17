@@ -243,7 +243,7 @@ export const getMockClient = (): Client => ({
 export const getMockKey = (): Key => ({
   name: "test key",
   createdAt: new Date(),
-  kid: "kid",
+  kid: `kid ${Math.random()}`,
   encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
