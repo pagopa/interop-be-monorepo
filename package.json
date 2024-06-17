@@ -19,6 +19,7 @@
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
     "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
     "start:authorization": "turbo start --filter pagopa-interop-authorization-process",
+    "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
     "start:bff": "turbo start --filter pagopa-interop-bff",
     "test": "turbo test",
     "build": "turbo build",
