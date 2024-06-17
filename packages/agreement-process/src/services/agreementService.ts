@@ -380,7 +380,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      await validateConsumerEmail(agreement.data, readModelService);
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      await validateConsumerEmail(consumer, agreement.data);
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -390,11 +395,6 @@ export function agreementServiceBuilder(
       const descriptor = await validateSubmitOnDescriptor(
         eservice,
         agreement.data.descriptorId
-      );
-
-      const consumer = await retrieveTenant(
-        agreement.data.consumerId,
-        readModelService
       );
 
       const producer = await retrieveTenant(
@@ -433,6 +433,9 @@ export function agreementServiceBuilder(
 
       const newState = agreementStateByFlags(
         nextStateByAttributes,
+        // TODO this should actually recalculate flags and consider them
+        // in the calculation of the new state, otherwise a suspended agreement
+        // that was upgraded will become active - https://pagopa.atlassian.net/browse/IMN-626
         undefined,
         undefined,
         suspendedByPlatform
@@ -503,6 +506,15 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+        /*
+          This condition can only check if state is ACTIVE
+          at this point the SUSPENDED state is not available
+          after validateActiveOrPendingAgreement validation.
+
+          TODO: this will not be true anymore if https://pagopa.atlassian.net/browse/IMN-626
+          is confirmed and gets fixed - the agreement could also be in SUSPENDED state.
+          Remove the comment at that point.
+        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
@@ -598,7 +610,9 @@ export function agreementServiceBuilder(
 
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
-        descriptorId: newDescriptor.id,
+        newDescriptor,
+        eservice,
+        consumer,
         readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
