@@ -37,7 +37,6 @@ export const getMockClient = (): Client => ({
   name: "Test client",
   purposes: [],
   description: "Client description",
-  relationships: [],
   users: [],
   kind: clientKind.consumer,
   createdAt: new Date(),
