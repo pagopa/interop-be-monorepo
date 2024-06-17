@@ -614,7 +614,7 @@ describe("get eservices", () => {
       eservice7,
     ]);
   });
-  it("should not include eservices with no descriptors (requester is the producer, not admin nor api)", async () => {
+  it("should not include eservices with no descriptors (requester is the producer, not admin nor api, nor support)", async () => {
     const eservice7: EService = {
       ...mockEService,
       id: generateId(),
@@ -624,7 +624,7 @@ describe("get eservices", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SUPPORT_ROLE],
+      userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice7);
     const result = await catalogService.getEServices(
@@ -728,7 +728,7 @@ describe("get eservices", () => {
       eservice8,
     ]);
   });
-  it("should not include eservices whose only descriptor is draft (requester is the producer, not admin nor api)", async () => {
+  it("should not include eservices whose only descriptor is draft (requester is the producer, not admin nor api, nor support)", async () => {
     const descriptor8: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
@@ -743,7 +743,7 @@ describe("get eservices", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SUPPORT_ROLE],
+      userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice8);
     const result = await catalogService.getEServices(
@@ -860,7 +860,7 @@ describe("get eservices", () => {
       eservice9,
     ]);
   });
-  it("should filter out draft descriptors if the eservice has both draft and non-draft ones (requester is the producer, but not admin nor api)", async () => {
+  it("should filter out draft descriptors if the eservice has both draft and non-draft ones (requester is the producer, but not admin nor api, nor support)", async () => {
     const descriptor9a: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
@@ -883,7 +883,7 @@ describe("get eservices", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SUPPORT_ROLE],
+      userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice9);
     const result = await catalogService.getEServices(
