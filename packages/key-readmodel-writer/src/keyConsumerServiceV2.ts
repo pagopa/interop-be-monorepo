@@ -40,9 +40,14 @@ export async function handleMessageV2(
         "metadata.version": { $lt: message.version },
       });
     })
+    .with({ type: "ClientDeleted" }, async (message) => {
+      const keysToRemove = message.data.client?.keys;
+      await keys.deleteMany({
+        "data.kid": { $in: keysToRemove?.map((key) => key.kid) },
+      });
+    })
     .with(
       { type: "ClientAdded" },
-      { type: "ClientDeleted" },
       { type: "ClientUserAdded" },
       { type: "ClientUserDeleted" },
       { type: "ClientPurposeAdded" },
