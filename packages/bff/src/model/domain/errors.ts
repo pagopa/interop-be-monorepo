@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  purposeNotFound: "0021",
+  purposeNotFound: "0001",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

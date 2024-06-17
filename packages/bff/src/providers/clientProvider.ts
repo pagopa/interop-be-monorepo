@@ -7,7 +7,7 @@ import { config } from "../utilities/config.js";
 
 export type Headers = { "X-Correlation-Id": string; Authorization: string };
 
-export type PagoPaClients = {
+export type PagoPAInteropBeClients = {
   tenantProcessClient: ReturnType<typeof createApiClientTenantProcess>;
   attributeProcessClient: ReturnType<typeof createApiClientAttributeProcess>;
   catalogProcessClient: ReturnType<typeof createApiClientCatalogProcess>;
@@ -15,7 +15,7 @@ export type PagoPaClients = {
   purposeProcessClient: ReturnType<typeof createApiClientPurposeProcess>;
 };
 
-export function getClients(): PagoPaClients {
+export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     tenantProcessClient: createApiClientTenantProcess(config.tenantProcessUrl),
     agreementProcessClient: createApiClientAgreementProcess(

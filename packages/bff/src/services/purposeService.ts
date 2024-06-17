@@ -4,13 +4,19 @@ import {
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { ApiUpdateReversePurposePayload } from "../model/types.js";
-import { PagoPaClients, Headers } from "../providers/clientProvider.js";
+import {
+  ApiUpdateReversePurposePayload,
+  VersionState,
+} from "../model/types.js";
+import {
+  PagoPAInteropBeClients,
+  Headers,
+} from "../providers/clientProvider.js";
 import { purposeNotFound } from "../model/domain/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
-  purposeClient: PagoPaClients["purposeProcessClient"]
+  purposeClient: PagoPAInteropBeClients["purposeProcessClient"]
 ) {
   return {
     async reversePurposeUpdate(
@@ -30,9 +36,6 @@ export function purposeServiceBuilder(
           },
         }
       );
-
-      // eslint-disable-next-line @typescript-eslint/array-type
-      type VersionState = (typeof updatedPurpose.versions)[number]["state"];
 
       const statesToExclude: VersionState[] = [
         "WAITING_FOR_APPROVAL",
