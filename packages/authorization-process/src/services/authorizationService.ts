@@ -66,7 +66,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.consumer,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
