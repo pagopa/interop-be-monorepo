@@ -8,8 +8,10 @@
     ":automergeTypes",
     ":combinePatchMinorReleases",
     ":ignoreUnstable",
-    ":rebaseStalePrs"
+    ":rebaseStalePrs",
+    ":dependencyDashboard"
   ],
+  "prConcurrentLimit": 2,
   "labels": [
     "dependencies"
   ],

@@ -17,6 +17,7 @@ const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
 
 export const fromKeyV2 = (input: KeyV2): Key => ({
   ...input,
+  userId: unsafeBrandId<UserId>(input.userId),
   use: fromKeyUseV2(input.use),
   createdAt: bigIntToDate(input.createdAt),
 });
@@ -37,6 +38,6 @@ export const fromClientV2 = (input: ClientV2): Client => ({
   purposes: input.purposes.map((purposeId) => unsafeBrandId(purposeId)),
   users: input.users.map(unsafeBrandId<UserId>),
   kind: fromClientKindV2(input.kind),
-  createdAt: bigIntToDate(input.createdAt!),
+  createdAt: bigIntToDate(input.createdAt),
   keys: input.keys.map(fromKeyV2),
 });

@@ -1,5 +1,3 @@
-import { Filter } from "mongodb";
-import { WithId } from "mongodb";
 import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Client,
@@ -27,37 +25,34 @@ export function readModelServiceBuilder(
 ) {
   const { clients } = readModelRepository;
 
-  async function getClient(
-    filter: Filter<WithId<WithMetadata<Client>>>
-  ): Promise<WithMetadata<Client> | undefined> {
-    const data = await clients.findOne(filter, {
-      projection: { data: true, metadata: true },
-    });
-    if (!data) {
-      return undefined;
-    } else {
-      const result = z
-        .object({
-          data: Client,
-          metadata: z.object({ version: z.number() }),
-        })
-        .safeParse(data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse client item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return result.data;
-    }
-  }
-
   return {
     async getClientById(
       id: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
-      return getClient({ "data.id": id });
+      const data = await clients.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            data: Client,
+            metadata: z.object({ version: z.number() }),
+          })
+          .safeParse(data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse client item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
     },
 
     async getClients(

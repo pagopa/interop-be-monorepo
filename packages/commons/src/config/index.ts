@@ -5,6 +5,6 @@ export * from "./kafkaConfig.js";
 export * from "./readmodelDbConfig.js";
 export * from "./eventStoreConfig.js";
 export * from "./fileManagerConfig.js";
-export * from "./authServerConfig.js";
 export * from "./kafkaTopicConfig.js";
 export * from "./tokenGenerationConfig.js";
+export * from "./emailManagerConfig.js";
