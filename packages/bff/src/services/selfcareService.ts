@@ -23,10 +23,6 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
         },
       });
 
-      if (users.length === 0) {
-        throw userNotFound(userIdQuery, institutionId);
-      }
-
       const user = users.find((u) => u.id === userIdQuery);
       if (!user) {
         throw userNotFound(userIdQuery, institutionId);
