@@ -1,7 +1,10 @@
 import { userRoles } from "pagopa-interop-commons";
 import { Purpose, TenantId, UserId } from "pagopa-interop-models";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
-import { securityUserNotFound, organizationNotAllowedOnPurpose } from "../model/domain/errors.js";
+import {
+  securityUserNotFound,
+  organizationNotAllowedOnPurpose,
+} from "../model/domain/errors.js";
 
 export const isClientConsumer = (
   consumerId: TenantId,
@@ -16,7 +19,6 @@ export const assertOrganizationIsPurposeConsumer = (
     throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
   }
 };
-
 
 export const assertSelfcareUser = async (
   selfcareId: string,
