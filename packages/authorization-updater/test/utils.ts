@@ -24,15 +24,3 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeInReadmodel(client, clients);
 };
-
-export const getMockClient = (): Client => ({
-  id: generateId(),
-  consumerId: generateId(),
-  name: "Test client",
-  purposes: [],
-  description: "Client description",
-  users: [],
-  kind: clientKind.consumer,
-  createdAt: new Date(),
-  keys: [],
-});
