@@ -26,6 +26,7 @@ import {
   AgreementSuspendedByProducerV2,
   Descriptor,
   EService,
+  EServiceId,
   Tenant,
   TenantId,
   agreementState,
@@ -117,12 +118,15 @@ describe("suspend agreement", () => {
     ]);
     const authData = getRandomAuthData(requesterId);
 
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.suspendAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -180,6 +184,9 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toMatchObject(
       toAgreementV2(expectedAgreementSuspended)
     );
+    expect(actualAgreementSuspended).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -234,12 +241,15 @@ describe("suspend agreement", () => {
 
     const authData = getRandomAuthData(producerAndConsumerId);
 
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.suspendAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -278,6 +288,9 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toMatchObject(
       toAgreementV2(expectedAgreementSuspended)
     );
+    expect(actualAgreementSuspended).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -305,13 +318,13 @@ describe("suspend agreement", () => {
       suspendedByProducer: randomBoolean(),
       suspendedByPlatform: randomBoolean(),
       stamps: {
-        activation: createStamp(authData),
-        archiving: createStamp(authData),
-        rejection: createStamp(authData),
-        submission: createStamp(authData),
-        upgrade: createStamp(authData),
-        suspensionByConsumer: createStamp(authData),
-        suspensionByProducer: createStamp(authData),
+        activation: createStamp(authData.userId),
+        archiving: createStamp(authData.userId),
+        rejection: createStamp(authData.userId),
+        submission: createStamp(authData.userId),
+        upgrade: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
       },
     };
 
@@ -319,12 +332,15 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.suspendAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -379,6 +395,9 @@ describe("suspend agreement", () => {
     };
     expect(actualAgreementSuspended).toMatchObject(
       toAgreementV2(expectedAgreementSuspended)
+    );
+    expect(actualAgreementSuspended).toMatchObject(
+      toAgreementV2(returnedAgreement)
     );
   });
 
@@ -453,7 +472,12 @@ describe("suspend agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
-    const eservice = getMockEService();
+    const descriptor = getMockDescriptorPublished();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const consumer = getMockTenant();
     const agreement = {
       ...getMockAgreement(),
@@ -461,6 +485,7 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       producerId: eservice.producerId,
       consumerId: consumer.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
     await addOneEService(eservice);
