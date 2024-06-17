@@ -103,12 +103,13 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(consumer, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.createReversePurpose(
-      consumer.id,
-      reversePurposeSeed,
-      generateId(),
-      genericLogger
-    );
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.createReversePurpose(
+        consumer.id,
+        reversePurposeSeed,
+        generateId(),
+        genericLogger
+      );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
