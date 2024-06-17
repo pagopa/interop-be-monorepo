@@ -9,12 +9,11 @@ message ClientV2 {
   string consumerId = 2;
   string name = 3;
   optional string description = 4;
-  repeated string relationships = 5;
-  repeated string purposes = 6;
-  ClientKindV2 kind = 7;
-  optional int64 createdAt = 8; // to do double-check why optional
-  repeated string users = 9;
-  repeated KeyV2 keys = 10;
+  repeated string purposes = 5;
+  ClientKindV2 kind = 6;
+  int64 createdAt = 7;
+  repeated string users = 8;
+  repeated KeyV2 keys = 9;
 }
 
 enum ClientKindV2 {
