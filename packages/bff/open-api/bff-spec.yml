@@ -11238,7 +11238,7 @@ components:
       type: object
       description: contains the expected payload for purpose creation.
       properties:
-        eserviceId:
+        eServiceId:
           type: string
           format: uuid
         consumerId:
@@ -11249,8 +11249,12 @@ components:
           format: uuid
         title:
           type: string
+          minLength: 5
+          maxLength: 60
         description:
           type: string
+          minLength: 10
+          maxLength: 250
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -11260,7 +11264,7 @@ components:
           format: int32
           minimum: 0
       required:
-        - eserviceId
+        - eServiceId
         - consumerId
         - riskAnalysisId
         - title
