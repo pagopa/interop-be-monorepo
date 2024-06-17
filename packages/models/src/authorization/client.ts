@@ -18,7 +18,6 @@ export const Client = z.object({
   name: z.string(),
   purposes: z.array(PurposeId),
   description: z.string().optional(),
-  relationships: z.array(z.string()),
   users: z.array(UserId),
   kind: ClientKind,
   createdAt: z.coerce.date(),

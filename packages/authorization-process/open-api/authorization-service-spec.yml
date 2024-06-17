@@ -1037,17 +1037,6 @@ components:
       enum:
         - SIG
         - ENC
-    Organization:
-      description: Models an Organization
-      type: object
-      properties:
-        institutionId:
-          type: string
-        description:
-          type: string
-      required:
-        - institutionId
-        - description
     PurposeAdditionDetails:
       type: object
       properties:
@@ -1056,42 +1045,6 @@ components:
           format: uuid
       required:
         - purposeId
-    Agreement:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        eservice:
-          $ref: "#/components/schemas/EService"
-        descriptor:
-          $ref: "#/components/schemas/EServiceDescriptor"
-      required:
-        - id
-        - eservice
-        - descriptor
-    EService:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-      required:
-        - id
-        - name
-    EServiceDescriptor:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        version:
-          type: string
-      required:
-        - id
-        - version
     Problem:
       properties:
         type:
