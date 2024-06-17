@@ -79,7 +79,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.consumer,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -92,7 +91,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async createApiClient(
@@ -110,7 +109,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.api,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -123,7 +121,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async getClients(

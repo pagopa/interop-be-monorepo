@@ -174,16 +174,16 @@ describe("upgrade Agreement", () => {
     await addOneTenant(producerAndConsumer);
     await addOneAgreement(agreementToBeUpgraded);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
       agreementToBeUpgraded.id,
@@ -264,6 +264,7 @@ describe("upgrade Agreement", () => {
     delete expectedUpgradedAgreement.updatedAt;
     delete expectedUpgradedAgreement.rejectionReason;
     expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
+    expect(actualAgreementUpgraded).toEqual(toAgreementV2(returnedAgreement));
 
     for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -371,16 +372,16 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreementToBeUpgraded);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
       agreementToBeUpgraded.id,
@@ -463,6 +464,7 @@ describe("upgrade Agreement", () => {
     delete expectedUpgradedAgreement.updatedAt;
     delete expectedUpgradedAgreement.rejectionReason;
     expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
+    expect(actualAgreementUpgraded).toEqual(toAgreementV2(returnedAgreement));
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -556,16 +558,16 @@ describe("upgrade Agreement", () => {
     );
     await addOneEService(eservice);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
 
@@ -618,6 +620,7 @@ describe("upgrade Agreement", () => {
     delete expectedCreatedAgreement.suspendedAt;
     delete expectedCreatedAgreement.contract;
     expect(actualCreatedAgreementV2).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreementV2).toEqual(toAgreementV2(returnedAgreement));
 
     const expectedUploadedDocumentPath = `${
       config.consumerDocumentsPath
@@ -728,16 +731,16 @@ describe("upgrade Agreement", () => {
     );
     await addOneEService(eservice);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
     const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -789,6 +792,7 @@ describe("upgrade Agreement", () => {
     delete expectedCreatedAgreement.suspendedAt;
     delete expectedCreatedAgreement.contract;
     expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualCreatedAgreement?.consumerDocuments[0].id}/${agreementConsumerDocument.name}`;
 
@@ -897,16 +901,16 @@ describe("upgrade Agreement", () => {
     );
     await addOneEService(eservice);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.upgradeAgreement(
+      agreementToBeUpgraded.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     expect(newAgreementId).toBeDefined();
     const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -955,6 +959,7 @@ describe("upgrade Agreement", () => {
     delete expectedCreatedAgreement.suspendedAt;
     delete expectedCreatedAgreement.contract;
     expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -966,9 +971,86 @@ describe("upgrade Agreement", () => {
   });
 
   it("should throw a tenantNotFound error when the tenant does not exist", async () => {
-    await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
+    const producerAndConsumerId = authData.organizationId;
     const agreementId = generateId<AgreementId>();
+
+    const validVerifiedTenantAttribute = {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        {
+          id: producerAndConsumerId,
+          verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
+          expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+          extensionDate: undefined,
+        },
+      ],
+    };
+
+    const validVerifiedEserviceAttribute = getMockEServiceAttribute(
+      validVerifiedTenantAttribute.id
+    );
+
+    const validDeclaredTenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+    const validDeclaredEserviceAttribute = getMockEServiceAttribute(
+      validDeclaredTenantAttribute.id
+    );
+
+    // Certified attributes are not verified when producer and consumer are the same,
+    // so the test shall pass even with this invalid attribute
+    const invalidCertifiedTenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: new Date(),
+    };
+    const invalidCertifiedEserviceAttribute = getMockEServiceAttribute(
+      invalidCertifiedTenantAttribute.id
+    );
+
+    const descriptorId = generateId<DescriptorId>();
+    const deprecatedDescriptor = {
+      ...getMockDescriptorPublished(
+        descriptorId,
+        [[invalidCertifiedEserviceAttribute]],
+        [[validDeclaredEserviceAttribute]],
+        [[validVerifiedEserviceAttribute]]
+      ),
+      path: "/deprecatedDescriptor/doc",
+      state: descriptorState.deprecated,
+      version: "1",
+    };
+
+    const publishedDescriptor: Descriptor = {
+      ...getMockDescriptorPublished(
+        descriptorId,
+        [[invalidCertifiedEserviceAttribute]],
+        [[validDeclaredEserviceAttribute]],
+        [[validVerifiedEserviceAttribute]]
+      ),
+      version: "2",
+    };
+
+    const agreement = {
+      ...getMockAgreement(
+        generateId<EServiceId>(),
+        producerAndConsumerId, // Consumer and producer are the same
+        randomArrayItem(agreementUpgradableStates)
+      ),
+      id: agreementId,
+      descriptorId,
+      producerId: producerAndConsumerId,
+    };
+
+    const eservice = getMockEService(
+      agreement.eserviceId,
+      producerAndConsumerId,
+      [deprecatedDescriptor, publishedDescriptor]
+    );
+
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
     await expect(
       agreementService.upgradeAgreement(agreementId, {
         authData,
@@ -976,7 +1058,7 @@ describe("upgrade Agreement", () => {
         correlationId: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantNotFound(authData.organizationId));
+    ).rejects.toThrowError(tenantNotFound(producerAndConsumerId));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {

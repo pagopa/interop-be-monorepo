@@ -4,7 +4,7 @@ import { organizationNotAllowedOnClient } from "../model/domain/errors.js";
 export const isClientConsumer = (
   consumerId: TenantId,
   organizationId: string
-): boolean => (consumerId === organizationId ? true : false);
+): boolean => consumerId === organizationId;
 
 export const assertOrganizationIsClientConsumer = (
   organizationId: TenantId,
