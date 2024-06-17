@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import { afterEach, inject } from "vitest";
 import {
@@ -21,8 +22,11 @@ import { AuthData } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
-export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config"));
+export const { cleanup, readModelRepository, postgresDB } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
 
 afterEach(cleanup);
 

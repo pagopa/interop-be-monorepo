@@ -5,10 +5,10 @@ import {
   PurposeVersion,
   PurposeRiskAnalysisForm,
   RiskAnalysisForm,
-  Tenant,
   TenantId,
   TenantKind,
   purposeVersionState,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -17,14 +17,18 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
+  descriptorNotFound,
+  duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
+  unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
+import { ReadModelService } from "./readModelService.js";
+import { retrieveActiveAgreement } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -84,11 +88,15 @@ export const assertOrganizationIsAConsumer = (
   }
 };
 
-export function validateRiskAnalysisOrThrow(
-  riskAnalysisForm: ApiRiskAnalysisFormSeed,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
+export function validateRiskAnalysisOrThrow({
+  riskAnalysisForm,
+  schemaOnlyValidation,
+  tenantKind,
+}: {
+  riskAnalysisForm: ApiRiskAnalysisFormSeed;
+  schemaOnlyValidation: boolean;
+  tenantKind: TenantKind;
+}): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
@@ -109,11 +117,11 @@ export function validateAndTransformRiskAnalysis(
   if (!riskAnalysisForm) {
     return undefined;
   }
-  const validatedForm = validateRiskAnalysisOrThrow(
+  const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind
-  );
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -132,11 +140,11 @@ export function reverseValidateAndTransformRiskAnalysis(
 
   const formToValidate =
     riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisOrThrow(
-    formToValidate,
+  const validatedForm = validateRiskAnalysisOrThrow({
+    riskAnalysisForm: formToValidate,
     schemaOnlyValidation,
-    tenantKind
-  );
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -144,17 +152,22 @@ export function reverseValidateAndTransformRiskAnalysis(
   };
 }
 
-export function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (!tenant.kind) {
-    throw tenantKindNotFound(tenant.id);
-  }
-}
-
 export function assertPurposeIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);
+  }
+}
+
+export function assertDailyCallsIsDifferentThanBefore(
+  purpose: Purpose,
+  dailyCalls: number
+): void {
+  const previousDailyCalls = [...purpose.versions].sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  )[0]?.dailyCalls;
+
+  if (previousDailyCalls === dailyCalls) {
+    throw unchangedDailyCalls(purpose.id);
   }
 }
 
@@ -172,3 +185,80 @@ export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
 export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
+
+export const assertPurposeTitleIsNotDuplicated = async ({
+  readModelService,
+  eserviceId,
+  consumerId,
+  title,
+}: {
+  readModelService: ReadModelService;
+  eserviceId: EServiceId;
+  consumerId: TenantId;
+  title: string;
+}): Promise<void> => {
+  const purposeWithSameName = await readModelService.getPurpose(
+    eserviceId,
+    consumerId,
+    title
+  );
+
+  if (purposeWithSameName) {
+    throw duplicatedPurposeTitle(title);
+  }
+};
+
+export async function isOverQuota(
+  eservice: EService,
+  purpose: Purpose,
+  dailyCalls: number,
+  readModelService: ReadModelService
+): Promise<boolean> {
+  const allPurposes = await readModelService.getAllPurposes({
+    eservicesIds: [eservice.id],
+    consumersIds: [],
+    producersIds: [],
+    states: [purposeVersionState.active],
+    excludeDraft: true,
+  });
+
+  const consumerPurposes = allPurposes.filter(
+    (p) => p.consumerId === purpose.consumerId
+  );
+
+  const agreement = await retrieveActiveAgreement(
+    eservice.id,
+    purpose.consumerId,
+    readModelService
+  );
+
+  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
+    purposes
+      .flatMap((p) => p.versions)
+      .filter((v) => v.state === purposeVersionState.active);
+
+  const consumerActiveVersions = getActiveVersions(consumerPurposes);
+  const allPurposesActiveVersions = getActiveVersions(allPurposes);
+
+  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
+    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
+
+  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
+  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
+
+  const currentDescriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!currentDescriptor) {
+    throw descriptorNotFound(eservice.id, agreement.descriptorId);
+  }
+
+  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
+
+  return !(
+    consumerLoadRequestsSum + dailyCalls <= maxDailyCallsPerConsumer &&
+    allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
+  );
+}

@@ -1,29 +1,22 @@
 import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementEvent,
+  AgreementEventV2,
+  Descriptor,
+  Tenant,
+  TenantId,
+  WithMetadata,
   agreementState,
+  genericError,
 } from "pagopa-interop-models";
-import {
-  assertAgreementExist,
-  assertEServiceExist,
-  assertExpectedState,
-  assertRequesterIsConsumerOrProducer,
-  assertTenantExist,
-  assertDescriptorExist,
-  agreementSuspendableStates,
-} from "../model/domain/validators.js";
-import {
-  toCreateEventAgreementSuspendedByConsumer,
-  toCreateEventAgreementSuspendedByProducer,
-} from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
+import {
+  toCreateEventAgreementSuspendedByProducer,
+  toCreateEventAgreementSuspendedByConsumer,
+} from "../model/domain/toEvent.js";
 import {
   agreementStateByFlags,
-  nextState,
+  nextStateByAttributesFSM,
   suspendedByConsumerFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
@@ -33,74 +26,57 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 
-export async function suspendAgreementLogic({
-  agreementId,
+export function createSuspensionUpdatedAgreement({
+  agreement,
   authData,
-  agreementQuery,
-  tenantQuery,
-  eserviceQuery,
-  correlationId,
+  descriptor,
+  consumer,
 }: {
-  agreementId: Agreement["id"];
+  agreement: Agreement;
   authData: AuthData;
-  agreementQuery: AgreementQuery;
-  tenantQuery: TenantQuery;
-  eserviceQuery: EserviceQuery;
-  correlationId: string;
-}): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-  assertAgreementExist(agreementId, agreement);
-
-  assertRequesterIsConsumerOrProducer(agreement.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreement.data.state,
-    agreementSuspendableStates
+  descriptor: Descriptor;
+  consumer: Tenant;
+}): Agreement {
+  /* nextAttributesState VS targetDestinationState
+  -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
+  -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+  */
+  const targetDestinationState = agreementState.suspended;
+  const nextStateByAttributes = nextStateByAttributesFSM(
+    agreement,
+    descriptor,
+    consumer
   );
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
-  );
-  assertEServiceExist(agreement.data.eserviceId, eservice);
-
-  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
-  assertTenantExist(agreement.data.consumerId, consumer);
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.data.descriptorId
-  );
-  assertDescriptorExist(eservice.id, agreement.data.descriptorId, descriptor);
-
-  const nextStateByAttributes = nextState(agreement.data, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(
-    agreement.data,
+    agreement,
     authData.organizationId,
-    agreementState.suspended
+    targetDestinationState
   );
   const suspendedByProducer = suspendedByProducerFlag(
-    agreement.data,
+    agreement,
     authData.organizationId,
-    agreementState.suspended
+    targetDestinationState
   );
+
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     suspendedByProducer,
-    suspendedByConsumer
+    suspendedByConsumer,
+    agreement.suspendedByPlatform
   );
 
-  const stamp = createStamp(authData);
+  const stamp = createStamp(authData.userId);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
-    agreement.data,
+    agreement,
     authData.organizationId,
     agreementState.suspended,
     stamp
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
-    agreement.data,
+    agreement,
     authData.organizationId,
     agreementState.suspended,
     stamp
@@ -111,33 +87,43 @@ export async function suspendAgreementLogic({
     suspendedByConsumer,
     suspendedByProducer,
     stamps: {
-      ...agreement.data.stamps,
+      ...agreement.stamps,
       suspensionByConsumer: suspensionByConsumerStamp,
       suspensionByProducer: suspensionByProducerStamp,
     },
-    suspendedAt: agreement.data.suspendedAt ?? new Date(),
+    suspendedAt: agreement.suspendedAt ?? new Date(),
   };
 
-  const updatedAgreement: Agreement = {
-    ...agreement.data,
+  return {
+    ...agreement,
     ...updateSeed,
   };
+}
 
-  if (authData.organizationId === agreement.data.producerId) {
-    return toCreateEventAgreementSuspendedByProducer(
-      updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    );
-  } else if (authData.organizationId === agreement.data.consumerId) {
-    return toCreateEventAgreementSuspendedByConsumer(
-      updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    );
-  } else {
-    throw new Error(
-      "Unexpected organizationId: Agreement can be suspended only by consumer or producer"
+export function createAgreementSuspendedEvent(
+  organizationId: TenantId,
+  correlationId: string,
+  updatedAgreement: Agreement,
+  agreement: WithMetadata<Agreement>
+): CreateEvent<AgreementEventV2> {
+  const isProducer = organizationId === agreement.data.producerId;
+  const isConsumer = organizationId === agreement.data.consumerId;
+
+  if (!isProducer && !isConsumer) {
+    throw genericError(
+      "Agreement can only be suspended by the consumer or producer."
     );
   }
+
+  return isProducer
+    ? toCreateEventAgreementSuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      )
+    : toCreateEventAgreementSuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
 }
