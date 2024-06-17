@@ -3,6 +3,8 @@ import path from "path";
 import fs from "fs/promises";
 import {
   AgreementV2,
+  Tenant,
+  TenantMail,
   fromAgreementV2,
   tenantMailKind,
 } from "pagopa-interop-models";
@@ -20,6 +22,18 @@ import {
 } from "../models/errors.js";
 import { agreementEmailSenderConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
+
+export const retrieveTenantDigitalAddress = async (
+  tenant: Tenant
+): Promise<TenantMail> => {
+  const digitalAddress = tenant.mails.find(
+    (m) => m.kind === tenantMailKind.DigitalAddress
+  );
+  if (!digitalAddress) {
+    throw tenantDigitalAddressNotFound(tenant.id);
+  }
+  return digitalAddress;
+};
 
 async function getActivationMailFromAgreement(
   agreementV2: AgreementV2,
@@ -72,20 +86,8 @@ async function getActivationMailFromAgreement(
   We now have the producer and consumer digital addresses in their respective tenant object,
   kept up to date through a queue.
   We only expect one digital address per tenant, so we can safely use the first one we find. */
-  const producerEmail = producer.mails.find(
-    (m) => m.kind === tenantMailKind.DigitalAddress
-  )?.address;
-  const consumerEmail = consumer.mails.find(
-    (m) => m.kind === tenantMailKind.DigitalAddress
-  )?.address;
-
-  if (!producerEmail) {
-    throw tenantDigitalAddressNotFound(agreement.producerId);
-  }
-
-  if (!consumerEmail) {
-    throw tenantDigitalAddressNotFound(agreement.consumerId);
-  }
+  const producerEmail = (await retrieveTenantDigitalAddress(producer)).address;
+  const consumerEmail = (await retrieveTenantDigitalAddress(consumer)).address;
 
   const descriptor = eservice.descriptors.find(
     (d) => d.id === agreement.descriptorId
