@@ -35,16 +35,9 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ClientKeyDeleted" }, async (message) => {
-      const version =
-        (
-          await keys.findOne({
-            "data.kid": message.data.kid,
-          })
-        )?.metadata.version || 0;
-
       await keys.deleteOne({
         "data.kid": message.data.kid,
-        "metadata.version": { $lt: version + 1 },
+        "metadata.version": { $lt: message.version },
       });
     })
     .with(
