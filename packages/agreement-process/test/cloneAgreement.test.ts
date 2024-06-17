@@ -134,16 +134,17 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const newAgreementId = unsafeBrandId<AgreementId>(
-      (
-        await agreementService.cloneAgreement(agreementToBeCloned.id, {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        })
-      ).id
+    const returnedAgreement = await agreementService.cloneAgreement(
+      agreementToBeCloned.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
     );
+
+    const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const agreementClonedEvent = await readAgreementEventByVersion(
       newAgreementId,
@@ -194,6 +195,9 @@ describe("clone agreement", () => {
 
     expect(agreementClonedEventPayload).toMatchObject({
       agreement: expectedAgreementCloned,
+    });
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: toAgreementV2(returnedAgreement),
     });
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
@@ -317,7 +321,13 @@ describe("clone agreement", () => {
   it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
     const authData = getRandomAuthData();
     const consumerId = authData.organizationId;
-    const eservice = getMockEService();
+
+    const descriptor = getMockDescriptorPublished();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const agreement = {
       ...getMockAgreement(
         eservice.id,
@@ -325,6 +335,7 @@ describe("clone agreement", () => {
         randomArrayItem(agreementClonableStates)
       ),
       producerId: eservice.producerId,
+      descriptorId: descriptor.id,
     };
 
     const conflictingAgreement = {

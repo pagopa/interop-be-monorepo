@@ -18,7 +18,6 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  createClientErrorMapper,
   deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
@@ -68,11 +67,7 @@ const authorizationRouter = (
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createClientErrorMapper,
-            ctx.logger
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -95,11 +90,7 @@ const authorizationRouter = (
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createClientErrorMapper,
-            ctx.logger
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

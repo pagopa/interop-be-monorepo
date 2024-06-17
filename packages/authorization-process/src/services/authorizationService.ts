@@ -20,7 +20,6 @@ import {
 import {
   clientNotFound,
   keyNotFound,
-  organizationNotAllowedOnClient,
   userIdNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
@@ -32,7 +31,10 @@ import {
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
-import { isClientConsumer } from "./validators.js";
+import {
+  assertOrganizationIsClientConsumer,
+  isClientConsumer,
+} from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -84,7 +86,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.consumer,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -97,7 +98,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async createApiClient(
@@ -115,7 +116,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.api,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -128,7 +128,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async getClients(
@@ -263,12 +263,3 @@ export function authorizationServiceBuilder(
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const assertOrganizationIsClientConsumer = (
-  organizationId: TenantId,
-  client: Client
-): void => {
-  if (client.consumerId !== organizationId) {
-    throw organizationNotAllowedOnClient(organizationId, client.id);
-  }
-};
