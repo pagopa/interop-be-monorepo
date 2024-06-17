@@ -13,7 +13,6 @@ import {
   TenantId,
   UserId,
   WithMetadata,
-  agreementState,
   authorizationEventToBinaryData,
   clientKind,
   generateId,
