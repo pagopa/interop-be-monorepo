@@ -26,7 +26,11 @@ import {
   Attribute,
   toReadModelAttribute,
 } from "pagopa-interop-models";
-import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  initPDFGenerator,
+  puppeteerLaunchOptions,
+} from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
@@ -43,7 +47,9 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
-const testBrowserInstance: Browser = await puppeteer.launch();
+const testBrowserInstance: Browser = await puppeteer.launch(
+  puppeteerLaunchOptions({ pipe: true })
+);
 const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
