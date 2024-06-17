@@ -9,6 +9,7 @@ on:
     paths:
       - "packages/**"
       - "!packages/*/scripts/**"
+      - ".github/workflows/build-push.yaml"
 
 jobs:
   build_push_image:
