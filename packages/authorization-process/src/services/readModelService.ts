@@ -14,6 +14,7 @@ import {
   EService,
   Purpose,
   Agreement,
+  agreementState,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -225,26 +226,30 @@ export function readModelServiceBuilder(
         return result.data;
       }
     },
-    async getAgreements(
+    async getActiveOrSuspendedAgreement(
       eserviceId: EServiceId,
       consumerId: TenantId
-    ): Promise<Agreement[]> {
-      const data = await agreements
-        .find({
-          "data.eserviceId": eserviceId,
-          "data.consumerId": consumerId,
-        })
-        .toArray();
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": {
+          $in: [agreementState.active, agreementState.suspended],
+        },
+      });
 
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse client item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
+      if (data) {
+        const result = Agreement.safeParse(data?.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
       }
-      return result.data;
+      return undefined;
     },
   };
 }

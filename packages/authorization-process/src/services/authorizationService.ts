@@ -477,15 +477,10 @@ export function authorizationServiceBuilder(
         readModelService
       );
 
-      const agreements = await readModelService.getAgreements(
+      const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
         organizationId
       );
-      const agreement = agreements.filter(
-        (a) =>
-          a.state === agreementState.active ||
-          a.state === agreementState.suspended
-      )[0];
 
       if (agreement === undefined) {
         throw noAgreementFoundInRequiredState(eservice.id, organizationId);
