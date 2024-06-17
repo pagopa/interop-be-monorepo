@@ -96,10 +96,7 @@ export function readModelServiceBuilder(
 
       const kindFilter: ReadModelFilter<Client> = kind
         ? {
-            "data.kind": {
-              $regex: ReadModelRepository.escapeRegExp(kind),
-              $options: "i",
-            },
+            "data.kind": { $eq: kind },
           }
         : {};
 
@@ -172,7 +169,8 @@ export function readModelServiceBuilder(
             data: Client,
           })
         )
-        .safeParse(data.map((d) => d.data));
+        .safeParse(data);
+
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse client items: result ${JSON.stringify(
