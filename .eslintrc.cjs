@@ -25,6 +25,7 @@ module.exports = {
     "vitest.config.ts",
     "**/src/model/generated/*.ts",
     "**/dist",
-    "**/patchZodios.ts"
+    "**/patchZodios.ts",
+    "**/paged.polyfill.js"
   ],
 };
