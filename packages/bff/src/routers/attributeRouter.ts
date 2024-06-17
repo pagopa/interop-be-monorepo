@@ -9,6 +9,9 @@ import {
 import { api } from "../model/generated/api.js";
 import { PagoPaClients } from "../providers/clientProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
+import { getAttributeErrorMapper } from "../utilities/errorMapper.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { toApiCompactAttribute } from "../model/domain/apiConverter.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -24,26 +27,90 @@ const attributeRouter = (
     .post("/certifiedAttributes", async (_req, res) => res.status(501).send())
     .post("/verifiedAttributes", async (_req, res) => res.status(501).send())
     .post("/declaredAttributes", async (_req, res) => res.status(501).send())
-    .get("/attributes", async (_req, res) => res.status(501).send())
+
+    .get("/attributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+        const { q, offset, limit, kinds, origin } = req.query;
+
+        const attributes = await attributeService.getAttributes({
+          name: q,
+          offset,
+          limit,
+          kinds,
+          origin,
+          requestHeaders,
+        });
+
+        return res
+          .json({
+            results: attributes.results.map(toApiCompactAttribute),
+            pagination: { offset, limit, totalCount: attributes.totalCount },
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAttributeErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).end();
+      }
+    })
 
     .get("/attributes/:attributeId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
-      const requestHeaders = {
-        "X-Correlation-Id": ctx.correlationId,
-        Authorization: req.headers.authorization as string,
-      };
-      const result = await attributeService.getAttributeById(
-        req.params.attributeId,
-        requestHeaders
-      );
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+        const result = await attributeService.getAttributeById(
+          req.params.attributeId,
+          requestHeaders
+        );
 
-      res.status(200).json(result).end();
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAttributeErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     })
 
-    .get("/attributes/origin/:origin/code/:code", async (_req, res) =>
-      res.status(501).send()
-    );
+    .get("/attributes/origin/:origin/code/:code", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+        const result = await attributeService.getAttributeByOriginAndCode(
+          req.params.origin,
+          req.params.code,
+          requestHeaders
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAttributeErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    });
 
   return attributeRouter;
 };

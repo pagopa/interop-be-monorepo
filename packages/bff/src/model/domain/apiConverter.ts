@@ -5,9 +5,11 @@ import {
 } from "pagopa-interop-selfcare-v2-client";
 import { P, match } from "ts-pattern";
 import {
+  ApiCompactAttribute,
   ApiSelfcareInstitution,
   ApiSelfcareProduct,
   ApiSelfcareUser,
+  ProcessApiAttribute,
 } from "../types.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
@@ -66,3 +68,10 @@ export const toApiSelfcareUser = (
     .otherwise(() => {
       throw selfcareEntityNotFilled("UserResource");
     });
+
+export const toApiCompactAttribute = (
+  input: ProcessApiAttribute
+): ApiCompactAttribute => ({
+  id: input.id,
+  name: input.name,
+});
