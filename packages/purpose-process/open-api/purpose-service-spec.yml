@@ -744,8 +744,8 @@ components:
       properties:
         rejectionReason:
           type: string
-          minimum: 10
-          maximum: 250
+          minLength: 10
+          maxLength: 250
       required:
         - rejectionReason
     TenantKind:
