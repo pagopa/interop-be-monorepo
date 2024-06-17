@@ -267,27 +267,30 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .with("tenant", "dev-refactor_tenant", "test_tenant", "prod_tenant", () => {
-    checkSchema(config.sourceDbSchema, "tenant");
-    const parseEventType = (event_ser_manifest: any) =>
-      event_ser_manifest
-        .replace("it.pagopa.interop.tenantmanagement.model.persistence.", "")
-        .split("|")[0];
+  .when(
+    (targetSchema) => targetSchema.includes("tenant"),
+    () => {
+      checkSchema(config.sourceDbSchema, "tenant");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace("it.pagopa.interop.tenantmanagement.model.persistence.", "")
+          .split("|")[0];
 
-    const decodeEvent = (eventType: string, event_payload: any) =>
-      TenantEventV1.safeParse({
-        type: eventType,
-        event_version: 1,
-        data: event_payload,
-      });
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        TenantEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
 
-    const parseId = (anyPayload: any) =>
-      anyPayload.tenant
-        ? anyPayload.tenant.id
-        : anyPayload.tenantId || anyPayload.selfcareId;
+      const parseId = (anyPayload: any) =>
+        anyPayload.tenant
+          ? anyPayload.tenant.id
+          : anyPayload.tenantId || anyPayload.selfcareId;
 
-    return { parseEventType, decodeEvent, parseId };
-  })
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
   .otherwise(() => {
     throw new Error("Unhandled schema, please double-check the config");
   });
