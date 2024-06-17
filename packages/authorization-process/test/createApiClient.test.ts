@@ -2,6 +2,7 @@ import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {
   Client,
   ClientAddedV2,
+  TenantId,
   UserId,
   clientKind,
   generateId,
@@ -34,9 +35,10 @@ describe("createConsumerClient", () => {
     members: [userId],
   };
   it("should write on event-store for the creation of a api client", async () => {
+    const organizationId: TenantId = generateId();
     const { client } = await authorizationService.createApiClient(
       clientSeed,
-      unsafeBrandId(userId),
+      organizationId,
       generateId(),
       genericLogger
     );
@@ -64,11 +66,10 @@ describe("createConsumerClient", () => {
       keys: [],
       name: clientSeed.name,
       createdAt: new Date(),
-      consumerId: unsafeBrandId(userId),
+      consumerId: organizationId,
       kind: clientKind.api,
       purposes: [],
-      relationships: [],
-      users: clientSeed.members.map(unsafeBrandId<UserId>),
+      users: [unsafeBrandId<UserId>(userId)],
       description: clientSeed.description,
     };
 
