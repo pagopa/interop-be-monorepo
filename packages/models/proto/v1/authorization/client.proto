@@ -10,7 +10,7 @@ message ClientV1 {
   repeated string relationships = 6;
   repeated ClientPurposesEntryV1 purposes = 7;
   required ClientKindV1 kind = 8;
-  optional int64 createdAt = 9; // to do double-check why optional
+  optional int64 createdAt = 9;
   repeated string users = 10; 
 }
 

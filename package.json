@@ -2,13 +2,14 @@
   "private": true,
   "name": "root",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
     "start:catalog-readmodel-writer": "turbo start --filter pagopa-interop-catalog-readmodel-writer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
     "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
+    "start:agreement-email-sender": "turbo start --filter pagopa-interop-agreement-email-sender",
     "start:attribute": "turbo start --filter pagopa-interop-attribute-registry-process",
     "start:attribute-readmodel-writer": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer",
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
@@ -18,10 +19,11 @@
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
     "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
     "start:authorization": "turbo start --filter pagopa-interop-authorization-process",
+    "start:bff": "turbo start --filter pagopa-interop-bff",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
-    "lint": "NODE_OPTIONS='--max-old-space-size=4096' turbo lint --concurrency=2",
+    "lint": "turbo lint",
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
@@ -33,8 +35,8 @@
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "18.12.5",
-    "turbo": "1.13.3"
+    "@tsconfig/node-lts": "20.1.3",
+    "turbo": "2.0.3"
   },
   "config": {
     "protocVersion": "26.1"

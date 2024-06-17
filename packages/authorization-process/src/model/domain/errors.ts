@@ -13,14 +13,6 @@ export const errorCodes = {
   userIdNotFound: "0004",
 };
 
-export function missingUserId(kid: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Key ${kid} has not UserId`,
-    code: "missingUserId",
-    title: "Missing userId",
-  });
-}
-
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
