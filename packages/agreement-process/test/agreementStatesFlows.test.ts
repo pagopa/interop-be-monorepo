@@ -366,7 +366,7 @@ describe("Agreeement states flows", () => {
     expect(activatedAgreement.state).toEqual(agreementState.suspended);
   });
 
-  it("agreement for descriptor V1 >> suspended by produder >> V2 with new verified attributes >> upgrade >> producer verifies attributes and activates >> should become ACTIVE", async () => {
+  it("agreement for descriptor V1 >> suspended by producer >> V2 with new verified attributes >> upgrade >> producer verifies attributes and activates >> should become ACTIVE", async () => {
     const producer = getMockTenant();
 
     const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
