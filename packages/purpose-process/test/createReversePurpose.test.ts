@@ -103,7 +103,7 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(consumer, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose } = await purposeService.createReversePurpose(
+    const { purpose, isRiskAnalysisValid } = await purposeService.createReversePurpose(
       consumer.id,
       reversePurposeSeed,
       generateId(),
@@ -147,7 +147,7 @@ describe("createReversePurpose", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    // TODO: should we check also isRiskAnalysisValid??
+    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });

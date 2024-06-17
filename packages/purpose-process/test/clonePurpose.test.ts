@@ -74,7 +74,7 @@ describe("clonePurpose", async () => {
     await writeInReadmodel(mockTenant, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose } = await purposeService.clonePurpose({
+    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       organizationId: mockTenant.id,
       seed: {
@@ -117,7 +117,7 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    // TODO: should we check also isRiskAnalysisValid??
+    expect(isRiskAnalysisValid).toBe(false);
 
     vi.useRealTimers();
   });
@@ -149,7 +149,7 @@ describe("clonePurpose", async () => {
     await writeInReadmodel(mockTenant, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose } = await purposeService.clonePurpose({
+    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       organizationId: mockTenant.id,
       seed: {
@@ -193,7 +193,7 @@ describe("clonePurpose", async () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(expectedPurpose.title.length).toBe(60);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    // TODO: should we check also isRiskAnalysisValid??
+    expect(isRiskAnalysisValid).toBe(false);
 
     vi.useRealTimers();
   });
