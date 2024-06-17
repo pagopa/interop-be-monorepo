@@ -109,6 +109,19 @@ export const suspendPurposeVersionErrorMapper = (
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createPurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("unchangedDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "organizationIsNotTheConsumer",
+      "organizationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
@@ -122,11 +135,7 @@ export const createReversePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "organizationIsNotTheConsumer",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotFound",
       "eServiceModeNotAllowed",
@@ -134,7 +143,6 @@ export const createReversePurposeErrorMapper = (
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
-      "tenantNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
@@ -144,14 +152,54 @@ export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "tenantKindNotFound",
-      "riskAnalysisValidationFailed",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
-    .with(
       "duplicatedPurposeTitle",
       "purposeCannotBeCloned",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const retrieveRiskAnalysisConfigurationByVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "riskAnalysisConfigVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const retrieveLatestRiskAnalysisConfigurationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "tenantKindNotFound",
+      "riskAnalysisConfigLatestVersionNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const activatePurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "missingRiskAnalysis",
+      "agreementNotFound",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "organizationIsNotTheConsumer",
+      "organizationIsNotTheProducer",
+      "organizationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "purposeNotFound",
+      "purposeVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

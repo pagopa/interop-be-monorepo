@@ -6,6 +6,7 @@ import {
   AgreementStateV2,
   AgreementV2,
 } from "../gen/v2/agreement/agreement.js";
+import { bigIntToDate } from "../utils.js";
 import {
   AgreementDocument,
   AgreementStamp,
@@ -20,7 +21,7 @@ export const fromAgreementDocumentV2 = (
 ): AgreementDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
 });
 
 export const fromAgreementStampV2 = (
@@ -29,7 +30,7 @@ export const fromAgreementStampV2 = (
   input
     ? {
         who: unsafeBrandId(input.who),
-        when: new Date(Number(input.when)),
+        when: bigIntToDate(input.when),
       }
     : undefined;
 
@@ -99,11 +100,9 @@ export const fromAgreementV2 = (input: AgreementV2): Agreement => ({
     id: unsafeBrandId(a.id),
   })),
   state: fromAgreementStateV2(input.state),
-  createdAt: new Date(Number(input.createdAt)),
-  updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
-  suspendedAt: input.suspendedAt
-    ? new Date(Number(input.suspendedAt))
-    : undefined,
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDate(input.updatedAt),
+  suspendedAt: bigIntToDate(input.suspendedAt),
   consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV2),
   contract: input.contract
     ? fromAgreementDocumentV2(input.contract)

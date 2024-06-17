@@ -118,6 +118,8 @@ export function makeApiProblemBuilder<T extends string>(errors: {
 const errorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
+  htmlTemplateInterpolationError: "9002",
+  pdfGenerationError: "9003",
   operationForbidden: "9989",
   invalidClaim: "9990",
   genericError: "9991",
@@ -203,6 +205,24 @@ export function kafkaMessageProcessError(
   });
 }
 
+export function htmlTemplateInterpolationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "htmlTemplateInterpolationError",
+    detail: `Error compiling HTML template: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function pdfGenerationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "pdfGenerationError",
+    detail: `Error during pdf generation : ${parseErrorMessage(error)}`,
+  });
+}
+
 /* ===== API Error ===== */
 
 export function authenticationSaslFailed(
@@ -233,7 +253,7 @@ export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
 
 export function badRequestError(
   detail: string,
-  errors: Error[]
+  errors?: Error[]
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail,

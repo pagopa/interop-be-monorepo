@@ -46,12 +46,16 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const agreementId = await agreementService.archiveAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.archiveAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
+    const agreementId = returnedAgreement.id;
 
     expect(agreementId).toBeDefined();
     if (!agreementId) {
@@ -94,6 +98,8 @@ describe("archive agreement", () => {
     expect(actualAgreement).toMatchObject(
       toAgreementV2(expectedAgreemenentArchived)
     );
+
+    expect(actualAgreement).toMatchObject(toAgreementV2(returnedAgreement));
 
     vi.useRealTimers();
   });

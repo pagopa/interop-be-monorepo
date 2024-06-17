@@ -1,5 +1,6 @@
 import {
   ApiError,
+  DescriptorId,
   EServiceId,
   EServiceMode,
   PurposeId,
@@ -8,6 +9,7 @@ import {
   PurposeVersionState,
   RiskAnalysisId,
   TenantId,
+  TenantKind,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
@@ -33,6 +35,12 @@ export const errorCodes = {
   agreementNotFound: "0018",
   eserviceRiskAnalysisNotFound: "0019",
   purposeCannotBeCloned: "0020",
+  riskAnalysisConfigVersionNotFound: "0021",
+  descriptorNotFound: "0022",
+  unchangedDailyCalls: "0023",
+  missingRiskAnalysis: "0024",
+  purposeVersionStateConflict: "0025",
+  riskAnalysisConfigLatestVersionNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -232,5 +240,69 @@ export function purposeCannotBeCloned(
     detail: `Purpose ${purposeId} cannot be cloned`,
     code: "purposeCannotBeCloned",
     title: "Purpose cannot be cloned",
+  });
+}
+
+export function riskAnalysisConfigVersionNotFound(
+  version: string,
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis Configuration version ${version} for tenant kind ${tenantKind} not found`,
+    code: "riskAnalysisConfigVersionNotFound",
+    title: "Risk Analysis config version not found",
+  });
+}
+
+export function riskAnalysisConfigLatestVersionNotFound(
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Latest Risk Analysis Configuration for tenant kind ${tenantKind} not found`,
+    code: "riskAnalysisConfigLatestVersionNotFound",
+    title: "Risk Analysis config latest version not found",
+  });
+}
+
+export function descriptorNotFound(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "descriptorNotFound",
+    title: "Descriptor not found",
+  });
+}
+
+export function missingRiskAnalysis(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} must contain a valid risk analysis`,
+    code: "missingRiskAnalysis",
+    title: "Missing risk analysis",
+  });
+}
+
+export function unchangedDailyCalls(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Creation of new version without changing daily calls for purpose ${purposeId}`,
+    code: "unchangedDailyCalls",
+    title: "Unchanged daily calls",
+  });
+}
+
+export function purposeVersionStateConflict(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId,
+  state: PurposeVersionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
+    code: "purposeVersionStateConflict",
+    title: "Purpose version state conflict",
   });
 }
