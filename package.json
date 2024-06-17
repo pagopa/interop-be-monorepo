@@ -23,7 +23,7 @@
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
-    "lint": "turbo lint --concurrency=4",
+    "lint": "turbo lint",
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
