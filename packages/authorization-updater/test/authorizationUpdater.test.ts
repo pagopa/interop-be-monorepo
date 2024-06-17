@@ -3,6 +3,7 @@
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
+  getMockClient,
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
@@ -12,6 +13,7 @@ import {
 import {
   Agreement,
   AgreementEventEnvelopeV2,
+  Client,
   Descriptor,
   EService,
   EServiceEventEnvelopeV2,
@@ -401,17 +403,17 @@ describe("Authorization Updater processMessage", () => {
         log_date: new Date(),
       } as PurposeEventEnvelopeV2;
 
-      const client1 = {
-        id: generateId(),
-        purposes: [{ purpose: { purposeId: purpose.id } }],
+      const client1: Client = {
+        ...getMockClient(),
+        purposes: [purpose.id],
       };
-      const client2 = {
-        id: generateId(),
-        purposes: [{ purpose: { purposeId: purpose.id } }],
+      const client2: Client = {
+        ...getMockClient(),
+        purposes: [purpose.id],
       };
-      const client3 = {
-        id: generateId(),
-        purposes: [{ purpose: { purposeId: generateId() } }],
+      const client3: Client = {
+        ...getMockClient(),
+        purposes: [generateId()],
       };
 
       await addOneClient(client1);

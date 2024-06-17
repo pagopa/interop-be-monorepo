@@ -31,7 +31,7 @@
     "pagopa-interop-commons-test": "workspace:*",
     "pg-promise": "11.8.0",
     "prettier": "2.8.8",
-    "puppeteer": "22.10.0",
+    "puppeteer": "22.11.0",
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",

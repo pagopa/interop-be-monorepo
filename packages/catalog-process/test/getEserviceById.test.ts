@@ -107,7 +107,7 @@ describe("get eservice by id", () => {
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it("should throw eServiceNotFound if there is only a draft descriptor (requester is the producer but not admin nor api)", async () => {
+  it("should throw eServiceNotFound if there is only a draft descriptor (requester is the producer but not admin nor api, nor support)", async () => {
     const descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -118,7 +118,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.SUPPORT_ROLE],
+      userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(mockEService);
     expect(
@@ -145,7 +145,7 @@ describe("get eservice by id", () => {
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it("should throw eServiceNotFound if there are no descriptors (requester is the producer but not admin nor api)", async () => {
+  it("should throw eServiceNotFound if there are no descriptors (requester is the producer but not admin, nor api, nor support)", async () => {
     const descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -156,7 +156,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.SUPPORT_ROLE],
+      userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(mockEService);
     expect(
@@ -196,7 +196,7 @@ describe("get eservice by id", () => {
     });
     expect(result.descriptors).toEqual([descriptorB]);
   });
-  it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api)", async () => {
+  it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api, nor support)", async () => {
     const descriptorA: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -213,7 +213,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.SUPPORT_ROLE],
+      userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getEServiceById(eservice.id, {
