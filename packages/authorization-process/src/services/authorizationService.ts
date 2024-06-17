@@ -22,7 +22,6 @@ import {
   clientNotFound,
   keyNotFound,
   organizationNotAllowedOnClient,
-  purposeIdNotFound,
   userIdNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
@@ -280,9 +279,9 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
-        throw purposeIdNotFound(purposeIdToRemove, client.data.id);
-      }
+      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+      //   throw purposeIdNotFound(purposeIdToRemove, client.data.id);
+      // }
 
       const updatedClient: Client = {
         ...client.data,
