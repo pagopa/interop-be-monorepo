@@ -26,10 +26,10 @@ import {
   purposeVersionState,
   Document,
   AgreementAttribute,
-  Key,
   Client,
   clientKind,
   keyUse,
+  Key,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
