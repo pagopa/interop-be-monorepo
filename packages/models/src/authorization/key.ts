@@ -12,7 +12,7 @@ export const KeyUse = z.enum([
 export type KeyUse = z.infer<typeof KeyUse>;
 
 export const Key = z.object({
-  userId: UserId.optional(),
+  userId: UserId,
   kid: z.string(),
   name: z.string(),
   encodedPem: z.string(),

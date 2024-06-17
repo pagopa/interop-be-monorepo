@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package authorization.v2;
+
+import "v2/authorization/key.proto";
+import "v2/authorization/client.proto";
+
+message ClientAddedV2 {
+  ClientV2 client = 1;
+}
+
+message ClientDeletedV2 {
+  string clientId = 1;
+  ClientV2 client = 2;
+}
+
+message ClientKeyAddedV2 {
+  string kid = 1;
+  ClientV2 client = 2;
+}
+
+message ClientKeyDeletedV2 {
+  string kid = 1;
+  ClientV2 client = 2;
+}
+
+message ClientUserAddedV2 {
+  string userId = 1;
+  ClientV2 client = 2;
+}
+
+message ClientUserDeletedV2 {
+  string userId = 1;
+  ClientV2 client = 2;
+}
+
+message ClientPurposeAddedV2 {
+  string purposeId = 1;
+  ClientV2 client = 2;
+}
+
+message ClientPurposeRemovedV2 {
+  string purposeId = 1;
+  ClientV2 client = 2;
+}

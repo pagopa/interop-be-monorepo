@@ -247,4 +247,5 @@ export const getMockKey = (): Key => ({
   encodedPem: generateId(),
   algorithm: "",
   use: keyUse.sig,
+  userId: generateId(),
 });
