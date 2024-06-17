@@ -363,7 +363,7 @@ describe("addClientPurpose", async () => {
       })
     ).rejects.toThrowError(eserviceNotFound(mockEservice.id));
   });
-  it("should throw agreementNotFound if the agreement doesn't exist", async () => {
+  it("should throw noAgreementFoundInRequiredState if there is no agreement in required states", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -454,7 +454,7 @@ describe("addClientPurpose", async () => {
       })
     ).rejects.toThrowError(mockDescriptor.id);
   });
-  it("should throw noVersionsFoundInPurpose if the purpose has no versions", async () => {
+  it("should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
