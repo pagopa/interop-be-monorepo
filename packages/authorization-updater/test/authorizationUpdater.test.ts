@@ -12,6 +12,7 @@ import {
 import {
   Agreement,
   AgreementEventEnvelopeV2,
+  Client,
   Descriptor,
   EService,
   EServiceEventEnvelopeV2,
@@ -51,7 +52,12 @@ import {
 } from "../src/index.js";
 import { ApiClientComponent } from "../src/model/models.js";
 import { agreementStateToClientState } from "../src/utils.js";
-import { addOneClient, addOneEService, readModelService } from "./utils.js";
+import {
+  addOneClient,
+  addOneEService,
+  getMockClient,
+  readModelService,
+} from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
   const testCorrelationId = generateId();
@@ -401,17 +407,17 @@ describe("Authorization Updater processMessage", () => {
         log_date: new Date(),
       } as PurposeEventEnvelopeV2;
 
-      const client1 = {
-        id: generateId(),
-        purposes: [{ purpose: { purposeId: purpose.id } }],
+      const client1: Client = {
+        ...getMockClient(),
+        purposes: [purpose.id],
       };
-      const client2 = {
-        id: generateId(),
-        purposes: [{ purpose: { purposeId: purpose.id } }],
+      const client2: Client = {
+        ...getMockClient(),
+        purposes: [purpose.id],
       };
-      const client3 = {
-        id: generateId(),
-        purposes: [{ purpose: { purposeId: generateId() } }],
+      const client3: Client = {
+        ...getMockClient(),
+        purposes: [generateId()],
       };
 
       await addOneClient(client1);
