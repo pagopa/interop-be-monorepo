@@ -14,6 +14,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  toPurposeVersionV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -44,7 +45,7 @@ describe("archivePurposeVersion", () => {
     };
     await addOnePurpose(mockPurpose);
 
-    await purposeService.archivePurposeVersion({
+    const returnedPurposeVersion = await purposeService.archivePurposeVersion({
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       organizationId: mockPurpose.consumerId,
@@ -79,6 +80,11 @@ describe("archivePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(
+      writtenPayload.purpose?.versions.find(
+        (v) => v.id === returnedPurposeVersion.id
+      )
+    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
     vi.useRealTimers();
   });
@@ -100,7 +106,7 @@ describe("archivePurposeVersion", () => {
     };
     await addOnePurpose(mockPurpose);
 
-    await purposeService.archivePurposeVersion({
+    const returnedPurposeVersion = await purposeService.archivePurposeVersion({
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion1.id,
       organizationId: mockPurpose.consumerId,
@@ -135,6 +141,11 @@ describe("archivePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(
+      writtenPayload.purpose?.versions.find(
+        (v) => v.id === returnedPurposeVersion.id
+      )
+    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
 
     vi.useRealTimers();
   });
