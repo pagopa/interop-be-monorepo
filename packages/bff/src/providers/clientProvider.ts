@@ -5,7 +5,7 @@ import { createApiClient as createApiClientAttributeProcess } from "../model/gen
 import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
 import { config } from "../utilities/config.js";
 
-export type Headers = { "X-Correlation-Id": string, Authorization: string };
+export type Headers = { "X-Correlation-Id": string; Authorization: string };
 
 export type PagoPaClients = {
   tenantProcessClient: ReturnType<typeof createApiClientTenantProcess>;

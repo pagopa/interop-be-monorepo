@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
 import genericRouter from "./routers/genericRouter.js";
-// import catalogRouter from "./routers/catalogRouter.js";
+import catalogRouter from "./routers/catalogRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -27,7 +27,7 @@ app.use(healthRouter);
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
-// app.use(catalogRouter(zodiosCtx, clients));
+app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx));
 app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));
