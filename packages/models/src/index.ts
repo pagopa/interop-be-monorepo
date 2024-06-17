@@ -44,6 +44,8 @@ export * from "./authorization/key.js";
 export * from "./authorization/authorizationEvents.js";
 export * from "./authorization/protobufConverterFromV1.js";
 export * from "./authorization/protobufConverterToV1.js";
+export * from "./authorization/protobufConverterFromV2.js";
+export * from "./authorization/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
@@ -85,3 +87,6 @@ export * from "./gen/v2/agreement/agreement.js";
 export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
 export * from "./gen/v2/purpose/events.js";
+export * from "./gen/v2/authorization/client.js";
+export * from "./gen/v2/authorization/key.js";
+export * from "./gen/v2/authorization/events.js";
