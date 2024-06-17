@@ -19,7 +19,7 @@ export const errorCodes = {
   securityUserNotFound: "0006",
   userAlreadyAssigned: "0007",
   eserviceNotFound: "0008",
-  noVersionsFoundInPurpose: "009",
+  noPurposeVersionsFoundInRequiredState: "009",
   descriptorNotFound: "0010",
   noAgreementFoundInRequiredState: "0011",
   purposeAlreadyLinkedToClient: "0012",
@@ -117,13 +117,13 @@ export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function noVersionsFoundInPurpose(
+export function noPurposeVersionsFoundInRequiredState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No versions found in purpose ${purposeId}`,
-    code: "noVersionsFoundInPurpose",
-    title: "No versions found in purpose",
+    detail: `No versions in required state found in purpose ${purposeId}`,
+    code: "noPurposeVersionsFoundInRequiredState",
+    title: "No purpose versions found in required state",
   });
 }
 

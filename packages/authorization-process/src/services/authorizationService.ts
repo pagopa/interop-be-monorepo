@@ -34,7 +34,7 @@ import {
   eserviceNotFound,
   keyNotFound,
   noAgreementFoundInRequiredState,
-  noVersionsFoundInPurpose,
+  noPurposeVersionsFoundInRequiredState,
   organizationNotAllowedOnClient,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
@@ -499,7 +499,7 @@ export function authorizationServiceBuilder(
       );
 
       if (purposeVersion === undefined) {
-        throw noVersionsFoundInPurpose(purpose.id);
+        throw noPurposeVersionsFoundInRequiredState(purpose.id);
       }
 
       const updatedClient: Client = {

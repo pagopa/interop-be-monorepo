@@ -32,7 +32,7 @@ import {
   clientNotFound,
   eserviceNotFound,
   noAgreementFoundInRequiredState,
-  noVersionsFoundInPurpose,
+  noPurposeVersionsFoundInRequiredState,
   organizationNotAllowedOnClient,
   organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
@@ -502,7 +502,9 @@ describe("addClientPurpose", async () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(noVersionsFoundInPurpose(mockPurpose.id));
+    ).rejects.toThrowError(
+      noPurposeVersionsFoundInRequiredState(mockPurpose.id)
+    );
   });
   it("should throw purposeAlreadyLinkedToClient if the purpose is already linked to that client", async () => {
     const mockDescriptor: Descriptor = {
