@@ -21,7 +21,7 @@ export const errorCodes = {
   eserviceNotFound: "0008",
   noVersionsFoundInPurpose: "009",
   descriptorNotFound: "0010",
-  agreementNotFound: "0011",
+  noAgreementFoundInRequiredState: "0011",
   purposeAlreadyLinkedToClient: "0012",
   organizationNotAllowedOnPurpose: "0013",
 };
@@ -138,14 +138,14 @@ export function descriptorNotFound(
   });
 }
 
-export function agreementNotFound(
+export function noAgreementFoundInRequiredState(
   eserviceId: EServiceId,
   consumerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Agreement not found for eservice ${eserviceId} and consumer ${consumerId}`,
-    code: "agreementNotFound",
-    title: "Agreement not found",
+    detail: `No agreement in required state found for eservice ${eserviceId} and consumer ${consumerId}`,
+    code: "noAgreementFoundInRequiredState",
+    title: "No Agreement found in required state",
   });
 }
 

@@ -29,11 +29,11 @@ import {
 } from "pagopa-interop-commons";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
-  agreementNotFound,
   clientNotFound,
   descriptorNotFound,
   eserviceNotFound,
   keyNotFound,
+  noAgreementFoundInRequiredState,
   noVersionsFoundInPurpose,
   organizationNotAllowedOnClient,
   purposeAlreadyLinkedToClient,
@@ -485,7 +485,7 @@ export function authorizationServiceBuilder(
       )[0];
 
       if (agreement === undefined) {
-        throw agreementNotFound(eservice.id, organizationId);
+        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);

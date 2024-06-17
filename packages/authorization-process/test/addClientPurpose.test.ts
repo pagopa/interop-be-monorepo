@@ -29,9 +29,9 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  agreementNotFound,
   clientNotFound,
   eserviceNotFound,
+  noAgreementFoundInRequiredState,
   noVersionsFoundInPurpose,
   organizationNotAllowedOnClient,
   organizationNotAllowedOnPurpose,
@@ -400,7 +400,9 @@ describe("addClientPurpose", async () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(agreementNotFound(mockEservice.id, mockConsumer.id));
+    ).rejects.toThrowError(
+      noAgreementFoundInRequiredState(mockEservice.id, mockConsumer.id)
+    );
   });
   it("should throw descriptorNotFound if the descriptor doesn't exist", async () => {
     const mockDescriptor: Descriptor = {
