@@ -11,6 +11,7 @@ import {
   AuthorizationEventEnvelopeV2,
   ClientKeyDeletedV2,
   toReadModelKey,
+  ClientDeletedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/keyConsumerServiceV2.js";
@@ -92,5 +93,43 @@ describe("Events V2", async () => {
     });
 
     expect(retrievedKey).toBeNull();
+  });
+  it("ClientDeleted", async () => {
+    const mockKey1 = getMockKey();
+    const mockKey2 = getMockKey();
+    const mockClient: Client = {
+      ...getMockClient(),
+      keys: [mockKey1, mockKey2],
+    };
+    await writeInReadmodel(toReadModelKey(mockKey1), keys);
+    await writeInReadmodel(toReadModelKey(mockKey2), keys);
+
+    const payload: ClientDeletedV2 = {
+      client: toClientV2(mockClient),
+      clientId: mockClient.id,
+    };
+
+    const message: AuthorizationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockClient.id,
+      version: 1,
+      type: "ClientDeleted",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV2(message, keys);
+
+    const retrievedKey1 = await keys.findOne({
+      "data.kid": mockKey1.kid,
+    });
+
+    const retrievedKey2 = await keys.findOne({
+      "data.kid": mockKey2.kid,
+    });
+
+    expect(retrievedKey1).toBeNull();
+    expect(retrievedKey2).toBeNull();
   });
 });
