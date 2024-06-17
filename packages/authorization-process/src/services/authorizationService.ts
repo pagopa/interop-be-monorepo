@@ -37,7 +37,6 @@ import {
   organizationNotAllowedOnClient,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
-  securityUserNotFound,
   userAlreadyAssigned,
   userIdNotFound,
 } from "../model/domain/errors.js";
@@ -58,7 +57,7 @@ import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
   isClientConsumer,
-  assertSelfcareUser
+  assertSelfcareUser,
 } from "./validators.js";
 
 const retrieveClient = async (

@@ -79,8 +79,8 @@ export const addClientPurposeErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
-      "agreementNotFound",
-      "noVersionsFoundInPurpose",
+      "noAgreementFoundInRequiredState",
+      "noPurposeVersionsFoundInRequiredState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
