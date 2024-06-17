@@ -24,7 +24,31 @@ const purposeRouter = (
   const purposeService = purposeServiceBuilder(purposeProcessClient);
 
   purposeRouter
-    .post("/reverse/purposes", async (_req, res) => res.status(501).send())
+    .post("/reverse/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const requestHeaders = {
+        "X-Correlation-Id": ctx.correlationId,
+        Authorization: req.headers.authorization as string,
+      };
+
+      try {
+        const result = await purposeService.createPurposeFromEService(
+          req.body,
+          ctx,
+          requestHeaders
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          reversePurposeUpdateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/reverse/purposes/:purposeId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
