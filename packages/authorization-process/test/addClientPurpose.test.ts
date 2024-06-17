@@ -410,7 +410,7 @@ describe("addClientPurpose", async () => {
         state !== agreementState.active && state !== agreementState.suspended
     )
   )(
-    "should throw noAgreementFoundInRequiredState if there is no agreement in required states (found: %s agreement)",
+    "should throw noAgreementFoundInRequiredState if there is no agreement in required states (found: %s agreements)",
     async (agreementState) => {
       const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -511,7 +511,7 @@ describe("addClientPurpose", async () => {
       })
     ).rejects.toThrowError(mockDescriptor.id);
   });
-  it("should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states (found no version)", async () => {
+  it("should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states (found no versions)", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
