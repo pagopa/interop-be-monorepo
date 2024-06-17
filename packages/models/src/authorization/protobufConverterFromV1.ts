@@ -20,7 +20,9 @@ const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
 
 export const fromKeyV1 = (input: KeyV1): Key => ({
   ...input,
-  userId: input.userId ? unsafeBrandId<UserId>(input.userId) : undefined,
+  userId: input.userId
+    ? unsafeBrandId<UserId>(input.userId)
+    : unsafeBrandId<UserId>(""), // userId has become required in v2 events, so old v1 events might have no userId
   use: fromKeyUseV1(input.use),
   createdAt: new Date(input.createdAt),
 });
