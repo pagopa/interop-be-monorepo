@@ -7,4 +7,4 @@ data:
   KAFKA_CLIENT_ID: "dev-pagopa-interop-key"
   KAFKA_GROUP_ID: "key-readmodel-writer"
   KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"
-  AUTHORIZATION_TOPIC: "event-store.authorization.events"
+  AUTHORIZATION_TOPIC: "event-store.dev-refactor_authz.events"
