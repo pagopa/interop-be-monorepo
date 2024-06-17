@@ -18,7 +18,6 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  createClientErrorMapper,
   deleteClientErrorMapper,
   getClientErrorMapper,
   removeUserErrorMapper,

@@ -17,11 +17,7 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
-import {
-  clientNotFound,
-  organizationNotAllowedOnClient,
-  userIdNotFound,
-} from "../model/domain/errors.js";
+import { clientNotFound, userIdNotFound } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
