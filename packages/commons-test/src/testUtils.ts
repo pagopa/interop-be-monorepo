@@ -28,6 +28,10 @@ import {
   AgreementAttribute,
   tenantMailKind,
   TenantMailKind,
+  Client,
+  clientKind,
+  keyUse,
+  Key,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -235,4 +239,26 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockClient = (): Client => ({
+  id: generateId(),
+  consumerId: generateId(),
+  name: "Test client",
+  purposes: [],
+  description: "Client description",
+  users: [],
+  kind: clientKind.consumer,
+  createdAt: new Date(),
+  keys: [],
+});
+
+export const getMockKey = (): Key => ({
+  name: "test key",
+  createdAt: new Date(),
+  kid: generateId(),
+  encodedPem: generateId(),
+  algorithm: "",
+  use: keyUse.sig,
+  userId: generateId(),
 });
