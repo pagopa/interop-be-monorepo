@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/keyConsumerServiceV2.js";
 import { keys } from "./utils.js";
 
-describe("Events V2", async () => {
+describe("Events V2", () => {
   it("ClientKeyAdded", async () => {
     const mockKey = getMockKey();
 
