@@ -1,29 +1,27 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import axios from "axios";
 import {
-  AgreementId,
-  DescriptorId,
-  EServiceId,
-  TenantId,
+  Tenant,
   UserId,
   generateId,
-  genericInternalError,
+  tenantMailKind,
   toAgreementV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   getMockAgreement,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { InstitutionResponse } from "pagopa-interop-selfcare-v2-client";
-import { genericLogger } from "pagopa-interop-commons";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import { sendAgreementEmail } from "../src/services/agreementEmailSenderService.js";
 import {
+  activationDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
-  selfcareIdNotFound,
+  tenantDigitalAddressNotFound,
+  tenantNotFound,
 } from "../src/models/errors.js";
 import {
   addOneAgreement,
@@ -33,38 +31,42 @@ import {
   emailManager,
   emailManagerConfig,
   readModelService,
-  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("agreement email sender", () => {
-  it("should send an email on AgreementSubmitted", async () => {
-    const tenant = { ...getMockTenant(), name: "Tenant", selfcareId: "123" };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
+  it("should send an email", async () => {
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
+    };
+    const producer: Tenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
+    };
+
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+
+    const descriptor = getMockDescriptor();
     const eservice = {
       ...getMockEService(),
-      name: "eService",
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: tenant.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producer.id,
       descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
     };
     await addOneAgreement(agreement);
 
     await sendAgreementEmail(
       toAgreementV2(agreement),
       readModelService,
-      selfcareV2ClientMock,
-      emailManager,
-      genericLogger
+      emailManager
     );
 
     const expectedBody = `<!DOCTYPE html>
@@ -82,12 +84,14 @@ describe("agreement email sender", () => {
 
         questa è una notifica automatica, si prega di non rispondere.
 
-        In data 01/01/1970, PDND Interoperabilità ha registrato l'attivazione di una nuova richiesta di
+        In data ${dateAtRomeZone(
+          agreement.stamps.activation.when
+        )}, PDND Interoperabilità ha registrato l'attivazione di una nuova richiesta di
         fruizione. Di seguito i dettagli:
-        - Id della richiesta: a8f059b2-3931-4802-ad9d-203936e98c22
-        - E-service: eService, versione: 1
-        - Erogatore: Tenant
-        - Fruitore: Tenant
+        - Id della richiesta: ${agreement.id}
+        - E-service: ${eservice.name}, versione: ${descriptor.version}
+        - Erogatore: ${producer.name}
+        - Fruitore: ${consumer.name}
 
         È possibile visionare la richiesta facendo accesso al <a href="https://selfcare.pagopa.it">backoffice</a>.
 
@@ -101,35 +105,31 @@ describe("agreement email sender", () => {
 </html>
 `;
 
-    const { data } = await axios.get(
+    const messagesResponse = await axios.get(
+      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
+    );
+
+    expect(messagesResponse.status).toBe(200);
+    expect(messagesResponse.data.messages.length).toBe(1);
+
+    const { data: emailData } = await axios.get(
       `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
     );
 
-    const html = data.HTML.replace(/\r\n/g, "\n");
+    const html = emailData.HTML.replace(/\r\n/g, "\n");
     expect(html).toBe(expectedBody);
-    expect(data.From.Address).toBe(config.agreementEmailSender);
-    expect(data.To[0].Address).toBe("test@test.com");
+    expect(emailData.From.Address).toBe(config.agreementEmailSender);
+    expect(emailData.To[0].Address).toBe(producer.mails[0].address);
+    expect(emailData.To[1].Address).toBe(consumer.mails[0].address);
+    expect(emailData.Subject).toBe(
+      `Richiesta di fruizione ${agreement.id} attiva`
+    );
   });
 
-  it("should throw internalGenericError for activation date not found", async () => {
-    const tenant = { ...getMockTenant(), name: "Tenant" };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
-    const eservice = {
-      ...getMockEService(),
-      name: "eService",
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
+  it("should throw activationDateNotFound for activation date not found", async () => {
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
+      ...getMockAgreement(),
       stamps: {},
-      producerId: tenant.id,
-      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
 
@@ -137,28 +137,15 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
-    ).rejects.toThrowError(
-      genericInternalError(
-        "Activation date not found for agreement a8f059b2-3931-4802-ad9d-203936e98c22"
-      )
-    );
+    ).rejects.toThrowError(activationDateNotFound(agreement.id));
   });
 
   it("should throw eServiceNotFound for Eservice not found", async () => {
-    const tenant = { ...getMockTenant(), name: "Tenant", selfcareId: "123" };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
     const agreement = {
-      ...getMockAgreement(generateId<EServiceId>(), tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: tenant.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
     };
     await addOneAgreement(agreement);
 
@@ -166,32 +153,18 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
-  it("should throw internalGenericError for Producer not found", async () => {
-    const tenant = { ...getMockTenant(), name: "Tenant", selfcareId: "123" };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
-    const eservice = {
-      ...getMockEService(),
-      name: "eService",
-      descriptors: [descriptor],
-    };
+  it("should throw tenantNotFound for Producer not found", async () => {
+    const eservice = getMockEService();
     await addOneEService(eservice);
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: generateId<TenantId>(),
-      descriptorId: descriptor.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      eserviceId: eservice.id,
     };
     await addOneAgreement(agreement);
 
@@ -199,37 +172,21 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
-    ).rejects.toThrowError(
-      genericInternalError(
-        "Produce tenant not found for agreement a8f059b2-3931-4802-ad9d-203936e98c22"
-      )
-    );
+    ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
 
-  it("should throw internalGenericError for Consumer not found", async () => {
-    const tenant = { ...getMockTenant(), name: "Tenant", selfcareId: "123" };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
-    const eservice = {
-      ...getMockEService(),
-      name: "eService",
-      descriptors: [descriptor],
-    };
+  it("should throw tenantNotFound for Consumer not found", async () => {
+    const producer = getMockTenant();
+    await addOneTenant(producer);
+    const eservice = getMockEService();
     await addOneEService(eservice);
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: tenant.id,
-      consumerId: generateId<TenantId>(),
-      descriptorId: descriptor.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      eserviceId: eservice.id,
+      producerId: producer.id,
     };
     await addOneAgreement(agreement);
 
@@ -237,41 +194,56 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
-    ).rejects.toThrowError(
-      genericInternalError(
-        "Consumer tenant not found for agreement a8f059b2-3931-4802-ad9d-203936e98c22"
-      )
-    );
+    ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
 
-  it("should throw selfcareIdNotFound for selfcareId undefined", async () => {
-    const tenant = {
+  it("should throw tenantDigitalAddressNotFound for Producer digital address not found", async () => {
+    const producer = getMockTenant();
+    const consumer = getMockTenant();
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+
+    const eservice = getMockEService();
+    await addOneEService(eservice);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      eserviceId: eservice.id,
+      producerId: producer.id,
+      consumerId: consumer.id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(
+      sendAgreementEmail(
+        toAgreementV2(agreement),
+        readModelService,
+        emailManager
+      )
+    ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.producerId));
+  });
+
+  it("should throw tenantDigitalAddressNotFound for Consumer digital address not found", async () => {
+    const producer = {
       ...getMockTenant(),
-      name: "Tenant",
-      selfcareId: undefined,
+      mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
     };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
-    const eservice = {
-      ...getMockEService(),
-      name: "eService",
-      descriptors: [descriptor],
-    };
+    const consumer = getMockTenant();
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+
+    const eservice = getMockEService();
     await addOneEService(eservice);
+
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: tenant.id,
-      consumerId: tenant.id,
-      descriptorId: descriptor.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      eserviceId: eservice.id,
+      producerId: producer.id,
+      consumerId: consumer.id,
     };
     await addOneAgreement(agreement);
 
@@ -279,37 +251,32 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
-    ).rejects.toThrowError(selfcareIdNotFound(tenant.id));
+    ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.consumerId));
   });
 
-  it("should throw descriptorNotFound", async () => {
-    const tenant = {
+  it("should throw descriptorNotFound for Descriptor not found", async () => {
+    const producer = {
       ...getMockTenant(),
-      name: "Tenant",
-      selfcareId: "123",
+      mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
     };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
-    const eservice = {
-      ...getMockEService(),
-      name: "eService",
-      descriptors: [],
+    const consumer = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
     };
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+
+    const eservice = getMockEService();
     await addOneEService(eservice);
+
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: tenant.id,
-      consumerId: tenant.id,
-      descriptorId: descriptor.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      eserviceId: eservice.id,
+      producerId: producer.id,
+      consumerId: consumer.id,
     };
     await addOneAgreement(agreement);
 
@@ -317,54 +284,58 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
     ).rejects.toThrowError(
       descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
     );
   });
 
-  it("should throw internalGenericError for Producer email not found", async () => {
-    const tenant = { ...getMockTenant(), name: "Tenant", selfcareId: "123" };
-    await addOneTenant(tenant);
-    const agreementId = unsafeBrandId<DescriptorId>(
-      "a8f059b2-3931-4802-ad9d-203936e98c22"
-    );
-    const descriptor = { ...getMockDescriptor(), version: "1" };
+  it("should fail when email manager send fails", async () => {
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      mails: [
+        {
+          ...getMockTenantMail(tenantMailKind.DigitalAddress),
+          address: "invalid email address",
+        },
+      ],
+    };
+    const producer: Tenant = {
+      ...getMockTenant(),
+      mails: [
+        {
+          ...getMockTenantMail(tenantMailKind.DigitalAddress),
+          address: "invalid email address",
+        },
+      ],
+    };
+
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+
+    const descriptor = getMockDescriptor();
     const eservice = {
       ...getMockEService(),
-      name: "eService",
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
     const agreement = {
-      ...getMockAgreement(eservice.id, tenant.id),
-      id: unsafeBrandId<AgreementId>(agreementId),
-      stamps: { activation: { when: new Date(1), who: generateId<UserId>() } },
-      producerId: tenant.id,
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producer.id,
       descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
     };
     await addOneAgreement(agreement);
-
-    // eslint-disable-next-line functional/immutable-data
-    selfcareV2ClientMock.getInstitution = vi.fn(
-      async () => ({} as Promise<InstitutionResponse>)
-    );
 
     await expect(
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        selfcareV2ClientMock,
-        emailManager,
-        genericLogger
+        emailManager
       )
-    ).rejects.toThrowError(
-      genericInternalError(
-        "Producer digital address not found for agreement a8f059b2-3931-4802-ad9d-203936e98c22"
-      )
-    );
+    ).rejects.toThrowError("No recipients defined");
   });
 });
