@@ -6,6 +6,8 @@ import {
   Agreement,
   AgreementAddedV2,
   AgreementEventEnvelopeV2,
+  AuthorizationEventEnvelopeV2,
+  ClientKeyAddedV2,
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorV2,
   EServiceEventEnvelopeV2,
@@ -17,6 +19,7 @@ import {
   generateId,
   technology,
   toAgreementV2,
+  toClientV2,
   toDescriptorV2,
   toEServiceV2,
   toPurposeV2,
@@ -24,13 +27,20 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
-import { getMockAgreement, getMockPurpose } from "pagopa-interop-commons-test";
+import {
+  getMockAgreement,
+  getMockClient,
+  getMockKey,
+  getMockPurpose,
+} from "pagopa-interop-commons-test";
 import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
 import { buildAgreementMessage } from "../src/models/agreement/agreementEventNotificationMessage.js";
 import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
 import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
+import { buildAuthorizationMessage } from "../src/models/authorization/authorizationEventNotificationMessage.js";
 import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
 import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
+import { toAuthorizationEventNotification } from "../src/models/authorization/authorizationEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { queueWriter } from "./utils.js";
 
@@ -105,7 +115,7 @@ const getMockEService = (id: string): EServiceV2 =>
   });
 
 describe("Notification tests", async () => {
-  describe("Catalog, Purpose, Agreement Event Message", async () => {
+  describe("Catalog, Purpose, Agreement, Authorization Event Message", async () => {
     it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -203,12 +213,42 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(agreementMessage, genericLogger);
 
-      const receivedMessages = await queueWriter.receiveLast(genericLogger, 3);
-      expect(receivedMessages.length).toBe(3);
+      const key = getMockKey();
+      const mockClient = { ...getMockClient(), keys: [key] };
+      const authorizationEventV2: ClientKeyAddedV2 = {
+        client: toClientV2(mockClient),
+        kid: key.kid,
+      };
+
+      const authorizationEventEnvelope: AuthorizationEventEnvelopeV2 = {
+        sequence_num: 3,
+        stream_id: mockClient.id,
+        version: 1,
+        correlation_id: v4(),
+        log_date: new Date(),
+        event_version: 2,
+        type: "ClientKeyAdded",
+        data: authorizationEventV2,
+      };
+      const authorizationEventNotification = toAuthorizationEventNotification(
+        authorizationEventEnvelope
+      );
+
+      const authorizationMessage = buildAuthorizationMessage(
+        authorizationEventEnvelope,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        authorizationEventNotification!
+      );
+
+      await queueWriter.send(authorizationMessage, genericLogger);
+
+      const receivedMessages = await queueWriter.receiveLast(genericLogger, 4);
+      expect(receivedMessages.length).toBe(4);
 
       const receivedCatalogMessage = receivedMessages[0];
       const receivedPurposeMessage = receivedMessages[1];
       const receivedAgreementMessage = receivedMessages[2];
+      const receivedAuthorizationMessage = receivedMessages[3];
 
       expect(receivedCatalogMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
@@ -224,6 +264,15 @@ describe("Notification tests", async () => {
           ...mockAgreement,
           createdAt: new Date().toISOString(),
         },
+      });
+      expect(receivedAuthorizationMessage.payload).toEqual({
+        clientId: mockClient.id,
+        keys: [
+          {
+            ...mockClient.keys[0],
+            createdAt: new Date().toISOString(),
+          },
+        ],
       });
 
       vi.useRealTimers();
