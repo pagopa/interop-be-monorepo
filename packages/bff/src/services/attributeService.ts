@@ -1,4 +1,5 @@
 import crypto from "crypto-js";
+import { Logger } from "pagopa-interop-commons";
 import {
   ApiAttribute,
   ApiAttributeSeed,
@@ -15,8 +16,11 @@ export function attributeServiceBuilder(
   return {
     async createCertifiedAttribute(
       seed: ApiAttributeSeed,
-      requestHeaders: Headers
+      requestHeaders: Headers,
+      logger: Logger
     ): Promise<ApiAttribute> {
+      logger.info(`Creating certified attribute with name ${seed.name}`);
+
       return attributeClient.createCertifiedAttribute(
         {
           ...seed,
@@ -31,8 +35,11 @@ export function attributeServiceBuilder(
 
     async createVerifiedAttribute(
       seed: ApiAttributeSeed,
-      requestHeaders: Headers
+      requestHeaders: Headers,
+      logger: Logger
     ): Promise<ApiAttribute> {
+      logger.info(`Creating verified attribute with name ${seed.name}`);
+
       return attributeClient.createVerifiedAttribute(
         {
           ...seed,
@@ -46,8 +53,11 @@ export function attributeServiceBuilder(
 
     async createDeclaredAttribute(
       seed: ApiAttributeSeed,
-      requestHeaders: Headers
+      requestHeaders: Headers,
+      logger: Logger
     ): Promise<ApiAttribute> {
+      logger.info(`Creating declared attribute with name ${seed.name}`);
+
       return attributeClient.createDeclaredAttribute(
         {
           ...seed,
@@ -62,8 +72,10 @@ export function attributeServiceBuilder(
 
     async getAttributeById(
       attributeId: string,
-      requestHeaders: Headers
+      requestHeaders: Headers,
+      logger: Logger
     ): Promise<ProcessApiAttribute> {
+      logger.info(`Retrieving attribute with id ${attributeId}`);
       return attributeClient.getAttributeById({
         params: { attributeId },
         headers: { ...requestHeaders },
@@ -73,8 +85,12 @@ export function attributeServiceBuilder(
     async getAttributeByOriginAndCode(
       origin: string,
       code: string,
-      requestHeaders: Headers
+      requestHeaders: Headers,
+      logger: Logger
     ): Promise<ProcessApiAttribute> {
+      logger.info(
+        `Retrieving attribute with origin ${origin} and code ${code}`
+      );
       return attributeClient.getAttributeByOriginAndCode({
         params: { origin, code },
         headers: { ...requestHeaders },
@@ -87,6 +103,7 @@ export function attributeServiceBuilder(
       limit,
       kinds,
       requestHeaders,
+      logger,
       name,
       origin,
     }: {
@@ -94,9 +111,11 @@ export function attributeServiceBuilder(
       limit: number;
       kinds: ProcessApiAttributeKind[];
       requestHeaders: Headers;
+      logger: Logger;
       name?: string;
       origin?: string;
     }): Promise<ProcessApiAttributes> {
+      logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds, name, origin },
         headers: { ...requestHeaders },

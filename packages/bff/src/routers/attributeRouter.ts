@@ -34,7 +34,8 @@ const attributeRouter = (
         };
         const result = await attributeService.createCertifiedAttribute(
           req.body,
-          requestHeaders
+          requestHeaders,
+          ctx.logger
         );
 
         return res.status(200).json(result).end();
@@ -58,7 +59,8 @@ const attributeRouter = (
         };
         const result = await attributeService.createVerifiedAttribute(
           req.body,
-          requestHeaders
+          requestHeaders,
+          ctx.logger
         );
 
         return res.status(200).json(result).end();
@@ -80,9 +82,11 @@ const attributeRouter = (
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
+
         const result = await attributeService.createDeclaredAttribute(
           req.body,
-          requestHeaders
+          requestHeaders,
+          ctx.logger
         );
 
         return res.status(200).json(result).end();
@@ -113,6 +117,7 @@ const attributeRouter = (
           kinds,
           origin,
           requestHeaders,
+          logger: ctx.logger,
         });
 
         return res
@@ -141,7 +146,8 @@ const attributeRouter = (
         };
         const result = await attributeService.getAttributeById(
           req.params.attributeId,
-          requestHeaders
+          requestHeaders,
+          ctx.logger
         );
 
         return res.status(200).json(result).end();
@@ -166,7 +172,8 @@ const attributeRouter = (
         const result = await attributeService.getAttributeByOriginAndCode(
           req.params.origin,
           req.params.code,
-          requestHeaders
+          requestHeaders,
+          ctx.logger
         );
 
         return res.status(200).json(result).end();
