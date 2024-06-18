@@ -3,6 +3,12 @@ import { api as purposeApi } from "./generated/purpose-process/api.js";
 
 type PurposeApi = typeof purposeApi.api;
 
+export type ApiPurposePayload = ZodiosBodyByPath<
+  PurposeApi,
+  "post",
+  "/purposes"
+>;
+
 export type ApiEServicePurposeSeedPayload = ZodiosBodyByPath<
   PurposeApi,
   "post",
@@ -14,6 +20,7 @@ export type ApiUpdateReversePurposePayload = ZodiosBodyByPath<
   "post",
   "/reverse/purposes/:id"
 >;
+
 export type VersionState = ZodiosResponseByPath<
   PurposeApi,
   "post",
