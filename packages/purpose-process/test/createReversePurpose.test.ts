@@ -103,12 +103,13 @@ describe("createReversePurpose", () => {
     await writeInReadmodel(consumer, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose } = await purposeService.createReversePurpose(
-      consumer.id,
-      reversePurposeSeed,
-      generateId(),
-      genericLogger
-    );
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.createReversePurpose(
+        consumer.id,
+        reversePurposeSeed,
+        generateId(),
+        genericLogger
+      );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -146,6 +147,8 @@ describe("createReversePurpose", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
