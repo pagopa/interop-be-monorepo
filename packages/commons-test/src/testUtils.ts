@@ -165,6 +165,7 @@ export const getMockPurpose = (): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
+  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
@@ -233,7 +234,6 @@ export const getMockClient = (): Client => ({
   name: "Test client",
   purposes: [],
   description: "Client description",
-  relationships: [],
   users: [],
   kind: clientKind.consumer,
   createdAt: new Date(),
@@ -241,10 +241,11 @@ export const getMockClient = (): Client => ({
 });
 
 export const getMockKey = (): Key => ({
-  name: generateId(),
+  name: "test key",
   createdAt: new Date(),
-  kid: generateId(),
-  encodedPem: generateId(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
+  userId: generateId(),
 });

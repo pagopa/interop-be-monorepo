@@ -12,7 +12,7 @@ export const eventV2TypeMapper = (
     .with("ClientKeyAdded", () => "keys-added")
     .with("ClientKeyDeleted", () => "key-deleted")
     .with("ClientUserAdded", () => "user-added")
-    .with("ClientUserDeleted", () => "user-deleted")
+    .with("ClientUserDeleted", () => "user-removed")
     .with("ClientPurposeAdded", () => "client-purpose-added")
     .with("ClientPurposeRemoved", () => "client-purpose-removed")
     .exhaustive();
