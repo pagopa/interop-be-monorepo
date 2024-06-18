@@ -1,4 +1,9 @@
-import { FileManager, Logger, CreateEvent } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  CreateEvent,
+  AuthData,
+} from "pagopa-interop-commons";
 import {
   WithMetadata,
   Agreement,
@@ -6,7 +11,6 @@ import {
   agreementState,
   generateId,
   AgreementId,
-  UserId,
   Descriptor,
   EService,
   Tenant,
@@ -25,16 +29,19 @@ import {
 import { createStamp } from "./agreementStampUtils.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
+import { ContractBuilder } from "./agreementContractBuilder.js";
 
 export async function createUpgradeOrNewDraft({
   agreement,
   eservice,
   newDescriptor,
   consumer,
+  producer,
   readModelService,
   canBeUpgraded,
   copyFile,
-  userId,
+  authData,
+  contractBuilder,
   correlationId,
   logger,
 }: {
@@ -42,17 +49,22 @@ export async function createUpgradeOrNewDraft({
   eservice: EService;
   newDescriptor: Descriptor;
   consumer: Tenant;
+  producer: Tenant;
   readModelService: ReadModelService;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
-  userId: UserId;
+  authData: AuthData;
+  contractBuilder: ContractBuilder;
   correlationId: string;
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const newAgreementId = generateId<AgreementId>();
   if (canBeUpgraded) {
-    // upgradeAgreement
-    const stamp = createStamp(userId);
+    // Upgrade Agreement case:
+    // Creates a new Agreement linked to the new descriptor version,
+    // with the same state of the old agreement, and archives the old agreement.
+
+    const stamp = createStamp(authData.userId);
     const archived: Agreement = {
       ...agreement.data,
       state: agreementState.archived,
@@ -76,8 +88,7 @@ export async function createUpgradeOrNewDraft({
         copyFile,
         logger
       ),
-      // TODO generate a new contract here - https://pagopa.atlassian.net/browse/IMN-622
-      contract: agreement.data.contract,
+      contract: undefined,
       verifiedAttributes: matchingVerifiedAttributes(
         eservice,
         newDescriptor,
@@ -97,19 +108,33 @@ export async function createUpgradeOrNewDraft({
       },
     };
 
+    const contract = await contractBuilder.createContract(
+      authData.selfcareId,
+      agreement.data,
+      eservice,
+      consumer,
+      producer
+    );
+
+    const upgradedWithContract: Agreement = {
+      ...upgraded,
+      contract,
+    };
+
     return [
-      upgraded,
+      upgradedWithContract,
       [
         toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreement.metadata.version,
           correlationId
         ),
-        toCreateEventAgreementUpgraded(upgraded, correlationId),
+        toCreateEventAgreementUpgraded(upgradedWithContract, correlationId),
       ],
     ];
   } else {
-    // createNewDraftAgreement
+    // Create new Draft Agreement case:
+    // Creates a new Draft Agreement linked to the new descriptor version.
     await verifyConflictingAgreements(
       agreement.data.consumerId,
       agreement.data.eserviceId,

@@ -487,7 +487,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updateSeed,
         updatedAgreement,
         authData
       );
@@ -590,6 +589,11 @@ export function agreementServiceBuilder(
         readModelService
       );
 
+      const producer = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
       if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
         validateCertifiedAttributes({
           descriptor: newDescriptor,
@@ -608,15 +612,26 @@ export function agreementServiceBuilder(
         consumer
       );
 
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         newDescriptor,
         eservice,
         consumer,
+        producer,
         readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
-        userId: authData.userId,
+        authData,
+        contractBuilder: contractBuilderInstance,
         correlationId,
         logger,
       });
@@ -1033,7 +1048,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementSeed,
         updatedAgreementWithoutContract,
         authData
       );
@@ -1216,7 +1230,6 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  updateSeed: UpdateAgreementSeed,
   agreement: Agreement,
   authData: AuthData
 ): Promise<Agreement> {
@@ -1226,8 +1239,7 @@ async function addContractOnFirstActivation(
       agreement,
       eservice,
       consumer,
-      producer,
-      updateSeed
+      producer
     );
 
     return {

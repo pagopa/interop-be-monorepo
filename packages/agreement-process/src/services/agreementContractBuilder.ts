@@ -40,7 +40,6 @@ import {
   attributeNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { AgreementProcessConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -74,7 +73,7 @@ const createAgreementDocumentName = (
 
 const getAttributeInvolved = async (
   consumer: Tenant,
-  seed: UpdateAgreementSeed,
+  agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<{
   certified: Array<[Attribute, CertifiedTenantAttribute]>;
@@ -90,9 +89,18 @@ const getAttributeInvolved = async (
     type: TenantAttributeType
   ): Promise<Array<[Attribute, T]>> => {
     const seedAttributes = match(type)
-      .with(tenantAttributeType.CERTIFIED, () => seed.certifiedAttributes || [])
-      .with(tenantAttributeType.DECLARED, () => seed.declaredAttributes || [])
-      .with(tenantAttributeType.VERIFIED, () => seed.verifiedAttributes || [])
+      .with(
+        tenantAttributeType.CERTIFIED,
+        () => agreement.certifiedAttributes || []
+      )
+      .with(
+        tenantAttributeType.DECLARED,
+        () => agreement.declaredAttributes || []
+      )
+      .with(
+        tenantAttributeType.VERIFIED,
+        () => agreement.verifiedAttributes || []
+      )
       .exhaustive()
       .map((attribute) => attribute.id);
 
@@ -133,9 +141,9 @@ const getAttributeInvolved = async (
 const getSubmissionInfo = async (
   selfcareV2Client: SelfcareV2Client,
   consumer: Tenant,
-  seed: UpdateAgreementSeed
+  agreement: Agreement
 ): Promise<[string, Date]> => {
-  const submission = seed.stamps.submission;
+  const submission = agreement.stamps.submission;
   if (!submission) {
     throw agreementStampNotFound("submission");
   }
@@ -164,9 +172,9 @@ const getSubmissionInfo = async (
 const getActivationInfo = async (
   selfcareV2Client: SelfcareV2Client,
   selfcareId: SelfcareId,
-  seed: UpdateAgreementSeed
+  agreement: Agreement
 ): Promise<[string, Date]> => {
-  const activation = seed.stamps.activation;
+  const activation = agreement.stamps.activation;
 
   if (!activation) {
     throw agreementStampNotFound("activation");
@@ -190,7 +198,6 @@ const getPdfPayload = async (
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  seed: UpdateAgreementSeed,
   readModelService: ReadModelService,
   selfcareV2Client: SelfcareV2Client
 ): Promise<AgreementContractPDFPayload> => {
@@ -274,17 +281,17 @@ const getPdfPayload = async (
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareV2Client,
     consumer,
-    seed
+    agreement
   );
   const [activator, activationTimestamp] = await getActivationInfo(
     selfcareV2Client,
     selfcareId,
-    seed
+    agreement
   );
 
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
-    seed,
+    agreement,
     readModelService
   );
 
@@ -325,8 +332,7 @@ export const contractBuilder = (
       agreement: Agreement,
       eservice: EService,
       consumer: Tenant,
-      producer: Tenant,
-      seed: UpdateAgreementSeed
+      producer: Tenant
     ): Promise<AgreementDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -341,7 +347,6 @@ export const contractBuilder = (
         eservice,
         consumer,
         producer,
-        seed,
         readModelService,
         selfcareV2Client
       );
