@@ -57,7 +57,7 @@ describe("Events V1", async () => {
 
     expect(retrievedKey?.data).toEqual(toReadModelKey(addedKey));
     expect(retrievedKey?.metadata).toEqual({
-      version: 0,
+      version: 1,
     });
   });
   it("KeyDeleted", async () => {
