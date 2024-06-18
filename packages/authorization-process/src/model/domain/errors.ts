@@ -191,7 +191,7 @@ export function tooManyKeysPerClient(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `the number of the keys ${size} for the client ${clientId} exceed maximun allowed`,
+    detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
     code: "tooManyKeysPerClient",
     title: "Too many Keys per client",
   });
@@ -210,7 +210,7 @@ export function userNotFound(
 
 export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Key with kid: ${kid} already exists: `,
+    detail: `Key with kid ${kid} already exists `,
     code: "keyAlreadyExists",
     title: "Key already exists",
   });

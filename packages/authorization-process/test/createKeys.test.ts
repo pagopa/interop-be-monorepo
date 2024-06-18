@@ -102,7 +102,7 @@ describe("createKeys", () => {
     consumerId,
   };
 
-  it("should create the keys and add it to client", async () => {
+  it("should create the keys and add them to the client", async () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(mockClient);
@@ -204,7 +204,7 @@ describe("createKeys", () => {
       )
     ).rejects.toThrowError(securityUserNotFound(mockAuthData.userId, userId));
   });
-  it("should throw tooManyKeysPerClient if the keys number greater than maxKeysPerClient ", async () => {
+  it("should throw tooManyKeysPerClient if the keys number is greater than maxKeysPerClient ", async () => {
     function get100Keys(): Key[] {
       const arrayKeys = [];
       for (let index = 0; index < 101; index++) {

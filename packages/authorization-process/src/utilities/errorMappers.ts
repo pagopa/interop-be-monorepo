@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -99,8 +100,8 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
-    .with("tooManyKeysPerClient", () => HTTP_STATUS_FORBIDDEN)
-    .with("securityUserNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tooManyKeysPerClient", () => HTTP_STATUS_BAD_REQUEST)
+    .with("securityUserNotFound", () => HTTP_STATUS_FORBIDDEN)
     .with("notAllowedPrivateKeyException", () => HTTP_STATUS_FORBIDDEN)
     .with("keyAlreadyExists", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
