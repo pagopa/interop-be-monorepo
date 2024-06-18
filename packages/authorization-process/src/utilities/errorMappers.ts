@@ -9,6 +9,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -46,6 +47,7 @@ export const removeClientPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("clientNotFound", "purposeIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeIdNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

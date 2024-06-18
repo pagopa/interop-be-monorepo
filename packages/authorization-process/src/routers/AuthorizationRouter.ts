@@ -307,7 +307,7 @@ const authorizationRouter = (
           await authorizationService.deleteClientKeyById({
             clientId: unsafeBrandId(req.params.clientId),
             keyIdToRemove: unsafeBrandId(req.params.keyId),
-            organizationId: ctx.authData.organizationId,
+            authData: ctx.authData,
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
