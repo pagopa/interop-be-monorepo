@@ -15,15 +15,16 @@ export const errorCodes = {
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
   keyNotFound: "0005",
-  purposeNotFound: "0006",
-  userWithoutSecurityPrivileges: "0007",
-  userAlreadyAssigned: "0008",
-  eserviceNotFound: "0009",
-  noPurposeVersionsFoundInRequiredState: "0010",
-  descriptorNotFound: "0011",
-  noAgreementFoundInRequiredState: "0012",
-  purposeAlreadyLinkedToClient: "0013",
-  organizationNotAllowedOnPurpose: "0014",
+  userNotAllowedOnClient: "0006",
+  purposeNotFound: "0007",
+  userWithoutSecurityPrivileges: "0008",
+  userAlreadyAssigned: "0009",
+  eserviceNotFound: "0010",
+  noPurposeVersionsFoundInRequiredState: "0011",
+  descriptorNotFound: "0012",
+  noAgreementFoundInRequiredState: "0013",
+  purposeAlreadyLinkedToClient: "0014",
+  organizationNotAllowedOnPurpose: "0015",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -87,6 +88,16 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   });
 }
 
+export function userNotAllowedOnClient(
+  userId: UserId,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is not allowed on client ${clientId}`,
+    code: "userNotAllowedOnClient",
+    title: "User not allowed on client",
+  });
+}
 export function userWithoutSecurityPrivileges(
   userId: UserId,
   requesterUserId: UserId

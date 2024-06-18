@@ -5,7 +5,6 @@ import {
   DescriptorId,
   EService,
   EServiceId,
-  Key,
   ListResult,
   Purpose,
   PurposeId,
@@ -38,6 +37,7 @@ import {
   purposeNotFound,
   userAlreadyAssigned,
   userIdNotFound,
+  userNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
@@ -68,20 +68,6 @@ const retrieveClient = async (
     throw clientNotFound(clientId);
   }
   return client;
-};
-
-const retrieveKey = (client: Client, keyId: string): Key => {
-  const key = client.keys.find((key) => key.kid === keyId);
-  if (!key) {
-    throw keyNotFound(keyId, client.id);
-  }
-  return key;
-};
-
-const retrievePurposeId = (client: Client, purposeId: PurposeId): void => {
-  if (!client.purposes.find((id) => id === purposeId)) {
-    throw purposeNotFound(purposeId);
-  }
 };
 
 const retrieveEService = async (
@@ -291,22 +277,33 @@ export function authorizationServiceBuilder(
     async deleteClientKeyById({
       clientId,
       keyIdToRemove,
-      organizationId,
+      authData,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       keyIdToRemove: string;
-      organizationId: TenantId;
+      authData: AuthData;
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
-      retrieveKey(client.data, keyIdToRemove);
+      const keyToRemove = client.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+      if (!keyToRemove) {
+        throw keyNotFound(keyIdToRemove, client.data.id);
+      }
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !client.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
 
       const updatedClient: Client = {
         ...client.data,
@@ -342,7 +339,9 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      retrievePurposeId(client.data, purposeIdToRemove);
+      if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+        throw purposeNotFound(purposeIdToRemove);
+      }
 
       const updatedClient: Client = {
         ...client.data,

@@ -151,16 +151,9 @@ export function readModelServiceBuilder(
       purposeId: PurposeId
     ): Promise<Array<WithMetadata<Client>>> {
       const data = await clients
-        .aggregate(
-          [
-            {
-              $match: {
-                "data.purposes": { $eq: purposeId },
-              },
-            },
-          ],
-          { allowDiskUse: true }
-        )
+        .find({
+          "data.purposes": { $eq: purposeId },
+        })
         .toArray();
 
       const result = z
