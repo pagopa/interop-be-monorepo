@@ -126,7 +126,7 @@ export function makeApiProblemBuilder<T extends string>(errors: {
               },
             },
           },
-          (e) => e.response.data as Problem
+          (e) => e.response.data
         )
         .otherwise((error: unknown) => {
           const problem = makeProblem(500, genericError("Unexpected error"));
