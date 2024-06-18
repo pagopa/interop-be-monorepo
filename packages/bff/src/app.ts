@@ -11,11 +11,11 @@ import attributeRouter from "./routers/attributeRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
-import { getClients } from "./providers/clientProvider.js";
+import { getInteropBeClients } from "./providers/clientProvider.js";
 
 const serviceName = "bff-process";
 
-const clients = getClients();
+const clients = getInteropBeClients();
 const app = zodiosCtx.app();
 
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
