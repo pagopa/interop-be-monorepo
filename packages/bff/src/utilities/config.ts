@@ -61,6 +61,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(PurposeProcessServerConfig);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
