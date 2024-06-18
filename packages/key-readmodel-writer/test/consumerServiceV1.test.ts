@@ -71,7 +71,7 @@ describe("Events V1", async () => {
     const payload: KeyDeletedV1 = {
       clientId: mockClient.id,
       keyId: mockKey.kid,
-      deactivationTimestamp: "",
+      deactivationTimestamp: new Date().toISOString(),
     };
 
     const message: AuthorizationEventEnvelopeV1 = {
