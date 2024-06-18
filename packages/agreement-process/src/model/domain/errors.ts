@@ -1,4 +1,3 @@
-import { logger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -9,9 +8,12 @@ import {
   EServiceId,
   TenantId,
   makeApiProblemBuilder,
+  UserId,
+  SelfcareId,
+  AttributeId,
 } from "pagopa-interop-models";
 
-const errorCodes = {
+export const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
@@ -31,17 +33,18 @@ const errorCodes = {
   documentNotFound: "0017",
   documentsChangeNotAllowed: "0018",
   selfcareIdNotFound: "0019",
-  tenantIdNotFound: "0020",
+  tenantNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
+  userNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -168,10 +171,10 @@ export function agreementNotInExpectedState(
   });
 }
 
-export function tenantIdNotFound(tenantId: string): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: "tenantIdNotFound",
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
@@ -234,7 +237,7 @@ export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
 }
 
 export function agreementSelfcareIdNotFound(
-  tenantId: string
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Selfcare id not found for tenant ${tenantId}`,
@@ -282,5 +285,26 @@ export function documentChangeNotAllowed(
     detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
     code: "documentsChangeNotAllowed",
     title: "Document change not allowed",
+  });
+}
+
+export function userNotFound(
+  selfcareId: SelfcareId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
+    code: "userNotFound",
+    title: "User not found",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }

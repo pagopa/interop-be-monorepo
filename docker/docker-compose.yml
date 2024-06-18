@@ -47,7 +47,7 @@ services:
       - kafka
 
   readmodel:
-    image: mongo:4
+    image: mongo:4.0
     ports:
       - 27017:27017
     environment:
@@ -60,8 +60,10 @@ services:
     ports:
       - 8081:8081
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_AUTH_USERNAME: root
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: example
+      ME_CONFIG_BASICAUTH_USERNAME: root
+      ME_CONFIG_BASICAUTH_PASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@readmodel:27017/
     depends_on:
       - readmodel
@@ -112,7 +114,7 @@ services:
       - 9000:9000
       - 9001:9001
     environment:
-      MINIO_ROOT_USER: test-aws-secret # use this as AWS S3 access key ID
+      MINIO_ROOT_USER: test-aws-key # use this as AWS S3 access key ID
       MINIO_ROOT_PASSWORD: test-aws-secret # use this as AWS S3 secret access key
       MINIO_SITE_REGION: eu-central-1
     volumes:
@@ -128,3 +130,12 @@ services:
     volumes:
       - ./elasticmq.local.conf:/opt/elasticmq.conf
     restart: always
+
+  # Mailpit is a local SMTP server, to replace AWS SES in local development
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - 8025:8025
+      - 1025:1025
+
+  

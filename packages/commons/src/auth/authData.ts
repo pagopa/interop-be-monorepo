@@ -1,4 +1,9 @@
-import { TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  TenantId,
+  UserId,
+  unsafeBrandId,
+  SelfcareId,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 
@@ -37,7 +42,7 @@ const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
 const SharedStandardJWTClaims = z.object({
   // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
-  aud: CommaSeparatedStringToArray(z.string()),
+  aud: z.union([z.array(z.string()), CommaSeparatedStringToArray(z.string())]),
   exp: z.number(),
   nbf: z.number(),
   iat: z.number(),
@@ -74,20 +79,20 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
       name: z.string(),
       roles: z.array(
         z.object({
-          partyRole: z.string(),
+          partyRole: z.string().nullish(),
           role: UIUserRole,
         })
       ),
-      fiscal_code: z.string().optional(),
-      ipaCode: z.string().optional(),
+      fiscal_code: z.string().nullish(),
+      ipaCode: z.string().nullish(),
     }),
     externalId: z.object({
       origin: z.string(),
       value: z.string(),
     }),
-    name: z.string(),
-    family_name: z.string(),
-    email: z.string(),
+    name: z.string().nullish(),
+    family_name: z.string().nullish(),
+    email: z.string().nullish(),
   })
 );
 
@@ -111,8 +116,9 @@ export type AuthToken = z.infer<typeof AuthToken>;
 */
 export const AuthData = z.object({
   organizationId: TenantId,
-  userId: z.string().uuid(),
+  userId: UserId,
   userRoles: z.array(UserRole),
+  selfcareId: SelfcareId,
   externalId: z.object({
     value: z.string(),
     origin: z.string(),
@@ -121,7 +127,8 @@ export const AuthData = z.object({
 export type AuthData = z.infer<typeof AuthData>;
 export const defaultAuthData: AuthData = {
   organizationId: unsafeBrandId<TenantId>(""),
-  userId: "",
+  userId: unsafeBrandId<UserId>(""),
+  selfcareId: unsafeBrandId<SelfcareId>(""),
   userRoles: [],
   externalId: { value: "", origin: "" },
 };
@@ -141,9 +148,11 @@ const getOrganizationId = (token: AuthToken): TenantId | undefined =>
     .with({ role: "internal" }, () => undefined)
     .exhaustive();
 
-const getUserId = (token: AuthToken): string | undefined =>
+const getUserId = (token: AuthToken): UserId | undefined =>
   match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.uid)
+    .with({ "user-roles": P.not(P.nullish) }, (t) =>
+      unsafeBrandId<UserId>(t.uid)
+    )
     .with({ role: "m2m" }, { role: "internal" }, () => undefined)
     .exhaustive();
 
@@ -155,9 +164,18 @@ const getExternalId = (
     .with({ role: "m2m" }, { role: "internal" }, () => undefined)
     .exhaustive();
 
+const getSelfcareId = (token: AuthToken): SelfcareId | undefined =>
+  match(token)
+    .with({ "user-roles": P.not(P.nullish) }, (t) =>
+      unsafeBrandId<SelfcareId>(t.selfcareId)
+    )
+    .with({ role: "m2m" }, { role: "internal" }, () => undefined)
+    .exhaustive();
+
 export const getAuthDataFromToken = (token: AuthToken): AuthData => ({
   organizationId: getOrganizationId(token) ?? defaultAuthData.organizationId,
   userId: getUserId(token) ?? defaultAuthData.userId,
   userRoles: getUserRoles(token),
   externalId: getExternalId(token) ?? defaultAuthData.externalId,
+  selfcareId: getSelfcareId(token) ?? defaultAuthData.selfcareId,
 });

@@ -7,6 +7,8 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
+  zodiosValidationErrorToApiProblem,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -46,7 +48,9 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
 const attributeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const attributeRouter = ctx.router(api.api);
+  const attributeRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
@@ -66,16 +70,21 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const { logger } = fromAppContext(req.ctx);
+
         try {
           const { limit, offset, kinds, name, origin } = req.query;
           const attributes =
-            await attributeRegistryService.getAttributesByKindsNameOrigin({
-              kinds: kinds.map(toAttributeKind),
-              name,
-              origin,
-              offset,
-              limit,
-            });
+            await attributeRegistryService.getAttributesByKindsNameOrigin(
+              {
+                kinds: kinds.map(toAttributeKind),
+                name,
+                origin,
+                offset,
+                limit,
+              },
+              logger
+            );
 
           return res
             .status(200)
@@ -99,16 +108,20 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const attribute = await attributeRegistryService.getAttributeByName(
-            req.params.name
+            req.params.name,
+            ctx.logger
           );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getAttributesByNameErrorMapper
+            getAttributesByNameErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -124,19 +137,25 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const { origin, code } = req.params;
           const attribute =
-            await attributeRegistryService.getAttributeByOriginAndCode({
-              origin,
-              code,
-            });
+            await attributeRegistryService.getAttributeByOriginAndCode(
+              {
+                origin,
+                code,
+              },
+              ctx.logger
+            );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getAttributeByOriginAndCodeErrorMapper
+            getAttributeByOriginAndCodeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -153,14 +172,21 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const attribute = await attributeRegistryService.getAttributeById(
-            unsafeBrandId(req.params.attributeId)
+            unsafeBrandId(req.params.attributeId),
+            ctx.logger
           );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getAttributeByIdErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -175,14 +201,18 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const { logger } = fromAppContext(req.ctx);
         const { limit, offset } = req.query;
 
         try {
-          const attributes = await attributeRegistryService.getAttributesByIds({
-            ids: req.body.map((a) => unsafeBrandId(a)),
-            offset,
-            limit,
-          });
+          const attributes = await attributeRegistryService.getAttributesByIds(
+            {
+              ids: req.body.map((a) => unsafeBrandId(a)),
+              offset,
+              limit,
+            },
+            logger
+          );
           return res
             .status(200)
             .json({
@@ -197,20 +227,22 @@ const attributeRouter = (
     )
     .post(
       "/certifiedAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const attribute =
             await attributeRegistryService.createCertifiedAttribute(
               req.body,
-              req.ctx.authData,
-              req.ctx.correlationId
+              ctx
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createCertifiedAttributesErrorMapper
+            createCertifiedAttributesErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -220,18 +252,20 @@ const attributeRouter = (
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
-              req.ctx.authData,
-              req.ctx.correlationId
+              ctx
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createDeclaredAttributesErrorMapper
+            createDeclaredAttributesErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -241,18 +275,20 @@ const attributeRouter = (
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,
-              req.ctx.authData,
-              req.ctx.correlationId
+              ctx
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createVerifiedAttributesErrorMapper
+            createVerifiedAttributesErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -262,17 +298,20 @@ const attributeRouter = (
       "/internal/certifiedAttributes",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
         try {
           const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,
-              req.ctx.correlationId
+              ctx
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createInternalCertifiedAttributesErrorMapper
+            createInternalCertifiedAttributesErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

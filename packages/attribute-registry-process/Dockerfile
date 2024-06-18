@@ -1,4 +1,4 @@
-FROM node:18.17.1-slim as build
+FROM node:20.14.0-slim@sha256:a16301294ba66d2ad22d3beded4a52720f96ab208c1db0973c034d0127a4ccb0 as build
 
 RUN corepack enable
 
@@ -31,7 +31,7 @@ RUN pnpm build && \
       packages/attribute-registry-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.17.1-slim as final 
+FROM node:20.14.0-slim@sha256:a16301294ba66d2ad22d3beded4a52720f96ab208c1db0973c034d0127a4ccb0 as final 
 
 COPY --from=build /out /app
 
