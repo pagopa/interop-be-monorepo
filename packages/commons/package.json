@@ -36,7 +36,7 @@
     "nodemailer": "6.9.13",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.8.0",
-    "ts-pattern": "5.1.2",
+    "ts-pattern": "5.2.0",
     "puppeteer": "22.11.0",
     "uuid": "10.0.0",
     "winston": "3.13.0",
