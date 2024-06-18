@@ -104,7 +104,7 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .with("tooManyKeysPerClient", () => HTTP_STATUS_BAD_REQUEST)
-    .with("securityUserNotFound", () => HTTP_STATUS_FORBIDDEN)
-    .with("notAllowedPrivateKeyException", () => HTTP_STATUS_FORBIDDEN)
-    .with("keyAlreadyExists", () => HTTP_STATUS_FORBIDDEN)
+    .with("userWithoutSecurityPrivileges", () => HTTP_STATUS_FORBIDDEN)
+    .with("notAllowedPrivateKeyException", () => HTTP_STATUS_BAD_REQUEST)
+    .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
