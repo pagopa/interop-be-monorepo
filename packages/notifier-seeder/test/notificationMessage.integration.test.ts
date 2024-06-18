@@ -1,30 +1,38 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
+  Agreement,
+  AgreementAddedV2,
+  AgreementEventEnvelopeV2,
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorV2,
   EServiceEventEnvelopeV2,
   EServiceV2,
+  PurposeAddedV2,
+  PurposeEventEnvelopeV2,
   descriptorState,
   eserviceMode,
   generateId,
   technology,
+  toAgreementV2,
   toDescriptorV2,
   toEServiceV2,
+  toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
-import {
-  QueueManager,
-  initQueueManager,
-} from "../src/queue-manager/queueManager.js";
-import { toCatalogItemEventNotification } from "../src/models/catalogItemEventNotificationConverter.js";
-import { buildCatalogMessage } from "../src/models/catalogItemEventNotificationMessage.js";
+import { getMockAgreement, getMockPurpose } from "pagopa-interop-commons-test";
+import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
+import { buildAgreementMessage } from "../src/models/agreement/agreementEventNotificationMessage.js";
+import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
+import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
+import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
+import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
-import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
+import { queueWriter } from "./utils.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
@@ -44,7 +52,32 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       uploadDate: new Date("2024-03-26T10:16:05.449Z"),
     },
     agreementApprovalPolicy: "Automatic",
-    attributes: { certified: [], declared: [], verified: [] },
+    attributes: {
+      certified: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+      declared: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+      verified: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+    },
     audience: ["api/v1"],
     createdAt: new Date("2024-03-26T10:16:03.946Z"),
     dailyCallsPerConsumer: 10,
@@ -72,32 +105,11 @@ const getMockEService = (id: string): EServiceV2 =>
   });
 
 describe("Notification tests", async () => {
-  process.env.AWS_CONFIG_FILE = "aws.config.local";
-
-  let startedElasticMQContainer: StartedTestContainer;
-  let queueUrl: string;
-  let queueWriter: QueueManager;
-
-  beforeAll(async () => {
-    startedElasticMQContainer = await elasticMQContainer().start();
-
-    queueUrl = `http://localhost:${startedElasticMQContainer.getMappedPort(
-      TEST_ELASTIC_MQ_PORT
-    )}/000000000000/sqsLocalQueue.fifo`;
-
-    queueWriter = initQueueManager({
-      queueUrl,
-      messageGroupId: "test-message-group-id",
-      logLevel: "info",
-    });
-  });
-
-  afterAll(async () => {
-    await startedElasticMQContainer.stop();
-  });
-
-  describe("Update Descriptor Event Message", async () => {
+  describe("Catalog, Purpose, Agreement Event Message", async () => {
     it("should send a message to the queue", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       const descriptor = getDescriptorMock(
         "6b48e234-aac6-4d33-aef4-93816588ff41"
       );
@@ -106,12 +118,12 @@ describe("Notification tests", async () => {
         descriptors: [descriptor],
       };
 
-      const eventV2: EServiceDescriptorSuspendedV2 = {
+      const catalogEventV2: EServiceDescriptorSuspendedV2 = {
         descriptorId: "6b48e234-aac6-4d33-aef4-93816588ff41",
         eservice: mockEService,
       };
 
-      const eventEnvelope: EServiceEventEnvelopeV2 = {
+      const catalogEventEnvelope: EServiceEventEnvelopeV2 = {
         sequence_num: 1,
         stream_id: "d27f668f-630b-4889-a97f-2b7e39b24188",
         version: 1,
@@ -119,22 +131,102 @@ describe("Notification tests", async () => {
         log_date: new Date(),
         event_version: 2,
         type: "EServiceDescriptorSuspended",
-        data: eventV2,
+        data: catalogEventV2,
       };
       const CatalogItemEventNotification =
-        toCatalogItemEventNotification(eventEnvelope);
+        toCatalogItemEventNotification(catalogEventEnvelope);
 
-      const message = buildCatalogMessage(
-        eventEnvelope,
+      const catalogMessage = buildCatalogMessage(
+        catalogEventEnvelope,
         CatalogItemEventNotification
       );
-      await queueWriter.send(message);
+      await queueWriter.send(catalogMessage, genericLogger);
 
-      const receivedMessage = (await queueWriter.receiveLast())[0];
+      const mockPurpose = getMockPurpose();
 
-      expect(receivedMessage.payload).toEqual(
+      const purposeEventV2: PurposeAddedV2 = {
+        purpose: toPurposeV2(mockPurpose),
+      };
+
+      const purposeEventEnvelope: PurposeEventEnvelopeV2 = {
+        sequence_num: 2,
+        stream_id: mockPurpose.id,
+        version: 1,
+        correlation_id: v4(),
+        log_date: new Date(),
+        event_version: 2,
+        type: "PurposeAdded",
+        data: purposeEventV2,
+      };
+      const purposeEventNotification =
+        toPurposeEventNotification(purposeEventEnvelope);
+
+      const purposeMessage = buildPurposeMessage(
+        purposeEventEnvelope,
+        purposeEventNotification
+      );
+
+      await queueWriter.send(purposeMessage, genericLogger);
+
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        createdAt: new Date(),
+        updatedAt: undefined,
+        consumerDocuments: [],
+        stamps: {},
+        contract: undefined,
+        suspendedAt: undefined,
+      };
+
+      const agreementEventV2: AgreementAddedV2 = {
+        agreement: toAgreementV2(mockAgreement),
+      };
+
+      const agreementEventEnvelope: AgreementEventEnvelopeV2 = {
+        sequence_num: 2,
+        stream_id: mockAgreement.id,
+        version: 1,
+        correlation_id: v4(),
+        log_date: new Date(),
+        event_version: 2,
+        type: "AgreementAdded",
+        data: agreementEventV2,
+      };
+      const agreementEventNotification = toAgreementEventNotification(
+        agreementEventEnvelope
+      );
+
+      const agreementMessage = buildAgreementMessage(
+        agreementEventEnvelope,
+        agreementEventNotification
+      );
+
+      await queueWriter.send(agreementMessage, genericLogger);
+
+      const receivedMessages = await queueWriter.receiveLast(genericLogger, 3);
+      expect(receivedMessages.length).toBe(3);
+
+      const receivedCatalogMessage = receivedMessages[0];
+      const receivedPurposeMessage = receivedMessages[1];
+      const receivedAgreementMessage = receivedMessages[2];
+
+      expect(receivedCatalogMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
       );
+      expect(receivedPurposeMessage.payload).toEqual({
+        purpose: {
+          ...mockPurpose,
+          createdAt: new Date().toISOString(),
+        },
+      });
+      expect(receivedAgreementMessage.payload).toEqual({
+        agreement: {
+          ...mockAgreement,
+          createdAt: new Date().toISOString(),
+        },
+      });
+
+      vi.useRealTimers();
     });
   });
 });

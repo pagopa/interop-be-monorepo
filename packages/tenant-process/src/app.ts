@@ -1,12 +1,13 @@
 import {
   authenticationMiddleware,
-  contextDataMiddleware,
-  globalContextMiddleware,
+  contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
 import tenantRouter from "./routers/TenantRouter.js";
+
+const serviceName = "tenant-process";
 
 const app = zodiosCtx.app();
 
@@ -14,14 +15,10 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(globalContextMiddleware);
-app.use(contextDataMiddleware);
-app.use(loggerMiddleware("tenant-process")());
-
-// NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
-// we want to be unauthenticated.
+app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
-app.use(authenticationMiddleware());
+app.use(authenticationMiddleware);
+app.use(loggerMiddleware(serviceName));
 app.use(tenantRouter(zodiosCtx));
 
 export default app;

@@ -2,8 +2,10 @@ import { match } from "ts-pattern";
 import { AgreementCollection } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV1,
+  toReadModelAgreement,
   fromAgreementDocumentV1,
   fromAgreementV1,
+  toReadModelAgreementDocument,
 } from "pagopa-interop-models";
 
 export async function handleMessageV1(
@@ -19,7 +21,7 @@ export async function handleMessageV1(
         {
           $setOnInsert: {
             data: msg.data.agreement
-              ? fromAgreementV1(msg.data.agreement)
+              ? toReadModelAgreement(fromAgreementV1(msg.data.agreement))
               : undefined,
             metadata: {
               version: msg.version,
@@ -35,24 +37,31 @@ export async function handleMessageV1(
         "metadata.version": { $lt: msg.version },
       });
     })
-    .with({ type: "AgreementUpdated" }, async (msg) => {
-      await agreements.updateOne(
-        {
-          "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
-        },
-        {
-          $set: {
-            data: msg.data.agreement
-              ? fromAgreementV1(msg.data.agreement)
-              : undefined,
-            metadata: {
-              version: msg.version,
-            },
+    .with(
+      { type: "AgreementUpdated" },
+      { type: "AgreementActivated" },
+      { type: "AgreementSuspended" },
+      { type: "AgreementDeactivated" },
+      { type: "VerifiedAttributeUpdated" },
+      async (msg) => {
+        await agreements.updateOne(
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
           },
-        }
-      );
-    })
+          {
+            $set: {
+              data: msg.data.agreement
+                ? toReadModelAgreement(fromAgreementV1(msg.data.agreement))
+                : undefined,
+              metadata: {
+                version: msg.version,
+              },
+            },
+          }
+        );
+      }
+    )
     .with({ type: "AgreementConsumerDocumentAdded" }, async (msg) => {
       await agreements.updateOne(
         {
@@ -62,7 +71,9 @@ export async function handleMessageV1(
         {
           $push: {
             "data.consumerDocuments": msg.data.document
-              ? fromAgreementDocumentV1(msg.data.document)
+              ? toReadModelAgreementDocument(
+                  fromAgreementDocumentV1(msg.data.document)
+                )
               : undefined,
           },
           $set: {
@@ -102,7 +113,9 @@ export async function handleMessageV1(
         {
           $set: {
             "data.contract": msg.data.contract
-              ? fromAgreementDocumentV1(msg.data.contract)
+              ? toReadModelAgreementDocument(
+                  fromAgreementDocumentV1(msg.data.contract)
+                )
               : undefined,
             metadata: {
               version: msg.version,

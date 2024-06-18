@@ -1,14 +1,15 @@
+/* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { pluginToken } from "@zodios/plugins";
+import { RefreshableInteropToken, Logger } from "pagopa-interop-commons";
 import {
-  buildInteropTokenGenerator,
-  getContext,
-  jwtSeedConfig,
-  logger,
-} from "pagopa-interop-commons";
-import { v4 } from "uuid";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
+  DescriptorId,
+  EServiceId,
+  ClientId,
+  PurposeId,
+  PurposeVersionId,
+  TenantId,
+} from "pagopa-interop-models";
+import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
 
 export type AuthorizationService = {
@@ -17,72 +18,181 @@ export type AuthorizationService = {
     descriptorId: DescriptorId,
     eserviceId: EServiceId,
     audience: string[],
-    voucherLifespan: number
+    voucherLifespan: number,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updateAgreementState: (
+    state: ApiClientComponentState,
+    agreementId: string,
+    eserviceId: EServiceId,
+    consumerId: TenantId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updateAgreementAndEServiceStates: (
+    agreementState: ApiClientComponentState,
+    eserviceState: ApiClientComponentState,
+    agreementId: string,
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    consumerId: TenantId,
+    audience: string[],
+    voucherLifespan: number,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deletePurposeFromClient: (
+    purposeId: PurposeId,
+    clientId: ClientId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updatePurposeState: (
+    purposeId: PurposeId,
+    versionId: PurposeVersionId,
+    state: ApiClientComponentState,
+    logger: Logger,
+    correlationId: string
   ) => Promise<void>;
 };
 
-export const authorizationServiceBuilder =
-  async (): Promise<AuthorizationService> => {
-    const authMgmtClient = buildAuthMgmtClient();
-    const tokenGenerator = buildInteropTokenGenerator();
-    const jwtConfig = jwtSeedConfig();
+export const authorizationServiceBuilder = (
+  authMgmtClient: AuthorizationManagementClient,
+  refreshableToken: RefreshableInteropToken
+): AuthorizationService => {
+  const getHeaders = (correlationId: string, token: string) => ({
+    "X-Correlation-Id": correlationId,
+    Authorization: `Bearer ${token}`,
+  });
 
-    const tokenPayloadSeed = {
-      subject: jwtConfig.subject,
-      audience: jwtConfig.audience,
-      tokenIssuer: jwtConfig.tokenIssuer,
-      expirationInSeconds: jwtConfig.secondsToExpire,
-    };
-    const token = await tokenGenerator.generateInternalToken(tokenPayloadSeed);
-
-    authMgmtClient.use(
-      pluginToken({
-        getToken: async () => token.serialized,
-        renewToken: async () => {
-          /* 
-            This function is called when the service responds with a 401, 
-            automatically renews the token, and executes the request again.
-            more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
-          */
-          logger.info("Renewing token");
-
-          const newToken = await tokenGenerator.generateInternalToken(
-            tokenPayloadSeed
-          );
-          return newToken.serialized;
-        },
-      })
-    );
-
-    const getHeaders = () => {
-      const appContext = getContext();
-      return {
-        "X-Correlation-Id": appContext.correlationId || v4(),
+  return {
+    // eslint-disable-next-line max-params
+    async updateEServiceState(
+      state: ApiClientComponentState,
+      descriptorId: DescriptorId,
+      eserviceId: EServiceId,
+      audience: string[],
+      voucherLifespan: number,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const clientEServiceDetailsUpdate = {
+        state,
+        descriptorId,
+        audience,
+        voucherLifespan,
       };
-    };
 
-    return {
-      async updateEServiceState(
-        state: ApiClientComponentState,
-        descriptorId: DescriptorId,
-        eserviceId: EServiceId,
-        audience: string[],
-        voucherLifespan: number
-      ) {
-        const clientEServiceDetailsUpdate = {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
+        params: { eserviceId },
+        withCredentials: true,
+        headers,
+      });
+
+      logger.info(`Updating EService ${eserviceId} state for all clients`);
+    },
+    async updateAgreementState(
+      state: ApiClientComponentState,
+      agreementId: string,
+      eserviceId: EServiceId,
+      consumerId: TenantId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      await authMgmtClient.updateAgreementState(
+        {
+          agreementId,
           state,
+        },
+        {
+          params: {
+            eserviceId,
+            consumerId,
+          },
+          withCredentials: true,
+          headers,
+        }
+      );
+
+      logger.info(`Updated Agreement ${agreementId} state for all clients`);
+    },
+    async updateAgreementAndEServiceStates(
+      agreementState: ApiClientComponentState,
+      eserviceState: ApiClientComponentState,
+      agreementId: string,
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      consumerId: TenantId,
+      audience: string[],
+      voucherLifespan: number,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      await authMgmtClient.updateAgreementAndEServiceStates(
+        {
+          agreementId,
+          agreementState,
           descriptorId,
+          eserviceState,
           audience,
           voucherLifespan,
-        };
-
-        await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
-          params: { eserviceId },
+        },
+        {
+          params: {
+            eserviceId,
+            consumerId,
+          },
           withCredentials: true,
-          headers: getHeaders(),
-        });
+          headers,
+        }
+      );
 
-        logger.info(`Updating EService ${eserviceId} state for all clients`);
-      },
-    };
+      logger.info(
+        `Updated Agreement ${agreementId} and EService ${eserviceId} states for all clients`
+      );
+    },
+    async deletePurposeFromClient(
+      purposeId: PurposeId,
+      clientId: ClientId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.removeClientPurpose(undefined, {
+        params: { purposeId, clientId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted purpose ${purposeId} from client ${clientId}`);
+    },
+    async updatePurposeState(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      state: ApiClientComponentState,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.updatePurposeState(
+        { versionId, state },
+        {
+          params: { purposeId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Updated Purpose ${purposeId} state for all clients`);
+    },
   };
+};

@@ -1,11 +1,11 @@
 import {
-  CommonConfig,
+  CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const AttributeRegistryConfig = CommonConfig.and(ReadModelDbConfig)
+const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
   .and(
     z.object({ PRODUCER_ALLOWED_ORIGINS: z.string() }).transform((c) => ({

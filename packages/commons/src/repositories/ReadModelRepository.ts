@@ -1,10 +1,10 @@
 import {
-  Agreement,
+  AgreementReadModel,
   AttributeReadmodel,
   EServiceReadModel,
-  Purpose,
+  PurposeReadModel,
   Tenant,
-  genericError,
+  genericInternalError,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -14,7 +14,7 @@ import {
   RootFilterOperators,
 } from "mongodb";
 import { z } from "zod";
-import { ReadModelDbConfig, logger } from "../index.js";
+import { ReadModelDbConfig } from "../index.js";
 
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;
@@ -30,17 +30,23 @@ export type GenericCollection<T> = Collection<{
   Tracked in https://pagopa.atlassian.net/browse/IMN-367
 */
 export type EServiceCollection = GenericCollection<EServiceReadModel>;
-export type AgreementCollection = GenericCollection<Agreement>;
+export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
-export type PurposeCollection = GenericCollection<Purpose>;
+export type PurposeCollection = GenericCollection<PurposeReadModel>;
+
+// Client model is not yet migrated to the repo, so we use any for now
+// For now the client collection is only required in the authorization-updater.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ClientCollection = GenericCollection<any>;
 
 export type Collections =
   | EServiceCollection
   | AgreementCollection
   | TenantCollection
   | AttributeCollection
-  | PurposeCollection;
+  | PurposeCollection
+  | ClientCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -123,6 +129,9 @@ type NarrowRootFilterOperators<TSchema> = Pick<
  * Type of the filter that can be used to query the read model.
  * It extends the mongodb filter type by adding all the possible model query keys.
  */
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - ignoring ts ts(2589): Type instantiation is excessively deep and possibly infinite.
 export type ReadModelFilter<TSchema> = {
   [P in MongoQueryKeys<WithId<{ data: TSchema }["data"]>>]?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 } & NarrowRootFilterOperators<TSchema>;
@@ -139,6 +148,8 @@ export class ReadModelRepository {
   public attributes: AttributeCollection;
 
   public purposes: PurposeCollection;
+
+  public clients: ClientCollection;
 
   private client: MongoClient;
   private db: Db;
@@ -163,7 +174,8 @@ export class ReadModelRepository {
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
-    this.purposes = this.db.collection("purpose", { ignoreUndefined: true });
+    this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
+    this.clients = this.db.collection("clients", { ignoreUndefined: true });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
@@ -189,7 +201,7 @@ export class ReadModelRepository {
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[],
-    allowDiskUse: boolean = false
+    allowDiskUse: boolean
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {
       allowDiskUse,
@@ -202,11 +214,10 @@ export class ReadModelRepository {
       return result.data.length > 0 ? result.data[0].count : 0;
     }
 
-    logger.error(
+    throw genericInternalError(
       `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to get total count from aggregation pipeline");
   }
 }

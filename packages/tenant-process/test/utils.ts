@@ -1,15 +1,4 @@
-import {
-  AgreementCollection,
-  AuthData,
-  EServiceCollection,
-  TenantCollection,
-} from "pagopa-interop-commons";
-import {
-  writeInEventstore,
-  writeInReadmodel,
-  StoredEvent,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test/index.js";
+import { AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   CertifiedTenantAttribute,
@@ -18,6 +7,7 @@ import {
   EService,
   EServiceId,
   Tenant,
+  TenantEvent,
   TenantEventV2,
   TenantId,
   TenantRevoker,
@@ -28,11 +18,38 @@ import {
   generateId,
   technology,
   tenantAttributeType,
-  tenantEventToBinaryDataV2,
   toReadModelEService,
+  toReadModelAgreement,
   toTenantV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
+import {
+  ReadEvent,
+  StoredEvent,
+  readLastEventByStreamId,
+  setupTestContainersVitest,
+  writeInEventstore,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
+import { inject, afterEach } from "vitest";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { tenantServiceBuilder } from "../src/services/tenantService.js";
+
+export const { cleanup, readModelRepository, postgresDB } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
+
+afterEach(cleanup);
+
+export const agreements = readModelRepository.agreements;
+export const eservices = readModelRepository.eservices;
+export const tenants = readModelRepository.tenants;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+
+export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 
 export const writeTenantInEventstore = async (
   tenant: Tenant,
@@ -43,13 +60,11 @@ export const writeTenantInEventstore = async (
     event_version: 2,
     data: { tenant: toTenantV2(tenant) },
   };
-  const eventToWrite = {
+  const eventToWrite: StoredEvent<TenantEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: tenantEvent.data.tenant!.id,
-    version: "0",
-    type: tenantEvent.type,
-    event_version: tenantEvent.event_version,
-    data: Buffer.from(tenantEventToBinaryDataV2(tenantEvent)),
+    version: 0,
+    event: tenantEvent,
   };
 
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
@@ -61,6 +76,7 @@ export const getMockTenant = (): Tenant => ({
   createdAt: new Date(),
   attributes: [],
   selfcareId: generateId(),
+  onboardedAt: new Date(),
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -106,6 +122,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
 
 export const getMockEService = (): EService => ({
@@ -173,31 +190,20 @@ export const getMockAgreement = ({
   },
 });
 
-export const addOneAgreement = async (
-  agreement: Agreement,
-  agreements: AgreementCollection
-): Promise<void> => {
-  await writeInReadmodel(agreement, agreements);
+export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
-export const addOneEService = async (
-  eservice: EService,
-  eservices: EServiceCollection
-): Promise<void> => {
+export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
-export const addOneTenant = async (
-  tenant: Tenant,
-  postgresDB: IDatabase<unknown>,
-  tenants: TenantCollection
-): Promise<void> => {
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeTenantInEventstore(tenant, postgresDB);
   await writeInReadmodel(tenant, tenants);
 };
 
 export const readLastTenantEvent = async (
-  tenantId: TenantId,
-  postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
+  tenantId: TenantId
+): Promise<ReadEvent<TenantEvent>> =>
   await readLastEventByStreamId(tenantId, "tenant", postgresDB);

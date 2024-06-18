@@ -11,6 +11,10 @@ import {
   EService,
   EServiceAttribute,
   EServiceId,
+  Purpose,
+  PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionState,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -19,9 +23,10 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  tenantAttributeType,
+  purposeVersionState,
+  Document,
+  AgreementAttribute,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -34,14 +39,19 @@ export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+export function randomBoolean(): boolean {
+  return Math.random() < 0.5;
+}
+
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
   ...generateMock(AuthData),
+  userRoles: ["admin"],
   organizationId,
 });
 
-export const buildDescriptorPublished = (
+export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
   declaredAttributes: EServiceAttribute[][] = [],
@@ -57,17 +67,23 @@ export const buildDescriptorPublished = (
   },
 });
 
-export const buildEServiceAttribute = (
+export const getMockEServiceAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
 });
 
-export const buildEServiceAttributes = (num: number): EServiceAttribute[] =>
-  new Array(num).map(() => buildEServiceAttribute());
+export const getMockAgreementAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): AgreementAttribute => ({
+  id: attributeId,
+});
 
-export const buildEService = (
+export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
+  new Array(num).map(() => getMockEServiceAttribute());
+
+export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = []
@@ -78,54 +94,44 @@ export const buildEService = (
   descriptors,
 });
 
-export const buildVerifiedTenantAttribute = (
+export const getMockVerifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): VerifiedTenantAttribute => ({
   ...generateMock(VerifiedTenantAttribute),
   id: attributeId,
 });
 
-export const buildVerifiedTenantAttributes = (num: number): TenantAttribute[] =>
-  new Array(num).map(() => buildVerifiedTenantAttribute());
-
-export const buildCertifiedTenantAttribute = (
+export const getMockCertifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
   id: attributeId,
-  type: tenantAttributeType.CERTIFIED,
-  revocationTimestamp: undefined,
 });
 
-export const buildCertifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => buildCertifiedTenantAttribute());
-
-export const buildDeclaredTenantAttribute = (
+export const getMockDeclaredTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
 });
 
-export const buildDeclaredTenantAttributes = (num: number): TenantAttribute[] =>
-  new Array(num).map(() => buildDeclaredTenantAttribute());
-
-export const buildTenant = (
+export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
 ): Tenant => ({
-  ...generateMock(Tenant),
+  name: "A tenant",
   id: tenantId,
-  externalId: {
-    value: uuidv4(),
-    origin: "EXT",
-  },
+  createdAt: new Date(),
   attributes,
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
 });
 
-export const buildAgreement = (
+export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
@@ -144,4 +150,76 @@ export const getMockAttribute = (): Attribute => ({
   creationTime: new Date(),
   code: undefined,
   origin: undefined,
+});
+
+export const getMockPurpose = (): Purpose => ({
+  id: generateId(),
+  eserviceId: generateId(),
+  consumerId: generateId(),
+  versions: [],
+  title: "Purpose 1 - test",
+  description: "Test purpose - description",
+  createdAt: new Date(),
+  isFreeOfCharge: true,
+  freeOfChargeReason: "test",
+});
+
+export const getMockPurposeVersion = (
+  state?: PurposeVersionState
+): PurposeVersion => ({
+  id: generateId(),
+  state: state || purposeVersionState.draft,
+  riskAnalysis: {
+    id: generateId(),
+    contentType: "json",
+    path: "path",
+    createdAt: new Date(),
+  },
+  dailyCalls: 10,
+  createdAt: new Date(),
+  ...(state !== purposeVersionState.draft
+    ? { updatedAt: new Date(), firstActivationAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.suspended
+    ? { suspendedAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.rejected
+    ? { rejectionReason: "test" }
+    : {}),
+});
+
+export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
+  path: "path",
+  id: generateId(),
+  contentType: "json",
+  createdAt: new Date(),
+});
+
+export const getMockDescriptor = (): Descriptor => ({
+  id: generateId(),
+  version: "1",
+  docs: [],
+  state: descriptorState.draft,
+  audience: [],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: generateId(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: "checksum",
+  uploadDate: new Date(),
 });

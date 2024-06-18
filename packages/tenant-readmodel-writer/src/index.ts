@@ -5,7 +5,6 @@ import {
   readModelWriterConfig,
   tenantTopicConfig,
   decodeKafkaMessage,
-  getContext,
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -22,16 +21,16 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const decodedMessage = decodeKafkaMessage(message, TenantEventV1);
 
-  const ctx = getContext();
-  ctx.messageData = {
+  const loggerInstance = logger({
+    serviceName: "tenant-readmodel-writer",
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-  };
-  ctx.correlationId = decodedMessage.correlation_id;
+    correlationId: decodedMessage.correlation_id,
+  });
 
-  await handleMessage(decodedMessage, tenants);
-  logger.info(
+  await handleMessage(decodedMessage, tenants, loggerInstance);
+  loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }

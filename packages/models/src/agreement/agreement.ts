@@ -1,11 +1,12 @@
 import z from "zod";
 import {
-  AttributeId,
   AgreementDocumentId,
   AgreementId,
+  AttributeId,
   DescriptorId,
   EServiceId,
   TenantId,
+  UserId,
 } from "./../brandedIds.js";
 
 export const agreementState = {
@@ -37,7 +38,7 @@ export const AgreementDocument = z.object({
 export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
 export const AgreementStamp = z.object({
-  who: z.string().uuid(),
+  who: UserId,
   when: z.coerce.date(),
 });
 export type AgreementStamp = z.infer<typeof AgreementStamp>;
@@ -77,33 +78,20 @@ export const Agreement = z.object({
 });
 export type Agreement = z.infer<typeof Agreement>;
 
-export const PDFPayload = z.object({
-  today: z.coerce.date(),
-  agreementId: AgreementId,
-  eservice: z.string(),
-  producerName: z.string(),
-  producerOrigin: z.string(),
-  producerIPACode: z.string(),
-  consumerName: z.string(),
-  consumerOrigin: z.string(),
-  consumerIPACode: z.string(),
-  certified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
-  declared: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
-  verified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
-  submitter: z.string(),
-  submissionTimestamp: z.coerce.date(),
-  activator: z.string(),
-  activationTimestamp: z.coerce.date(),
-});
-
-export type PDFPayload = z.infer<typeof PDFPayload>;
-
-export const AgreementInvolvedAttributes = z.object({
-  certified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
-  declared: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
-  verified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
-});
-
-export type AgreementInvolvedAttributes = z.infer<
-  typeof AgreementInvolvedAttributes
->;
+export type AgreementContractPDFPayload = {
+  todayDate: string;
+  todayTime: string;
+  agreementId: string;
+  submitter: string;
+  submissionDate: string;
+  submissionTime: string;
+  activator: string;
+  activationDate: string;
+  activationTime: string;
+  eServiceName: string;
+  producerText: string;
+  consumerText: string;
+  certifiedAttributes: string;
+  declaredAttributes: string;
+  verifiedAttributes: string;
+};

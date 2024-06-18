@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package purpose.v2;
+
+import "v2/purpose/purpose.proto";
+
+message PurposeAddedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message DraftPurposeUpdatedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeWaitingForApprovalV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeActivatedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message DraftPurposeDeletedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message WaitingForApprovalPurposeDeletedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message NewPurposeVersionActivatedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionActivatedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionUnsuspendedByProducerV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionUnsuspendedByConsumerV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionSuspendedByProducerV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionSuspendedByConsumerV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message NewPurposeVersionWaitingForApprovalV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionOverQuotaUnsuspendedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeArchivedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message WaitingForApprovalPurposeVersionDeletedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeVersionRejectedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}
+
+message PurposeClonedV2 {
+  string sourcePurposeId = 1;
+  string sourceVersionId = 2;
+  PurposeV2 purpose = 3;
+}

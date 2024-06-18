@@ -1,10 +1,11 @@
 import { match } from "ts-pattern";
-import { logger, TenantCollection } from "pagopa-interop-commons";
+import { Logger, TenantCollection } from "pagopa-interop-commons";
 import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
 
 export async function handleMessage(
   message: TenantEventEnvelopeV1,
-  tenants: TenantCollection
+  tenants: TenantCollection,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {

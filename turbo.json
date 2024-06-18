@@ -1,6 +1,10 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
+  "globalDependencies": [
+    "tsconfig.json"
+  ],
+  "globalEnv": ["CI"],
+  "tasks": {
     "start": {
       "persistent": true,
       "cache": false,
@@ -30,6 +34,16 @@
         "dist"
       ]
     },
+    "check": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist"
+      ]
+    },
     "generate-model": {
       "dependsOn": [
         "^generate-model"
@@ -45,16 +59,30 @@
     },
     "test": {
       "dependsOn": [
-        "build",
-        "^test"
+        "build"
       ]
     },
-    "lint": {},
-    "lint:autofix": {},
+    "lint": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist"
+      ]
+    },
+    "lint:autofix": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist"
+      ]
+    },
     "format:check": {},
     "format:write": {}
-  },
-  "globalDependencies": [
-    "tsconfig.json"
-  ]
+  }
 }

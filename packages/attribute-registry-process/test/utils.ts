@@ -1,27 +1,77 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { afterEach, inject } from "vitest";
 import {
   Attribute,
   AttributeEvent,
   AttributeId,
   Tenant,
   TenantId,
-  attributeEventToBinaryData,
   generateId,
   toAttributeV1,
   toReadModelAttribute,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
 import {
-  AttributeCollection,
-  AuthData,
-  TenantCollection,
-} from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
-import {
+  ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
+import { AuthData } from "pagopa-interop-commons";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
+
+export const { cleanup, readModelRepository, postgresDB } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
+
+afterEach(cleanup);
+
+export const agreements = readModelRepository.agreements;
+export const eservices = readModelRepository.eservices;
+export const tenants = readModelRepository.tenants;
+export const attributes = readModelRepository.attributes;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+export const attributeRegistryService = attributeRegistryServiceBuilder(
+  postgresDB,
+  readModelService
+);
+
+export const writeAttributeInEventstore = async (
+  attribute: Attribute
+): Promise<void> => {
+  const attributeEvent: AttributeEvent = {
+    type: "AttributeAdded",
+    event_version: 1,
+    data: { attribute: toAttributeV1(attribute) },
+  };
+  const eventToWrite: StoredEvent<AttributeEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: attributeEvent.data.attribute!.id,
+    version: 0,
+    event: attributeEvent,
+  };
+
+  await writeInEventstore(eventToWrite, "attribute", postgresDB);
+};
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeAttributeInEventstore(attribute);
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(tenant, tenants);
+};
+
+export const readLastAttributeEvent = async (
+  attributeId: AttributeId
+): Promise<ReadEvent<AttributeEvent>> =>
+  await readLastEventByStreamId(attributeId, "attribute", postgresDB);
 
 export const getMockTenant = (): Tenant => ({
   name: "tenant_Name",
@@ -38,53 +88,11 @@ export const getMockTenant = (): Tenant => ({
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
-  userId: uuidv4(),
+  userId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
-
-export const writeAttributeInEventstore = async (
-  attribute: Attribute,
-  postgresDB: IDatabase<unknown>
-): Promise<void> => {
-  const attributeEvent: AttributeEvent = {
-    type: "AttributeAdded",
-    event_version: 1,
-    data: { attribute: toAttributeV1(attribute) },
-  };
-  const eventToWrite = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: attributeEvent.data.attribute!.id,
-    version: "0",
-    type: attributeEvent.type,
-    event_version: attributeEvent.event_version,
-    data: attributeEventToBinaryData(attributeEvent),
-  };
-
-  await writeInEventstore(eventToWrite, "attribute", postgresDB);
-};
-
-export const addOneAttribute = async (
-  attribute: Attribute,
-  postgresDB: IDatabase<unknown>,
-  attributes: AttributeCollection
-): Promise<void> => {
-  await writeAttributeInEventstore(attribute, postgresDB);
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-};
-
-export const addOneTenant = async (
-  tenant: Tenant,
-  tenants: TenantCollection
-): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
-};
-
-export const readLastAttributeEvent = async (
-  attributeId: AttributeId,
-  postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
-  await readLastEventByStreamId(attributeId, "attribute", postgresDB);

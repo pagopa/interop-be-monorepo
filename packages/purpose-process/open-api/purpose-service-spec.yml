@@ -2,16 +2,16 @@ openapi: 3.0.3
 info:
   title: Purpose Process Micro Service
   description: Offers operations to retrieve purpose data
-  version: '{{version}}'
+  version: "{{version}}"
   contact:
     name: API Support
-    url: 'http://www.example.com/support'
+    url: "http://www.example.com/support"
     email: support@example.com
-  termsOfService: 'http://swagger.io/terms/'
+  termsOfService: "http://swagger.io/terms/"
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: '/purpose-process/{{version}}'
+  - url: "/purpose-process/{{version}}"
     description: This service is the purpose process
 security:
   - bearerAuth: []
@@ -20,16 +20,16 @@ tags:
     description: Implements purpose process
     externalDocs:
       description: Find out more
-      url: 'http://swagger.io'
+      url: "http://swagger.io"
   - name: health
     description: Verify service status
     externalDocs:
       description: Find out more
-      url: 'http://swagger.io'
+      url: "http://swagger.io"
 paths:
   /purposes:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - purpose
@@ -76,7 +76,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/PurposeVersionState'
+              $ref: "#/components/schemas/PurposeVersionState"
             default: []
           explode: false
         - in: query
@@ -100,60 +100,60 @@ paths:
             minimum: 1
             maximum: 50
       responses:
-        '200':
+        "200":
           description: Purposes requested
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purposes'
-        '400':
+                $ref: "#/components/schemas/Purposes"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     post:
       tags:
         - purpose
       operationId: createPurpose
       description: Creates the Purpose
       responses:
-        '200':
+        "200":
           description: Purpose created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '400':
+                $ref: "#/components/schemas/Purpose"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'        
-        '409':
+                $ref: "#/components/schemas/Problem"
+        "409":
           description: Name Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurposeSeed'
+              $ref: "#/components/schemas/PurposeSeed"
         required: true
   /reverse/purposes:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       parameters:
-        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
       operationId: createPurposeFromEService
@@ -162,36 +162,36 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EServicePurposeSeed'
+              $ref: "#/components/schemas/EServicePurposeSeed"
         required: true
       responses:
-        '200':
+        "200":
           description: Purpose created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '400':
+                $ref: "#/components/schemas/Purpose"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '409':
+                $ref: "#/components/schemas/Problem"
+        "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'                       
+                $ref: "#/components/schemas/Problem"
   /reverse/purposes/{id}:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
         in: path
         description: the purpose id
@@ -201,7 +201,7 @@ paths:
           format: uuid
     post:
       parameters:
-        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
       operationId: updateReversePurpose
@@ -210,24 +210,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReversePurposeUpdateContent'
+              $ref: "#/components/schemas/ReversePurposeUpdateContent"
         required: true
       responses:
-        '200':
+        "200":
           description: Purpose updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '400':
+                $ref: "#/components/schemas/Purpose"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /purposes/{id}:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
         in: path
         description: the purpose id
@@ -241,27 +241,27 @@ paths:
       operationId: getPurpose
       description: Retrieve the Purpose
       responses:
-        '200':
+        "200":
           description: Purpose requested
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '400':
+                $ref: "#/components/schemas/Purpose"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     post:
       parameters:
-        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
       operationId: updatePurpose
@@ -270,52 +270,52 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurposeUpdateContent'
+              $ref: "#/components/schemas/PurposeUpdateContent"
         required: true
       responses:
-        '200':
+        "200":
           description: Purpose updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '400':
+                $ref: "#/components/schemas/Purpose"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     delete:
       parameters:
-        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
       operationId: deletePurpose
       description: Deletes a specific purpose if there are no version or just a draft version
       responses:
-        '204':
+        "204":
           description: Purpose deleted
-        '400':
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Purpose has at least one version that is not in draft state or more than one version
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         description: the purpose id
@@ -329,27 +329,27 @@ paths:
       operationId: createPurposeVersion
       description: Creates a draft Purpose Version
       responses:
-        '200':
+        "200":
           description: Purpose created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurposeVersion'
-        '400':
+                $ref: "#/components/schemas/PurposeVersion"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurposeVersionSeed'
+              $ref: "#/components/schemas/PurposeVersionSeed"
         required: true
   /purposes/{purposeId}/versions/{versionId}:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -366,26 +366,26 @@ paths:
       summary: Delete a Purpose Version
       operationId: deletePurposeVersion
       responses:
-        '204':
+        "204":
           description: Purpose Version Deleted
-        '400':
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       tags:
         - purpose
       description: deletes the purpose version by id
   /purposes/{purposeId}/versions/{versionId}/documents/{documentId}:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security:
         - bearerAuth: []
@@ -413,24 +413,24 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Risk Analysis document retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurposeVersionDocument'
-        '404':
+                $ref: "#/components/schemas/PurposeVersionDocument"
+        "404":
           description: Resource not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '400':
+                $ref: "#/components/schemas/Problem"
+        "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -440,15 +440,15 @@ paths:
       description: Return ok
       operationId: getStatus
       responses:
-        '200':
+        "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}/reject:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -468,35 +468,35 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RejectPurposeVersionPayload'
+              $ref: "#/components/schemas/RejectPurposeVersionPayload"
         required: true
       responses:
-        '204':
+        "204":
           description: Purpose Version Rejected
-        '400':
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       description: reject the purpose version by id
       tags:
         - purpose
   /purposes/{purposeId}/versions/{versionId}/activate:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -513,30 +513,30 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       responses:
-        '200':
+        "200":
           description: Purpose Version Activated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurposeVersion'
-        '400':
+                $ref: "#/components/schemas/PurposeVersion"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       tags:
         - purpose
       description: activates the purpose version by id
   /purposes/{purposeId}/clone:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -550,39 +550,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurposeCloneSeed'
+              $ref: "#/components/schemas/PurposeCloneSeed"
         required: true
       responses:
-        '200':
+        "200":
           description: Purpose Cloned
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '400':
+                $ref: "#/components/schemas/Purpose"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '409':
+                $ref: "#/components/schemas/Problem"
+        "409":
           description: Purpose cannot be cloned
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       tags:
         - purpose
-      description: clone purpose 
+      description: clone purpose
   /purposes/{purposeId}/versions/{versionId}/suspend:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -599,30 +599,30 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       responses:
-        '200':
+        "200":
           description: Purpose Version Suspended
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurposeVersion'
-        '400':
+                $ref: "#/components/schemas/PurposeVersion"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       tags:
         - purpose
       description: suspends the purpose version by id
   /purposes/{purposeId}/versions/{versionId}/archive:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -639,112 +639,61 @@ paths:
       summary: Archive Purpose Version
       operationId: archivePurposeVersion
       responses:
-        '200':
+        "200":
           description: Purpose Version Archived
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurposeVersion'
-        '400':
+                $ref: "#/components/schemas/PurposeVersion"
+        "400":
           description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-      tags:
-        - purpose
-      description: archives the purpose version by id
-  /purposes/{purposeId}/versions/{versionId}/update/waitingForApproval:
-    parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
-      - name: purposeId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: versionId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    post:
-      tags:
-        - purpose
-      summary: Update a purpose version in waiting for approval
-      operationId: updateWaitingForApprovalPurposeVersion
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WaitingForApprovalPurposeVersionUpdateContent'
-        required: true
-      responses:
-        '200':
-          description: Purpose Version updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurposeVersion'
-        '400':
-          description: Invalid input
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
-          description: Purpose version not in waiting for approval state or the organization is not a producer
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
+      tags:
+        - purpose
+      description: archives the purpose version by id
   /purposes/riskAnalysis/latest:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantKind
         in: query
         schema:
-          $ref: '#/components/schemas/TenantKind'
+          $ref: "#/components/schemas/TenantKind"
     get:
       tags:
         - purpose
       operationId: retrieveLatestRiskAnalysisConfiguration
       description: Retrieve latest risk analysis configuration
       responses:
-        '200':
+        "200":
           description: Risk analysis requested
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RiskAnalysisFormConfigResponse'
-        '400':
+                $ref: "#/components/schemas/RiskAnalysisFormConfigResponse"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'        
+                $ref: "#/components/schemas/Problem"
   /purposes/riskAnalysis/version/{riskAnalysisVersion}:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: riskAnalysisVersion
         in: path
         required: true
@@ -762,24 +711,24 @@ paths:
       operationId: retrieveRiskAnalysisConfigurationByVersion
       description: Retrieve a specified version of risk analysis configuration
       responses:
-        '200':
+        "200":
           description: Risk analysis requested
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RiskAnalysisFormConfigResponse'
-        '400':
+                $ref: "#/components/schemas/RiskAnalysisFormConfigResponse"
+        "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'         
+                $ref: "#/components/schemas/Problem"
 components:
   parameters:
     CorrelationIdHeader:
@@ -795,8 +744,8 @@ components:
       properties:
         rejectionReason:
           type: string
-          minimum: 10
-          maximum: 250
+          minLength: 10
+          maxLength: 250
       required:
         - rejectionReason
     TenantKind:
@@ -809,32 +758,32 @@ components:
     RiskAnalysisFormConfigResponse:
       type: object
       properties:
-        version: 
+        version:
           type: string
-        questions: 
+        questions:
           type: array
           items:
-            $ref: '#/components/schemas/FormConfigQuestionResponse'
+            $ref: "#/components/schemas/FormConfigQuestionResponse"
       required:
         - version
-        - questions 
+        - questions
     FormConfigQuestionResponse:
       type: object
       properties:
         id:
           type: string
-        label: 
-          $ref: '#/components/schemas/LocalizedTextResponse'
-        infoLabel: 
-          $ref: '#/components/schemas/LocalizedTextResponse'
-        dataType: 
-          $ref: '#/components/schemas/DataTypeResponse'
+        label:
+          $ref: "#/components/schemas/LocalizedTextResponse"
+        infoLabel:
+          $ref: "#/components/schemas/LocalizedTextResponse"
+        dataType:
+          $ref: "#/components/schemas/DataTypeResponse"
         required:
           type: boolean
-        dependencies: 
+        dependencies:
           type: array
           items:
-            $ref: '#/components/schemas/DependencyResponse'
+            $ref: "#/components/schemas/DependencyResponse"
         visualType:
           type: string
         defaultValue:
@@ -846,13 +795,13 @@ components:
           additionalProperties:
             type: array
             items:
-              $ref: '#/components/schemas/HideOptionResponse'
+              $ref: "#/components/schemas/HideOptionResponse"
         validation:
-          $ref: '#/components/schemas/ValidationOptionResponse'                
+          $ref: "#/components/schemas/ValidationOptionResponse"
         options:
           type: array
           items:
-            $ref: '#/components/schemas/LabeledValueResponse'
+            $ref: "#/components/schemas/LabeledValueResponse"
       required:
         - id
         - label
@@ -862,31 +811,31 @@ components:
         - visualType
         - defaultValue
     ValidationOptionResponse:
-        type: object
-        properties:
-          maxLength:
-            type: integer
-            format: int32
+      type: object
+      properties:
+        maxLength:
+          type: integer
+          format: int32
     HideOptionResponse:
-        type: object
-        properties:
-          id:
-            type: string
-          value:
-            type: string
-        required:
-          - id
-          - value    
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: string
+      required:
+        - id
+        - value
     LabeledValueResponse:
       type: object
       properties:
         label:
-          $ref: '#/components/schemas/LocalizedTextResponse'
+          $ref: "#/components/schemas/LocalizedTextResponse"
         value:
           type: string
       required:
         - label
-        - value  
+        - value
     LocalizedTextResponse:
       type: object
       properties:
@@ -921,7 +870,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/AgreementState'
+          $ref: "#/components/schemas/AgreementState"
       required:
         - id
         - state
@@ -950,7 +899,7 @@ components:
     Clients:
       type: array
       items:
-        $ref: '#/components/schemas/Client'
+        $ref: "#/components/schemas/Client"
     EService:
       type: object
       properties:
@@ -960,9 +909,9 @@ components:
         name:
           type: string
         producer:
-          $ref: '#/components/schemas/Organization'
+          $ref: "#/components/schemas/Organization"
         descriptor:
-          $ref: '#/components/schemas/EServiceDescriptor'
+          $ref: "#/components/schemas/EServiceDescriptor"
       required:
         - id
         - name
@@ -980,7 +929,7 @@ components:
           type: integer
           format: int32
         state:
-          $ref: '#/components/schemas/EServiceDescriptorState'
+          $ref: "#/components/schemas/EServiceDescriptorState"
       required:
         - id
         - version
@@ -1021,7 +970,7 @@ components:
         versions:
           type: array
           items:
-            $ref: '#/components/schemas/PurposeVersion'
+            $ref: "#/components/schemas/PurposeVersion"
         suspendedByConsumer:
           type: boolean
         suspendedByProducer:
@@ -1031,7 +980,7 @@ components:
         description:
           type: string
         riskAnalysisForm:
-          $ref: '#/components/schemas/RiskAnalysisForm'
+          $ref: "#/components/schemas/RiskAnalysisForm"
         createdAt:
           type: string
           format: date-time
@@ -1043,7 +992,7 @@ components:
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
-          type: string  
+          type: string
       required:
         - id
         - eserviceId
@@ -1061,7 +1010,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Purpose'
+            $ref: "#/components/schemas/Purpose"
         totalCount:
           type: integer
           format: int32
@@ -1083,11 +1032,11 @@ components:
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
-          type: string    
+          type: string
         riskAnalysisForm:
-          $ref: '#/components/schemas/RiskAnalysisFormSeed'
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
-          description: 'maximum number of daily calls that this version can perform.'
+          description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
           minimum: 0
@@ -1113,7 +1062,7 @@ components:
         freeOfChargeReason:
           type: string
         dailyCalls:
-          description: 'maximum number of daily calls that this version can perform.'
+          description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
           minimum: 0
@@ -1122,16 +1071,6 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
-    WaitingForApprovalPurposeVersionUpdateContent:
-      type: object
-      description: contains the expected payload for purpose version update.
-      properties:
-        expectedApprovalDate:
-          description: 'Estimated expected approval date for a purpose version'
-          type: string
-          format: date-time
-      required:
-        - expectedApprovalDate
     PurposeVersion:
       type: object
       properties:
@@ -1139,7 +1078,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/PurposeVersionState'
+          $ref: "#/components/schemas/PurposeVersionState"
         createdAt:
           type: string
           format: date-time
@@ -1152,16 +1091,13 @@ components:
         firstActivationAt:
           type: string
           format: date-time
-        expectedApprovalDate:
-          type: string
-          format: date-time
         dailyCalls:
-          description: 'maximum number of daily calls that this version can perform.'
+          description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
           minimum: 0
         riskAnalysis:
-          $ref: '#/components/schemas/PurposeVersionDocument'
+          $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
       required:
@@ -1205,20 +1141,20 @@ components:
           type: string
           format: uuid
       required:
-        - eserviceId      
+        - eserviceId
     EServicePurposeSeed:
       type: object
       description: contains the expected payload for purpose creation.
       properties:
         eServiceId:
           type: string
-          format: uuid      
+          format: uuid
         consumerId:
           type: string
           format: uuid
         riskAnalysisId:
           type: string
-          format: uuid  
+          format: uuid
         title:
           type: string
           minLength: 5
@@ -1241,7 +1177,7 @@ components:
         - riskAnalysisId
         - description
         - isFreeOfCharge
-        - dailyCalls      
+        - dailyCalls
     PurposeSeed:
       type: object
       description: contains the expected payload for purpose creation.
@@ -1253,7 +1189,7 @@ components:
           type: string
           format: uuid
         riskAnalysisForm:
-          $ref: '#/components/schemas/RiskAnalysisFormSeed'
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
         title:
           type: string
           minLength: 5
@@ -1283,7 +1219,7 @@ components:
         - dailyCalls
       properties:
         dailyCalls:
-          description: 'maximum number of daily calls that this version can perform.'
+          description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
           minimum: 0
@@ -1302,8 +1238,8 @@ components:
               minLength: 1
               maxLength: 250
         riskAnalysisId:
-            type: string
-            format: uuid
+          type: string
+          format: uuid
       required:
         - version
         - answers
@@ -1341,24 +1277,24 @@ components:
           description: A short, summary of the problem type. Written in english and readable
           example: Service Unavailable
           maxLength: 64
-          pattern: '^[ -~]{0,64}$'
+          pattern: "^[ -~]{0,64}$"
           type: string
         correlationId:
           description: Unique identifier of the request
-          example: '53af4f2d-0c87-41ef-a645-b726a821852b'
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
           maxLength: 64
           type: string
         detail:
           description: A human readable explanation of the problem.
           example: Request took too long to complete.
           maxLength: 4096
-          pattern: '^.{0,1024}$'
+          pattern: "^.{0,1024}$"
           type: string
         errors:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/ProblemError'
+            $ref: "#/components/schemas/ProblemError"
       additionalProperties: false
       required:
         - type
@@ -1372,13 +1308,13 @@ components:
           example: 123-4567
           minLength: 8
           maxLength: 8
-          pattern: '^[0-9]{3}-[0-9]{4}$'
+          pattern: "^[0-9]{3}-[0-9]{4}$"
           type: string
         detail:
           description: A human readable explanation specific to this occurrence of the problem.
           example: Parameter not valid
           maxLength: 4096
-          pattern: '^.{0,1024}$'
+          pattern: "^.{0,1024}$"
           type: string
       required:
         - code
@@ -1386,6 +1322,6 @@ components:
   securitySchemes:
     bearerAuth:
       type: http
-      description: 'A bearer token in the format of a JWS and conformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).'
+      description: "A bearer token in the format of a JWS and conformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725)."
       scheme: bearer
       bearerFormat: JWT
