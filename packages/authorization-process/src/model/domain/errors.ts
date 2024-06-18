@@ -14,7 +14,7 @@ export const errorCodes = {
   userIdNotFound: "0004",
   keyNotFound: "0005",
   purposeIdNotFound: "0005",
-  securityUserNotFound: "0006",
+  userWithoutSecurityPrivileges: "0006",
   userAlreadyAssigned: "0007",
 };
 
@@ -82,14 +82,14 @@ export function purposeIdNotFound(
   });
 }
 
-export function securityUserNotFound(
-  requesterUserId: UserId,
-  userId: UserId
+export function userWithoutSecurityPrivileges(
+  userId: UserId,
+  requesterUserId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Security user not found for consumer ${requesterUserId} and user ${userId}`,
-    code: "securityUserNotFound",
-    title: "security User not found",
+    detail: `User ${userId} does not have security privileges for consumer ${requesterUserId}`,
+    code: "userWithoutSecurityPrivileges",
+    title: "User without security privileges",
   });
 }
 
