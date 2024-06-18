@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
@@ -6,22 +7,45 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPaClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
-  _: PagoPAInteropBeClients
+  {
+    catalogProcessClient,
+    tenantProcessClient,
+    agreementProcessClient,
+  }: PagoPaClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
+  const catalogService = catalogServiceBuilder(
+    catalogProcessClient,
+    tenantProcessClient,
+    agreementProcessClient
+  );
+
   catalogRouter
-    .get("/catalog", async (_req, res) => res.status(501).send())
-    .get("/producers/eservices", async (_req, res) => res.status(501).send())
-    .get("/producers/eservices/:eserviceId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/catalog", async (req, res) => {
+      const queries = req.query;
+      const correlationId = req.ctx.correlationId;
+      const requesterId = req.ctx.authData?.organizationId;
+      if (!requesterId) {
+        // TODO : improve error handling
+        throw new Error("Missing requesterId");
+      }
+
+      const response = await catalogService.getCatalog(
+        correlationId,
+        requesterId,
+        queries
+      );
+
+      return res.status(200).json(response).send();
+    })
     .get(
       "/producers/eservices/:eserviceId/descriptors/:descriptorId",
       async (_req, res) => res.status(501).send()
