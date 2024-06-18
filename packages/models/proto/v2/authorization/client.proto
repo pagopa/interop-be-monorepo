@@ -12,7 +12,7 @@ message ClientV2 {
   repeated string relationships = 5;
   repeated string purposes = 6;
   ClientKindV2 kind = 7;
-  optional int64 createdAt = 8; // to do double-check why optional
+  int64 createdAt = 8; // to do double-check why optional
   repeated string users = 9;
   repeated KeyV2 keys = 10;
 }

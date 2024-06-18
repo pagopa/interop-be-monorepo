@@ -4,7 +4,6 @@ import {
   decodeProtobufPayload,
   getMockClient,
   getMockTenant,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Client,
@@ -23,7 +22,6 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-  tenants,
 } from "./utils.js";
 
 describe("remove user", () => {
@@ -39,7 +37,6 @@ describe("remove user", () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(mockConsumer, tenants);
 
     await authorizationService.removeUser({
       clientId: mockClient.id,
@@ -79,7 +76,6 @@ describe("remove user", () => {
     };
 
     await addOneClient(getMockClient());
-    await writeInReadmodel(mockConsumer, tenants);
 
     expect(
       authorizationService.removeUser({
@@ -103,7 +99,6 @@ describe("remove user", () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(mockConsumer, tenants);
 
     expect(
       authorizationService.removeUser({
@@ -126,8 +121,6 @@ describe("remove user", () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(mockConsumer1, tenants);
-    await writeInReadmodel(mockConsumer2, tenants);
 
     expect(
       authorizationService.removeUser({

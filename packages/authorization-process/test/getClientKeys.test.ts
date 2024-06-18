@@ -27,41 +27,73 @@ describe("getClientKeys", async () => {
   };
 
   it("should get the keys in the specified client", async () => {
-    await addOneClient(mockClient);
+    const keyUserId1: UserId = generateId();
+    const keyUserId2: UserId = generateId();
+    const keyUserId3: UserId = generateId();
 
-    const keys = await authorizationService.getClientKeys({
-      clientId: mockClient.id,
-      userIds: [],
-      organizationId: unsafeBrandId(consumerId),
-      logger: genericLogger,
-    });
-    expect(keys).toEqual([mockKey]);
-  });
-  it("should get the keys in the specified client with specific userIds", async () => {
-    const keyUserId: UserId = generateId();
-    const userId: UserId = generateId();
-
-    const keyWithUser: Key = {
+    const keyWithUser1: Key = {
       ...mockKey,
-      userId: keyUserId,
+      userId: keyUserId1,
+    };
+    const keyWithUser2: Key = {
+      ...mockKey,
+      userId: keyUserId2,
+    };
+    const keyWithUser3: Key = {
+      ...mockKey,
+      userId: keyUserId3,
     };
     const clientWithKeyUser: Client = {
       ...mockClient,
-      keys: [keyWithUser],
-      users: [userId, keyUserId],
+      keys: [keyWithUser1, keyWithUser2, keyWithUser3],
+      users: [keyUserId1, keyUserId2, keyUserId3],
+    };
+    await addOneClient(clientWithKeyUser);
+
+    const keys = await authorizationService.getClientKeys({
+      clientId: mockClient.id,
+      userIds: [keyUserId1, keyUserId2, keyUserId3],
+      organizationId: unsafeBrandId(consumerId),
+      logger: genericLogger,
+    });
+    expect(keys).toEqual([keyWithUser1, keyWithUser2, keyWithUser3]);
+  });
+  it("should get the keys in the specified client with specific userIds", async () => {
+    const keyUserId1: UserId = generateId();
+    const keyUserId2: UserId = generateId();
+    const keyUserId3: UserId = generateId();
+
+    const userId: UserId = generateId();
+
+    const keyWithUser1: Key = {
+      ...mockKey,
+      userId: keyUserId1,
+    };
+    const keyWithUser2: Key = {
+      ...mockKey,
+      userId: keyUserId2,
+    };
+    const keyWithUser3: Key = {
+      ...mockKey,
+      userId: keyUserId3,
+    };
+    const clientWithKeyUser: Client = {
+      ...mockClient,
+      keys: [keyWithUser1, keyWithUser2, keyWithUser3],
+      users: [userId, keyUserId1, keyUserId2, keyUserId3],
     };
     await addOneClient(clientWithKeyUser);
 
     const keys = await authorizationService.getClientKeys({
       clientId: clientWithKeyUser.id,
-      userIds: [keyUserId],
+      userIds: [keyUserId1],
       organizationId: unsafeBrandId(consumerId),
       logger: genericLogger,
     });
-    expect(keys).toEqual([keyWithUser]);
+    expect(keys).toEqual([keyWithUser1]);
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
-    await addOneClient(getMockClient());
+    await addOneClient(mockClient);
     const clientId = generateId();
     await expect(
       authorizationService.getClientKeys({

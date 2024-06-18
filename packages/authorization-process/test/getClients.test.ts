@@ -26,11 +26,11 @@ describe("getClients", async () => {
     kind: "Consumer",
   };
 
-  const userIds1 = generateId();
-  const userIds2 = generateId();
+  const userId1 = generateId();
+  const userId2 = generateId();
   const mockClient3: Client = {
     ...getMockClient(),
-    users: [unsafeBrandId(userIds1), unsafeBrandId(userIds2)],
+    users: [unsafeBrandId(userId1), unsafeBrandId(userId2)],
     consumerId: unsafeBrandId(consumerId),
   };
   const userIds3 = generateId();
@@ -78,8 +78,8 @@ describe("getClients", async () => {
       {
         name: "",
         userIds: [
-          unsafeBrandId(userIds1),
-          unsafeBrandId(userIds2),
+          unsafeBrandId(userId1),
+          unsafeBrandId(userId2),
           unsafeBrandId(userIds3),
           unsafeBrandId(userIds4),
         ],
@@ -150,13 +150,13 @@ describe("getClients", async () => {
     await addOneClient(mockClient4);
     const mockClientForOffset1: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userIds1), unsafeBrandId(userIds4)],
+      users: [unsafeBrandId(userId1), unsafeBrandId(userIds4)],
       consumerId: unsafeBrandId(consumerId),
     };
 
     const mockClientForOffset2: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userIds2), unsafeBrandId(userIds3)],
+      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
       consumerId: unsafeBrandId(consumerId),
     };
 
@@ -166,8 +166,8 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         userIds: [
-          unsafeBrandId(userIds1),
-          unsafeBrandId(userIds2),
+          unsafeBrandId(userId1),
+          unsafeBrandId(userId2),
           unsafeBrandId(userIds3),
           unsafeBrandId(userIds4),
         ],
@@ -186,13 +186,13 @@ describe("getClients", async () => {
   it("should get the clients if they exist (pagination: limit)", async () => {
     const mockClientForLimit1: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userIds1), unsafeBrandId(userIds4)],
+      users: [unsafeBrandId(userId1), unsafeBrandId(userIds4)],
       consumerId: unsafeBrandId(consumerId),
     };
 
     const mockClientForLimit2: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userIds2), unsafeBrandId(userIds3)],
+      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
       consumerId: unsafeBrandId(consumerId),
     };
     await addOneClient(mockClient3);
@@ -203,8 +203,8 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         userIds: [
-          unsafeBrandId(userIds1),
-          unsafeBrandId(userIds2),
+          unsafeBrandId(userId1),
+          unsafeBrandId(userId2),
           unsafeBrandId(userIds3),
           unsafeBrandId(userIds4),
         ],
@@ -235,14 +235,14 @@ describe("getClients", async () => {
   it("should get the clients if they exist (parameters: name, userIds, consumerId, purposeId, kind)", async () => {
     const completeClient1: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userIds2), unsafeBrandId(userIds3)],
+      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
       consumerId: unsafeBrandId(consumerId),
       purposes: [unsafeBrandId<PurposeId>(purposeId)],
     };
 
     const completeClient2: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userIds2), unsafeBrandId(userIds3)],
+      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
       consumerId: unsafeBrandId(consumerId),
       purposes: [unsafeBrandId<PurposeId>(purposeId)],
     };
@@ -252,7 +252,7 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         name: "Test client",
-        userIds: [unsafeBrandId(userIds1), unsafeBrandId(userIds2)],
+        userIds: [unsafeBrandId(userId1), unsafeBrandId(userId2)],
         consumerId: unsafeBrandId(consumerId),
         purposeId: unsafeBrandId<PurposeId>(purposeId),
         kind: "Consumer",
