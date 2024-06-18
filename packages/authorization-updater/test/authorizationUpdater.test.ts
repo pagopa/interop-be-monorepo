@@ -3,6 +3,7 @@
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
+  getMockClient,
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
@@ -52,12 +53,7 @@ import {
 } from "../src/index.js";
 import { ApiClientComponent } from "../src/model/models.js";
 import { agreementStateToClientState } from "../src/utils.js";
-import {
-  addOneClient,
-  addOneEService,
-  getMockClient,
-  readModelService,
-} from "./utils.js";
+import { addOneClient, addOneEService, readModelService } from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
   const testCorrelationId = generateId();
