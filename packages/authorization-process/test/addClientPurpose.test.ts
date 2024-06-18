@@ -8,7 +8,6 @@ import {
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
-  getMockTenant,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
@@ -18,6 +17,7 @@ import {
   ClientPurposeAddedV2,
   Descriptor,
   Purpose,
+  TenantId,
   agreementState,
   descriptorState,
   generateId,
@@ -29,10 +29,10 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  agreementNotFound,
   clientNotFound,
   eserviceNotFound,
-  noVersionsFoundInPurpose,
+  noAgreementFoundInRequiredState,
+  noPurposeVersionsFoundInRequiredState,
   organizationNotAllowedOnClient,
   organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
@@ -60,18 +60,18 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -79,7 +79,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -90,7 +90,7 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      organizationId: mockConsumer.id,
+      organizationId: mockConsumerId,
       correlationId: generateId(),
       logger: genericLogger,
     });
@@ -129,18 +129,18 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -148,7 +148,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
@@ -159,7 +159,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -177,12 +177,12 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
@@ -196,7 +196,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -208,12 +208,12 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockConsumer.id, mockClient.id)
+      organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
     );
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
@@ -228,18 +228,18 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -247,7 +247,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -258,7 +258,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -276,7 +276,7 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -287,7 +287,7 @@ describe("addClientPurpose", async () => {
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -295,7 +295,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -307,12 +307,12 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      organizationNotAllowedOnPurpose(mockConsumer.id, mockPurpose.id)
+      organizationNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
     );
   });
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -327,18 +327,18 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -346,7 +346,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -357,13 +357,13 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(eserviceNotFound(mockEservice.id));
   });
-  it("should throw agreementNotFound if the agreement doesn't exist", async () => {
+  it("should throw noAgreementFoundInRequiredState if there is no agreement in required states (found no agreement)", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -375,17 +375,17 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -396,12 +396,71 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(agreementNotFound(mockEservice.id, mockConsumer.id));
+    ).rejects.toThrowError(
+      noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
+    );
   });
+  it.each(
+    Object.values(agreementState).filter(
+      (state) =>
+        state !== agreementState.active && state !== agreementState.suspended
+    )
+  )(
+    "should throw noAgreementFoundInRequiredState if there is no agreement in required states (found: %s agreements)",
+    async (agreementState) => {
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        interface: getMockDocument(),
+        publishedAt: new Date(),
+      };
+
+      const mockEservice = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
+      const mockConsumerId: TenantId = generateId();
+
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        eserviceId: mockEservice.id,
+        consumerId: mockConsumerId,
+        state: agreementState,
+      };
+
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEservice.id,
+        consumerId: mockConsumerId,
+        versions: [getMockPurposeVersion(purposeVersionState.active)],
+      };
+      const mockClient: Client = {
+        ...getMockClient(),
+        consumerId: mockConsumerId,
+      };
+
+      await addOneClient(mockClient);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+      expect(
+        authorizationService.addClientPurpose({
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+          organizationId: mockConsumerId,
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(
+        noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
+      );
+    }
+  );
   it("should throw descriptorNotFound if the descriptor doesn't exist", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -415,18 +474,18 @@ describe("addClientPurpose", async () => {
       descriptors: [],
     };
 
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -434,7 +493,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -446,13 +505,13 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(mockDescriptor.id);
   });
-  it("should throw noVersionsFoundInPurpose if the purpose has no versions", async () => {
+  it("should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states (found no versions)", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -465,18 +524,18 @@ describe("addClientPurpose", async () => {
       descriptors: [mockDescriptor],
     };
 
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     const mockAgreement: Agreement = {
@@ -484,7 +543,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -496,12 +555,75 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(noVersionsFoundInPurpose(mockPurpose.id));
+    ).rejects.toThrowError(
+      noPurposeVersionsFoundInRequiredState(mockPurpose.id)
+    );
   });
+  it.each(
+    Object.values(purposeVersionState).filter(
+      (state) =>
+        state !== purposeVersionState.active &&
+        state !== purposeVersionState.suspended
+    )
+  )(
+    "should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states (found: %s version)",
+    async (versionState) => {
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        interface: getMockDocument(),
+        publishedAt: new Date(),
+      };
+
+      const mockEservice = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
+
+      const mockConsumerId: TenantId = generateId();
+
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEservice.id,
+        consumerId: mockConsumerId,
+        versions: [getMockPurposeVersion(versionState)],
+      };
+
+      const mockClient: Client = {
+        ...getMockClient(),
+        consumerId: mockConsumerId,
+      };
+
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.active,
+        eserviceId: mockEservice.id,
+        descriptorId: mockDescriptor.id,
+        consumerId: mockConsumerId,
+      };
+
+      await addOneClient(mockClient);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+
+      expect(
+        authorizationService.addClientPurpose({
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+          organizationId: mockConsumerId,
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(
+        noPurposeVersionsFoundInRequiredState(mockPurpose.id)
+      );
+    }
+  );
   it("should throw purposeAlreadyLinkedToClient if the purpose is already linked to that client", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -514,18 +636,18 @@ describe("addClientPurpose", async () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockConsumer = getMockTenant();
+    const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
     const mockClient: Client = {
       ...getMockClient(),
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
       purposes: [mockPurpose.id],
     };
 
@@ -534,7 +656,7 @@ describe("addClientPurpose", async () => {
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
-      consumerId: mockConsumer.id,
+      consumerId: mockConsumerId,
     };
 
     await addOneClient(mockClient);
@@ -546,7 +668,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        organizationId: mockConsumer.id,
+        organizationId: mockConsumerId,
         correlationId: generateId(),
         logger: genericLogger,
       })

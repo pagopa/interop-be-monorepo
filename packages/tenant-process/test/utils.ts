@@ -1,6 +1,5 @@
 import {
   AgreementCollection,
-  AuthData,
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -96,17 +95,6 @@ export const getMockCertifiedTenantAttribute =
     type: tenantAttributeType.CERTIFIED,
     revocationTimestamp: currentDate,
   });
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
 
 export const getMockEService = (): EService => ({
   id: generateId(),

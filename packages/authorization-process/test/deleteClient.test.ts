@@ -4,7 +4,6 @@ import {
   decodeProtobufPayload,
   getMockClient,
   getMockTenant,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Client,
@@ -21,7 +20,6 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-  tenants,
 } from "./utils.js";
 
 describe("delete client", () => {
@@ -33,7 +31,6 @@ describe("delete client", () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(mockConsumer, tenants);
 
     await authorizationService.deleteClient({
       clientId: mockClient.id,
@@ -64,10 +61,8 @@ describe("delete client", () => {
   it("should throw clientNotFound if the client doesn't exist", async () => {
     const mockClient = getMockClient();
     const notExistingClient = getMockClient();
-    const mockConsumer = getMockTenant();
 
     await addOneClient(mockClient);
-    await writeInReadmodel(mockConsumer, tenants);
 
     expect(
       authorizationService.deleteClient({
@@ -87,8 +82,6 @@ describe("delete client", () => {
     };
 
     await addOneClient(mockClient);
-    await writeInReadmodel(mockConsumer1, tenants);
-    await writeInReadmodel(mockConsumer2, tenants);
 
     expect(
       authorizationService.deleteClient({

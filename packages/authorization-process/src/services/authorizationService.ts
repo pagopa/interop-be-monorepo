@@ -5,7 +5,6 @@ import {
   DescriptorId,
   EService,
   EServiceId,
-  Key,
   ListResult,
   Purpose,
   PurposeId,
@@ -13,7 +12,6 @@ import {
   TenantId,
   UserId,
   WithMetadata,
-  agreementState,
   authorizationEventToBinaryData,
   clientKind,
   generateId,
@@ -27,22 +25,19 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
-  agreementNotFound,
   clientNotFound,
   descriptorNotFound,
   eserviceNotFound,
   keyNotFound,
-  noVersionsFoundInPurpose,
+  noAgreementFoundInRequiredState,
+  noPurposeVersionsFoundInRequiredState,
   organizationNotAllowedOnClient,
-  organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
-  purposeIdNotFound,
   purposeNotFound,
-  securityUserNotFound,
   userAlreadyAssigned,
   userIdNotFound,
+  userNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
@@ -58,7 +53,11 @@ import {
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
-import { isClientConsumer } from "./validators.js";
+import {
+  assertOrganizationIsPurposeConsumer,
+  isClientConsumer,
+  assertUserSelfcareSecurityPrivileges,
+} from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -69,20 +68,6 @@ const retrieveClient = async (
     throw clientNotFound(clientId);
   }
   return client;
-};
-
-const retrieveKey = (client: Client, keyId: string): Key => {
-  const key = client.keys.find((key) => key.kid === keyId);
-  if (!key) {
-    throw keyNotFound(keyId, client.id);
-  }
-  return key;
-};
-
-const retrievePurposeId = (client: Client, purposeId: PurposeId): void => {
-  if (!client.purposes.find((id) => id === purposeId)) {
-    throw purposeIdNotFound(purposeId, client.id);
-  }
 };
 
 const retrieveEService = async (
@@ -217,9 +202,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
-      const userIds = authData.userRoles.includes("security")
+      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
         ? [authData.userId]
-        : filters.userIds.map(unsafeBrandId<UserId>);
+        : filters.userIds;
 
       return await readModelService.getClients(
         { ...filters, userIds },
@@ -292,22 +277,33 @@ export function authorizationServiceBuilder(
     async deleteClientKeyById({
       clientId,
       keyIdToRemove,
-      organizationId,
+      authData,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       keyIdToRemove: string;
-      organizationId: TenantId;
+      authData: AuthData;
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
-      retrieveKey(client.data, keyIdToRemove);
+      const keyToRemove = client.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+      if (!keyToRemove) {
+        throw keyNotFound(keyIdToRemove, client.data.id);
+      }
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !client.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
 
       const updatedClient: Client = {
         ...client.data,
@@ -343,7 +339,9 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      retrievePurposeId(client.data, purposeIdToRemove);
+      if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+        throw purposeNotFound(purposeIdToRemove);
+      }
 
       const updatedClient: Client = {
         ...client.data,
@@ -361,11 +359,15 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removePurposeFromClients(
-      purposeIdToRemove: PurposeId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<void> {
+    async removePurposeFromClients({
+      purposeIdToRemove,
+      correlationId,
+      logger,
+    }: {
+      purposeIdToRemove: PurposeId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
       const clients = await readModelService.getClientsRelatedToPurpose(
@@ -399,7 +401,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         users: client.data.users,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: true,
       };
     },
     async addUser(
@@ -418,7 +420,11 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertSecurityUser(authData.selfcareId, authData.userId, userId);
+      await assertUserSelfcareSecurityPrivileges(
+        authData.selfcareId,
+        authData.userId,
+        userId
+      );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -437,7 +443,7 @@ export function authorizationServiceBuilder(
       );
       return {
         client: updatedClient,
-        showUsers: updatedClient.consumerId === authData.organizationId,
+        showUsers: true,
       };
     },
     async getClientKeys({
@@ -486,45 +492,36 @@ export function authorizationServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
       assertOrganizationIsPurposeConsumer(organizationId, purpose);
 
+      if (client.data.purposes.includes(purposeId)) {
+        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+      }
+
       const eservice = await retrieveEService(
         purpose.eserviceId,
         readModelService
       );
 
-      const agreements = await readModelService.getAgreements(
+      const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
         organizationId
       );
-      const agreement = agreements
-        .filter(
-          (a) =>
-            a.state === agreementState.active ||
-            a.state === agreementState.suspended
-        )
-        .sort((a1, a2) => a1.createdAt.getTime() - a2.createdAt.getTime())[0];
 
       if (agreement === undefined) {
-        throw agreementNotFound(eservice.id, organizationId);
+        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
 
-      const invalidPurposeVersionStates: PurposeVersionState[] = [
-        purposeVersionState.archived,
-        purposeVersionState.rejected,
-        purposeVersionState.draft,
-        purposeVersionState.waitingForApproval,
-      ];
-      const purposeVersion = purpose.versions.find(
-        (v) => !invalidPurposeVersionStates.includes(v.state)
+      const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
+        purposeVersionState.active,
+        purposeVersionState.suspended,
+      ]);
+      const purposeVersion = purpose.versions.find((v) =>
+        validPurposeVersionStates.has(v.state)
       );
 
       if (purposeVersion === undefined) {
-        throw noVersionsFoundInPurpose(purpose.id);
-      }
-
-      if (client.data.purposes.includes(purposeId)) {
-        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+        throw noPurposeVersionsFoundInRequiredState(purpose.id);
       }
 
       const updatedClient: Client = {
@@ -554,32 +551,5 @@ const assertOrganizationIsClientConsumer = (
 ): void => {
   if (client.consumerId !== organizationId) {
     throw organizationNotAllowedOnClient(organizationId, client.id);
-  }
-};
-
-const assertSecurityUser = async (
-  selfcareId: string,
-  requesterUserId: UserId,
-  userId: UserId
-): Promise<void> => {
-  const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
-    params: { institutionId: selfcareId },
-    queries: {
-      userIdForAuth: requesterUserId,
-      userId,
-      productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
-    },
-  });
-  if (users.length === 0) {
-    throw securityUserNotFound(requesterUserId, userId);
-  }
-};
-
-const assertOrganizationIsPurposeConsumer = (
-  organizationId: TenantId,
-  purpose: Purpose
-): void => {
-  if (organizationId !== purpose.consumerId) {
-    throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
   }
 };
