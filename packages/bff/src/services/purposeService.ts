@@ -8,6 +8,7 @@ import {
   ApiUpdateReversePurposePayload,
   VersionState,
   ApiEServicePurposeSeedPayload,
+  ApiPurposePayload,
 } from "../model/types.js";
 import {
   PagoPAInteropBeClients,
@@ -20,6 +21,19 @@ export function purposeServiceBuilder(
   purposeClient: PagoPAInteropBeClients["purposeProcessClient"]
 ) {
   return {
+    async createPurpose(
+      createSeed: ApiPurposePayload,
+      { logger }: WithLogger<AppContext>,
+      requestHeaders: Headers
+    ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
+      logger.info(
+        `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
+      );
+      return await purposeClient.createPurpose(createSeed, {
+        headers: { ...requestHeaders },
+        withCredentials: true,
+      });
+    },
     async createPurposeFromEService(
       createSeed: ApiEServicePurposeSeedPayload,
       { logger }: WithLogger<AppContext>,
