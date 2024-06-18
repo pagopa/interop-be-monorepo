@@ -21,7 +21,11 @@ export function initEmailManager(config: EmailManagerConfig): EmailManager {
       const transporter = nodemailer.createTransport({
         host: config.smtpAddress,
         port: config.smtpPort,
-        secure: config.smtpPort === 465, // Use `true` for port 465, `false` for all other ports
+        secure: config.smtpSecure ?? config.smtpPort === 465, // Use `true` for port 465, `false` for all other ports
+        auth: {
+          user: config.smtpUsername,
+          pass: config.smtpPassword,
+        },
       });
       await transporter.sendMail({
         from,

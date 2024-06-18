@@ -77,7 +77,8 @@ export const minioContainer = (config: S3Config): GenericContainer =>
     .withExposedPorts(TEST_MINIO_PORT);
 
 export const mailpitContainer = (): GenericContainer =>
-  new GenericContainer(TEST_MAILPIT_IMAGE).withExposedPorts(
-    TEST_MAILPIT_HTTP_PORT,
-    TEST_MAILPIT_SMTP_PORT
-  );
+  new GenericContainer(TEST_MAILPIT_IMAGE)
+    .withEnvironment({
+      MP_SMTP_AUTH: "user1:password1",
+    })
+    .withExposedPorts(TEST_MAILPIT_HTTP_PORT, TEST_MAILPIT_SMTP_PORT);
