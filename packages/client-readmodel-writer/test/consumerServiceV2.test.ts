@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe } from "node:test";
 import {
   getMockClient,
   getMockKey,
@@ -22,7 +20,7 @@ import {
   toClientV2,
   toReadModelClient,
 } from "pagopa-interop-models";
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/clientConsumerServiceV2.js";
 import { clients } from "./utils.js";
 
