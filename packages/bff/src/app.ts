@@ -16,6 +16,7 @@ import { getInteropBeClients } from "./providers/clientProvider.js";
 const serviceName = "bff-process";
 
 const clients = getInteropBeClients();
+
 const app = zodiosCtx.app();
 
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
