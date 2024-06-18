@@ -585,12 +585,12 @@ export function agreementServiceBuilder(
       }
 
       const consumer = await retrieveTenant(
-        authData.organizationId,
+        agreementToBeUpgraded.data.consumerId,
         readModelService
       );
 
       const producer = await retrieveTenant(
-        authData.organizationId,
+        agreementToBeUpgraded.data.producerId,
         readModelService
       );
 
