@@ -80,14 +80,6 @@ export function keyNotFound(
   });
 }
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
-  });
-}
-
 export function userNotAllowedOnClient(
   userId: UserId,
   clientId: ClientId
@@ -98,6 +90,15 @@ export function userNotAllowedOnClient(
     title: "User not allowed on client",
   });
 }
+
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
+  });
+}
+
 export function userWithoutSecurityPrivileges(
   userId: UserId,
   requesterUserId: UserId
