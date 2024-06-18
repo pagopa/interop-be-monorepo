@@ -2,7 +2,7 @@ import { userRoles } from "pagopa-interop-commons";
 import { Purpose, TenantId, UserId } from "pagopa-interop-models";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
-  securityUserNotFound,
+  userWithoutSecurityPrivileges,
   organizationNotAllowedOnPurpose,
 } from "../model/domain/errors.js";
 
@@ -11,16 +11,7 @@ export const isClientConsumer = (
   organizationId: string
 ): boolean => (consumerId === organizationId ? true : false);
 
-export const assertOrganizationIsPurposeConsumer = (
-  organizationId: TenantId,
-  purpose: Purpose
-): void => {
-  if (organizationId !== purpose.consumerId) {
-    throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
-  }
-};
-
-export const assertSelfcareUser = async (
+export const assertUserSelfcareSecurityPrivileges = async (
   selfcareId: string,
   requesterUserId: UserId,
   userId: UserId
@@ -34,6 +25,15 @@ export const assertSelfcareUser = async (
     },
   });
   if (users.length === 0) {
-    throw securityUserNotFound(requesterUserId, userId);
+    throw userWithoutSecurityPrivileges(userId, requesterUserId);
+  }
+};
+
+export const assertOrganizationIsPurposeConsumer = (
+  organizationId: TenantId,
+  purpose: Purpose
+): void => {
+  if (organizationId !== purpose.consumerId) {
+    throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
   }
 };

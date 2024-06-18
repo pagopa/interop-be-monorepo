@@ -56,7 +56,7 @@ import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
   isClientConsumer,
-  assertSelfcareUser,
+  assertUserSelfcareSecurityPrivileges,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -421,7 +421,11 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertSelfcareUser(authData.selfcareId, authData.userId, userId);
+      await assertUserSelfcareSecurityPrivileges(
+        authData.selfcareId,
+        authData.userId,
+        userId
+      );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }

@@ -15,15 +15,15 @@ export const errorCodes = {
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
   keyNotFound: "0005",
-  purposeNotFound: "0005",
-  securityUserNotFound: "0006",
-  userAlreadyAssigned: "0007",
-  eserviceNotFound: "0008",
-  noPurposeVersionsFoundInRequiredState: "009",
-  descriptorNotFound: "0010",
-  noAgreementFoundInRequiredState: "0011",
-  purposeAlreadyLinkedToClient: "0012",
-  organizationNotAllowedOnPurpose: "0013",
+  purposeNotFound: "0006",
+  userWithoutSecurityPrivileges: "0007",
+  userAlreadyAssigned: "0008",
+  eserviceNotFound: "0009",
+  noPurposeVersionsFoundInRequiredState: "0010",
+  descriptorNotFound: "0011",
+  noAgreementFoundInRequiredState: "0012",
+  purposeAlreadyLinkedToClient: "0013",
+  organizationNotAllowedOnPurpose: "0014",
 };
 
 export function missingUserId(kid: string): ApiError<ErrorCodes> {
@@ -87,14 +87,14 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   });
 }
 
-export function securityUserNotFound(
-  requesterUserId: UserId,
-  userId: UserId
+export function userWithoutSecurityPrivileges(
+  userId: UserId,
+  requesterUserId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Security user not found for consumer ${requesterUserId} and user ${userId}`,
-    code: "securityUserNotFound",
-    title: "security User not found",
+    detail: `User ${userId} does not have security privileges for consumer ${requesterUserId}`,
+    code: "userWithoutSecurityPrivileges",
+    title: "User without security privileges",
   });
 }
 

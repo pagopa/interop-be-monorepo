@@ -18,7 +18,7 @@ import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
-  securityUserNotFound,
+  userWithoutSecurityPrivileges,
   userAlreadyAssigned,
 } from "../src/model/domain/errors.js";
 import {
@@ -47,7 +47,7 @@ const mockSelfCareUsers = {
 };
 
 describe("addUser", () => {
-  it("should write on event-store for adding a user from a client", async () => {
+  it("should write on event-store when adding a user to a client", async () => {
     const consumerId: TenantId = generateId();
     const userIdToAdd: UserId = generateId();
     const userId: UserId = generateId();
@@ -122,7 +122,7 @@ describe("addUser", () => {
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw userAlreadyAssigned if the user already exist in the client", async () => {
+  it("should throw userAlreadyAssigned if the user already exists in the client", async () => {
     const consumerId: TenantId = generateId();
     const userId: UserId = generateId();
 
@@ -208,6 +208,8 @@ describe("addUser", () => {
         generateId(),
         genericLogger
       )
-    ).rejects.toThrowError(securityUserNotFound(authData.userId, userIdToAdd));
+    ).rejects.toThrowError(
+      userWithoutSecurityPrivileges(userIdToAdd, authData.userId)
+    );
   });
 });
