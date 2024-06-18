@@ -82,6 +82,7 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import { config } from "../src/utilities/config.js";
 import {
   EServiceDescriptorSeed,
@@ -122,7 +123,6 @@ import {
   addOneTenant,
   buildDescriptorSeed,
   getMockAgreement,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,

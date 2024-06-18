@@ -109,12 +109,7 @@ const authorizationRouter = (
     )
     .get(
       "/clientsWithKeys",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -355,7 +350,7 @@ const authorizationRouter = (
           await authorizationService.deleteClientKeyById({
             clientId: unsafeBrandId(req.params.clientId),
             keyIdToRemove: unsafeBrandId(req.params.keyId),
-            organizationId: ctx.authData.organizationId,
+            authData: ctx.authData,
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });

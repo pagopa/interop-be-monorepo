@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test";
 import { EService, EServiceAddedV2, toEServiceV2 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   eServiceDuplicate,
   originNotCompliant,
@@ -13,11 +14,7 @@ import {
   mockEService,
   postgresDB,
 } from "./catalogService.integration.test.js";
-import {
-  addOneEService,
-  getMockAuthData,
-  readLastEserviceEvent,
-} from "./utils.js";
+import { addOneEService, readLastEserviceEvent } from "./utils.js";
 
 export const testCreateEService = (): ReturnType<typeof describe> =>
   describe("create eservice", () => {
