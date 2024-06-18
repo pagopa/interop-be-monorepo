@@ -37,24 +37,31 @@ export async function handleMessageV1(
         "metadata.version": { $lt: msg.version },
       });
     })
-    .with({ type: "AgreementUpdated" }, async (msg) => {
-      await agreements.updateOne(
-        {
-          "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
-        },
-        {
-          $set: {
-            data: msg.data.agreement
-              ? toReadModelAgreement(fromAgreementV1(msg.data.agreement))
-              : undefined,
-            metadata: {
-              version: msg.version,
-            },
+    .with(
+      { type: "AgreementUpdated" },
+      { type: "AgreementActivated" },
+      { type: "AgreementSuspended" },
+      { type: "AgreementDeactivated" },
+      { type: "VerifiedAttributeUpdated" },
+      async (msg) => {
+        await agreements.updateOne(
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
           },
-        }
-      );
-    })
+          {
+            $set: {
+              data: msg.data.agreement
+                ? toReadModelAgreement(fromAgreementV1(msg.data.agreement))
+                : undefined,
+              metadata: {
+                version: msg.version,
+              },
+            },
+          }
+        );
+      }
+    )
     .with({ type: "AgreementConsumerDocumentAdded" }, async (msg) => {
       await agreements.updateOne(
         {

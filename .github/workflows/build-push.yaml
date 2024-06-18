@@ -3,12 +3,12 @@ name: "Build & Push"
 on:
   push:
     branches:
-      - 'main'
+      - "main"
     tags:
-      - '*'
+      - "*"
     paths:
-      - 'packages/**'
-      - '!packages/*/scripts/**'
+      - "packages/**"
+      - "!packages/*/scripts/**"
 
 jobs:
   build_push_image:
@@ -41,18 +41,20 @@ jobs:
           - image_name: attribute-registry-process
             dockerfile_path: packages/attribute-registry-process
           - image_name: attribute-registry-readmodel-writer
-            dockerfile_path: packages/attribute-registry-readmodel-writer        
+            dockerfile_path: packages/attribute-registry-readmodel-writer
           - image_name: authorization-updater
-            dockerfile_path: packages/authorization-updater           
+            dockerfile_path: packages/authorization-updater
           - image_name: notifier-seeder
-            dockerfile_path: packages/notifier-seeder          
+            dockerfile_path: packages/notifier-seeder
+          - image_name: eservice-descriptors-archiver
+            dockerfile_path: packages/eservice-descriptors-archiver
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}
@@ -60,12 +62,12 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
 
       - name: (latest) Docker metadata
         id: meta_latest
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@f7b4ed12385588c3f9bc252f0a2b520d83b52d48
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -78,7 +80,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@f7b4ed12385588c3f9bc252f0a2b520d83b52d48
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -90,11 +92,10 @@ jobs:
 
       - name: Build and push Docker image
         id: build_push
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@86c2bd00318427a320d2cee5bbc61251df6f647e
         with:
           context: .
           file: ${{ matrix.dockerfile_path }}/Dockerfile
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.labels || steps.meta_tag.outputs.labels }}
-
