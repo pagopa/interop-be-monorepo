@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   StoredEvent,
@@ -7,8 +8,9 @@ import {
   writeInReadmodel,
   ReadEvent,
   readEventByStreamIdAndVersion,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { afterEach, expect, inject } from "vitest";
+import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -21,15 +23,22 @@ import {
   AgreementDocumentId,
   generateId,
   AgreementDocument,
+  Attribute,
+  toReadModelAttribute,
+  TenantId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+  initPDFGenerator,
+  puppeteerLaunchOptions,
+} from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
-import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
-import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
-import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
-import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/utilities/config.js";
+import { ApiTenantAttribute } from "../src/model/types.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   setupTestContainersVitest(
@@ -40,24 +49,34 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
+const testBrowserInstance: Browser = await puppeteer.launch(
+  puppeteerLaunchOptions({ pipe: true })
+);
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+
 export const agreements = readModelRepository.agreements;
 export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
+export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const eserviceQuery = eserviceQueryBuilder(readModelService);
-const agreementQuery = agreementQueryBuilder(readModelService);
-const tenantQuery = tenantQueryBuilder(readModelService);
-const attributeQuery = attributeQueryBuilder(readModelService);
+export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
+export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
-  agreementQuery,
-  tenantQuery,
-  eserviceQuery,
-  attributeQuery,
-  fileManager
+  readModelService,
+  fileManager,
+  pdfGenerator,
+  selfcareV2ClientMock
 );
 export const writeAgreementInEventstore = async (
   agreement: Agreement
@@ -90,6 +109,9 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(tenant, tenants);
 };
 
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+};
 export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
@@ -139,5 +161,83 @@ export function getMockConsumerDocument(
     prettyName: "pretty name",
     contentType: "application/pdf",
     createdAt: new Date(),
+  };
+}
+
+export function getMockContract(
+  agreementId: AgreementId,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  const createdAt = new Date();
+  const contractDocumentName = `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
+    createdAt
+  )}_agreement_contract.pdf`;
+  return {
+    id,
+    contentType: "application/pdf",
+    createdAt,
+    path: `${config.agreementContractsPath}/${agreementId}/${id}/${contractDocumentName}`,
+    prettyName: "Richiesta di fruizione",
+    name: contractDocumentName,
+  };
+}
+
+export function getMockApiTenantCertifiedAttribute(): ApiTenantAttribute {
+  return {
+    certified: {
+      id: generateId(),
+      assignmentTimestamp: new Date().toISOString(),
+      revocationTimestamp: randomArrayItem([
+        new Date().toISOString(),
+        undefined,
+      ]),
+    },
+  };
+}
+
+export function getMockApiTenantDeclaredAttribute(): ApiTenantAttribute {
+  return {
+    declared: {
+      id: generateId(),
+      assignmentTimestamp: new Date().toISOString(),
+      revocationTimestamp: randomArrayItem([
+        new Date().toISOString(),
+        undefined,
+      ]),
+    },
+  };
+}
+
+export function getMockApiTenantVerifiedAttribute(): ApiTenantAttribute {
+  return {
+    verified: {
+      id: generateId(),
+      assignmentTimestamp: new Date().toISOString(),
+      verifiedBy: [
+        {
+          id: generateId(),
+          verificationDate: new Date().toISOString(),
+          expirationDate: randomArrayItem([
+            new Date().toISOString(),
+            undefined,
+          ]),
+          extensionDate: randomArrayItem([new Date().toISOString(), undefined]),
+        },
+      ],
+      revokedBy: [
+        {
+          id: generateId(),
+          verificationDate: new Date().toISOString(),
+          revocationDate: new Date().toISOString(),
+          expirationDate: randomArrayItem([
+            new Date().toISOString(),
+            undefined,
+          ]),
+          extensionDate: randomArrayItem([new Date().toISOString(), undefined]),
+        },
+      ],
+    },
   };
 }

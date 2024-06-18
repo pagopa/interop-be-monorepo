@@ -8,5 +8,3 @@ export const { cleanup, readModelRepository } = setupTestContainersVitest(
 afterEach(cleanup);
 
 export const keys = readModelRepository.keys;
-
-// export const readModelService = readModelServiceBuilder(readModelRepository);

@@ -18,30 +18,16 @@ export async function handleMessageV2(
 
       const key = client?.keys.find((key) => key.kid === message.data.kid);
 
-      /*
-      to do: double-check version retrieval.
-      the implementation below retrieves the version number by reading the existing key (if any) in readmodel.
-      
-      Alternative implementation: we could use the version number of the client, but this means that the key will "skip" some versions.
-      For example, if a key is created at the 7th update of the client, this means that the key will be inserted in the keys collection with version 7
-      */
-      const version =
-        (
-          await keys.findOne({
-            "data.kid": message.data.kid,
-          })
-        )?.metadata.version || 0;
-
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
-          "metadata.version": { $lt: version },
+          "metadata.version": { $lt: message.version },
         },
         {
           $set: {
             data: key,
             metadata: {
-              version,
+              version: message.version,
             },
           },
         },
@@ -49,21 +35,19 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ClientKeyDeleted" }, async (message) => {
-      const version =
-        (
-          await keys.findOne({
-            "data.kid": message.data.kid,
-          })
-        )?.metadata.version || 0;
-
       await keys.deleteOne({
         "data.kid": message.data.kid,
-        "metadata.version": { $lt: version + 1 },
+        "metadata.version": { $lt: message.version },
+      });
+    })
+    .with({ type: "ClientDeleted" }, async (message) => {
+      const keysToRemove = message.data.client?.keys;
+      await keys.deleteMany({
+        "data.kid": { $in: keysToRemove?.map((key) => key.kid) },
       });
     })
     .with(
       { type: "ClientAdded" },
-      { type: "ClientDeleted" },
       { type: "ClientUserAdded" },
       { type: "ClientUserDeleted" },
       { type: "ClientPurposeAdded" },

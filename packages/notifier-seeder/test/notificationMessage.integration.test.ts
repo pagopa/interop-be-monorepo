@@ -1,9 +1,11 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
+  Agreement,
+  AgreementAddedV2,
+  AgreementEventEnvelopeV2,
   AuthorizationEventEnvelopeV2,
   ClientKeyAddedV2,
   EServiceDescriptorSuspendedV2,
@@ -16,6 +18,7 @@ import {
   eserviceMode,
   generateId,
   technology,
+  toAgreementV2,
   toClientV2,
   toDescriptorV2,
   toEServiceV2,
@@ -25,22 +28,21 @@ import {
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
 import {
+  getMockAgreement,
   getMockClient,
   getMockKey,
   getMockPurpose,
 } from "pagopa-interop-commons-test";
-import {
-  QueueManager,
-  initQueueManager,
-} from "../src/queue-manager/queueManager.js";
 import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
+import { buildAgreementMessage } from "../src/models/agreement/agreementEventNotificationMessage.js";
 import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
 import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
 import { buildAuthorizationMessage } from "../src/models/authorization/authorizationEventNotificationMessage.js";
 import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
+import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
 import { toAuthorizationEventNotification } from "../src/models/authorization/authorizationEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
-import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
+import { queueWriter } from "./utils.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
@@ -113,31 +115,7 @@ const getMockEService = (id: string): EServiceV2 =>
   });
 
 describe("Notification tests", async () => {
-  process.env.AWS_CONFIG_FILE = "aws.config.local";
-
-  let startedElasticMQContainer: StartedTestContainer;
-  let queueUrl: string;
-  let queueWriter: QueueManager;
-
-  beforeAll(async () => {
-    startedElasticMQContainer = await elasticMQContainer().start();
-
-    queueUrl = `http://localhost:${startedElasticMQContainer.getMappedPort(
-      TEST_ELASTIC_MQ_PORT
-    )}/000000000000/sqsLocalQueue.fifo`;
-
-    queueWriter = initQueueManager({
-      queueUrl,
-      messageGroupId: "test-message-group-id",
-      logLevel: "info",
-    });
-  });
-
-  afterAll(async () => {
-    await startedElasticMQContainer.stop();
-  });
-
-  describe("Catalog, Purpose, Authorization Event Message", async () => {
+  describe("Catalog, Purpose, Agreement, Authorization Event Message", async () => {
     it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -200,6 +178,41 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(purposeMessage, genericLogger);
 
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        createdAt: new Date(),
+        updatedAt: undefined,
+        consumerDocuments: [],
+        stamps: {},
+        contract: undefined,
+        suspendedAt: undefined,
+      };
+
+      const agreementEventV2: AgreementAddedV2 = {
+        agreement: toAgreementV2(mockAgreement),
+      };
+
+      const agreementEventEnvelope: AgreementEventEnvelopeV2 = {
+        sequence_num: 2,
+        stream_id: mockAgreement.id,
+        version: 1,
+        correlation_id: v4(),
+        log_date: new Date(),
+        event_version: 2,
+        type: "AgreementAdded",
+        data: agreementEventV2,
+      };
+      const agreementEventNotification = toAgreementEventNotification(
+        agreementEventEnvelope
+      );
+
+      const agreementMessage = buildAgreementMessage(
+        agreementEventEnvelope,
+        agreementEventNotification
+      );
+
+      await queueWriter.send(agreementMessage, genericLogger);
+
       const key = getMockKey();
       const mockClient = { ...getMockClient(), keys: [key] };
       const authorizationEventV2: ClientKeyAddedV2 = {
@@ -229,12 +242,13 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(authorizationMessage, genericLogger);
 
-      const receivedMessages = await queueWriter.receiveLast(genericLogger, 3);
-      expect(receivedMessages.length).toBe(3);
+      const receivedMessages = await queueWriter.receiveLast(genericLogger, 4);
+      expect(receivedMessages.length).toBe(4);
 
       const receivedCatalogMessage = receivedMessages[0];
       const receivedPurposeMessage = receivedMessages[1];
-      const receivedAuthorizationMessage = receivedMessages[2];
+      const receivedAgreementMessage = receivedMessages[2];
+      const receivedAuthorizationMessage = receivedMessages[3];
 
       expect(receivedCatalogMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
@@ -242,6 +256,12 @@ describe("Notification tests", async () => {
       expect(receivedPurposeMessage.payload).toEqual({
         purpose: {
           ...mockPurpose,
+          createdAt: new Date().toISOString(),
+        },
+      });
+      expect(receivedAgreementMessage.payload).toEqual({
+        agreement: {
+          ...mockAgreement,
           createdAt: new Date().toISOString(),
         },
       });
