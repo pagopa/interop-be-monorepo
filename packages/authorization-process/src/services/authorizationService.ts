@@ -5,6 +5,7 @@ import {
   DescriptorId,
   EService,
   EServiceId,
+  Key,
   ListResult,
   Purpose,
   PurposeId,
