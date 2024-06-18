@@ -17,7 +17,10 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { getClientErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getClientErrorMapper,
+  getClientsErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -135,7 +138,11 @@ const authorizationRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getClientsErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
