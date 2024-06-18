@@ -100,7 +100,7 @@ describe("createPurpose", () => {
     );
     await writeInReadmodel(toReadModelEService(eService1), eservices);
 
-    const { purpose } = await purposeService.createPurpose(
+    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
       unsafeBrandId(purposeSeed.consumerId),
       generateId(),
@@ -161,6 +161,9 @@ describe("createPurpose", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
+
     vi.useRealTimers();
   });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
