@@ -1,4 +1,7 @@
+import crypto from "crypto-js";
 import {
+  ApiAttribute,
+  ApiAttributeSeed,
   ProcessApiAttribute,
   ProcessApiAttributeKind,
   ProcessApiAttributes,
@@ -10,6 +13,53 @@ export function attributeServiceBuilder(
   attributeClient: PagoPaClients["attributeProcessClient"]
 ) {
   return {
+    async createCertifiedAttribute(
+      seed: ApiAttributeSeed,
+      requestHeaders: Headers
+    ): Promise<ApiAttribute> {
+      return attributeClient.createCertifiedAttribute(
+        {
+          ...seed,
+          code: generateSeedCode(seed.name),
+        },
+        {
+          headers: { ...requestHeaders },
+          withCredentials: true,
+        }
+      );
+    },
+
+    async createVerifiedAttribute(
+      seed: ApiAttributeSeed,
+      requestHeaders: Headers
+    ): Promise<ApiAttribute> {
+      return attributeClient.createVerifiedAttribute(
+        {
+          ...seed,
+          code: generateSeedCode(seed.name),
+        },
+        {
+          headers: { ...requestHeaders },
+        }
+      );
+    },
+
+    async createDeclaredAttribute(
+      seed: ApiAttributeSeed,
+      requestHeaders: Headers
+    ): Promise<ApiAttribute> {
+      return attributeClient.createDeclaredAttribute(
+        {
+          ...seed,
+          code: generateSeedCode(seed.name),
+        },
+        {
+          headers: { ...requestHeaders },
+          withCredentials: true,
+        }
+      );
+    },
+
     async getAttributeById(
       attributeId: string,
       requestHeaders: Headers
@@ -28,6 +78,7 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributeByOriginAndCode({
         params: { origin, code },
         headers: { ...requestHeaders },
+        withCredentials: true,
       });
     },
 
@@ -49,9 +100,14 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds, name, origin },
         headers: { ...requestHeaders },
+        withCredentials: true,
       });
     },
   };
 }
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
+
+function generateSeedCode(name: string): string {
+  return crypto.SHA256(name).toString();
+}

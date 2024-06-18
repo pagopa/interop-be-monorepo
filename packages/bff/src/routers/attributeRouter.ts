@@ -9,7 +9,7 @@ import {
 import { api } from "../model/generated/api.js";
 import { PagoPaClients } from "../providers/clientProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
-import { getAttributeErrorMapper } from "../utilities/errorMapper.js";
+import { attributeEmptyErrorMapper } from "../utilities/errorMapper.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { toApiCompactAttribute } from "../model/domain/apiConverter.js";
 
@@ -24,9 +24,77 @@ const attributeRouter = (
   const attributeService = attributeServiceBuilder(attributeProcessClient);
 
   attributeRouter
-    .post("/certifiedAttributes", async (_req, res) => res.status(501).send())
-    .post("/verifiedAttributes", async (_req, res) => res.status(501).send())
-    .post("/declaredAttributes", async (_req, res) => res.status(501).send())
+    .post("/certifiedAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+        const result = await attributeService.createCertifiedAttribute(
+          req.body,
+          requestHeaders
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          attributeEmptyErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/verifiedAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+        const result = await attributeService.createVerifiedAttribute(
+          req.body,
+          requestHeaders
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          attributeEmptyErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/declaredAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+        const result = await attributeService.createDeclaredAttribute(
+          req.body,
+          requestHeaders
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          attributeEmptyErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
 
     .get("/attributes", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -56,7 +124,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getAttributeErrorMapper,
+          attributeEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).end();
@@ -80,7 +148,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getAttributeErrorMapper,
+          attributeEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -105,7 +173,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getAttributeErrorMapper,
+          attributeEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
