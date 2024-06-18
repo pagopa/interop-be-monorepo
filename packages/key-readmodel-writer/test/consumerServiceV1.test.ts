@@ -61,7 +61,7 @@ describe("Events V1", async () => {
     });
   });
   it("KeyDeleted", async () => {
-    const mockKey: Key = getMockKey();
+    const mockKey = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
       keys: [mockKey],
