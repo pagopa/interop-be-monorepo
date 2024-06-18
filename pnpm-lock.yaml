@@ -531,6 +531,9 @@ importers:
       express:
         specifier: 4.19.2
         version: 4.19.2
+      pagopa-interop-agreement-process:
+        specifier: workspace:*
+        version: link:../agreement-process
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
