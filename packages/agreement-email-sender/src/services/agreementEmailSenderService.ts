@@ -23,9 +23,7 @@ import {
 import { agreementEmailSenderConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
-export const retrieveTenantDigitalAddress = async (
-  tenant: Tenant
-): Promise<TenantMail> => {
+export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
   const digitalAddress = tenant.mails.find(
     (m) => m.kind === tenantMailKind.DigitalAddress
   );
@@ -86,8 +84,8 @@ async function getActivationMailFromAgreement(
   We now have the producer and consumer digital addresses in their respective tenant object,
   kept up to date through a queue.
   We only expect one digital address per tenant, so we can safely use the first one we find. */
-  const producerEmail = (await retrieveTenantDigitalAddress(producer)).address;
-  const consumerEmail = (await retrieveTenantDigitalAddress(consumer)).address;
+  const producerEmail = retrieveTenantDigitalAddress(producer).address;
+  const consumerEmail = retrieveTenantDigitalAddress(consumer).address;
 
   const descriptor = eservice.descriptors.find(
     (d) => d.id === agreement.descriptorId
