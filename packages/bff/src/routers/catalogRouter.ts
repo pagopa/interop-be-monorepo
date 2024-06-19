@@ -5,10 +5,14 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { PagoPaClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
+import { parseHeaders } from "../model/api/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { bffGetCatalogErrorMapper } from "../utilities/errorMapper.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -30,21 +34,25 @@ const catalogRouter = (
 
   catalogRouter
     .get("/catalog", async (req, res) => {
-      const queries = req.query;
-      const correlationId = req.ctx.correlationId;
-      const requesterId = req.ctx.authData?.organizationId;
-      if (!requesterId) {
-        // TODO : improve error handling
-        throw new Error("Missing requesterId");
+      const ctx = fromAppContext(req.ctx);
+      const headers = parseHeaders(req.headers);
+
+      try {
+        const response = await catalogService.getCatalog(
+          ctx,
+          req.query,
+          headers
+        );
+
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
       }
-
-      const response = await catalogService.getCatalog(
-        correlationId,
-        requesterId,
-        queries
-      );
-
-      return res.status(200).json(response).send();
     })
     .get(
       "/producers/eservices/:eserviceId/descriptors/:descriptorId",
