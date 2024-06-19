@@ -9,6 +9,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
