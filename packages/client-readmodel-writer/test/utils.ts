@@ -1,5 +1,5 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import { inject, afterEach } from "vitest";
 
 export const { cleanup, readModelRepository } = setupTestContainersVitest(
   inject("readModelConfig")
