@@ -101,17 +101,39 @@ export function makeApiProblemBuilder<T extends string>(errors: {
       })),
     });
 
-    return match<unknown, Problem>(error)
-      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-        const problem = makeProblem(httpMapper(error), error);
-        logger.warn(makeProblemLogString(problem, error));
-        return problem;
-      })
-      .otherwise((error: unknown) => {
-        const problem = makeProblem(500, genericError("Unexpected error"));
-        logger.error(makeProblemLogString(problem, error));
-        return problem;
-      });
+    return (
+      match<unknown, Problem>(error)
+        .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
+          const problem = makeProblem(httpMapper(error), error);
+          logger.warn(makeProblemLogString(problem, error));
+          return problem;
+        })
+        // this case is to allow a passthrough of PROBLEM errors in the BFF
+        .with(
+          {
+            response: {
+              status: P.number,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
+                detail: P.string,
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
+            },
+          },
+          (e) => e.response.data
+        )
+        .otherwise((error: unknown) => {
+          const problem = makeProblem(500, genericError("Unexpected error"));
+          logger.error(makeProblemLogString(problem, error));
+          return problem;
+        })
+    );
   };
 }
 

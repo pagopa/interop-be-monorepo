@@ -107,14 +107,16 @@ export function readModelServiceBuilder(
             computedColumn: { $toLower: ["$data.name"] },
           },
         },
-        {
-          $sort: { computedColumn: 1 },
-        },
       ];
 
       const data = await clients
         .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          [
+            ...aggregationPipeline,
+            { $skip: offset },
+            { $limit: limit },
+            { $sort: { computedColumn: 1 } },
+          ],
           { allowDiskUse: true }
         )
         .toArray();

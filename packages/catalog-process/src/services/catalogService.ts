@@ -1493,8 +1493,10 @@ const isUserAllowedToSeeDraft = (
   authData: AuthData,
   producerId: TenantId
 ): boolean =>
-  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
-  authData.organizationId === producerId;
+  hasPermission(
+    [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+    authData
+  ) && authData.organizationId === producerId;
 
 const applyVisibilityToEService = (
   eservice: EService,
