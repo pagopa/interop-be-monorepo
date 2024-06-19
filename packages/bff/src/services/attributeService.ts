@@ -1,13 +1,13 @@
 import crypto from "crypto-js";
 import { Logger } from "pagopa-interop-commons";
+import { PagoPaClients, Headers } from "../providers/clientProvider.js";
 import {
-  ApiAttribute,
   ApiAttributeSeed,
+  ApiAttribute,
   ProcessApiAttribute,
   ProcessApiAttributeKind,
   ProcessApiAttributes,
-} from "../model/types.js";
-import { PagoPaClients, Headers } from "../providers/clientProvider.js";
+} from "../model/api/attributeTypes.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(

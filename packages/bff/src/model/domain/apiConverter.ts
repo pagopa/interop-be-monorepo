@@ -5,12 +5,14 @@ import {
 } from "pagopa-interop-selfcare-v2-client";
 import { P, match } from "ts-pattern";
 import {
+  ProcessApiAttribute,
   ApiCompactAttribute,
+} from "../api/attributeTypes.js";
+import {
   ApiSelfcareInstitution,
   ApiSelfcareProduct,
   ApiSelfcareUser,
-  ProcessApiAttribute,
-} from "../types.js";
+} from "../api/selfcareTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
