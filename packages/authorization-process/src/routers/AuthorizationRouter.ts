@@ -19,6 +19,9 @@ import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   deleteClientErrorMapper,
+  getClientsErrorMapper,
+  createApiClientErrorMapper,
+  createConsumerClientErrorMapper,
   getClientErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -66,7 +69,11 @@ const authorizationRouter = (
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            createConsumerClientErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -89,7 +96,11 @@ const authorizationRouter = (
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            createApiClientErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -139,7 +150,11 @@ const authorizationRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getClientsErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
