@@ -10,6 +10,6 @@ const AuthorizationConfig =
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 
-export const config: AuthorizationConfig = {
-  ...AuthorizationConfig.parse(process.env),
-};
+export const config: AuthorizationConfig = AuthorizationConfig.parse(
+  process.env
+);
