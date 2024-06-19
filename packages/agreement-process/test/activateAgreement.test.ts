@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -90,12 +91,21 @@ describe("activate agreement", () => {
     id: generateId(),
   };
 
-  const mockSelfcareUserResponseWithMissingInfo: UserResponse = {
-    ...mockSelfcareUserResponse,
-    name: randomArrayItem([mockSelfcareUserResponse.name, undefined]),
-    surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
-    taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
-  };
+  let mockSelfcareUserResponseWithMissingInfo: UserResponse =
+    mockSelfcareUserResponse;
+  while (
+    mockSelfcareUserResponseWithMissingInfo.name &&
+    mockSelfcareUserResponseWithMissingInfo.surname &&
+    mockSelfcareUserResponseWithMissingInfo.taxCode
+  ) {
+    // At least one of the three must be undefined to test the missing info case
+    mockSelfcareUserResponseWithMissingInfo = {
+      ...mockSelfcareUserResponse,
+      name: randomArrayItem([mockSelfcareUserResponse.name, undefined]),
+      surname: randomArrayItem([mockSelfcareUserResponse.surname, undefined]),
+      taxCode: randomArrayItem([mockSelfcareUserResponse.taxCode, undefined]),
+    };
+  }
 
   beforeEach(async () => {
     selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
