@@ -9,7 +9,7 @@ import { PurposeEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "./purposeConsumerServiceV2.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 
 const { purposes } = ReadModelRepository.init(config);
 

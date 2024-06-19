@@ -7,7 +7,7 @@ import {
 import { AttributeEvent } from "pagopa-interop-models";
 import { runConsumer } from "kafka-iam-auth";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 
 const { attributes } = ReadModelRepository.init(config);
 

@@ -9,7 +9,7 @@ import { AgreementEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 
 const { agreements } = ReadModelRepository.init(config);
 

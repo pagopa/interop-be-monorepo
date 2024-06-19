@@ -19,7 +19,7 @@ import { toAgreementEventNotification } from "./models/agreement/agreementEventN
 import { buildAgreementMessage } from "./models/agreement/agreementEventNotificationMessage.js";
 import { toAuthorizationEventNotification } from "./models/authorization/authorizationEventNotificationConverter.js";
 import { buildAuthorizationMessage } from "./models/authorization/authorizationEventNotificationMessage.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 
 const queueManager = initQueueManager({
   queueUrl: config.queueUrl,

@@ -15,7 +15,7 @@ import {
 import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import { agreementDeletableStates } from "../src/model/domain/validators.js";
 
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,

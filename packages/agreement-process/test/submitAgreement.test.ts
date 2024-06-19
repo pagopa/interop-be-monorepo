@@ -62,7 +62,7 @@ import {
   userNotFound,
 } from "../src/model/domain/errors.js";
 import { agreementSubmissionConflictingStates } from "../src/model/domain/validators.js";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   agreementService,

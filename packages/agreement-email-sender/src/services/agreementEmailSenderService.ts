@@ -20,7 +20,7 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {

@@ -13,7 +13,7 @@ import {
 import { match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 
 const emailManager = initEmailManager(config);
 const readModelService = readModelServiceBuilder(

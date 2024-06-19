@@ -7,7 +7,7 @@ import {
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEvent } from "pagopa-interop-models";
 import { handleMessage } from "./tenantConsumerService.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 
 const { tenants } = ReadModelRepository.init(config);
 
