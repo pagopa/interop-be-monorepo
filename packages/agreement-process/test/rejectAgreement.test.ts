@@ -172,7 +172,7 @@ describe("reject agreement", () => {
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(agreement.producerId);
-    await agreementService.rejectAgreement(
+    const returnedAgreement = await agreementService.rejectAgreement(
       agreement.id,
       "Rejected by producer due to test reasons",
       {
@@ -222,6 +222,7 @@ describe("reject agreement", () => {
     expect(actualAgreementRejected).toMatchObject(
       toAgreementV2(expectedAgreemenentRejected)
     );
+    expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
     vi.useRealTimers();
   });
 
@@ -312,7 +313,13 @@ describe("reject agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
-    const eservice = getMockEService();
+
+    const descriptor = getMockDescriptorPublished();
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
     const consumer = getMockTenant();
     const agreement = {
       ...getMockAgreement(),
@@ -320,6 +327,7 @@ describe("reject agreement", () => {
       eserviceId: eservice.id,
       producerId: eservice.producerId,
       consumerId: consumer.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
     await addOneEService(eservice);
