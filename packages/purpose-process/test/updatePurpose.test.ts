@@ -137,13 +137,15 @@ describe("updatePurpose and updateReversePurpose", () => {
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
     await writeInReadmodel(tenant, tenants);
 
-    await purposeService.updatePurpose({
-      purposeId: purposeForDeliver.id,
-      purposeUpdateContent,
-      organizationId: tenant.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+      {
+        purposeId: purposeForDeliver.id,
+        purposeUpdateContent,
+        organizationId: tenant.id,
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
 
     const writtenEvent = await readLastPurposeEvent(purposeForDeliver.id);
 
@@ -167,6 +169,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     );
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
   });
 
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
@@ -179,13 +183,15 @@ describe("updatePurpose and updateReversePurpose", () => {
       title: purposeForDeliver.title,
     };
 
-    await purposeService.updatePurpose({
-      purposeId: purposeForDeliver.id,
-      purposeUpdateContent: updateContentWithoutTitle,
-      organizationId: tenant.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+      {
+        purposeId: purposeForDeliver.id,
+        purposeUpdateContent: updateContentWithoutTitle,
+        organizationId: tenant.id,
+        correlationId: generateId(),
+        logger: genericLogger,
+      }
+    );
 
     const writtenEvent = await readLastPurposeEvent(purposeForDeliver.id);
 
@@ -209,19 +215,22 @@ describe("updatePurpose and updateReversePurpose", () => {
     );
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
   });
   it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
     await addOnePurpose(purposeForReceive);
     await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
     await writeInReadmodel(tenant, tenants);
 
-    await purposeService.updateReversePurpose({
-      purposeId: purposeForReceive.id,
-      reversePurposeUpdateContent,
-      organizationId: tenant.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const { purpose, isRiskAnalysisValid } =
+      await purposeService.updateReversePurpose({
+        purposeId: purposeForReceive.id,
+        reversePurposeUpdateContent,
+        organizationId: tenant.id,
+        correlationId: generateId(),
+        logger: genericLogger,
+      });
 
     const writtenEvent = await readLastPurposeEvent(purposeForReceive.id);
     expect(writtenEvent).toMatchObject({
@@ -244,6 +253,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     );
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(true);
   });
   it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
     await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
