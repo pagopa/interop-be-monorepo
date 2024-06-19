@@ -28,7 +28,7 @@ export function initEmailManager(
         // If false (the default) then TLS is used if server supports the STARTTLS extension.
         // In most cases set this value to true if you are connecting to port 465. For port 587 or 25 keep it false
         secure:
-          config.smtpSecure === undefined
+          config.smtpSecure !== undefined
             ? config.smtpSecure
             : config.smtpPort === 465,
         auth: {
