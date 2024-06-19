@@ -15,17 +15,17 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  const decodedMessage = decodeKafkaMessage(message, AttributeEvent);
+  const msg = decodeKafkaMessage(message, AttributeEvent);
 
   const loggerInstance = logger({
     serviceName: "attribute-registry-readmodel-writer",
-    eventType: decodedMessage.type,
-    eventVersion: decodedMessage.event_version,
-    streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id,
+    eventType: msg.type,
+    eventVersion: msg.event_version,
+    streamId: msg.stream_id,
+    correlationId: msg.correlation_id,
   });
 
-  await handleMessage(decodedMessage, attributes);
+  await handleMessage(msg, attributes);
 
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
