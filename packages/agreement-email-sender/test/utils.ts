@@ -2,7 +2,7 @@ import {
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject, vi } from "vitest";
+import { afterEach, inject } from "vitest";
 import {
   Agreement,
   EService,
@@ -10,10 +10,6 @@ import {
   toReadModelAgreement,
   toReadModelEService,
 } from "pagopa-interop-models";
-import {
-  InstitutionResponse,
-  SelfcareV2Client,
-} from "pagopa-interop-selfcare-v2-client";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { agreementEmailSenderConfig } from "../src/utilities/config.js";
 
@@ -21,16 +17,6 @@ export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
 
 export const config = agreementEmailSenderConfig();
-
-const mockSelfcareInstitution: InstitutionResponse = {
-  digitalAddress: "test@test.com",
-};
-
-export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
-// eslint-disable-next-line functional/immutable-data
-selfcareV2ClientMock.getInstitution = vi.fn(
-  async () => mockSelfcareInstitution
-);
 
 export const { cleanup, readModelRepository, emailManager } =
   setupTestContainersVitest(
