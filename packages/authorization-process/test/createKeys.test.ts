@@ -17,6 +17,7 @@ import {
   decodeProtobufPayload,
   getMockKey,
   readLastEventByStreamId,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
 import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
@@ -25,16 +26,21 @@ import {
   clientNotFound,
   keyAlreadyExists,
   organizationNotAllowedOnClient,
-  securityUserNotFound,
   tooManyKeysPerClient,
   userNotFound,
+  userWithoutSecurityPrivileges,
 } from "../src/model/domain/errors.js";
 import {
   calculateKid,
   createJWK,
   decodeBase64ToPem,
 } from "../../commons/src/auth/jwk.js";
-import { addOneClient, authorizationService, postgresDB } from "./utils.js";
+import {
+  addOneClient,
+  authorizationService,
+  keys,
+  postgresDB,
+} from "./utils.js";
 
 describe("createKeys", () => {
   const consumerId: TenantId = generateId();
@@ -190,7 +196,7 @@ describe("createKeys", () => {
       organizationNotAllowedOnClient(consumerId, notConsumerClient.id)
     );
   });
-  it("should throw securityUserNotFound if the Security user is not found", async () => {
+  it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
     await addOneClient(mockClient);
 
     mockSelfcareV2ClientCall([]);
@@ -203,7 +209,9 @@ describe("createKeys", () => {
         generateId(),
         genericLogger
       )
-    ).rejects.toThrowError(securityUserNotFound(mockAuthData.userId, userId));
+    ).rejects.toThrowError(
+      userWithoutSecurityPrivileges(mockAuthData.userId, userId)
+    );
   });
   it("should throw tooManyKeysPerClient if the keys number is greater than maxKeysPerClient ", async () => {
     function get100Keys(): Key[] {
@@ -223,13 +231,6 @@ describe("createKeys", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(clientWith100Keys);
-
-    vi.mock("pagopa-interop-selfcare-v2-client", () => ({
-      selfcareV2Client: {
-        getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
-          Promise.resolve(true),
-      },
-    }));
 
     expect(
       authorizationService.createKeys(
@@ -297,28 +298,21 @@ describe("createKeys", () => {
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
   it("should throw keyAlreadyExists if the kid already exist in  the client keys ", async () => {
-    const duplicatedKidClient: Client = {
-      ...getMockClient(),
-      keys: [
-        {
-          ...getMockKey(),
-          kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
-        },
-      ],
-      consumerId,
-      users: [userId],
+    const key: Key = {
+      ...getMockKey(),
+      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };
-
-    await addOneClient(duplicatedKidClient);
+    await addOneClient(mockClient);
+    await writeInReadmodel(key, keys);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys(
-        duplicatedKidClient.id,
+        mockClient.id,
         mockAuthData,
         keysSeeds,
         generateId(),
         genericLogger
       )
-    ).rejects.toThrowError(keyAlreadyExists(duplicatedKidClient.keys[0].kid));
+    ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
 });

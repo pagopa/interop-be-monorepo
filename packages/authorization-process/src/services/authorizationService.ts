@@ -579,7 +579,6 @@ export function authorizationServiceBuilder(
 
       // eslint-disable-next-line functional/no-let
       let updatedClient: Client = client.data;
-
       for (const keySeed of keysSeeds) {
         const jwk = createJWK(decodeBase64ToPem(keySeed.key));
         const newKey: Key = {
@@ -592,7 +591,8 @@ export function authorizationServiceBuilder(
           use: ApiKeyUseToKeyUse(keySeed.use),
           userId: authData.userId,
         };
-        if (client.data.keys.find((key) => key.kid === newKey.kid)) {
+        const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
+        if (duplicateKid) {
           throw keyAlreadyExists(newKey.kid);
         }
         updatedClient = {
