@@ -95,11 +95,11 @@ export function purposeIdNotFound(
 }
 
 export function userWithoutSecurityPrivileges(
-  userId: UserId,
+  consumerId: TenantId,
   requesterUserId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User ${userId} does not have security privileges for consumer ${requesterUserId}`,
+    detail: `User ${consumerId} does not have security privileges for consumer ${requesterUserId}`,
     code: "userWithoutSecurityPrivileges",
     title: "User without security privileges",
   });

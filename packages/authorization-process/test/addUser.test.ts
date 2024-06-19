@@ -173,8 +173,7 @@ describe("addUser", () => {
       organizationNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
-  it("should throw securityUserNotFound if the Security user is not found", async () => {
-    const userIdToAdd: UserId = generateId();
+  it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
     const consumerId: TenantId = generateId();
 
     const authData: AuthData = {
@@ -202,14 +201,14 @@ describe("addUser", () => {
       authorizationService.addUser(
         {
           clientId: mockClient.id,
-          userId: userIdToAdd,
+          userId: generateId(),
           authData,
         },
         generateId(),
         genericLogger
       )
     ).rejects.toThrowError(
-      userWithoutSecurityPrivileges(userIdToAdd, authData.userId)
+      userWithoutSecurityPrivileges(consumerId, authData.userId)
     );
   });
 });

@@ -11,17 +11,17 @@ export const isClientConsumer = (
 export const assertUserSelfcareSecurityPrivileges = async (
   selfcareId: string,
   requesterUserId: UserId,
-  userId: UserId
+  consumerId: TenantId
 ): Promise<void> => {
   const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
     params: { institutionId: selfcareId },
     queries: {
       userIdForAuth: requesterUserId,
-      userId,
+      userId: consumerId,
       productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
     },
   });
   if (users.length === 0) {
-    throw userWithoutSecurityPrivileges(userId, requesterUserId);
+    throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
   }
 };
