@@ -8,7 +8,7 @@ export const errorCodes = {
   purposeNotFound: "0001",
 };
 
-export type ErrorCodes = keyof typeof errorCodes;
+export type BFFErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
