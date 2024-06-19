@@ -70,19 +70,26 @@ describe("getClients", async () => {
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([mockClient1, mockClient2]);
   });
-  it("should get the clients if they exist (parameters: parameters userIds taken from the authData)", async () => {
+  it("should get the clients if they exist (parameters: userIds taken from the authData)", async () => {
     const userId: UserId = generateId();
+    const notUsedUserId: UserId = generateId();
 
     const mockClient7: Client = {
       ...mockClient3,
       users: [userId],
     };
+    const mockClient8: Client = {
+      ...mockClient3,
+      id: generateId(),
+      users: [notUsedUserId],
+    };
     await addOneClient(mockClient7);
+    await addOneClient(mockClient8);
 
     const result = await authorizationService.getClients(
       {
         name: "",
-        userIds: [generateId(), generateId()],
+        userIds: [notUsedUserId],
         consumerId,
         purposeId: undefined,
       },
@@ -98,13 +105,21 @@ describe("getClients", async () => {
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([mockClient7]);
   });
-  it("should get the clients if they exist (parameters: parameters userIds taken from the filter)", async () => {
-    await addOneClient(mockClient4);
+  it("should get the clients if they exist (parameters: userIds taken from the filter)", async () => {
+    const userId5: UserId = generateId();
+    const userId6: UserId = generateId();
+
+    const mockClient9: Client = {
+      ...getMockClient(),
+      users: [userId5, userId6],
+      consumerId,
+    };
+    await addOneClient(mockClient9);
 
     const result = await authorizationService.getClients(
       {
         name: "",
-        userIds: [userId3, userId4],
+        userIds: [userId5, userId6],
         consumerId,
         purposeId: undefined,
       },
@@ -118,7 +133,7 @@ describe("getClients", async () => {
     );
 
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([mockClient4]);
+    expect(result.results).toEqual([mockClient9]);
   });
   it("should get the clients if they exist (parameters: consumerId)", async () => {
     await addOneClient(mockClient1);
