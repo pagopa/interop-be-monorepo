@@ -2,18 +2,15 @@ import { EachMessagePayload } from "kafkajs";
 import {
   logger,
   ReadModelRepository,
-  readModelWriterConfig,
   decodeKafkaMessage,
-  authorizationTopicConfig,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { AuthorizationEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./keyConsumerServiceV1.js";
 import { handleMessageV2 } from "./keyConsumerServiceV2.js";
+import { config } from "./utilities/config.js";
 
-const config = readModelWriterConfig();
-const { authorizationTopic } = authorizationTopicConfig();
 const { keys } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -39,4 +36,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [authorizationTopic], processMessage);
+await runConsumer(config, [config.authorizationTopic], processMessage);

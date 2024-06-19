@@ -27,6 +27,6 @@ const CataloProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
 
 export type CatalogProcessConfig = z.infer<typeof CataloProcessConfig>;
 
-export const config: CatalogProcessConfig = {
-  ...CataloProcessConfig.parse(process.env),
-};
+export const config: CatalogProcessConfig = CataloProcessConfig.parse(
+  process.env
+);
