@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.14.2",
+    "@types/node": "20.14.5",
     "@types/uuid": "9.0.8",
     "axios": "1.7.2",
     "pagopa-interop-commons-test": "workspace:*",
@@ -42,8 +42,7 @@
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pagopa-interop-selfcare-v2-client": "workspace:*",
-    "ts-pattern": "5.1.2",
+    "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }
 }

@@ -18,6 +18,7 @@ import {
   initEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
+import axios from "axios";
 import { EmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -156,6 +157,15 @@ export function setupTestContainersVitest(
         );
         // Some tests change the bucket name, so we need to reset it
         fileManagerConfig.s3Bucket = s3OriginalBucket;
+      }
+
+      if (
+        emailManagerConfig?.smtpAddress &&
+        emailManagerConfig?.mailpitAPIPort
+      ) {
+        await axios.delete(
+          `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
+        );
       }
     },
   };

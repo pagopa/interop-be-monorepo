@@ -11,5 +11,3 @@ export const SelfCareConfig = z
   }));
 
 export type SelfCareConfig = z.infer<typeof SelfCareConfig>;
-export const selfcareConfig: () => SelfCareConfig = () =>
-  SelfCareConfig.parse(process.env);
