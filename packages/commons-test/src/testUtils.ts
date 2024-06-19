@@ -239,6 +239,7 @@ export const getMockClient = (): Client => ({
 });
 
 export const getMockKey = (): Key => ({
+  clientId: generateId(),
   userId: generateId(),
   name: "key",
   createdAt: new Date(),

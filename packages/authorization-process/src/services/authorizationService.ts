@@ -583,6 +583,7 @@ export function authorizationServiceBuilder(
       for (const keySeed of keysSeeds) {
         const jwk = createJWK(decodeBase64ToPem(keySeed.key));
         const newKey: Key = {
+          clientId,
           name: keySeed.name,
           createdAt: new Date(),
           kid: calculateKid(jwk),
