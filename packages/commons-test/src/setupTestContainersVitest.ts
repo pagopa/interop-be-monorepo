@@ -116,7 +116,7 @@ export function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initEmailManager(emailManagerConfig);
+    emailManager = initEmailManager(emailManagerConfig, false);
   }
 
   return {
