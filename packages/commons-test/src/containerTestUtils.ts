@@ -92,6 +92,7 @@ export const mailpitContainer = (): GenericContainer =>
       MP_SMTP_TLS_CERT: "/cert.pem",
       MP_SMTP_TLS_KEY: "/key.pem",
       MP_SMTP_AUTH: "user1:password1",
+      MP_SMTP_REQUIRE_TLS: "true",
       MP_SMTP_BIND_ADDR: `0.0.0.0:${TEST_MAILPIT_SMTP_PORT}`,
     })
     .withExposedPorts(TEST_MAILPIT_HTTP_PORT, TEST_MAILPIT_SMTP_PORT);
