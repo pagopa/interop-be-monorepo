@@ -423,7 +423,7 @@ export function authorizationServiceBuilder(
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,
-        userId
+        authData.organizationId
       );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
