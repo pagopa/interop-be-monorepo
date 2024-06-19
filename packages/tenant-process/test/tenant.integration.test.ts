@@ -36,6 +36,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import { config } from "../src/utilities/config.js";
 import {
   ReadModelService,
@@ -63,7 +64,6 @@ import {
   addOneTenant,
   currentDate,
   getMockAgreement,
-  getMockAuthData,
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,

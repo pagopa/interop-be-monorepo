@@ -115,12 +115,7 @@ const authorizationRouter = (
     )
     .get(
       "/clientsWithKeys",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -426,15 +421,15 @@ const authorizationRouter = (
       }
     )
     .delete(
-      "/clients/:clientId/keys/:keyId", // to do
-      authorizationMiddleware([ADMIN_ROLE]),
+      "/clients/:clientId/keys/:keyId",
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           await authorizationService.deleteClientKeyById({
             clientId: unsafeBrandId(req.params.clientId),
             keyIdToRemove: unsafeBrandId(req.params.keyId),
-            organizationId: ctx.authData.organizationId,
+            authData: ctx.authData,
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
@@ -479,7 +474,7 @@ const authorizationRouter = (
       }
     )
     .delete(
-      "/clients/:clientId/purposes/:purposeId", // to do
+      "/clients/:clientId/purposes/:purposeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -508,11 +503,11 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.removePurposeFromClients(
-            unsafeBrandId(req.params.purposeId),
-            ctx.correlationId,
-            ctx.logger
-          );
+          await authorizationService.removePurposeFromClients({
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);

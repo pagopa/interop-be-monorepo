@@ -11,6 +11,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -48,7 +49,8 @@ export const removeClientPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("clientNotFound", "purposeIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -64,8 +66,8 @@ export const addUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("securityUserNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("userAlreadyAssigned", () => HTTP_STATUS_FORBIDDEN)
+    .with("userWithoutSecurityPrivileges", () => HTTP_STATUS_FORBIDDEN)
+    .with("userAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (
@@ -75,11 +77,13 @@ export const addClientPurposeErrorMapper = (
     .with(
       "clientNotFound",
       "purposeNotFound",
-      "eserviceNotFound",
-      "agreementNotFound",
-      "descriptorNotFound",
-      "noVersionsFoundInPurpose",
+
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "noAgreementFoundInRequiredState",
+      "noPurposeVersionsFoundInRequiredState",
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
     .with(
@@ -99,10 +103,10 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
-    .with("tooManyKeysPerClient", () => HTTP_STATUS_FORBIDDEN)
-    .with("securityUserNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("notAllowedPrivateKeyException", () => HTTP_STATUS_FORBIDDEN)
-    .with("keyAlreadyExists", () => HTTP_STATUS_FORBIDDEN)
+    .with("tooManyKeysPerClient", () => HTTP_STATUS_BAD_REQUEST)
+    .with("userWithoutSecurityPrivileges", () => HTTP_STATUS_FORBIDDEN)
+    .with("notAllowedPrivateKeyException", () => HTTP_STATUS_BAD_REQUEST)
+    .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>

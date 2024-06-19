@@ -8,7 +8,7 @@ export const decodeBase64ToPem = (base64String: string): string => {
   try {
     const cleanedBase64 = base64String.trim();
     const decodedBytes = Buffer.from(cleanedBase64, "base64");
-    return `${decodedBytes.toString("utf-8")}`;
+    return decodedBytes.toString("utf-8");
   } catch (error) {
     throw jwkDecodingError(error);
   }
@@ -16,7 +16,11 @@ export const decodeBase64ToPem = (base64String: string): string => {
 
 // This method is to check if the key is public and to create the JWK If you don't add the if condition, createPublicKey turns any key into a public key
 export const createJWK = (pemKey: string): JsonWebKey => {
-  if (pemKey.includes("-----BEGIN RSA PUBLIC KEY-----")) {
+  if (
+    pemKey.includes(
+      "-----BEGIN RSA PUBLIC KEY-----" || "-----BEGIN PUBLIC KEY-----"
+    )
+  ) {
     return crypto.createPublicKey(pemKey).export({ format: "jwk" });
   } else {
     throw notAllowedPrivateKeyException();

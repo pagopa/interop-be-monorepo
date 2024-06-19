@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { UserId, unsafeBrandId } from "../brandedIds.js";
+import { ClientId, UserId, unsafeBrandId } from "../brandedIds.js";
 import { ClientKindV1, ClientV1 } from "../gen/v1/authorization/client.js";
 import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
@@ -18,9 +18,12 @@ const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   }
 };
 
-export const fromKeyV1 = (input: KeyV1): Key => ({
+export const fromKeyV1 = (input: KeyV1, clientId: ClientId): Key => ({
   ...input,
-  userId: input.userId ? unsafeBrandId<UserId>(input.userId) : undefined,
+  clientId,
+  userId: input.userId
+    ? unsafeBrandId<UserId>(input.userId)
+    : unsafeBrandId<UserId>(""), // userId has become required in v2 events, so old v1 events might have no userId
   use: fromKeyUseV1(input.use),
   createdAt: new Date(input.createdAt),
 });

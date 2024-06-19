@@ -2,20 +2,15 @@ syntax = "proto3";
 
 package authorization.v2;
 
-message KeyEntryV2 {
-  string keyId = 1;
-  KeyV2 value = 2;
-}
-
 message KeyV2 {
-  optional string relationshipId = 1;
-  string kid = 2;
-  string encodedPem = 3;
-  KeyUseV2 use = 4;
-  string algorithm = 5;
-  int64 createdAt = 6;
-  string name = 7;
-  optional string userId = 8;
+  string kid = 1;
+  string encodedPem = 2;
+  KeyUseV2 use = 3;
+  string algorithm = 4;
+  int64 createdAt = 5;
+  string name = 6;
+  string userId = 7;
+  string clientId = 8;
 }
 
 enum KeyUseV2 {

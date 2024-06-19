@@ -14,6 +14,8 @@ import {
   EService,
   Purpose,
   Agreement,
+  agreementState,
+  Key,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -29,7 +31,8 @@ export type GetClientsFilters = {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { agreements, clients, eservices, purposes } = readModelRepository;
+  const { agreements, clients, eservices, purposes, keys } =
+    readModelRepository;
 
   async function getClient(
     filter: Filter<WithId<WithMetadata<Client>>>
@@ -96,10 +99,7 @@ export function readModelServiceBuilder(
 
       const kindFilter: ReadModelFilter<Client> = kind
         ? {
-            "data.kind": {
-              $regex: ReadModelRepository.escapeRegExp(kind),
-              $options: "i",
-            },
+            "data.kind": { $eq: kind },
           }
         : {};
 
@@ -153,16 +153,9 @@ export function readModelServiceBuilder(
       purposeId: PurposeId
     ): Promise<Array<WithMetadata<Client>>> {
       const data = await clients
-        .aggregate(
-          [
-            {
-              $match: {
-                "data.purposes": { $eq: purposeId },
-              },
-            },
-          ],
-          { allowDiskUse: true }
-        )
+        .find({
+          "data.purposes": { $eq: purposeId },
+        })
         .toArray();
 
       const result = z
@@ -172,7 +165,8 @@ export function readModelServiceBuilder(
             data: Client,
           })
         )
-        .safeParse(data.map((d) => d.data));
+        .safeParse(data);
+
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse client items: result ${JSON.stringify(
@@ -227,26 +221,50 @@ export function readModelServiceBuilder(
         return result.data;
       }
     },
-    async getAgreements(
+    async getActiveOrSuspendedAgreement(
       eserviceId: EServiceId,
       consumerId: TenantId
-    ): Promise<Agreement[]> {
-      const data = await agreements
-        .find({
-          "data.eserviceId": eserviceId,
-          "data.consumerId": consumerId,
-        })
-        .toArray();
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": {
+          $in: [agreementState.active, agreementState.suspended],
+        },
+      });
 
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse client item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
+      if (data) {
+        const result = Agreement.safeParse(data?.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
       }
-      return result.data;
+      return undefined;
+    },
+    async getKeyByKid(kid: string): Promise<Key | undefined> {
+      const data = await keys.findOne(
+        { "data.kid": kid },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = Key.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse key item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
     },
   };
 }

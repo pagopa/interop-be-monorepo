@@ -15,18 +15,18 @@ export const errorCodes = {
   organizationNotAllowedOnClient: "0003",
   userIdNotFound: "0004",
   keyNotFound: "0005",
-  purposeIdNotFound: "0005",
-  securityUserNotFound: "0006",
-  userAlreadyAssigned: "0007",
-  eserviceNotFound: "0008",
-  purposeNotFound: "0009",
-  noVersionsFoundInPurpose: "0010",
-  descriptorNotFound: "0011",
-  agreementNotFound: "0012",
-  purposeAlreadyLinkedToClient: "0013",
-  organizationNotAllowedOnPurpose: "0014",
-  tooManyKeysPerClient: "0015",
-  userNotFound: "0016",
+  userNotAllowedOnClient: "0006",
+  purposeNotFound: "0007",
+  userWithoutSecurityPrivileges: "0008",
+  userAlreadyAssigned: "0009",
+  eserviceNotFound: "0010",
+  noPurposeVersionsFoundInRequiredState: "0011",
+  descriptorNotFound: "0012",
+  noAgreementFoundInRequiredState: "0013",
+  purposeAlreadyLinkedToClient: "0014",
+  organizationNotAllowedOnPurpose: "0015",
+  tooManyKeysPerClient: "0016",
+  userNotFound: "0017",
   keyAlreadyExists: "0018",
 };
 
@@ -57,7 +57,7 @@ export function organizationNotAllowedOnClient(
   return new ApiError({
     detail: `Organization ${organizationId} is not allowed on client ${clientId}`,
     code: "organizationNotAllowedOnClient",
-    title: "OrganizationNotAllowedOnClient",
+    title: "Organization not allowed on client",
   });
 }
 
@@ -83,25 +83,33 @@ export function keyNotFound(
   });
 }
 
-export function purposeIdNotFound(
-  purposeId: PurposeId,
+export function userNotAllowedOnClient(
+  userId: UserId,
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} not found in client ${clientId}`,
-    code: "purposeIdNotFound",
-    title: "Purpose id not found",
+    detail: `User ${userId} is not allowed on client ${clientId}`,
+    code: "userNotAllowedOnClient",
+    title: "User not allowed on client",
   });
 }
 
-export function securityUserNotFound(
-  requesterUserId: UserId,
-  userId: UserId
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
+  });
+}
+
+export function userWithoutSecurityPrivileges(
+  userId: UserId,
+  requesterUserId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Security user not found for consumer ${requesterUserId} and user ${userId}`,
-    code: "securityUserNotFound",
-    title: "security User not found",
+    detail: `User ${userId} does not have security privileges for consumer ${requesterUserId}`,
+    code: "userWithoutSecurityPrivileges",
+    title: "User without security privileges",
   });
 }
 
@@ -124,21 +132,13 @@ export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
-  });
-}
-
-export function noVersionsFoundInPurpose(
+export function noPurposeVersionsFoundInRequiredState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No versions found in purpose ${purposeId}`,
-    code: "noVersionsFoundInPurpose",
-    title: "No versions found in purpose",
+    detail: `No versions in required state found in purpose ${purposeId}`,
+    code: "noPurposeVersionsFoundInRequiredState",
+    title: "No purpose versions found in required state",
   });
 }
 
@@ -153,14 +153,14 @@ export function descriptorNotFound(
   });
 }
 
-export function agreementNotFound(
+export function noAgreementFoundInRequiredState(
   eserviceId: EServiceId,
   consumerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Agreement not found for eservice ${eserviceId} and consumer ${consumerId}`,
-    code: "agreementNotFound",
-    title: "Agreement not found",
+    detail: `No agreement in required state found for eservice ${eserviceId} and consumer ${consumerId}`,
+    code: "noAgreementFoundInRequiredState",
+    title: "No Agreement found in required state",
   });
 }
 
@@ -191,7 +191,7 @@ export function tooManyKeysPerClient(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `the number of the keys ${size} for the client ${clientId} exceed maximun allowed`,
+    detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
     code: "tooManyKeysPerClient",
     title: "Too many Keys per client",
   });
@@ -210,7 +210,7 @@ export function userNotFound(
 
 export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Key with kid: ${kid} already exists: `,
+    detail: `Key with kid ${kid} already exists `,
     code: "keyAlreadyExists",
     title: "Key already exists",
   });

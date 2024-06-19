@@ -286,7 +286,9 @@ export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
 
 export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Unexpected error on JWK decoding: ${parseErrorMessage(error)}`,
+    detail: `Unexpected error on JWK base64 decoding: ${parseErrorMessage(
+      error
+    )}`,
     code: "jwkDecodingError",
     title: "JWK decoding error",
   });
@@ -294,7 +296,7 @@ export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
 
 export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `This contains a private key!`,
+    detail: `The received key is a private key`,
     code: "notAllowedPrivateKeyException",
     title: "Not allowed private key exception",
   });
