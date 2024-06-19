@@ -11,12 +11,14 @@ import {
   toReadModelEService,
 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { agreementEmailSenderConfig } from "../src/utilities/config.js";
+import { SenderEmailConfig } from "../src/utilities/config.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
 
-export const config = agreementEmailSenderConfig();
+export const senderEmailAddress = SenderEmailConfig.parse(
+  process.env
+).senderEmailAddress;
 
 export const { cleanup, readModelRepository, emailManager } =
   setupTestContainersVitest(

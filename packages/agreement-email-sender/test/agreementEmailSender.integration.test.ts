@@ -27,10 +27,10 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  config,
   emailManager,
   emailManagerConfig,
   readModelService,
+  senderEmailAddress,
 } from "./utils.js";
 
 describe("agreement email sender", () => {
@@ -118,7 +118,7 @@ describe("agreement email sender", () => {
 
     const html = emailData.HTML.replace(/\r\n/g, "\n");
     expect(html).toBe(expectedBody);
-    expect(emailData.From.Address).toBe(config.agreementEmailSender);
+    expect(emailData.From.Address).toBe(senderEmailAddress);
     expect(emailData.To[0].Address).toBe(producer.mails[0].address);
     expect(emailData.To[1].Address).toBe(consumer.mails[0].address);
     expect(emailData.Subject).toBe(

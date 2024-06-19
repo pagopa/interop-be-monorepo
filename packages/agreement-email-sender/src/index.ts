@@ -2,13 +2,9 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
-  agreementTopicConfig,
   decodeKafkaMessage,
-  emailManagerConfig,
   initEmailManager,
-  kafkaConsumerConfig,
   logger,
-  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import {
   AgreementEvent,
@@ -17,14 +13,11 @@ import {
 import { match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
+import { config } from "./utilities/config.js";
 
-const config = kafkaConsumerConfig();
-const readModelConfig = readModelWriterConfig();
-const topicsConfig = agreementTopicConfig();
-const emailConfig = emailManagerConfig();
-const emailManager = initEmailManager(emailConfig);
+const emailManager = initEmailManager(config);
 const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(readModelConfig)
+  ReadModelRepository.init(config)
 );
 
 export async function processMessage({
@@ -52,4 +45,4 @@ export async function processMessage({
   );
 }
 
-await runConsumer(config, [topicsConfig.agreementTopic], processMessage);
+await runConsumer(config, [config.agreementTopic], processMessage);

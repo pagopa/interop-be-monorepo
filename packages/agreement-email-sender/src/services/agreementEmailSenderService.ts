@@ -20,7 +20,7 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { agreementEmailSenderConfig } from "../utilities/config.js";
+import { config } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
@@ -113,13 +113,12 @@ async function getActivationMailFromAgreement(
 export async function sendAgreementEmail(
   agreement: AgreementV2,
   readModelService: ReadModelService,
-  emailManager: EmailManager,
-  { agreementEmailSender } = agreementEmailSenderConfig()
+  emailManager: EmailManager
 ): Promise<void> {
   const { to, subject, body } = await getActivationMailFromAgreement(
     agreement,
     readModelService
   );
 
-  await emailManager.send(agreementEmailSender, to, subject, body);
+  await emailManager.send(config.senderEmailAddress, to, subject, body);
 }
