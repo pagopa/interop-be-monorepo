@@ -17,6 +17,6 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
 
 export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 
-export const config: AttributeRegistryConfig = {
-  ...AttributeRegistryConfig.parse(process.env),
-};
+export const config: AttributeRegistryConfig = AttributeRegistryConfig.parse(
+  process.env
+);

@@ -2,20 +2,17 @@
 import { EachMessagePayload, Kafka } from "kafkajs";
 import {
   ReadModelRepository,
-  attributeTopicConfig,
   decodeKafkaMessage,
   genericLogger,
   logger,
-  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
 import { runConsumer } from "kafka-iam-auth";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
+import { config } from "./utilities/config.js";
 
-const config = readModelWriterConfig();
 const { attributes } = ReadModelRepository.init(config);
-const { attributeTopic } = attributeTopicConfig();
 
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
@@ -45,7 +42,7 @@ process.on("SIGINT", exitGracefully);
 process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: [attributeTopic],
+  topics: [config.attributeTopic],
   fromBeginning: true,
 });
 
@@ -68,4 +65,4 @@ async function processMessage({
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
-await runConsumer(config, [attributeTopic], processMessage);
+await runConsumer(config, [config.attributeTopic], processMessage);
