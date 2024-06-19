@@ -15,13 +15,19 @@ import { reversePurposeUpdateErrorMapper } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
-  { purposeProcessClient }: PagoPAInteropBeClients
+  clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const purposeService = purposeServiceBuilder(purposeProcessClient);
+  const purposeService = purposeServiceBuilder(
+    clients.purposeProcessClient,
+    clients.catalogProcessClient,
+    clients.tenantProcessClient,
+    clients.agreementProcessClient,
+    clients.authorizationClient
+  );
 
   purposeRouter
     .post("/reverse/purposes", async (req, res) => {
@@ -100,7 +106,41 @@ const purposeRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producer/purposes", async (_req, res) => res.status(501).send())
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    .get("/producer/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      const requestHeaders = {
+        "X-Correlation-Id": ctx.correlationId,
+        Authorization: req.headers.authorization as string,
+      };
+
+      try {
+        const result = await purposeService.getPurposeProducer(
+          {
+            name: req.query.q,
+            eservicesIds: req.query.eservicesIds.join(","),
+            consumersIds: req.query.consumersIds.join(","),
+            producersIds: req.query.producersIds.join(","),
+            states: req.query.states.join(","),
+            excludeDraft: true,
+          },
+          req.query.offset,
+          req.query.limit,
+          ctx,
+          requestHeaders
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          reversePurposeUpdateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/consumer/purposes", async (_req, res) => res.status(501).send())
     .post("/purposes/:purposeId/clone", async (_req, res) =>
       res.status(501).send()
