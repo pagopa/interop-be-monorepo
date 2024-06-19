@@ -18,6 +18,7 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   getClientErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -92,7 +93,11 @@ const authorizationRouter = (
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            createApiClientErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
