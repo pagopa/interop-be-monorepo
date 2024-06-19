@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { UserId } from "pagopa-interop-models";
 import {
   InstitutionResource,
@@ -7,7 +9,6 @@ import {
 } from "pagopa-interop-selfcare-v2-client";
 import { userNotFound } from "../model/domain/errors.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
   return {
     async getSelfcareUser(

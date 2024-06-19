@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { schemas } from "./generated/api.js";
+import { schemas } from "../generated/api.js";
 
 export type ApiSelfcareInstitution = z.infer<
   typeof schemas.SelfcareInstitution

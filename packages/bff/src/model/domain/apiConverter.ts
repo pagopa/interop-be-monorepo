@@ -8,7 +8,7 @@ import {
   ApiSelfcareInstitution,
   ApiSelfcareProduct,
   ApiSelfcareUser,
-} from "../types.js";
+} from "../api/selfcareTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
