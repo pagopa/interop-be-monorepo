@@ -13,7 +13,6 @@ export type PurposeVersionDocumentV1Notification = Omit<
 export type PurposeVersionV1Notification = Omit<
   PurposeVersionV1,
   | "state"
-  | "expectedApprovalDate"
   | "riskAnalysis"
   | "createdAt"
   | "updatedAt"
@@ -21,7 +20,6 @@ export type PurposeVersionV1Notification = Omit<
   | "suspendedAt"
 > & {
   state: string;
-  expectedApprovalDate?: string;
   riskAnalysis?: PurposeVersionDocumentV1Notification;
   createdAt: string;
   updatedAt?: string;

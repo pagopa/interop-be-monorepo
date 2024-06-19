@@ -21,13 +21,13 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@zodios/core": "10.9.6",
-    "axios": "1.7.0",
+    "axios": "1.7.2",
     "zod": "3.23.8"
   },
   "devDependencies": {
     "eslint": "8.57.0",
     "prettier": "2.8.8",
-    "@types/node": "20.3.1",
+    "@types/node": "20.14.5",
     "openapi-zod-client": "1.18.1",
     "typescript": "5.4.5"
   }
