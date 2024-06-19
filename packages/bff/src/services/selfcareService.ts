@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { UserId } from "pagopa-interop-models";
 import {
   InstitutionResource,
@@ -7,7 +9,6 @@ import {
 } from "pagopa-interop-selfcare-v2-client";
 import { userNotFound } from "../model/domain/errors.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
   return {
     async getSelfcareUser(
@@ -22,10 +23,6 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
           userId: userIdQuery,
         },
       });
-
-      if (users.length === 0) {
-        throw userNotFound(userIdQuery, institutionId);
-      }
 
       const user = users.find((u) => u.id === userIdQuery);
       if (!user) {
