@@ -1,3 +1,4 @@
+import { EmailManagerConfig } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const AgreementEmailSenderConfig = z
@@ -14,3 +15,6 @@ export type AgreementEmailSenderConfig = z.infer<
 
 export const agreementEmailSenderConfig: () => AgreementEmailSenderConfig =
   () => AgreementEmailSenderConfig.parse(process.env);
+
+export const emailManagerConfig: () => EmailManagerConfig = () =>
+  EmailManagerConfig.parse(process.env);

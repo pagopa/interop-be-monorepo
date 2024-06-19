@@ -71,7 +71,7 @@ describe("clonePurpose", async () => {
     await writeInReadmodel(mockTenant, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose } = await purposeService.clonePurpose({
+    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       organizationId: mockTenant.id,
       seed: {
@@ -113,6 +113,8 @@ describe("clonePurpose", async () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
     const mockTenant = {
@@ -139,7 +141,7 @@ describe("clonePurpose", async () => {
     await writeInReadmodel(mockTenant, tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
-    const { purpose } = await purposeService.clonePurpose({
+    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       organizationId: mockTenant.id,
       seed: {
@@ -182,6 +184,8 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(expectedPurpose.title.length).toBe(60);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
     const mockTenant = {
