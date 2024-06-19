@@ -26,12 +26,15 @@ import {
   purposeVersionState,
   Document,
   AgreementAttribute,
-  Key,
+  tenantMailKind,
+  TenantMailKind,
   Client,
   clientKind,
   keyUse,
+  Key,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -133,6 +136,16 @@ export const getMockTenant = (
   },
   features: [],
   mails: [],
+});
+
+export const getMockTenantMail = (
+  kind: TenantMailKind = tenantMailKind.ContactEmail
+): Tenant["mails"][number] => ({
+  id: generateId(),
+  createdAt: new Date(),
+  kind,
+  description: generateMock(z.string()),
+  address: generateMock(z.string().email()),
 });
 
 export const getMockAgreement = (
