@@ -18,8 +18,10 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  createClientErrorMapper,
   deleteClientErrorMapper,
+  getClientsErrorMapper,
+  createApiClientErrorMapper,
+  createConsumerClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
   removeClientPurposeErrorMapper,
@@ -71,7 +73,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createClientErrorMapper,
+            createConsumerClientErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -98,7 +100,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createClientErrorMapper,
+            createApiClientErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -150,7 +152,11 @@ const authorizationRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getClientsErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
