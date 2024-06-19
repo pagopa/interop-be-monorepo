@@ -2,55 +2,55 @@ import {
   Client,
   PurposeId,
   TenantId,
+  UserId,
   generateId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { getMockClient, getRandomAuthData } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, userRoles } from "pagopa-interop-commons";
 import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getClients", async () => {
-  const consumerId = generateId();
-  const purposeId = generateId();
+  const consumerId: TenantId = generateId();
+  const purposeId: PurposeId = generateId();
   const mockClient1: Client = {
     ...getMockClient(),
     name: "test1",
-    consumerId: unsafeBrandId(consumerId),
+    consumerId,
     kind: "Consumer",
   };
   const mockClient2: Client = {
     ...getMockClient(),
     name: "test2",
-    consumerId: unsafeBrandId(consumerId),
+    consumerId,
     kind: "Consumer",
   };
 
-  const userId1 = generateId();
-  const userId2 = generateId();
+  const userId1: UserId = generateId();
+  const userId2: UserId = generateId();
   const mockClient3: Client = {
     ...getMockClient(),
-    users: [unsafeBrandId(userId1), unsafeBrandId(userId2)],
-    consumerId: unsafeBrandId(consumerId),
+    users: [userId1, userId2],
+    consumerId,
   };
-  const userIds3 = generateId();
-  const userIds4 = generateId();
+  const userId3: UserId = generateId();
+  const userId4: UserId = generateId();
   const mockClient4: Client = {
     ...getMockClient(),
-    users: [unsafeBrandId(userIds3), unsafeBrandId(userIds4)],
-    consumerId: unsafeBrandId(consumerId),
+    users: [userId3, userId4],
+    consumerId,
   };
 
   const mockClient5: Client = {
     ...getMockClient(),
-    purposes: [unsafeBrandId<PurposeId>(purposeId)],
-    consumerId: unsafeBrandId(consumerId),
+    purposes: [purposeId],
+    consumerId,
   };
 
   const mockClient6: Client = {
     ...getMockClient(),
-    purposes: [unsafeBrandId<PurposeId>(purposeId)],
-    consumerId: unsafeBrandId(consumerId),
+    purposes: [purposeId],
+    consumerId,
   };
 
   it("should get the clients if they exist (parameters: name)", async () => {
@@ -60,39 +60,80 @@ describe("getClients", async () => {
       {
         name: "test",
         userIds: [],
-        consumerId: unsafeBrandId(consumerId),
+        consumerId,
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([mockClient1, mockClient2]);
   });
-  it("should get the clients if they exist (parameters: userIds)", async () => {
-    await addOneClient(mockClient3);
-    await addOneClient(mockClient4);
+  it("should get the clients if they exist (parameters: userIds taken from the authData)", async () => {
+    const userId: UserId = generateId();
+    const notUsedUserId: UserId = generateId();
+
+    const mockClient7: Client = {
+      ...mockClient3,
+      users: [userId],
+    };
+    const mockClient8: Client = {
+      ...mockClient3,
+      id: generateId(),
+      users: [notUsedUserId],
+    };
+    await addOneClient(mockClient7);
+    await addOneClient(mockClient8);
 
     const result = await authorizationService.getClients(
       {
         name: "",
-        userIds: [
-          unsafeBrandId(userId1),
-          unsafeBrandId(userId2),
-          unsafeBrandId(userIds3),
-          unsafeBrandId(userIds4),
-        ],
-        consumerId: unsafeBrandId(consumerId),
+        userIds: [notUsedUserId],
+        consumerId,
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      {
+        ...getRandomAuthData(consumerId),
+        userRoles: [userRoles.SECURITY_ROLE],
+        userId,
+      },
       genericLogger
     );
 
-    expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([mockClient3, mockClient4]);
+    expect(result.totalCount).toBe(1);
+    expect(result.results).toEqual([mockClient7]);
+  });
+  it("should get the clients if they exist (parameters: userIds taken from the filter)", async () => {
+    const userId5: UserId = generateId();
+    const userId6: UserId = generateId();
+
+    const mockClient9: Client = {
+      ...getMockClient(),
+      users: [userId5, userId6],
+      consumerId,
+    };
+    await addOneClient(mockClient9);
+
+    const result = await authorizationService.getClients(
+      {
+        name: "",
+        userIds: [userId5, userId6],
+        consumerId,
+        purposeId: undefined,
+      },
+      { offset: 0, limit: 50 },
+      {
+        ...getRandomAuthData(consumerId),
+        userRoles: [userRoles.INTERNAL_ROLE],
+        userId: generateId(),
+      },
+      genericLogger
+    );
+
+    expect(result.totalCount).toBe(1);
+    expect(result.results).toEqual([mockClient9]);
   });
   it("should get the clients if they exist (parameters: consumerId)", async () => {
     await addOneClient(mockClient1);
@@ -100,11 +141,11 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         userIds: [],
-        consumerId: unsafeBrandId(consumerId),
+        consumerId,
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
@@ -117,11 +158,11 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         userIds: [],
-        consumerId: unsafeBrandId(consumerId),
-        purposeId: unsafeBrandId<PurposeId>(purposeId),
+        consumerId,
+        purposeId,
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
@@ -133,31 +174,30 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         userIds: [],
-        consumerId: unsafeBrandId(consumerId),
+        consumerId,
         purposeId: undefined,
         kind: "Consumer",
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([mockClient1, mockClient2]);
   });
-
   it("should get the clients if they exist (pagination: offset)", async () => {
     await addOneClient(mockClient3);
     await addOneClient(mockClient4);
     const mockClientForOffset1: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userId1), unsafeBrandId(userIds4)],
-      consumerId: unsafeBrandId(consumerId),
+      users: [userId1, userId4],
+      consumerId,
     };
 
     const mockClientForOffset2: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
-      consumerId: unsafeBrandId(consumerId),
+      users: [userId2, userId3],
+      consumerId,
     };
 
     await addOneClient(mockClientForOffset1);
@@ -165,17 +205,12 @@ describe("getClients", async () => {
 
     const result = await authorizationService.getClients(
       {
-        userIds: [
-          unsafeBrandId(userId1),
-          unsafeBrandId(userId2),
-          unsafeBrandId(userIds3),
-          unsafeBrandId(userIds4),
-        ],
-        consumerId: unsafeBrandId(consumerId),
+        userIds: [userId1, userId2, userId3, userId4],
+        consumerId,
         purposeId: undefined,
       },
       { offset: 2, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.results).toEqual([
@@ -186,14 +221,14 @@ describe("getClients", async () => {
   it("should get the clients if they exist (pagination: limit)", async () => {
     const mockClientForLimit1: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userId1), unsafeBrandId(userIds4)],
-      consumerId: unsafeBrandId(consumerId),
+      users: [userId1, userId4],
+      consumerId,
     };
 
     const mockClientForLimit2: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
-      consumerId: unsafeBrandId(consumerId),
+      users: [userId2, userId3],
+      consumerId,
     };
     await addOneClient(mockClient3);
     await addOneClient(mockClient4);
@@ -202,17 +237,12 @@ describe("getClients", async () => {
 
     const result = await authorizationService.getClients(
       {
-        userIds: [
-          unsafeBrandId(userId1),
-          unsafeBrandId(userId2),
-          unsafeBrandId(userIds3),
-          unsafeBrandId(userIds4),
-        ],
-        consumerId: unsafeBrandId(consumerId),
+        userIds: [userId1, userId2, userId3, userId4],
+        consumerId,
         purposeId: undefined,
       },
       { offset: 0, limit: 2 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.results).toEqual([mockClient3, mockClient4]);
@@ -226,7 +256,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.totalCount).toBe(0);
@@ -235,16 +265,16 @@ describe("getClients", async () => {
   it("should get the clients if they exist (parameters: name, userIds, consumerId, purposeId, kind)", async () => {
     const completeClient1: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
-      consumerId: unsafeBrandId(consumerId),
-      purposes: [unsafeBrandId<PurposeId>(purposeId)],
+      users: [userId2, userId3],
+      consumerId,
+      purposes: [purposeId],
     };
 
     const completeClient2: Client = {
       ...getMockClient(),
-      users: [unsafeBrandId(userId2), unsafeBrandId(userIds3)],
-      consumerId: unsafeBrandId(consumerId),
-      purposes: [unsafeBrandId<PurposeId>(purposeId)],
+      users: [userId2, userId3],
+      consumerId,
+      purposes: [purposeId],
     };
     await addOneClient(completeClient1);
     await addOneClient(completeClient2);
@@ -252,13 +282,13 @@ describe("getClients", async () => {
     const result = await authorizationService.getClients(
       {
         name: "Test client",
-        userIds: [unsafeBrandId(userId1), unsafeBrandId(userId2)],
-        consumerId: unsafeBrandId(consumerId),
-        purposeId: unsafeBrandId<PurposeId>(purposeId),
+        userIds: [userId1, userId2],
+        consumerId,
+        purposeId,
         kind: "Consumer",
       },
       { offset: 0, limit: 50 },
-      getRandomAuthData(unsafeBrandId<TenantId>(consumerId)),
+      getRandomAuthData(consumerId),
       genericLogger
     );
     expect(result.totalCount).toBe(2);
