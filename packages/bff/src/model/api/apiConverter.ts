@@ -9,8 +9,10 @@ import {
 import {
   BffCatalogApiEServiceResponse,
   BffGetCatalogApiHeaders,
+  BffGetCatalogApiQueryParam,
 } from "./bffTypes.js";
 import {
+  CatalogProcessApiQueryParam,
   EServiceCatalogProcessApi,
   EServiceCatalogProcessApiDescriptor,
   descriptorApiState,
@@ -31,6 +33,24 @@ export function parseHeaders(
       ...headers,
       "X-Correlation-Id": uuidv4(),
     }));
+}
+
+export function toEserviceCatalogProcessQueryParams(
+  queryParams: BffGetCatalogApiQueryParam
+): CatalogProcessApiQueryParam {
+  return {
+    ...queryParams,
+    producersIds: queryParams.producersIds
+      ? queryParams.producersIds[0]
+      : undefined,
+    states: queryParams.states ? queryParams.states[0] : undefined,
+    attributesIds: queryParams.attributesIds
+      ? queryParams.attributesIds[0]
+      : undefined,
+    agreementStates: queryParams.agreementStates
+      ? queryParams.agreementStates[0]
+      : undefined,
+  };
 }
 
 export function toBffCatalogApiEServiceResponse(

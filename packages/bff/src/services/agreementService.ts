@@ -19,8 +19,8 @@ export const getLatestAgreement = async (
     await agreementProcessClient.getAgreements({
       headers,
       queries: {
-        consumersIds: [consumerId],
-        eservicesIds: [eservice.id],
+        consumersIds: consumerId,
+        eservicesIds: eservice.id,
         offset: start,
         limit: 50,
       },

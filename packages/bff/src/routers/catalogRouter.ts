@@ -8,11 +8,14 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
-import { PagoPaClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { parseHeaders } from "../model/api/apiConverter.js";
+import {
+  parseHeaders,
+  toEserviceCatalogProcessQueryParams,
+} from "../model/api/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { bffGetCatalogErrorMapper } from "../utilities/errorMapper.js";
+import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -20,7 +23,7 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
-  }: PagoPaClients
+  }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -36,11 +39,11 @@ const catalogRouter = (
     .get("/catalog", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       const headers = parseHeaders(req.headers);
-
+      const queryParams = toEserviceCatalogProcessQueryParams(req.query);
       try {
         const response = await catalogService.getCatalog(
           ctx,
-          req.query,
+          queryParams,
           headers
         );
 

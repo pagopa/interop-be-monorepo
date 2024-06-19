@@ -12,7 +12,7 @@ export type BFFErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: PurposeId): ApiError<BFFErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
