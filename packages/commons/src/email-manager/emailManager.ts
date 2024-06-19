@@ -10,7 +10,10 @@ export type EmailManager = {
   ) => Promise<void>;
 };
 
-export function initEmailManager(config: EmailManagerConfig): EmailManager {
+export function initEmailManager(
+  config: EmailManagerConfig,
+  rejectUnauthorized = true
+): EmailManager {
   return {
     send: async (
       from: string,
@@ -34,7 +37,7 @@ export function initEmailManager(config: EmailManagerConfig): EmailManager {
         },
         tls: {
           // do not fail on invalid certs
-          rejectUnauthorized: !config.smtpAllowSelfSignedCert,
+          rejectUnauthorized,
         },
       });
       await transporter.sendMail({
