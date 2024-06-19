@@ -12,6 +12,7 @@ import {
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
@@ -36,6 +37,7 @@ import {
   Tenant,
   TenantId,
   agreementState,
+  attributeKind,
   descriptorState,
   fromAgreementV2,
   generateId,
@@ -71,6 +73,7 @@ import { config } from "../src/utilities/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
+  addOneAttribute,
   addOneEService,
   addOneTenant,
   agreementService,
@@ -130,11 +133,17 @@ describe("upgrade Agreement", () => {
         },
       ],
     };
+    await addOneAttribute(
+      getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
+    );
 
     const validDeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: undefined,
     };
+    await addOneAttribute(
+      getMockAttribute(attributeKind.declared, validDeclaredTenantAttribute.id)
+    );
 
     const producerAndConsumer: Tenant = {
       ...getMockTenant(),
@@ -288,7 +297,7 @@ describe("upgrade Agreement", () => {
       id: contractDocumentId,
       contentType: "application/pdf",
       createdAt: contractCreatedAt,
-      path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+      path: `${config.agreementContractsPath}/${actualAgreementUpgraded.id}/${contractDocumentId}/${contractDocumentName}`,
       prettyName: "Richiesta di fruizione",
       name: contractDocumentName,
     };
@@ -347,16 +356,28 @@ describe("upgrade Agreement", () => {
         },
       ],
     };
+    await addOneAttribute(
+      getMockAttribute(attributeKind.verified, validVerifiedTenantAttribute.id)
+    );
 
     const validDeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: undefined,
     };
+    await addOneAttribute(
+      getMockAttribute(attributeKind.declared, validDeclaredTenantAttribute.id)
+    );
 
     const validCertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
+    await addOneAttribute(
+      getMockAttribute(
+        attributeKind.certified,
+        validCertifiedTenantAttribute.id
+      )
+    );
 
     const consumer: Tenant = {
       ...getMockTenant(),
@@ -506,7 +527,7 @@ describe("upgrade Agreement", () => {
       id: contractDocumentId,
       contentType: "application/pdf",
       createdAt: contractCreatedAt,
-      path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+      path: `${config.agreementContractsPath}/${actualAgreementUpgraded.id}/${contractDocumentId}/${contractDocumentName}`,
       prettyName: "Richiesta di fruizione",
       name: contractDocumentName,
     };

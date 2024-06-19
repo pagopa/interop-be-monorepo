@@ -110,7 +110,7 @@ export async function createUpgradeOrNewDraft({
 
     const contract = await contractBuilder.createContract(
       authData.selfcareId,
-      agreement.data,
+      upgraded,
       eservice,
       consumer,
       producer
