@@ -19,14 +19,6 @@ export const errorCodes = {
   userAlreadyAssigned: "0009",
 };
 
-export function missingUserId(kid: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Key ${kid} has not UserId`,
-    code: "missingUserId",
-    title: "Missing userId",
-  });
-}
-
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
