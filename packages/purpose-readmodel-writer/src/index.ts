@@ -3,18 +3,15 @@ import { EachMessagePayload } from "kafkajs";
 import {
   logger,
   ReadModelRepository,
-  readModelWriterConfig,
   decodeKafkaMessage,
-  purposeTopicConfig,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { PurposeEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "./purposeConsumerServiceV2.js";
+import { config } from "./utilities/config.js";
 
-const config = readModelWriterConfig();
-const { purposeTopic } = purposeTopicConfig();
 const { purposes } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -40,4 +37,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [purposeTopic], processMessage);
+await runConsumer(config, [config.purposeTopic], processMessage);
