@@ -4,7 +4,6 @@ import {
   ReadModelRepository,
   agreementTopicConfig,
   decodeKafkaMessage,
-  emailManagerConfig,
   initEmailManager,
   kafkaConsumerConfig,
   logger,
@@ -17,6 +16,7 @@ import {
 import { match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
+import { emailManagerConfig } from "./utilities/config.js";
 
 const config = kafkaConsumerConfig();
 const readModelConfig = readModelWriterConfig();
