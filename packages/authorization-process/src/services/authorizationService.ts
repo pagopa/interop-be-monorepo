@@ -38,11 +38,15 @@ export function authorizationServiceBuilder(
   );
 
   return {
-    async getClientById(
-      clientId: ClientId,
-      organizationId: TenantId,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async getClientById({
+      clientId,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       return {
