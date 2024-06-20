@@ -1,10 +1,11 @@
 import { userRoles } from "pagopa-interop-commons";
+import { Client, Purpose, TenantId, UserId } from "pagopa-interop-models";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   userWithoutSecurityPrivileges,
   organizationNotAllowedOnPurpose,
+  organizationNotAllowedOnClient,
 } from "../model/domain/errors.js";
-import { Client, Purpose, TenantId, UserId } from "pagopa-interop-models";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 
 export const isClientConsumer = (
   consumerId: TenantId,
