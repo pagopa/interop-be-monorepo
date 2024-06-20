@@ -60,12 +60,12 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.createConsumerClient(
-              req.body,
-              ctx.authData.organizationId,
-              req.ctx.correlationId,
-              ctx.logger
-            );
+            await authorizationService.createConsumerClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
@@ -87,12 +87,12 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.createApiClient(
-              req.body,
-              ctx.authData.organizationId,
-              req.ctx.correlationId,
-              ctx.logger
-            );
+            await authorizationService.createApiClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
@@ -165,8 +165,8 @@ const authorizationRouter = (
         try {
           const { name, userIds, consumerId, purposeId, kind, offset, limit } =
             req.query;
-          const clients = await authorizationService.getClients(
-            {
+          const clients = await authorizationService.getClients({
+            filters: {
               name,
               userIds: userIds?.map(unsafeBrandId<UserId>),
               consumerId: unsafeBrandId(consumerId),
@@ -175,10 +175,11 @@ const authorizationRouter = (
                 : undefined,
               kind,
             },
-            { offset, limit },
-            req.ctx.authData,
-            ctx.logger
-          );
+            authData: req.ctx.authData,
+            offset,
+            limit,
+            logger: ctx.logger,
+          });
           return res
             .status(200)
             .json({
@@ -213,11 +214,11 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.getClientById(
-              unsafeBrandId(req.params.clientId),
-              ctx.authData.organizationId,
-              ctx.logger
-            );
+            await authorizationService.getClientById({
+              clientId: unsafeBrandId(req.params.clientId),
+              organizationId: ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))

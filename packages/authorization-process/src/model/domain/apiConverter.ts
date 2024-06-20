@@ -15,13 +15,13 @@ import {
   ApiKeyUse,
 } from "./models.js";
 
-export const ClientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
+export const clientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
   match<ClientKind, ApiClientKind>(kind)
     .with(clientKind.consumer, () => "CONSUMER")
     .with(clientKind.api, () => "API")
     .exhaustive();
 
-export const KeyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
+export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
   match<KeyUse, ApiKeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
@@ -46,7 +46,7 @@ export function clientToApiClient(
     users: showUsers ? client.users : [],
     createdAt: client.createdAt.toJSON(),
     purposes: client.purposes,
-    kind: ClientKindToApiClientKind(client.kind),
+    kind: clientKindToApiClientKind(client.kind),
     description: client.description,
     ...(includeKeys ? { keys: client.keys } : {}),
   };
@@ -58,6 +58,6 @@ export const keyToApiKey = (key: Key): ApiKey => ({
   kid: key.kid,
   encodedPem: key.encodedPem,
   algorithm: key.algorithm,
-  use: KeyUseToApiKeyUse(key.use),
+  use: keyUseToApiKeyUse(key.use),
   userId: key.userId,
 });
