@@ -33,7 +33,6 @@ import {
   keyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
-  organizationNotAllowedOnClient,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   userAlreadyAssigned,
@@ -56,7 +55,6 @@ import {
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
-  isClientConsumer,
   assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
 } from "./validators.js";
@@ -341,9 +339,9 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
-        throw purposeNotFound(purposeIdToRemove);
-      }
+      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+      //   throw purposeNotFound(purposeIdToRemove);
+      // }
 
       const updatedClient: Client = {
         ...client.data,
