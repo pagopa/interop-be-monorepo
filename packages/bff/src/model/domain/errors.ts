@@ -1,6 +1,11 @@
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  PurposeId,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
+  purposeNotFound: "0001",
   userNotFound: "0001",
   selfcareEntityNotFilled: "0032",
 };
@@ -25,5 +30,13 @@ export function userNotFound(
     detail: `User ${userId} not found for institution ${selfcareId}`,
     code: "userNotFound",
     title: "User not found",
+  });
+}
+
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
   });
 }

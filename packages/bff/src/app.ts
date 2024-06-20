@@ -12,9 +12,11 @@ import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
+import { getInteropBeClients } from "./providers/clientProvider.js";
 
 const serviceName = "bff-process";
 
+const clients = getInteropBeClients();
 const app = zodiosCtx.app();
 
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
@@ -26,9 +28,9 @@ app.use(healthRouter);
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
-app.use(catalogRouter(zodiosCtx));
+app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx));
-app.use(purposeRouter(zodiosCtx));
+app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));
 app.use(selfcareRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx));

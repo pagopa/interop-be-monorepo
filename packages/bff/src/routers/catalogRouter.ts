@@ -6,9 +6,11 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 
 const catalogRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  _: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
