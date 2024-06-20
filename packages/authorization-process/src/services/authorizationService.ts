@@ -365,7 +365,6 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      console.log("SONO QUI");
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,

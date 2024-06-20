@@ -10,7 +10,6 @@ export const assertUserSelfcareSecurityPrivileges = async (
   consumerId: TenantId,
   selfcareV2Client: SelfcareV2Client
 ): Promise<void> => {
-  console.log("AAAAAA");
   const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
     params: { institutionId: selfcareId },
     queries: {
@@ -19,8 +18,6 @@ export const assertUserSelfcareSecurityPrivileges = async (
       productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
     },
   });
-  console.log("users", users);
-
   if (users.length === 0) {
     throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
   }

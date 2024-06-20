@@ -29,17 +29,14 @@ import {
   selfcareV2Client,
 } from "./utils.js";
 
-// getInstitutionProductUsersUsingGET
-
 function mockSelfcareV2ClientCall(
   value: Awaited<
     ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
   >
 ): void {
-  vi.spyOn(
-    selfcareV2Client,
-    "getInstitutionProductUsersUsingGET"
-  ).mockImplementationOnce(() => Promise.resolve(value));
+  selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+    async () => value
+  );
 }
 
 const mockSelfCareUsers: UserResource = {
@@ -50,18 +47,8 @@ const mockSelfCareUsers: UserResource = {
   surname: "surname_test",
 };
 
-// beforeEach(async () => {
-//   selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
-//     async () => mockSelfCareUsers
-//   );
-// });
-
-// afterEach(async () => {
-//   vi.clearAllMocks();
-// });
-
 describe("addUser", () => {
-  it.only("should write on event-store when adding a user to a client", async () => {
+  it("should write on event-store when adding a user to a client", async () => {
     const consumerId: TenantId = generateId();
     const userIdToAdd: UserId = generateId();
     const userId: UserId = generateId();
