@@ -13,6 +13,7 @@ import {
   RefreshableInteropToken,
   decodeKafkaMessage,
   PurposeTopicConfig,
+  AuthorizationTopicConfig,
 } from "pagopa-interop-commons";
 import {
   kafkaMessageProcessError,
@@ -26,6 +27,12 @@ import {
   PurposeEventV2,
   purposeVersionState,
   missingKafkaMessageDataError,
+  AuthorizationEventV2,
+  unsafeBrandId,
+  ClientId,
+  UserId,
+  PurposeId,
+  fromClientV2,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -45,6 +52,7 @@ import {
   agreementStateToClientState,
   getPurposeFromEvent,
   getPurposeVersionFromEvent,
+  getClientFromEvent,
 } from "./utils.js";
 
 export async function sendCatalogAuthUpdate(
@@ -251,8 +259,8 @@ export async function sendPurposeAuthUpdate(
         await Promise.all(
           purposeClientsIds.map((clientId) =>
             authService.deletePurposeFromClient(
-              purpose.id,
               clientId,
+              purpose.id,
               logger,
               correlationId
             )
@@ -332,10 +340,109 @@ export async function sendPurposeAuthUpdate(
     .exhaustive();
 }
 
+export async function sendAuthorizationAuthUpdate(
+  decodedMessage: AuthorizationEventV2,
+  _readModelService: ReadModelService,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    .with({ type: "ClientAdded" }, async (msg): Promise<void> => {
+      const client = getClientFromEvent(msg, msg.type);
+
+      if (!client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      await authService.addClient(client, logger, correlationId);
+    })
+    .with({ type: "ClientDeleted" }, async (msg): Promise<void> => {
+      const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
+
+      if (!clientId) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      await authService.deleteClient(clientId, logger, correlationId);
+    })
+    .with({ type: "ClientKeyAdded" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const client = fromClientV2(msg.data.client);
+      const clientId = client.id;
+      const kid = msg.data.kid;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const key = client.keys.find((key) => key.kid === kid)!;
+      await authService.addClientKey(clientId, key, logger, correlationId);
+    })
+    .with({ type: "ClientKeyDeleted" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const kid = msg.data.kid;
+
+      await authService.deleteClientKey(clientId, kid, logger, correlationId);
+    })
+    .with({ type: "ClientUserAdded" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const userId = unsafeBrandId<UserId>(msg.data.userId);
+
+      await authService.addClientUser(clientId, userId, logger, correlationId);
+    })
+    .with({ type: "ClientUserDeleted" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const userId = unsafeBrandId<UserId>(msg.data.userId);
+
+      await authService.deleteClientUser(
+        clientId,
+        userId,
+        logger,
+        correlationId
+      );
+    })
+    .with({ type: "ClientPurposeAdded" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
+      await authService.addClientPurpose(
+        clientId,
+        purposeId,
+        logger,
+        correlationId
+      );
+    })
+    .with({ type: "ClientPurposeRemoved" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
+
+      await authService.deletePurposeFromClient(
+        clientId,
+        purposeId,
+        logger,
+        correlationId
+      );
+    })
+    .exhaustive();
+}
+
+// eslint-disable-next-line max-params
 function processMessage(
   catalogTopicConfig: CatalogTopicConfig,
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
+  authorizationTopicConfig: AuthorizationTopicConfig,
   readModelService: ReadModelService,
   authService: AuthorizationService
 ) {
@@ -378,6 +485,21 @@ function processMessage(
           );
 
           const updater = sendPurposeAuthUpdate.bind(
+            null,
+            decodedMessage,
+            readModelService,
+            authService
+          );
+
+          return { decodedMessage, updater };
+        })
+        .with(authorizationTopicConfig.authorizationTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            AuthorizationEventV2
+          );
+
+          const updater = sendAuthorizationAuthUpdate.bind(
             null,
             decodedMessage,
             readModelService,
@@ -434,7 +556,12 @@ try {
   );
   await runConsumer(
     config,
-    [config.catalogTopic, config.agreementTopic, config.purposeTopic],
+    [
+      config.catalogTopic,
+      config.agreementTopic,
+      config.purposeTopic,
+      config.authorizationTopic,
+    ],
     processMessage(
       {
         catalogTopic: config.catalogTopic,
@@ -444,6 +571,9 @@ try {
       },
       {
         purposeTopic: config.purposeTopic,
+      },
+      {
+        authorizationTopic: config.authorizationTopic,
       },
       readModelService,
       authService
