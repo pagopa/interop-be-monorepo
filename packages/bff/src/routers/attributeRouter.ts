@@ -7,7 +7,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
-import { PagoPaClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
 import { attributeEmptyErrorMapper } from "../utilities/errorMapper.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -15,7 +15,7 @@ import { toApiCompactAttribute } from "../model/domain/apiConverter.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
-  { attributeProcessClient }: PagoPaClients
+  { attributeProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
