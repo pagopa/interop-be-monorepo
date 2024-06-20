@@ -40,16 +40,25 @@ export async function processMessage({
   });
   loggerInstance.debug(decodedMessage);
 
-  match(decodedMessage).with(
-    { event_version: 2, type: "AgreementActivated" },
-    async ({ data: { agreement } }) => {
-      if (agreement) {
-        await sendAgreementEmail(agreement, readModelService, emailManager);
-      } else {
-        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+  await match(decodedMessage)
+    .with(
+      { event_version: 2, type: "AgreementActivated" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await sendAgreementEmail(
+            agreement,
+            readModelService,
+            emailManager,
+            loggerInstance
+          );
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
       }
-    }
-  );
+    )
+    .otherwise(() => {
+      loggerInstance.info(`No needed to send email`);
+    });
 }
 
 await runConsumer(config, [topicsConfig.agreementTopic], processMessage);
