@@ -1,6 +1,9 @@
 import crypto from "crypto-js";
 import { Logger } from "pagopa-interop-commons";
-import { PagoPaClients, Headers } from "../providers/clientProvider.js";
+import {
+  Headers,
+  PagoPAInteropBeClients,
+} from "../providers/clientProvider.js";
 import {
   ApiAttributeSeed,
   ApiAttribute,
@@ -11,7 +14,7 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(
-  attributeClient: PagoPaClients["attributeProcessClient"]
+  attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
 ) {
   return {
     async createCertifiedAttribute(
@@ -117,7 +120,7 @@ export function attributeServiceBuilder(
     }): Promise<ProcessApiAttributes> {
       logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
-        queries: { offset, limit, kinds, name, origin },
+        queries: { offset, limit, kinds: kinds.join(","), name, origin },
         headers: { ...requestHeaders },
         withCredentials: true,
       });
