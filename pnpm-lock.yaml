@@ -54,6 +54,9 @@ importers:
       axios:
         specifier: 1.7.2
         version: 1.7.2
+      cpx2:
+        specifier: 7.0.1
+        version: 7.0.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5521,7 +5524,7 @@ packages:
     hasBin: true
     dependencies:
       debounce: 2.1.0
-      debug: 4.3.4
+      debug: 4.3.5
       duplexer: 0.1.2
       fs-extra: 11.2.0
       glob: 10.4.1
