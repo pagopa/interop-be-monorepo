@@ -52,11 +52,15 @@ export function authorizationServiceBuilder(
   );
 
   return {
-    async getClientById(
-      clientId: ClientId,
-      organizationId: TenantId,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async getClientById({
+      clientId,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       return {
@@ -65,12 +69,17 @@ export function authorizationServiceBuilder(
       };
     },
 
-    async createConsumerClient(
-      clientSeed: ApiClientSeed,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async createConsumerClient({
+      clientSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientSeed: ApiClientSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${organizationId}"`
       );
@@ -95,12 +104,17 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async createApiClient(
-      clientSeed: ApiClientSeed,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async createApiClient({
+      clientSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientSeed: ApiClientSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${organizationId}"`
       );
@@ -125,12 +139,19 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async getClients(
-      filters: GetClientsFilters,
-      { offset, limit }: { offset: number; limit: number },
-      authData: AuthData,
-      logger: Logger
-    ): Promise<ListResult<Client>> {
+    async getClients({
+      filters,
+      authData,
+      offset,
+      limit,
+      logger,
+    }: {
+      filters: GetClientsFilters;
+      authData: AuthData;
+      offset: number;
+      limit: number;
+      logger: Logger;
+    }): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
