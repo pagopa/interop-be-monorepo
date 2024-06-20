@@ -1,10 +1,7 @@
-/* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
   ReadModelRepository,
-  readModelWriterConfig,
-  catalogTopicConfig,
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -12,9 +9,8 @@ import { EServiceEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
+import { config } from "./config/config.js";
 
-const config = readModelWriterConfig();
-const { catalogTopic } = catalogTopicConfig();
 const { eservices } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -41,4 +37,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [catalogTopic], processMessage);
+await runConsumer(config, [config.catalogTopic], processMessage);

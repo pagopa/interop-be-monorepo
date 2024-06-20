@@ -105,7 +105,7 @@ import {
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import {
   archiveRelatedToAgreements,
   createActivationEvent,

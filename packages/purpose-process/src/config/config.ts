@@ -23,6 +23,6 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
 
 export type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
-export const config: PurposeProcessConfig = {
-  ...PurposeProcessConfig.parse(process.env),
-};
+export const config: PurposeProcessConfig = PurposeProcessConfig.parse(
+  process.env
+);

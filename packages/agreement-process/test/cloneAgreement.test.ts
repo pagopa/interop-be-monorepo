@@ -32,7 +32,7 @@ import {
   agreementClonableStates,
   agreementCloningConflictingStates,
 } from "../src/model/domain/validators.js";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,

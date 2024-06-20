@@ -10,7 +10,7 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,

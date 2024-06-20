@@ -22,7 +22,7 @@ import {
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activatePurposeVersionErrorMapper,

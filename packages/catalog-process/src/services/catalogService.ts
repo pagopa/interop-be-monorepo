@@ -79,7 +79,7 @@ import {
   ApiEServiceSeed,
   ApiGetEServicesFilters,
 } from "../model/types.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   eServiceDescriptorNotFound,

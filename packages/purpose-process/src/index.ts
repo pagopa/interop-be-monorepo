@@ -1,5 +1,5 @@
 import { genericLogger } from "pagopa-interop-commons";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 import app from "./app.js";
 
 app.listen(config.port, config.host, () => {

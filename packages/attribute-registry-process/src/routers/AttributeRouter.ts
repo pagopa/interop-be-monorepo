@@ -17,7 +17,7 @@ import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 import {

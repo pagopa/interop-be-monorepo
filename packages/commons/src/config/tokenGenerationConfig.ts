@@ -17,6 +17,3 @@ export const TokenGenerationConfig = z
   }));
 
 export type TokenGenerationConfig = z.infer<typeof TokenGenerationConfig>;
-
-export const tokenGenerationConfig: () => TokenGenerationConfig = () =>
-  TokenGenerationConfig.parse(process.env);

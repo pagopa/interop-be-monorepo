@@ -26,6 +26,6 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   );
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 
-export const config: AgreementProcessConfig = {
-  ...AgreementProcessConfig.parse(process.env),
-};
+export const config: AgreementProcessConfig = AgreementProcessConfig.parse(
+  process.env
+);

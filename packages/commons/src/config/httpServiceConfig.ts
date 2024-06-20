@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { APIEndpoint } from "../model/apiEndpoint.js";
+import { LoggerConfig } from "./loggerConfig.js";
 
 export const JWTConfig = z
   .object({
@@ -18,16 +19,6 @@ export const JWTConfig = z
     acceptedAudiences: c.ACCEPTED_AUDIENCES,
   }));
 export type JWTConfig = z.infer<typeof JWTConfig>;
-
-export const LoggerConfig = z
-  .object({
-    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
-  })
-  .transform((c) => ({
-    logLevel: c.LOG_LEVEL,
-  }));
-export type LoggerConfig = z.infer<typeof LoggerConfig>;
-export const loggerConfig = (): LoggerConfig => LoggerConfig.parse(process.env);
 
 export const HTTPServerConfig = z
   .object({

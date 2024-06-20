@@ -91,7 +91,7 @@ import {
   ApiReversePurposeSeed,
   ApiPurposeCloneSeed,
 } from "../model/domain/models.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,

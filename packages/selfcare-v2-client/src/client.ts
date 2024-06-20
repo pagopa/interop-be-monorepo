@@ -1,5 +1,5 @@
 import { ZodiosInstance } from "@zodios/core";
-import { SelfCareConfig } from "./utilities/config/config.js";
+import { SelfCareConfig } from "./config/selfcareConfig.js";
 import { createApiClient, api } from "./model/generated/api.js";
 
 export type SelfcareV2Client = ZodiosInstance<typeof api.api>;

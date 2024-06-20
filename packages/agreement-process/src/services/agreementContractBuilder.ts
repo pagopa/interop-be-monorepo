@@ -41,7 +41,7 @@ import {
   userNotFound,
 } from "../model/domain/errors.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { AgreementProcessConfig } from "../utilities/config.js";
+import { AgreementProcessConfig } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
