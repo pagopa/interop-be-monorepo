@@ -5,8 +5,8 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  userNotFound: "0001",
   purposeNotFound: "0001",
+  userNotFound: "0001",
   selfcareEntityNotFilled: "0032",
 };
 
