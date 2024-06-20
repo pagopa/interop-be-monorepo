@@ -49,6 +49,8 @@ jobs:
             dockerfile_path: packages/notifier-seeder
           - image_name: eservice-descriptors-archiver
             dockerfile_path: packages/eservice-descriptors-archiver
+          - image_name: agreement-email-sender
+            dockerfile_path: packages/agreement-email-sender
 
     steps:
       - name: Checkout repository
