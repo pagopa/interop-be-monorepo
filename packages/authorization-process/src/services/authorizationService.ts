@@ -132,12 +132,19 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async getClients(
-      filters: GetClientsFilters,
-      { offset, limit }: { offset: number; limit: number },
-      authData: AuthData,
-      logger: Logger
-    ): Promise<ListResult<Client>> {
+    async getClients({
+      filters,
+      authData,
+      offset,
+      limit,
+      logger,
+    }: {
+      filters: GetClientsFilters;
+      authData: AuthData;
+      offset: number;
+      limit: number;
+      logger: Logger;
+    }): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
