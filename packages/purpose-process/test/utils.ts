@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   initPDFGenerator,
+  launchPuppeteerBrowser,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -52,7 +53,9 @@ export const purposes = readModelRepository.purposes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-const testBrowserInstance: Browser = await puppeteer.launch({ pipe: true });
+const testBrowserInstance: Browser = await launchPuppeteerBrowser({
+  pipe: true,
+});
 const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
