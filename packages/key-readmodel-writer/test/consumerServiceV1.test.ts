@@ -12,6 +12,9 @@ import {
   generateId,
   AuthorizationEventEnvelopeV1,
   KeyDeletedV1,
+  unsafeBrandId,
+  KeyRelationshipToUserMigratedV1,
+  UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
@@ -91,5 +94,39 @@ describe("Events V1", async () => {
     });
 
     expect(retrievedKey).toBeNull();
+  });
+  it("KeyRelationshipToUserMigrated", async () => {
+    const mockKey: Key = { ...getMockKey(), userId: unsafeBrandId("") };
+    const mockClient: Client = {
+      ...getMockClient(),
+      keys: [mockKey],
+    };
+    await writeInReadmodel(toReadModelKey(mockKey), keys);
+
+    const userId: UserId = generateId();
+
+    const payload: KeyRelationshipToUserMigratedV1 = {
+      clientId: mockClient.id,
+      keyId: mockKey.kid,
+      userId,
+    };
+
+    const message: AuthorizationEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mockClient.id,
+      version: 1,
+      type: "KeyRelationshipToUserMigrated",
+      event_version: 1,
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV1(message, keys);
+
+    const retrievedKey = await keys.findOne({
+      "data.kid": mockKey.kid,
+    });
+
+    expect(retrievedKey?.data).toEqual(toReadModelKey({ ...mockKey, userId }));
   });
 });
