@@ -90,12 +90,17 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async createApiClient(
-      clientSeed: ApiClientSeed,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async createApiClient({
+      clientSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientSeed: ApiClientSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${organizationId}"`
       );

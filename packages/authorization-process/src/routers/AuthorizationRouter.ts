@@ -82,12 +82,12 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.createApiClient(
-              req.body,
-              ctx.authData.organizationId,
-              req.ctx.correlationId,
-              ctx.logger
-            );
+            await authorizationService.createApiClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
             .json(clientToApiClient(client, { includeKeys: false, showUsers }))
