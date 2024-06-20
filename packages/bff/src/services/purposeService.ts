@@ -5,9 +5,9 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  ApiUpdateReversePurposePayload,
-  ApiEServicePurposeSeedPayload,
-  ApiPurposePayload,
+  PurposeProcessApiCreateReversePurposeSeed,
+  PurposeProcessApiCreatePurposeSeed,
+  PurposeProcessApiUpdateReversePurposeSeed,
   PurposeProcessApiPurposeVersion,
   PurposeProcessApiPurpose,
   PurposeProcessApiPurposeVersionState,
@@ -60,7 +60,7 @@ export function purposeServiceBuilder(
 ) {
   return {
     async createPurpose(
-      createSeed: ApiPurposePayload,
+      createSeed: PurposeProcessApiCreatePurposeSeed,
       { logger }: WithLogger<AppContext>,
       requestHeaders: Headers
     ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
@@ -73,7 +73,7 @@ export function purposeServiceBuilder(
       });
     },
     async createPurposeFromEService(
-      createSeed: ApiEServicePurposeSeedPayload,
+      createSeed: PurposeProcessApiCreateReversePurposeSeed,
       { logger }: WithLogger<AppContext>,
       requestHeaders: Headers
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
@@ -85,7 +85,7 @@ export function purposeServiceBuilder(
     },
     async reversePurposeUpdate(
       id: PurposeId,
-      updateSeed: ApiUpdateReversePurposePayload,
+      updateSeed: PurposeProcessApiUpdateReversePurposeSeed,
       { logger }: WithLogger<AppContext>,
       requestHeaders: Headers
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
