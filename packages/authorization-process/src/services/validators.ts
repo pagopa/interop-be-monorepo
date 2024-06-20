@@ -1,10 +1,10 @@
 import { userRoles } from "pagopa-interop-commons";
-import { Purpose, TenantId, UserId } from "pagopa-interop-models";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   userWithoutSecurityPrivileges,
   organizationNotAllowedOnPurpose,
 } from "../model/domain/errors.js";
+import { Client, Purpose, TenantId, UserId } from "pagopa-interop-models";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 
 export const isClientConsumer = (
   consumerId: TenantId,
@@ -14,7 +14,8 @@ export const isClientConsumer = (
 export const assertUserSelfcareSecurityPrivileges = async (
   selfcareId: string,
   requesterUserId: UserId,
-  consumerId: TenantId
+  consumerId: TenantId,
+  selfcareV2Client: SelfcareV2Client
 ): Promise<void> => {
   const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
     params: { institutionId: selfcareId },
@@ -26,6 +27,15 @@ export const assertUserSelfcareSecurityPrivileges = async (
   });
   if (users.length === 0) {
     throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
+  }
+};
+
+export const assertOrganizationIsClientConsumer = (
+  organizationId: TenantId,
+  client: Client
+): void => {
+  if (client.consumerId !== organizationId) {
+    throw organizationNotAllowedOnClient(organizationId, client.id);
   }
 };
 

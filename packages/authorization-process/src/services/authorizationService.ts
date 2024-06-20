@@ -25,6 +25,7 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   descriptorNotFound,
@@ -57,6 +58,7 @@ import {
   assertOrganizationIsPurposeConsumer,
   isClientConsumer,
   assertUserSelfcareSecurityPrivileges,
+  assertOrganizationIsClientConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -110,7 +112,8 @@ const retrieveDescriptor = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -125,9 +128,10 @@ export function authorizationServiceBuilder(
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         client: client.data,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: true,
       };
     },
 
@@ -146,7 +150,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.consumer,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -159,7 +162,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async createApiClient(
@@ -177,7 +180,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.api,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -190,7 +192,7 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
     async getClients(
@@ -423,7 +425,8 @@ export function authorizationServiceBuilder(
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,
-        authData.organizationId
+        authData.organizationId,
+        selfcareV2Client
       );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
@@ -522,12 +525,3 @@ export function authorizationServiceBuilder(
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const assertOrganizationIsClientConsumer = (
-  organizationId: TenantId,
-  client: Client
-): void => {
-  if (client.consumerId !== organizationId) {
-    throw organizationNotAllowedOnClient(organizationId, client.id);
-  }
-};

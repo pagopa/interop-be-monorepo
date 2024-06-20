@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+
 import {
   decodeProtobufPayload,
   getMockClient,
@@ -14,7 +15,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { UserResource } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -25,6 +26,7 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
+  selfcareV2Client,
 } from "./utils.js";
 
 function mockSelfcareV2ClientCall(
@@ -32,13 +34,12 @@ function mockSelfcareV2ClientCall(
     ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
   >
 ): void {
-  vi.spyOn(
-    selfcareV2Client,
-    "getInstitutionProductUsersUsingGET"
-  ).mockImplementationOnce(() => Promise.resolve(value));
+  selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+    async () => value
+  );
 }
 
-const mockSelfCareUsers = {
+const mockSelfCareUsers: UserResource = {
   id: generateId(),
   name: "test",
   roles: [],

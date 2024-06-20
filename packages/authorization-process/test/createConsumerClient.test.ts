@@ -67,7 +67,6 @@ describe("createConsumerClient", () => {
       consumerId: unsafeBrandId(organizationId),
       kind: clientKind.consumer,
       purposes: [],
-      relationships: [],
       users: clientSeed.members.map(unsafeBrandId<UserId>),
       description: clientSeed.description,
     };

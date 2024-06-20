@@ -11,6 +11,7 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -19,8 +20,10 @@ import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   addUserErrorMapper,
-  createClientErrorMapper,
   deleteClientErrorMapper,
+  getClientsErrorMapper,
+  createApiClientErrorMapper,
+  createConsumerClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
   getClientUsersErrorMapper,
@@ -42,7 +45,8 @@ const authorizationService = authorizationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  selfcareV2ClientBuilder(config)
 );
 
 const authorizationRouter = (
@@ -73,7 +77,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createClientErrorMapper,
+            createConsumerClientErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -100,7 +104,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createClientErrorMapper,
+            createApiClientErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -187,7 +191,11 @@ const authorizationRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getClientsErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
