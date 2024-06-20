@@ -41,8 +41,19 @@ export async function handleMessageV1(
         "metadata.version": { $lt: message.version },
       });
     })
+    .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
+      const kid = message.data.keyId;
+      const userId = message.data.userId;
+      await keys.updateOne(
+        {
+          "data.kid": kid,
+          "metadata.version": { $lt: message.version },
+        },
+        { $set: { "data.userId": userId } },
+        { upsert: true }
+      );
+    })
     .with(
-      { type: "KeyRelationshipToUserMigrated" },
       { type: "ClientAdded" },
       { type: "ClientDeleted" },
       { type: "RelationshipAdded" },
