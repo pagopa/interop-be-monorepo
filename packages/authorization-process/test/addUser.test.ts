@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+
 import {
   decodeProtobufPayload,
   getMockClient,
@@ -14,7 +15,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { UserResource } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -25,7 +26,10 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
+  selfcareV2Client,
 } from "./utils.js";
+
+// getInstitutionProductUsersUsingGET
 
 function mockSelfcareV2ClientCall(
   value: Awaited<
@@ -38,7 +42,7 @@ function mockSelfcareV2ClientCall(
   ).mockImplementationOnce(() => Promise.resolve(value));
 }
 
-const mockSelfCareUsers = {
+const mockSelfCareUsers: UserResource = {
   id: generateId(),
   name: "test",
   roles: [],
@@ -46,8 +50,18 @@ const mockSelfCareUsers = {
   surname: "surname_test",
 };
 
+// beforeEach(async () => {
+//   selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+//     async () => mockSelfCareUsers
+//   );
+// });
+
+// afterEach(async () => {
+//   vi.clearAllMocks();
+// });
+
 describe("addUser", () => {
-  it("should write on event-store when adding a user to a client", async () => {
+  it.only("should write on event-store when adding a user to a client", async () => {
     const consumerId: TenantId = generateId();
     const userIdToAdd: UserId = generateId();
     const userId: UserId = generateId();

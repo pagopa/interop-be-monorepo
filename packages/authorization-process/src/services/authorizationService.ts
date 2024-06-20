@@ -18,6 +18,7 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   keyNotFound,
@@ -54,7 +55,8 @@ const retrieveClient = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -363,10 +365,12 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+      console.log("SONO QUI");
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,
-        authData.organizationId
+        authData.organizationId,
+        selfcareV2Client
       );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
