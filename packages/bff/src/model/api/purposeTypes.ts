@@ -7,19 +7,19 @@ import {
 
 type PurposeApi = typeof purposeApi.api;
 
-export type ApiPurposePayload = ZodiosBodyByPath<
+export type PurposeProcessApiCreatePurposeSeed = ZodiosBodyByPath<
   PurposeApi,
   "post",
   "/purposes"
 >;
 
-export type ApiEServicePurposeSeedPayload = ZodiosBodyByPath<
+export type PurposeProcessApiCreateReversePurposeSeed = ZodiosBodyByPath<
   PurposeApi,
   "post",
   "/reverse/purposes"
 >;
 
-export type ApiUpdateReversePurposePayload = ZodiosBodyByPath<
+export type PurposeProcessApiUpdateReversePurposeSeed = ZodiosBodyByPath<
   PurposeApi,
   "post",
   "/reverse/purposes/:id"
