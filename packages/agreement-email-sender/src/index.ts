@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
@@ -56,9 +57,7 @@ export async function processMessage({
         }
       }
     )
-    .otherwise(() => {
-      loggerInstance.info(`No needed to send email`);
-    });
+    .otherwise(() => {});
 }
 
 await runConsumer(config, [topicsConfig.agreementTopic], processMessage);
