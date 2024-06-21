@@ -342,7 +342,6 @@ export async function sendPurposeAuthUpdate(
 
 export async function sendAuthorizationAuthUpdate(
   decodedMessage: AuthorizationEventV2,
-  _readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
   correlationId: string
@@ -502,7 +501,6 @@ function processMessage(
           const updater = sendAuthorizationAuthUpdate.bind(
             null,
             decodedMessage,
-            readModelService,
             authService
           );
 

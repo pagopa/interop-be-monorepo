@@ -723,7 +723,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -762,7 +761,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -797,7 +795,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -841,7 +838,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -877,7 +873,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -912,7 +907,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -949,7 +943,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
@@ -1008,7 +1001,6 @@ describe("Authorization Updater processMessage", () => {
 
     await sendAuthorizationAuthUpdate(
       message,
-      readModelService,
       authorizationService,
       genericLogger,
       testCorrelationId
