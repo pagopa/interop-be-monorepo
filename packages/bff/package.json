@@ -20,6 +20,7 @@
     "generate-model-attribute-process": "mkdir -p ./src/model/generated/attribute-process && pnpm openapi-zod-client '../attribute-registry-process/open-api/attribute-registry-service-spec.yml' -o './src/model/generated/attribute-process/api.ts'",
     "generate-model-agreement-process": "mkdir -p ./src/model/generated/agreement-process && pnpm openapi-zod-client '../agreement-process/open-api/agreement-service-spec.yml' -o './src/model/generated/agreement-process/api.ts'",
     "generate-model-purpose-process": "mkdir -p ./src/model/generated/purpose-process && pnpm openapi-zod-client '../purpose-process/open-api/purpose-service-spec.yml' -o './src/model/generated/purpose-process/api.ts'",
+    "generate-model-authorization-process": "mkdir -p ./src/model/generated/authorization-process && pnpm openapi-zod-client '../authorization-updater/open-api/authorization-service-spec.yml' -o './src/model/generated/purpose-process/api.ts'",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
   "keywords": [],

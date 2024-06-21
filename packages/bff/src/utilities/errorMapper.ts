@@ -23,3 +23,6 @@ export const getSelfcareUserErrorMapper = (
 export const attributeEmptyErrorMapper = (
   _error: ApiError<ErrorCodes>
 ): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
+export const clientEmptyErrorMapper = (_error: ApiError<ErrorCodes>): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
