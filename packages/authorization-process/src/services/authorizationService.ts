@@ -29,7 +29,7 @@ import {
   decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   descriptorNotFound,
@@ -38,7 +38,6 @@ import {
   keyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
-  organizationNotAllowedOnClient,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   tooManyKeysPerClient,
@@ -46,7 +45,6 @@ import {
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
-  userWithoutSecurityPrivileges,
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
@@ -63,13 +61,14 @@ import {
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
-import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
-  isClientConsumer,
   assertOrganizationIsPurposeConsumer,
+  assertUserSelfcareSecurityPrivileges,
+  assertOrganizationIsClientConsumer,
 } from "./validators.js";
+import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -122,7 +121,8 @@ const retrieveDescriptor = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -130,25 +130,35 @@ export function authorizationServiceBuilder(
   );
 
   return {
-    async getClientById(
-      clientId: ClientId,
-      organizationId: TenantId,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async getClientById({
+      clientId,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         client: client.data,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: true,
       };
     },
 
-    async createConsumerClient(
-      clientSeed: ApiClientSeed,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async createConsumerClient({
+      clientSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientSeed: ApiClientSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${organizationId}"`
       );
@@ -158,7 +168,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.consumer,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -171,15 +180,20 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
-    async createApiClient(
-      clientSeed: ApiClientSeed,
-      organizationId: TenantId,
-      correlationId: string,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async createApiClient({
+      clientSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientSeed: ApiClientSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${organizationId}"`
       );
@@ -189,7 +203,6 @@ export function authorizationServiceBuilder(
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
-        relationships: [],
         kind: clientKind.api,
         users: clientSeed.members.map(unsafeBrandId<UserId>),
         createdAt: new Date(),
@@ -202,15 +215,22 @@ export function authorizationServiceBuilder(
 
       return {
         client,
-        showUsers: client.consumerId === organizationId,
+        showUsers: true,
       };
     },
-    async getClients(
-      filters: GetClientsFilters,
-      { offset, limit }: { offset: number; limit: number },
-      authData: AuthData,
-      logger: Logger
-    ): Promise<ListResult<Client>> {
+    async getClients({
+      filters,
+      authData,
+      offset,
+      limit,
+      logger,
+    }: {
+      filters: GetClientsFilters;
+      authData: AuthData;
+      offset: number;
+      limit: number;
+      logger: Logger;
+    }): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
@@ -351,9 +371,9 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
-        throw purposeNotFound(purposeIdToRemove);
-      }
+      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+      //   throw purposeNotFound(purposeIdToRemove);
+      // }
 
       const updatedClient: Client = {
         ...client.data,
@@ -403,11 +423,15 @@ export function authorizationServiceBuilder(
         );
       }
     },
-    async getClientUsers(
-      clientId: ClientId,
-      organizationId: TenantId,
-      logger: Logger
-    ): Promise<{ users: UserId[]; showUsers: boolean }> {
+    async getClientUsers({
+      clientId,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ users: UserId[]; showUsers: boolean }> {
       logger.info(`Retrieving users of client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
@@ -435,7 +459,8 @@ export function authorizationServiceBuilder(
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,
-        userId
+        authData.organizationId,
+        selfcareV2Client
       );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
@@ -574,7 +599,8 @@ export function authorizationServiceBuilder(
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,
-        authData.userId
+        authData.organizationId,
+        selfcareV2Client
       );
 
       // eslint-disable-next-line functional/no-let
@@ -620,33 +646,6 @@ export function authorizationServiceBuilder(
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const assertOrganizationIsClientConsumer = (
-  organizationId: TenantId,
-  client: Client
-): void => {
-  if (client.consumerId !== organizationId) {
-    throw organizationNotAllowedOnClient(organizationId, client.id);
-  }
-};
-
-const assertUserSelfcareSecurityPrivileges = async (
-  selfcareId: string,
-  requesterUserId: UserId,
-  userId: UserId
-): Promise<void> => {
-  const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
-    params: { institutionId: selfcareId },
-    queries: {
-      userIdForAuth: requesterUserId,
-      userId,
-      productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
-    },
-  });
-  if (users.length === 0) {
-    throw userWithoutSecurityPrivileges(requesterUserId, userId);
-  }
-};
 
 const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
   if (size > config.maxKeysPerClient) {

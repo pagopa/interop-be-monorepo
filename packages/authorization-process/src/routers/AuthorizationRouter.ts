@@ -11,6 +11,7 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -22,15 +23,17 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   addUserErrorMapper,
-  createClientErrorMapper,
-  createKeysErrorMapper,
   deleteClientErrorMapper,
+  getClientsErrorMapper,
+  createApiClientErrorMapper,
+  createConsumerClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
   getClientKeysErrorMapper,
   getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
   removeUserErrorMapper,
+  createKeysErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -47,7 +50,8 @@ const authorizationService = authorizationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  selfcareV2ClientBuilder(config)
 );
 
 const authorizationRouter = (
@@ -65,20 +69,20 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.createConsumerClient(
-              req.body,
-              ctx.authData.organizationId,
-              req.ctx.correlationId,
-              ctx.logger
-            );
+            await authorizationService.createConsumerClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createClientErrorMapper,
+            createConsumerClientErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -92,62 +96,22 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.createApiClient(
-              req.body,
-              ctx.authData.organizationId,
-              req.ctx.correlationId,
-              ctx.logger
-            );
+            await authorizationService.createApiClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createClientErrorMapper,
+            createApiClientErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
-    )
-    .get(
-      "/clientsWithKeys",
-      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE, SUPPORT_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { name, userIds, consumerId, purposeId, kind, offset, limit } =
-            req.query;
-          const clients = await authorizationService.getClients(
-            {
-              name,
-              userIds: userIds?.map(unsafeBrandId<UserId>),
-              consumerId: unsafeBrandId(consumerId),
-              purposeId: purposeId
-                ? unsafeBrandId<PurposeId>(purposeId)
-                : undefined,
-              kind,
-            },
-            { offset, limit },
-            req.ctx.authData,
-            ctx.logger
-          );
-          return res
-            .status(200)
-            .json({
-              results: clients.results.map((client) =>
-                clientToApiClient(client, {
-                  includeKeys: true,
-                  showUsers: ctx.authData.organizationId === client.consumerId,
-                })
-              ),
-              totalCount: clients.totalCount,
-            })
-            .end();
-        } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -165,8 +129,8 @@ const authorizationRouter = (
         try {
           const { name, userIds, consumerId, purposeId, kind, offset, limit } =
             req.query;
-          const clients = await authorizationService.getClients(
-            {
+          const clients = await authorizationService.getClients({
+            filters: {
               name,
               userIds: userIds?.map(unsafeBrandId<UserId>),
               consumerId: unsafeBrandId(consumerId),
@@ -175,16 +139,17 @@ const authorizationRouter = (
                 : undefined,
               kind,
             },
-            { offset, limit },
-            req.ctx.authData,
-            ctx.logger
-          );
+            authData: req.ctx.authData,
+            offset,
+            limit,
+            logger: ctx.logger,
+          });
           return res
             .status(200)
             .json({
               results: clients.results.map((client) =>
-                clientToApiClient(client, {
-                  includeKeys: false,
+                clientToApiClient({
+                  client,
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -192,7 +157,11 @@ const authorizationRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getClientsErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -209,14 +178,14 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.getClientById(
-              unsafeBrandId(req.params.clientId),
-              ctx.authData.organizationId,
-              ctx.logger
-            );
+            await authorizationService.getClientById({
+              clientId: unsafeBrandId(req.params.clientId),
+              organizationId: ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -262,11 +231,11 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { users } = await authorizationService.getClientUsers(
-            unsafeBrandId(req.params.clientId),
-            ctx.authData.organizationId,
-            ctx.logger
-          );
+          const { users } = await authorizationService.getClientUsers({
+            clientId: unsafeBrandId(req.params.clientId),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
           return res.status(200).json(users).end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -319,7 +288,7 @@ const authorizationRouter = (
           );
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(

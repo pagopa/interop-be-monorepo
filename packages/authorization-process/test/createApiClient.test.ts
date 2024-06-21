@@ -2,6 +2,7 @@ import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {
   Client,
   ClientAddedV2,
+  TenantId,
   UserId,
   clientKind,
   generateId,
@@ -17,7 +18,7 @@ import { ApiClientSeed } from "../src/model/domain/models.js";
 import { authorizationService, postgresDB } from "./utils.js";
 
 describe("createConsumerClient", () => {
-  const organizationId = generateId();
+  const userId: UserId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -31,15 +32,16 @@ describe("createConsumerClient", () => {
   const clientSeed: ApiClientSeed = {
     name: "Seed name",
     description: "Description",
-    members: [organizationId],
+    members: [userId],
   };
   it("should write on event-store for the creation of a api client", async () => {
-    const { client } = await authorizationService.createApiClient(
+    const organizationId: TenantId = generateId();
+    const { client } = await authorizationService.createApiClient({
       clientSeed,
-      unsafeBrandId(organizationId),
-      generateId(),
-      genericLogger
-    );
+      organizationId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
@@ -64,11 +66,10 @@ describe("createConsumerClient", () => {
       keys: [],
       name: clientSeed.name,
       createdAt: new Date(),
-      consumerId: unsafeBrandId(organizationId),
+      consumerId: organizationId,
       kind: clientKind.api,
       purposes: [],
-      relationships: [],
-      users: clientSeed.members.map(unsafeBrandId<UserId>),
+      users: [unsafeBrandId<UserId>(userId)],
       description: clientSeed.description,
     };
 
