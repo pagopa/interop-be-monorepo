@@ -32,7 +32,7 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "kafka-iam-auth": "workspace:*",
-    "ts-pattern": "5.1.2",
+    "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }
 }

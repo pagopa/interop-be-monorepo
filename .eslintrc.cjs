@@ -2,7 +2,7 @@ module.exports = {
   extends: ["@pagopa/eslint-config/strong"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./packages/*/tsconfig.json", "./packages/*/test/tsconfig.json"],
+    project: "./tsconfig.eslint.json",
   },
   rules: {
     // Any project level custom rule
@@ -23,9 +23,9 @@ module.exports = {
   ignorePatterns: [
     ".eslintrc.cjs",
     "vitest.config.ts",
-    "**/src/model/generated/*.ts",
+    "**/src/model/generated/**/*.ts",
     "**/dist",
     "**/patchZodios.ts",
-    "**/paged.polyfill.js"
+    "**/paged.polyfill.js",
   ],
 };

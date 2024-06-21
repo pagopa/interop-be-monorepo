@@ -1,7 +1,9 @@
 import {
   AgreementReadModel,
   AttributeReadmodel,
+  Client,
   EServiceReadModel,
+  Key,
   PurposeReadModel,
   Tenant,
   genericInternalError,
@@ -34,11 +36,8 @@ export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
-
-// Client model is not yet migrated to the repo, so we use any for now
-// For now the client collection is only required in the authorization-updater.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ClientCollection = GenericCollection<any>;
+export type ClientCollection = GenericCollection<Client>;
+export type KeyCollection = GenericCollection<Key>;
 
 export type Collections =
   | EServiceCollection
@@ -46,7 +45,8 @@ export type Collections =
   | TenantCollection
   | AttributeCollection
   | PurposeCollection
-  | ClientCollection;
+  | ClientCollection
+  | KeyCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -151,6 +151,8 @@ export class ReadModelRepository {
 
   public clients: ClientCollection;
 
+  public keys: KeyCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -176,6 +178,7 @@ export class ReadModelRepository {
     });
     this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
+    this.keys = this.db.collection("keys", { ignoreUndefined: true });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
