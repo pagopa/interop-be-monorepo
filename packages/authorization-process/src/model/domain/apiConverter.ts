@@ -14,7 +14,6 @@ import {
   ApiKey,
   ApiKeyUse,
 } from "./models.js";
-import { missingUserId } from "./errors.js";
 
 export const ClientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
   match<ClientKind, ApiClientKind>(kind)
@@ -48,23 +47,17 @@ export function clientToApiClient(
     createdAt: client.createdAt.toJSON(),
     purposes: client.purposes,
     kind: ClientKindToApiClientKind(client.kind),
-    description: client.description ? client.description : undefined,
+    description: client.description,
     ...(includeKeys ? { keys: client.keys } : {}),
   };
 }
 
-export const keyToApiKey = (key: Key): ApiKey => {
-  if (!key.userId) {
-    throw missingUserId(key.kid);
-  } else {
-    return {
-      name: key.name,
-      createdAt: key.createdAt.toJSON(),
-      kid: key.kid,
-      encodedPem: key.encodedPem,
-      algorithm: key.algorithm,
-      use: KeyUseToApiKeyUse(key.use),
-      userId: key.userId,
-    };
-  }
-};
+export const keyToApiKey = (key: Key): ApiKey => ({
+  name: key.name,
+  createdAt: key.createdAt.toJSON(),
+  kid: key.kid,
+  encodedPem: key.encodedPem,
+  algorithm: key.algorithm,
+  use: KeyUseToApiKeyUse(key.use),
+  userId: key.userId,
+});

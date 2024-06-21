@@ -9,6 +9,7 @@ import {
   StampsV1,
   StampV1,
   Agreement,
+  dateToBigInt,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -30,12 +31,12 @@ export const toAgreementDocumentV1 = (
   input: AgreementDocument
 ): AgreementDocumentV1 => ({
   ...input,
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toStampV1 = (input: AgreementStamp): StampV1 => ({
   ...input,
-  when: BigInt(input.when.getTime()),
+  when: dateToBigInt(input.when),
 });
 
 export const toStampsV1 = (input: AgreementStamps): StampsV1 => ({
@@ -55,11 +56,9 @@ export const toStampsV1 = (input: AgreementStamps): StampsV1 => ({
 export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
   ...input,
   state: toAgreementStateV1(input.state),
-  createdAt: BigInt(input.createdAt.getTime()),
-  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
-  suspendedAt: input.suspendedAt
-    ? BigInt(input.suspendedAt.getTime())
-    : undefined,
+  createdAt: dateToBigInt(input.createdAt),
+  updatedAt: dateToBigInt(input.updatedAt),
+  suspendedAt: dateToBigInt(input.suspendedAt),
   consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV1),
   contract: input.contract ? toAgreementDocumentV1(input.contract) : undefined,
   stamps: toStampsV1(input.stamps),
