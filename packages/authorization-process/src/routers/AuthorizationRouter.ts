@@ -283,7 +283,7 @@ const authorizationRouter = (
           );
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
