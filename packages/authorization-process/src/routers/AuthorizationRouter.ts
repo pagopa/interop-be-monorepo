@@ -306,16 +306,16 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client, showUsers } = await authorizationService.createKeys(
-            unsafeBrandId(req.params.clientId),
-            req.ctx.authData,
-            req.body,
-            req.ctx.correlationId,
-            ctx.logger
-          );
+          const { client } = await authorizationService.createKeys({
+            clientId: unsafeBrandId(req.params.clientId),
+            authData: req.ctx.authData,
+            keysSeeds: req.body,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: true, showUsers }))
+            .json({ keys: client.keys.map((key) => keyToApiKey(key)) })
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(

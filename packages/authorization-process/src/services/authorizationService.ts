@@ -62,13 +62,13 @@ import {
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../utilities/config.js";
+import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
   assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
 } from "./validators.js";
-import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -576,13 +576,19 @@ export function authorizationServiceBuilder(
       );
     },
 
-    async createKeys(
-      clientId: ClientId,
-      authData: AuthData,
-      keysSeeds: ApiKeysSeed,
-      correlationId: string,
-      logger: Logger
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    async createKeys({
+      clientId,
+      authData,
+      keysSeeds,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      authData: AuthData;
+      keysSeeds: ApiKeysSeed;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(

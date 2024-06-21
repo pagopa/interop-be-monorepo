@@ -7,11 +7,6 @@ import {
   organizationNotAllowedOnClient,
 } from "../model/domain/errors.js";
 
-export const isClientConsumer = (
-  consumerId: TenantId,
-  organizationId: string
-): boolean => (consumerId === organizationId ? true : false);
-
 export const assertUserSelfcareSecurityPrivileges = async (
   selfcareId: string,
   requesterUserId: UserId,
