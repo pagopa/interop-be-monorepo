@@ -25,8 +25,14 @@ import {
   AgreementDocument,
   Attribute,
   toReadModelAttribute,
+  TenantId,
 } from "pagopa-interop-models";
-import { genericLogger, initPDFGenerator } from "pagopa-interop-commons";
+import {
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+  initPDFGenerator,
+  launchPuppeteerBrowser,
+} from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
@@ -43,7 +49,9 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
 
 afterEach(cleanup);
 
-const testBrowserInstance: Browser = await puppeteer.launch();
+const testBrowserInstance: Browser = await launchPuppeteerBrowser({
+  pipe: true,
+});
 const closeTestBrowserInstance = async (): Promise<void> =>
   await testBrowserInstance.close();
 
@@ -153,6 +161,26 @@ export function getMockConsumerDocument(
     prettyName: "pretty name",
     contentType: "application/pdf",
     createdAt: new Date(),
+  };
+}
+
+export function getMockContract(
+  agreementId: AgreementId,
+  consumerId: TenantId,
+  producerId: TenantId
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  const createdAt = new Date();
+  const contractDocumentName = `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
+    createdAt
+  )}_agreement_contract.pdf`;
+  return {
+    id,
+    contentType: "application/pdf",
+    createdAt,
+    path: `${config.agreementContractsPath}/${agreementId}/${id}/${contractDocumentName}`,
+    prettyName: "Richiesta di fruizione",
+    name: contractDocumentName,
   };
 }
 

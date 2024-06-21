@@ -59,6 +59,12 @@ export const createSubmissionUpdateAgreementSeed = (
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
   const isActivation = newState === agreementState.active;
 
+  /* As we do in the upgrade, we copy suspendedByProducer, suspendedByProducer, and suspendedAt
+    event if the agreement was never activated before and thus never suspended.
+    In this way, if this is an agreement that was upgraded, we keep suspension flags
+    from the original agreement before the upgrade, so that if it is being activated
+    by the producer, it will be suspended right away if the original
+    agreement was suspended by the consumer, and viceversa. */
   return isActivation
     ? {
         state: newState,
@@ -71,6 +77,7 @@ export const createSubmissionUpdateAgreementSeed = (
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
+        suspendedAt: agreement.suspendedAt,
         suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
@@ -80,8 +87,9 @@ export const createSubmissionUpdateAgreementSeed = (
         certifiedAttributes: [],
         declaredAttributes: [],
         verifiedAttributes: [],
-        suspendedByConsumer: undefined,
-        suspendedByProducer: undefined,
+        suspendedByConsumer: agreement.suspendedByConsumer,
+        suspendedByProducer: agreement.suspendedByProducer,
+        suspendedAt: agreement.suspendedAt,
         suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
