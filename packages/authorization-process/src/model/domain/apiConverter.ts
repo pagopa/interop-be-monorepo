@@ -7,13 +7,7 @@ import {
   keyUse,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  ApiClient,
-  ApiClientWithKeys,
-  ApiClientKind,
-  ApiKey,
-  ApiKeyUse,
-} from "./models.js";
+import { ApiClient, ApiClientKind, ApiKey, ApiKeyUse } from "./models.js";
 
 export const clientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
   match<ClientKind, ApiClientKind>(kind)
@@ -27,18 +21,13 @@ export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
-export function clientToApiClient(
-  client: Client,
-  { includeKeys, showUsers }: { includeKeys: true; showUsers: boolean }
-): ApiClientWithKeys;
-export function clientToApiClient(
-  client: Client,
-  { includeKeys, showUsers }: { includeKeys: false; showUsers: boolean }
-): ApiClient;
-export function clientToApiClient(
-  client: Client,
-  { includeKeys, showUsers }: { includeKeys: boolean; showUsers: boolean }
-): ApiClientWithKeys | ApiClient {
+export function clientToApiClient({
+  client,
+  showUsers,
+}: {
+  client: Client;
+  showUsers: boolean;
+}): ApiClient {
   return {
     id: client.id,
     name: client.name,
@@ -48,7 +37,7 @@ export function clientToApiClient(
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
     description: client.description,
-    ...(includeKeys ? { keys: client.keys } : {}),
+    keys: client.keys,
   };
 }
 
