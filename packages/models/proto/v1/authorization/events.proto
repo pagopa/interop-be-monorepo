@@ -1,0 +1,61 @@
+syntax = "proto2";
+
+package authorization;
+
+import "v1/authorization/key.proto";
+import "v1/authorization/client.proto";
+
+message KeysAddedV1 {
+  required string clientId = 1;
+  repeated KeyEntryV1 keys = 2;
+}
+
+message KeyDeletedV1 {
+  required string clientId = 1;
+  required string keyId = 2;
+  required string deactivationTimestamp = 3;
+}
+
+message KeyRelationshipToUserMigratedV1 {
+  required string clientId = 1;
+  required string keyId = 2;
+  required string userId = 3;
+}
+
+message ClientAddedV1 {
+  required ClientV1 client = 1;
+}
+
+message ClientDeletedV1 {
+  required string clientId = 1;
+}
+
+message RelationshipAddedV1 {
+  required ClientV1 client = 1;
+  required string relationshipId = 2;
+}
+
+message RelationshipRemovedV1 {
+  required string clientId = 1;
+  required string relationshipId = 2;
+}
+
+message UserAddedV1 {
+  required ClientV1 client = 1;
+  required string userId = 2;
+}
+
+message UserRemovedV1 {
+  required ClientV1 client = 1;
+  required string userId = 2;
+}
+
+message ClientPurposeAddedV1 {
+  required string clientId = 1;
+  required ClientStatesChainV1 statesChain = 3;
+}
+
+message ClientPurposeRemovedV1 {
+  required string clientId = 1;
+  required string purposeId = 2;
+}
