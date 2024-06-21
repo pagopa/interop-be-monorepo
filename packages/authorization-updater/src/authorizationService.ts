@@ -367,14 +367,14 @@ export const authorizationServiceBuilder = (
 
       const purpose = await readModelService.getPurposeById(purposeId);
       if (!purpose) {
-        throw genericInternalError("");
+        throw genericInternalError("purpose not found");
       }
 
       const eservice = await readModelService.getEServiceById(
         purpose.eserviceId
       );
       if (!eservice) {
-        throw genericInternalError("");
+        throw genericInternalError("eservice not found");
       }
 
       const agreement = await readModelService.getAgreement(
@@ -382,10 +382,9 @@ export const authorizationServiceBuilder = (
         purpose.consumerId
       );
       if (!agreement) {
-        throw genericInternalError("");
+        throw genericInternalError("agreement not found");
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const descriptor = eservice.descriptors.find(
         (d) => d.id === agreement.descriptorId
       )!;
