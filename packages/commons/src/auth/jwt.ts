@@ -4,7 +4,7 @@ import { invalidClaim, jwtDecodingError } from "pagopa-interop-models";
 import { JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
-const decodeJwtToken = (jwtToken: string): JwtPayload | null => {
+export const decodeJwtToken = (jwtToken: string): JwtPayload | null => {
   try {
     return jwt.decode(jwtToken, { json: true });
   } catch (err) {
