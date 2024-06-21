@@ -9,7 +9,7 @@ import {
 import { api } from "../model/generated/api.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
-import { attributeEmptyErrorMapper } from "../utilities/errorMapper.js";
+import { clientEmptyErrorMapper } from "../utilities/errorMapper.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { toApiCompactAttribute } from "../model/domain/apiConverter.js";
 
@@ -42,7 +42,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          attributeEmptyErrorMapper,
+          clientEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -67,7 +67,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          attributeEmptyErrorMapper,
+          clientEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -93,7 +93,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          attributeEmptyErrorMapper,
+          clientEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -129,7 +129,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          attributeEmptyErrorMapper,
+          clientEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).end();
@@ -154,7 +154,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          attributeEmptyErrorMapper,
+          clientEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -180,7 +180,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          attributeEmptyErrorMapper,
+          clientEmptyErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();

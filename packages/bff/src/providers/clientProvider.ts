@@ -3,6 +3,7 @@ import { createApiClient as createApiClientAgreementProcess } from "../model/gen
 import { createApiClient as createApiClientCatalogProcess } from "../model/generated/catalog-process/api.js";
 import { createApiClient as createApiClientAttributeProcess } from "../model/generated/attribute-process/api.js";
 import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
+import { createApiClient as createApiAuthorizationProcess } from "../model/generated/authorization-process/api.js";
 import { config } from "../utilities/config.js";
 
 export type Headers = { "X-Correlation-Id": string; Authorization: string };
@@ -13,6 +14,7 @@ export type PagoPAInteropBeClients = {
   catalogProcessClient: ReturnType<typeof createApiClientCatalogProcess>;
   agreementProcessClient: ReturnType<typeof createApiClientAgreementProcess>;
   purposeProcessClient: ReturnType<typeof createApiClientPurposeProcess>;
+  authorizationProcessClient: ReturnType<typeof createApiAuthorizationProcess>;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -28,5 +30,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.attributeRegistryUrl
     ),
     purposeProcessClient: createApiClientPurposeProcess(config.purposeUrl),
+    authorizationProcessClient: createApiAuthorizationProcess(
+      config.authorizationUrl
+    ),
   };
 }
