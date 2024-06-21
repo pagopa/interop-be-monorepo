@@ -71,9 +71,12 @@ export const getClientUsersErrorMapper = (
 
 export const addUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "organizationNotAllowedOnClient",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("userWithoutSecurityPrivileges", () => HTTP_STATUS_FORBIDDEN)
     .with("userAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
