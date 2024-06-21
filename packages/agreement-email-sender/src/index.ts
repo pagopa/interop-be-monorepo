@@ -14,7 +14,7 @@ import {
   AgreementEvent,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
 import { emailManagerConfig } from "./utilities/config.js";
@@ -31,6 +31,8 @@ const readModelService = readModelServiceBuilder(
 export async function processMessage({
   message,
 }: EachMessagePayload): Promise<void> {
+  const handleMessageToSkip = async (): Promise<void> => {};
+
   const decodedMessage = decodeKafkaMessage(message, AgreementEvent);
   const loggerInstance = logger({
     serviceName: "agreement-email-sender",
@@ -57,7 +59,39 @@ export async function processMessage({
         }
       }
     )
-    .otherwise(() => {});
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "AgreementAdded",
+          "AgreementDeleted",
+          "DraftAgreementUpdated",
+          "AgreementSubmitted",
+          "AgreementUnsuspendedByProducer",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByUpgrade",
+          "AgreementUpgraded",
+          "AgreementSuspendedByProducer",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByPlatform",
+          "AgreementRejected",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform"
+        ),
+      },
+      handleMessageToSkip
+    )
+    .with(
+      {
+        event_version: 1,
+      },
+      handleMessageToSkip
+    )
+    .exhaustive();
 }
 
 await runConsumer(config, [topicsConfig.agreementTopic], processMessage);
