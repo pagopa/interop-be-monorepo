@@ -223,11 +223,11 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { users } = await authorizationService.getClientUsers(
-            unsafeBrandId(req.params.clientId),
-            ctx.authData.organizationId,
-            ctx.logger
-          );
+          const { users } = await authorizationService.getClientUsers({
+            clientId: unsafeBrandId(req.params.clientId),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
           return res.status(200).json(users).end();
         } catch (error) {
           const errorRes = makeApiProblem(
