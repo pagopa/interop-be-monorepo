@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-models";
 import {
   EmailManager,
+  Logger,
   buildHTMLTemplateService,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
@@ -114,6 +115,7 @@ export async function sendAgreementEmail(
   agreement: AgreementV2,
   readModelService: ReadModelService,
   emailManager: EmailManager,
+  logger: Logger,
   { agreementEmailSender } = agreementEmailSenderConfig()
 ): Promise<void> {
   const { to, subject, body } = await getActivationMailFromAgreement(
@@ -121,5 +123,7 @@ export async function sendAgreementEmail(
     readModelService
   );
 
+  logger.info(`Sending email for agreement ${agreement.id} activation`);
   await emailManager.send(agreementEmailSender, to, subject, body);
+  logger.info(`Email sent for agreement ${agreement.id} activation`);
 }
