@@ -14,6 +14,8 @@ afterEach(cleanup);
 
 export const eservices = readModelRepository.eservices;
 export const clients = readModelRepository.clients;
+export const agreements = readModelRepository.agreements;
+export const purposes = readModelRepository.purposes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 

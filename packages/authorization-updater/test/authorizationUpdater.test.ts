@@ -4,12 +4,14 @@ import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockClient,
+  getMockDescriptor,
   getMockDescriptorPublished,
   getMockEService,
   getMockKey,
   getMockPurpose,
   getMockPurposeVersion,
   randomArrayItem,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -24,7 +26,9 @@ import {
   PurposeEventEnvelopeV2,
   PurposeId,
   PurposeVersion,
+  TenantId,
   UserId,
+  agreementState,
   descriptorState,
   generateId,
   genericInternalError,
@@ -33,6 +37,9 @@ import {
   toClientV2,
   toEServiceV2,
   toPurposeV2,
+  toReadModelAgreement,
+  toReadModelEService,
+  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -61,10 +68,18 @@ import {
 import { ApiClientComponent } from "../src/model/models.js";
 import {
   agreementStateToClientState,
+  clientComponentState,
   clientKindToApiClientKind,
   keyUseToApiKeyUse,
 } from "../src/utils.js";
-import { addOneClient, addOneEService, readModelService } from "./utils.js";
+import {
+  addOneClient,
+  addOneEService,
+  agreements,
+  eservices,
+  purposes,
+  readModelService,
+} from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
   const testCorrelationId = generateId();
@@ -932,8 +947,37 @@ describe("Authorization Updater processMessage", () => {
     );
   });
   it("should correctly process an authorization message of type ClientPurposeAdded", async () => {
-    const purposeId: PurposeId = generateId();
-    const mockClient = { ...getMockClient(), purposes: [purposeId] };
+    const mockConsumerId: TenantId = generateId();
+    const mockDescriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+    };
+    const mockEservice: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+    };
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
+      purposeVersionState.active
+    );
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: mockConsumerId,
+      eserviceId: mockEservice.id,
+      versions: [mockPurposeVersion],
+    };
+    const mockClient = { ...getMockClient(), purposes: [mockPurpose.id] };
+
+    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
+
     const message = {
       sequence_num: 1,
       stream_id: mockClient.id,
@@ -942,7 +986,7 @@ describe("Authorization Updater processMessage", () => {
       event_version: 2,
       data: {
         client: toClientV2(mockClient),
-        purposeId,
+        purposeId: mockPurpose.id,
       },
       log_date: new Date(),
     } as AuthorizationEventEnvelopeV2;
@@ -961,25 +1005,24 @@ describe("Authorization Updater processMessage", () => {
 
     expect(authorizationManagementClient.addClientPurpose).toHaveBeenCalledWith(
       {
-        // TO DO: how to adjust the input to the following data structure?
         states: {
           eservice: {
-            state: "ACTIVE",
-            eserviceId: "",
-            descriptorId: "",
-            audience: [],
-            voucherLifespan: 0,
+            state: clientComponentState.active,
+            eserviceId: mockEservice.id,
+            descriptorId: mockDescriptor.id,
+            audience: mockDescriptor.audience,
+            voucherLifespan: mockDescriptor.voucherLifespan,
           },
           agreement: {
-            agreementId: "",
-            state: "ACTIVE",
-            eserviceId: "",
-            consumerId: "",
+            agreementId: mockAgreement.id,
+            state: clientComponentState.active,
+            eserviceId: mockEservice.id,
+            consumerId: mockConsumerId,
           },
           purpose: {
-            state: "ACTIVE",
-            versionId: "",
-            purposeId,
+            state: clientComponentState.active,
+            versionId: mockPurposeVersion.id,
+            purposeId: mockPurpose.id,
           },
         },
       },
