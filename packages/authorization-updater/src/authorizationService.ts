@@ -387,7 +387,10 @@ export const authorizationServiceBuilder = (
 
       const descriptor = eservice.descriptors.find(
         (d) => d.id === agreement.descriptorId
-      )!;
+      );
+      if (!descriptor) {
+        throw genericInternalError("descriptor not found");
+      }
 
       const purposeVersion = purpose.versions[purpose.versions.length - 1];
 
