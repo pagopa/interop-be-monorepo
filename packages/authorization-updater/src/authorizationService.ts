@@ -397,7 +397,7 @@ export const authorizationServiceBuilder = (
           states: {
             eservice: {
               state: convertEserviceState(descriptor.state), // to do: double-check
-              eserviceId: purpose.id,
+              eserviceId: eservice.id,
               descriptorId: agreement.descriptorId,
               audience: descriptor.audience,
               voucherLifespan: descriptor.voucherLifespan,
