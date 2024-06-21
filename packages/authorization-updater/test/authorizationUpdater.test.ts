@@ -24,7 +24,6 @@ import {
   PurposeEventEnvelopeV2,
   PurposeVersion,
   descriptorState,
-  fromClientV2,
   generateId,
   genericInternalError,
   purposeVersionState,
