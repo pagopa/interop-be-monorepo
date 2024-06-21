@@ -15,43 +15,50 @@ import {
 import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getClientUsers", async () => {
-  const consumerId: TenantId = generateId();
+  const organizationId: TenantId = generateId();
   const userId1: UserId = generateId();
   const userId2: UserId = generateId();
   const mockClient: Client = {
     ...getMockClient(),
     users: [userId1, userId2],
-    consumerId,
+    consumerId: organizationId,
   };
 
   it("should get from the readModel the users in the specified client", async () => {
     await addOneClient(mockClient);
 
-    const { users } = await authorizationService.getClientUsers(
-      mockClient.id,
-      consumerId,
-      genericLogger
-    );
+    const { users } = await authorizationService.getClientUsers({
+      clientId: mockClient.id,
+      organizationId,
+      logger: genericLogger,
+    });
     expect(users).toEqual([userId1, userId2]);
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(mockClient);
     const clientId: ClientId = generateId();
     await expect(
-      authorizationService.getClientUsers(clientId, generateId(), genericLogger)
+      authorizationService.getClientUsers({
+        clientId,
+        organizationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(clientNotFound(clientId));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     await addOneClient(mockClient);
-    const organizationId: TenantId = generateId();
+    const organizationIdNotMatchWithConsumer: TenantId = generateId();
     await expect(
-      authorizationService.getClientUsers(
-        mockClient.id,
-        organizationId,
-        genericLogger
-      )
+      authorizationService.getClientUsers({
+        clientId: mockClient.id,
+        organizationId: organizationIdNotMatchWithConsumer,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(organizationId, mockClient.id)
+      organizationNotAllowedOnClient(
+        organizationIdNotMatchWithConsumer,
+        mockClient.id
+      )
     );
   });
 });
