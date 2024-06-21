@@ -343,6 +343,7 @@ export async function sendPurposeAuthUpdate(
 export async function sendAuthorizationAuthUpdate(
   decodedMessage: AuthorizationEventV2,
   authService: AuthorizationService,
+  readModelService: ReadModelService,
   logger: Logger,
   correlationId: string
 ): Promise<void> {
@@ -415,6 +416,7 @@ export async function sendAuthorizationAuthUpdate(
       await authService.addClientPurpose(
         clientId,
         purposeId,
+        readModelService,
         logger,
         correlationId
       );
@@ -501,7 +503,8 @@ function processMessage(
           const updater = sendAuthorizationAuthUpdate.bind(
             null,
             decodedMessage,
-            authService
+            authService,
+            readModelService
           );
 
           return { decodedMessage, updater };

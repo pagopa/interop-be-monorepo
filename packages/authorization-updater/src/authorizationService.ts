@@ -11,10 +11,18 @@ import {
   UserId,
   Client,
   Key,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
-import { clientKindToApiClientKind, keyUseToApiKeyUse } from "./utils.js";
+import {
+  clientKindToApiClientKind,
+  convertAgreementState,
+  convertEserviceState,
+  convertPurposeState,
+  keyUseToApiKeyUse,
+} from "./utils.js";
+import { ReadModelService } from "./readModelService.js";
 
 export type AuthorizationService = {
   updateEServiceState: (
@@ -96,6 +104,7 @@ export type AuthorizationService = {
   addClientPurpose: (
     clientId: ClientId,
     purposeId: PurposeId,
+    readModelService: ReadModelService,
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
@@ -349,31 +358,59 @@ export const authorizationServiceBuilder = (
     async addClientPurpose(
       clientId: ClientId,
       purposeId: PurposeId,
+      readModelService: ReadModelService,
       logger: Logger,
       correlationId: string
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
+
+      const purpose = await readModelService.getPurposeById(purposeId);
+      if (!purpose) {
+        throw genericInternalError("");
+      }
+
+      const eservice = await readModelService.getEServiceById(
+        purpose.eserviceId
+      );
+      if (!eservice) {
+        throw genericInternalError("");
+      }
+
+      const agreement = await readModelService.getAgreement(
+        eservice.id,
+        purpose.consumerId
+      );
+      if (!agreement) {
+        throw genericInternalError("");
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      )!;
+
+      const purposeVersion = purpose.versions[purpose.versions.length - 1];
+
       await authMgmtClient.addClientPurpose(
         {
-          // TO DO: how to adjust the input to the following data structure?
           states: {
             eservice: {
-              state: "ACTIVE",
-              eserviceId: "",
-              descriptorId: "",
-              audience: [],
-              voucherLifespan: 0,
+              state: convertEserviceState(descriptor.state), // to do: double-check
+              eserviceId: purpose.id,
+              descriptorId: agreement.descriptorId,
+              audience: descriptor.audience,
+              voucherLifespan: descriptor.voucherLifespan,
             },
             agreement: {
-              agreementId: "",
-              state: "ACTIVE",
-              eserviceId: "",
-              consumerId: "",
+              agreementId: agreement.id,
+              state: convertAgreementState(agreement.state), // to do: double-check
+              eserviceId: agreement.eserviceId,
+              consumerId: agreement.consumerId,
             },
             purpose: {
-              state: "ACTIVE",
-              versionId: "",
+              state: convertPurposeState(purposeVersion.state), // to do: double-check
+              versionId: purposeVersion.id,
               purposeId,
             },
           },

@@ -1,82 +1,127 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
+  Agreement,
   ClientId,
   EService,
+  EServiceId,
+  Purpose,
   PurposeId,
+  TenantId,
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
-export type ReadModelService = {
-  getEServiceById: (id: string) => Promise<EService | undefined>;
-  getClientsIdFromPurpose: (purposeId: PurposeId) => Promise<ClientId[]>;
-};
-
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
-): ReadModelService {
-  const eservices = readModelRepository.eservices;
-  const clients = readModelRepository.clients;
+) {
+  const { agreements, clients, eservices, purposes } = readModelRepository;
 
-  async function getEServiceById(id: string): Promise<EService | undefined> {
-    const data = await eservices.findOne(
-      { "data.id": id },
-      { projection: { data: true } }
-    );
+  return {
+    async getEServiceById(id: string): Promise<EService | undefined> {
+      const data = await eservices.findOne(
+        { "data.id": id },
+        { projection: { data: true } }
+      );
 
-    if (data) {
-      const result = EService.safeParse(data.data);
+      if (data) {
+        const result = EService.safeParse(data.data);
+
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse eservices item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+
+        return result.data;
+      }
+
+      return undefined;
+    },
+
+    async getClientsIdFromPurpose(purposeId: PurposeId): Promise<ClientId[]> {
+      const data = await clients
+        .find(
+          {
+            $or: [
+              {
+                "data.purposes.purpose.purposeId": purposeId,
+              },
+              {
+                "data.purposes": purposeId,
+              },
+            ],
+          },
+          { projection: { data: true } }
+        )
+        .map((c) => c.data)
+        .toArray();
+
+      const result = z.array(z.object({ id: z.string() })).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
-          `Unable to parse eservices item: result ${JSON.stringify(
+          `Unable to parse clients item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
       }
 
-      return result.data;
-    }
+      return result.data.map((c) => unsafeBrandId<ClientId>(c.id));
+    },
 
-    return undefined;
-  }
-
-  async function getClientsIdFromPurpose(
-    purposeId: PurposeId
-  ): Promise<ClientId[]> {
-    const data = await clients
-      .find(
-        {
-          $or: [
-            {
-              "data.purposes.purpose.purposeId": purposeId,
-            },
-            {
-              "data.purposes": purposeId,
-            },
-          ],
-        },
+    async getPurposeById(id: PurposeId): Promise<Purpose | undefined> {
+      const data = await purposes.findOne(
+        { "data.id": id },
         { projection: { data: true } }
-      )
-      .map((c) => c.data)
-      .toArray();
-
-    const result = z.array(z.object({ id: z.string() })).safeParse(data);
-
-    if (!result.success) {
-      throw genericInternalError(
-        `Unable to parse clients item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
       );
-    }
 
-    return result.data.map((c) => unsafeBrandId<ClientId>(c.id));
-  }
+      if (data) {
+        const result = Purpose.safeParse(data.data);
 
-  return {
-    getEServiceById,
-    getClientsIdFromPurpose,
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse purpose item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+
+        return result.data;
+      }
+
+      return undefined;
+    },
+
+    async getAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne(
+        { "data.eserviceId": eserviceId, "data.consumerId": consumerId },
+        { projection: { data: true } }
+      );
+
+      if (data) {
+        const result = Agreement.safeParse(data.data);
+
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+
+        return result.data;
+      }
+
+      return undefined;
+    },
   };
 }
+
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

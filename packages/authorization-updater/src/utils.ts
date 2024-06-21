@@ -21,6 +21,11 @@ import {
   keyUse,
   ClientKind,
   clientKind,
+  DescriptorState,
+  descriptorState,
+  AgreementState,
+  PurposeVersionState,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -158,3 +163,34 @@ export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
+
+export const clientComponentState = {
+  active: "ACTIVE",
+  inactive: "INACTIVE",
+} as const;
+export const ClientComponentState = z.enum([
+  Object.values(clientComponentState)[0],
+  ...Object.values(clientComponentState).slice(1),
+]);
+export type ClientComponentState = z.infer<typeof ClientComponentState>;
+
+export const convertEserviceState = (
+  state: DescriptorState
+): ClientComponentState =>
+  state === descriptorState.published
+    ? clientComponentState.active
+    : clientComponentState.inactive;
+
+export const convertAgreementState = (
+  state: AgreementState
+): ClientComponentState =>
+  state === agreementState.active
+    ? clientComponentState.active
+    : clientComponentState.inactive;
+
+export const convertPurposeState = (
+  state: PurposeVersionState
+): ClientComponentState =>
+  state === purposeVersionState.active
+    ? clientComponentState.active
+    : clientComponentState.inactive;
