@@ -33,7 +33,7 @@
     "jwks-rsa": "3.1.0",
     "kafkajs": "2.2.4",
     "mongodb": "6.7.0",
-    "nodemailer": "6.9.13",
+    "nodemailer": "6.9.14",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.8.0",
     "ts-pattern": "5.2.0",
