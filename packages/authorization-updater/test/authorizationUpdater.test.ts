@@ -6,6 +6,7 @@ import {
   getMockClient,
   getMockDescriptorPublished,
   getMockEService,
+  getMockKey,
   getMockPurpose,
   getMockPurposeVersion,
   randomArrayItem,
@@ -13,7 +14,9 @@ import {
 import {
   Agreement,
   AgreementEventEnvelopeV2,
+  AuthorizationEventEnvelopeV2,
   Client,
+  ClientId,
   Descriptor,
   EService,
   EServiceEventEnvelopeV2,
@@ -21,10 +24,12 @@ import {
   PurposeEventEnvelopeV2,
   PurposeVersion,
   descriptorState,
+  fromClientV2,
   generateId,
   genericInternalError,
   purposeVersionState,
   toAgreementV2,
+  toClientV2,
   toEServiceV2,
   toPurposeV2,
 } from "pagopa-interop-models";
@@ -48,11 +53,16 @@ import {
 } from "../src/authorizationService.js";
 import {
   sendAgreementAuthUpdate,
+  sendAuthorizationAuthUpdate,
   sendCatalogAuthUpdate,
   sendPurposeAuthUpdate,
 } from "../src/index.js";
 import { ApiClientComponent } from "../src/model/models.js";
-import { agreementStateToClientState } from "../src/utils.js";
+import {
+  agreementStateToClientState,
+  clientKindToApiClientKind,
+  keyUseToApiKeyUse,
+} from "../src/utils.js";
 import { addOneClient, addOneEService, readModelService } from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
@@ -86,6 +96,13 @@ describe("Authorization Updater processMessage", () => {
     authorizationManagementClient.updateAgreementAndEServiceStates = vi.fn();
     authorizationManagementClient.updatePurposeState = vi.fn();
     authorizationManagementClient.removeClientPurpose = vi.fn();
+    authorizationManagementClient.createClient = vi.fn();
+    authorizationManagementClient.deleteClient = vi.fn();
+    authorizationManagementClient.createKeys = vi.fn();
+    authorizationManagementClient.deleteClientKeyById = vi.fn();
+    authorizationManagementClient.addUser = vi.fn();
+    authorizationManagementClient.removeClientUser = vi.fn();
+    authorizationManagementClient.addClientPurpose = vi.fn();
   });
 
   afterEach(async () => {
@@ -689,4 +706,120 @@ describe("Authorization Updater processMessage", () => {
       ).not.toHaveBeenCalled();
     }
   );
+  it("ClientAdded", async () => {
+    const client = getMockClient();
+    const message = {
+      sequence_num: 1,
+      stream_id: client.id,
+      version: 1,
+      type: "ClientAdded",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+      },
+      log_date: new Date(),
+    } as AuthorizationEventEnvelopeV2;
+
+    await sendAuthorizationAuthUpdate(
+      message,
+      readModelService,
+      authorizationService,
+      genericLogger,
+      testCorrelationId
+    );
+
+    expect(authorizationManagementClient.createClient).toHaveBeenCalledTimes(1);
+
+    expect(authorizationManagementClient.createClient).toHaveBeenCalledWith(
+      {
+        name: client.name,
+        description: client.description,
+        consumerId: client.consumerId,
+        createdAt: client.createdAt.toISOString(),
+        kind: clientKindToApiClientKind(client.kind),
+        users: client.users,
+      },
+      {
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
+  });
+  it("ClientDeleted", async () => {
+    const clientId: ClientId = generateId();
+    const message = {
+      sequence_num: 1,
+      stream_id: clientId,
+      version: 1,
+      type: "ClientDeleted",
+      event_version: 2,
+      data: {
+        clientId,
+      },
+      log_date: new Date(),
+    } as AuthorizationEventEnvelopeV2;
+
+    await sendAuthorizationAuthUpdate(
+      message,
+      readModelService,
+      authorizationService,
+      genericLogger,
+      testCorrelationId
+    );
+
+    expect(authorizationManagementClient.deleteClient).toHaveBeenCalledTimes(1);
+
+    expect(authorizationManagementClient.deleteClient).toHaveBeenCalledWith(
+      undefined,
+      {
+        params: { clientId },
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
+  });
+  it.only("ClientKeyAdded", async () => {
+    const mockKey = getMockKey();
+    const mockClient = { ...getMockClient(), keys: [mockKey] };
+    const message = {
+      sequence_num: 1,
+      stream_id: mockClient.id,
+      version: 1,
+      type: "ClientKeyAdded",
+      event_version: 2,
+      data: {
+        client: toClientV2(mockClient),
+        kid: mockKey.kid,
+      },
+      log_date: new Date(),
+    } as AuthorizationEventEnvelopeV2;
+
+    await sendAuthorizationAuthUpdate(
+      message,
+      readModelService,
+      authorizationService,
+      genericLogger,
+      testCorrelationId
+    );
+
+    expect(authorizationManagementClient.createKeys).toHaveBeenCalledTimes(1);
+
+    expect(authorizationManagementClient.createKeys).toHaveBeenCalledWith(
+      [
+        {
+          name: mockKey.name,
+          createdAt: mockKey.createdAt.toISOString(),
+          userId: mockKey.userId,
+          key: mockKey.encodedPem, // TO DO: double-check
+          use: keyUseToApiKeyUse(mockKey.use),
+          alg: mockKey.algorithm,
+        },
+      ],
+      {
+        params: { clientId: mockClient.id },
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
+  });
 });

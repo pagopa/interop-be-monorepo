@@ -14,7 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
-import { keyUseToApiKeyUse } from "./utils.js";
+import { clientKindToApiClientKind, keyUseToApiKeyUse } from "./utils.js";
 
 export type AuthorizationService = {
   updateEServiceState: (
@@ -247,7 +247,7 @@ export const authorizationServiceBuilder = (
           description: client.description,
           consumerId: client.consumerId,
           createdAt: client.createdAt.toISOString(),
-          kind: "CONSUMER", // to do: use client.kind but convert it
+          kind: clientKindToApiClientKind(client.kind),
           users: client.users,
         },
         {
@@ -344,7 +344,7 @@ export const authorizationServiceBuilder = (
         withCredentials: true,
         headers,
       });
-      logger.info(`DRemoved user ${userId} from client ${clientId}`);
+      logger.info(`Removed user ${userId} from client ${clientId}`);
     },
     async addClientPurpose(
       clientId: ClientId,
