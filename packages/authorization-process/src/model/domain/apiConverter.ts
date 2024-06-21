@@ -37,7 +37,6 @@ export function clientToApiClient({
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
     description: client.description,
-    keys: client.keys,
   };
 }
 
