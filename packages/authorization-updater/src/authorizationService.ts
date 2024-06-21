@@ -294,7 +294,7 @@ export const authorizationServiceBuilder = (
             name: key.name,
             createdAt: key.createdAt.toISOString(),
             userId: key.userId,
-            key: key.encodedPem, // TO DO: double-check
+            key: key.encodedPem,
             use: keyUseToApiKeyUse(key.use),
             alg: key.algorithm,
           },
