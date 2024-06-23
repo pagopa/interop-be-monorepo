@@ -99,6 +99,7 @@ const makeRegexFilter = (
 ): ReadModelFilter<Agreement> | undefined =>
   match(value)
     .with(P.nullish, () => undefined)
+    .with("", () => undefined)
     .with(P.string, () => ({
       [fieldName]: {
         $regex: new RegExp(ReadModelRepository.escapeRegExp(value || ""), "i"),
