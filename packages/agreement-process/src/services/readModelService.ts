@@ -514,9 +514,10 @@ export function readModelServiceBuilder(
           : { "data.state": { $in: filters.agreeementStates } }),
       };
 
-      const agreementEservicesIds = (
-        await agreements.distinct("data.eserviceId", agreementFilter)
-      ).map((data) => data.id);
+      const agreementEservicesIds = await agreements.distinct(
+        "data.eserviceId",
+        agreementFilter
+      );
 
       const aggregationPipeline = [
         {
