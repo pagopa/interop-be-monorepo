@@ -505,13 +505,13 @@ export function readModelServiceBuilder(
       const agreementFilter = {
         ...(filters.consumerIds.length === 0
           ? undefined
-          : { [`data.consumerId`]: { $in: filters.consumerIds } }),
+          : { "data.consumerId": { $in: filters.consumerIds } }),
         ...(filters.producerIds.length === 0
           ? undefined
-          : { [`data.producerId`]: { $in: filters.producerIds } }),
+          : { "data.producerId": { $in: filters.producerIds } }),
         ...(filters.agreeementStates.length === 0
           ? undefined
-          : { [`data.state`]: { $in: filters.agreeementStates } }),
+          : { "data.state": { $in: filters.agreeementStates } }),
       };
 
       const agreementEservicesIds = (
@@ -521,7 +521,7 @@ export function readModelServiceBuilder(
       const aggregationPipeline = [
         {
           $match: {
-            ...{ ["data.id"]: { $in: agreementEservicesIds } },
+            ...{ "data.id": { $in: agreementEservicesIds } },
             ...makeRegexFilter("name", filters.eserviceName),
           },
         },
