@@ -524,7 +524,7 @@ export function readModelServiceBuilder(
         {
           $match: {
             ...{ "data.id": { $in: agreementEservicesIds } },
-            ...makeRegexFilter("name", filters.eserviceName),
+            ...makeRegexFilter("data.name", filters.eserviceName),
           },
         },
         {
@@ -559,7 +559,11 @@ export function readModelServiceBuilder(
 
       return {
         results: result.data,
-        totalCount: agreementEservicesIds.length,
+        totalCount: await ReadModelRepository.getTotalCount(
+          eservices,
+          aggregationPipeline,
+          false
+        ),
       };
     },
   };
