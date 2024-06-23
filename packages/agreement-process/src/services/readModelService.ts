@@ -53,6 +53,7 @@ export type AgreementEServicesQueryFilters = {
 };
 
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
+type EserviceDataFields = RemoveDataPrefix<MongoQueryKeys<EService>>;
 
 const makeFilter = (
   fieldName: Extract<
@@ -61,6 +62,20 @@ const makeFilter = (
   >,
   value: string | string[] | undefined
 ): ReadModelFilter<Agreement> | undefined =>
+  match(value)
+    .with(P.nullish, () => undefined)
+    .with(P.string, () => ({
+      [`data.${fieldName}`]: value,
+    }))
+    .with(P.array(P.string), (a) =>
+      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
+    )
+    .exhaustive();
+
+const makeEserviceFilter = (
+  fieldName: Extract<EserviceDataFields, "id">,
+  value: string | string[] | undefined
+): ReadModelFilter<EService> | undefined =>
   match(value)
     .with(P.nullish, () => undefined)
     .with(P.string, () => ({
@@ -502,40 +517,33 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
+      const agreementFilter = {
+        ...(filters.consumerIds.length === 0
+          ? undefined
+          : { [`data.consumerId`]: { $in: filters.consumerIds } }),
+        ...(filters.producerIds.length === 0
+          ? undefined
+          : { [`data.producerId`]: { $in: filters.producerIds } }),
+        ...(filters.agreeementStates.length === 0
+          ? undefined
+          : { [`data.state`]: { $in: filters.agreeementStates } }),
+      };
+
+      const agreementEservicesIds = (
+        await agreements.distinct("data.eserviceId", agreementFilter)
+      ).map((data) => data.id);
+
       const aggregationPipeline = [
         {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservices",
-          },
-        },
-        {
-          $unwind: {
-            path: "$eservices",
-            preserveNullAndEmptyArrays: false,
-          },
-        },
-        {
           $match: {
-            ...makeFilter("consumerId", filters.consumerIds),
-            ...makeFilter("producerId", filters.producerIds),
-            ...makeFilter("state", filters.agreeementStates),
-            ...makeRegexFilter("eservices.data.name", filters.eserviceName),
-          },
-        },
-        {
-          $group: {
-            _id: "$data.eserviceId",
-            eserviceId: { $first: "$data.eserviceId" },
-            eserviceName: { $first: "$eservices.data.name" },
+            ...makeEserviceFilter("id", agreementEservicesIds),
+            ...makeRegexFilter("name", filters.eserviceName),
           },
         },
         {
           $project: {
-            data: { id: "$eserviceId", name: "$eserviceName" },
-            lowerName: { $toLower: "$eserviceName" },
+            data: { id: "$data.id", name: "$data.name" },
+            lowerName: { $toLower: "$data.name" },
           },
         },
         {
@@ -543,7 +551,7 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const data = await agreements
+      const data = await eservices
         .aggregate([
           ...aggregationPipeline,
           { $skip: offset },
@@ -564,11 +572,7 @@ export function readModelServiceBuilder(
 
       return {
         results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          aggregationPipeline,
-          false
-        ),
+        totalCount: agreementEservicesIds.length,
       };
     },
   };
