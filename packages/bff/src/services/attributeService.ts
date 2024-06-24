@@ -1,73 +1,65 @@
-import crypto from "crypto-js";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { Logger } from "pagopa-interop-commons";
 import {
   Headers,
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import {
-  ApiAttributeSeed,
-  ApiAttribute,
-  ProcessApiAttribute,
-  ProcessApiAttributeKind,
-  ProcessApiAttributes,
+  BffApiAttributeSeed,
+  BffApiAttribute,
+  AttributeProcessApiAttribute,
+  AttributeProcessApiAttributeKind,
+  AttributeProcessApiAttributes,
 } from "../model/api/attributeTypes.js";
+import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
 ) {
   return {
     async createCertifiedAttribute(
-      seed: ApiAttributeSeed,
-      requestHeaders: Headers,
+      seed: BffApiAttributeSeed,
+      headers: Headers,
       logger: Logger
-    ): Promise<ApiAttribute> {
+    ): Promise<BffApiAttribute> {
       logger.info(`Creating certified attribute with name ${seed.name}`);
 
       return attributeClient.createCertifiedAttribute(
+        toApiAttributeProcessSeed(seed),
         {
-          ...seed,
-          code: generateSeedCode(seed.name),
-        },
-        {
-          headers: { ...requestHeaders },
+          headers,
           withCredentials: true,
         }
       );
     },
 
     async createVerifiedAttribute(
-      seed: ApiAttributeSeed,
-      requestHeaders: Headers,
+      seed: BffApiAttributeSeed,
+      headers: Headers,
       logger: Logger
-    ): Promise<ApiAttribute> {
+    ): Promise<BffApiAttribute> {
       logger.info(`Creating verified attribute with name ${seed.name}`);
 
       return attributeClient.createVerifiedAttribute(
+        toApiAttributeProcessSeed(seed),
         {
-          ...seed,
-          code: generateSeedCode(seed.name),
-        },
-        {
-          headers: { ...requestHeaders },
+          headers,
         }
       );
     },
 
     async createDeclaredAttribute(
-      seed: ApiAttributeSeed,
-      requestHeaders: Headers,
+      seed: BffApiAttributeSeed,
+      headers: Headers,
       logger: Logger
-    ): Promise<ApiAttribute> {
+    ): Promise<BffApiAttribute> {
       logger.info(`Creating declared attribute with name ${seed.name}`);
 
       return attributeClient.createDeclaredAttribute(
+        toApiAttributeProcessSeed(seed),
         {
-          ...seed,
-          code: generateSeedCode(seed.name),
-        },
-        {
-          headers: { ...requestHeaders },
+          headers,
           withCredentials: true,
         }
       );
@@ -75,28 +67,28 @@ export function attributeServiceBuilder(
 
     async getAttributeById(
       attributeId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
-    ): Promise<ProcessApiAttribute> {
+    ): Promise<AttributeProcessApiAttribute> {
       logger.info(`Retrieving attribute with id ${attributeId}`);
       return attributeClient.getAttributeById({
         params: { attributeId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async getAttributeByOriginAndCode(
       origin: string,
       code: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
-    ): Promise<ProcessApiAttribute> {
+    ): Promise<AttributeProcessApiAttribute> {
       logger.info(
         `Retrieving attribute with origin ${origin} and code ${code}`
       );
       return attributeClient.getAttributeByOriginAndCode({
         params: { origin, code },
-        headers: { ...requestHeaders },
+        headers,
         withCredentials: true,
       });
     },
@@ -105,23 +97,23 @@ export function attributeServiceBuilder(
       offset,
       limit,
       kinds,
-      requestHeaders,
+      headers,
       logger,
       name,
       origin,
     }: {
       offset: number;
       limit: number;
-      kinds: ProcessApiAttributeKind[];
-      requestHeaders: Headers;
+      kinds: AttributeProcessApiAttributeKind[];
+      headers: Headers;
       logger: Logger;
       name?: string;
       origin?: string;
-    }): Promise<ProcessApiAttributes> {
+    }): Promise<AttributeProcessApiAttributes> {
       logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds: kinds.join(","), name, origin },
-        headers: { ...requestHeaders },
+        headers,
         withCredentials: true,
       });
     },
@@ -129,7 +121,3 @@ export function attributeServiceBuilder(
 }
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
-
-function generateSeedCode(name: string): string {
-  return crypto.SHA256(name).toString();
-}
