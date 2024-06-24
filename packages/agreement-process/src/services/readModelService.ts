@@ -53,6 +53,7 @@ export type AgreementEServicesQueryFilters = {
 };
 
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
+type EserviceDataFields = RemoveDataPrefix<MongoQueryKeys<EService>>;
 
 const makeFilter = (
   fieldName: Extract<
@@ -71,6 +72,23 @@ const makeFilter = (
     )
     .exhaustive();
 
+const makeEserviceFilter = (
+  fieldName: Extract<
+    EserviceDataFields,
+    "id"
+  >,
+  value: string | string[] | undefined
+): ReadModelFilter<EService> | undefined =>
+  match(value)
+    .with(P.nullish, () => undefined)
+    .with(P.string, () => ({
+      [`data.${fieldName}`]: value,
+    }))
+    .with(P.array(P.string), (a) =>
+      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
+    )
+    .exhaustive();
+    
 const makeAttributesFilter = (
   fieldName: Extract<
     AgreementDataFields,
@@ -523,7 +541,7 @@ export function readModelServiceBuilder(
       const aggregationPipeline = [
         {
           $match: {
-            ...{ "data.id": { $in: agreementEservicesIds } },
+            ...makeEserviceFilter("id", agreementEservicesIds),
             ...makeRegexFilter("data.name", filters.eserviceName),
           },
         },
@@ -533,14 +551,12 @@ export function readModelServiceBuilder(
             lowerName: { $toLower: "$data.name" },
           },
         },
-        {
-          $sort: { lowerName: 1 },
-        },
       ];
 
       const data = await eservices
         .aggregate([
           ...aggregationPipeline,
+          { $sort: { lowerName: 1 } },
           { $skip: offset },
           { $limit: limit },
         ])
