@@ -556,6 +556,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
