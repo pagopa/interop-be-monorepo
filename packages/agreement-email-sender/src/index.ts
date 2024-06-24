@@ -16,14 +16,22 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
-import { emailManagerConfig } from "./utilities/config.js";
+import {
+  sendAgreementActivationEmail,
+  sendAgreementSubmissionMail,
+} from "./services/agreementEmailSenderService.js";
+import {
+  pecEmailManagerConfig,
+  awsSesEmailManagerConfig,
+} from "./utilities/config.js";
 
 const config = kafkaConsumerConfig();
 const readModelConfig = readModelWriterConfig();
 const topicsConfig = agreementTopicConfig();
-const emailConfig = emailManagerConfig();
-const emailManager = initEmailManager(emailConfig);
+const pecEmailConfig = pecEmailManagerConfig();
+const pecEmailManager = initEmailManager(pecEmailConfig);
+const awsSesEmailConfig = awsSesEmailManagerConfig();
+const awsSesEmailManager = initEmailManager(awsSesEmailConfig);
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(readModelConfig)
 );
@@ -48,10 +56,25 @@ export async function processMessage({
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await sendAgreementEmail(
+          await sendAgreementActivationEmail(
             agreement,
             readModelService,
-            emailManager,
+            pecEmailManager,
+            loggerInstance
+          );
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
+      }
+    )
+    .with(
+      { event_version: 2, type: "AgreementSubmitted" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await sendAgreementSubmissionMail(
+            agreement,
+            readModelService,
+            awsSesEmailManager,
             loggerInstance
           );
         } else {
@@ -66,7 +89,6 @@ export async function processMessage({
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementSubmitted",
           "AgreementUnsuspendedByProducer",
           "AgreementUnsuspendedByConsumer",
           "AgreementUnsuspendedByPlatform",
