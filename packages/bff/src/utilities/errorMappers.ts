@@ -45,3 +45,5 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
+export const attributeEmptyErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
