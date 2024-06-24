@@ -184,9 +184,33 @@ const clientRouter = (
       }
     })
 
-    .post("/clients/:clientId/purposes", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/clients/:clientId/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const requestHeaders = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        await clientService.addClientPurpose(
+          req.params.clientId,
+          req.body,
+          requestHeaders,
+          ctx.logger
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          clientEmptyErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
     .get("/clients/:clientId/users", async (_req, res) =>
       res.status(501).send()
     )
