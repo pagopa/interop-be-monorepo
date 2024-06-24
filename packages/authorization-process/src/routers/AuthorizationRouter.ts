@@ -18,10 +18,10 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  getClientsErrorMapper,
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   getClientErrorMapper,
+  getClientsErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
