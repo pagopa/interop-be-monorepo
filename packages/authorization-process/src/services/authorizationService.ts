@@ -1,6 +1,7 @@
 import {
   Client,
   ClientId,
+  ListResult,
   TenantId,
   UserId,
   WithMetadata,
@@ -9,11 +10,17 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { DB, Logger, eventRepository } from "pagopa-interop-commons";
+import {
+  AuthData,
+  DB,
+  Logger,
+  eventRepository,
+  userRoles,
+} from "pagopa-interop-commons";
 import { clientNotFound } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import { toCreateEventClientAdded } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
+import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import { isClientConsumer } from "./validators.js";
 
 const retrieveClient = async (
@@ -124,6 +131,34 @@ export function authorizationServiceBuilder(
         client,
         showUsers: true,
       };
+    },
+    async getClients({
+      filters,
+      authData,
+      offset,
+      limit,
+      logger,
+    }: {
+      filters: GetClientsFilters;
+      authData: AuthData;
+      offset: number;
+      limit: number;
+      logger: Logger;
+    }): Promise<ListResult<Client>> {
+      logger.info(
+        `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
+      );
+      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
+        ? [authData.userId]
+        : filters.userIds;
+
+      return await readModelService.getClients(
+        { ...filters, userIds },
+        {
+          offset,
+          limit,
+        }
+      );
     },
   };
 }
