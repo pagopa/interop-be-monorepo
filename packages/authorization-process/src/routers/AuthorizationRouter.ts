@@ -18,6 +18,7 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   getClientErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -77,7 +78,29 @@ const authorizationRouter = (
     .post(
       "/clientsApi",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { client, showUsers } =
+            await authorizationService.createApiClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createApiClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clientsWithKeys",
