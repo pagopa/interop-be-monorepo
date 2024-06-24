@@ -91,7 +91,7 @@ export function userWithoutSecurityPrivileges(
   requesterUserId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User ${consumerId} does not have security privileges for consumer ${requesterUserId}`,
+    detail: `User ${requesterUserId} does not have security privileges for consumer ${consumerId}`,
     code: "userWithoutSecurityPrivileges",
     title: "User without security privileges",
   });
