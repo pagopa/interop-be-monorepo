@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { Logger } from "pagopa-interop-commons";
 import {
   Headers,
@@ -12,7 +14,6 @@ import {
 } from "../model/api/attributeTypes.js";
 import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
 ) {
