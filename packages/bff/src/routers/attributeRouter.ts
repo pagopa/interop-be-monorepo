@@ -11,7 +11,6 @@ import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
 import { attributeEmptyErrorMapper } from "../utilities/errorMapper.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { toApiCompactAttribute } from "../model/domain/apiConverter.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -28,13 +27,13 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
         const result = await attributeService.createCertifiedAttribute(
           req.body,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
@@ -53,13 +52,13 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
         const result = await attributeService.createVerifiedAttribute(
           req.body,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
@@ -78,14 +77,14 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
 
         const result = await attributeService.createDeclaredAttribute(
           req.body,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
@@ -104,7 +103,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -116,13 +115,13 @@ const attributeRouter = (
           limit,
           kinds,
           origin,
-          requestHeaders,
+          headers,
           logger: ctx.logger,
         });
 
         return res
           .json({
-            results: attributes.results.map(toApiCompactAttribute),
+            results: attributes.results,
             pagination: { offset, limit, totalCount: attributes.totalCount },
           })
           .end();
@@ -140,13 +139,13 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
         const result = await attributeService.getAttributeById(
           req.params.attributeId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
@@ -165,14 +164,14 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
         const result = await attributeService.getAttributeByOriginAndCode(
           req.params.origin,
           req.params.code,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
