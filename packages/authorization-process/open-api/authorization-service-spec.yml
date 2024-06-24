@@ -859,6 +859,7 @@ components:
           minLength: 10
           maxLength: 250
         members:
+          type: array
           items:
             type: string
             format: uuid
