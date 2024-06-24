@@ -73,10 +73,7 @@ const makeFilter = (
     .exhaustive();
 
 const makeEserviceFilter = (
-  fieldName: Extract<
-    EserviceDataFields,
-    "id"
-  >,
+  fieldName: Extract<EserviceDataFields, "id">,
   value: string | string[] | undefined
 ): ReadModelFilter<EService> | undefined =>
   match(value)
@@ -88,7 +85,7 @@ const makeEserviceFilter = (
       a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
     )
     .exhaustive();
-    
+
 const makeAttributesFilter = (
   fieldName: Extract<
     AgreementDataFields,
