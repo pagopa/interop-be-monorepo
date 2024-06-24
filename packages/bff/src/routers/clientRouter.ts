@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { clientServiceBuilder } from "../services/clientService.js";
-import { clientEmptyErrorMapper } from "../utilities/errorMapper.js";
+import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 
@@ -27,24 +27,20 @@ const clientRouter = (
     .get("/clients/:clientId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
 
         const client = await clientService.getClientById(
           req.params.clientId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(200).json(client).end();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -52,24 +48,20 @@ const clientRouter = (
     .delete("/clients/:clientId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
 
         await clientService.deleteClient(
           req.params.clientId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -77,7 +69,7 @@ const clientRouter = (
     .delete("/clients/:clientId/purposes/:purposeId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -85,17 +77,13 @@ const clientRouter = (
         await clientService.removeClientPurpose(
           req.params.clientId,
           req.params.purposeId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -107,7 +95,7 @@ const clientRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -115,17 +103,13 @@ const clientRouter = (
         await clientService.deleteClientKeyById(
           req.params.clientId,
           req.params.keyId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -134,7 +118,7 @@ const clientRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -142,17 +126,13 @@ const clientRouter = (
         await clientService.addUserToClient(
           req.params.userId,
           req.params.clientId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -161,7 +141,7 @@ const clientRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -169,17 +149,13 @@ const clientRouter = (
         await clientService.removeUser(
           req.params.clientId,
           req.params.userId,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -188,7 +164,7 @@ const clientRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -196,17 +172,13 @@ const clientRouter = (
         await clientService.addClientPurpose(
           req.params.clientId,
           req.body,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -218,7 +190,7 @@ const clientRouter = (
     .post("/clients/:clientId/keys", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        const requestHeaders = {
+        const headers = {
           "X-Correlation-Id": ctx.correlationId,
           Authorization: req.headers.authorization as string,
         };
@@ -227,17 +199,13 @@ const clientRouter = (
           ctx.authData.userId,
           req.params.clientId,
           req.body,
-          requestHeaders,
+          headers,
           ctx.logger
         );
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          clientEmptyErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })

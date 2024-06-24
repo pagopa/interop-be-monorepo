@@ -6,13 +6,13 @@ import {
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import {
-  ApiClient,
-  ApiClientPurpose,
-  ApiKeysSeed,
+  BffApiClient,
+  BffApiClientPurpose,
+  BffApiKeysSeed,
   ApiPurposeAdditionDetailsSeed,
   AuthUpdaterApiClient,
   AuthUpdaterApiPurpose,
-  ProcessApiKeySeed,
+  AuthProcessApiKeySeed,
 } from "../model/api/clientTypes.js";
 
 export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
@@ -21,97 +21,97 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
   return {
     async getClientById(
       clientId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
-    ): Promise<ApiClient> {
+    ): Promise<BffApiClient> {
       logger.info(`Retrieve client ${clientId}`);
 
       const client = await authorizationUpdaterClient.getClient({
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
-      return enhanceClient(apiClients, client, requestHeaders);
+      return enhanceClient(apiClients, client, headers);
     },
 
     async deleteClient(
       clientId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
       return authorizationProcessClient.deleteClient(undefined, {
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async removeClientPurpose(
       clientId: string,
       purposeId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeId} from client ${clientId}`);
 
       return authorizationProcessClient.removeClientPurpose(undefined, {
         params: { clientId, purposeId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async deleteClientKeyById(
       clientId: string,
       keyId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Deleting key ${keyId} from client ${clientId}`);
 
       return authorizationProcessClient.deleteClientKeyById(undefined, {
         params: { clientId, keyId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async removeUser(
       clientId: string,
       userId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
       return authorizationProcessClient.removeUser(undefined, {
         params: { clientId, userId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async addUserToClient(
       userId: string,
       clientId: string,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Add user ${userId} to client ${clientId}`);
 
       await authorizationProcessClient.addUser(undefined, {
         params: { clientId, userId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async createKeys(
       userId: string,
       clientId: string,
-      keySeed: ApiKeysSeed,
-      requestHeaders: Headers,
+      keySeed: BffApiKeysSeed,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Create keys for client ${clientId}`);
 
-      const body: ProcessApiKeySeed = keySeed.map((seed) => ({
+      const body: AuthProcessApiKeySeed = keySeed.map((seed) => ({
         userId,
         key: seed.key,
         use: seed.use,
@@ -122,21 +122,21 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
 
       await authorizationProcessClient.createKeys(body, {
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async addClientPurpose(
       clientId: string,
       purpose: ApiPurposeAdditionDetailsSeed,
-      requestHeaders: Headers,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Adding purpose ${purpose.purposeId} to client ${clientId}`);
 
       await authorizationProcessClient.addClientPurpose(purpose, {
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
   };
@@ -147,15 +147,15 @@ export type ClientService = ReturnType<typeof clientServiceBuilder>;
 async function enhanceClient(
   apiClients: PagoPAInteropBeClients,
   client: AuthUpdaterApiClient,
-  requestHeaders: Headers
-): Promise<ApiClient> {
+  headers: Headers
+): Promise<BffApiClient> {
   const consumer = await apiClients.tenantProcessClient.getTenant({
     params: { id: client.consumerId },
-    headers: { ...requestHeaders },
+    headers,
   });
 
   const purposes = await Promise.all(
-    client.purposes.map((p) => enhancePurpose(apiClients, p, requestHeaders))
+    client.purposes.map((p) => enhancePurpose(apiClients, p, headers))
   );
 
   return {
@@ -179,21 +179,21 @@ async function enhancePurpose(
     purposeProcessClient,
   }: PagoPAInteropBeClients,
   clientPurpose: AuthUpdaterApiPurpose,
-  requestHeaders: Headers
-): Promise<ApiClientPurpose> {
+  headers: Headers
+): Promise<BffApiClientPurpose> {
   const eservice = await catalogProcessClient.getEServiceById({
     params: { eServiceId: clientPurpose.states.eservice.eserviceId },
-    headers: { ...requestHeaders },
+    headers,
   });
 
   const producerRes = tenantProcessClient.getTenant({
     params: { id: eservice.producerId },
-    headers: { ...requestHeaders },
+    headers,
   });
 
   const purposeRes = purposeProcessClient.getPurpose({
     params: { id: clientPurpose.states.purpose.purposeId },
-    headers: { ...requestHeaders },
+    headers,
   });
   const [producer, purpose] = await Promise.all([producerRes, purposeRes]);
 

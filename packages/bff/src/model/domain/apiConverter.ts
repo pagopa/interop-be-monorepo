@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import {
   InstitutionResource,
   ProductResource,
@@ -5,13 +6,13 @@ import {
 } from "pagopa-interop-selfcare-v2-client";
 import { P, match } from "ts-pattern";
 import {
-  ProcessApiAttribute,
-  ApiCompactAttribute,
+  BffApiAttributeSeed,
+  AttributeProcessApiAttributeSeed,
 } from "../api/attributeTypes.js";
 import {
   ApiSelfcareInstitution,
-  ApiSelfcareProduct,
-  ApiSelfcareUser,
+  BffApiSelfcareProduct,
+  BffApiSelfcareUser,
 } from "../api/selfcareTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
@@ -37,7 +38,7 @@ export const toApiSelfcareInstitution = (
 
 export const toApiSelfcareProduct = (
   input: ProductResource
-): ApiSelfcareProduct =>
+): BffApiSelfcareProduct =>
   match(input)
     .with({ id: P.not(P.nullish), title: P.not(P.nullish) }, (product) => ({
       id: product.id,
@@ -50,7 +51,7 @@ export const toApiSelfcareProduct = (
 export const toApiSelfcareUser = (
   input: UserResource,
   tenantId: string
-): ApiSelfcareUser =>
+): BffApiSelfcareUser =>
   match(input)
     .with(
       {
@@ -71,9 +72,9 @@ export const toApiSelfcareUser = (
       throw selfcareEntityNotFilled("UserResource");
     });
 
-export const toApiCompactAttribute = (
-  input: ProcessApiAttribute
-): ApiCompactAttribute => ({
-  id: input.id,
-  name: input.name,
+export const toApiAttributeProcessSeed = (
+  seed: BffApiAttributeSeed
+): AttributeProcessApiAttributeSeed => ({
+  ...seed,
+  code: createHash("sha256").update(seed.name).digest("hex"),
 });
