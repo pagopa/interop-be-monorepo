@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import axios from "axios";
 import {
   Tenant,
   UserId,
@@ -15,9 +14,9 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import { dateAtRomeZone, genericLogger } from "pagopa-interop-commons";
-import { sendAgreementEmail } from "../src/services/agreementEmailSenderService.js";
+import { sendAgreementActivationEmail } from "../src/services/agreementEmailSenderService.js";
 import {
-  activationDateNotFound,
+  agreementStampDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
   tenantDigitalAddressNotFound,
@@ -29,11 +28,12 @@ import {
   addOneTenant,
   config,
   emailManager,
-  emailManagerConfig,
+  getLatestMail,
+  getMails,
   readModelService,
 } from "./utils.js";
 
-describe("agreement email sender", () => {
+describe("sendAgreementActivationEmail", () => {
   it("should send an email", async () => {
     const consumer: Tenant = {
       ...getMockTenant(),
@@ -63,7 +63,7 @@ describe("agreement email sender", () => {
     };
     await addOneAgreement(agreement);
 
-    await sendAgreementEmail(
+    await sendAgreementActivationEmail(
       toAgreementV2(agreement),
       readModelService,
       emailManager,
@@ -106,28 +106,24 @@ describe("agreement email sender", () => {
 </html>
 `;
 
-    const messagesResponse = await axios.get(
-      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
-    );
+    const messagesResponse = await getMails();
 
     expect(messagesResponse.status).toBe(200);
     expect(messagesResponse.data.messages.length).toBe(1);
 
-    const { data: emailData } = await axios.get(
-      `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
-    );
+    const { data: latestMail } = await getLatestMail();
 
-    const html = emailData.HTML.replace(/\r\n/g, "\n");
+    const html = latestMail.HTML.replace(/\r\n/g, "\n");
     expect(html).toBe(expectedBody);
-    expect(emailData.From.Address).toBe(config.agreementEmailSender);
-    expect(emailData.To[0].Address).toBe(producer.mails[0].address);
-    expect(emailData.To[1].Address).toBe(consumer.mails[0].address);
-    expect(emailData.Subject).toBe(
+    expect(latestMail.From.Address).toBe(config.agreementEmailSender);
+    expect(latestMail.To[0].Address).toBe(producer.mails[0].address);
+    expect(latestMail.To[1].Address).toBe(consumer.mails[0].address);
+    expect(latestMail.Subject).toBe(
       `Richiesta di fruizione ${agreement.id} attiva`
     );
   });
 
-  it("should throw activationDateNotFound for activation date not found", async () => {
+  it("should throw agreementStampDateNotFound for activation date not found", async () => {
     const agreement = {
       ...getMockAgreement(),
       stamps: {},
@@ -135,13 +131,15 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
         genericLogger
       )
-    ).rejects.toThrowError(activationDateNotFound(agreement.id));
+    ).rejects.toThrowError(
+      agreementStampDateNotFound("activation", agreement.id)
+    );
   });
 
   it("should throw eServiceNotFound for Eservice not found", async () => {
@@ -152,7 +150,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
@@ -172,7 +170,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
@@ -195,7 +193,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
@@ -223,7 +221,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
@@ -254,7 +252,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
@@ -288,7 +286,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
@@ -339,7 +337,7 @@ describe("agreement email sender", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementEmail(
+      sendAgreementActivationEmail(
         toAgreementV2(agreement),
         readModelService,
         emailManager,
