@@ -197,7 +197,7 @@ const initConsumer = async (
 
   await consumer.subscribe({
     topics,
-    fromBeginning: config.messageStartingOffset === "earliest",
+    fromBeginning: config.topicStartingOffset === "earliest",
   });
 
   genericLogger.info(`Consumer subscribed topic ${topics}`);

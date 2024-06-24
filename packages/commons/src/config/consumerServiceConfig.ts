@@ -6,12 +6,12 @@ import { ReadModelDbConfig } from "./readmodelDbConfig.js";
 export const KafkaConsumerConfig = KafkaConfig.and(AWSConfig).and(
   z
     .object({
-      MESSAGE_STARTING_OFFSET: z
+      TOPIC_STARTING_OFFSET: z
         .union([z.literal("earliest"), z.literal("latest")])
         .default("latest"),
     })
     .transform((c) => ({
-      messageStartingOffset: c.MESSAGE_STARTING_OFFSET,
+      topicStartingOffset: c.TOPIC_STARTING_OFFSET,
     }))
 );
 export type KafkaConsumerConfig = z.infer<typeof KafkaConsumerConfig>;
