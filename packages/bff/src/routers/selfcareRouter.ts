@@ -14,12 +14,12 @@ import {
   toApiSelfcareUser,
 } from "../model/domain/apiConverter.js";
 import { selfcareServiceBuilder } from "../services/selfcareService.js";
+import { config } from "../utilities/config.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
-} from "../utilities/errorMapper.js";
-import { config } from "../utilities/config.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+} from "../utilities/errorMappers.js";
 
 const selfcareService = selfcareServiceBuilder(selfcareV2ClientBuilder(config));
 

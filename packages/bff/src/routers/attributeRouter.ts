@@ -9,8 +9,8 @@ import {
 import { api } from "../model/generated/api.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
-import { attributeEmptyErrorMapper } from "../utilities/errorMapper.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { attributeEmptyErrorMapper } from "../utilities/errorMappers.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
