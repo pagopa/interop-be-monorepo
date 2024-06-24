@@ -6,12 +6,26 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   zodiosValidationErrorToApiProblem,
+  ReadModelRepository,
+  initDB,
+  fromAppContext,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { config } from "../utilities/config.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { clientToApiClient } from "../model/domain/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import {
+  createConsumerClientErrorMapper,
+  getClientErrorMapper,
+} from "../utilities/errorMappers.js";
 
-/*
-const readModelRepository = ReadModelRepository.init(config);
-const readModelService = readModelServiceBuilder(readModelRepository);
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
 const authorizationService = authorizationServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -24,7 +38,6 @@ const authorizationService = authorizationServiceBuilder(
   }),
   readModelService
 );
-*/
 
 const authorizationRouter = (
   ctx: ZodiosContext
@@ -32,12 +45,34 @@ const authorizationRouter = (
   const authorizationRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-  const { ADMIN_ROLE } = userRoles;
+  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
   authorizationRouter
     .post(
       "/clientsConsumer",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { client, showUsers } =
+            await authorizationService.createConsumerClient({
+              clientSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createConsumerClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/clientsApi",
@@ -54,8 +89,34 @@ const authorizationRouter = (
     )
     .get(
       "/clients/:clientId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { client, showUsers } =
+            await authorizationService.getClientById({
+              clientId: unsafeBrandId(req.params.clientId),
+              organizationId: ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/clients/:clientId",
