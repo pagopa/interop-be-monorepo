@@ -4,6 +4,7 @@ import { createApiClient as createApiClientCatalogProcess } from "../model/gener
 import { createApiClient as createApiClientAttributeProcess } from "../model/generated/attribute-process/api.js";
 import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
 import { createApiClient as createApiAuthorizationProcess } from "../model/generated/authorization-process/api.js";
+import { createApiClient as createApiAuthorizationUpdater } from "../model/generated/authorization-updater/api.js";
 import { config } from "../utilities/config.js";
 
 export type Headers = { "X-Correlation-Id": string; Authorization: string };
@@ -15,6 +16,7 @@ export type PagoPAInteropBeClients = {
   agreementProcessClient: ReturnType<typeof createApiClientAgreementProcess>;
   purposeProcessClient: ReturnType<typeof createApiClientPurposeProcess>;
   authorizationProcessClient: ReturnType<typeof createApiAuthorizationProcess>;
+  authorizationUpdaterClient: ReturnType<typeof createApiAuthorizationUpdater>;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -32,6 +34,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     purposeProcessClient: createApiClientPurposeProcess(config.purposeUrl),
     authorizationProcessClient: createApiAuthorizationProcess(
       config.authorizationUrl
+    ),
+    authorizationUpdaterClient: createApiAuthorizationUpdater(
+      config.authorizationManagementUrl
     ),
   };
 }

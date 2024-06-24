@@ -68,13 +68,25 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const AuthorizationUpdaterServerConfig = z
+  .object({
+    AUTHORIZATION_MANAGEMENT_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    authorizationManagementUrl: c.AUTHORIZATION_MANAGEMENT_URL,
+  }));
+export type AuthorizationUpdaterServerConfig = z.infer<
+  typeof AuthorizationUpdaterServerConfig
+>;
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
-  .and(AuthorizationProcessServerConfig);
+  .and(AuthorizationProcessServerConfig)
+  .and(AuthorizationUpdaterServerConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
