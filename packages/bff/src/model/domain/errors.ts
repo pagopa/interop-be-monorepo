@@ -8,11 +8,11 @@ export const errorCodes = {
   purposeNotFound: "0001",
 };
 
-export type BFFErrorCodes = keyof typeof errorCodes;
+export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<BFFErrorCodes> {
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
