@@ -9,9 +9,9 @@ import {
 import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
 import {
-  toApiSelfcareInstitution,
-  toApiSelfcareProduct,
-  toApiSelfcareUser,
+  toBffApiSelfcareInstitution,
+  toBffApiSelfcareProduct,
+  toBffApiSelfcareUser,
 } from "../model/domain/apiConverter.js";
 import { selfcareServiceBuilder } from "../services/selfcareService.js";
 import { config } from "../utilities/config.js";
@@ -43,7 +43,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(toApiSelfcareUser(user, ctx.authData.organizationId))
+          .json(toBffApiSelfcareUser(user, ctx.authData.organizationId))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -64,7 +64,10 @@ const selfcareRouter = (
           ctx.authData.selfcareId
         );
 
-        return res.status(200).json(products.map(toApiSelfcareProduct)).end();
+        return res
+          .status(200)
+          .json(products.map(toBffApiSelfcareProduct))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -85,7 +88,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(institutions.map(toApiSelfcareInstitution))
+          .json(institutions.map(toBffApiSelfcareInstitution))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(

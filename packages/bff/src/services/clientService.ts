@@ -3,23 +3,25 @@
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { userNotFound } from "../model/domain/errors.js";
+import { toBffApiCompactUser } from "../model/domain/apiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 import {
+  BffApiClientKind,
   BffApiClient,
-  BffApiClientPurpose,
   BffApiKeysSeed,
   BffApiPurposeAdditionDetailsSeed,
-  AuthUpdaterApiClient,
-  AuthUpdaterApiPurpose,
-  AuthProcessApiKeySeed,
-  AuthProcessApiClientSeed,
-  BffApiClientKind,
-  AuthProcessApiClientsWithKeys,
   BffApiCompactUser,
   BffApiPublicKey,
+  BffApiClientPurpose,
+} from "../model/api/bffTypes.js";
+import {
+  AuthProcessApiClientsWithKeys,
+  AuthProcessApiKeySeed,
+  AuthProcessApiClientSeed,
+  AuthUpdaterApiClient,
+  AuthUpdaterApiPurpose,
 } from "../model/api/clientTypes.js";
-import { userNotFound } from "../model/domain/errors.js";
-import { toApiCompactUser } from "../model/domain/apiConverter.js";
-import { BffAppContext } from "../utilities/context.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -186,7 +188,7 @@ export function clientServiceBuilder(
       });
 
       const users = clientUsers.map(async (id) =>
-        toApiCompactUser(
+        toBffApiCompactUser(
           await getSelfcareUserById(selfcareV2Client, id, selfcareId),
           id
         )
@@ -213,7 +215,7 @@ export function clientServiceBuilder(
       );
 
       return {
-        user: toApiCompactUser(user, key.userId),
+        user: toBffApiCompactUser(user, key.userId),
         name: key.name,
         keyId: key.kid,
         createdAt: key.createdAt,

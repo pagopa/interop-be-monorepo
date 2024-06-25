@@ -1,24 +1,6 @@
 import { z } from "zod";
-import { schemas } from "../generated/api.js";
 import { schemas as authSchemas } from "../generated/authorization-process/api.js";
 import { schemas as authUpdaterSchemas } from "../generated/authorization-updater/api.js";
-
-export type BffApiPurposeAdditionDetailsSeed = z.infer<
-  typeof schemas.PurposeAdditionDetailsSeed
->;
-export type BffApiKeysSeed = z.infer<typeof schemas.KeysSeed>;
-export type BffApiClient = z.infer<typeof schemas.Client>;
-export type BffApiCompactOrganization = z.infer<
-  typeof schemas.CompactOrganization
->;
-export type BffApiClientPurpose = z.infer<typeof schemas.ClientPurpose>;
-export type BffApiClientPurposeAdditionDetails = z.infer<
-  typeof schemas.PurposeAdditionDetailsSeed
->;
-export type BffApiClientKind = z.infer<typeof schemas.ClientKind>;
-export type BffApiCompactClient = z.infer<typeof schemas.CompactClient>;
-export type BffApiCompactUser = z.infer<typeof schemas.CompactUser>;
-export type BffApiPublicKey = z.infer<typeof schemas.PublicKey>;
 
 export type AuthProcessApiClientKind = z.infer<typeof authSchemas.ClientKind>;
 export type AuthProcessApiKeySeed = z.infer<typeof authSchemas.KeysSeed>;

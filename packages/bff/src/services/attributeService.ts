@@ -3,14 +3,13 @@
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import {
-  BffApiAttributeSeed,
-  BffApiAttribute,
   AttributeProcessApiAttribute,
   AttributeProcessApiAttributeKind,
   AttributeProcessApiAttributes,
 } from "../model/api/attributeTypes.js";
-import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
+import { toProcessAttributeSeed } from "../model/domain/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
+import { BffApiAttributeSeed, BffApiAttribute } from "../model/api/bffTypes.js";
 
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
@@ -23,7 +22,7 @@ export function attributeServiceBuilder(
       logger.info(`Creating certified attribute with name ${seed.name}`);
 
       return attributeClient.createCertifiedAttribute(
-        toApiAttributeProcessSeed(seed),
+        toProcessAttributeSeed(seed),
         {
           headers,
           withCredentials: true,
@@ -38,7 +37,7 @@ export function attributeServiceBuilder(
       logger.info(`Creating verified attribute with name ${seed.name}`);
 
       return attributeClient.createVerifiedAttribute(
-        toApiAttributeProcessSeed(seed),
+        toProcessAttributeSeed(seed),
         {
           headers,
         }
@@ -52,7 +51,7 @@ export function attributeServiceBuilder(
       logger.info(`Creating declared attribute with name ${seed.name}`);
 
       return attributeClient.createDeclaredAttribute(
-        toApiAttributeProcessSeed(seed),
+        toProcessAttributeSeed(seed),
         {
           headers,
           withCredentials: true,
