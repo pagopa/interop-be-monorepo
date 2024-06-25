@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { Logger } from "pagopa-interop-commons";
-import {
-  Headers,
-  PagoPAInteropBeClients,
-} from "../providers/clientProvider.js";
+import { WithLogger } from "pagopa-interop-commons";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import {
   BffApiAttributeSeed,
   BffApiAttribute,
@@ -13,6 +10,7 @@ import {
   AttributeProcessApiAttributes,
 } from "../model/api/attributeTypes.js";
 import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
@@ -20,8 +18,7 @@ export function attributeServiceBuilder(
   return {
     async createCertifiedAttribute(
       seed: BffApiAttributeSeed,
-      headers: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<BffApiAttribute> {
       logger.info(`Creating certified attribute with name ${seed.name}`);
 
@@ -36,8 +33,7 @@ export function attributeServiceBuilder(
 
     async createVerifiedAttribute(
       seed: BffApiAttributeSeed,
-      headers: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<BffApiAttribute> {
       logger.info(`Creating verified attribute with name ${seed.name}`);
 
@@ -51,8 +47,7 @@ export function attributeServiceBuilder(
 
     async createDeclaredAttribute(
       seed: BffApiAttributeSeed,
-      headers: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<BffApiAttribute> {
       logger.info(`Creating declared attribute with name ${seed.name}`);
 
@@ -67,8 +62,7 @@ export function attributeServiceBuilder(
 
     async getAttributeById(
       attributeId: string,
-      headers: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<AttributeProcessApiAttribute> {
       logger.info(`Retrieving attribute with id ${attributeId}`);
       return attributeClient.getAttributeById({
@@ -80,8 +74,7 @@ export function attributeServiceBuilder(
     async getAttributeByOriginAndCode(
       origin: string,
       code: string,
-      headers: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<AttributeProcessApiAttribute> {
       logger.info(
         `Retrieving attribute with origin ${origin} and code ${code}`
@@ -97,23 +90,21 @@ export function attributeServiceBuilder(
       offset,
       limit,
       kinds,
-      headers,
-      logger,
+      ctx,
       name,
       origin,
     }: {
       offset: number;
       limit: number;
       kinds: AttributeProcessApiAttributeKind[];
-      headers: Headers;
-      logger: Logger;
+      ctx: WithLogger<BffAppContext>;
       name?: string;
       origin?: string;
     }): Promise<AttributeProcessApiAttributes> {
-      logger.info("Retrieving attributes");
+      ctx.logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds: kinds.join(","), name, origin },
-        headers,
+        headers: ctx.headers,
         withCredentials: true,
       });
     },

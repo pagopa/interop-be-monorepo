@@ -11564,6 +11564,7 @@ components:
         description:
           type: string
         members:
+          type: array
           items:
             type: string
             format: uuid
