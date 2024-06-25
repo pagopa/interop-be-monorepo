@@ -1,4 +1,4 @@
-import { AppContext, WithLogger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -13,7 +13,6 @@ import {
   PurposeProcessApiPurposeVersionState,
 } from "../model/api/purposeTypes.js";
 import {
-  Headers,
   AuthorizationProcessClient,
   PurposeProcessClient,
   CatalogProcessClient,
@@ -32,6 +31,7 @@ import { CatalogProcessApiDescriptor } from "../model/api/catalogTypes.js";
 import { BffApiPurpose, BffApiPurposes } from "../model/api/bffTypes.js";
 import { getAllClients } from "./authorizationService.js";
 import { getLatestAgreement } from "./agreementService.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export const getCurrentVersion = (
   purposeVersions: PurposeProcessApiPurposeVersion[]
@@ -61,39 +61,36 @@ export function purposeServiceBuilder(
   return {
     async createPurpose(
       createSeed: PurposeProcessApiCreatePurposeSeed,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      { headers, logger }: WithLogger<BffAppContext>,
     ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
       logger.info(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
       );
       return await purposeClient.createPurpose(createSeed, {
-        headers: { ...requestHeaders },
+        headers,
         withCredentials: true,
       });
     },
     async createPurposeFromEService(
       createSeed: PurposeProcessApiCreateReversePurposeSeed,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      { headers, logger }: WithLogger<BffAppContext>,
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
       logger.info("Creating purpose from e-service");
       return await purposeClient.createPurposeFromEService(createSeed, {
-        headers: { ...requestHeaders },
+        headers,
         withCredentials: true,
       });
     },
     async reversePurposeUpdate(
       id: PurposeId,
-      updateSeed: PurposeProcessApiUpdateReversePurposeSeed,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      updateSeed: ApiUpdateReversePurposePayload,
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
       logger.info(`Updating reverse purpose ${id}`);
       const updatedPurpose = await purposeClient.updateReversePurpose(
         updateSeed,
         {
-          headers: { ...requestHeaders },
+          headers,
           withCredentials: true,
           params: {
             id,

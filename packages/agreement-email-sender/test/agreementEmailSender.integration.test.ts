@@ -14,7 +14,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { dateAtRomeZone } from "pagopa-interop-commons";
+import { dateAtRomeZone, genericLogger } from "pagopa-interop-commons";
 import { sendAgreementEmail } from "../src/services/agreementEmailSenderService.js";
 import {
   activationDateNotFound,
@@ -66,7 +66,8 @@ describe("agreement email sender", () => {
     await sendAgreementEmail(
       toAgreementV2(agreement),
       readModelService,
-      emailManager
+      emailManager,
+      genericLogger
     );
 
     const expectedBody = `<!DOCTYPE html>
@@ -137,7 +138,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(activationDateNotFound(agreement.id));
   });
@@ -153,7 +155,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -172,7 +175,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
@@ -194,7 +198,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
@@ -221,7 +226,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.producerId));
   });
@@ -251,7 +257,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.consumerId));
   });
@@ -284,7 +291,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError(
       descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
@@ -334,7 +342,8 @@ describe("agreement email sender", () => {
       sendAgreementEmail(
         toAgreementV2(agreement),
         readModelService,
-        emailManager
+        emailManager,
+        genericLogger
       )
     ).rejects.toThrowError("No recipients defined");
   });

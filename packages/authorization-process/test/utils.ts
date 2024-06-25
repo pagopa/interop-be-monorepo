@@ -1,0 +1,54 @@
+import {
+  StoredEvent,
+  setupTestContainersVitest,
+  writeInEventstore,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test/index.js";
+import { afterEach, inject } from "vitest";
+import {
+  AuthorizationEvent,
+  Client,
+  toClientV2,
+  toReadModelClient,
+} from "pagopa-interop-models";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
+export const { cleanup, readModelRepository, postgresDB } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
+
+afterEach(cleanup);
+
+export const clients = readModelRepository.clients;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+
+export const authorizationService = authorizationServiceBuilder(
+  postgresDB,
+  readModelService
+);
+
+export const writeClientInEventstore = async (
+  client: Client
+): Promise<void> => {
+  const authorizationtEvent: AuthorizationEvent = {
+    type: "ClientAdded",
+    event_version: 2,
+    data: { client: toClientV2(client) },
+  };
+  const eventToWrite: StoredEvent<AuthorizationEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: authorizationtEvent.data.client!.id,
+    version: 0,
+    event: authorizationtEvent,
+  };
+
+  await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
+};
+
+export const addOneClient = async (client: Client): Promise<void> => {
+  await writeClientInEventstore(client);
+  await writeInReadmodel(toReadModelClient(client), clients);
+};

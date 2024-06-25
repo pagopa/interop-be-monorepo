@@ -25,8 +25,6 @@ export type AuthorizationProcessClient = ReturnType<
   typeof createApiClientAuthorizationProcess
 >;
 
-export type Headers = { "X-Correlation-Id": string; Authorization: string };
-
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
