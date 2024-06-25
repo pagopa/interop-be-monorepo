@@ -228,7 +228,22 @@ const clientRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/clients/:clientId/keys", async (_req, res) => res.status(501).send())
+    .get("/clients/:clientId/keys", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const keys = await clientService.getClientKeys(
+          req.params.clientId,
+          req.query.userIds,
+          ctx
+        );
+
+        return res.status(200).json({ keys }).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
     .get("/clients/:clientId/encoded/keys/:keyId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {

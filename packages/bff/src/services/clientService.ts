@@ -21,6 +21,7 @@ import {
   AuthProcessApiClientSeed,
   AuthUpdaterApiClient,
   AuthUpdaterApiPurpose,
+  AuthProcessApiKey,
 } from "../model/api/clientTypes.js";
 
 export function clientServiceBuilder(
@@ -162,6 +163,24 @@ export function clientServiceBuilder(
       });
     },
 
+    async getClientKeys(
+      clientId: string,
+      userIds: string[],
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<BffApiPublicKey[]> {
+      logger.info(`Retrieve keys of client ${clientId}`);
+
+      const { keys } = await authorizationProcessClient.getClientKeys({
+        params: { clientId },
+        queries: { userIds },
+        headers,
+      });
+
+      return Promise.all(
+        keys.map((k) => decorateKey(selfcareV2Client, k, clientId))
+      );
+    },
+
     async addClientPurpose(
       clientId: string,
       purpose: BffApiPurposeAdditionDetailsSeed,
@@ -208,19 +227,7 @@ export function clientServiceBuilder(
         params: { clientId, keyId },
         headers,
       });
-      const user = await getSelfcareUserById(
-        selfcareV2Client,
-        key.userId,
-        selfcareId
-      );
-
-      return {
-        user: toBffApiCompactUser(user, key.userId),
-        name: key.name,
-        keyId: key.kid,
-        createdAt: key.createdAt,
-        isOrphan: user.id === undefined,
-      };
+      return decorateKey(selfcareV2Client, key, selfcareId);
     },
 
     async getEncodedClientKeyById(
@@ -344,4 +351,24 @@ async function getSelfcareUserById(
   } catch (error) {
     throw userNotFound(userId, selfcareId);
   }
+}
+
+async function decorateKey(
+  selfcareClient: SelfcareV2Client,
+  key: AuthProcessApiKey,
+  selfcareId: string
+): Promise<BffApiPublicKey> {
+  const user = await getSelfcareUserById(
+    selfcareClient,
+    key.userId,
+    selfcareId
+  );
+
+  return {
+    user: toBffApiCompactUser(user, key.userId),
+    name: key.name,
+    keyId: key.kid,
+    createdAt: key.createdAt,
+    isOrphan: user.id === undefined,
+  };
 }
