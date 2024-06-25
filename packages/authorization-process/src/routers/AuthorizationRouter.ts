@@ -21,8 +21,8 @@ import {
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   deleteClientErrorMapper,
-  getClientsErrorMapper,
   getClientErrorMapper,
+  getClientsErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
 
