@@ -19,9 +19,15 @@ import {
 } from "pagopa-interop-commons";
 import { clientNotFound } from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
-import { toCreateEventClientAdded } from "../model/domain/toEvent.js";
+import {
+  toCreateEventClientAdded,
+  toCreateEventClientDeleted,
+} from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
-import { isClientConsumer } from "./validators.js";
+import {
+  assertOrganizationIsClientConsumer,
+  isClientConsumer,
+} from "./validators.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -158,6 +164,30 @@ export function authorizationServiceBuilder(
           offset,
           limit,
         }
+      );
+    },
+    async deleteClient({
+      clientId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Deleting client ${clientId}`);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      await repository.createEvent(
+        toCreateEventClientDeleted(
+          client.data,
+          client.metadata.version,
+          correlationId
+        )
       );
     },
   };
