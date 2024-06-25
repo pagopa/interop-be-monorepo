@@ -3,7 +3,6 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
@@ -12,6 +11,7 @@ import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { reversePurposeUpdateErrorMapper } from "../utilities/errorMappers.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -26,19 +26,13 @@ const purposeRouter = (
   purposeRouter
     .post("/reverse/purposes", async (_req, res) => res.status(501).send())
     .post("/reverse/purposes/:purposeId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      const requestHeaders = {
-        "X-Correlation-Id": ctx.correlationId,
-        Authorization: req.headers.authorization as string,
-      };
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const result = await purposeService.reversePurposeUpdate(
           unsafeBrandId(req.params.purposeId),
           req.body,
-          ctx,
-          requestHeaders
+          ctx
         );
 
         return res.status(200).json(result).end();
