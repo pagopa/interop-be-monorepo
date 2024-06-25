@@ -5,24 +5,37 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { bffApi } from "pagopa-interop-api-clients";
 
-const genericRouter = (
+const toolsRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const genericRouter = ctx.router(api.api, {
+  const toolsRouter = ctx.router(bffApi.toolsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  genericRouter
-    .post("/session/tokens", async (_req, res) => res.status(501).send())
-    .post("/tools/validateTokenGeneration", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/support", async (_req, res) => res.status(501).send())
-    .post("/session/saml2/tokens", async (_req, res) => res.status(501).send());
+  toolsRouter.post("/tools/validateTokenGeneration", async (_req, res) =>
+    res.status(501).send()
+  );
 
-  return genericRouter;
+  return toolsRouter;
 };
 
-export default genericRouter;
+const supportRouter = (
+  ctx: ZodiosContext
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const supportRouter = ctx.router(bffApi.supportApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+
+  supportRouter.post("/session/saml2/tokens", async (_req, res) =>
+    res.status(501).send()
+  );
+
+  return supportRouter;
+};
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export default function genericRouter(ctx: ZodiosContext) {
+  return [toolsRouter(ctx), supportRouter(ctx)];
+}

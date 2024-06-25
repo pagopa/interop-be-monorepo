@@ -29,9 +29,9 @@ import {
   AgreementDocument,
 } from "pagopa-interop-models";
 import {
-  SelfcareV2Client,
-  UserResponse,
-} from "pagopa-interop-selfcare-v2-client";
+  selfcareV2ClientApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
@@ -40,18 +40,17 @@ import {
   attributeNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { AgreementProcessConfig } from "../utilities/config.js";
+import { AgreementProcessConfig } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
 const retrieveUser = async (
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   selfcareId: SelfcareId,
   id: UserId
-): Promise<UserResponse> => {
+): Promise<selfcareV2ClientApi.UserResponse> => {
   const user = await selfcareV2Client.getUserInfoUsingGET({
     queries: { institutionId: selfcareId },
     params: { id },
@@ -74,7 +73,7 @@ const createAgreementDocumentName = (
 
 const getAttributeInvolved = async (
   consumer: Tenant,
-  seed: UpdateAgreementSeed,
+  agreement: Agreement,
   readModelService: ReadModelService
 ): Promise<{
   certified: Array<[Attribute, CertifiedTenantAttribute]>;
@@ -90,9 +89,18 @@ const getAttributeInvolved = async (
     type: TenantAttributeType
   ): Promise<Array<[Attribute, T]>> => {
     const seedAttributes = match(type)
-      .with(tenantAttributeType.CERTIFIED, () => seed.certifiedAttributes || [])
-      .with(tenantAttributeType.DECLARED, () => seed.declaredAttributes || [])
-      .with(tenantAttributeType.VERIFIED, () => seed.verifiedAttributes || [])
+      .with(
+        tenantAttributeType.CERTIFIED,
+        () => agreement.certifiedAttributes || []
+      )
+      .with(
+        tenantAttributeType.DECLARED,
+        () => agreement.declaredAttributes || []
+      )
+      .with(
+        tenantAttributeType.VERIFIED,
+        () => agreement.verifiedAttributes || []
+      )
       .exhaustive()
       .map((attribute) => attribute.id);
 
@@ -131,11 +139,11 @@ const getAttributeInvolved = async (
 };
 
 const getSubmissionInfo = async (
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   consumer: Tenant,
-  seed: UpdateAgreementSeed
+  agreement: Agreement
 ): Promise<[string, Date]> => {
-  const submission = seed.stamps.submission;
+  const submission = agreement.stamps.submission;
   if (!submission) {
     throw agreementStampNotFound("submission");
   }
@@ -146,7 +154,7 @@ const getSubmissionInfo = async (
 
   const consumerSelfcareId: SelfcareId = unsafeBrandId(consumer.selfcareId);
 
-  const consumerUser: UserResponse = await retrieveUser(
+  const consumerUser: selfcareV2ClientApi.UserResponse = await retrieveUser(
     selfcareV2Client,
     consumerSelfcareId,
     submission.who
@@ -162,17 +170,17 @@ const getSubmissionInfo = async (
 };
 
 const getActivationInfo = async (
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   selfcareId: SelfcareId,
-  seed: UpdateAgreementSeed
+  agreement: Agreement
 ): Promise<[string, Date]> => {
-  const activation = seed.stamps.activation;
+  const activation = agreement.stamps.activation;
 
   if (!activation) {
     throw agreementStampNotFound("activation");
   }
 
-  const user: UserResponse = await retrieveUser(
+  const user: selfcareV2ClientApi.UserResponse = await retrieveUser(
     selfcareV2Client,
     selfcareId,
     activation.who
@@ -190,9 +198,8 @@ const getPdfPayload = async (
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  seed: UpdateAgreementSeed,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2Client: SelfcareV2UsersClient
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
@@ -274,17 +281,17 @@ const getPdfPayload = async (
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareV2Client,
     consumer,
-    seed
+    agreement
   );
   const [activator, activationTimestamp] = await getActivationInfo(
     selfcareV2Client,
     selfcareId,
-    seed
+    agreement
   );
 
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
-    seed,
+    agreement,
     readModelService
   );
 
@@ -312,7 +319,7 @@ export const contractBuilder = (
   readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   config: AgreementProcessConfig,
   logger: Logger
 ) => {
@@ -325,8 +332,7 @@ export const contractBuilder = (
       agreement: Agreement,
       eservice: EService,
       consumer: Tenant,
-      producer: Tenant,
-      seed: UpdateAgreementSeed
+      producer: Tenant
     ): Promise<AgreementDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -341,7 +347,6 @@ export const contractBuilder = (
         eservice,
         consumer,
         producer,
-        seed,
         readModelService,
         selfcareV2Client
       );

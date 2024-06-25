@@ -70,7 +70,8 @@ export type Problem = {
 export type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void }
+  logger: { error: (message: string) => void; warn: (message: string) => void },
+  logMessage?: string
 ) => Problem;
 
 const makeProblemLogString = (
@@ -85,7 +86,7 @@ export function makeApiProblemBuilder<T extends string>(errors: {
   [K in T]: string;
 }): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger) => {
+  return (error, httpMapper, logger, operationalMsg) => {
     const makeProblem = (
       httpStatus: number,
       { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>
@@ -126,7 +127,14 @@ export function makeApiProblemBuilder<T extends string>(errors: {
               },
             },
           },
-          (e) => e.response.data
+          (e) => {
+            const receivedProblem: Problem = e.response.data;
+            if (operationalMsg) {
+              logger.warn(operationalMsg);
+            }
+            logger.warn(makeProblemLogString(receivedProblem, error));
+            return e.response.data;
+          }
         )
         .otherwise((error: unknown) => {
           const problem = makeProblem(500, genericError("Unexpected error"));
@@ -153,6 +161,10 @@ const errorCodes = {
   missingKafkaMessageData: "9997",
   kafkaMessageProcessError: "9998",
   badRequestError: "9999",
+  jwkDecodingError: "10000",
+  notAllowedPrivateKeyException: "10001",
+  missingRequiredJWKClaim: "10002",
+  invalidKey: "10003",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -323,3 +335,40 @@ export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   code: "operationForbidden",
   title: "Insufficient privileges",
 });
+
+export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected error on JWK base64 decoding: ${parseErrorMessage(
+      error
+    )}`,
+    code: "jwkDecodingError",
+    title: "JWK decoding error",
+  });
+}
+
+export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key is a private key`,
+    code: "notAllowedPrivateKeyException",
+    title: "Not allowed private key exception",
+  });
+}
+
+export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `One or more required JWK claims are missing`,
+    code: "missingRequiredJWKClaim",
+    title: "Missing required JWK claims",
+  });
+}
+
+export function invalidKey(
+  kid: string,
+  error: unknown
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
+    code: "invalidKey",
+    title: "Invalid Key",
+  });
+}

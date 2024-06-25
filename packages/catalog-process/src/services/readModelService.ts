@@ -25,13 +25,17 @@ import {
   TenantId,
   Tenant,
   EServiceReadModel,
+  TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
-import { Consumer, consumer } from "../model/domain/models.js";
-import { ApiGetEServicesFilters } from "../model/types.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  consumer,
+} from "../model/domain/models.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -65,7 +69,7 @@ async function getEService(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
