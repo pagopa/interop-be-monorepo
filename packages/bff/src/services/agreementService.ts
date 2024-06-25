@@ -3,14 +3,15 @@ import {
   AgreementProcessApiResponse,
 } from "../model/api/agreementTypes.js";
 import { CatalogProcessApiEService } from "../model/api/catalogTypes.js";
+import { Headers } from "../utilities/context.js";
 import { AgreementProcessClient } from "../providers/clientProvider.js";
 
-export const getAllAgreements = async (
+export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
   consumerId: string,
-  eserviceId: string,
-  headers: { "X-Correlation-Id": string }
-): Promise<AgreementProcessApiAgreement[]> => {
+  eservice: CatalogProcessApiEService,
+  headers: Headers
+): Promise<AgreementProcessApiAgreement> => {
   const getAgreementsFrom = async (
     start: number
   ): Promise<AgreementProcessApiResponse> =>
@@ -18,7 +19,7 @@ export const getAllAgreements = async (
       headers,
       queries: {
         consumersIds: consumerId,
-        eservicesIds: eserviceId,
+        eservicesIds: eservice.id,
         offset: start,
         limit: 50,
       },
@@ -36,51 +37,27 @@ export const getAllAgreements = async (
     return agreements;
   };
 
-  return await getAgreements(0);
-};
-
-export const getLatestAgreement = async (
-  agreementProcessClient: AgreementProcessClient,
-  consumerId: string,
-  eservice: CatalogProcessApiEService,
-  headers: { "X-Correlation-Id": string }
-): Promise<AgreementProcessApiAgreement | undefined> => {
-  const agreements = await getAllAgreements(
-    agreementProcessClient,
-    consumerId,
-    eservice.id,
-    headers
-  );
-
-  const filtered = agreements
-    .map((a) => {
-      const version = eservice.descriptors.find(
-        (d) => d.id === a.descriptorId
-      )?.version;
-
-      return {
-        agreement: a,
-        version: version ? Number(version) : undefined,
-      };
-    })
-    .filter((a) => a.version !== undefined);
+  const allAgreements = await getAgreements(0);
 
   // eslint-disable-next-line functional/immutable-data
-  filtered.sort((a, b) => {
-    if (a.version === undefined || b.version === undefined) {
-      return 0;
+  return allAgreements.sort((firstAgreement, secondAgreement) => {
+    if (firstAgreement.version !== secondAgreement.version) {
+      const descriptorFirstAgreement = eservice.descriptors.find(
+        (d) => d.id === firstAgreement.descriptorId
+      );
+      const descriptorSecondAgreement = eservice.descriptors.find(
+        (d) => d.id === secondAgreement.descriptorId
+      );
+
+      return descriptorFirstAgreement && descriptorSecondAgreement
+        ? Number(descriptorSecondAgreement.version) -
+            Number(descriptorFirstAgreement.version)
+        : 0;
+    } else {
+      return (
+        new Date(secondAgreement.createdAt).getTime() -
+        new Date(firstAgreement.createdAt).getTime()
+      );
     }
-
-    const versionDiff = b.version - a.version;
-    if (versionDiff !== 0) {
-      return versionDiff;
-    }
-
-    const dateA = new Date(a.agreement.createdAt).getTime();
-    const dateB = new Date(b.agreement.createdAt).getTime();
-    return dateA - dateB;
-  });
-
-  // eslint-disable-next-line functional/immutable-data
-  return filtered.pop()?.agreement;
+  })[0];
 };

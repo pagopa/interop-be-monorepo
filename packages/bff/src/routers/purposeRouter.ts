@@ -85,7 +85,6 @@ const purposeRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    // eslint-disable-next-line sonarjs/no-identical-functions
     .get("/producer/purposes", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

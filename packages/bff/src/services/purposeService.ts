@@ -30,6 +30,7 @@ import { BffAppContext } from "../utilities/context.js";
 import { AgreementProcessApiAgreement } from "../model/api/agreementTypes.js";
 import { CatalogProcessApiDescriptor } from "../model/api/catalogTypes.js";
 import { BffApiPurpose, BffApiPurposes } from "../model/api/bffTypes.js";
+import { TenantProcessApiTenant } from "../model/api/tenantTypes.js";
 import { getAllClients } from "./authorizationService.js";
 import { getLatestAgreement } from "./agreementService.js";
 
@@ -140,28 +141,20 @@ export function purposeServiceBuilder(
           })
         )
       );
+
+      const getTenant = async (id: string): Promise<TenantProcessApiTenant> =>
+        tenantClient.getTenant({
+          params: {
+            id,
+          },
+          withCredentials: true,
+          headers,
+        });
       const consumers = await Promise.all(
-        [...new Set(purposes.results.map((p) => p.consumerId))].map((id) =>
-          tenantClient.getTenant({
-            params: {
-              id,
-            },
-            withCredentials: true,
-            headers,
-          })
-        )
+        [...new Set(purposes.results.map((p) => p.consumerId))].map(getTenant)
       );
       const producers = await Promise.all(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        [...new Set(eservices.map((e) => e.producerId))].map((id) =>
-          tenantClient.getTenant({
-            params: {
-              id,
-            },
-            withCredentials: true,
-            headers,
-          })
-        )
+        [...new Set(eservices.map((e) => e.producerId))].map(getTenant)
       );
 
       const enhancePurpose = async (
