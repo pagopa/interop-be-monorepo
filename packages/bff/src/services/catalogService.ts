@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AppContext, WithLogger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import {
   BffCatalogApiEServiceResponse,
@@ -23,6 +23,7 @@ import {
   CatalogProcessClient,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
+import { BffAppContext } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 const ACTIVE_DESCRIPTOR_STATES_FILTER = [
@@ -98,16 +99,14 @@ export function catalogServiceBuilder(
 ) {
   return {
     getCatalog: async (
-      context: WithLogger<AppContext>,
-      queries: CatalogProcessApiQueryParam,
-      headers: BffGetCatalogApiHeaders
+      context: WithLogger<BffAppContext>,
+      queries: CatalogProcessApiQueryParam
     ): Promise<BffGetCatalogApiResponse> => {
       const requesterId = context.authData.organizationId;
       const { offset, limit } = queries;
-
       const eservicesResponse: EServicesCatalogProcessApiResponse =
         await catalogProcessClient.getEServices({
-          headers,
+          headers: context.headers,
           queries,
         });
 
@@ -116,7 +115,7 @@ export function catalogServiceBuilder(
           enhanceCatalogEService(
             tenantProcessClient,
             agreementProcessClient,
-            headers,
+            context.headers,
             requesterId
           )
         )

@@ -1,14 +1,10 @@
 /* eslint-disable max-params */
-import { IncomingHttpHeaders } from "http";
-import { match, P } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import {
   AgreementProcessApiAgreement,
   agreementApiState,
 } from "./agreementTypes.js";
 import {
   BffCatalogApiEServiceResponse,
-  BffGetCatalogApiHeaders,
   BffGetCatalogApiQueryParam,
 } from "./bffTypes.js";
 import {
@@ -18,22 +14,6 @@ import {
   descriptorApiState,
 } from "./catalogTypes.js";
 import { TenantProcessApiResponse } from "./tenantTypes.js";
-
-export function parseHeaders(
-  headers: IncomingHttpHeaders
-): BffGetCatalogApiHeaders {
-  return match(headers)
-    .with({ "X-Correlation-Id": P.string }, (headers) => headers)
-    .otherwise(() => ({
-      /* 
-        Otherwise case should never happen anyway this implements gurantee 
-        the same behavior of contextMiddleware: 
-        https://github.com/pagopa/interop-be-monorepo/blob/7dcbbae8f0e7cb385c5977a0304101bd1281cefb/packages/commons/src/context/context.ts#L28
-      */
-      ...headers,
-      "X-Correlation-Id": uuidv4(),
-    }));
-}
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: BffGetCatalogApiQueryParam

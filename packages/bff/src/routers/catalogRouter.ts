@@ -5,17 +5,14 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import {
-  parseHeaders,
-  toEserviceCatalogProcessQueryParams,
-} from "../model/api/apiConverter.js";
+import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -37,15 +34,10 @@ const catalogRouter = (
 
   catalogRouter
     .get("/catalog", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      const headers = parseHeaders(req.headers);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
       const queryParams = toEserviceCatalogProcessQueryParams(req.query);
       try {
-        const response = await catalogService.getCatalog(
-          ctx,
-          queryParams,
-          headers
-        );
+        const response = await catalogService.getCatalog(ctx, queryParams);
 
         return res.status(200).json(response).send();
       } catch (error) {
