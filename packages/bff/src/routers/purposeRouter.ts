@@ -96,7 +96,6 @@ const purposeRouter = (
             consumersIds: req.query.consumersIds.join(","),
             producersIds: req.query.producersIds.join(","),
             states: req.query.states.join(","),
-            excludeDraft: true,
           },
           req.query.offset,
           req.query.limit,
@@ -113,7 +112,33 @@ const purposeRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/consumer/purposes", async (_req, res) => res.status(501).send())
+    .get("/consumer/purposes", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.getPurposeConsumer(
+          {
+            name: req.query.q,
+            eservicesIds: req.query.eservicesIds.join(","),
+            consumersIds: req.query.consumersIds.join(","),
+            producersIds: req.query.producersIds.join(","),
+            states: req.query.states.join(","),
+          },
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          reversePurposeUpdateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/purposes/:purposeId/clone", async (_req, res) =>
       res.status(501).send()
     )
