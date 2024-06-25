@@ -2,12 +2,14 @@ import {
   ApiError,
   ClientId,
   TenantId,
+  UserId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
   clientNotFound: "0001",
   organizationNotAllowedOnClient: "0002",
+  userIdNotFound: "0003",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -30,5 +32,16 @@ export function organizationNotAllowedOnClient(
     detail: `Organization ${organizationId} is not allowed on client ${clientId}`,
     code: "organizationNotAllowedOnClient",
     title: "Organization not allowed on client",
+  });
+}
+
+export function userIdNotFound(
+  userId: UserId,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found in client ${clientId}`,
+    code: "userIdNotFound",
+    title: "User id not found",
   });
 }
