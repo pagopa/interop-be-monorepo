@@ -1,24 +1,21 @@
-import { AppContext, WithLogger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  PurposeProcessApiCreateReversePurposeSeed,
-  PurposeProcessApiCreatePurposeSeed,
-  PurposeProcessApiUpdateReversePurposeSeed,
-  PurposeProcessApiPurposeVersion,
-  PurposeProcessApiPurpose,
-  PurposeProcessApiPurposeVersionState,
-} from "../model/api/purposeTypes.js";
+  agreementApi,
+  bffApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import {
-  Headers,
-  AuthorizationProcessClient,
-  PurposeProcessClient,
-  CatalogProcessClient,
-  TenantProcessClient,
   AgreementProcessClient,
+  AuthorizationProcessClient,
+  CatalogProcessClient,
+  PurposeProcessClient,
+  TenantProcessClient,
 } from "../providers/clientProvider.js";
 import {
   agreementNotFound,
@@ -27,16 +24,14 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { AgreementProcessApiAgreement } from "../model/api/agreementTypes.js";
-import { CatalogProcessApiDescriptor } from "../model/api/catalogTypes.js";
-import { BffApiPurpose, BffApiPurposes } from "../model/api/bffTypes.js";
-import { getAllClients } from "./authorizationService.js";
+import { BffAppContext } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
+import { getAllClients } from "./authorizationService.js";
 
 export const getCurrentVersion = (
-  purposeVersions: PurposeProcessApiPurposeVersion[]
-): PurposeProcessApiPurposeVersion | undefined => {
-  const statesToExclude: PurposeProcessApiPurposeVersionState[] = [
+  purposeVersions: purposeApi.PurposeVersion[]
+): purposeApi.PurposeVersion | undefined => {
+  const statesToExclude: purposeApi.PurposeVersionState[] = [
     "WAITING_FOR_APPROVAL",
     "REJECTED",
   ];
@@ -60,40 +55,37 @@ export function purposeServiceBuilder(
 ) {
   return {
     async createPurpose(
-      createSeed: PurposeProcessApiCreatePurposeSeed,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      createSeed: purposeApi.PurposeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
       logger.info(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
       );
       return await purposeClient.createPurpose(createSeed, {
-        headers: { ...requestHeaders },
+        headers: { ...headers },
         withCredentials: true,
       });
     },
     async createPurposeFromEService(
-      createSeed: PurposeProcessApiCreateReversePurposeSeed,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      createSeed: purposeApi.EServicePurposeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
       logger.info("Creating purpose from e-service");
       return await purposeClient.createPurposeFromEService(createSeed, {
-        headers: { ...requestHeaders },
+        headers: { ...headers },
         withCredentials: true,
       });
     },
     async reversePurposeUpdate(
       id: PurposeId,
-      updateSeed: PurposeProcessApiUpdateReversePurposeSeed,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      updateSeed: bffApi.ReversePurposeUpdateContent,
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
       logger.info(`Updating reverse purpose ${id}`);
       const updatedPurpose = await purposeClient.updateReversePurpose(
         updateSeed,
         {
-          headers: { ...requestHeaders },
+          headers,
           withCredentials: true,
           params: {
             id,
@@ -120,9 +112,8 @@ export function purposeServiceBuilder(
       },
       offset: number,
       limit: number,
-      { authData }: WithLogger<AppContext>,
-      requestHeaders: Headers
-    ): Promise<BffApiPurposes> {
+      { authData, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Purposes> {
       const purposes = await purposeClient.getPurposes({
         queries: {
           ...filters,
@@ -130,7 +121,7 @@ export function purposeServiceBuilder(
           offset,
         },
         withCredentials: true,
-        headers: { ...requestHeaders },
+        headers: { ...headers },
       });
 
       const eservices = await Promise.all(
@@ -140,37 +131,37 @@ export function purposeServiceBuilder(
               eServiceId: id,
             },
             withCredentials: true,
-            headers: { ...requestHeaders },
+            headers: { ...headers },
           })
         )
       );
       const consumers = await Promise.all(
         [...new Set(purposes.results.map((p) => p.consumerId))].map((id) =>
-          tenantClient.getTenant({
+          tenantClient.tenant.getTenant({
             params: {
               id,
             },
             withCredentials: true,
-            headers: { ...requestHeaders },
+            headers: { ...headers },
           })
         )
       );
       const producers = await Promise.all(
         // eslint-disable-next-line sonarjs/no-identical-functions
         [...new Set(eservices.map((e) => e.producerId))].map((id) =>
-          tenantClient.getTenant({
+          tenantClient.tenant.getTenant({
             params: {
               id,
             },
             withCredentials: true,
-            headers: { ...requestHeaders },
+            headers: { ...headers },
           })
         )
       );
 
       const enhancePurpose = async (
-        purpose: PurposeProcessApiPurpose
-      ): Promise<BffApiPurpose> => {
+        purpose: purposeApi.Purpose
+      ): Promise<bffApi.Purpose> => {
         const eservice = eservices.find((e) => e.id === purpose.eserviceId);
         if (!eservice) {
           throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
@@ -190,7 +181,7 @@ export function purposeServiceBuilder(
           agreementClient,
           purpose.consumerId,
           eservice,
-          requestHeaders
+          headers
         );
         if (!latestAgreement) {
           throw agreementNotFound(unsafeBrandId(purpose.consumerId));
@@ -214,7 +205,7 @@ export function purposeServiceBuilder(
                   authorizationClient,
                   purpose.consumerId,
                   purpose.id,
-                  requestHeaders
+                  headers
                 )
               ).map((c) => ({
                 id: c.client.id,
@@ -232,9 +223,9 @@ export function purposeServiceBuilder(
         );
 
         const isUpgradable = (
-          descriptor: CatalogProcessApiDescriptor,
-          agreement: AgreementProcessApiAgreement,
-          descriptors: CatalogProcessApiDescriptor[]
+          descriptor: catalogApi.EServiceDescriptor,
+          agreement: agreementApi.Agreement,
+          descriptors: catalogApi.EServiceDescriptor[]
         ): boolean =>
           descriptors
             .filter((d) => Number(d.version) > Number(descriptor.version))

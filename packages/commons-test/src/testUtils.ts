@@ -32,6 +32,7 @@ import {
   clientKind,
   keyUse,
   Key,
+  AttributeKind,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -159,10 +160,13 @@ export const getMockAgreement = (
   state,
 });
 
-export const getMockAttribute = (): Attribute => ({
-  id: generateId(),
+export const getMockAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
+): Attribute => ({
+  id,
   name: "attribute name",
-  kind: attributeKind.certified,
+  kind,
   description: "attribute description",
   creationTime: new Date(),
   code: undefined,
@@ -254,11 +258,23 @@ export const getMockClient = (): Client => ({
 });
 
 export const getMockKey = (): Key => ({
+  clientId: generateId(),
+  userId: generateId(),
   name: "test key",
   createdAt: new Date(),
-  kid: generateId(),
-  encodedPem: generateId(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
