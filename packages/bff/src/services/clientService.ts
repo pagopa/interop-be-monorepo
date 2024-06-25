@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { Logger } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   Headers,
   PagoPAInteropBeClients,
@@ -14,11 +15,46 @@ import {
   AuthUpdaterApiPurpose,
   ProcessApiKeySeed,
 } from "../model/api/clientTypes.js";
+import { userNotFound } from "../model/domain/errors.js";
+import { toApiCompactUser } from "../model/domain/apiConverter.js";
 
-export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
+export function clientServiceBuilder(
+  apiClients: PagoPAInteropBeClients,
+  selfcareV2Client: SelfcareV2Client
+) {
   const { authorizationProcessClient, authorizationUpdaterClient } = apiClients;
 
   return {
+    async getClients({
+      headers,
+      limit,
+      offset,
+      requesterId,
+      userIds,
+      kind,
+      name,
+    }: {
+      requesterId: string;
+      offset: number;
+      limit: number;
+      userIds: string[];
+      headers: Headers;
+      name?: string;
+      kind?: BffApiClientKind;
+    }): Promise<AuthProcessApiClientsWithKeys> {
+      return authorizationProcessClient.getClientsWithKeys({
+        queries: {
+          offset,
+          limit,
+          userIds,
+          consumerId: requesterId,
+          name,
+          kind,
+        },
+        headers,
+      });
+    },
+
     async getClientById(
       clientId: string,
       requestHeaders: Headers,
@@ -128,8 +164,8 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
 
     async addClientPurpose(
       clientId: string,
-      purpose: ApiPurposeAdditionDetailsSeed,
-      requestHeaders: Headers,
+      purpose: BffApiPurposeAdditionDetailsSeed,
+      headers: Headers,
       logger: Logger
     ): Promise<void> {
       logger.info(`Adding purpose ${purpose.purposeId} to client ${clientId}`);
@@ -137,6 +173,95 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       await authorizationProcessClient.addClientPurpose(purpose, {
         params: { clientId },
         headers: { ...requestHeaders },
+      });
+    },
+
+    async getClientUsers(
+      clientId: string,
+      selfcareId: string,
+      headers: Headers,
+      logger: Logger
+    ): Promise<BffApiCompactUser[]> {
+      logger.info(`Retrieving users for client ${clientId}`);
+
+      const clientUsers = await authorizationProcessClient.getClientUsers({
+        params: { clientId },
+        headers,
+      });
+
+      const users = clientUsers.map(async (id) =>
+        toApiCompactUser(
+          await getSelfcareUserById(selfcareV2Client, id, selfcareId),
+          id
+        )
+      );
+      return Promise.all(users);
+    },
+
+    async getClientKeyById(
+      clientId: string,
+      keyId: string,
+      selfcareId: string,
+      headers: Headers,
+      logger: Logger
+    ): Promise<BffApiPublicKey> {
+      logger.info(`Retrieve key ${keyId} for client ${clientId}`);
+
+      const key = await authorizationProcessClient.getClientKeyById({
+        params: { clientId, keyId },
+        headers,
+      });
+      const user = await getSelfcareUserById(
+        selfcareV2Client,
+        key.userId,
+        selfcareId
+      );
+
+      return {
+        user: toApiCompactUser(user, key.userId),
+        name: key.name,
+        keyId: key.kid,
+        createdAt: key.createdAt,
+        isOrphan: user.id === undefined,
+      };
+    },
+
+    async getEncodedClientKeyById(
+      clientId: string,
+      keyId: string,
+      headers: Headers,
+      logger: Logger
+    ): Promise<{ key: string }> {
+      logger.info(`Retrieve key ${keyId} for client ${clientId}`);
+
+      const key = await authorizationProcessClient.getClientKeyById({
+        params: { clientId, keyId },
+        headers,
+      });
+      return { key: key.encodedPem };
+    },
+
+    async createConsumerClient(
+      seed: AuthProcessApiClientSeed,
+      headers: Headers,
+      logger: Logger
+    ): Promise<{ id: string }> {
+      logger.info(`Creating consumer client with name ${seed.name}`);
+
+      return authorizationProcessClient.createConsumerClient(seed, {
+        headers,
+      });
+    },
+
+    async createApiClient(
+      seed: AuthProcessApiClientSeed,
+      headers: Headers,
+      logger: Logger
+    ): Promise<{ id: string }> {
+      logger.info(`Creating api client with name ${seed.name}`);
+
+      return authorizationProcessClient.createApiClient(seed, {
+        headers,
       });
     },
   };
@@ -210,4 +335,19 @@ async function enhancePurpose(
       },
     },
   };
+}
+
+async function getSelfcareUserById(
+  selfcareClient: SelfcareV2Client,
+  userId: string,
+  selfcareId: string
+) {
+  try {
+    return selfcareClient.getUserInfoUsingGET({
+      params: { id: userId },
+      queries: { institutionId: selfcareId },
+    });
+  } catch (error) {
+    throw userNotFound(userId, selfcareId);
+  }
 }
