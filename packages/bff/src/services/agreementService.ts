@@ -1,18 +1,3 @@
-
-// export const getAllAgreements = async (
-//   agreementProcessClient: AgreementProcessClient,
-//   consumerId: string,
-//   eserviceId: string,
-//   headers: { "X-Correlation-Id": string }
-// ): Promise<AgreementProcessApiAgreement[]> => {
-//   const getAgreementsFrom = async (
-//     start: number
-//   ): Promise<AgreementProcessApiResponse> =>
-//     await agreementProcessClient.getAgreements({
-//       headers,
-//       queries: {
-//         consumersIds: consumerId,
-//         eservicesIds: eserviceId,
 /* eslint-disable functional/immutable-data */
 import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
 import { AgreementProcessClient } from "../providers/clientProvider.js";

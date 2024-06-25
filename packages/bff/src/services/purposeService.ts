@@ -9,6 +9,7 @@ import {
   bffApi,
   catalogApi,
   purposeApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
@@ -135,28 +136,20 @@ export function purposeServiceBuilder(
           })
         )
       );
+
+      const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
+        await tenantClient.tenant.getTenant({
+          params: {
+            id,
+          },
+          withCredentials: true,
+          headers,
+        });
       const consumers = await Promise.all(
-        [...new Set(purposes.results.map((p) => p.consumerId))].map((id) =>
-          tenantClient.tenant.getTenant({
-            params: {
-              id,
-            },
-            withCredentials: true,
-            headers,
-          })
-        )
+        [...new Set(purposes.results.map((p) => p.consumerId))].map(getTenant)
       );
       const producers = await Promise.all(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        [...new Set(eservices.map((e) => e.producerId))].map((id) =>
-          tenantClient.tenant.getTenant({
-            params: {
-              id,
-            },
-            withCredentials: true,
-            headers,
-          })
-        )
+        [...new Set(eservices.map((e) => e.producerId))].map(getTenant)
       );
 
       const enhancePurpose = async (
