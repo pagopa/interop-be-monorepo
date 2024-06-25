@@ -1,6 +1,8 @@
 /* eslint-disable no-irregular-whitespace */
 import { describe, expect, it } from "vitest";
 import {
+  Agreement,
+  AgreementId,
   EService,
   Tenant,
   UserId,
@@ -69,6 +71,7 @@ describe("sendAgreementSubmissionEmail", () => {
 
     const agreement = {
       ...getMockAgreement(),
+      id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as AgreementId,
       stamps: {
         submission: { when: submissionDate, who: generateId<UserId>() },
       },
@@ -392,7 +395,7 @@ describe("sendAgreementSubmissionEmail", () => {
                                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                           <tr>
                                             <td align="center" bgcolor="#0073E6" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:14px 24px;background:#0073E6;" valign="middle">
-                                              <a href="https://selfcare.pagopa.it" style="display:inline-block;background:#0073E6;color:white;font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:14px 24px;mso-padding-alt:0px;border-radius:4px;" target="_blank"> Accedi per visualizzare </a>
+                                              <a href="https://selfcare.interop.pagopa.it/ui/it/erogazione/richieste/37317757-0c8d-4e6e-9ac9-7d2db6a9519e" style="display:inline-block;background:#0073E6;color:white;font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:14px 24px;mso-padding-alt:0px;border-radius:4px;" target="_blank"> Accedi per visualizzare </a>
                                             </td>
                                           </tr>
                                         </table>
@@ -516,7 +519,7 @@ describe("sendAgreementSubmissionEmail", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { submission: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,

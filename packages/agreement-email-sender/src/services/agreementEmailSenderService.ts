@@ -133,6 +133,7 @@ export async function sendAgreementSubmissionMail(
     subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
     to: [producerEmail.address],
     body: templateService.compileHtml(htmlTemplate, {
+      interopFeUrl: `https://selfcare.interop.pagopa.it/ui/it/erogazione/richieste/${agreement.id}`,
       producerName: producer.name,
       consumerName: consumer.name,
       eserviceName: eservice.name,
