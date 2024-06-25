@@ -1,3 +1,4 @@
+import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
@@ -8,9 +9,14 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { clientServiceBuilder } from "../services/clientService.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
+import {
+  emptyErrorMapper,
+  getClientUsersErrorMapper,
+} from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { toApiCompactClient } from "../model/domain/apiConverter.js";
+import { config } from "../utilities/config.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
@@ -20,10 +26,49 @@ const clientRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const clientService = clientServiceBuilder(processClients);
+  const clientService = clientServiceBuilder(
+    processClients,
+    selfcareV2ClientBuilder(config)
+  );
 
   clientRouter
-    .get("/clients", async (_req, res) => res.status(501).send())
+    .get("/clients", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        const headers = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        const requesterId = ctx.authData.organizationId;
+        const { limit, offset, userIds, kind, q } = req.query;
+        const clients = await clientService.getClients({
+          headers,
+          limit,
+          offset,
+          userIds,
+          kind,
+          name: q,
+          requesterId,
+        });
+
+        return res
+          .status(200)
+          .json({
+            results: clients.results.map(toApiCompactClient),
+            pagination: {
+              limit,
+              offset,
+              totalCount: clients.totalCount,
+            },
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
     .get("/clients/:clientId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
@@ -88,9 +133,28 @@ const clientRouter = (
       }
     })
 
-    .get("/clients/:clientId/keys/:keyId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/clients/:clientId/keys/:keyId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        const headers = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        const key = await clientService.getClientKeyById(
+          req.params.clientId,
+          req.params.keyId,
+          ctx.authData.selfcareId,
+          headers,
+          ctx.logger
+        );
+
+        return res.status(200).json(key).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .delete("/clients/:clientId/keys/:keyId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -183,9 +247,32 @@ const clientRouter = (
       }
     })
 
-    .get("/clients/:clientId/users", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/clients/:clientId/users", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const headers = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        const users = await clientService.getClientUsers(
+          req.params.clientId,
+          ctx.authData.selfcareId,
+          headers,
+          ctx.logger
+        );
+
+        return res.status(200).json(users).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getClientUsersErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
 
     .post("/clients/:clientId/keys", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -210,11 +297,72 @@ const clientRouter = (
       }
     })
     .get("/clients/:clientId/keys", async (_req, res) => res.status(501).send())
-    .get("/clients/:clientId/encoded/keys/:keyId", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/clientsConsumer", async (_req, res) => res.status(501).send())
-    .post("/clientsApi", async (_req, res) => res.status(501).send())
+    .get("/clients/:clientId/encoded/keys/:keyId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        const headers = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        const key = await clientService.getEncodedClientKeyById(
+          req.params.clientId,
+          req.params.keyId,
+          headers,
+          ctx.logger
+        );
+
+        return res.status(200).json(key).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/clientsConsumer", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const headers = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        const result = await clientService.createConsumerClient(
+          req.body,
+          headers,
+          ctx.logger
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/clientsApi", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const headers = {
+          "X-Correlation-Id": ctx.correlationId,
+          Authorization: req.headers.authorization as string,
+        };
+
+        const result = await clientService.createApiClient(
+          req.body,
+          headers,
+          ctx.logger
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
     .get("/clients/:clientId/users/:userId/keys", async (_req, res) =>
       res.status(501).send()
     );
