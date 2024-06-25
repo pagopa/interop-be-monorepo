@@ -1,7 +1,4 @@
-import {
-  AuthorizationProcessApiClientWithKeys,
-  ClientsWithKeysApiResponse,
-} from "../model/api/authorizationTypes.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { AuthorizationProcessClient } from "../providers/clientProvider.js";
 
 export const getAllClients = async (
@@ -9,14 +6,14 @@ export const getAllClients = async (
   consumerId: string,
   purposeId: string,
   headers: { "X-Correlation-Id": string }
-): Promise<AuthorizationProcessApiClientWithKeys[]> => {
+): Promise<authorizationApi.Client[]> => {
   const getClientsFrom = async (
     start: number
-  ): Promise<ClientsWithKeysApiResponse> =>
-    await authorizationProcessClient.getClientsWithKeys({
+  ): Promise<authorizationApi.Clients> =>
+    await authorizationProcessClient.client.getClients({
       headers,
       queries: {
-        userIds: [],
+        userIds: "",
         consumerId,
         purposeId,
         limit: 50,
@@ -27,7 +24,7 @@ export const getAllClients = async (
   // Fetched all agreements in a recursive way
   const getClients = async (
     start: number
-  ): Promise<AuthorizationProcessApiClientWithKeys[]> => {
+  ): Promise<authorizationApi.Client[]> => {
     const clients = (await getClientsFrom(start)).results;
 
     if (clients.length >= 50) {

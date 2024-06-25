@@ -1,7 +1,8 @@
 import { DescriptorId, EServiceId, InternalError } from "pagopa-interop-models";
 
 type AgreementEmailSenderErrorCode =
-  | "activationDateNotFound"
+  | "htmlTemplateNotFound"
+  | "agreementStampDateNotFound"
   | "eServiceNotFound"
   | "tenantNotFound"
   | "tenantDigitalAddressNotFound"
@@ -19,12 +20,20 @@ export class AgreementEmailSenderError extends InternalError<AgreementEmailSende
   }
 }
 
-export function activationDateNotFound(
+export function htmlTemplateNotFound(path: string): AgreementEmailSenderError {
+  return new InternalError({
+    detail: `HTML template not found at ${path}`,
+    code: "htmlTemplateNotFound",
+  });
+}
+
+export function agreementStampDateNotFound(
+  stamp: string,
   agreementId: string
 ): AgreementEmailSenderError {
   return new InternalError({
-    detail: `Activation date not found for agreement ${agreementId}`,
-    code: "activationDateNotFound",
+    detail: `${stamp} date not found for agreement ${agreementId}`,
+    code: "agreementStampDateNotFound",
   });
 }
 
