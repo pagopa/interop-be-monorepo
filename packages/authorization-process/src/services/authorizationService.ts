@@ -2,6 +2,7 @@ import {
   Client,
   ClientId,
   ListResult,
+  PurposeId,
   TenantId,
   UserId,
   WithMetadata,
@@ -17,11 +18,18 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
-import { clientNotFound, userIdNotFound } from "../model/domain/errors.js";
+import {
+  clientNotFound,
+  keyNotFound,
+  userIdNotFound,
+  userNotAllowedOnClient,
+} from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
+  toCreateEventClientKeyDeleted,
+  toCreateEventClientPurposeRemoved,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
@@ -226,6 +234,123 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+    },
+    async deleteClientKeyById({
+      clientId,
+      keyIdToRemove,
+      authData,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      keyIdToRemove: string;
+      authData: AuthData;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+
+      const keyToRemove = client.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+      if (!keyToRemove) {
+        throw keyNotFound(keyIdToRemove, client.data.id);
+      }
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !client.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        keys: client.data.keys.filter((key) => key.kid !== keyIdToRemove),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientKeyDeleted(
+          updatedClient,
+          keyIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientPurpose({
+      clientId,
+      purposeIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      purposeIdToRemove: PurposeId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing purpose ${purposeIdToRemove} from client ${clientId}`
+      );
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+      //   throw purposeIdNotFound(purposeIdToRemove, client.data.id);
+      // }
+
+      const updatedClient: Client = {
+        ...client.data,
+        purposes: client.data.purposes.filter(
+          (purposeId) => purposeId !== purposeIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientPurposeRemoved(
+          updatedClient,
+          purposeIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removePurposeFromClients({
+      purposeIdToRemove,
+      correlationId,
+      logger,
+    }: {
+      purposeIdToRemove: PurposeId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
+
+      const clients = await readModelService.getClientsRelatedToPurpose(
+        purposeIdToRemove
+      );
+      for (const client of clients) {
+        const updatedClient: Client = {
+          ...client.data,
+          purposes: client.data.purposes.filter(
+            (purposeId) => purposeId !== purposeIdToRemove
+          ),
+        };
+
+        await repository.createEvent(
+          toCreateEventClientPurposeRemoved(
+            updatedClient,
+            purposeIdToRemove,
+            client.metadata.version,
+            correlationId
+          )
+        );
+      }
     },
   };
 }

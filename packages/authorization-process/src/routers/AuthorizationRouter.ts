@@ -21,8 +21,10 @@ import {
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   deleteClientErrorMapper,
+  deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
   getClientsErrorMapper,
+  removeClientPurposeErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -265,8 +267,27 @@ const authorizationRouter = (
     )
     .delete(
       "/clients/:clientId/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.deleteClientKeyById({
+            clientId: unsafeBrandId(req.params.clientId),
+            keyIdToRemove: unsafeBrandId(req.params.keyId),
+            authData: ctx.authData,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteClientKeyByIdErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId/users/:userId/keys",
@@ -281,12 +302,44 @@ const authorizationRouter = (
     .delete(
       "/clients/:clientId/purposes/:purposeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeClientPurpose({
+            clientId: unsafeBrandId(req.params.clientId),
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeClientPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/clients/purposes/:purposeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removePurposeFromClients({
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return authorizationRouter;
