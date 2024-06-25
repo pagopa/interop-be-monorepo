@@ -278,7 +278,7 @@ export const authorizationServiceBuilder = (
         withCredentials: true,
         headers,
       });
-      logger.info(`Delete client ${clientId}`);
+      logger.info(`Deleted client ${clientId}`);
     },
     async addClientKey(
       clientId: ClientId,
