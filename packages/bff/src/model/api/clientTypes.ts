@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { schemas } from "../generated/api.js";
 import { schemas as authSchemas } from "../generated/authorization-process/api.js";
 import { schemas as authUpdaterSchemas } from "../generated/authorization-updater/api.js";
 

@@ -190,7 +190,7 @@ export function clientServiceBuilder(
       });
 
       const users = clientUsers.map(async (id) =>
-        toApiCompactUser(
+        toBffApiCompactUser(
           await getSelfcareUserById(selfcareV2Client, id, selfcareId),
           id
         )
@@ -218,7 +218,7 @@ export function clientServiceBuilder(
       );
 
       return {
-        user: toApiCompactUser(user, key.userId),
+        user: toBffApiCompactUser(user, key.userId),
         name: key.name,
         keyId: key.kid,
         createdAt: key.createdAt,

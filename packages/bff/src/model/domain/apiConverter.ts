@@ -97,7 +97,7 @@ export const toApiAttributeProcessSeed = (
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
 
-export const toApiCompactClient = (
+export const toBffApiCompactClient = (
   input: AuthProcessApiClientWithKeys
 ): BffApiCompactClient => ({
   hasKeys: input.keys.length > 0,
@@ -105,7 +105,7 @@ export const toApiCompactClient = (
   name: input.client.name,
 });
 
-export const toApiCompactUser = (
+export const toBffApiCompactUser = (
   input: UserResponse,
   userId: string
 ): BffApiCompactUser =>

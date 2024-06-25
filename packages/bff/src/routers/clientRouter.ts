@@ -15,7 +15,7 @@ import {
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { toApiCompactClient } from "../model/domain/apiConverter.js";
+import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
 
 const clientRouter = (
@@ -55,7 +55,7 @@ const clientRouter = (
         return res
           .status(200)
           .json({
-            results: clients.results.map(toApiCompactClient),
+            results: clients.results.map(toBffApiCompactClient),
             pagination: {
               limit,
               offset,

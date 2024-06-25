@@ -47,7 +47,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(toApiSelfcareUser(user, ctx.authData.organizationId))
+          .json(toBffApiSelfcareUser(user, ctx.authData.organizationId))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -68,7 +68,10 @@ const selfcareRouter = (
           ctx.authData.selfcareId
         );
 
-        return res.status(200).json(products.map(toApiSelfcareProduct)).end();
+        return res
+          .status(200)
+          .json(products.map(toBffApiSelfcareProduct))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -89,7 +92,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(institutions.map(toApiSelfcareInstitution))
+          .json(institutions.map(toBffApiSelfcareInstitution))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
