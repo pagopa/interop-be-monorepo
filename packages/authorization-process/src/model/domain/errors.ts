@@ -12,7 +12,6 @@ export const errorCodes = {
   userIdNotFound: "0003",
   keyNotFound: "0004",
   userNotAllowedOnClient: "0005",
-
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
