@@ -21,7 +21,7 @@ export async function handleMessageV2(
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $set: {
@@ -37,7 +37,7 @@ export async function handleMessageV2(
     .with({ type: "ClientKeyDeleted" }, async (message) => {
       await keys.deleteOne({
         "data.kid": message.data.kid,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with({ type: "ClientDeleted" }, async (message) => {
