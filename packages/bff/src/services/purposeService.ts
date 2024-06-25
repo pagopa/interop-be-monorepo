@@ -22,6 +22,7 @@ import {
   agreementNotFound,
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -353,6 +354,28 @@ export function purposeServiceBuilder(
         limit,
         headers
       );
+    },
+    async clonePurpose(
+      purposeId: PurposeId,
+      seed: purposeApi.PurposeCloneSeed,
+      { headers }: BffAppContext
+    ): Promise<bffApi.PurposeVersionResource> {
+      const cloned = await purposeClient.clonePurpose(seed, {
+        params: {
+          purposeId,
+        },
+        headers,
+      });
+
+      const draft = cloned.versions.find((v) => v.state === "DRAFT");
+      if (!draft) {
+        throw purposeDraftVersionNotFound(purposeId);
+      }
+
+      return {
+        purposeId: cloned.id,
+        versionId: draft.id,
+      };
     },
   };
 }
