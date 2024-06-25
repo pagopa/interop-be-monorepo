@@ -177,7 +177,7 @@ export type ClientComponentState = z.infer<typeof ClientComponentState>;
 export const convertEserviceState = (
   state: DescriptorState
 ): ClientComponentState =>
-  state === descriptorState.published
+  state === descriptorState.published || state === descriptorState.deprecated
     ? clientComponentState.active
     : clientComponentState.inactive;
 
