@@ -1,6 +1,7 @@
 import {
   ApiError,
   ClientId,
+  PurposeId,
   TenantId,
   UserId,
   makeApiProblemBuilder,
@@ -12,6 +13,7 @@ export const errorCodes = {
   userIdNotFound: "0003",
   keyNotFound: "0004",
   userNotAllowedOnClient: "0005",
+  purposeIdNotFound: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -67,5 +69,16 @@ export function userNotAllowedOnClient(
     detail: `User ${userId} is not allowed on client ${clientId}`,
     code: "userNotAllowedOnClient",
     title: "User not allowed on client",
+  });
+}
+
+export function purposeIdNotFound(
+  purposeId: PurposeId,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found in client ${clientId}`,
+    code: "purposeIdNotFound",
+    title: "Purpose id not found",
   });
 }
