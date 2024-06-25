@@ -64,3 +64,24 @@ export function toCreateEventClientUserDeleted(
     correlationId,
   };
 }
+
+export function toCreateEventClientKeyDeleted(
+  client: Client,
+  keyId: string,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientKeyDeleted",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        kid: keyId,
+      },
+    },
+    correlationId,
+  };
+}
