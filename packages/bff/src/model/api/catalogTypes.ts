@@ -20,6 +20,13 @@ export type EServiceCatalogProcessApi = z.infer<typeof schemas.EService>;
 export type EServiceCatalogProcessApiDescriptor = z.infer<
   typeof schemas.EServiceDescriptor
 >;
+export type EServiceCatalogProcessApiDocument = z.infer<
+  typeof schemas.EServiceDoc
+>;
+
+export type EServiceCatalogProcessApiRiskAnalysis = z.infer<
+  typeof schemas.EServiceRiskAnalysis
+>;
 
 export type EServiceCatalogProcessApiDescriptorState = z.infer<
   typeof schemas.EServiceDescriptorState
@@ -35,6 +42,6 @@ export const descriptorApiState: {
   ARCHIVED: "ARCHIVED",
 } as const;
 
-export type EServiceCatalogProcessApiAttributeCertified = z.infer<
+export type EServiceCatalogProcessApiAttribute = z.infer<
   typeof schemas.Attribute
 >;
