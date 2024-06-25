@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.14.2",
+    "@types/node": "20.14.6",
     "@types/uuid": "9.0.8",
     "openapi-endpoint-trimmer": "2.0.0",
     "openapi-zod-client": "1.18.1",
