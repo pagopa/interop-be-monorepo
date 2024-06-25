@@ -213,6 +213,25 @@ export function toCreateEventAgreementSuspendedByConsumer(
   };
 }
 
+export function toCreateEventAgreementSuspendedByPlatform(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSuspendedByPlatform",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventAgreementUnsuspendedByProducer(
   agreement: Agreement,
   version: number,
@@ -242,6 +261,25 @@ export function toCreateEventAgreementUnsuspendedByConsumer(
     version,
     event: {
       type: "AgreementUnsuspendedByConsumer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementUnsuspendedByPlatform(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementUnsuspendedByPlatform",
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
@@ -286,6 +324,44 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
       event_version: 2,
       data: {
         documentId,
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementSetDraftByPlatform(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSetDraftByPlatform",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSetMissingCertifiedAttributesByPlatform",
+      event_version: 2,
+      data: {
         agreement: toAgreementV2(agreement),
       },
     },

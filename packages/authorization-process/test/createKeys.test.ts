@@ -20,7 +20,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
-import { selfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { UserResource } from "pagopa-interop-selfcare-v2-client";
 import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
 import {
   clientNotFound,
@@ -40,6 +40,7 @@ import {
   authorizationService,
   keys,
   postgresDB,
+  selfcareV2Client,
 } from "./utils.js";
 
 describe("createKeys", () => {
@@ -77,13 +78,12 @@ describe("createKeys", () => {
       ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
     >
   ): void {
-    vi.spyOn(
-      selfcareV2Client,
-      "getInstitutionProductUsersUsingGET"
-    ).mockImplementationOnce(() => Promise.resolve(value));
+    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+      async () => value
+    );
   }
 
-  const mockSelfCareUsers = {
+  const mockSelfCareUsers: UserResource = {
     id: generateId(),
     name: "test",
     roles: [],
@@ -113,19 +113,13 @@ describe("createKeys", () => {
 
     await addOneClient(mockClient);
 
-    vi.mock("pagopa-interop-selfcare-v2-client", () => ({
-      selfcareV2Client: {
-        getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
-          Promise.resolve(true),
-      },
-    }));
-    const { client } = await authorizationService.createKeys(
-      mockClient.id,
-      mockAuthData,
+    const { client } = await authorizationService.createKeys({
+      clientId: mockClient.id,
+      authData: mockAuthData,
       keysSeeds,
-      generateId(),
-      genericLogger
-    );
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
@@ -166,13 +160,13 @@ describe("createKeys", () => {
     await addOneClient(getMockClient());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createKeys(
-        mockClient.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
@@ -185,13 +179,13 @@ describe("createKeys", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createKeys(
-        notConsumerClient.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: notConsumerClient.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(consumerId, notConsumerClient.id)
     );
@@ -202,15 +196,15 @@ describe("createKeys", () => {
     mockSelfcareV2ClientCall([]);
 
     expect(
-      authorizationService.createKeys(
-        mockClient.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
-      userWithoutSecurityPrivileges(mockAuthData.userId, userId)
+      userWithoutSecurityPrivileges(mockAuthData.organizationId, userId)
     );
   });
   it("should throw tooManyKeysPerClient if the keys number is greater than maxKeysPerClient ", async () => {
@@ -233,13 +227,13 @@ describe("createKeys", () => {
     await addOneClient(clientWith100Keys);
 
     expect(
-      authorizationService.createKeys(
-        clientWith100Keys.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: clientWith100Keys.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       tooManyKeysPerClient(
         clientWith100Keys.id,
@@ -256,13 +250,13 @@ describe("createKeys", () => {
     await addOneClient(noUsersClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createKeys(
-        noUsersClient.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: noUsersClient.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       userNotFound(mockAuthData.userId, mockAuthData.selfcareId)
     );
@@ -288,13 +282,13 @@ describe("createKeys", () => {
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createKeys(
-        mockClient.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
   it("should throw keyAlreadyExists if the kid already exist in  the client keys ", async () => {
@@ -306,13 +300,13 @@ describe("createKeys", () => {
     await writeInReadmodel(key, keys);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createKeys(
-        mockClient.id,
-        mockAuthData,
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
         keysSeeds,
-        generateId(),
-        genericLogger
-      )
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
 });

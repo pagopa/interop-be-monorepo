@@ -2,6 +2,7 @@ import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {
   Client,
   ClientAddedV2,
+  TenantId,
   UserId,
   clientKind,
   generateId,
@@ -17,7 +18,7 @@ import { ApiClientSeed } from "../src/model/domain/models.js";
 import { authorizationService, postgresDB } from "./utils.js";
 
 describe("createConsumerClient", () => {
-  const organizationId = generateId();
+  const organizationId: TenantId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -34,12 +35,12 @@ describe("createConsumerClient", () => {
     members: [organizationId],
   };
   it("should write on event-store for the creation of a consumer client", async () => {
-    const { client } = await authorizationService.createConsumerClient(
+    const { client } = await authorizationService.createConsumerClient({
       clientSeed,
-      unsafeBrandId(organizationId),
-      generateId(),
-      genericLogger
-    );
+      organizationId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
@@ -64,10 +65,9 @@ describe("createConsumerClient", () => {
       keys: [],
       name: clientSeed.name,
       createdAt: new Date(),
-      consumerId: unsafeBrandId(organizationId),
+      consumerId: organizationId,
       kind: clientKind.consumer,
       purposes: [],
-      relationships: [],
       users: clientSeed.members.map(unsafeBrandId<UserId>),
       description: clientSeed.description,
     };
