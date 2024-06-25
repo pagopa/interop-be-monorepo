@@ -11,6 +11,7 @@ import {
   PurposeProcessApiPurposeVersion,
   PurposeProcessApiPurpose,
   PurposeProcessApiPurposeVersionState,
+  PurposeProcessApiClonePurposeSeed,
 } from "../model/api/purposeTypes.js";
 import {
   AuthorizationProcessClient,
@@ -23,13 +24,18 @@ import {
   agreementNotFound,
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { AgreementProcessApiAgreement } from "../model/api/agreementTypes.js";
 import { CatalogProcessApiDescriptor } from "../model/api/catalogTypes.js";
-import { BffApiPurpose, BffApiPurposes } from "../model/api/bffTypes.js";
+import {
+  BffApiPurpose,
+  BffApiPurposes,
+  BffApiPurposeVersionResource,
+} from "../model/api/bffTypes.js";
 import { TenantProcessApiTenant } from "../model/api/tenantTypes.js";
 import { Headers } from "../utilities/context.js";
 import { getAllClients } from "./authorizationService.js";
@@ -359,6 +365,28 @@ export function purposeServiceBuilder(
         limit,
         headers
       );
+    },
+    async clonePurpose(
+      purposeId: PurposeId,
+      seed: PurposeProcessApiClonePurposeSeed,
+      { headers }: BffAppContext
+    ): Promise<BffApiPurposeVersionResource> {
+      const cloned = await purposeClient.clonePurpose(seed, {
+        params: {
+          purposeId,
+        },
+        headers,
+      });
+
+      const draft = cloned.versions.find((v) => v.state === "DRAFT");
+      if (!draft) {
+        throw purposeDraftVersionNotFound(purposeId);
+      }
+
+      return {
+        purposeId: cloned.id,
+        versionId: draft.id,
+      };
     },
   };
 }

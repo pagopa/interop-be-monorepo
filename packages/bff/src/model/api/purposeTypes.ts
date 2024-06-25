@@ -25,6 +25,12 @@ export type PurposeProcessApiUpdateReversePurposeSeed = ZodiosBodyByPath<
   "/reverse/purposes/:id"
 >;
 
+export type PurposeProcessApiClonePurposeSeed = ZodiosBodyByPath<
+  PurposeApi,
+  "post",
+  "/purposes/:purposeId/clone"
+>;
+
 export type PurposeProcessApiPurpose = z.infer<typeof schemas.Purpose>;
 export type PurposeProcessApiPurposeVersion = z.infer<
   typeof schemas.PurposeVersion

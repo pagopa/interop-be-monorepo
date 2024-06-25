@@ -13,6 +13,7 @@ export const errorCodes = {
   tenantNotFound: "0003",
   agreementNotFound: "0004",
   eServiceDescriptorNotFound: "0005",
+  purposeDraftVersionNotFound: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -59,5 +60,15 @@ export function eServiceDescriptorNotFound(
     detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
     code: "eServiceDescriptorNotFound",
     title: "EService descriptor not found",
+  });
+}
+
+export function purposeDraftVersionNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
+    code: "purposeDraftVersionNotFound",
+    title: "Purpose draft version not found",
   });
 }
