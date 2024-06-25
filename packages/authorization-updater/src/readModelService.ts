@@ -7,6 +7,7 @@ import {
   Purpose,
   PurposeId,
   TenantId,
+  agreementState,
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -101,7 +102,17 @@ export function readModelServiceBuilder(
       consumerId: TenantId
     ): Promise<Agreement | undefined> {
       const data = await agreements.findOne(
-        { "data.eserviceId": eserviceId, "data.consumerId": consumerId },
+        {
+          "data.eserviceId": eserviceId,
+          "data.consumerId": consumerId,
+          "data.state": {
+            $in: [
+              agreementState.active,
+              agreementState.archived,
+              agreementState.suspended,
+            ],
+          },
+        },
         { projection: { data: true } }
       );
 
