@@ -7,8 +7,7 @@ import {
 
 export const errorCodes = {
   clientNotFound: "0001",
-  missingUserId: "0002",
-  organizationNotAllowedOnClient: "0003",
+  organizationNotAllowedOnClient: "0002",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
