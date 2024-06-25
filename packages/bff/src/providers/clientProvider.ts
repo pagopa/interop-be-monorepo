@@ -7,8 +7,6 @@ import { createApiClient as createApiAuthorizationProcess } from "../model/gener
 import { createApiClient as createApiAuthorizationUpdater } from "../model/generated/authorization-updater/api.js";
 import { config } from "../utilities/config.js";
 
-export type Headers = { "X-Correlation-Id": string; Authorization: string };
-
 export type PagoPAInteropBeClients = {
   tenantProcessClient: ReturnType<typeof createApiClientTenantProcess>;
   attributeProcessClient: ReturnType<typeof createApiClientAttributeProcess>;
