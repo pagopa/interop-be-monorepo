@@ -2,6 +2,7 @@ import {
   Client,
   ClientId,
   ListResult,
+  PurposeId,
   TenantId,
   UserId,
   WithMetadata,
@@ -28,6 +29,7 @@ import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
+  toCreateEventClientPurposeRemoved,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
@@ -273,6 +275,46 @@ export function authorizationServiceBuilder(
         toCreateEventClientKeyDeleted(
           updatedClient,
           keyIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientPurpose({
+      clientId,
+      purposeIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      purposeIdToRemove: PurposeId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing purpose ${purposeIdToRemove} from client ${clientId}`
+      );
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
+      //   throw purposeIdNotFound(purposeIdToRemove, client.data.id);
+      // }
+
+      const updatedClient: Client = {
+        ...client.data,
+        purposes: client.data.purposes.filter(
+          (purposeId) => purposeId !== purposeIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientPurposeRemoved(
+          updatedClient,
+          purposeIdToRemove,
           client.metadata.version,
           correlationId
         )
