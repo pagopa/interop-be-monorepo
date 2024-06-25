@@ -28,9 +28,12 @@ export * from "./institution/institution.js";
 
 export * from "./risk-analysis/riskAnalysis.js";
 
-export * from "./tenant/protobufConverter.js";
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
+export * from "./tenant/tenantReadModelAdapter.js";
+export * from "./tenant/protobufConverterFromV1.js";
+export * from "./tenant/protobufConverterFromV2.js";
+export * from "./tenant/protobufConverterToV2.js";
 
 export * from "./purpose/purpose.js";
 export * from "./purpose/purposeEvents.js";
@@ -40,12 +43,12 @@ export * from "./purpose/protobufConverterFromV2.js";
 export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./authorization/client.js";
-export * from "./authorization/key.js";
 export * from "./authorization/authorizationEvents.js";
 export * from "./authorization/protobufConverterFromV1.js";
 export * from "./authorization/protobufConverterToV1.js";
 export * from "./authorization/protobufConverterFromV2.js";
 export * from "./authorization/protobufConverterToV2.js";
+export * from "./authorization/authorizationReadModelAdapter.js";
 
 export * from "./user/user.js";
 
@@ -56,8 +59,10 @@ export * from "./protobuf/protobuf.js";
 export * from "./read-models/agreementReadModel.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
+export * from "./read-models/tenantReadModel.js";
 export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
+export * from "./read-models/authorizationReadModel.js";
 
 // Utilities
 export * from "./brandedIds.js";
@@ -90,3 +95,5 @@ export * from "./gen/v2/purpose/events.js";
 export * from "./gen/v2/authorization/client.js";
 export * from "./gen/v2/authorization/key.js";
 export * from "./gen/v2/authorization/events.js";
+export * from "./gen/v2/tenant/tenant.js";
+export * from "./gen/v2/tenant/events.js";

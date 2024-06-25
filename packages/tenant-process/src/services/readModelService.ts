@@ -16,16 +16,17 @@ import {
   EServiceId,
   attributeKind,
   AttributeReadmodel,
+  TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
 import { attributeNotFound } from "../model/domain/errors.js";
-import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
 
 function listTenantsFilters(
   name: string | undefined
-): Filter<{ data: Tenant }> {
+): Filter<{ data: TenantReadModel }> {
   const nameFilter = name
     ? {
         "data.name": {
@@ -55,7 +56,7 @@ export const getTenants = async ({
   allowDiskUse = false,
 }: {
   tenants: TenantCollection;
-  aggregationPipeline: Array<Filter<Tenant>>;
+  aggregationPipeline: Array<Filter<TenantReadModel>>;
   offset: number;
   limit: number;
   allowDiskUse?: boolean;
@@ -98,7 +99,7 @@ async function getAttribute(
   if (!data) {
     return undefined;
   } else {
-    const result = Attribute.safeParse(data);
+    const result = Attribute.safeParse(data.data);
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
@@ -112,12 +113,11 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
   });
-
   if (!data) {
     return undefined;
   } else {
@@ -127,7 +127,6 @@ async function getTenant(
         data: Tenant,
       })
       .safeParse(data);
-
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
@@ -321,6 +320,12 @@ export function readModelServiceBuilder(
       return Promise.all(attributePromises);
     },
 
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<Attribute | undefined> {
+      return getAttribute(attributes, { "data.id": attributeId });
+    },
+
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
@@ -352,7 +357,7 @@ export function readModelServiceBuilder(
       certifierId: string;
       offset: number;
       limit: number;
-    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
+    }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const aggregationPipeline: Document[] = [
         {
           $match: {
@@ -415,7 +420,7 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(CertifiedAttributeQueryResult).safeParse(data);
+      const result = z.array(tenantApi.CertifiedAttribute).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

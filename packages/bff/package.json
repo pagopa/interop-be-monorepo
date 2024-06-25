@@ -12,16 +12,7 @@
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
-    "generate-model": "pnpm generate-model-bff && pnpm generate-model-tenant-process && pnpm generate-model-catalog-process && pnpm generate-model-attribute-process && pnpm generate-model-agreement-process && pnpm generate-model-purpose-process && node --loader ts-node/esm ./patchZodios.ts && pnpm generate-model-authorization-process",
-    "generate-model-bff": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/bff-spec.yml' -o './src/model/generated/api.ts'",
-    "generate-model-tenant-process": "mkdir -p ./src/model/generated/tenant-process && pnpm openapi-zod-client '../tenant-process/open-api/tenant-service-spec.yml' -o './src/model/generated/tenant-process/api.ts'",
-    "generate-model-catalog-process": "mkdir -p ./src/model/generated/catalog-process && pnpm openapi-zod-client '../catalog-process/open-api/catalog-service-spec.yml' -o './src/model/generated/catalog-process/api.ts'",
-    "generate-model-attribute-process": "mkdir -p ./src/model/generated/attribute-process && pnpm openapi-zod-client '../attribute-registry-process/open-api/attribute-registry-service-spec.yml' -o './src/model/generated/attribute-process/api.ts'",
-    "generate-model-agreement-process": "mkdir -p ./src/model/generated/agreement-process && pnpm openapi-zod-client '../agreement-process/open-api/agreement-service-spec.yml' -o './src/model/generated/agreement-process/api.ts'",
-    "generate-model-purpose-process": "mkdir -p ./src/model/generated/purpose-process && pnpm openapi-zod-client '../purpose-process/open-api/purpose-service-spec.yml' -o './src/model/generated/purpose-process/api.ts'",
-    "generate-model-authorization-process": "mkdir -p ./src/model/generated/authorization-process && pnpm openapi-zod-client '../authorization-process/open-api/authorization-service-spec.yml' -o './src/model/generated/authorization-process/api.ts'",
-    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +21,8 @@
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
     "@types/node": "20.14.6",
+    "@types/qs": "6.9.15",
+    "@types/uuid": "9.0.8",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
@@ -45,8 +38,13 @@
     "dotenv-flow": "4.1.0",
     "express": "4.19.2",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-selfcare-v2-client": "workspace:*",
+    "pagopa-interop-agreement-lifecycle": "workspace:*",
+    "qs" : "6.12.3",
     "ts-pattern": "5.2.0",
+    "uuid": "10.0.0",
     "zod": "3.23.8"
   }
 }
