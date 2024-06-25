@@ -1,0 +1,551 @@
+/* eslint-disable no-irregular-whitespace */
+import { describe, expect, it } from "vitest";
+import {
+  Agreement,
+  AgreementId,
+  EService,
+  Tenant,
+  UserId,
+  generateId,
+  toAgreementV2,
+} from "pagopa-interop-models";
+import {
+  getMockAgreement,
+  getMockDescriptor,
+  getMockEService,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
+import { senderAgreementSubmissionEmail } from "../src/services/agreementEmailSenderService.js";
+import { config } from "../src/config/config.js";
+import {
+  addOneAgreement,
+  addOneEService,
+  addOneTenant,
+  emailManager,
+  getLatestMail,
+  getMails,
+  readModelService,
+  templateService,
+} from "./utils.js";
+
+describe("sendAgreementSubmissionEmail", () => {
+  it("should send an email on AgreementSubmitted", async () => {
+    const tenantMail = "tenant@mail.com";
+    const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
+    const producer: Tenant = {
+      ...getMockTenant(),
+      name: "John Doe",
+      mails: [
+        {
+          address: "oldmail@old.com",
+          id: generateId(),
+          createdAt: new Date("2021-01-01"),
+          kind: "CONTACT_EMAIL",
+        },
+        {
+          address: tenantMail,
+          id: generateId(),
+          createdAt: new Date(),
+          kind: "CONTACT_EMAIL",
+        },
+        {
+          address: "oldmail2@old.com",
+          id: generateId(),
+          createdAt: new Date("2020-01-01"),
+          kind: "CONTACT_EMAIL",
+        },
+      ],
+    };
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+
+    const descriptor = getMockDescriptor();
+    const eservice: EService = {
+      ...getMockEService(),
+      name: "EService",
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const submissionDate = new Date("2021-01-01");
+
+    const agreement = {
+      ...getMockAgreement(),
+      id: "37317757-0c8d-4e6e-9ac9-7d2db6a9519e" as AgreementId,
+      stamps: {
+        submission: { when: submissionDate, who: generateId<UserId>() },
+      },
+      producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+    };
+    await addOneAgreement(agreement);
+
+    await senderAgreementSubmissionEmail({
+      agreementV2: toAgreementV2(agreement),
+      readModelService,
+      emailManager,
+      feBaseUrl: config.interopFeBaseUrl,
+      sender: { label: config.pecSenderLabel, mail: config.pecSenderMail },
+      templateService,
+      logger: genericLogger,
+    });
+
+    const messagesResponse = await getMails();
+
+    expect(messagesResponse.status).toBe(200);
+    expect(messagesResponse.data.messages.length).toBe(1);
+
+    const { data: latestMail } = await getLatestMail();
+
+    const html = latestMail.HTML.replace(/\r\n/g, "\n");
+    expect(html).toMatchInlineSnapshot(`
+      "<!doctype html>
+      <html lang="it" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+      <head>
+        <title> Nuova richiesta di fruizione </title>
+        <!--[if !mso]><!-->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <!--<![endif]-->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+          #outlook a {
+            padding: 0;
+          }
+
+          body {
+            margin: 0;
+            padding: 0;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+          }
+
+          table,
+          td {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+          }
+
+          img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+          }
+
+          p {
+            display: block;
+            margin: 13px 0;
+          }
+        </style>
+        <!--[if mso]>
+              <noscript>
+              <xml>
+              <o:OfficeDocumentSettings>
+                <o:AllowPNG/>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+              </o:OfficeDocumentSettings>
+              </xml>
+              </noscript>
+              <![endif]-->
+        <!--[if lte mso 11]>
+              <style type="text/css">
+                .mj-outlook-group-fix { width:100% !important; }
+              </style>
+              <![endif]-->
+        <!--[if !mso]><!-->
+        <link href="https://selfcare.pagopa.it/assets/font/selfhostedfonts.css" rel="stylesheet" type="text/css">
+        <style type="text/css">
+          @import url(https://selfcare.pagopa.it/assets/font/selfhostedfonts.css);
+        </style>
+        <!--<![endif]-->
+        <style type="text/css">
+          @media only screen and (min-width:480px) {
+            .mj-column-per-100 {
+              width: 100% !important;
+              max-width: 100%;
+            }
+          }
+        </style>
+        <style media="screen and (min-width:480px)">
+          .moz-text-html .mj-column-per-100 {
+            width: 100% !important;
+            max-width: 100%;
+          }
+        </style>
+        <style type="text/css">
+        </style>
+        <style type="text/css">
+          :root {
+            color-scheme: light dark;
+            supported-color-schemes: light dark;
+          }
+
+          body,
+          .mail-body {
+            background-color: #FFFFFF;
+          }
+
+          .header {
+            background-color: #FFFFFF;
+            /* border-top: 8px solid #0073E6; */
+          }
+
+          .section {
+            background-color: #FFFFFF;
+          }
+
+          .title div {
+            /* Text Primary */
+            color: #17324D !important;
+          }
+
+          .text div {
+            /* Text Primary */
+            color: #17324D !important;
+          }
+
+          .text-secondary,
+          .text-secondary div {
+            /* Text Secondary */
+            color: #5C6F82 !important;
+          }
+
+          p {
+            margin-top: 12px;
+            margin-bottom: 12px;
+          }
+
+          .text-secondary a,
+          .text a {
+            color: #0073E6 !important;
+          }
+
+          .link {
+            color: #0073E6 !important;
+          }
+
+          .divider p {
+            border-color: #E3E7EB !important;
+          }
+
+          /* Message Preview Block */
+          .message-preview {
+            background-color: #FAFAFA;
+          }
+
+          @media (prefers-color-scheme: light) {
+
+            .dark-img,
+            [data-ogsc] .dark-img {
+              display: none !important;
+              mso-hide: all !important;
+            }
+
+            .light-img,
+            [data-ogsc] .light-img {
+              display: block;
+              display: block !important;
+            }
+          }
+
+          @media (min-width: 600px) {
+            .mobile {
+              display: none;
+            }
+
+            .desktop {
+              display: block;
+            }
+          }
+
+          @media (prefers-color-scheme: dark) {
+
+            body,
+            .mail-body {
+              background-color: #323232;
+            }
+
+            .header {
+              background-color: #323232;
+              /* border-top: 8px solid #3da2ff; */
+            }
+
+            .section {
+              background-color: #323232;
+            }
+
+            .message-preview {
+              background-color: #424242;
+            }
+
+            .divider p {
+              border-color: #757575 !important;
+            }
+
+            .title div {
+              color: #ffffff !important;
+            }
+
+            .text div {
+              color: #ffffff !important;
+            }
+
+            .text-secondary,
+            .text-secondary div {
+              /* Gray-200 */
+              color: #E0E0E0 !important;
+            }
+
+            .text-secondary a,
+            .text a {
+              color: #3da2ff !important;
+            }
+
+            .link {
+              color: #3da2ff !important;
+            }
+
+            .cta table td,
+            .cta table td>a {
+              background-color: #3da2ff !important;
+            }
+
+            /* IMAGES */
+            /* Source: https://www.litmus.com/blog/the-ultimate-guide-to-dark-mode-for-email-marketers/ */
+            .dark-img,
+            [data-ogsc] .dark-img {
+              display: block !important;
+              overflow: visible !important;
+              float: none !important;
+              line-height: auto !important;
+              margin-top: 0px !important;
+              visibility: inherit !important;
+            }
+
+            .light-img,
+            [data-ogsc] .light-img {
+              display: none;
+              display: none !important;
+              mso-hide: all !important;
+            }
+          }
+        </style>
+        <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
+      </head>
+
+      <body style="word-spacing:normal;">
+        <div class="mail-body" style="">
+          <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+          <div style="margin:0px auto;max-width:600px;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+              <tbody>
+                <tr>
+                  <td style="direction:ltr;font-size:0px;padding:20px 0;padding-left:20px;padding-right:20px;text-align:center;">
+                    <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="section-outlook" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="section-outlook" style="width:560px;" width="560" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                    <div class="section" style="margin:0px auto;max-width:560px;">
+                      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                        <tbody>
+                          <tr>
+                            <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:560px;" ><![endif]-->
+                              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                  <tbody>
+                                    <!-- Title & Main Message -->
+                                    <tr>
+                                      <td align="left" class="title" style="font-size:0px;padding:10px 25px;padding-top:24px;padding-right:0px;padding-bottom:8px;padding-left:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;color:#17324D;">
+                                          <!-- H4 Desktop (from MUI Italia)-->
+                                          <h2 style="font-size: 20px; line-height: 24px; margin: 0"> PDND Interoperabilità </h2>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td align="left" class="title" style="font-size:0px;padding:10px 25px;padding-top:24px;padding-right:0px;padding-bottom:8px;padding-left:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;color:#17324D;">
+                                          <!-- H4 Desktop (from MUI Italia)-->
+                                          <h1 style="font-size: 32px; line-height: 40px; margin: 0"> Nuova richiesta di fruizione </h1>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td align="left" class="text" style="font-size:0px;padding:10px 25px;padding-top:8px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:regular;line-height:24px;text-align:left;color:#17324D;">
+                                          <p style="margin-bottom: 0px">Gentile <strong>John Doe</strong>,</p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td align="left" class="text" style="font-size:0px;padding:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:regular;line-height:24px;text-align:left;color:#17324D;">
+                                          <!-- Body 1 Desktop (from MUI Italia)-->
+                                          <p> ti informiamo che per l’e-service <strong>EService</strong>, </p>
+                                          <p> è presente una richiesta di fruizione da parte di <strong>Jane Doe</strong>, del giorno <strong>01/01/2021</strong>. </p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td align="left" vertical-align="middle" class="cta" style="font-size:0px;padding:10px 25px;padding-right:0px;padding-left:0px;word-break:break-word;">
+                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                                          <tr>
+                                            <td align="center" bgcolor="#0073E6" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:14px 24px;background:#0073E6;" valign="middle">
+                                              <a href="https://selfcare.interop.pagopa.it/ui/it/erogazione/richieste/37317757-0c8d-4e6e-9ac9-7d2db6a9519e" style="display:inline-block;background:#0073E6;color:white;font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:14px 24px;mso-padding-alt:0px;border-radius:4px;" target="_blank"> Accedi per visualizzare </a>
+                                            </td>
+                                          </tr>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td align="left" class="text" style="font-size:0px;padding:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:regular;line-height:24px;text-align:left;color:#17324D;">
+                                          <p> La visualizzazione dei dettagli è disponibile previa autenticazione al portale. </p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td align="left" class="text" style="font-size:0px;padding:10px 25px;padding-top:8px;padding-right:0px;padding-left:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#17324D;">
+                                          <p style="margin-top: 0px"> A presto,<br aria-hidden="true" />Il team di PDND Interoperabilità </p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                              <!--[if mso | IE]></td></tr></table><![endif]-->
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+                    <!-- Divider -->
+                    <!--[if mso | IE]><tr><td class="section-outlook" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="section-outlook" style="width:560px;" width="560" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                    <div class="section" style="margin:0px auto;max-width:560px;">
+                      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                        <tbody>
+                          <tr>
+                            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;">
+                              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:560px;" ><![endif]-->
+                              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                  <tbody>
+                                    <tr>
+                                      <td align="center" class="divider" style="font-size:0px;padding:0px;padding-top:16px;padding-bottom:16px;word-break:break-word;">
+                                        <p style="border-top:solid 1px #E3E7EB;font-size:1px;margin:0px auto;width:100%;">
+                                        </p>
+                                        <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px #E3E7EB;font-size:1px;margin:0px auto;width:560px;" role="presentation" width="560px" ><tr><td style="height:0;line-height:0;"> &nbsp;
+      </td></tr></table><![endif]-->
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                              <!--[if mso | IE]></td></tr></table><![endif]-->
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+                    <!-- Footer -->
+                    <!--[if mso | IE]><tr><td class="section-outlook" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="section-outlook" style="width:560px;" width="560" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                    <div class="section" style="margin:0px auto;max-width:560px;">
+                      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                        <tbody>
+                          <tr>
+                            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-top:0px;text-align:center;">
+                              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:560px;" ><![endif]-->
+                              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                  <tbody>
+                                    <tr>
+                                      <td align="left" class="text-secondary" style="font-size:0px;padding:0px;word-break:break-word;">
+                                        <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:14px;font-weight:regular;line-height:20px;text-align:left;color:#5C6F82;">
+                                          <p> Ricevi questa comunicazione perché questo indirizzo email è associato al tuo profilo su PDND Interoperabilità. </p>
+                                          <p>
+                                            <strong> Non rispondere a questo indirizzo email: è utilizzato solo per l'invio di questa comunicazione e, non essendo monitorato, non riceveresti risposta. </strong>
+                                          </p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                              <!--[if mso | IE]></td></tr></table><![endif]-->
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+        </div>
+      </body>
+
+      </html>
+      "
+    `);
+
+    expect(latestMail.From.Address).toBe(config.pecSenderMail);
+    expect(latestMail.To[0].Address).toBe(tenantMail);
+  });
+
+  it("should should not send email if the producer has no mail", async () => {
+    const consumer: Tenant = { ...getMockTenant(), name: "Jane Doe" };
+    const producer: Tenant = {
+      ...getMockTenant(),
+      name: "John Doe",
+      mails: [],
+    };
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+
+    const descriptor = getMockDescriptor();
+    const eservice: EService = {
+      ...getMockEService(),
+      name: "EService",
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { submission: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+    };
+    await addOneAgreement(agreement);
+
+    await senderAgreementSubmissionEmail({
+      agreementV2: toAgreementV2(agreement),
+      readModelService,
+      feBaseUrl: config.interopFeBaseUrl,
+      emailManager,
+      sender: { label: config.pecSenderLabel, mail: config.pecSenderMail },
+      templateService,
+      logger: genericLogger,
+    });
+
+    const messagesResponse = await getMails();
+
+    expect(messagesResponse.status).toBe(200);
+    expect(messagesResponse.data.messages.length).toBe(0);
+  });
+});

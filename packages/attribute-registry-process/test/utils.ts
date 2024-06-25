@@ -6,10 +6,10 @@ import {
   AttributeEvent,
   AttributeId,
   Tenant,
-  TenantId,
   generateId,
   toAttributeV1,
   toReadModelAttribute,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -18,7 +18,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
-import { AuthData } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
@@ -65,7 +64,7 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastAttributeEvent = async (
@@ -84,15 +83,4 @@ export const getMockTenant = (): Tenant => ({
   },
   features: [],
   mails: [],
-});
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
 });

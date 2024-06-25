@@ -16,14 +16,13 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  attributeNotFound,
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
-  tenantIsNotCertifier,
+  tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -93,7 +92,7 @@ export function getTenantKind(
     .otherwise(() => tenantKind.PRIVATE);
 }
 
-async function assertRequesterAllowed(
+export async function assertRequesterAllowed(
   resourceId: string,
   requesterId: string
 ): Promise<void> {
@@ -145,15 +144,6 @@ export async function getTenantKindLoadingCertifiedAttributes(
   return getTenantKind(extIds, externalId);
 }
 
-export function assertAttributeExists(
-  attributeId: AttributeId,
-  attributes: TenantAttribute[]
-): asserts attributes is NonNullable<TenantAttribute[]> {
-  if (!attributes.some((attr) => attr.id === attributeId)) {
-    throw attributeNotFound(attributeId);
-  }
-}
-
 export function assertValidExpirationDate(
   expirationDate: Date | undefined
 ): void {
@@ -191,9 +181,10 @@ export function evaluateNewSelfcareId({
 export function getTenantCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
     (f) => f.type === "PersistentCertifier"
-  );
+  )?.certifierId;
+
   if (!certifierFeature) {
-    throw tenantIsNotCertifier(tenant.id);
+    throw tenantIsNotACertifier(tenant.id);
   }
-  return certifierFeature.certifierId;
+  return certifierFeature;
 }

@@ -1,14 +1,17 @@
-/* eslint-disable functional/immutable-data */
+import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  readModelWriterConfig,
-  tenantTopicConfig,
   decodeKafkaMessage,
+  ReadModelRepository,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEvent } from "pagopa-interop-models";
-import { handleMessage } from "./tenantConsumerService.js";
+import { config } from "./config/config.js";
+import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
+import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
+
+const { tenants } = ReadModelRepository.init(config);
 
 async function processMessage({
   message,
@@ -24,12 +27,13 @@ async function processMessage({
     correlationId: decodedMessage.correlation_id,
   });
 
-  await handleMessage(decodedMessage, loggerInstance);
+  await match(decodedMessage)
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, tenants))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, tenants))
+    .exhaustive();
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
 
-const config = readModelWriterConfig();
-const { tenantTopic } = tenantTopicConfig();
-await runConsumer(config, [tenantTopic], processMessage);
+await runConsumer(config, [config.tenantTopic], processMessage);
