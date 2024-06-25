@@ -8,9 +8,8 @@ import {
 
 export const errorCodes = {
   clientNotFound: "0001",
-  missingUserId: "0002",
-  organizationNotAllowedOnClient: "0003",
-  userIdNotFound: "0004",
+  organizationNotAllowedOnClient: "0002",
+  userIdNotFound: "0003",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
