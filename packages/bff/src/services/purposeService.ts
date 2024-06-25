@@ -1,4 +1,4 @@
-import { AppContext, WithLogger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -8,11 +8,9 @@ import {
   ApiUpdateReversePurposePayload,
   VersionState,
 } from "../model/types.js";
-import {
-  PagoPAInteropBeClients,
-  Headers,
-} from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { purposeNotFound } from "../model/domain/errors.js";
+import { BffAppContext } from "../utilities/context.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
@@ -22,14 +20,13 @@ export function purposeServiceBuilder(
     async reversePurposeUpdate(
       id: PurposeId,
       updateSeed: ApiUpdateReversePurposePayload,
-      { logger }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
       logger.info(`Updating reverse purpose ${id}`);
       const updatedPurpose = await purposeClient.updateReversePurpose(
         updateSeed,
         {
-          headers: { ...requestHeaders },
+          headers,
           withCredentials: true,
           params: {
             id,
