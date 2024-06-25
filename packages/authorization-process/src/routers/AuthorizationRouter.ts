@@ -326,7 +326,20 @@ const authorizationRouter = (
     .delete(
       "/clients/purposes/:purposeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removePurposeFromClients({
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return authorizationRouter;
