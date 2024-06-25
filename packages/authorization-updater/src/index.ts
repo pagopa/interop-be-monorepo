@@ -371,8 +371,10 @@ export async function sendAuthorizationAuthUpdate(
       const client = fromClientV2(msg.data.client);
       const clientId = client.id;
       const kid = msg.data.kid;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const key = client.keys.find((key) => key.kid === kid)!;
+      const key = client.keys.find((key) => key.kid === kid);
+      if (!key) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
       await authService.addClientKey(clientId, key, logger, correlationId);
     })
     .with({ type: "ClientKeyDeleted" }, async (msg) => {
