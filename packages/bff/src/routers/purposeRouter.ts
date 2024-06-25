@@ -5,20 +5,46 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { reversePurposeUpdateErrorMapper } from "../utilities/errorMappers.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  { purposeProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
+  const purposeService = purposeServiceBuilder(purposeProcessClient);
+
   purposeRouter
     .post("/reverse/purposes", async (_req, res) => res.status(501).send())
-    .post("/reverse/purposes/:purposeId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/reverse/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.reversePurposeUpdate(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          reversePurposeUpdateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/purposes", async (_req, res) => res.status(501).send())
     .get("/producer/purposes", async (_req, res) => res.status(501).send())
     .get("/consumer/purposes", async (_req, res) => res.status(501).send())
