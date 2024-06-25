@@ -40,3 +40,11 @@ export const removeUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("clientNotFound", "userIdNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteClientKeyByIdErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("clientNotFound", "keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -17,11 +17,17 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
-import { clientNotFound, userIdNotFound } from "../model/domain/errors.js";
+import {
+  clientNotFound,
+  keyNotFound,
+  userIdNotFound,
+  userNotAllowedOnClient,
+} from "../model/domain/errors.js";
 import { ApiClientSeed } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
+  toCreateEventClientKeyDeleted,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
@@ -222,6 +228,51 @@ export function authorizationServiceBuilder(
         toCreateEventClientUserDeleted(
           updatedClient,
           userIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async deleteClientKeyById({
+      clientId,
+      keyIdToRemove,
+      authData,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      keyIdToRemove: string;
+      authData: AuthData;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+
+      const keyToRemove = client.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+      if (!keyToRemove) {
+        throw keyNotFound(keyIdToRemove, client.data.id);
+      }
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !client.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        keys: client.data.keys.filter((key) => key.kid !== keyIdToRemove),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientKeyDeleted(
+          updatedClient,
+          keyIdToRemove,
           client.metadata.version,
           correlationId
         )

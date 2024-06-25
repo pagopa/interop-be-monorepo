@@ -262,3 +262,14 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
   userId: generateId(),
 });
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
+});
