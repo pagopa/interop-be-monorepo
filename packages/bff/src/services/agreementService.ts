@@ -42,11 +42,6 @@ export const getLatestAgreement = async (
 
   return allAgreements.sort((firstAgreement, secondAgreement) => {
     if (firstAgreement.version !== secondAgreement.version) {
-      return (
-        new Date(secondAgreement.createdAt).getTime() -
-        new Date(firstAgreement.createdAt).getTime()
-      );
-    } else {
       const descriptorFirstAgreement = eservice.descriptors.find(
         (d) => d.id === firstAgreement.descriptorId
       );
@@ -58,6 +53,11 @@ export const getLatestAgreement = async (
         ? Number(descriptorSecondAgreement.version) -
             Number(descriptorFirstAgreement.version)
         : 0;
+    } else {
+      return (
+        new Date(secondAgreement.createdAt).getTime() -
+        new Date(firstAgreement.createdAt).getTime()
+      );
     }
   })[0];
 };
