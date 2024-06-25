@@ -11249,12 +11249,8 @@ components:
           format: uuid
         title:
           type: string
-          minLength: 5
-          maxLength: 60
         description:
           type: string
-          minLength: 10
-          maxLength: 250
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
