@@ -25,7 +25,7 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { BffAppContext } from "../utilities/context.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./authorizationService.js";
 
@@ -45,6 +45,198 @@ export const getCurrentVersion = (
     )
     .pop();
 };
+
+// eslint-disable-next-line max-params
+async function getPurposes(
+  {
+    purposeClient,
+    eserviceClient,
+    tenantClient,
+    agreementClient,
+    authorizationClient,
+  }: {
+    purposeClient: PurposeProcessClient;
+    eserviceClient: CatalogProcessClient;
+    tenantClient: TenantProcessClient;
+    agreementClient: AgreementProcessClient;
+    authorizationClient: AuthorizationProcessClient;
+  },
+  requesterId: string,
+  filters: {
+    name?: string | undefined;
+    eservicesIds?: string | undefined;
+    consumersIds?: string | undefined;
+    producersIds?: string | undefined;
+    states?: string | undefined;
+    excludeDraft?: boolean | undefined;
+  },
+  offset: number,
+  limit: number,
+  headers: Headers
+): Promise<bffApi.Purposes> {
+  const purposes = await purposeClient.getPurposes({
+    queries: {
+      ...filters,
+      limit,
+      offset,
+    },
+    withCredentials: true,
+    headers,
+  });
+
+  const eservices = await Promise.all(
+    [...new Set(purposes.results.map((p) => p.eserviceId))].map((id) =>
+      eserviceClient.getEServiceById({
+        params: {
+          eServiceId: id,
+        },
+        withCredentials: true,
+        headers,
+      })
+    )
+  );
+
+  const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
+    tenantClient.tenant.getTenant({
+      params: {
+        id,
+      },
+      withCredentials: true,
+      headers,
+    });
+  const consumers = await Promise.all(
+    [...new Set(purposes.results.map((p) => p.consumerId))].map(getTenant)
+  );
+  const producers = await Promise.all(
+    [...new Set(eservices.map((e) => e.producerId))].map(getTenant)
+  );
+
+  const enhancePurpose = async (
+    purpose: purposeApi.Purpose
+  ): Promise<bffApi.Purpose> => {
+    const eservice = eservices.find((e) => e.id === purpose.eserviceId);
+    if (!eservice) {
+      throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
+    }
+
+    const producer = producers.find((p) => p.id === eservice.producerId);
+    if (!producer) {
+      throw tenantNotFound(unsafeBrandId(eservice.producerId));
+    }
+
+    const consumer = consumers.find((c) => c.id === purpose.consumerId);
+    if (!consumer) {
+      throw tenantNotFound(unsafeBrandId(purpose.consumerId));
+    }
+
+    const latestAgreement = await getLatestAgreement(
+      agreementClient,
+      purpose.consumerId,
+      eservice,
+      headers
+    );
+    if (!latestAgreement) {
+      throw agreementNotFound(unsafeBrandId(purpose.consumerId));
+    }
+
+    const currentDescriptor = eservice.descriptors.find(
+      (d) => d.id === latestAgreement.descriptorId
+    );
+    if (!currentDescriptor) {
+      throw eServiceDescriptorNotFound(
+        unsafeBrandId(eservice.id),
+        unsafeBrandId(latestAgreement.descriptorId)
+      );
+    }
+
+    const clients =
+      requesterId === purpose.consumerId
+        ? (
+            await getAllClients(
+              authorizationClient,
+              purpose.consumerId,
+              purpose.id,
+              headers
+            )
+          ).map((c) => ({
+            id: c.client.id,
+            name: c.client.name,
+            hasKeys: c.keys.length > 0,
+          }))
+        : [];
+
+    const currentVersion = getCurrentVersion(purpose.versions);
+    const waitingForApprovalVersion = purpose.versions.find(
+      (v) => v.state === "WAITING_FOR_APPROVAL"
+    );
+    const rejectedVersion = purpose.versions.find(
+      (v) => v.state === "REJECTED"
+    );
+
+    const isUpgradable = (
+      descriptor: catalogApi.EServiceDescriptor,
+      agreement: agreementApi.Agreement,
+      descriptors: catalogApi.EServiceDescriptor[]
+    ): boolean =>
+      descriptors
+        .filter((d) => Number(d.version) > Number(descriptor.version))
+        .some(
+          (d) =>
+            (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
+            (agreement.state === "ACTIVE" || agreement.state === "SUSPENDED")
+        );
+
+    return {
+      id: purpose.id,
+      title: purpose.title,
+      description: purpose.description,
+      consumer: { id: consumer.id, name: consumer.name },
+      riskAnalysisForm: purpose.riskAnalysisForm,
+      eservice: {
+        id: eservice.id,
+        name: eservice.name,
+        producer: { id: producer.id, name: producer.name },
+        descriptor: {
+          id: currentDescriptor.id,
+          state: currentDescriptor.state,
+          version: currentDescriptor.version,
+          audience: currentDescriptor.audience,
+        },
+        mode: eservice.mode,
+      },
+      agreement: {
+        id: latestAgreement.id,
+        state: latestAgreement.state,
+        canBeUpgraded: isUpgradable(
+          currentDescriptor,
+          latestAgreement,
+          eservice.descriptors
+        ),
+      },
+      currentVersion,
+      versions: purpose.versions,
+      clients,
+      waitingForApprovalVersion,
+      suspendedByConsumer: purpose.suspendedByConsumer,
+      suspendedByProducer: purpose.suspendedByProducer,
+      isFreeOfCharge: purpose.isFreeOfCharge,
+      dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
+      dailyCallsTotal: currentDescriptor.dailyCallsTotal,
+      rejectedVersion,
+    };
+  };
+
+  const results = await Promise.all(purposes.results.map(enhancePurpose));
+
+  return {
+    pagination: {
+      offset,
+      limit,
+      totalCount: purposes.totalCount,
+    },
+    results,
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
@@ -109,176 +301,58 @@ export function purposeServiceBuilder(
         consumersIds?: string | undefined;
         producersIds?: string | undefined;
         states?: string | undefined;
-        excludeDraft?: boolean | undefined;
       },
       offset: number,
       limit: number,
-      { authData, headers }: WithLogger<BffAppContext>
+      { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
-      const purposes = await purposeClient.getPurposes({
-        queries: {
-          ...filters,
-          limit,
-          offset,
-        },
-        withCredentials: true,
-        headers,
-      });
-
-      const eservices = await Promise.all(
-        [...new Set(purposes.results.map((p) => p.eserviceId))].map((id) =>
-          eserviceClient.getEServiceById({
-            params: {
-              eServiceId: id,
-            },
-            withCredentials: true,
-            headers,
-          })
-        )
+      logger.info(
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds}, offset ${offset}, limit ${limit}`
       );
-
-      const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
-        await tenantClient.tenant.getTenant({
-          params: {
-            id,
-          },
-          withCredentials: true,
-          headers,
-        });
-      const consumers = await Promise.all(
-        [...new Set(purposes.results.map((p) => p.consumerId))].map(getTenant)
-      );
-      const producers = await Promise.all(
-        [...new Set(eservices.map((e) => e.producerId))].map(getTenant)
-      );
-
-      const enhancePurpose = async (
-        purpose: purposeApi.Purpose
-      ): Promise<bffApi.Purpose> => {
-        const eservice = eservices.find((e) => e.id === purpose.eserviceId);
-        if (!eservice) {
-          throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
-        }
-
-        const producer = producers.find((p) => p.id === eservice.producerId);
-        if (!producer) {
-          throw tenantNotFound(unsafeBrandId(eservice.producerId));
-        }
-
-        const consumer = consumers.find((c) => c.id === purpose.consumerId);
-        if (!consumer) {
-          throw tenantNotFound(unsafeBrandId(purpose.consumerId));
-        }
-
-        const latestAgreement = await getLatestAgreement(
+      return await getPurposes(
+        {
+          purposeClient,
+          eserviceClient,
+          tenantClient,
           agreementClient,
-          purpose.consumerId,
-          eservice,
-          headers
-        );
-        if (!latestAgreement) {
-          throw agreementNotFound(unsafeBrandId(purpose.consumerId));
-        }
-
-        const currentDescriptor = eservice.descriptors.find(
-          (d) => d.id === latestAgreement.descriptorId
-        );
-        if (!currentDescriptor) {
-          throw eServiceDescriptorNotFound(
-            unsafeBrandId(eservice.id),
-            unsafeBrandId(latestAgreement.descriptorId)
-          );
-        }
-
-        const requesterId = authData.organizationId;
-        const clients =
-          requesterId === purpose.consumerId
-            ? (
-                await getAllClients(
-                  authorizationClient,
-                  purpose.consumerId,
-                  purpose.id,
-                  headers
-                )
-              ).map((c) => ({
-                id: c.client.id,
-                name: c.client.name,
-                hasKeys: c.keys.length > 0,
-              }))
-            : [];
-
-        const currentVersion = getCurrentVersion(purpose.versions);
-        const waitingForApprovalVersion = purpose.versions.find(
-          (v) => v.state === "WAITING_FOR_APPROVAL"
-        );
-        const rejectedVersion = purpose.versions.find(
-          (v) => v.state === "REJECTED"
-        );
-
-        const isUpgradable = (
-          descriptor: catalogApi.EServiceDescriptor,
-          agreement: agreementApi.Agreement,
-          descriptors: catalogApi.EServiceDescriptor[]
-        ): boolean =>
-          descriptors
-            .filter((d) => Number(d.version) > Number(descriptor.version))
-            .some(
-              (d) =>
-                (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
-                (agreement.state === "ACTIVE" ||
-                  agreement.state === "SUSPENDED")
-            );
-
-        return {
-          id: purpose.id,
-          title: purpose.title,
-          description: purpose.description,
-          consumer: { id: consumer.id, name: consumer.name },
-          riskAnalysisForm: purpose.riskAnalysisForm,
-          eservice: {
-            id: eservice.id,
-            name: eservice.name,
-            producer: { id: producer.id, name: producer.name },
-            descriptor: {
-              id: currentDescriptor.id,
-              state: currentDescriptor.state,
-              version: currentDescriptor.version,
-              audience: currentDescriptor.audience,
-            },
-            mode: eservice.mode,
-          },
-          agreement: {
-            id: latestAgreement.id,
-            state: latestAgreement.state,
-            canBeUpgraded: isUpgradable(
-              currentDescriptor,
-              latestAgreement,
-              eservice.descriptors
-            ),
-          },
-          currentVersion,
-          versions: purpose.versions,
-          clients,
-          waitingForApprovalVersion,
-          suspendedByConsumer: purpose.suspendedByConsumer,
-          suspendedByProducer: purpose.suspendedByProducer,
-          isFreeOfCharge: purpose.isFreeOfCharge,
-          dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: currentDescriptor.dailyCallsTotal,
-          rejectedVersion,
-        };
-      };
-
-      const results = await Promise.all(purposes.results.map(enhancePurpose));
-
-      return {
-        pagination: {
-          offset,
-          limit,
-          totalCount: purposes.totalCount,
+          authorizationClient,
         },
-        results,
-      };
+        authData.organizationId,
+        { ...filters, excludeDraft: true },
+        offset,
+        limit,
+        headers
+      );
+    },
+    async getPurposeConsumer(
+      filters: {
+        name?: string | undefined;
+        eservicesIds?: string | undefined;
+        consumersIds?: string | undefined;
+        producersIds?: string | undefined;
+        states?: string | undefined;
+      },
+      offset: number,
+      limit: number,
+      { headers, authData, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Purposes> {
+      logger.info(
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds}, offset ${offset}, limit ${limit}`
+      );
+      return await getPurposes(
+        {
+          purposeClient,
+          eserviceClient,
+          tenantClient,
+          agreementClient,
+          authorizationClient,
+        },
+        authData.organizationId,
+        { ...filters, excludeDraft: false },
+        offset,
+        limit,
+        headers
+      );
     },
   };
 }
