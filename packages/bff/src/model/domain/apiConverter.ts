@@ -5,26 +5,22 @@ import {
   UserResource,
   UserResponse,
 } from "pagopa-interop-selfcare-v2-client";
-import { P, match } from "ts-pattern";
+import { match, P } from "ts-pattern";
+import { AttributeProcessApiAttributeSeed } from "../api/attributeTypes.js";
 import {
-  BffApiAttributeSeed,
-  AttributeProcessApiAttributeSeed,
-} from "../api/attributeTypes.js";
-import {
-  ApiSelfcareInstitution,
+  BffApiSelfcareInstitution,
   BffApiSelfcareProduct,
   BffApiSelfcareUser,
-} from "../api/selfcareTypes.js";
-import {
-  AuthProcessApiClientWithKeys,
+  BffApiAttributeSeed,
   BffApiCompactClient,
   BffApiCompactUser,
-} from "../api/clientTypes.js";
+} from "../api/bffTypes.js";
+import { AuthProcessApiClientWithKeys } from "../api/clientTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
-export const toApiSelfcareInstitution = (
+export const toBffApiSelfcareInstitution = (
   input: InstitutionResource
-): ApiSelfcareInstitution =>
+): BffApiSelfcareInstitution =>
   match(input)
     .with(
       {
@@ -42,7 +38,7 @@ export const toApiSelfcareInstitution = (
       throw selfcareEntityNotFilled("InstitutionResource");
     });
 
-export const toApiSelfcareProduct = (
+export const toBffApiSelfcareProduct = (
   input: ProductResource
 ): BffApiSelfcareProduct =>
   match(input)
@@ -54,7 +50,7 @@ export const toApiSelfcareProduct = (
       throw selfcareEntityNotFilled("ProductResource");
     });
 
-export const toApiSelfcareUser = (
+export const toBffApiSelfcareUser = (
   input: UserResource,
   tenantId: string
 ): BffApiSelfcareUser =>
@@ -78,14 +74,14 @@ export const toApiSelfcareUser = (
       throw selfcareEntityNotFilled("UserResource");
     });
 
-export const toApiAttributeProcessSeed = (
+export const toProcessAttributeSeed = (
   seed: BffApiAttributeSeed
 ): AttributeProcessApiAttributeSeed => ({
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
 
-export const toApiCompactClient = (
+export const toBffApiCompactClient = (
   input: AuthProcessApiClientWithKeys
 ): BffApiCompactClient => ({
   hasKeys: input.keys.length > 0,
@@ -93,7 +89,7 @@ export const toApiCompactClient = (
   name: input.client.name,
 });
 
-export const toApiCompactUser = (
+export const toBffApiCompactUser = (
   input: UserResponse,
   userId: string
 ): BffApiCompactUser =>
