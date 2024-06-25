@@ -21,8 +21,8 @@ import {
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   deleteClientErrorMapper,
-  getClientsErrorMapper,
   getClientErrorMapper,
+  getClientsErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
