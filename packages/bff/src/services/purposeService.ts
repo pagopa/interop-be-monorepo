@@ -121,7 +121,7 @@ export function purposeServiceBuilder(
           offset,
         },
         withCredentials: true,
-        headers: { ...headers },
+        headers,
       });
 
       const eservices = await Promise.all(
@@ -131,7 +131,7 @@ export function purposeServiceBuilder(
               eServiceId: id,
             },
             withCredentials: true,
-            headers: { ...headers },
+            headers,
           })
         )
       );
@@ -142,7 +142,7 @@ export function purposeServiceBuilder(
               id,
             },
             withCredentials: true,
-            headers: { ...headers },
+            headers,
           })
         )
       );
@@ -154,7 +154,7 @@ export function purposeServiceBuilder(
               id,
             },
             withCredentials: true,
-            headers: { ...headers },
+            headers,
           })
         )
       );
