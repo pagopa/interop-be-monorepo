@@ -748,6 +748,7 @@ describe("Authorization Updater processMessage", () => {
 
     expect(authorizationManagementClient.createClient).toHaveBeenCalledWith(
       {
+        id: client.id,
         name: client.name,
         description: client.description,
         consumerId: client.consumerId,
