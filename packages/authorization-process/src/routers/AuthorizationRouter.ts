@@ -22,8 +22,8 @@ import {
   createConsumerClientErrorMapper,
   deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
-  getClientsErrorMapper,
   getClientErrorMapper,
+  getClientsErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
 
