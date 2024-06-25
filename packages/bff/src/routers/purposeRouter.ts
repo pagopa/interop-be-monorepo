@@ -31,18 +31,12 @@ const purposeRouter = (
 
   purposeRouter
     .post("/reverse/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      const requestHeaders = {
-        "X-Correlation-Id": ctx.correlationId,
-        Authorization: req.headers.authorization as string,
-      };
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const result = await purposeService.createPurposeFromEService(
           req.body,
-          ctx,
-          requestHeaders
+          ctx
         );
 
         return res.status(200).json(result).end();
@@ -76,19 +70,10 @@ const purposeRouter = (
       }
     })
     .post("/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      const requestHeaders = {
-        "X-Correlation-Id": ctx.correlationId,
-        Authorization: req.headers.authorization as string,
-      };
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.createPurpose(
-          req.body,
-          ctx,
-          requestHeaders
-        );
+        const result = await purposeService.createPurpose(req.body, ctx);
 
         return res.status(200).json(result).end();
       } catch (error) {
@@ -102,12 +87,7 @@ const purposeRouter = (
     })
     // eslint-disable-next-line sonarjs/no-identical-functions
     .get("/producer/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      const requestHeaders = {
-        "X-Correlation-Id": ctx.correlationId,
-        Authorization: req.headers.authorization as string,
-      };
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const result = await purposeService.getPurposeProducer(
@@ -121,8 +101,7 @@ const purposeRouter = (
           },
           req.query.offset,
           req.query.limit,
-          ctx,
-          requestHeaders
+          ctx
         );
 
         return res.status(200).json(result).end();

@@ -26,12 +26,12 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { BffAppContext } from "../utilities/context.js";
 import { AgreementProcessApiAgreement } from "../model/api/agreementTypes.js";
 import { CatalogProcessApiDescriptor } from "../model/api/catalogTypes.js";
 import { BffApiPurpose, BffApiPurposes } from "../model/api/bffTypes.js";
 import { getAllClients } from "./authorizationService.js";
 import { getLatestAgreement } from "./agreementService.js";
-import { BffAppContext } from "../utilities/context.js";
 
 export const getCurrentVersion = (
   purposeVersions: PurposeProcessApiPurposeVersion[]
@@ -61,7 +61,7 @@ export function purposeServiceBuilder(
   return {
     async createPurpose(
       createSeed: PurposeProcessApiCreatePurposeSeed,
-      { headers, logger }: WithLogger<BffAppContext>,
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
       logger.info(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
@@ -73,7 +73,7 @@ export function purposeServiceBuilder(
     },
     async createPurposeFromEService(
       createSeed: PurposeProcessApiCreateReversePurposeSeed,
-      { headers, logger }: WithLogger<BffAppContext>,
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
       logger.info("Creating purpose from e-service");
       return await purposeClient.createPurposeFromEService(createSeed, {
@@ -83,7 +83,7 @@ export function purposeServiceBuilder(
     },
     async reversePurposeUpdate(
       id: PurposeId,
-      updateSeed: ApiUpdateReversePurposePayload,
+      updateSeed: PurposeProcessApiUpdateReversePurposeSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
       logger.info(`Updating reverse purpose ${id}`);
@@ -117,8 +117,7 @@ export function purposeServiceBuilder(
       },
       offset: number,
       limit: number,
-      { authData }: WithLogger<AppContext>,
-      requestHeaders: Headers
+      { headers, authData }: WithLogger<BffAppContext>
     ): Promise<BffApiPurposes> {
       const purposes = await purposeClient.getPurposes({
         queries: {
@@ -127,7 +126,7 @@ export function purposeServiceBuilder(
           offset,
         },
         withCredentials: true,
-        headers: { ...requestHeaders },
+        headers,
       });
 
       const eservices = await Promise.all(
@@ -137,7 +136,7 @@ export function purposeServiceBuilder(
               eServiceId: id,
             },
             withCredentials: true,
-            headers: { ...requestHeaders },
+            headers,
           })
         )
       );
@@ -148,7 +147,7 @@ export function purposeServiceBuilder(
               id,
             },
             withCredentials: true,
-            headers: { ...requestHeaders },
+            headers,
           })
         )
       );
@@ -160,7 +159,7 @@ export function purposeServiceBuilder(
               id,
             },
             withCredentials: true,
-            headers: { ...requestHeaders },
+            headers,
           })
         )
       );
@@ -187,7 +186,7 @@ export function purposeServiceBuilder(
           agreementClient,
           purpose.consumerId,
           eservice,
-          requestHeaders
+          headers
         );
         if (!latestAgreement) {
           throw agreementNotFound(unsafeBrandId(purpose.consumerId));
@@ -211,7 +210,7 @@ export function purposeServiceBuilder(
                   authorizationClient,
                   purpose.consumerId,
                   purpose.id,
-                  requestHeaders
+                  headers
                 )
               ).map((c) => ({
                 id: c.client.id,
