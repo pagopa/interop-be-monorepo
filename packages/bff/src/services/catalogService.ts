@@ -27,7 +27,7 @@ import { BffAppContext } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 const ACTIVE_DESCRIPTOR_STATES_FILTER = [
-  descriptorApiState.DRAFT,
+  descriptorApiState.PUBLISHED,
   descriptorApiState.SUSPENDED,
   descriptorApiState.DEPRECATED,
 ];
