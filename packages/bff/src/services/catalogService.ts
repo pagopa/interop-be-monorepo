@@ -84,7 +84,7 @@ const enhanceCatalogEService =
 
     return toBffCatalogApiEServiceResponse(
       eservice,
-      requesterTenant,
+      producerTenant,
       hasCertifiedAttributes,
       isRequesterEqProducer,
       latestActiveDescriptor,
