@@ -10,7 +10,12 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { reversePurposeUpdateErrorMapper } from "../utilities/errorMappers.js";
+import {
+  emptyErrorMapper,
+  clonePurposeErrorMapper,
+  getPurposesErrorMapper,
+  reversePurposeUpdateErrorMapper,
+} from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeRouter = (
@@ -41,11 +46,7 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          reversePurposeUpdateErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -77,11 +78,7 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          reversePurposeUpdateErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -106,7 +103,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          reversePurposeUpdateErrorMapper,
+          getPurposesErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -133,7 +130,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          reversePurposeUpdateErrorMapper,
+          getPurposesErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -153,7 +150,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          reversePurposeUpdateErrorMapper,
+          clonePurposeErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
@@ -171,11 +168,7 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          reversePurposeUpdateErrorMapper,
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
