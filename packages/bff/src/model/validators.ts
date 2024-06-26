@@ -1,4 +1,4 @@
-import { EServiceCatalogProcessApiDescriptor } from "./api/catalogTypes.js";
+import { CatalogProcessApiEServiceDescriptor } from "./api/catalogTypes.js";
 import { TenantProcessApiResponse } from "./api/tenantTypes.js";
 
 /* 
@@ -12,7 +12,7 @@ import { TenantProcessApiResponse } from "./api/tenantTypes.js";
   If this continues to grow, consider moving this code to a shared package.
 */
 export const certifiedAttributesSatisfied = (
-  descriptor: EServiceCatalogProcessApiDescriptor,
+  descriptor: CatalogProcessApiEServiceDescriptor,
   tenant: TenantProcessApiResponse
 ): boolean => {
   const tenantCertifiedAttributes = tenant.attributes

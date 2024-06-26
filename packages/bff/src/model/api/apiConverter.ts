@@ -8,9 +8,9 @@ import {
   BffGetCatalogApiQueryParam,
 } from "./bffTypes.js";
 import {
+  CatalogProcessApiEService,
+  CatalogProcessApiEServiceDescriptor,
   CatalogProcessApiQueryParam,
-  EServiceCatalogProcessApi,
-  EServiceCatalogProcessApiDescriptor,
   descriptorApiState,
 } from "./catalogTypes.js";
 import { TenantProcessApiResponse } from "./tenantTypes.js";
@@ -34,11 +34,11 @@ export function toEserviceCatalogProcessQueryParams(
 }
 
 export function toBffCatalogApiEServiceResponse(
-  eservice: EServiceCatalogProcessApi,
+  eservice: CatalogProcessApiEService,
   producerTenant: TenantProcessApiResponse,
   hasCertifiedAttributes: boolean,
   isRequesterEqProducer: boolean,
-  activeDescriptor?: EServiceCatalogProcessApiDescriptor,
+  activeDescriptor?: CatalogProcessApiEServiceDescriptor,
   agreement?: AgreementProcessApiAgreement
 ): BffCatalogApiEServiceResponse {
   const isUpgradable = (agreement: AgreementProcessApiAgreement): boolean => {

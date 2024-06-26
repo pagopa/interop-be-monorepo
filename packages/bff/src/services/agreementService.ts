@@ -4,13 +4,13 @@ import {
   AgreementProcessApiResponse,
 } from "../model/api/agreementTypes.js";
 import { BffGetCatalogApiHeaders } from "../model/api/bffTypes.js";
-import { EServiceCatalogProcessApi } from "../model/api/catalogTypes.js";
+import { CatalogProcessApiEService } from "../model/api/catalogTypes.js";
 import { AgreementProcessClient } from "../providers/clientProvider.js";
 
 export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
   consumerId: string,
-  eservice: EServiceCatalogProcessApi,
+  eservice: CatalogProcessApiEService,
   headers: BffGetCatalogApiHeaders
 ): Promise<AgreementProcessApiAgreement> => {
   const getAgreementsFrom = async (
