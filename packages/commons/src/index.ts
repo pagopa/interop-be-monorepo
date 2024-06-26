@@ -5,6 +5,8 @@ export * from "./file-manager/index.js";
 export * from "./interop-token/interopTokenService.js";
 export * from "./interop-token/refreshableInteropTokenService.js";
 export * from "./interop-token/utils.js";
+export * from "./session-token/sessionTokenService.js";
+export * from "./session-token/models.js";
 export * from "./kafka/kafka.js";
 export * from "./logging/index.js";
 export * from "./model/apiEndpoint.js";

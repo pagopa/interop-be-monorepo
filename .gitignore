@@ -49,3 +49,5 @@ docker/minio-data
 ### Turbo ###
 # Turborepo task cache
 .turbo
+
+.env.local

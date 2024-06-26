@@ -12,6 +12,7 @@ import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
+import authorizationRouter from "./routers/authorizationRouter.js";
 
 const serviceName = "bff-process";
 
@@ -22,8 +23,11 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+console.log("app.ts");
+
 app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
+app.use(authorizationRouter(zodiosCtx, clients));
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));

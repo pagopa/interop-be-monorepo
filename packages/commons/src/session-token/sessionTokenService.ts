@@ -1,19 +1,16 @@
 import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
+import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
+import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
-  TokenGenerationConfig,
-  b64ByteUrlEncode,
-  b64UrlEncode,
-} from "pagopa-interop-commons";
-import {
-  InteropJwtHeader,
-  InteropJwtPayload,
-  InteropToken,
-} from "../../../commons/dist/interop-token/models.js";
+  CustomClaims,
+  SessionClaims,
+  SessionJwtHeader,
+  SessionJwtPayload,
+} from "./models.js";
+
 const JWT_HEADER_ALG = "RS256";
 const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";
-const JWT_INTERNAL_ROLE = "internal";
-const JWT_ROLE_CLAIM = "role";
 
 export class SessionTokenGenerator {
   private kmsClient: KMSClient;
@@ -22,25 +19,25 @@ export class SessionTokenGenerator {
     this.kmsClient = new KMSClient();
   }
 
-  public async generate(): Promise<InteropToken> {
+  public async generate(claims: SessionClaims & CustomClaims): Promise<string> {
     const currentTimestamp = Math.floor(Date.now() / 1000);
 
-    const header: InteropJwtHeader = {
+    const header: SessionJwtHeader = {
       alg: JWT_HEADER_ALG,
       use: "sig",
       typ: "at+jwt",
-      kid: this.config.kid,
+      kid: this.config.sessionKid,
     };
 
-    const payload: InteropJwtPayload = {
+    const payload: SessionJwtPayload = {
       jti: crypto.randomUUID(),
-      iss: this.config.issuer,
-      aud: this.config.audience,
-      sub: this.config.subject,
+      iss: this.config.sessionIssuer,
+      aud: this.config.sessionAudience,
+      sub: this.config.sessionSubject,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp: currentTimestamp + this.config.secondsDuration,
-      [JWT_ROLE_CLAIM]: JWT_INTERNAL_ROLE,
+      exp: currentTimestamp + this.config.sessionSecondsDuration,
+      ...claims,
     };
 
     const serializedToken = `${b64UrlEncode(
@@ -48,7 +45,7 @@ export class SessionTokenGenerator {
     )}.${b64UrlEncode(JSON.stringify(payload))}`;
 
     const commandParams: SignCommandInput = {
-      KeyId: this.config.kid,
+      KeyId: this.config.sessionKid,
       Message: new TextEncoder().encode(serializedToken),
       SigningAlgorithm: KMS_SIGNING_ALG,
     };
@@ -62,10 +59,6 @@ export class SessionTokenGenerator {
 
     const jwtSignature = b64ByteUrlEncode(response.Signature);
 
-    return {
-      header,
-      payload,
-      serialized: `${serializedToken}.${jwtSignature}`,
-    };
+    return `${serializedToken}.${jwtSignature}`;
   }
 }

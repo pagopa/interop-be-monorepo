@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  TokenGenerationConfig,
+} from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -56,11 +60,21 @@ export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
 >;
 
+export const AuthorizationProcessServerConfig = z
+  .object({
+    TENANT_ALLOWED_ORIGINS: z.string(),
+  })
+  .transform((c) => ({
+    tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
+  }));
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
-  .and(PurposeProcessServerConfig);
+  .and(PurposeProcessServerConfig)
+  .and(AuthorizationProcessServerConfig)
+  .and(TokenGenerationConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
