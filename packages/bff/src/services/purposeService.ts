@@ -377,5 +377,26 @@ export function purposeServiceBuilder(
         versionId: draft.id,
       };
     },
+    async createPurposeVersion(
+      purposeId: PurposeId,
+      seed: purposeApi.PurposeVersionSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(
+        `Creating version for purpose ${purposeId} with dailyCalls ${seed.dailyCalls}`
+      );
+
+      const purposeVersion = await purposeClient.createPurposeVersion(seed, {
+        params: {
+          purposeId,
+        },
+        headers,
+      });
+
+      return {
+        purposeId,
+        versionId: purposeVersion.id,
+      };
+    },
   };
 }
