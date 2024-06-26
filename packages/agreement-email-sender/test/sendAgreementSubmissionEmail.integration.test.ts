@@ -16,7 +16,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
-import { sendAgreementSubmissionMail } from "../src/services/agreementEmailSenderService.js";
+import { senderAgreementSubmissionEmail } from "../src/services/agreementEmailSenderService.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -26,6 +26,7 @@ import {
   getLatestMail,
   getMails,
   readModelService,
+  templateService,
 } from "./utils.js";
 
 describe("sendAgreementSubmissionEmail", () => {
@@ -67,7 +68,7 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneEService(eservice);
 
-    const submissionDate = new Date();
+    const submissionDate = new Date("2021-01-01");
 
     const agreement = {
       ...getMockAgreement(),
@@ -82,12 +83,14 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await sendAgreementSubmissionMail(
-      toAgreementV2(agreement),
+    await senderAgreementSubmissionEmail({
+      agreementV2: toAgreementV2(agreement),
       readModelService,
       emailManager,
-      genericLogger
-    );
+      sender: { label: config.pecSenderLabel, mail: config.pecSenderMail },
+      templateService,
+      logger: genericLogger,
+    });
 
     const messagesResponse = await getMails();
 
@@ -386,7 +389,7 @@ describe("sendAgreementSubmissionEmail", () => {
                                         <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:regular;line-height:24px;text-align:left;color:#17324D;">
                                           <!-- Body 1 Desktop (from MUI Italia)-->
                                           <p> ti informiamo che per l’e-service <strong>EService</strong>, </p>
-                                          <p> è presente una richiesta di fruizione da parte di <strong>Jane Doe</strong>, del giorno <strong>26/06/2024</strong>. </p>
+                                          <p> è presente una richiesta di fruizione da parte di <strong>Jane Doe</strong>, del giorno <strong>01/01/2021</strong>. </p>
                                         </div>
                                       </td>
                                     </tr>
@@ -498,7 +501,7 @@ describe("sendAgreementSubmissionEmail", () => {
       "
     `);
 
-    expect(latestMail.From.Address).toBe(config.senderMail);
+    expect(latestMail.From.Address).toBe(config.pecSenderMail);
     expect(latestMail.To[0].Address).toBe(tenantMail);
   });
 
@@ -529,12 +532,14 @@ describe("sendAgreementSubmissionEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await sendAgreementSubmissionMail(
-      toAgreementV2(agreement),
+    await senderAgreementSubmissionEmail({
+      agreementV2: toAgreementV2(agreement),
       readModelService,
       emailManager,
-      genericLogger
-    );
+      sender: { label: config.pecSenderLabel, mail: config.pecSenderMail },
+      templateService,
+      logger: genericLogger,
+    });
 
     const messagesResponse = await getMails();
 

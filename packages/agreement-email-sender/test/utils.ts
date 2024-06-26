@@ -11,6 +11,7 @@ import {
   toReadModelEService,
 } from "pagopa-interop-models";
 import axios, { AxiosResponse } from "axios";
+import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { agreementEmailSenderConfig } from "../src/utilities/config.js";
 
@@ -27,6 +28,7 @@ export const { cleanup, readModelRepository, emailManager } =
     emailManagerConfig
   );
 export const readModelService = readModelServiceBuilder(readModelRepository);
+export const templateService = buildHTMLTemplateService();
 
 export const agreements = readModelRepository.agreements;
 

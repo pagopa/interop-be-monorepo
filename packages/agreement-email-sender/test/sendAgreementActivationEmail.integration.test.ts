@@ -31,6 +31,7 @@ import {
   getLatestMail,
   getMails,
   readModelService,
+  templateService,
 } from "./utils.js";
 
 describe("sendAgreementActivationEmail", () => {
@@ -63,12 +64,14 @@ describe("sendAgreementActivationEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    await sendAgreementActivationEmail(
-      toAgreementV2(agreement),
+    await sendAgreementActivationEmail({
+      agreementV2: toAgreementV2(agreement),
       readModelService,
       emailManager,
-      genericLogger
-    );
+      sender: { label: config.senderLabel, mail: config.senderMail },
+      templateService,
+      logger: genericLogger,
+    });
 
     const expectedBody = `<!DOCTYPE html>
 <html lang="it">
@@ -115,7 +118,7 @@ describe("sendAgreementActivationEmail", () => {
 
     const html = latestMail.HTML.replace(/\r\n/g, "\n");
     expect(html).toBe(expectedBody);
-    expect(latestMail.From.Address).toBe(config.pecSenderMail);
+    expect(latestMail.From.Address).toBe(config.senderMail);
     expect(latestMail.To[0].Address).toBe(producer.mails[0].address);
     expect(latestMail.To[1].Address).toBe(consumer.mails[0].address);
     expect(latestMail.Subject).toBe(
@@ -131,12 +134,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       agreementStampDateNotFound("activation", agreement.id)
     );
@@ -150,12 +155,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -170,12 +177,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
 
@@ -193,12 +202,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
 
@@ -221,12 +232,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.producerId));
   });
 
@@ -252,12 +265,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(tenantDigitalAddressNotFound(agreement.consumerId));
   });
 
@@ -286,12 +301,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
     );
@@ -337,12 +354,14 @@ describe("sendAgreementActivationEmail", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      sendAgreementActivationEmail(
-        toAgreementV2(agreement),
+      sendAgreementActivationEmail({
+        agreementV2: toAgreementV2(agreement),
         readModelService,
         emailManager,
-        genericLogger
-      )
+        sender: { label: config.senderLabel, mail: config.senderMail },
+        templateService,
+        logger: genericLogger,
+      })
     ).rejects.toThrowError("No recipients defined");
   });
 });

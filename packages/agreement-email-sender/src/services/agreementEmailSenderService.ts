@@ -12,8 +12,8 @@ import {
 } from "pagopa-interop-models";
 import {
   EmailManager,
+  HtmlTemplateService,
   Logger,
-  buildHTMLTemplateService,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
 import {
@@ -24,7 +24,6 @@ import {
   tenantNotFound,
   agreementStampDateNotFound,
 } from "../models/errors.js";
-import { agreementEmailSenderConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
@@ -37,15 +36,22 @@ export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
   return digitalAddress;
 };
 
-export async function sendAgreementActivationEmail(
-  agreementV2: AgreementV2,
-  readModelService: ReadModelService,
-  emailManager: EmailManager,
-  logger: Logger,
-  { pecSenderLabel, pecSenderMail } = agreementEmailSenderConfig()
-): Promise<void> {
+export async function sendAgreementActivationEmail({
+  agreementV2,
+  readModelService,
+  emailManager,
+  sender,
+  templateService,
+  logger,
+}: {
+  agreementV2: AgreementV2;
+  readModelService: ReadModelService;
+  emailManager: EmailManager;
+  sender: { label: string; mail: string };
+  templateService: HtmlTemplateService;
+  logger: Logger;
+}): Promise<void> {
   const agreement = fromAgreementV2(agreementV2);
-  const templateService = buildHTMLTemplateService();
   const htmlTemplate = await retrieveHTMLTemplate("activation-mail");
 
   const activationDate = getFormattedAgreementStampDate(
@@ -88,7 +94,7 @@ export async function sendAgreementActivationEmail(
 
   logger.info(`Sending email for agreement ${agreement.id} activation`);
   await emailManager.send(
-    { name: pecSenderLabel, address: pecSenderMail },
+    { name: sender.label, address: sender.mail },
     mail.to,
     mail.subject,
     mail.body
@@ -96,15 +102,22 @@ export async function sendAgreementActivationEmail(
   logger.info(`Email sent for agreement ${agreement.id} activation`);
 }
 
-export async function sendAgreementSubmissionMail(
-  agreementV2: AgreementV2,
-  readModelService: ReadModelService,
-  emailManager: EmailManager,
-  logger: Logger,
-  { senderLabel, senderMail } = agreementEmailSenderConfig()
-): Promise<void> {
+export async function senderAgreementSubmissionEmail({
+  agreementV2,
+  readModelService,
+  emailManager,
+  sender,
+  templateService,
+  logger,
+}: {
+  agreementV2: AgreementV2;
+  readModelService: ReadModelService;
+  emailManager: EmailManager;
+  sender: { label: string; mail: string };
+  templateService: HtmlTemplateService;
+  logger: Logger;
+}): Promise<void> {
   const agreement = fromAgreementV2(agreementV2);
-  const templateService = buildHTMLTemplateService();
   const htmlTemplate = await retrieveHTMLTemplate("submission-mail");
 
   const { eservice, producer, consumer } = await retrieveAgreementComponents(
@@ -129,7 +142,7 @@ export async function sendAgreementSubmissionMail(
   }
 
   const mail = {
-    from: { name: senderLabel, address: senderMail },
+    from: { name: sender.label, address: sender.mail },
     subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
     to: [producerEmail.address],
     body: templateService.compileHtml(htmlTemplate, {
