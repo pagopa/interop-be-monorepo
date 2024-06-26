@@ -3,15 +3,15 @@ import { WithLogger } from "pagopa-interop-commons";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import {
   BffCatalogApiEServiceResponse,
-  BffGetCatalogApiResponse,
   BffGetCatalogApiHeaders,
+  BffGetCatalogApiResponse,
 } from "../model/api/bffTypes.js";
 
 import {
+  CatalogProcessApiEService,
+  CatalogProcessApiEServiceDescriptor,
+  CatalogProcessApiEServicesResponse,
   CatalogProcessApiQueryParam,
-  EServiceCatalogProcessApi,
-  EServiceCatalogProcessApiDescriptor,
-  EServicesCatalogProcessApiResponse,
   descriptorApiState,
 } from "../model/api/catalogTypes.js";
 
@@ -41,10 +41,10 @@ const enhanceCatalogEService =
     headers: BffGetCatalogApiHeaders,
     requesterId: string
   ): ((
-    eservice: EServiceCatalogProcessApi
+    eservice: CatalogProcessApiEService
   ) => Promise<BffCatalogApiEServiceResponse>) =>
   async (
-    eservice: EServiceCatalogProcessApi
+    eservice: CatalogProcessApiEService
   ): Promise<BffCatalogApiEServiceResponse> => {
     const producerTenant = await tenantProcessClient.getTenant({
       headers,
@@ -64,7 +64,7 @@ const enhanceCatalogEService =
         : producerTenant;
 
     const latestActiveDescriptor:
-      | EServiceCatalogProcessApiDescriptor
+      | CatalogProcessApiEServiceDescriptor
       | undefined = eservice.descriptors
       .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
       .sort((a, b) => Number(a.version) - Number(b.version))
@@ -104,7 +104,7 @@ export function catalogServiceBuilder(
     ): Promise<BffGetCatalogApiResponse> => {
       const requesterId = context.authData.organizationId;
       const { offset, limit } = queries;
-      const eservicesResponse: EServicesCatalogProcessApiResponse =
+      const eservicesResponse: CatalogProcessApiEServicesResponse =
         await catalogProcessClient.getEServices({
           headers: context.headers,
           queries,
