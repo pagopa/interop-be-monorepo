@@ -181,7 +181,9 @@ async function retrieveAgreementComponents(
   return { eservice, producer, consumer };
 }
 
-async function retrieveHTMLTemplate(templateName: string): Promise<string> {
+async function retrieveHTMLTemplate(
+  templateName: "activation-mail" | "submission-mail"
+): Promise<string> {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
   const templatePath = `/resources/templates/${templateName}.html`;
