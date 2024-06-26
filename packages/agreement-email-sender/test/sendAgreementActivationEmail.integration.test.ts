@@ -117,7 +117,7 @@ describe("sendAgreementActivationEmail", () => {
     const { data: latestMail } = await getLatestMail();
 
     const html = latestMail.HTML.replace(/\r\n/g, "\n");
-    expect(html).toBe(expectedBody);
+    expect(html).toEqual(expectedBody);
     expect(latestMail.From.Address).toBe(config.senderMail);
     expect(latestMail.To[0].Address).toBe(producer.mails[0].address);
     expect(latestMail.To[1].Address).toBe(consumer.mails[0].address);
