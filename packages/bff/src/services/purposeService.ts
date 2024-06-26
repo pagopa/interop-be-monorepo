@@ -12,6 +12,7 @@ import {
   PurposeProcessApiPurpose,
   PurposeProcessApiPurposeVersionState,
   PurposeProcessApiClonePurposeSeed,
+  PurposeProcessApiCreatePurposeVersionSeed,
 } from "../model/api/purposeTypes.js";
 import {
   AuthorizationProcessClient,
@@ -386,6 +387,27 @@ export function purposeServiceBuilder(
       return {
         purposeId: cloned.id,
         versionId: draft.id,
+      };
+    },
+    async createPurposeVersion(
+      purposeId: PurposeId,
+      seed: PurposeProcessApiCreatePurposeVersionSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<BffApiPurposeVersionResource> {
+      logger.info(
+        `Creating version for purpose ${purposeId} with dailyCalls ${seed.dailyCalls}`
+      );
+
+      const purposeVersion = await purposeClient.createPurposeVersion(seed, {
+        params: {
+          purposeId,
+        },
+        headers,
+      });
+
+      return {
+        purposeId,
+        versionId: purposeVersion.id,
       };
     },
   };

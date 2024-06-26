@@ -159,9 +159,26 @@ const purposeRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/purposes/:purposeId/versions", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/purposes/:purposeId/versions", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.createPurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          reversePurposeUpdateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
       async (_req, res) => res.status(501).send()
