@@ -386,7 +386,7 @@ describe("sendAgreementSubmissionEmail", () => {
                                         <div style="font-family:Titillium Web, system-ui, sans-serif;font-size:16px;font-weight:regular;line-height:24px;text-align:left;color:#17324D;">
                                           <!-- Body 1 Desktop (from MUI Italia)-->
                                           <p> ti informiamo che per l’e-service <strong>EService</strong>, </p>
-                                          <p> è presente una richiesta di fruizione da parte di <strong>Jane Doe</strong>, del giorno <strong>25/06/2024</strong>. </p>
+                                          <p> è presente una richiesta di fruizione da parte di <strong>Jane Doe</strong>, del giorno <strong>26/06/2024</strong>. </p>
                                         </div>
                                       </td>
                                     </tr>
@@ -498,7 +498,7 @@ describe("sendAgreementSubmissionEmail", () => {
       "
     `);
 
-    expect(latestMail.From.Address).toBe(config.awsSesAgreementEmailSender);
+    expect(latestMail.From.Address).toBe(config.senderMail);
     expect(latestMail.To[0].Address).toBe(tenantMail);
   });
 

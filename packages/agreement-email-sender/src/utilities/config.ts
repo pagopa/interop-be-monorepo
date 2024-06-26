@@ -3,12 +3,16 @@ import { z } from "zod";
 
 export const AgreementEmailSenderConfig = z
   .object({
-    AGREEMENT_EMAIL_SENDER: z.string().email(),
-    AWS_SES_AGREEMENT_EMAIL_SENDER: z.string().email(),
+    PEC_SENDER_MAIL: z.string().email(),
+    PEC_SENDER_LABEL: z.string(),
+    SENDER_MAIL: z.string().email(),
+    SENDER_LABEL: z.string(),
   })
   .transform((c) => ({
-    agreementEmailSender: c.AGREEMENT_EMAIL_SENDER,
-    awsSesAgreementEmailSender: c.AWS_SES_AGREEMENT_EMAIL_SENDER,
+    pecSenderMail: c.PEC_SENDER_MAIL,
+    pecSenderLabel: c.PEC_SENDER_LABEL,
+    senderMail: c.SENDER_MAIL,
+    senderLabel: c.SENDER_LABEL,
   }));
 
 export type AgreementEmailSenderConfig = z.infer<
@@ -18,25 +22,25 @@ export type AgreementEmailSenderConfig = z.infer<
 export const agreementEmailSenderConfig: () => AgreementEmailSenderConfig =
   () => AgreementEmailSenderConfig.parse(process.env);
 
-export const pecEmailManagerConfig: () => EmailManagerConfig = () =>
+export const emailManagerConfig: () => EmailManagerConfig = () =>
   EmailManagerConfig.parse(process.env);
 
-export const awsSesEmailManagerConfig: () => EmailManagerConfig = () =>
+export const pecEmailManagerConfig: () => EmailManagerConfig = () =>
   z
     .object({
-      AWS_SES_SMTP_ADDRESS: z.string(),
-      AWS_SES_SMTP_PORT: z.coerce.number(),
-      AWS_SES_SMTP_SECURE: z
+      PEC_SMTP_ADDRESS: z.string(),
+      PEC_SMTP_PORT: z.coerce.number(),
+      PEC_SMTP_SECURE: z
         .enum(["true", "false"])
         .transform((value) => value === "true"),
-      AWS_SES_SMTP_USERNAME: z.string(),
-      AWS_SES_SMTP_PASSWORD: z.string(),
+      PEC_SMTP_USERNAME: z.string(),
+      PEC_SMTP_PASSWORD: z.string(),
     })
     .transform((c) => ({
-      smtpAddress: c.AWS_SES_SMTP_ADDRESS,
-      smtpPort: c.AWS_SES_SMTP_PORT,
-      smtpSecure: c.AWS_SES_SMTP_SECURE,
-      smtpUsername: c.AWS_SES_SMTP_USERNAME,
-      smtpPassword: c.AWS_SES_SMTP_PASSWORD,
+      smtpAddress: c.PEC_SMTP_ADDRESS,
+      smtpPort: c.PEC_SMTP_PORT,
+      smtpSecure: c.PEC_SMTP_SECURE,
+      smtpUsername: c.PEC_SMTP_USERNAME,
+      smtpPassword: c.PEC_SMTP_PASSWORD,
     }))
     .parse(process.env);

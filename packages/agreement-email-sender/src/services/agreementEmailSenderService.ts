@@ -42,7 +42,7 @@ export async function sendAgreementActivationEmail(
   readModelService: ReadModelService,
   emailManager: EmailManager,
   logger: Logger,
-  { agreementEmailSender } = agreementEmailSenderConfig()
+  { pecSenderLabel, pecSenderMail } = agreementEmailSenderConfig()
 ): Promise<void> {
   const agreement = fromAgreementV2(agreementV2);
   const templateService = buildHTMLTemplateService();
@@ -88,7 +88,7 @@ export async function sendAgreementActivationEmail(
 
   logger.info(`Sending email for agreement ${agreement.id} activation`);
   await emailManager.send(
-    agreementEmailSender,
+    { name: pecSenderLabel, address: pecSenderMail },
     mail.to,
     mail.subject,
     mail.body
@@ -101,7 +101,7 @@ export async function sendAgreementSubmissionMail(
   readModelService: ReadModelService,
   emailManager: EmailManager,
   logger: Logger,
-  { awsSesAgreementEmailSender } = agreementEmailSenderConfig()
+  { senderLabel, senderMail } = agreementEmailSenderConfig()
 ): Promise<void> {
   const agreement = fromAgreementV2(agreementV2);
   const templateService = buildHTMLTemplateService();
@@ -129,7 +129,7 @@ export async function sendAgreementSubmissionMail(
   }
 
   const mail = {
-    from: awsSesAgreementEmailSender,
+    from: { name: senderLabel, address: senderMail },
     subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
     to: [producerEmail.address],
     body: templateService.compileHtml(htmlTemplate, {
@@ -143,12 +143,7 @@ export async function sendAgreementSubmissionMail(
 
   try {
     logger.info(`Sending email for agreement ${agreement.id} submission`);
-    await emailManager.send(
-      awsSesAgreementEmailSender,
-      mail.to,
-      mail.subject,
-      mail.body
-    );
+    await emailManager.send(mail.from, mail.to, mail.subject, mail.body);
     logger.info(`Email sent for agreement ${agreement.id} submission`);
   } catch {
     logger.error(`Error sending email for agreement ${agreement.id}`);

@@ -22,7 +22,7 @@ import {
 } from "./services/agreementEmailSenderService.js";
 import {
   pecEmailManagerConfig,
-  awsSesEmailManagerConfig,
+  emailManagerConfig,
 } from "./utilities/config.js";
 
 const config = kafkaConsumerConfig();
@@ -30,8 +30,8 @@ const readModelConfig = readModelWriterConfig();
 const topicsConfig = agreementTopicConfig();
 const pecEmailConfig = pecEmailManagerConfig();
 const pecEmailManager = initEmailManager(pecEmailConfig);
-const awsSesEmailConfig = awsSesEmailManagerConfig();
-const awsSesEmailManager = initEmailManager(awsSesEmailConfig);
+const emailConfig = emailManagerConfig();
+const emailManager = initEmailManager(emailConfig);
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(readModelConfig)
 );
@@ -74,7 +74,7 @@ export async function processMessage({
           await sendAgreementSubmissionMail(
             agreement,
             readModelService,
-            awsSesEmailManager,
+            emailManager,
             loggerInstance
           );
         } else {
