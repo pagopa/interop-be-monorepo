@@ -87,6 +87,7 @@ describe("sendAgreementSubmissionEmail", () => {
       agreementV2: toAgreementV2(agreement),
       readModelService,
       emailManager,
+      feBaseUrl: config.interopFeBaseUrl,
       sender: { label: config.pecSenderLabel, mail: config.pecSenderMail },
       templateService,
       logger: genericLogger,
@@ -535,6 +536,7 @@ describe("sendAgreementSubmissionEmail", () => {
     await senderAgreementSubmissionEmail({
       agreementV2: toAgreementV2(agreement),
       readModelService,
+      feBaseUrl: config.interopFeBaseUrl,
       emailManager,
       sender: { label: config.pecSenderLabel, mail: config.pecSenderMail },
       templateService,

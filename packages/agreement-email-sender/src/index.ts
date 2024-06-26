@@ -84,6 +84,7 @@ export async function processMessage({
             agreementV2: agreement,
             readModelService,
             emailManager,
+            feBaseUrl: config.interopFeBaseUrl,
             sender: { label: config.senderLabel, mail: config.senderMail },
             templateService,
             logger: loggerInstance,

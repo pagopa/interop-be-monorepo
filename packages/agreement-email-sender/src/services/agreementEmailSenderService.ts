@@ -105,6 +105,7 @@ export async function sendAgreementActivationEmail({
 export async function senderAgreementSubmissionEmail({
   agreementV2,
   readModelService,
+  feBaseUrl,
   emailManager,
   sender,
   templateService,
@@ -112,6 +113,7 @@ export async function senderAgreementSubmissionEmail({
 }: {
   agreementV2: AgreementV2;
   readModelService: ReadModelService;
+  feBaseUrl: string;
   emailManager: EmailManager;
   sender: { label: string; mail: string };
   templateService: HtmlTemplateService;
@@ -146,7 +148,7 @@ export async function senderAgreementSubmissionEmail({
     subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
     to: [producerEmail.address],
     body: templateService.compileHtml(htmlTemplate, {
-      interopFeUrl: `https://selfcare.interop.pagopa.it/ui/it/erogazione/richieste/${agreement.id}`,
+      interopFeUrl: `https://${feBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
       producerName: producer.name,
       consumerName: consumer.name,
       eserviceName: eservice.name,
