@@ -21,14 +21,14 @@ export function toEserviceCatalogProcessQueryParams(
   return {
     ...queryParams,
     producersIds: queryParams.producersIds
-      ? queryParams.producersIds[0]
+      ? queryParams.producersIds.join(",")
       : undefined,
-    states: queryParams.states ? queryParams.states[0] : undefined,
+    states: queryParams.states ? queryParams.states.join(",") : undefined,
     attributesIds: queryParams.attributesIds
-      ? queryParams.attributesIds[0]
+      ? queryParams.attributesIds.join(",")
       : undefined,
     agreementStates: queryParams.agreementStates
-      ? queryParams.agreementStates[0]
+      ? queryParams.agreementStates.join(",")
       : undefined,
   };
 }
