@@ -14,6 +14,8 @@ export const errorCodes = {
   keyNotFound: "0004",
   userNotAllowedOnClient: "0005",
   purposeIdNotFound: "0006",
+  userWithoutSecurityPrivileges: "0007",
+  userAlreadyAssigned: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -80,5 +82,27 @@ export function purposeIdNotFound(
     detail: `Purpose ${purposeId} not found in client ${clientId}`,
     code: "purposeIdNotFound",
     title: "Purpose id not found",
+  });
+}
+
+export function userWithoutSecurityPrivileges(
+  consumerId: TenantId,
+  requesterUserId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${requesterUserId} does not have security privileges for consumer ${consumerId}`,
+    code: "userWithoutSecurityPrivileges",
+    title: "User without security privileges",
+  });
+}
+
+export function userAlreadyAssigned(
+  clientId: ClientId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned to the client ${clientId}`,
+    code: "userAlreadyAssigned",
+    title: "User already assigned",
   });
 }

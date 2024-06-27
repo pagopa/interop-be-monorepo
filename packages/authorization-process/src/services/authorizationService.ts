@@ -18,9 +18,11 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   keyNotFound,
+  userAlreadyAssigned,
   userIdNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
@@ -30,12 +32,13 @@ import {
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeRemoved,
+  toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
+  assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
-  isClientConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -52,7 +55,8 @@ const retrieveClient = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -73,7 +77,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       return {
         client: client.data,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: organizationId === client.data.consumerId,
       };
     },
 
@@ -366,6 +370,50 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         users: client.data.users,
+        showUsers: true,
+      };
+    },
+    async addUser(
+      {
+        clientId,
+        userId,
+        authData,
+      }: {
+        clientId: ClientId;
+        userId: UserId;
+        authData: AuthData;
+      },
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(`Binding client ${clientId} with user ${userId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+      await assertUserSelfcareSecurityPrivileges(
+        authData.selfcareId,
+        authData.userId,
+        authData.organizationId,
+        selfcareV2Client,
+        userId
+      );
+      if (client.data.users.includes(userId)) {
+        throw userAlreadyAssigned(clientId, userId);
+      }
+      const updatedClient: Client = {
+        ...client.data,
+        users: [...client.data.users, userId],
+      };
+
+      await repository.createEvent(
+        toCreateEventClientUserAdded(
+          userId,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
+      return {
+        client: updatedClient,
         showUsers: true,
       };
     },
