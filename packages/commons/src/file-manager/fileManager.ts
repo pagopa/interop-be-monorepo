@@ -4,6 +4,7 @@ import {
   DeleteObjectCommand,
   ListObjectsCommand,
   PutObjectCommand,
+  GetObjectCommand,
   S3Client,
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
@@ -12,11 +13,13 @@ import { Logger, LoggerConfig } from "../index.js";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
+  fileManagerGetFileError,
   fileManagerListFilesError,
   fileManagerStoreBytesError,
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
+  get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   delete: (bucket: string, path: string, logger: Logger) => Promise<void>;
   copy: (
     bucket: string,
@@ -56,6 +59,25 @@ export function initFileManager(
   ): string => `${path}/${resourceId}/${fileName}`;
 
   return {
+    get: async (
+      bucket: string,
+      path: string,
+      logger: Logger
+    ): Promise<Uint8Array> => {
+      logger.info(`Getting file ${path} from bucket ${bucket}`);
+      try {
+        const response = await client.send(
+          new GetObjectCommand({
+            Bucket: bucket,
+            Key: path,
+          })
+        );
+
+        return response.Body?.transformToByteArray() ?? new Uint8Array();
+      } catch (error) {
+        throw fileManagerGetFileError(bucket, path, error);
+      }
+    },
     delete: async (
       bucket: string,
       path: string,

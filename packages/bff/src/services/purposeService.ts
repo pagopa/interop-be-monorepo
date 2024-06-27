@@ -1,6 +1,7 @@
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
+  PurposeVersionDocumentId,
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -38,6 +39,7 @@ import {
   BffApiPurposeVersionResource,
 } from "../model/api/bffTypes.js";
 import { TenantProcessApiTenant } from "../model/api/tenantTypes.js";
+import { config } from "../utilities/config.js";
 import { Headers } from "../utilities/context.js";
 import { getAllClients } from "./authorizationService.js";
 import { getLatestAgreement } from "./agreementService.js";
@@ -251,13 +253,14 @@ async function getPurposes(
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   purposeClient: PurposeProcessClient,
   eserviceClient: CatalogProcessClient,
   tenantClient: TenantProcessClient,
   agreementClient: AgreementProcessClient,
-  authorizationClient: AuthorizationProcessClient
+  authorizationClient: AuthorizationProcessClient,
+  fileManager: FileManager
 ) {
   return {
     async createPurpose(
@@ -409,6 +412,31 @@ export function purposeServiceBuilder(
         purposeId,
         versionId: purposeVersion.id,
       };
+    },
+    async getRiskAnalysisDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      documentId: PurposeVersionDocumentId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Uint8Array> {
+      logger.info(
+        `Downloading risk analysis document ${documentId} from purpose ${purposeId} with version ${versionId}`
+      );
+
+      const document = await purposeClient.getRiskAnalysisDocument({
+        params: {
+          purposeId,
+          versionId,
+          documentId,
+        },
+        headers,
+      });
+
+      return await fileManager.get(
+        config.riskAnalysisDocumentsPath,
+        document.path,
+        logger
+      );
     },
   };
 }
