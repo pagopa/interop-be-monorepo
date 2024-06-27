@@ -9,14 +9,13 @@ import {
 
 export const errorCodes = {
   clientNotFound: "0001",
-  missingUserId: "0002",
-  organizationNotAllowedOnClient: "0003",
-  userIdNotFound: "0004",
-  keyNotFound: "0005",
-  userNotAllowedOnClient: "0006",
-  purposeIdNotFound: "0007",
-  userWithoutSecurityPrivileges: "0008",
-  userAlreadyAssigned: "0009",
+  organizationNotAllowedOnClient: "0002",
+  userIdNotFound: "0003",
+  keyNotFound: "0004",
+  userNotAllowedOnClient: "0005",
+  purposeIdNotFound: "0006",
+  userWithoutSecurityPrivileges: "0007",
+  userAlreadyAssigned: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -104,6 +103,6 @@ export function userAlreadyAssigned(
   return new ApiError({
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "userAlreadyAssigned",
-    title: "user Already Assigned",
+    title: "User already assigned",
   });
 }

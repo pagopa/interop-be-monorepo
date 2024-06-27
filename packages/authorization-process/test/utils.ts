@@ -14,6 +14,7 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { toReadModelClient } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
@@ -55,7 +56,7 @@ export const writeClientInEventstore = async (
 
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
-  await writeInReadmodel(client, clients);
+  await writeInReadmodel(toReadModelClient(client), clients);
 };
 
 export const readLastAuthorizationEvent = async (
