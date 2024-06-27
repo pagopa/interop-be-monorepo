@@ -1,6 +1,7 @@
-import { WithLogger, toSetToArray } from "pagopa-interop-commons";
+import { WithLogger, FileManager, toSetToArray } from "pagopa-interop-commons";
 import {
   PurposeId,
+  PurposeVersionDocumentId,
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -23,6 +24,7 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { isUpgradable } from "../model/modelMappingUtils.js";
+import { config } from "../config/config.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 
@@ -220,13 +222,14 @@ async function getPurposes(
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   purposeClient: PurposeProcessClient,
   eserviceClient: CatalogProcessClient,
   tenantClient: TenantProcessClient,
   agreementClient: AgreementProcessClient,
-  authorizationClient: AuthorizationProcessClient
+  authorizationClient: AuthorizationProcessClient,
+  fileManager: FileManager
 ) {
   return {
     async createPurpose(
@@ -385,6 +388,31 @@ export function purposeServiceBuilder(
         purposeId,
         versionId: purposeVersion.id,
       };
+    },
+    async getRiskAnalysisDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      documentId: PurposeVersionDocumentId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Uint8Array> {
+      logger.info(
+        `Downloading risk analysis document ${documentId} from purpose ${purposeId} with version ${versionId}`
+      );
+
+      const document = await purposeClient.getRiskAnalysisDocument({
+        params: {
+          purposeId,
+          versionId,
+          documentId,
+        },
+        headers,
+      });
+
+      return await fileManager.get(
+        config.riskAnalysisDocumentsPath,
+        document.path,
+        logger
+      );
     },
   };
 }
