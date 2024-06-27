@@ -18,12 +18,13 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  deleteClientErrorMapper,
+  getClientsErrorMapper,
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
-  deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
-  getClientsErrorMapper,
+  getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -68,7 +69,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -95,7 +96,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -106,11 +107,6 @@ const authorizationRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
-    )
-    .get(
-      "/clientsWithKeys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
     )
     .get(
       "/clients",
@@ -144,8 +140,8 @@ const authorizationRouter = (
             .status(200)
             .json({
               results: clients.results.map((client) =>
-                clientToApiClient(client, {
-                  includeKeys: false,
+                clientToApiClient({
+                  client,
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -181,7 +177,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient({ client, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -218,8 +214,30 @@ const authorizationRouter = (
     )
     .get(
       "/clients/:clientId/users",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { users } = await authorizationService.getClientUsers({
+            clientId: unsafeBrandId(req.params.clientId),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+          return res.status(200).json(users).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientUsersErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/clients/:clientId/users/:userId",
