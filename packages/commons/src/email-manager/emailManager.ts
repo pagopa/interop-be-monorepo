@@ -3,7 +3,7 @@ import { EmailManagerConfig } from "../config/emailManagerConfig.js";
 
 export type EmailManager = {
   send: (
-    from: string,
+    from: string | { name: string; address: string },
     to: string[],
     subject: string,
     body: string
@@ -16,7 +16,7 @@ export function initEmailManager(
 ): EmailManager {
   return {
     send: async (
-      from: string,
+      from: string | { name: string; address: string },
       to: string[],
       subject: string,
       body: string
