@@ -18,12 +18,12 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  deleteClientErrorMapper,
-  getClientsErrorMapper,
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
+  deleteClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
   getClientErrorMapper,
+  getClientsErrorMapper,
   removeClientPurposeErrorMapper,
   removeUserErrorMapper,
 } from "../utilities/errorMappers.js";
