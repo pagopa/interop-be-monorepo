@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package authorization.v2;
 
+
 message KeyV2 {
   string kid = 1;
   string encodedPem = 2;
