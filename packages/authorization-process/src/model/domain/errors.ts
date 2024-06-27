@@ -9,12 +9,11 @@ import {
 
 export const errorCodes = {
   clientNotFound: "0001",
-  missingUserId: "0002",
-  organizationNotAllowedOnClient: "0003",
-  userIdNotFound: "0004",
-  keyNotFound: "0005",
-  userNotAllowedOnClient: "0006",
-  purposeIdNotFound: "0007",
+  organizationNotAllowedOnClient: "0002",
+  userIdNotFound: "0003",
+  keyNotFound: "0004",
+  userNotAllowedOnClient: "0005",
+  purposeIdNotFound: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
