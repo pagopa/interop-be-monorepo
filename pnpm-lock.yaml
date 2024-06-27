@@ -400,6 +400,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-selfcare-v2-client:
+        specifier: workspace:*
+        version: link:../selfcare-v2-client
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0

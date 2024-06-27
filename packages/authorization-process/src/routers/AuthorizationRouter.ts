@@ -11,6 +11,7 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -18,6 +19,7 @@ import { authorizationServiceBuilder } from "../services/authorizationService.js
 import { clientToApiClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  addUserErrorMapper,
   deleteClientErrorMapper,
   getClientsErrorMapper,
   createApiClientErrorMapper,
@@ -43,7 +45,8 @@ const authorizationService = authorizationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  selfcareV2ClientBuilder(config)
 );
 
 const authorizationRouter = (
@@ -266,7 +269,31 @@ const authorizationRouter = (
     .post(
       "/clients/:clientId/users/:userId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { client, showUsers } = await authorizationService.addUser(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              userId: unsafeBrandId(req.params.userId),
+              authData: req.ctx.authData,
+            },
+            req.ctx.correlationId,
+            ctx.logger
+          );
+          return res
+            .status(200)
+            .json(clientToApiClient({ client, showUsers }))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addUserErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/clients/:clientId/keys",

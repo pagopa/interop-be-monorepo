@@ -9,6 +9,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -65,4 +66,15 @@ export const getClientUsersErrorMapper = (
   match(error.code)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "organizationNotAllowedOnClient",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("userAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
