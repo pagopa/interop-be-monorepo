@@ -63,13 +63,6 @@ describe("addUser", () => {
 
     await addOneClient(mockClient);
 
-    vi.mock("pagopa-interop-selfcare-v2-client", () => ({
-      selfcareV2Client: {
-        getInstitutionProductUsersUsingGET: (): Promise<boolean> =>
-          Promise.resolve(true),
-      },
-    }));
-
     await authorizationService.addUser(
       {
         clientId: mockClient.id,
