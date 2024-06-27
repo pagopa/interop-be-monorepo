@@ -58,7 +58,7 @@ describe("getClientKeys", async () => {
     });
     expect(keys).toEqual([keyWithUser1, keyWithUser2, keyWithUser3]);
   });
-  it("should get the keys in the specified client with specific userIds", async () => {
+  it("should get the keys of the specified client, but only limited to the keys belonging to specific users", async () => {
     const keyUserId1: UserId = generateId();
     const keyUserId2: UserId = generateId();
     const keyUserId3: UserId = generateId();
