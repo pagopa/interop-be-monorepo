@@ -63,9 +63,17 @@ export type PurposeProcessServerConfig = z.infer<
 export const AuthorizationProcessServerConfig = z
   .object({
     TENANT_ALLOWED_ORIGINS: z.string(),
+    SAML_AUDIENCE: z.string(),
+    PAGOPA_TENANT_ID: z.string(),
+    SAML2_CALLBACK_URL: z.string().url(),
+    SAML2_CALLBACK_ERROR_URL: z.string().url(),
   })
   .transform((c) => ({
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
+    samlAudience: c.SAML_AUDIENCE,
+    pagoPaTenantId: c.PAGOPA_TENANT_ID,
+    saml2CallbackUrl: c.SAML2_CALLBACK_URL,
+    saml2CallbackErrorUrl: c.SAML2_CALLBACK_ERROR_URL,
   }));
 
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)

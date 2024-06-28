@@ -11,8 +11,8 @@ import attributeRouter from "./routers/attributeRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
-import { getInteropBeClients } from "./providers/clientProvider.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
+import { getInteropBeClients } from "./providers/clientProvider.js";
 
 const serviceName = "bff-process";
 

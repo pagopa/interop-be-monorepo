@@ -12,6 +12,7 @@ import { api } from "../model/generated/api.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { config } from "../utilities/config.js";
+import { makeApiProblem } from "../utilities/errors.js";
 
 const authorizationRouter = (
   ctx: ZodiosContext,
@@ -45,7 +46,34 @@ const authorizationRouter = (
 
       return res.status(200).send({ session_token });
     })
-    .post("/support", async (_req, res) => res.status(501).send());
+    .post("/support", async (req, res) => {
+      const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
+      const { correlationId, logger } = fromAppContext(req.ctx);
+
+      try {
+        const jwt = await authorizationService.samlLoginCallback(
+          correlationId,
+          saml
+        );
+        return res.redirect(
+          302,
+          `${config.saml2CallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
+        );
+      } catch (error) {
+        makeApiProblem(
+          error,
+          (
+            apiError //TODO implement mapper
+          ) =>
+            apiError.code === "missingClaim" ||
+            apiError.code === "unknownTenantOrigin"
+              ? 400
+              : 500,
+          logger
+        );
+        return res.redirect(302, config.saml2CallbackErrorUrl);
+      }
+    });
 
   return authorizationRouter;
 };
