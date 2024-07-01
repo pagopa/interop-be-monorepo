@@ -35,6 +35,21 @@ export const descriptorApiState: {
   ARCHIVED: "ARCHIVED",
 } as const;
 
-export type CatalogProcessApiEServiceAttributeCertified = z.infer<
+export type CatalogProcessApiEServiceAttribute = z.infer<
   typeof schemas.Attribute
 >;
+
+export type CatalogProcessApiEServiceDocument = z.infer<
+  typeof schemas.EServiceDoc
+>;
+
+export type CatalogProcessApiApprovalPolicy = z.infer<
+  typeof schemas.AgreementApprovalPolicy
+>;
+
+export const agreementApiState: {
+  [key: string]: CatalogProcessApiApprovalPolicy;
+} = {
+  MANUAL: "MANUAL",
+  AUTOMATIC: "AUTOMATIC",
+} as const;

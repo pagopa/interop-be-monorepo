@@ -1,5 +1,22 @@
 /* eslint-disable max-params */
 import {
+  AgreementApprovalPolicy,
+  AttributeId,
+  Descriptor,
+  DescriptorState,
+  Document,
+  EServiceAttribute,
+  Tenant,
+  TenantAttribute,
+  TenantFeature,
+  agreementApprovalPolicy,
+  descriptorState,
+  tenantAttributeType,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { v4 as uuidv4 } from "uuid";
+import {
   AgreementProcessApiAgreement,
   agreementApiState,
 } from "./agreementTypes.js";
@@ -8,12 +25,19 @@ import {
   BffGetCatalogApiQueryParam,
 } from "./bffTypes.js";
 import {
+  CatalogProcessApiApprovalPolicy,
   CatalogProcessApiEService,
+  CatalogProcessApiEServiceAttribute,
   CatalogProcessApiEServiceDescriptor,
+  CatalogProcessApiEServiceDescriptorState,
+  CatalogProcessApiEServiceDocument,
   CatalogProcessApiQueryParam,
   descriptorApiState,
 } from "./catalogTypes.js";
-import { TenantProcessApiResponse } from "./tenantTypes.js";
+import {
+  TenantProcessApiTenant,
+  TenantProcessApiTenantAttribute,
+} from "./tenantTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: BffGetCatalogApiQueryParam
@@ -35,7 +59,7 @@ export function toEserviceCatalogProcessQueryParams(
 
 export function toBffCatalogApiEServiceResponse(
   eservice: CatalogProcessApiEService,
-  producerTenant: TenantProcessApiResponse,
+  producerTenant: TenantProcessApiTenant,
   hasCertifiedAttributes: boolean,
   isRequesterEqProducer: boolean,
   activeDescriptor?: CatalogProcessApiEServiceDescriptor,
@@ -93,5 +117,161 @@ export function toBffCatalogApiEServiceResponse(
           },
         }
       : {}),
+  };
+}
+
+export function toDescriptorState(
+  state: CatalogProcessApiEServiceDescriptorState
+): DescriptorState {
+  return match(state)
+    .with("DRAFT", () => descriptorState.draft)
+    .with("PUBLISHED", () => descriptorState.published)
+    .with("DEPRECATED", () => descriptorState.deprecated)
+    .with("ARCHIVED", () => descriptorState.archived)
+    .with("SUSPENDED", () => descriptorState.suspended)
+    .exhaustive();
+}
+
+export function toEServiceDescriptorDocument(
+  document: CatalogProcessApiEServiceDocument
+): Document {
+  return {
+    ...document,
+    id: unsafeBrandId(document.id),
+    checksum: "", // not provided in CatalogProcessApiEServiceDocument
+    uploadDate: new Date(), // not provided in CatalogProcessApiEServiceDocument
+  };
+}
+
+export function toAttribute(
+  attribute: CatalogProcessApiEServiceAttribute
+): EServiceAttribute {
+  return {
+    ...attribute,
+    id: unsafeBrandId<AttributeId>(attribute.id),
+  };
+}
+
+export function toApprovalPolicy(
+  approvalPolicy: CatalogProcessApiApprovalPolicy
+): AgreementApprovalPolicy {
+  return match(approvalPolicy)
+    .with("MANUAL", () => agreementApprovalPolicy.manual)
+    .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
+    .exhaustive();
+}
+
+export function toDescriptor(
+  descriptor: CatalogProcessApiEServiceDescriptor
+): Descriptor {
+  return {
+    ...descriptor,
+    createdAt: new Date(), // not provided in CatalogProcessApiEServiceDescriptor
+    id: unsafeBrandId(descriptor.id),
+    state: toDescriptorState(descriptor.state),
+    interface:
+      descriptor.interface &&
+      toEServiceDescriptorDocument(descriptor.interface),
+    docs: descriptor.docs.map(toEServiceDescriptorDocument),
+    attributes: {
+      certified: descriptor.attributes.certified.map((a) => a.map(toAttribute)),
+      verified: descriptor.attributes.verified.map((a) => a.map(toAttribute)),
+      declared: descriptor.attributes.declared.map((a) => a.map(toAttribute)),
+    },
+    agreementApprovalPolicy: toApprovalPolicy(
+      descriptor.agreementApprovalPolicy
+    ),
+    archivedAt: descriptor.archivedAt
+      ? new Date(descriptor.archivedAt)
+      : undefined,
+    deprecatedAt: descriptor.deprecatedAt
+      ? new Date(descriptor.deprecatedAt)
+      : undefined,
+    suspendedAt: descriptor.suspendedAt
+      ? new Date(descriptor.suspendedAt)
+      : undefined,
+    publishedAt: descriptor.publishedAt
+      ? new Date(descriptor.publishedAt)
+      : undefined,
+  };
+}
+
+export function toTenantAttribute(
+  attribute: TenantProcessApiTenantAttribute
+): TenantAttribute[] {
+  const declaredAttribute = attribute.declared && {
+    type: tenantAttributeType.DECLARED,
+    id: unsafeBrandId(attribute.declared.id),
+    assignmentTimestamp: new Date(attribute.declared.assignmentTimestamp),
+    revocationTimestamp: attribute.declared.revocationTimestamp
+      ? new Date(attribute.declared.revocationTimestamp)
+      : undefined,
+  };
+
+  const certifiedAttribute = attribute.certified && {
+    type: tenantAttributeType.CERTIFIED,
+    id: unsafeBrandId(attribute.certified.id),
+    assignmentTimestamp: new Date(attribute.certified.assignmentTimestamp),
+    revocationTimestamp: attribute.certified.revocationTimestamp
+      ? new Date(attribute.certified.revocationTimestamp)
+      : undefined,
+  };
+
+  const verifiedAttributes = attribute.verified && {
+    type: tenantAttributeType.VERIFIED,
+    id: unsafeBrandId(attribute.verified.id),
+    assignmentTimestamp: new Date(attribute.verified.assignmentTimestamp),
+    verifiedBy: attribute.verified.verifiedBy.map((v) => ({
+      id: v.id,
+      verificationDate: new Date(v.verificationDate),
+      expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
+      extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
+      revocationDate: undefined, // not provided in TenantProcessApiTenantAttribute
+    })),
+    revokedBy: attribute.verified.revokedBy.map((r) => ({
+      id: r.id,
+      expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
+      extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
+      revocationDate: new Date(r.revocationDate),
+      verificationDate: new Date(r.verificationDate),
+    })),
+  };
+
+  return [
+    declaredAttribute,
+    certifiedAttribute,
+    verifiedAttributes,
+  ] as TenantAttribute[];
+}
+
+export function toTenantFeatures(
+  tenant: TenantProcessApiTenant
+): TenantFeature[] {
+  const filteredFeatures: TenantFeature[] = tenant.features
+    .map(
+      (f) =>
+        f.certifier && {
+          type: "PersistentCertifier",
+          id: f.certifier.certifierId,
+        }
+    )
+    .filter((f) => f !== undefined);
+
+  return filteredFeatures;
+}
+
+export function toTenant(tenant: TenantProcessApiTenant): Tenant {
+  return {
+    ...tenant,
+    id: unsafeBrandId(tenant.id),
+    createdAt: new Date(tenant.createdAt),
+    updatedAt: tenant.updatedAt ? new Date(tenant.updatedAt) : undefined,
+    attributes: [...tenant.attributes.map(toTenantAttribute).flat()],
+    features: toTenantFeatures(tenant),
+    mails: tenant.mails.map((m) => ({
+      ...m,
+      id: uuidv4(), // not provided in TenantProcessApiTenant
+      createdAt: new Date(m.createdAt),
+    })),
   };
 }

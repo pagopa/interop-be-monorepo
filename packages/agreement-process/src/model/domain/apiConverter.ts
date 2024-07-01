@@ -3,6 +3,7 @@ import {
   AgreementState,
   AgreementDocument,
   agreementState,
+  CompactTenant,
   unsafeBrandId,
   TenantAttribute,
   tenantAttributeType,

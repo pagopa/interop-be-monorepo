@@ -1,9 +1,8 @@
-import { ZodiosResponseByPath } from "@zodios/core";
-import { api as tenant } from "../generated/tenant-process/api.js";
+import { z } from "zod";
+import { api as tenant, schemas } from "../generated/tenant-process/api.js";
 
 export type TenantProcessClientApi = typeof tenant.api;
-export type TenantProcessApiResponse = ZodiosResponseByPath<
-  TenantProcessClientApi,
-  "get",
-  "/tenants/:id"
+export type TenantProcessApiTenant = z.infer<typeof schemas.Tenant>;
+export type TenantProcessApiTenantAttribute = z.infer<
+  typeof schemas.TenantAttribute
 >;

@@ -17,3 +17,4 @@ export * from "./templating/htmlTemplateService.js";
 export * from "./types/index.js";
 export * from "./utils/date.js";
 export * from "./email-manager/index.js";
+export * from "./validators/validators.js";
