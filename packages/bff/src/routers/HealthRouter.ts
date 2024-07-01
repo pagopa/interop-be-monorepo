@@ -1,7 +1,7 @@
 import { zodiosRouter } from "@zodios/express";
-import { api } from "../model/generated/api.js";
+import { healthApi } from "../model/generated/api.js";
 
-const healthRouter = zodiosRouter(api.api);
+const healthRouter = zodiosRouter(healthApi.api);
 
 healthRouter.get("/status", async (_, res) => res.status(200).end());
 

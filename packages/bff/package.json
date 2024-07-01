@@ -14,7 +14,7 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-model": "pnpm generate-model-bff && pnpm generate-model-tenant-process && pnpm generate-model-catalog-process && pnpm generate-model-attribute-process && pnpm generate-model-agreement-process && pnpm generate-model-purpose-process && node --loader ts-node/esm ./patchZodios.ts",
-    "generate-model-bff": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/bff-spec.yml' -o './src/model/generated/api.ts'",
+    "generate-model-bff": "mkdir -p ./src/model/generated && pnpm openapi-zod-client --group-strategy tag './open-api/bff-spec.yml' -o './src/model/generated/api.ts'",
     "generate-model-tenant-process": "mkdir -p ./src/model/generated/tenant-process && pnpm openapi-zod-client '../tenant-process/open-api/tenant-service-spec.yml' -o './src/model/generated/tenant-process/api.ts'",
     "generate-model-catalog-process": "mkdir -p ./src/model/generated/catalog-process && pnpm openapi-zod-client '../catalog-process/open-api/catalog-service-spec.yml' -o './src/model/generated/catalog-process/api.ts'",
     "generate-model-attribute-process": "mkdir -p ./src/model/generated/attribute-process && pnpm openapi-zod-client '../attribute-registry-process/open-api/attribute-registry-service-spec.yml' -o './src/model/generated/attribute-process/api.ts'",

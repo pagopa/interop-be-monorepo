@@ -8,7 +8,7 @@ import {
   fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { authorizationApi } from "../model/generated/api.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { config } from "../utilities/config.js";
@@ -18,7 +18,7 @@ const authorizationRouter = (
   ctx: ZodiosContext,
   { tenantProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const authorizationRouter = ctx.router(api.api, {
+  const authorizationRouter = ctx.router(authorizationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 

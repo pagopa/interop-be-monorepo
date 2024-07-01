@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { privacyNoticesApi } from "../model/generated/api.js";
 
 const privacyNoticeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const privacyNoticeRouter = ctx.router(api.api, {
+  const privacyNoticeRouter = ctx.router(privacyNoticesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
