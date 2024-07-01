@@ -3,7 +3,7 @@ import { catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   toDescriptorWithOnlyAttributes,
   toTenantWithOnlyAttributes,
-} from "./api/apiConverter.js";
+} from "./api/converters/catalogClientApiConverter.js";
 
 export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
   descriptor: catalogApi.EServiceDescriptor,
