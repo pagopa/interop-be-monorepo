@@ -108,7 +108,7 @@ export function userAlreadyAssigned(
   return new ApiError({
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "userAlreadyAssigned",
-    title: "user Already Assigned",
+    title: "User already assigned",
   });
 }
 
