@@ -60,17 +60,7 @@ const authorizationRouter = (
           `${config.saml2CallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
         );
       } catch (error) {
-        makeApiProblem(
-          error,
-          (
-            apiError //TODO implement mapper
-          ) =>
-            apiError.code === "missingClaim" ||
-            apiError.code === "unknownTenantOrigin"
-              ? 400
-              : 500,
-          logger
-        );
+        makeApiProblem(error, (_) => 500, logger);
         return res.redirect(302, config.saml2CallbackErrorUrl);
       }
     });
