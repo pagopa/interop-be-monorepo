@@ -18,6 +18,7 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
+  genericInternalError,
   purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -612,37 +613,37 @@ export function authorizationServiceBuilder(
         selfcareV2Client
       );
 
-      // eslint-disable-next-line functional/no-let
-      let updatedClient: Client = client.data;
-      for (const keySeed of keysSeeds) {
-        const jwk = createJWK(decodeBase64ToPem(keySeed.key));
-        const newKey: Key = {
-          clientId,
-          name: keySeed.name,
-          createdAt: new Date(),
-          kid: calculateKid(jwk),
-          encodedPem: keySeed.key,
-          algorithm: keySeed.alg,
-          use: ApiKeyUseToKeyUse(keySeed.use),
-          userId: authData.userId,
-        };
-        const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
-        if (duplicateKid) {
-          throw keyAlreadyExists(newKey.kid);
-        }
-        updatedClient = {
-          ...updatedClient,
-          keys: [...updatedClient.keys, newKey],
-        };
-        await repository.createEvent(
-          toCreateEventKeyAdded(
-            newKey.kid,
-            updatedClient,
-            client.metadata.version,
-            correlationId
-          )
-        );
+      if (keysSeeds.length !== 1) {
+        throw genericInternalError("Wrong number of keys"); // TODO should we add a specific error?
       }
+      const keySeed = keysSeeds[0];
+      const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      const newKey: Key = {
+        clientId,
+        name: keySeed.name,
+        createdAt: new Date(),
+        kid: calculateKid(jwk),
+        encodedPem: keySeed.key,
+        algorithm: keySeed.alg,
+        use: ApiKeyUseToKeyUse(keySeed.use),
+        userId: authData.userId,
+      };
+      const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
+      if (duplicateKid) {
+        throw keyAlreadyExists(newKey.kid);
+      }
+      const updatedClient: Client = {
+        ...client.data,
+        keys: [...client.data.keys, newKey],
+      };
+      await repository.createEvent(
+        toCreateEventKeyAdded(
+          newKey.kid,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
 
       return {
         client: updatedClient,
