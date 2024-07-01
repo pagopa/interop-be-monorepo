@@ -17,6 +17,7 @@ import {
   AgreementId,
   AgreementState,
   AttributeId,
+  CompactTenant,
   Descriptor,
   DescriptorId,
   EService,
@@ -33,7 +34,6 @@ import {
   unsafeBrandId,
   CompactTenant,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
@@ -100,7 +100,40 @@ import {
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
-} from "../model/domain/validators.js";
+} from "../model/domain/agreement-validators.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
+import {
+  agreementActivationFailed,
+  agreementAlreadyExists,
+  agreementDocumentAlreadyExists,
+  agreementDocumentNotFound,
+  agreementNotFound,
+  agreementSubmissionFailed,
+  descriptorNotFound,
+  eServiceNotFound,
+  noNewerDescriptor,
+  publishedDescriptorNotFound,
+  tenantNotFound,
+  unexpectedVersionFormat,
+} from "../model/domain/errors.js";
+import {
+  CompactEService,
+  CompactOrganization,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
+import {
+  toCreateEventAgreementActivated,
+  toCreateEventAgreementAdded,
+  toCreateEventAgreementArchivedByConsumer,
+  toCreateEventAgreementArchivedByUpgrade,
+  toCreateEventAgreementConsumerDocumentAdded,
+  toCreateEventAgreementConsumerDocumentRemoved,
+  toCreateEventAgreementDeleted,
+  toCreateEventAgreementRejected,
+  toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
+  toCreateEventAgreementSubmitted,
+  toCreateEventDraftAgreementUpdated,
+} from "../model/domain/toEvent.js";
 import {
   ApiAgreementDocumentSeed,
   ApiAgreementPayload,

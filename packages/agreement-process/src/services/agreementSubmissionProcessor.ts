@@ -15,15 +15,15 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  matchingCertifiedAttributes,
+  matchingDeclaredAttributes,
+  matchingVerifiedAttributes,
+} from "../model/domain/agreement-validators.js";
+import {
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
 } from "../model/domain/errors.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import {
-  matchingCertifiedAttributes,
-  matchingDeclaredAttributes,
-  matchingVerifiedAttributes,
-} from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { createStamp } from "./agreementStampUtils.js";
 

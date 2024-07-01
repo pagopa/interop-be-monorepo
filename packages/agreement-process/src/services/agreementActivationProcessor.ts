@@ -2,23 +2,24 @@
 import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
-  EService,
-  Tenant,
-  agreementState,
   AgreementEvent,
+  AgreementEventV2,
   AgreementState,
   Descriptor,
-  genericError,
-  AgreementEventV2,
+  EService,
+  Tenant,
   UserId,
+  agreementState,
+  genericError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  agreementArchivableStates,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
-  agreementArchivableStates,
-} from "../model/domain/validators.js";
+} from "../model/domain/agreement-validators.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,
@@ -26,13 +27,12 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
-import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({

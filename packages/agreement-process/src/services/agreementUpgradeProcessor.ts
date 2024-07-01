@@ -1,29 +1,29 @@
-import { FileManager, Logger, CreateEvent } from "pagopa-interop-commons";
+import { CreateEvent, FileManager, Logger } from "pagopa-interop-commons";
 import {
-  WithMetadata,
   Agreement,
   AgreementEvent,
-  agreementState,
-  generateId,
   AgreementId,
-  UserId,
   Descriptor,
   EService,
   Tenant,
+  UserId,
+  WithMetadata,
+  agreementState,
+  generateId,
 } from "pagopa-interop-models";
-import {
-  toCreateEventAgreementArchivedByUpgrade,
-  toCreateEventAgreementUpgraded,
-  toCreateEventAgreementAdded,
-} from "../model/domain/toEvent.js";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
-} from "../model/domain/validators.js";
-import { createStamp } from "./agreementStampUtils.js";
+} from "../model/domain/agreement-validators.js";
+import {
+  toCreateEventAgreementAdded,
+  toCreateEventAgreementArchivedByUpgrade,
+  toCreateEventAgreementUpgraded,
+} from "../model/domain/toEvent.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
+import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 
 export async function createUpgradeOrNewDraft({

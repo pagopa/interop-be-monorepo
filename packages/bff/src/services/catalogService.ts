@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { WithLogger } from "pagopa-interop-commons";
-import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import {
   BffCatalogApiEServiceResponse,
   BffGetCatalogApiHeaders,
@@ -15,9 +14,11 @@ import {
   descriptorApiState,
 } from "../model/api/catalogTypes.js";
 
-import { TenantProcessApiResponse } from "../model/api/tenantTypes.js";
+import { TenantProcessApiTenant } from "../model/api/tenantTypes.js";
 
-import { certifiedAttributesSatisfied } from "../model/validators.js";
+
+import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
   AgreementProcessClient,
   CatalogProcessClient,
@@ -53,7 +54,7 @@ const enhanceCatalogEService =
       },
     });
 
-    const requesterTenant: TenantProcessApiResponse =
+    const requesterTenant: TenantProcessApiTenant =
       requesterId !== eservice.producerId
         ? await tenantProcessClient.getTenant({
             headers,
@@ -80,7 +81,10 @@ const enhanceCatalogEService =
     const isRequesterEqProducer = requesterId === eservice.producerId;
     const hasCertifiedAttributes =
       latestActiveDescriptor !== undefined &&
-      certifiedAttributesSatisfied(latestActiveDescriptor, requesterTenant);
+      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+        latestActiveDescriptor,
+        requesterTenant
+      );
 
     return toBffCatalogApiEServiceResponse(
       eservice,

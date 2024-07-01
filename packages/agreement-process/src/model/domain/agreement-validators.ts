@@ -41,7 +41,6 @@ import {
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
-import { certifiedAttributesSatisfied, filterCertifiedAttributes, filterDeclaredAttributes, filterVerifiedAttributes } from "pagopa-interop-lifecycle";
 
 /* ========= STATES ========= */
 export const agreementActivableStates: AgreementState[] = [
