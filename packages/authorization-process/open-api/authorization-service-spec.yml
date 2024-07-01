@@ -528,43 +528,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/clients/{clientId}/keys/{keyId}/bundle":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    get:
-      security: []
-      tags:
-        - tokenGeneration
-      summary: Returns a key and its client by client and key identifier (kid).
-      description: "Given a client and key identifiers it returns the corresponding key and client, if any"
-      operationId: getKeyWithClientByKeyId
-      parameters:
-        - name: clientId
-          in: path
-          description: ID of the client to look up
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: keyId
-          in: path
-          description: the unique identifier of the key (kid) to lookup
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: returns the corresponding key
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/KeyWithClient"
-        "404":
-          description: Key not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - client
@@ -600,6 +563,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/keys/{keyId}/bundle":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security: []
+      tags:
+        - tokenGeneration
+      summary: Returns a key and its client by client and key identifier (kid).
+      description: "Given a client and key identifiers it returns the corresponding key and client, if any"
+      operationId: getKeyWithClientByKeyId
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of the client to look up
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: keyId
+          in: path
+          description: the unique identifier of the key (kid) to lookup
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the corresponding key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyWithClient"
         "404":
           description: Key not found
           content:
