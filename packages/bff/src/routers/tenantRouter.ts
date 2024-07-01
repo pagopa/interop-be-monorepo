@@ -5,21 +5,18 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { tenantsApi } from "../model/generated/api.js";
 
 const tenantRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const tenantRouter = ctx.router(api.api, {
+  const tenantRouter = ctx.router(tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
   tenantRouter
     .get("/consumers", async (_req, res) => res.status(501).send())
     .get("/producers", async (_req, res) => res.status(501).send())
-    .get("/tenants/:tenantId/users", async (_req, res) =>
-      res.status(501).send()
-    )
     .get("/tenants/attributes/certified", async (_req, res) =>
       res.status(501).send()
     )

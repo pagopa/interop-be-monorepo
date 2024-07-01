@@ -5,21 +5,19 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { toolsApi } from "../model/generated/api.js";
 
-const genericRouter = (
+const toolRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const genericRouter = ctx.router(api.api, {
+  const toolRouter = ctx.router(toolsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-  genericRouter
-    .post("/tools/validateTokenGeneration", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/session/saml2/tokens", async (_req, res) => res.status(501).send());
+  toolRouter.post("/tools/validateTokenGeneration", async (_req, res) =>
+    res.status(501).send()
+  );
 
-  return genericRouter;
+  return toolRouter;
 };
 
-export default genericRouter;
+export default toolRouter;
