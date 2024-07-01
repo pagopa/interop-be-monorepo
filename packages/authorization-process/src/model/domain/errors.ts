@@ -1,6 +1,8 @@
 import {
   ApiError,
   ClientId,
+  DescriptorId,
+  EServiceId,
   PurposeId,
   TenantId,
   UserId,
@@ -13,9 +15,15 @@ export const errorCodes = {
   userIdNotFound: "0003",
   keyNotFound: "0004",
   userNotAllowedOnClient: "0005",
-  purposeIdNotFound: "0006",
+  purposeNotFound: "0006",
   userWithoutSecurityPrivileges: "0007",
   userAlreadyAssigned: "0008",
+  eserviceNotFound: "0009",
+  noPurposeVersionsFoundInRequiredState: "0010",
+  descriptorNotFound: "0011",
+  noAgreementFoundInRequiredState: "0012",
+  purposeAlreadyLinkedToClient: "0013",
+  organizationNotAllowedOnPurpose: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -74,14 +82,11 @@ export function userNotAllowedOnClient(
   });
 }
 
-export function purposeIdNotFound(
-  purposeId: PurposeId,
-  clientId: ClientId
-): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} not found in client ${clientId}`,
-    code: "purposeIdNotFound",
-    title: "Purpose id not found",
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
   });
 }
 
@@ -104,5 +109,67 @@ export function userAlreadyAssigned(
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "userAlreadyAssigned",
     title: "User already assigned",
+  });
+}
+
+export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} not found`,
+    code: "eserviceNotFound",
+    title: "EService not found",
+  });
+}
+
+export function noPurposeVersionsFoundInRequiredState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No versions in required state found in purpose ${purposeId}`,
+    code: "noPurposeVersionsFoundInRequiredState",
+    title: "No purpose versions found in required state",
+  });
+}
+
+export function descriptorNotFound(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
+    code: "descriptorNotFound",
+    title: "Descriptor not found",
+  });
+}
+
+export function noAgreementFoundInRequiredState(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No agreement in required state found for eservice ${eserviceId} and consumer ${consumerId}`,
+    code: "noAgreementFoundInRequiredState",
+    title: "No Agreement found in required state",
+  });
+}
+
+export function purposeAlreadyLinkedToClient(
+  purposeId: PurposeId,
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} is already linked to client ${clientId}`,
+    code: "purposeAlreadyLinkedToClient",
+    title: "Purpose already linked to client",
+  });
+}
+
+export function organizationNotAllowedOnPurpose(
+  organizationId: TenantId,
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
+    code: "organizationNotAllowedOnPurpose",
+    title: "Organization not allowed on purpose",
   });
 }
