@@ -20,6 +20,13 @@ export type CatalogProcessApiEService = z.infer<typeof schemas.EService>;
 export type CatalogProcessApiEServiceDescriptor = z.infer<
   typeof schemas.EServiceDescriptor
 >;
+export type EServiceCatalogProcessApiDocument = z.infer<
+  typeof schemas.EServiceDoc
+>;
+
+export type EServiceCatalogProcessApiRiskAnalysis = z.infer<
+  typeof schemas.EServiceRiskAnalysis
+>;
 
 export type CatalogProcessApiEServiceDescriptorState = z.infer<
   typeof schemas.EServiceDescriptorState

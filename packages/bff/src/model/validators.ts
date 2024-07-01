@@ -4,7 +4,7 @@ import { TenantProcessApiTenant } from "./api/tenantTypes.js";
 import {
   toDescriptorWithOnlyAttributes,
   toTenantWithOnlyAttributes,
-} from "./api/apiConverter.js";
+} from "./api/converters/catalogClientApiConverter.js";
 
 export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
   descriptor: CatalogProcessApiEServiceDescriptor,
