@@ -3,9 +3,11 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
+  AgreementTopicConfig,
   AuthorizationTopicConfig,
   CatalogTopicConfig,
   PurposeTopicConfig,
+  agreementTopicConfig,
   authorizationTopicConfig,
   catalogTopicConfig,
   decodeKafkaMessage,
@@ -16,6 +18,7 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
+  AgreementEventV2,
   AuthorizationEventV2,
   EServiceEventV2,
   PurposeEventV2,
@@ -26,12 +29,15 @@ import { initQueueManager } from "./queue-manager/queueManager.js";
 import { notificationConfig } from "./config/notificationConfig.js";
 import { toPurposeEventNotification } from "./models/purpose/purposeEventNotificationConverter.js";
 import { buildPurposeMessage } from "./models/purpose/purposeEventNotificationMessage.js";
+import { toAgreementEventNotification } from "./models/agreement/agreementEventNotificationConverter.js";
+import { buildAgreementMessage } from "./models/agreement/agreementEventNotificationMessage.js";
 import { toAuthorizationEventNotification } from "./models/authorization/authorizationEventNotificationConverter.js";
 import { buildAuthorizationMessage } from "./models/authorization/authorizationEventNotificationMessage.js";
 
 const config = kafkaConsumerConfig();
 const catalogTopicConf = catalogTopicConfig();
 const purposeTopicConf = purposeTopicConfig();
+const agreementTopicConf = agreementTopicConfig();
 const authorizationTopicConf = authorizationTopicConfig();
 const logConfig = loggerConfig();
 const queueConfig = notificationConfig();
@@ -44,6 +50,7 @@ const queueManager = initQueueManager({
 export function processMessage(
   catalogTopic: CatalogTopicConfig,
   purposeTopic: PurposeTopicConfig,
+  agreementTopic: AgreementTopicConfig,
   authorizationTopic: AuthorizationTopicConfig
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
@@ -66,6 +73,16 @@ export function processMessage(
 
         const event = toPurposeEventNotification(decodedMessage);
         const message = buildPurposeMessage(decodedMessage, event);
+        return { decodedMessage, message };
+      })
+      .with(agreementTopic.agreementTopic, () => {
+        const decodedMessage = decodeKafkaMessage(
+          kafkaMessage.message,
+          AgreementEventV2
+        );
+
+        const event = toAgreementEventNotification(decodedMessage);
+        const message = buildAgreementMessage(decodedMessage, event);
         return { decodedMessage, message };
       })
       .with(authorizationTopic.authorizationTopic, () => {
@@ -114,7 +131,13 @@ await runConsumer(
   [
     catalogTopicConf.catalogTopic,
     purposeTopicConf.purposeTopic,
+    agreementTopicConf.agreementTopic,
     authorizationTopicConf.authorizationTopic,
   ],
-  processMessage(catalogTopicConf, purposeTopicConf, authorizationTopicConf)
+  processMessage(
+    catalogTopicConf,
+    purposeTopicConf,
+    agreementTopicConf,
+    authorizationTopicConf
+  )
 );

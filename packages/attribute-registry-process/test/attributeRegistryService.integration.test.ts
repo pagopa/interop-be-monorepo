@@ -14,6 +14,7 @@ import {
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
@@ -25,7 +26,6 @@ import {
   addOneTenant,
   readLastAttributeEvent,
   attributeRegistryService,
-  getMockAuthData,
   getMockTenant,
 } from "./utils.js";
 
@@ -74,6 +74,7 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
         );
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
         expect(
@@ -159,6 +160,7 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
         );
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
         expect(
@@ -258,6 +260,7 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
         );
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
         const attribute = {
@@ -385,6 +388,7 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
         );
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
         const attribute = {

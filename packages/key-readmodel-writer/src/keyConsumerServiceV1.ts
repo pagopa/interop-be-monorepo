@@ -16,23 +16,16 @@ export async function handleMessageV1(
 
       for (const key of keysToAdd) {
         if (key) {
-          const version =
-            (
-              await keys.findOne({
-                "data.kid": key.kid,
-              })
-            )?.metadata.version || 0;
-
           await keys.updateOne(
             {
               "data.kid": key.kid,
-              "metadata.version": { $lt: version },
+              "metadata.version": { $lt: message.version },
             },
             {
               $set: {
                 data: toReadModelKey(fromKeyV1(key)),
                 metadata: {
-                  version,
+                  version: message.version,
                 },
               },
             },
@@ -43,20 +36,24 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "KeyDeleted" }, async (message) => {
-      const version =
-        (
-          await keys.findOne({
-            "data.kid": message.data.keyId,
-          })
-        )?.metadata.version || 0;
-
       await keys.deleteOne({
         "data.kid": message.data.keyId,
-        "metadata.version": { $lt: version + 1 },
+        "metadata.version": { $lt: message.version },
       });
     })
+    .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
+      const kid = message.data.keyId;
+      const userId = message.data.userId;
+      await keys.updateOne(
+        {
+          "data.kid": kid,
+          "metadata.version": { $lt: message.version },
+        },
+        { $set: { "data.userId": userId } },
+        { upsert: true }
+      );
+    })
     .with(
-      { type: "KeyRelationshipToUserMigrated" },
       { type: "ClientAdded" },
       { type: "ClientDeleted" },
       { type: "RelationshipAdded" },
