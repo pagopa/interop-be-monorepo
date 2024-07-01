@@ -9,6 +9,7 @@ import {
   AuthorizationEvent,
   EServiceEventV1,
   PurposeEventV1,
+  Tenant,
   TenantEventV1,
 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
@@ -18,6 +19,7 @@ import {
 } from "pg-promise/typescript/pg-subset.js";
 import { match } from "ts-pattern";
 import { z } from "zod";
+import { connectToReadModel } from "./read-models-migration-check.js";
 
 const Config = z
   .object({
@@ -39,6 +41,12 @@ const Config = z
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
+    TENANT_READMODEL_COLLECTION_NAME: z.string(),
+    TENANT_READMODEL_DB_HOST: z.string(),
+    TENANT_READMODEL_DB_NAME: z.string(),
+    TENANT_READMODEL_DB_USERNAME: z.string(),
+    TENANT_READMODEL_DB_PASSWORD: z.string(),
+    TENANT_READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
     sourceDbUsername: c.SOURCE_DB_USERNAME,
@@ -55,6 +63,14 @@ const Config = z
     targetDbName: c.TARGET_DB_NAME,
     targetDbSchema: c.TARGET_DB_SCHEMA,
     targetDbUseSSL: c.TARGET_DB_USE_SSL,
+    tenantCollection: {
+      collectionName: c.TENANT_READMODEL_COLLECTION_NAME,
+      readModelDbHost: c.TENANT_READMODEL_DB_HOST,
+      readModelDbName: c.TENANT_READMODEL_DB_NAME,
+      readModelDbUsername: c.TENANT_READMODEL_DB_USERNAME,
+      readModelDbPassword: c.TENANT_READMODEL_DB_PASSWORD,
+      readModelDbPort: c.TENANT_READMODEL_DB_PORT,
+    },
   }));
 export type Config = z.infer<typeof Config>;
 
@@ -284,9 +300,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
         });
 
       const parseId = (anyPayload: any) =>
-        anyPayload.tenant
-          ? anyPayload.tenant.id
-          : anyPayload.tenantId || anyPayload.selfcareId;
+        anyPayload.tenant ? anyPayload.tenant.id : anyPayload.tenantId;
 
       return { parseEventType, decodeEvent, parseId };
     }
@@ -296,6 +310,25 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   });
 
 let skippedEvents = 0;
+
+const readModel = connectToReadModel({
+  readModelDbHost: config.tenantCollection.readModelDbHost,
+  readModelDbPort: config.tenantCollection.readModelDbPort,
+  readModelDbUsername: config.tenantCollection.readModelDbUsername,
+  readModelDbPassword: config.tenantCollection.readModelDbPassword,
+  readModelDbName: config.tenantCollection.readModelDbName,
+});
+
+const tenantsIdsToInclude = await readModel
+  .db(config.tenantCollection.readModelDbName)
+  .collection(config.tenantCollection.collectionName)
+  .find({
+    "data.selfcareId": { $exists: true, $ne: undefined },
+  })
+  .map(({ data }) => Tenant.parse(data).id)
+  .toArray();
+
+await readModel.close();
 
 for (const event of originalEvents) {
   console.log(event);
@@ -337,6 +370,16 @@ for (const event of originalEvents) {
 
   const anyPayload = decodedEvent.data.data;
   const id = parseId(anyPayload);
+
+  // For tenant, we only migrate events related to tenants that have been linked to a selfcareId
+
+  if (
+    config.targetDbSchema.includes("tenant") &&
+    !tenantsIdsToInclude.includes(id)
+  ) {
+    skippedEvents++;
+    continue;
+  }
 
   let version = idVersionHashMap.get(id);
   if (version === undefined) {

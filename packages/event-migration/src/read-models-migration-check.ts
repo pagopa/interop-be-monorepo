@@ -111,7 +111,7 @@ async function main(): Promise<void> {
   console.log("No differences found");
 }
 
-function connectToReadModel({
+export function connectToReadModel({
   readModelDbHost: host,
   readModelDbPort: port,
   readModelDbUsername: username,
