@@ -17,21 +17,20 @@ import {
 } from "pagopa-interop-models";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { config } from "../config/config.js";
-import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
-  toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
+  toBffCatalogApiEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 import {
-  eserviceDescriptorNotFound,
   eserviceRiskNotFound,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
+  eserviceDescriptorNotFound,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -228,16 +227,16 @@ export function catalogServiceBuilder(
       return response;
     },
     getProducerEServiceDescriptor: async (
-      eserviceId: EServiceId,
+      eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      { headers, authData }: WithLogger<BffAppContext>
-    ): Promise<bffApi.ProducerEServiceDescriptor> => {
+      {authData,headers }: WithLogger<BffAppContext>
+    ): Promise< bffApi.ProducerEServiceDescriptor> => {
       const requesterId = authData.organizationId;
 
-      const eservice: catalogApi.EService =
+      const eservice: CatalogProcessApiEService =
         await catalogProcessClient.getEServiceById({
           params: {
-            eServiceId: eserviceId,
+            eServiceId,
           },
           headers,
         });

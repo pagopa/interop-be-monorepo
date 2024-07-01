@@ -1,14 +1,47 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
-import { DescriptorWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
+import {
+  DescriptorWithOnlyAttributes,
+  TenantWithOnlyAttributes,
+} from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
   bffApi,
   catalogApi,
   tenantApi,
   attributeRegistryApi,
+  authorizationApi,
+  bffApi,
+  catalogApi,
+  selfcareV2ClientApi,
+  tenantApi,
+  descriptorApiState,
+  EServiceDescriptor,
+  EServiceRiskAnalysis,
+  BffCatalogApiCompactDescriptor,
+  BffCatalogApiProducerEServiceRiskAnalysis,
+  BffCatalogApiProducerRiskAnalysisForm,
 } from "pagopa-interop-api-clients";
-import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceAttribute,
+  unsafeBrandId,
+  TenantAttribute,
+  EServiceAttribute,
+  unsafeBrandId,
+  tenantAttributeType,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  tenantMailKind,
+  VerifiedTenantAttribute,
+  EServiceAttribute,
+  unsafeBrandId,
+  TenantAttribute,
+  CertifiedTenantAttribute,
+  tenantAttributeType,
+  VerifiedTenantAttribute,
+  DeclaredTenantAttribute,
+} from "pagopa-interop-models";
+import { match, P } from "ts-pattern";
 import { attributeNotExists } from "../../domain/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -21,7 +54,6 @@ import {
   isAgreementSubscribed,
   isAgreementUpgradable,
 } from "../../validators.js";
-import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -33,10 +65,10 @@ export function toEserviceCatalogProcessQueryParams(
   };
 }
 
-export function toBffCatalogApiEService(
+export function toBffCatalogApiEServiceResponse(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
-  requesterTenant: tenantApi.Tenant,
+  hasCertifiedAttributes: boolean,
   isRequesterEqProducer: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
@@ -50,11 +82,7 @@ export function toBffCatalogApiEService(
       name: producerTenant.name,
     },
     isMine: isRequesterEqProducer,
-    hasCertifiedAttributes:
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        activeDescriptor,
-        requesterTenant
-      ),
+    hasCertifiedAttributes,
   };
 
   return {
@@ -164,35 +192,28 @@ export function toBffCatalogApiDescriptorDoc(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysis(
-  riskAnalysis: catalogApi.EServiceRiskAnalysis
-): bffApi.EServiceRiskAnalysis {
-  const answers: bffApi.RiskAnalysisForm["answers"] =
-    riskAnalysis.riskAnalysisForm.singleAnswers
-      .concat(
-        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
-          multiAnswer.values.map((answerValue) => ({
-            id: multiAnswer.id,
-            value: answerValue,
-            key: multiAnswer.key,
-          }))
-        )
-      )
-      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
-        const key = answer.key;
-        if (!answers[key]) {
-          answers[key] = [];
-        }
+  riskAnalysis: EServiceRiskAnalysis
+): BffCatalogApiProducerEServiceRiskAnalysis {
+  const answers: { [key: string]: string[] } = {};
 
-        if (answer.value) {
-          answers[key] = [...answers[key], answer.value];
-        } else {
-          answers[key] = [];
-        }
+  riskAnalysis.riskAnalysisForm.singleAnswers
+    .concat(riskAnalysis.riskAnalysisForm.multiAnswers)
+    .map((answer) => ({
+      questionId: answer.questionId,
+      answer: answer.value,
+    }))
+    .forEach((QA) => {
+      if (answers[`${QA.questionId}`] && QA.answer) {
+        answers[`${QA.questionId}`] = [
+          ...answers[`${QA.questionId}`],
+          QA.answer,
+        ];
+      } else {
+        answers[`${QA.questionId}`] = [];
+      }
+    });
 
-        return answers;
-      }, {});
-
-  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
+  const riskAnalysisForm: BffCatalogApiProducerRiskAnalysisForm = {
     riskAnalysisId: riskAnalysis.id,
     version: riskAnalysis.riskAnalysisForm.version,
     answers,
@@ -207,20 +228,18 @@ export function toBffCatalogApiEserviceRiskAnalysis(
 }
 
 export function toBffCatalogApiProducerDescriptorEService(
-  eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
-): bffApi.ProducerDescriptorEService {
-  const producerMail = getTenantEmail(producer);
+  eservice: EServiceDescriptor,
+  producer: TenantProcessApiTenant
+): bffApi.CatalogEService {
+  const producerMail = producer.mails.find(
+    (m) => m.kind === tenantMailKind.ContactEmail
+  );
 
-  const notDraftDecriptors: bffApi.CompactDescriptor[] =
-    eservice.descriptors.filter(
-      (d) => d.state !== catalogApiDescriptorState.DRAFT
-    );
+  const notDraftDecriptors: BffCatalogApiCompactDescriptor[] =
+    eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
 
-  const draftDescriptor: bffApi.CompactDescriptor | undefined =
-    eservice.descriptors.find(
-      (d) => d.state === catalogApiDescriptorState.DRAFT
-    );
+  const draftDescriptor: BffCatalogApiCompactDescriptor | undefined =
+    eservice.descriptors.find((d) => d.state === descriptorApiState.DRAFT);
 
   return {
     id: eservice.id,
@@ -287,3 +306,147 @@ export function toBffCatalogApiDescriptorAttributes(
     ],
   };
 }
+export function toTenantAttribute(
+  att: tenantApi.TenantAttribute
+): TenantAttribute[] {
+  const certified: CertifiedTenantAttribute | undefined = att.certified && {
+    id: unsafeBrandId(att.certified.id),
+    type: tenantAttributeType.CERTIFIED,
+    revocationTimestamp: att.certified.revocationTimestamp
+      ? new Date(att.certified.revocationTimestamp)
+      : undefined,
+    assignmentTimestamp: new Date(att.certified.assignmentTimestamp),
+  };
+
+  const verified: VerifiedTenantAttribute | undefined = att.verified && {
+    id: unsafeBrandId(att.verified.id),
+    type: tenantAttributeType.VERIFIED,
+    assignmentTimestamp: new Date(att.verified.assignmentTimestamp),
+    verifiedBy: att.verified.verifiedBy.map((v) => ({
+      id: v.id,
+      verificationDate: new Date(v.verificationDate),
+      expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
+      extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
+    })),
+    revokedBy: att.verified.revokedBy.map((r) => ({
+      id: r.id,
+      verificationDate: new Date(r.verificationDate),
+      revocationDate: new Date(r.revocationDate),
+      expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
+      extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
+    })),
+  };
+
+  const declared: DeclaredTenantAttribute | undefined = att.declared && {
+    id: unsafeBrandId(att.declared.id),
+    type: tenantAttributeType.DECLARED,
+    assignmentTimestamp: new Date(att.declared.assignmentTimestamp),
+    revocationTimestamp: att.declared.revocationTimestamp
+      ? new Date(att.declared.revocationTimestamp)
+      : undefined,
+  };
+
+  return [certified, verified, declared].filter(
+    (a): a is TenantAttribute => !!a
+  );
+}
+
+export function toTenantWithOnlyAttributes(
+  tenant: tenantApi.Tenant
+): TenantWithOnlyAttributes {
+  return {
+    ...tenant,
+    attributes: tenant.attributes.map(toTenantAttribute).flat(),
+  };
+}
+
+export function toCatalogCreateEServiceSeed(
+  eServiceSeed: bffApi.EServiceSeed
+): catalogApi.EServiceSeed {
+  return {
+    ...eServiceSeed,
+    descriptor: {
+      audience: [],
+      voucherLifespan: 60,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1,
+      agreementApprovalPolicy:
+        catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
+    },
+  };
+}
+
+export function toCompactEserviceLight(
+  eservice: agreementApi.CompactEService
+): bffApi.CompactEServiceLight {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+  };
+}
+
+export function toCompactOrganization(
+  organization: agreementApi.CompactOrganization
+): bffApi.CompactOrganization {
+  return {
+    id: organization.id,
+    name: organization.name,
+  };
+}
+
+export function toCompactEservice(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.CompactEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: {
+      id: producer.id,
+      name: producer.name,
+      kind: producer.kind,
+    },
+  };
+}
+
+export function toCompactDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.CompactDescriptor {
+  return {
+    id: descriptor.id,
+    audience: descriptor.audience,
+    state: descriptor.state,
+    version: descriptor.version,
+  };
+}
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
+
+export const toBffApiCompactUser = (
+  input: selfcareV2ClientApi.UserResponse,
+  userId: string
+): bffApi.CompactUser =>
+  match(input)
+    .with({ name: P.nullish, surname: P.nullish }, () => ({
+      userId,
+      name: "Utente",
+      familyName: userId,
+    }))
+    .otherwise((ur) => ({
+      userId,
+      name: ur.name ?? "",
+      familyName: ur.surname ?? "",
+    }));
+
+export const toBffApiCompactProducerKeychain = (
+  input: authorizationApi.ProducerKeychain
+): bffApi.CompactProducerKeychain => ({
+  hasKeys: input.keys.length > 0,
+  id: input.id,
+  name: input.name,
+});

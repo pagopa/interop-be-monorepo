@@ -15,15 +15,15 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -112,8 +112,9 @@ const catalogRouter = (
 
         try {
           const response = await catalogService.getProducerEServiceDescriptor(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
+            req.params.eserviceId,
+            req.params.descriptorId,
+            req.query,
             ctx
           );
           return res.status(200).json(response).send();

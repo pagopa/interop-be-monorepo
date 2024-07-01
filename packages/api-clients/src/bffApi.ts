@@ -13,4 +13,9 @@ export type BffGetProducersEservicesQueryParam = QueryParametersByAlias<
   "getProducerEServices"
 >;
 
+export type BffGetEserviceByDescriptorIdQueryParam = QueryParametersByAlias<
+  BffApi,
+  "getProducerEServiceDescriptor"
+>;
+
 export * from "./generated/bffApi.js";
