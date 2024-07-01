@@ -26,12 +26,19 @@ export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
 }
 
 export const contextMiddleware =
-  (serviceName: string): ZodiosRouterContextRequestHandler<ExpressContext> =>
+  (
+    serviceName: string,
+    overrideCorrelationId: boolean = false
+  ): ZodiosRouterContextRequestHandler<ExpressContext> =>
   (req, _res, next): void => {
+    const correlationId = !overrideCorrelationId
+      ? uuidv4()
+      : readCorrelationIdHeader(req) ?? uuidv4();
+
     // eslint-disable-next-line functional/immutable-data
     req.ctx = {
       serviceName,
-      correlationId: readCorrelationIdHeader(req) ?? uuidv4(),
+      correlationId,
     } as AppContext;
 
     next();
