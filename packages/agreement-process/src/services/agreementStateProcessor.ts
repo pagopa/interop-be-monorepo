@@ -8,13 +8,13 @@ import {
   AgreementEvent,
   AgreementState,
   AttributeId,
+  CompactTenant,
   Descriptor,
   EService,
   Tenant,
   WithMetadata,
   agreementApprovalPolicy,
   agreementState,
-  CompactTenant,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {

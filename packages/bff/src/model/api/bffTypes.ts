@@ -25,6 +25,40 @@ export type BffGetCatalogApiQueryParam = ZodiosQueryParamsByPath<
   "/catalog"
 >;
 
-export type BffCatalogApiEServiceResponse = z.infer<
-  typeof schemas.CatalogEService
+export type BffCatalogApiEService = z.infer<typeof schemas.CatalogEService>;
+export type BffCatalogApiProducerEService = z.infer<
+  typeof schemas.ProducerEService
+>;
+
+export type BffCatalogApiEServiceDoc = z.infer<typeof schemas.EServiceDoc>;
+
+export type BffCatalogApiProducersEServiceDescriptorResponse =
+  ZodiosResponseByPath<
+    BffApi,
+    "get",
+    "/producers/eservices/:eserviceId/descriptors/:descriptorId"
+  >;
+
+export type BffCatalogApiProducerEServiceDescriptor = z.infer<
+  typeof schemas.ProducerEServiceDescriptor
+>;
+
+export type BffCatalogApiProducerDescriptorEService = z.infer<
+  typeof schemas.ProducerDescriptorEService
+>;
+
+export type BffCatalogApiCompactDescriptor = z.infer<
+  typeof schemas.CompactDescriptor
+>;
+
+export type BffCatalogApiProducerEServiceRiskAnalysis = z.infer<
+  typeof schemas.EServiceRiskAnalysis
+>;
+
+export type BffCatalogApiProducerRiskAnalysisForm = z.infer<
+  typeof schemas.RiskAnalysisForm
+>;
+
+export type BffCatalogApiDescriptorAttribute = z.infer<
+  typeof schemas.DescriptorAttribute
 >;
