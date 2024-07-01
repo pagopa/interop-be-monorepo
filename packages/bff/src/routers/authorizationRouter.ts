@@ -37,13 +37,17 @@ const authorizationRouter = (
 
       logger.debug("Received request to /session/tokens");
 
-      const session_token = await authorizationService.getSessionToken(
-        correlationId,
-        identityToken,
-        logger
-      );
-
-      return res.status(200).send({ session_token });
+      try {
+        const session_token = await authorizationService.getSessionToken(
+          correlationId,
+          identityToken,
+          logger
+        );
+        return res.status(200).send({ session_token });
+      } catch (error) {
+        logger.error(error);
+        return res.status(500).send();
+      }
     })
     .post("/support", async (_req, res) => res.status(501).send());
 
