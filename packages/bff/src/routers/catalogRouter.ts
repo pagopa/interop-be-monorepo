@@ -9,7 +9,7 @@ import {
 import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
+import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -20,6 +20,7 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
+    attributeProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
@@ -29,7 +30,8 @@ const catalogRouter = (
   const catalogService = catalogServiceBuilder(
     catalogProcessClient,
     tenantProcessClient,
-    agreementProcessClient
+    agreementProcessClient,
+    attributeProcessClient
   );
 
   catalogRouter
@@ -55,7 +57,26 @@ const catalogRouter = (
     )
     .get(
       "/producers/eservices/:eserviceId/descriptors/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const response = await catalogService.getProducerEServiceDescriptor(
+            req.params.eserviceId,
+            req.params.descriptorId,
+            req.query,
+            ctx
+          );
+          return res.status(200).json(response).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
