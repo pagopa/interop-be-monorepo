@@ -1,14 +1,21 @@
 import {
   Client,
   ClientId,
+  Descriptor,
+  DescriptorId,
+  EService,
+  EServiceId,
   ListResult,
+  Purpose,
   PurposeId,
+  PurposeVersionState,
   TenantId,
   UserId,
   WithMetadata,
   authorizationEventToBinaryData,
   clientKind,
   generateId,
+  purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -18,24 +25,38 @@ import {
   eventRepository,
   userRoles,
 } from "pagopa-interop-commons";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
+  descriptorNotFound,
+  eserviceNotFound,
   keyNotFound,
+  noAgreementFoundInRequiredState,
+  noPurposeVersionsFoundInRequiredState,
+  purposeAlreadyLinkedToClient,
+  purposeNotFound,
+  userAlreadyAssigned,
   userIdNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
-import { ApiClientSeed } from "../model/domain/models.js";
+import {
+  ApiClientSeed,
+  ApiPurposeAdditionSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
+  toCreateEventClientPurposeAdded,
   toCreateEventClientPurposeRemoved,
+  toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
 } from "../model/domain/toEvent.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
+  assertOrganizationIsPurposeConsumer,
+  assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
-  isClientConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -49,10 +70,48 @@ const retrieveClient = async (
   return client;
 };
 
+const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (eservice === undefined) {
+    throw eserviceNotFound(eserviceId);
+  }
+  return eservice;
+};
+
+const retrievePurpose = async (
+  purposeId: PurposeId,
+  readModelService: ReadModelService
+): Promise<Purpose> => {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (purpose === undefined) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
+};
+
+const retrieveDescriptor = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (descriptor === undefined) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -73,7 +132,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       return {
         client: client.data,
-        showUsers: isClientConsumer(client.data.consumerId, organizationId),
+        showUsers: organizationId === client.data.consumerId,
       };
     },
 
@@ -301,7 +360,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
-      //   throw purposeIdNotFound(purposeIdToRemove, client.data.id);
+      //   throw purposeNotFound(purposeIdToRemove);
       // }
 
       const updatedClient: Client = {
@@ -351,6 +410,137 @@ export function authorizationServiceBuilder(
           )
         );
       }
+    },
+    async getClientUsers({
+      clientId,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ users: UserId[]; showUsers: boolean }> {
+      logger.info(`Retrieving users of client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+      return {
+        users: client.data.users,
+        showUsers: true,
+      };
+    },
+    async addUser(
+      {
+        clientId,
+        userId,
+        authData,
+      }: {
+        clientId: ClientId;
+        userId: UserId;
+        authData: AuthData;
+      },
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(`Binding client ${clientId} with user ${userId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+      await assertUserSelfcareSecurityPrivileges(
+        authData.selfcareId,
+        authData.userId,
+        authData.organizationId,
+        selfcareV2Client,
+        userId
+      );
+      if (client.data.users.includes(userId)) {
+        throw userAlreadyAssigned(clientId, userId);
+      }
+      const updatedClient: Client = {
+        ...client.data,
+        users: [...client.data.users, userId],
+      };
+
+      await repository.createEvent(
+        toCreateEventClientUserAdded(
+          userId,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
+      return {
+        client: updatedClient,
+        showUsers: true,
+      };
+    },
+    async addClientPurpose({
+      clientId,
+      seed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      seed: ApiPurposeAdditionSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Adding purpose with id ${seed.purposeId} to client ${clientId}`
+      );
+      const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      assertOrganizationIsPurposeConsumer(organizationId, purpose);
+
+      if (client.data.purposes.includes(purposeId)) {
+        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.eserviceId,
+        readModelService
+      );
+
+      const agreement = await readModelService.getActiveOrSuspendedAgreement(
+        eservice.id,
+        organizationId
+      );
+
+      if (agreement === undefined) {
+        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
+      }
+
+      retrieveDescriptor(agreement.descriptorId, eservice);
+
+      const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
+        purposeVersionState.active,
+        purposeVersionState.suspended,
+      ]);
+      const purposeVersion = purpose.versions.find((v) =>
+        validPurposeVersionStates.has(v.state)
+      );
+
+      if (purposeVersion === undefined) {
+        throw noPurposeVersionsFoundInRequiredState(purpose.id);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        purposes: [...client.data.purposes, purposeId],
+      };
+
+      await repository.createEvent(
+        toCreateEventClientPurposeAdded(
+          purposeId,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
     },
   };
 }
