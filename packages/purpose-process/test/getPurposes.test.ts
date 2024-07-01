@@ -173,6 +173,22 @@ describe("getPurposes", async () => {
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([mockPurpose1, mockPurpose5, mockPurpose6]);
   });
+  it("should get the purposes if they exist (parameters: eservicesIds, producerIds)", async () => {
+    const result = await purposeService.getPurposes(
+      producerId1,
+      {
+        eservicesIds: [mockEService1ByTenant1.id],
+        consumersIds: [],
+        producersIds: [producerId1, producerId2],
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      genericLogger
+    );
+    expect(result.totalCount).toBe(2);
+    expect(result.results).toEqual([mockPurpose1, mockPurpose2]);
+  });
   it("should get the purposes if they exist (parameters: producersIds)", async () => {
     const result = await purposeService.getPurposes(
       producerId1,

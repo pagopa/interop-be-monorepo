@@ -128,11 +128,6 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
-  const eservicesIdsFilter: ReadModelFilter<Purpose> =
-    ReadModelRepository.arrayToFilter(eservicesIds, {
-      "data.eserviceId": { $in: eservicesIds },
-    });
-
   const consumersIdsFilter: ReadModelFilter<Purpose> =
     ReadModelRepository.arrayToFilter(consumersIds, {
       "data.consumerId": { $in: consumersIds },
@@ -176,7 +171,7 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
-  const eserviceIds =
+  const producerEServiceIds =
     producersIds.length > 0
       ? await eservices
           .find({ "data.producerId": { $in: producersIds } })
@@ -186,10 +181,27 @@ async function buildGetPurposesAggregation(
           )
       : [];
 
-  const producerIdsFilter: ReadModelFilter<Purpose> =
-    ReadModelRepository.arrayToFilter(eserviceIds, {
-      "data.eserviceId": { $in: eserviceIds },
-    });
+  const eservicesIdsFilter: ReadModelFilter<Purpose> =
+    /**
+     * In case both producersIds and eservicesIds filters are present,
+     * we need to filter by the intersection of the two
+     */
+    producersIds.length > 0 && eservicesIds.length > 0
+      ? {
+          "data.eserviceId": {
+            $in: eservicesIds.filter((eserviceId) =>
+              producerEServiceIds.includes(eserviceId)
+            ),
+          },
+        }
+      : ReadModelRepository.arrayToFilter(
+          [...eservicesIds, ...producerEServiceIds],
+          {
+            "data.eserviceId": {
+              $in: [...eservicesIds, ...producerEServiceIds],
+            },
+          }
+        );
 
   return [
     {
@@ -199,7 +211,6 @@ async function buildGetPurposesAggregation(
         ...consumersIdsFilter,
         ...versionStateFilter,
         ...draftFilter,
-        ...producerIdsFilter,
       } satisfies ReadModelFilter<Purpose>,
     },
     {
