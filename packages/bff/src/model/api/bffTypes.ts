@@ -27,3 +27,6 @@ export type BffApiClientKind = z.infer<typeof schemas.ClientKind>;
 export type BffApiCompactClient = z.infer<typeof schemas.CompactClient>;
 export type BffApiCompactUser = z.infer<typeof schemas.CompactUser>;
 export type BffApiPublicKey = z.infer<typeof schemas.PublicKey>;
+
+export type BffApiPrivacyNotice = z.infer<typeof schemas.PrivacyNotice>;
+export type BffApiPrivacyNoticeSeed = z.infer<typeof schemas.PrivacyNoticeSeed>;

@@ -17,6 +17,7 @@ import {
 } from "../api/bffTypes.js";
 import { AuthProcessApiClientWithKeys } from "../api/clientTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
+import { PrivacyNoticeKind } from "./types.js";
 
 export const toBffApiSelfcareInstitution = (
   input: InstitutionResource
@@ -104,3 +105,9 @@ export const toBffApiCompactUser = (
       name: ur.name ?? "",
       familyName: ur.surname ?? "",
     }));
+
+export const fromApiConsentType = (type: "TOS" | "PP"): PrivacyNoticeKind =>
+  match(type)
+    .with("TOS", () => PrivacyNoticeKind.TOS)
+    .with("PP", () => PrivacyNoticeKind.PP)
+    .exhaustive();
