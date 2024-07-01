@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -103,7 +104,6 @@ export const addClientPurposeErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-// eslint-disable-next-line sonarjs/no-identical-functions
 export const getClientKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -124,4 +124,10 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getClientKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("clientNotFound", "keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
