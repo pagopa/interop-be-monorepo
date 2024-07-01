@@ -160,8 +160,8 @@ export async function senderAgreementSubmissionEmail({
     logger.info(`Sending email for agreement ${agreement.id} submission`);
     await emailManager.send(mail.from, mail.to, mail.subject, mail.body);
     logger.info(`Email sent for agreement ${agreement.id} submission`);
-  } catch {
-    logger.error(`Error sending email for agreement ${agreement.id}`);
+  } catch (err) {
+    logger.error(`Error sending email for agreement ${agreement.id}: ${err}`);
   }
 }
 
