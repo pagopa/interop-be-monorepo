@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  FileManagerConfig,
+} from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -79,6 +83,33 @@ export type AuthorizationUpdaterServerConfig = z.infer<
   typeof AuthorizationUpdaterServerConfig
 >;
 
+export const S3Config = z
+  .object({
+    PRIVACY_NOTICES_CONTAINER: z.string(),
+    PRIVACY_NOTICES_PATH: z.string(),
+    PRIVACY_NOTICES_FILE_NAME: z.string(),
+  })
+  .transform((c) => ({
+    privacyNoticesContainer: c.PRIVACY_NOTICES_CONTAINER,
+    privacyNoticesPath: c.PRIVACY_NOTICES_PATH,
+    privacyNoticesFileName: c.PRIVACY_NOTICES_FILE_NAME,
+  }));
+
+export const PrivactNoticeConfig = z
+  .object({
+    PRIVACY_NOTICES_TOS_UUID: z.string(),
+    PRIVACY_NOTICES_PP_UUID: z.string(),
+    PRIVACY_NOTICES_DYNAMO_TABLE_NAME: z.string(),
+    PRIVACY_NOTICES_USERS_DYNAMO_TABLE_NAME: z.string(),
+  })
+  .transform((c) => ({
+    privacyNoticesTosUuid: c.PRIVACY_NOTICES_TOS_UUID,
+    privacyNoticesPpUuid: c.PRIVACY_NOTICES_PP_UUID,
+    privacyNoticesDynamoTableName: c.PRIVACY_NOTICES_DYNAMO_TABLE_NAME,
+    privacyNoticesUsersDynamoTableName:
+      c.PRIVACY_NOTICES_USERS_DYNAMO_TABLE_NAME,
+  }));
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -86,7 +117,10 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
-  .and(AuthorizationUpdaterServerConfig);
+  .and(AuthorizationUpdaterServerConfig)
+  .and(PrivactNoticeConfig)
+  .and(FileManagerConfig)
+  .and(S3Config);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
