@@ -265,7 +265,7 @@ export const authorizationServiceBuilder = (
           headers,
         }
       );
-      logger.info(`Added client ${client.id}`); // to do: remind id is currently different in the other readmodel (PIN-5017)
+      logger.info(`Added client ${client.id}`);
     },
     async deleteClient(
       clientId: ClientId,
