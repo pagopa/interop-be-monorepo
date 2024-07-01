@@ -35,6 +35,7 @@ import {
   removeClientPurposeErrorMapper,
   removeUserErrorMapper,
   createKeysErrorMapper,
+  getClientKeyWithClientErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -389,6 +390,40 @@ const authorizationRouter = (
         }
       }
     )
+    .get(
+      "/clients/:clientId/keys/:keyId/bundle",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { JWKKey, client } =
+            await authorizationService.getKeyWithClientByKeyId({
+              clientId: unsafeBrandId(req.params.clientId),
+              kid: req.params.keyId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json({
+              key: JWKKey,
+              client: clientToApiClient({ client, showUsers: false }),
+            })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientKeyWithClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
     .delete(
       "/clients/:clientId/keys/:keyId",
       authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
@@ -396,8 +431,8 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           await authorizationService.deleteClientKeyById({
-            clientId: unsafeBrandId(req.params.clientId),
-            keyIdToRemove: unsafeBrandId(req.params.keyId),
+            clientId: unsafeBrandId(req.params.clientId.toString()),
+            keyIdToRemove: unsafeBrandId(req.params.keyId.toString()),
             authData: ctx.authData,
             correlationId: ctx.correlationId,
             logger: ctx.logger,

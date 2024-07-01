@@ -11,3 +11,4 @@ export type ApiKeySeed = z.infer<typeof api.schemas.KeySeed>;
 export type ApiPurposeAdditionSeed = z.infer<
   typeof api.schemas.PurposeAdditionDetails
 >;
+export type JWKKey = z.infer<typeof api.schemas.JWKKey>;
