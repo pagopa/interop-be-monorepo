@@ -31,9 +31,14 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  CompactTenant,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import {
+  declaredAttributesSatisfied,
+  verifiedAttributesSatisfied,
+} from "pagopa-interop-lifecycle";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -52,7 +57,6 @@ import {
 import {
   CompactEService,
   CompactOrganization,
-  CompactTenant,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -84,7 +88,6 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertSubmittableState,
-  declaredAttributesSatisfied,
   failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -94,7 +97,6 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
-  verifiedAttributesSatisfied,
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,

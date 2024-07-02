@@ -10,6 +10,7 @@ COPY pnpm-workspace.yaml /app/
 COPY ./packages/agreement-process/package.json /app/packages/agreement-process/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/lifecycle/package.json /app/packages/lifecycle/package.json
 COPY ./packages/selfcare-v2-client/package.json /app/packages/selfcare-v2-client/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
@@ -19,6 +20,7 @@ COPY turbo.json /app/
 COPY ./packages/agreement-process /app/packages/agreement-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/lifecycle /app/packages/lifecycle
 COPY ./packages/selfcare-v2-client /app/packages/selfcare-v2-client
 
 RUN pnpm build && \
@@ -30,6 +32,7 @@ RUN pnpm build && \
       package*.json packages/agreement-process/package*.json \
       packages/commons/ \
       packages/models/ \
+      packages/lifecycle/ \
       packages/selfcare-v2-client \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
