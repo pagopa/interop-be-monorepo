@@ -182,3 +182,25 @@ replace(apiBffPath, agreementPatch);
 replace(apiBffPath, attributePatch);
 replace(apiBffPath, catalogPatch);
 replace(apiBffPath, purposePatch);
+
+function bufferRetType(path: URL, method: string, endpoint: string) {
+  const apiContent = readFileSync(path, "utf8");
+
+  let newApiContent = apiContent;
+
+  let find = `${method}(.*?)"${endpoint}"(.*?)response: z\\.void\\(\\)`;
+  let regex = new RegExp(find, "msg");
+
+  newApiContent = newApiContent.replace(
+    regex,
+    `${method}$1"${endpoint}"$2response: z.instanceof(Buffer)`
+  );
+
+  writeFileSync(path, newApiContent);
+}
+
+bufferRetType(
+  apiBffPath,
+  "get",
+  "/agreements/:agreementId/consumer-documents/:documentId"
+);
