@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package tenant.v2;
+
+message TenantV2 {
+  string id = 1;
+  string selfcareId = 2;
+  ExternalIdV2 externalId = 3;
+  repeated TenantFeatureV2 features = 4;
+  repeated TenantAttributeV2 attributes = 5;
+  int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  repeated TenantMailV2 mails = 8;
+  string name = 9;
+  optional TenantKindV2 kind = 10;
+  int64 onboardedAt = 11;
+  optional TenantUnitTypeV2 subUnitType = 12;
+
+}
+
+enum TenantKindV2 {
+  PA = 0;
+  GSP = 1;
+  PRIVATE = 2;
+}
+
+message TenantMailV2 {
+  TenantMailKindV2 kind = 1;
+  string address = 2;
+  int64 createdAt = 3;
+  optional string description = 4;
+  string id = 5;
+}
+
+enum TenantMailKindV2 {
+  CONTACT_EMAIL = 0;
+  DIGITAL_ADDRESS = 1;
+}
+
+enum TenantUnitTypeV2 {
+  AOO = 0;
+  UO = 1;
+}
+
+message TenantFeatureV2 {
+  oneof sealed_value {
+    CertifierV2 certifier = 1;
+  }
+}
+
+message CertifierV2 {
+  string certifierId = 1;
+}
+
+message TenantVerifierV2 {
+  string id = 1;
+  int64 verificationDate = 2;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
+}
+
+message TenantRevokerV2 {
+  string id = 1;
+  int64 verificationDate = 2;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
+  int64 revocationDate = 5;
+}
+
+message ExternalIdV2 {
+  string origin = 1;
+  string value = 2;
+}
+
+message TenantCertifiedAttributeV2 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+}
+
+message TenantDeclaredAttributeV2 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+}
+
+message TenantVerifiedAttributeV2 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  repeated TenantVerifierV2 verifiedBy = 3;
+  repeated TenantRevokerV2 revokedBy = 4;
+}
+
+message TenantAttributeV2 {
+  oneof sealed_value {
+    TenantCertifiedAttributeV2 certifiedAttribute = 1;
+    TenantDeclaredAttributeV2 declaredAttribute = 2;
+    TenantVerifiedAttributeV2 verifiedAttribute = 3;
+  }
+}
