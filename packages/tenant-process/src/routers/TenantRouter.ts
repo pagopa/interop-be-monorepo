@@ -177,12 +177,7 @@ const tenantsRouter = (
             unsafeBrandId(req.params.id),
             ctx.logger
           );
-                  getTenantByIdErrorMapper,
-                  ctx.logger
-                )
-              )
-              .end();
-          }
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -215,7 +210,6 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          if (tenant) {
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
