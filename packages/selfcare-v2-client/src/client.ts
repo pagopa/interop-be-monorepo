@@ -1,6 +1,6 @@
-import { ZodiosInstance, isErrorFromAlias } from "@zodios/core";
-import { api, createApiClient } from "./model/generated/api.js";
+import { ZodiosInstance } from "@zodios/core";
 import { SelfCareConfig } from "./utilities/config/config.js";
+import { createApiClient, api } from "./model/generated/api.js";
 
 export type SelfcareV2Client = ZodiosInstance<typeof api.api>;
 
@@ -14,13 +14,3 @@ export const selfcareV2ClientBuilder = (
       },
     },
   });
-
-export function mapInstitutionError(
-  error: unknown,
-  api: SelfcareV2Client["api"]
-): 400 | 404 | undefined {
-  if (isErrorFromAlias(api, "getInstitution", error)) {
-    return error.response.status;
-  }
-  return undefined;
-}

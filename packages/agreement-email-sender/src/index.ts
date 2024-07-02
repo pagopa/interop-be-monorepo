@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
   agreementTopicConfig,
+  buildHTMLTemplateService,
   decodeKafkaMessage,
-  emailManagerConfig,
   initEmailManager,
   kafkaConsumerConfig,
   logger,
@@ -14,27 +15,36 @@ import {
   AgreementEvent,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import {
-  selfcareConfig,
-  selfcareV2ClientBuilder,
-} from "pagopa-interop-selfcare-v2-client";
+import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
+import {
+  sendAgreementActivationEmail,
+  senderAgreementSubmissionEmail,
+} from "./services/agreementEmailSenderService.js";
+import {
+  pecEmailManagerConfig,
+  emailManagerConfig,
+  agreementEmailSenderConfig,
+} from "./utilities/config.js";
 
-const config = kafkaConsumerConfig();
+const config = agreementEmailSenderConfig();
+const kafkaConfig = kafkaConsumerConfig();
 const readModelConfig = readModelWriterConfig();
 const topicsConfig = agreementTopicConfig();
+const pecEmailConfig = pecEmailManagerConfig();
+const pecEmailManager = initEmailManager(pecEmailConfig);
 const emailConfig = emailManagerConfig();
 const emailManager = initEmailManager(emailConfig);
-const selfcareV2Client = selfcareV2ClientBuilder(selfcareConfig());
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(readModelConfig)
 );
+const templateService = buildHTMLTemplateService();
 
 export async function processMessage({
   message,
 }: EachMessagePayload): Promise<void> {
+  const handleMessageToSkip = async (): Promise<void> => {};
+
   const decodedMessage = decodeKafkaMessage(message, AgreementEvent);
   const loggerInstance = logger({
     serviceName: "agreement-email-sender",
@@ -45,22 +55,77 @@ export async function processMessage({
   });
   loggerInstance.debug(decodedMessage);
 
-  match(decodedMessage).with(
-    { event_version: 2, type: "AgreementActivated" },
-    async ({ data: { agreement } }) => {
-      if (agreement) {
-        await sendAgreementEmail(
-          agreement,
-          readModelService,
-          selfcareV2Client,
-          emailManager,
-          loggerInstance
-        );
-      } else {
-        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+  await match(decodedMessage)
+    .with(
+      { event_version: 2, type: "AgreementActivated" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await sendAgreementActivationEmail({
+            agreementV2: agreement,
+            readModelService,
+            emailManager: pecEmailManager,
+            sender: {
+              label: config.pecSenderLabel,
+              mail: config.pecSenderMail,
+            },
+            templateService,
+            logger: loggerInstance,
+          });
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
       }
-    }
-  );
+    )
+    .with(
+      { event_version: 2, type: "AgreementSubmitted" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await senderAgreementSubmissionEmail({
+            agreementV2: agreement,
+            readModelService,
+            emailManager,
+            feBaseUrl: config.interopFeBaseUrl,
+            sender: { label: config.senderLabel, mail: config.senderMail },
+            templateService,
+            logger: loggerInstance,
+          });
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
+      }
+    )
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "AgreementAdded",
+          "AgreementDeleted",
+          "DraftAgreementUpdated",
+          "AgreementUnsuspendedByProducer",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByUpgrade",
+          "AgreementUpgraded",
+          "AgreementSuspendedByProducer",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByPlatform",
+          "AgreementRejected",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform"
+        ),
+      },
+      handleMessageToSkip
+    )
+    .with(
+      {
+        event_version: 1,
+      },
+      handleMessageToSkip
+    )
+    .exhaustive();
 }
 
-await runConsumer(config, [topicsConfig.agreementTopic], processMessage);
+await runConsumer(kafkaConfig, [topicsConfig.agreementTopic], processMessage);

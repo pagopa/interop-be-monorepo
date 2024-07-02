@@ -2,62 +2,178 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs/promises";
 import {
+  Agreement,
   AgreementV2,
+  EService,
+  Tenant,
+  TenantMail,
   fromAgreementV2,
-  genericInternalError,
+  tenantMailKind,
 } from "pagopa-interop-models";
 import {
   EmailManager,
+  HtmlTemplateService,
   Logger,
-  buildHTMLTemplateService,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
 import {
-  InstitutionResponse,
-  SelfcareV2Client,
-  mapInstitutionError,
-} from "pagopa-interop-selfcare-v2-client";
-import {
   descriptorNotFound,
   eServiceNotFound,
-  institutionNotFound,
-  selfcareIdNotFound,
+  htmlTemplateNotFound,
+  tenantDigitalAddressNotFound,
+  tenantNotFound,
+  agreementStampDateNotFound,
 } from "../models/errors.js";
-import { agreementEmailSenderConfig } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
-async function getActivationMailFromAgreement(
-  agreementV2: AgreementV2,
-  readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client,
-  logger: Logger
-): Promise<{
-  subject: string;
-  body: string;
-  to: string[];
-}> {
-  const agreement = fromAgreementV2(agreementV2);
-  const templateService = buildHTMLTemplateService();
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-
-  const { getEServiceById, getTenantById } = readModelService;
-
-  const htmlTemplateBuffer = await fs.readFile(
-    `${dirname}/../resources/templates/activation-mail.html`
+export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
+  const digitalAddress = tenant.mails.find(
+    (m) => m.kind === tenantMailKind.DigitalAddress
   );
-  const htmlTemplate = htmlTemplateBuffer.toString();
-
-  const activationDate = agreement.stamps.activation?.when;
-
-  if (activationDate === undefined) {
-    throw genericInternalError(
-      `Activation date not found for agreement ${agreement.id}`
-    );
+  if (!digitalAddress) {
+    throw tenantDigitalAddressNotFound(tenant.id);
   }
-  const formattedActivationDate = dateAtRomeZone(
-    new Date(Number(activationDate))
+  return digitalAddress;
+};
+
+export async function sendAgreementActivationEmail({
+  agreementV2,
+  readModelService,
+  emailManager,
+  sender,
+  templateService,
+  logger,
+}: {
+  agreementV2: AgreementV2;
+  readModelService: ReadModelService;
+  emailManager: EmailManager;
+  sender: { label: string; mail: string };
+  templateService: HtmlTemplateService;
+  logger: Logger;
+}): Promise<void> {
+  const agreement = fromAgreementV2(agreementV2);
+  const htmlTemplate = await retrieveHTMLTemplate("activation-mail");
+
+  const activationDate = getFormattedAgreementStampDate(
+    agreement,
+    "activation"
   );
+
+  const { eservice, producer, consumer } = await retrieveAgreementComponents(
+    agreement,
+    readModelService
+  );
+
+  /* No need to call selfcare API anymore.
+  We now have the producer and consumer digital addresses in their respective tenant object,
+  kept up to date through a queue.
+  We only expect one digital address per tenant, so we can safely use the first one we find. */
+  const producerEmail = retrieveTenantDigitalAddress(producer).address;
+  const consumerEmail = retrieveTenantDigitalAddress(consumer).address;
+
+  const descriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!descriptor) {
+    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
+  }
+
+  const mail = {
+    subject: `Richiesta di fruizione ${agreement.id} attiva`,
+    to: [producerEmail, consumerEmail],
+    body: templateService.compileHtml(htmlTemplate, {
+      activationDate,
+      agreementId: agreement.id,
+      eserviceName: eservice.name,
+      eserviceVersion: descriptor.version,
+      producerName: producer.name,
+      consumerName: consumer.name,
+    }),
+  };
+
+  logger.info(`Sending email for agreement ${agreement.id} activation`);
+  await emailManager.send(
+    { name: sender.label, address: sender.mail },
+    mail.to,
+    mail.subject,
+    mail.body
+  );
+  logger.info(`Email sent for agreement ${agreement.id} activation`);
+}
+
+export async function senderAgreementSubmissionEmail({
+  agreementV2,
+  readModelService,
+  feBaseUrl,
+  emailManager,
+  sender,
+  templateService,
+  logger,
+}: {
+  agreementV2: AgreementV2;
+  readModelService: ReadModelService;
+  feBaseUrl: string;
+  emailManager: EmailManager;
+  sender: { label: string; mail: string };
+  templateService: HtmlTemplateService;
+  logger: Logger;
+}): Promise<void> {
+  const agreement = fromAgreementV2(agreementV2);
+  const htmlTemplate = await retrieveHTMLTemplate("submission-mail");
+
+  const { eservice, producer, consumer } = await retrieveAgreementComponents(
+    agreement,
+    readModelService
+  );
+
+  const submissionDate = getFormattedAgreementStampDate(
+    agreement,
+    "submission"
+  );
+
+  const producerEmail = [...producer.mails]
+    .filter((m) => m.kind === "CONTACT_EMAIL")
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
+  if (!producerEmail) {
+    logger.warn(
+      `Producer email not found for agreement ${agreement.id}, skipping email`
+    );
+    return;
+  }
+
+  const mail = {
+    from: { name: sender.label, address: sender.mail },
+    subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
+    to: [producerEmail.address],
+    body: templateService.compileHtml(htmlTemplate, {
+      interopFeUrl: `https://${feBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+      producerName: producer.name,
+      consumerName: consumer.name,
+      eserviceName: eservice.name,
+      submissionDate,
+    }),
+  };
+
+  try {
+    logger.info(`Sending email for agreement ${agreement.id} submission`);
+    await emailManager.send(mail.from, mail.to, mail.subject, mail.body);
+    logger.info(`Email sent for agreement ${agreement.id} submission`);
+  } catch (err) {
+    logger.error(`Error sending email for agreement ${agreement.id}: ${err}`);
+  }
+}
+
+async function retrieveAgreementComponents(
+  agreement: Agreement,
+  readModelService: ReadModelService
+): Promise<{
+  eservice: EService;
+  producer: Tenant;
+  consumer: Tenant;
+}> {
+  const { getTenantById, getEServiceById } = readModelService;
 
   const [eservice, producer, consumer] = await Promise.all([
     getEServiceById(agreement.eserviceId),
@@ -70,111 +186,41 @@ async function getActivationMailFromAgreement(
   }
 
   if (!producer) {
-    throw genericInternalError(
-      `Produce tenant not found for agreement ${agreement.id}`
-    );
+    throw tenantNotFound(agreement.producerId);
   }
 
   if (!consumer) {
-    throw genericInternalError(
-      `Consumer tenant not found for agreement ${agreement.id}`
-    );
+    throw tenantNotFound(agreement.consumerId);
   }
 
-  const producerSelfcareId = producer.selfcareId;
-  if (!producerSelfcareId) {
-    throw selfcareIdNotFound(producer.id);
-  }
-
-  const consumerSelfcareId = consumer.selfcareId;
-  if (!consumerSelfcareId) {
-    throw selfcareIdNotFound(consumer.id);
-  }
-
-  const producerInstitution = await getInstitution(
-    producerSelfcareId,
-    selfcareV2Client,
-    logger
-  );
-
-  const consumerInstitution = await getInstitution(
-    consumerSelfcareId,
-    selfcareV2Client,
-    logger
-  );
-
-  const producerEmail = producerInstitution?.digitalAddress;
-  const consumerEmail = consumerInstitution?.digitalAddress;
-
-  if (!producerEmail) {
-    throw genericInternalError(
-      `Producer digital address not found for agreement ${agreement.id}`
-    );
-  }
-
-  if (!consumerEmail) {
-    throw genericInternalError(
-      `Consumer digital address not found for agreement ${agreement.id}`
-    );
-  }
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
-  }
-
-  return {
-    subject: `Richiesta di fruizione ${agreement.id} attiva`,
-    to: [producerEmail, consumerEmail],
-    body: templateService.compileHtml(htmlTemplate, {
-      activationDate: formattedActivationDate,
-      agreementId: agreement.id,
-      eserviceName: eservice.name,
-      eserviceVersion: descriptor.version,
-      producerName: producer.name,
-      consumerName: consumer.name,
-    }),
-  };
+  return { eservice, producer, consumer };
 }
 
-// eslint-disable-next-line max-params
-export async function sendAgreementEmail(
-  agreement: AgreementV2,
-  readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client,
-  emailManager: EmailManager,
-  logger: Logger,
-  { agreementEmailSender } = agreementEmailSenderConfig()
-): Promise<void> {
-  const { to, subject, body } = await getActivationMailFromAgreement(
-    agreement,
-    readModelService,
-    selfcareV2Client,
-    logger
-  );
+async function retrieveHTMLTemplate(
+  templateName: "activation-mail" | "submission-mail"
+): Promise<string> {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `/resources/templates/${templateName}.html`;
 
-  await emailManager.send(agreementEmailSender, to, subject, body);
-}
-
-async function getInstitution(
-  id: string,
-  selfcareV2Client: SelfcareV2Client,
-  logger: Logger
-): Promise<InstitutionResponse> {
   try {
-    return await selfcareV2Client.getInstitution({
-      params: { id },
-    });
-  } catch (error) {
-    logger.error(`Error calling selfcare API for institution ${id} - ${error}`);
-
-    const code = mapInstitutionError(error, selfcareV2Client.api);
-    if (code === 404) {
-      throw institutionNotFound(id);
-    }
-    throw genericInternalError(`Error getting institution ${id}`);
+    const htmlTemplateBuffer = await fs.readFile(
+      `${dirname}/..${templatePath}`
+    );
+    return htmlTemplateBuffer.toString();
+  } catch {
+    throw htmlTemplateNotFound(templatePath);
   }
+}
+
+function getFormattedAgreementStampDate(
+  agreement: Agreement,
+  stamp: keyof Agreement["stamps"]
+): string {
+  const stampDate = agreement.stamps[stamp]?.when;
+
+  if (stampDate === undefined) {
+    throw agreementStampDateNotFound(stamp, agreement.id);
+  }
+  return dateAtRomeZone(new Date(Number(stampDate)));
 }
