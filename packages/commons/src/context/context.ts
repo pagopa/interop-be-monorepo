@@ -31,7 +31,7 @@ export const contextMiddleware =
     overrideCorrelationId: boolean = false
   ): ZodiosRouterContextRequestHandler<ExpressContext> =>
   (req, _res, next): void => {
-    const correlationId = !overrideCorrelationId
+    const correlationId = overrideCorrelationId
       ? uuidv4()
       : readCorrelationIdHeader(req) ?? uuidv4();
 
