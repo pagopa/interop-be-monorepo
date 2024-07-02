@@ -68,7 +68,6 @@ import {
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
-  assertTenantExists,
   getTenantCertifierId,
   assertVerifiedAttributeOperationAllowed,
 } from "./validators.js";
@@ -666,9 +665,7 @@ export function tenantServiceBuilder(
       offset: number;
       limit: number;
     }): Promise<ListResult<CertifiedAttributeQueryResult>> {
-      const tenant = await readModelService.getTenantById(organizationId);
-      assertTenantExists(organizationId, tenant);
-
+      const tenant = await retrieveTenant(organizationId, readModelService);
       const certifierId = getTenantCertifierId(tenant.data);
 
       return await readModelService.getCertifiedAttributes({
