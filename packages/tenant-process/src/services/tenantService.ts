@@ -42,6 +42,7 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
+  tenantBySelfcareIdNotFound,
   tenantFromExternalIdNotFound,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerification,
@@ -735,28 +736,37 @@ export function tenantServiceBuilder(
       );
       return readModelService.getTenantsByName({ name, offset, limit });
     },
-    async getTenantById(
-      id: TenantId,
-      logger: Logger
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(id: TenantId, logger: Logger): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
-      return readModelService.getTenantById(id);
+      const tenant = await readModelService.getTenantById(id);
+      if (!tenant) {
+        throw tenantNotFound(id);
+      }
+      return tenant.data;
     },
     async getTenantByExternalId(
       externalId: ExternalId,
       logger: Logger
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    ): Promise<Tenant> {
       logger.info(
         `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
       );
-      return readModelService.getTenantByExternalId(externalId);
+      const tenant = await readModelService.getTenantByExternalId(externalId);
+      if (!tenant) {
+        throw tenantFromExternalIdNotFound(externalId.origin, externalId.value);
+      }
+      return tenant.data;
     },
     async getTenantBySelfcareId(
       selfcareId: string,
       logger: Logger
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    ): Promise<Tenant> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
-      return readModelService.getTenantBySelfcareId(selfcareId);
+      const tenant = await readModelService.getTenantBySelfcareId(selfcareId);
+      if (!tenant) {
+        throw tenantBySelfcareIdNotFound(selfcareId);
+      }
+      return tenant.data;
     },
   };
 }
