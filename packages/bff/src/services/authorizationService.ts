@@ -133,30 +133,30 @@ export function authorizationServiceBuilder(
     const assertions = response.Assertion;
     const conditions = assertions
       .flatMap((a) => a.Conditions)
-      .filter(filterUndefined);
+      .filter(undefined);
     const audienceRestrictions = conditions
       .flatMap((c) => c.AudienceRestriction)
-      .filter(filterUndefined);
+      .filter(undefined);
     if (audienceRestrictions.length === 0)
       throw samlNotValid("Missing Audience Restriction");
     const notBeforeConditions = conditions
       .map((c) => c.NotBefore)
-      .filter(filterUndefined);
+      .filter(undefined);
     if (notBeforeConditions.length === 0)
       throw samlNotValid("Missing Not Before Restrictions");
     const notOnOrAfterConditions = conditions
       .map((c) => c.NotOnOrAfter)
-      .filter(filterUndefined);
+      .filter(undefined);
     if (notOnOrAfterConditions.length === 0)
       throw samlNotValid("Missing Not On Or After Restrictions");
     const attributeStatements = assertions
       .flatMap((a) => a.AttributeStatement)
-      .filter(filterUndefined);
+      .filter(undefined);
     if (attributeStatements.length === 0)
       throw samlNotValid("Missing Attribute Statement");
     const attributes = attributeStatements
       .flatMap((a) => a.Attribute)
-      .filter(filterUndefined);
+      .filter(undefined);
     if (attributes.length === 0) throw samlNotValid("Missing Attributes");
     const now = +Date();
     //TODO SAML signature profiler validation
@@ -260,9 +260,10 @@ export function authorizationServiceBuilder(
         ...customClaims,
       });
     },
-    samlLoginCallback: async (
+    generateJwtFromSaml: async (
       correlationId: string,
-      samlResponse: string
+      samlResponse: string,
+      tenantId: string
     ): Promise<string> => {
       validateSamlResponse(samlResponse);
 
@@ -275,13 +276,13 @@ export function authorizationServiceBuilder(
       };
 
       const tenant = await tenantProcessClient.getTenant({
-        params: { id: config.pagoPaTenantId },
+        params: { id: tenantId },
         headers,
       });
 
       const selfcareId = tenant.selfcareId;
       if (!selfcareId) {
-        throw missingSelfcareId(config.pagoPaTenantId);
+        throw missingSelfcareId(tenantId);
       }
 
       const claims = buildSupportClaims(selfcareId, tenant);
@@ -294,4 +295,4 @@ export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
 
-const filterUndefined = <T>(x: T | undefined): x is T => x !== undefined;
+const undefined = <T>(x: T | undefined): x is T => x !== undefined;
