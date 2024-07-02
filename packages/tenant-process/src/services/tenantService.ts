@@ -94,6 +94,22 @@ export async function retrieveAttribute(
   return attribute;
 }
 
+async function retrieveCertifiedAttribute(
+  attributeOrigin: string,
+  attributeExternalId: string,
+  readModelService: ReadModelService
+): Promise<Attribute> {
+  const attributeToRevoke = await readModelService.getAttributeByOriginAndCode({
+    origin: attributeOrigin,
+    code: attributeExternalId,
+  });
+
+  if (!attributeToRevoke) {
+    throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
+  }
+  return attributeToRevoke;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   dbInstance: DB,
@@ -540,15 +556,11 @@ export function tenantServiceBuilder(
         tenantToModify
       );
 
-      const attributeToAssign =
-        await readModelService.getAttributeByOriginAndCode({
-          origin: attributeOrigin,
-          code: attributeExternalId,
-        });
-
-      if (!attributeToAssign) {
-        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
-      }
+      const attributeToAssign = await retrieveCertifiedAttribute(
+        attributeOrigin,
+        attributeExternalId,
+        readModelService
+      );
 
       const updatedTenant = await assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
@@ -596,15 +608,11 @@ export function tenantServiceBuilder(
         tenantToModify
       );
 
-      const attributeToRevoke =
-        await readModelService.getAttributeByOriginAndCode({
-          origin: attributeOrigin,
-          code: attributeExternalId,
-        });
-
-      if (!attributeToRevoke) {
-        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
-      }
+      const attributeToRevoke = await retrieveCertifiedAttribute(
+        attributeOrigin,
+        attributeExternalId,
+        readModelService
+      );
 
       const maybeAttribute = tenantToModify.data.attributes.find(
         (attr): attr is CertifiedTenantAttribute =>
@@ -733,6 +741,58 @@ export function tenantServiceBuilder(
     ): Promise<WithMetadata<Tenant> | undefined> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       return readModelService.getTenantBySelfcareId(selfcareId);
+    },
+
+    async m2mRevokeCertifiedAttribute({
+      organizationId,
+      tenantId,
+      attributeExternalId,
+      attributeOrigin,
+      correlationId,
+      logger,
+    }: {
+      organizationId: TenantId;
+      tenantId: TenantId;
+      attributeExternalId: string;
+      attributeOrigin: string;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Revoking attribute to tenant`);
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const certifierFeature = requesterTenant.data.features.find(
+        (f) => f.type === "PersistentCertifier"
+      )?.certifierId;
+
+      if (!certifierFeature) {
+        throw tenantIsNotACertifier(requesterTenant.data.id);
+      }
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const attributeToRevoke = await retrieveCertifiedAttribute(
+        attributeOrigin,
+        attributeExternalId,
+        readModelService
+      );
+
+      const updatedTenant = await revokeCertifiedAttribute(
+        targetTenant.data,
+        readModelService,
+        attributeToRevoke.id
+      );
+
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeRevoked(
+          targetTenant.metadata.version,
+          updatedTenant,
+          attributeToRevoke.id,
+          correlationId
+        )
+      );
     },
   };
 }
