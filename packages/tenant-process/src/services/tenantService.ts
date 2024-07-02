@@ -39,6 +39,7 @@ import {
 } from "../model/types.js";
 import {
   attributeNotFound,
+  attributeNotFoundInTenant,
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
@@ -808,6 +809,19 @@ export function tenantServiceBuilder(
         attributeExternalId,
         readModelService,
       });
+
+      const attributePreviouslyAssigned = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedTenantAttribute =>
+          attr.type === tenantAttributeType.CERTIFIED &&
+          attr.id === attributeToRevoke.id
+      );
+
+      if (!attributePreviouslyAssigned) {
+        throw attributeNotFoundInTenant(
+          attributeToRevoke.id,
+          targetTenant.data.id
+        );
+      }
 
       const updatedTenant = await revokeCertifiedAttribute(
         targetTenant.data,
