@@ -123,15 +123,15 @@ async function retrieveCertifiedAttribute({
   attributeExternalId: string;
   readModelService: ReadModelService;
 }): Promise<Attribute> {
-  const attributeToRevoke = await readModelService.getAttributeByOriginAndCode({
+  const attribute = await readModelService.getAttributeByOriginAndCode({
     origin: attributeOrigin,
     code: attributeExternalId,
   });
 
-  if (!attributeToRevoke) {
+  if (!attribute) {
     throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
   }
-  return attributeToRevoke;
+  return attribute;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
