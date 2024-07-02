@@ -8,6 +8,11 @@ import {
   PurposeId,
   TenantId,
   ListResult,
+  EServiceId,
+  EService,
+  Purpose,
+  Agreement,
+  agreementState,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -23,7 +28,7 @@ export type GetClientsFilters = {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { clients } = readModelRepository;
+  const { agreements, clients, eservices, purposes } = readModelRepository;
 
   return {
     async getClientById(
@@ -138,6 +143,103 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+    async getClientsRelatedToPurpose(
+      purposeId: PurposeId
+    ): Promise<Array<WithMetadata<Client>>> {
+      const data = await clients
+        .find({
+          "data.purposes": { $eq: purposeId },
+        })
+        .toArray();
+
+      const result = z
+        .array(
+          z.object({
+            metadata: z.object({ version: z.number() }),
+            data: Client,
+          })
+        )
+        .safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse client items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
+    },
+    async getEServiceById(
+      eserviceId: EServiceId
+    ): Promise<EService | undefined> {
+      const data = await eservices.findOne(
+        { "data.id": eserviceId },
+        {
+          projection: { data: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = EService.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse eService item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+    },
+    async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
+      const data = await purposes.findOne(
+        { "data.id": purposeId },
+        {
+          projection: { data: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Purpose.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse purpose item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+    },
+    async getActiveOrSuspendedAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": {
+          $in: [agreementState.active, agreementState.suspended],
+        },
+      });
+
+      if (data) {
+        const result = Agreement.safeParse(data?.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
     },
   };
 }
