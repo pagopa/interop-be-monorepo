@@ -16,7 +16,7 @@ export const TEST_MINIO_IMAGE =
   "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z";
 
 export const TEST_MAILPIT_HTTP_PORT = 8025;
-export const TEST_MAILPIT_SMTP_PORT = 1025;
+export const TEST_MAILPIT_SMTP_PORT = 465;
 export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
 
 /**
@@ -77,7 +77,22 @@ export const minioContainer = (config: S3Config): GenericContainer =>
     .withExposedPorts(TEST_MINIO_PORT);
 
 export const mailpitContainer = (): GenericContainer =>
-  new GenericContainer(TEST_MAILPIT_IMAGE).withExposedPorts(
-    TEST_MAILPIT_HTTP_PORT,
-    TEST_MAILPIT_SMTP_PORT
-  );
+  new GenericContainer(TEST_MAILPIT_IMAGE)
+    .withCopyFilesToContainer([
+      {
+        source: "../../docker/self-signed-certs/cert.pem",
+        target: "/cert.pem",
+      },
+      {
+        source: "../../docker/self-signed-certs/key.pem",
+        target: "/key.pem",
+      },
+    ])
+    .withEnvironment({
+      MP_SMTP_TLS_CERT: "/cert.pem",
+      MP_SMTP_TLS_KEY: "/key.pem",
+      MP_SMTP_AUTH: "user1:password1",
+      MP_SMTP_REQUIRE_TLS: "true",
+      MP_SMTP_BIND_ADDR: `0.0.0.0:${TEST_MAILPIT_SMTP_PORT}`,
+    })
+    .withExposedPorts(TEST_MAILPIT_HTTP_PORT, TEST_MAILPIT_SMTP_PORT);
