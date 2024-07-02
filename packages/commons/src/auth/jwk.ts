@@ -26,10 +26,10 @@ export const calculateKid = (jwk: JsonWebKey): string => {
 function createPublicKey(key: string): KeyObject {
   try {
     crypto.createPrivateKey(key);
-    throw notAllowedPrivateKeyException();
   } catch {
     return crypto.createPublicKey(key);
   }
+  throw notAllowedPrivateKeyException();
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {
