@@ -457,7 +457,7 @@ const tenantsRouter = (
     )
     .delete(
       "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([M2M_ROLE]), // to do
       async (_req, res) => res.status(501).send()
     )
     .delete(
