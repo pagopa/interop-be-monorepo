@@ -258,10 +258,21 @@ export const getMockKey = (): Key => ({
   userId: generateId(),
   name: "test key",
   createdAt: new Date(),
-  kid: generateId(),
-  encodedPem: generateId(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
