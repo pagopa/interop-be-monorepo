@@ -784,7 +784,7 @@ export function tenantServiceBuilder(
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
-      logger.info(`Revoking attribute to tenant`);
+      logger.info(`Revoking certified attribute to tenant`);
       const requesterTenant = await retrieveTenant(
         organizationId,
         readModelService
