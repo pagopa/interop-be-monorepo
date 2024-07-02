@@ -18,6 +18,7 @@ import {
   initEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
+import axios from "axios";
 import { EmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -115,7 +116,7 @@ export function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initEmailManager(emailManagerConfig);
+    emailManager = initEmailManager(emailManagerConfig, false);
   }
 
   return {
@@ -130,6 +131,7 @@ export function setupTestContainersVitest(
       await readModelRepository?.purposes.deleteMany({});
       await readModelRepository?.attributes.deleteMany({});
       await readModelRepository?.clients.deleteMany({});
+      await readModelRepository?.keys.deleteMany({});
 
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -140,6 +142,9 @@ export function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
+      );
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
@@ -155,6 +160,15 @@ export function setupTestContainersVitest(
         );
         // Some tests change the bucket name, so we need to reset it
         fileManagerConfig.s3Bucket = s3OriginalBucket;
+      }
+
+      if (
+        emailManagerConfig?.smtpAddress &&
+        emailManagerConfig?.mailpitAPIPort
+      ) {
+        await axios.delete(
+          `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
+        );
       }
     },
   };
