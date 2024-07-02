@@ -144,19 +144,6 @@ export const getMockDocument = (): Document => ({
   uploadDate: new Date(),
 });
 
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
-
 export const getMockAgreement = ({
   eserviceId,
   descriptorId,
