@@ -11,6 +11,7 @@ import {
   generateId,
   notAllowedPrivateKeyException,
   toClientV2,
+  toReadModelKey,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
@@ -63,7 +64,7 @@ describe("createKeys", () => {
 
   const pemKey = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
-  ).toString("base64");
+  ).toString("base64url");
 
   const keySeed: ApiKeySeed = {
     name: "key seed",
@@ -269,7 +270,7 @@ describe("createKeys", () => {
 
     const privatePemKey = Buffer.from(
       privateKey.export({ type: "pkcs1", format: "pem" })
-    ).toString("base64");
+    ).toString("base64url");
 
     const keySeedByPrivateKey: ApiKeySeed = {
       name: "key seed",
@@ -298,7 +299,7 @@ describe("createKeys", () => {
       kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };
     await addOneClient(mockClient);
-    await writeInReadmodel(key, keys);
+    await writeInReadmodel(toReadModelKey(key), keys);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys({
