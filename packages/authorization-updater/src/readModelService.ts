@@ -46,19 +46,7 @@ export function readModelServiceBuilder(
     purposeId: PurposeId
   ): Promise<ClientId[]> {
     const data = await clients
-      .find(
-        {
-          $or: [
-            {
-              "data.purposes.purpose.purposeId": purposeId,
-            },
-            {
-              "data.purposes": purposeId,
-            },
-          ],
-        },
-        { projection: { data: true } }
-      )
+      .find({ "data.purposes": purposeId }, { projection: { data: true } })
       .map((c) => c.data)
       .toArray();
 
