@@ -25,7 +25,7 @@ export async function handleMessageV2(
         await clients.updateOne(
           {
             "data.id": message.stream_id,
-            "metadata.version": { $lt: message.version },
+            "metadata.version": { $lte: message.version },
           },
           {
             $set: {
@@ -44,7 +44,7 @@ export async function handleMessageV2(
     .with({ type: "ClientDeleted" }, async (message) => {
       await clients.deleteOne({
         "data.id": message.stream_id,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .exhaustive();

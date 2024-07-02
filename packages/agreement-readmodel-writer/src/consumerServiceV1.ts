@@ -34,7 +34,7 @@ export async function handleMessageV1(
     .with({ type: "AgreementDeleted" }, async (msg) => {
       await agreements.deleteOne({
         "data.id": msg.stream_id,
-        "metadata.version": { $lt: msg.version },
+        "metadata.version": { $lte: msg.version },
       });
     })
     .with(
@@ -47,7 +47,7 @@ export async function handleMessageV1(
         await agreements.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
@@ -66,7 +66,7 @@ export async function handleMessageV1(
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $push: {
@@ -88,7 +88,7 @@ export async function handleMessageV1(
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $pull: {
@@ -108,7 +108,7 @@ export async function handleMessageV1(
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {

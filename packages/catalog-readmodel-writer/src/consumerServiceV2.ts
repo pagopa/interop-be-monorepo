@@ -16,7 +16,7 @@ export async function handleMessageV2(
     .with({ type: "EServiceDeleted" }, async (message) => {
       await eservices.deleteOne({
         "data.id": message.stream_id,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with(
@@ -44,7 +44,7 @@ export async function handleMessageV2(
         await eservices.updateOne(
           {
             "data.id": message.stream_id,
-            "metadata.version": { $lt: message.version },
+            "metadata.version": { $lte: message.version },
           },
           {
             $set: {
