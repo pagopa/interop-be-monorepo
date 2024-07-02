@@ -25,6 +25,7 @@ export const errorCodes = {
   certifierNotFound: "0016",
   attributeVerificationNotAllowed: "0017",
   verifiedAttributeSelfVerification: "0018",
+  attributeNotFoundInTenant: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -211,5 +212,16 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "certified Attribute Already Assigned",
+  });
+}
+
+export function attributeNotFoundInTenant(
+  attributeId: AttributeId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found in ${tenantId}`,
+    code: "attributeNotFoundInTenant",
+    title: "Attribute not found in tenant",
   });
 }
