@@ -20,9 +20,9 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  tenantNotFound,
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
+  tenantFromExternalIdNotFound,
 } from "../src/model/domain/errors.js";
 import { addOneAttribute, addOneTenant, getMockTenant } from "./utils.js";
 import {
@@ -187,9 +187,9 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         )
       );
     });
-    it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+    it("Should throw tenantNotFound if the target tenant doesn't exist", async () => {
       await addOneAttribute(attribute, attributes);
-      const targetTenant: Tenant = getMockTenant();
+      const targetTenant = getMockTenant();
       expect(
         tenantService.internalAssignCertifiedAttribute(
           {
@@ -202,10 +202,9 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
           genericLogger
         )
       ).rejects.toThrowError(
-        tenantNotFound(
-          unsafeBrandId(
-            `${targetTenant.externalId.origin}/${targetTenant.externalId.value}`
-          )
+        tenantFromExternalIdNotFound(
+          targetTenant.externalId.origin,
+          targetTenant.externalId.value
         )
       );
     });
