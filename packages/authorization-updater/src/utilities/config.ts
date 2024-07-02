@@ -5,6 +5,7 @@ import {
   CatalogTopicConfig,
   ReadModelDbConfig,
   PurposeTopicConfig,
+  AuthorizationTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -13,6 +14,7 @@ export const AuthorizationUpdaterConfig = KafkaConsumerConfig.and(
 )
   .and(AgreementTopicConfig)
   .and(PurposeTopicConfig)
+  .and(AuthorizationTopicConfig)
   .and(TokenGenerationConfig)
   .and(ReadModelDbConfig)
   .and(

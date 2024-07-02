@@ -14,8 +14,21 @@ import {
   fromPurposeV2,
   PurposeId,
   PurposeVersion,
+  ClientV2,
+  Client,
+  fromClientV2,
+  KeyUse,
+  keyUse,
+  ClientKind,
+  clientKind,
+  DescriptorState,
+  descriptorState,
+  AgreementState,
+  PurposeVersionState,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { z } from "zod";
 import { ApiClientComponentState, ApiClientComponent } from "./model/models.js";
 
 export const getDescriptorFromEvent = (
@@ -103,3 +116,81 @@ export const getPurposeVersionFromEvent = (
 
   return { purposeId: purpose.id, purposeVersion };
 };
+
+export const getClientFromEvent = (
+  msg: {
+    data: {
+      client?: ClientV2;
+    };
+  },
+  eventType: string
+): Client => {
+  if (!msg.data.client) {
+    throw missingKafkaMessageDataError("client", eventType);
+  }
+
+  return fromClientV2(msg.data.client);
+};
+
+export const apiClientKind = {
+  consumer: "CONSUMER",
+  api: "API",
+} as const;
+export const ApiClientKind = z.enum([
+  Object.values(apiClientKind)[0],
+  ...Object.values(apiClientKind).slice(1),
+]);
+export type ApiClientKind = z.infer<typeof ApiClientKind>;
+
+export const clientKindToApiClientKind = (kid: ClientKind): ApiClientKind =>
+  match<ClientKind, ApiClientKind>(kid)
+    .with(clientKind.consumer, () => "CONSUMER")
+    .with(clientKind.api, () => "API")
+    .exhaustive();
+
+export const apiKeyUse = {
+  sig: "SIG",
+  enc: "ENC",
+} as const;
+export const ApiKeyUse = z.enum([
+  Object.values(apiKeyUse)[0],
+  ...Object.values(apiKeyUse).slice(1),
+]);
+export type ApiKeyUse = z.infer<typeof ApiKeyUse>;
+
+export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
+  match<KeyUse, ApiKeyUse>(kid)
+    .with(keyUse.enc, () => "ENC")
+    .with(keyUse.sig, () => "SIG")
+    .exhaustive();
+
+export const clientComponentState = {
+  active: "ACTIVE",
+  inactive: "INACTIVE",
+} as const;
+export const ClientComponentState = z.enum([
+  Object.values(clientComponentState)[0],
+  ...Object.values(clientComponentState).slice(1),
+]);
+export type ClientComponentState = z.infer<typeof ClientComponentState>;
+
+export const convertEserviceState = (
+  state: DescriptorState
+): ClientComponentState =>
+  state === descriptorState.published || state === descriptorState.deprecated
+    ? clientComponentState.active
+    : clientComponentState.inactive;
+
+export const convertAgreementState = (
+  state: AgreementState
+): ClientComponentState =>
+  state === agreementState.active
+    ? clientComponentState.active
+    : clientComponentState.inactive;
+
+export const convertPurposeState = (
+  state: PurposeVersionState
+): ClientComponentState =>
+  state === purposeVersionState.active
+    ? clientComponentState.active
+    : clientComponentState.inactive;

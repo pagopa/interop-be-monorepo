@@ -17,8 +17,7 @@ export const { cleanup, readModelRepository } = setupTestContainersVitest(
 
 afterEach(cleanup);
 
-export const eservices = readModelRepository.eservices;
-export const clients = readModelRepository.clients;
+export const { agreements, clients, eservices, purposes } = readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
