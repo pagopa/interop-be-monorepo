@@ -2,25 +2,26 @@ import {
   Agreement,
   AgreementState,
   AttributeId,
-  CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
   Descriptor,
   DescriptorState,
   EService,
   EServiceAttribute,
   Tenant,
-  VerifiedTenantAttribute,
   agreementState,
   descriptorState,
-  tenantAttributeType,
   AgreementId,
   DescriptorId,
   EServiceId,
   unsafeBrandId,
-  TenantAttribute,
   TenantId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
+import {
+  certifiedAttributesSatisfied,
+  filterCertifiedAttributes,
+  filterDeclaredAttributes,
+  filterVerifiedAttributes,
+} from "pagopa-interop-lifecycle";
 import { ApiAgreementPayload } from "../types.js";
 import { ReadModelService } from "../../services/readModelService.js";
 import {
@@ -37,7 +38,6 @@ import {
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
-  CompactTenant,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -294,58 +294,6 @@ export const validateActiveOrPendingAgreement = (
   }
 };
 
-const attributesSatisfied = (
-  descriptorAttributes: EServiceAttribute[][],
-  consumerAttributeIds: Array<TenantAttribute["id"]>
-): boolean =>
-  descriptorAttributes.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return (
-      attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
-    );
-  });
-
-export const certifiedAttributesSatisfied = (
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
-): boolean => {
-  const certifiedAttributes = filterCertifiedAttributes(tenant).map(
-    (a) => a.id
-  );
-
-  return attributesSatisfied(
-    descriptor.attributes.certified,
-    certifiedAttributes
-  );
-};
-
-export const declaredAttributesSatisfied = (
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
-): boolean => {
-  const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
-
-  return attributesSatisfied(
-    descriptor.attributes.declared,
-    declaredAttributes
-  );
-};
-
-export const verifiedAttributesSatisfied = (
-  producerId: TenantId,
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
-): boolean => {
-  const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
-    (a) => a.id
-  );
-
-  return attributesSatisfied(
-    descriptor.attributes.verified,
-    verifiedAttributes
-  );
-};
-
 export const verifyConflictingAgreements = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
@@ -457,35 +405,3 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
-
-/* ========= FILTERS ========= */
-
-export const filterVerifiedAttributes = (
-  producerId: TenantId,
-  tenant: Tenant | CompactTenant
-): VerifiedTenantAttribute[] =>
-  tenant.attributes.filter(
-    (att) =>
-      att.type === tenantAttributeType.VERIFIED &&
-      att.verifiedBy.find(
-        (v) =>
-          v.id === producerId &&
-          (!v.extensionDate || v.extensionDate > new Date())
-      )
-  ) as VerifiedTenantAttribute[];
-
-export const filterCertifiedAttributes = (
-  tenant: Tenant | CompactTenant
-): CertifiedTenantAttribute[] =>
-  tenant.attributes.filter(
-    (att) =>
-      att.type === tenantAttributeType.CERTIFIED && !att.revocationTimestamp
-  ) as CertifiedTenantAttribute[];
-
-export const filterDeclaredAttributes = (
-  tenant: Tenant | CompactTenant
-): DeclaredTenantAttribute[] =>
-  tenant.attributes.filter(
-    (att) =>
-      att.type === tenantAttributeType.DECLARED && !att.revocationTimestamp
-  ) as DeclaredTenantAttribute[];
