@@ -10,6 +10,7 @@ import {
   TenantVerifier,
   TenantRevoker,
   badRequestError,
+  CompactTenant,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -23,7 +24,6 @@ import {
   ApiTenantRevoker,
   ApiTenantVerifier,
 } from "../types.js";
-import { CompactTenant } from "./models.js";
 
 export function agreementStateToApiAgreementState(
   input: AgreementState
