@@ -30,7 +30,7 @@ app.use(authorizationRouter(zodiosCtx, clients));
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(toolRouter(zodiosCtx));
-app.use(supportRouter(zodiosCtx));
+app.use(supportRouter(zodiosCtx, clients));
 app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx));
 app.use(purposeRouter(zodiosCtx, clients));

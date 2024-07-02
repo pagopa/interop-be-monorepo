@@ -51,9 +51,10 @@ const authorizationRouter = (
       const { correlationId, logger } = fromAppContext(req.ctx);
 
       try {
-        const jwt = await authorizationService.samlLoginCallback(
+        const jwt = await authorizationService.generateJwtFromSaml(
           correlationId,
-          saml
+          saml,
+          config.pagoPaTenantId
         );
         return res.redirect(
           302,
