@@ -13,11 +13,13 @@ import {
   fromTenantKindV2,
   toTenantV2,
   TenantCertifiedAttributeRevokedV2,
+  Attribute,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
+  attributeNotFoundInTenant,
   tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
@@ -62,7 +64,7 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
       vi.useRealTimers();
     });
 
-    it("Should revoke the certified attribute if it exist", async () => {
+    it("should revoke the certified attribute if it exist", async () => {
       const mockAttribute = getMockAttribute();
       const tenantWithCertifiedAttribute: Tenant = {
         ...requesterTenant,
@@ -118,7 +120,7 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     });
-    it("Should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
+    it("should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
       const mockAttribute = getMockAttribute();
       await addOneAttribute(mockAttribute, attributes);
       const targetTenant = getMockTenant();
@@ -140,7 +142,7 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
         )
       );
     });
-    it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
+    it("should throw attributeNotFound if the attribute doesn't exist", async () => {
       const mockAttribute = getMockAttribute();
       await addOneTenant(requesterTenant, postgresDB, tenants);
 
@@ -159,6 +161,34 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
         attributeNotFound(
           unsafeBrandId(`${mockAttribute.origin}/${mockAttribute.code}`)
         )
+      );
+    });
+    it("should throw attributeNotFoundInTenant if the target tenant doesn't have that attribute", async () => {
+      const mockAttribute: Attribute = {
+        ...getMockAttribute(),
+        code: "123456",
+        origin: generateId(),
+      };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        attributes: [],
+      };
+      await addOneTenant(requesterTenant, postgresDB, tenants);
+      await addOneTenant(targetTenant, postgresDB, tenants);
+      await addOneAttribute(mockAttribute, attributes);
+      expect(
+        tenantService.internalRevokeCertifiedAttribute(
+          {
+            tenantOrigin: targetTenant.externalId.origin,
+            tenantExternalId: targetTenant.externalId.value,
+            attributeOrigin: mockAttribute.origin!,
+            attributeExternalId: mockAttribute.code!,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
+      ).rejects.toThrowError(
+        attributeNotFoundInTenant(mockAttribute.id, targetTenant.id)
       );
     });
   });
