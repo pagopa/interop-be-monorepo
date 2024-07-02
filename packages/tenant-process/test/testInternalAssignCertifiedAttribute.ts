@@ -22,7 +22,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
-  tenantFromExternalIdNotFound,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import { addOneAttribute, addOneTenant, getMockTenant } from "./utils.js";
 import {
@@ -202,7 +202,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
           genericLogger
         )
       ).rejects.toThrowError(
-        tenantFromExternalIdNotFound(
+        tenantNotFoundByExternalId(
           targetTenant.externalId.origin,
           targetTenant.externalId.value
         )
