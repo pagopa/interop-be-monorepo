@@ -23,6 +23,8 @@ import {
   TenantUnitTypeV1,
   tenantUnitType,
   TenantUnitType,
+  AttributeId,
+  toTenantV2,
   dateToBigInt,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -139,21 +141,21 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
     : undefined,
 });
 
-export const toCreateEventTenantAdded = (
+export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version: 0,
   event: {
-    event_version: 1,
-    type: "TenantCreated",
-    data: { tenant: toTenantV1(tenant) },
+    event_version: 2,
+    type: "TenantOnboarded",
+    data: { tenant: toTenantV2(tenant) },
   },
   correlationId,
 });
 
-export const toCreateEventTenantUpdated = (
+export const toCreateEventTenantOnboardDetailsUpdated = (
   streamId: string,
   version: number,
   updatedTenant: Tenant,
@@ -162,10 +164,50 @@ export const toCreateEventTenantUpdated = (
   streamId,
   version,
   event: {
-    event_version: 1,
-    type: "TenantUpdated",
+    event_version: 2,
+    type: "TenantOnboardDetailsUpdated",
     data: {
-      tenant: toTenantV1(updatedTenant),
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantVerifiedAttributeExtensionUpdated = (
+  streamId: string,
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantVerifiedAttributeExtensionUpdated",
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
+  streamId: string,
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantVerifiedAttributeExpirationUpdated",
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
     },
   },
   correlationId,
