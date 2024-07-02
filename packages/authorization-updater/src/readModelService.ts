@@ -48,7 +48,14 @@ export function readModelServiceBuilder(
     const data = await clients
       .find(
         {
-          "data.purposes.purpose.purposeId": purposeId,
+          $or: [
+            {
+              "data.purposes.purpose.purposeId": purposeId,
+            },
+            {
+              "data.purposes": purposeId,
+            },
+          ],
         },
         { projection: { data: true } }
       )

@@ -15,6 +15,7 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
+  randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -52,6 +53,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { agreementUpgradableStates } from "../src/model/domain/validators.js";
 import { config } from "../src/utilities/config.js";
+import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -59,6 +61,7 @@ import {
   agreementService,
   fileManager,
   getMockConsumerDocument,
+  getMockContract,
   readAgreementEventByVersion,
   uploadDocument,
 } from "./utils.js";
@@ -158,6 +161,20 @@ describe("upgrade Agreement", () => {
       producerId: producerAndConsumer.id,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: agreementConsumerDocuments,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        submission: createStamp(authData.userId),
+        activation: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      contract: getMockContract(
+        agreementId,
+        producerAndConsumer.id,
+        producerAndConsumer.id
+      ),
+      suspendedAt: new Date(),
     };
 
     for (const doc of agreementConsumerDocuments) {
@@ -214,7 +231,7 @@ describe("upgrade Agreement", () => {
       },
     };
 
-    expect(actualAgreementArchived).toMatchObject(
+    expect(actualAgreementArchived).toEqual(
       toAgreementV2(expectedAgreementArchived)
     );
 
@@ -250,6 +267,9 @@ describe("upgrade Agreement", () => {
           when: TEST_EXECUTION_DATE,
         },
       },
+      verifiedAttributes: [{ id: validVerifiedTenantAttribute.id }],
+      certifiedAttributes: [],
+      declaredAttributes: [{ id: validDeclaredTenantAttribute.id }],
       consumerDocuments: agreementConsumerDocuments.map((doc, i) => ({
         ...doc,
         id: unsafeBrandId<AgreementDocumentId>(
@@ -257,13 +277,12 @@ describe("upgrade Agreement", () => {
         ),
         path: actualAgreementUpgraded?.consumerDocuments[i].path as string,
       })),
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
     });
 
-    // The method toAgreementV2 sets these to undefined,
-    // while when we read the event data they are not present
-    delete expectedUpgradedAgreement.updatedAt;
-    delete expectedUpgradedAgreement.rejectionReason;
-    expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
+    expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
     expect(actualAgreementUpgraded).toEqual(toAgreementV2(returnedAgreement));
 
     for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
@@ -354,6 +373,16 @@ describe("upgrade Agreement", () => {
       producerId,
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        submission: createStamp(authData.userId),
+        activation: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      contract: getMockContract(agreementId, consumer.id, producerId),
+      suspendedAt: new Date(),
     };
 
     await uploadDocument(
@@ -412,7 +441,7 @@ describe("upgrade Agreement", () => {
       },
     };
 
-    expect(actualAgreementArchived).toMatchObject(
+    expect(actualAgreementArchived).toEqual(
       toAgreementV2(expectedAgreementArchived)
     );
 
@@ -448,6 +477,9 @@ describe("upgrade Agreement", () => {
           when: TEST_EXECUTION_DATE,
         },
       },
+      verifiedAttributes: [{ id: validVerifiedTenantAttribute.id }],
+      certifiedAttributes: [{ id: validCertifiedTenantAttribute.id }],
+      declaredAttributes: [{ id: validDeclaredTenantAttribute.id }],
       consumerDocuments: [
         {
           ...agreementConsumerDocument,
@@ -457,13 +489,12 @@ describe("upgrade Agreement", () => {
           path: actualAgreementUpgraded?.consumerDocuments[0].path as string,
         },
       ],
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
     });
 
-    // The method toAgreementV2 sets these to undefined,
-    // while when we read the event data they are not present
-    delete expectedUpgradedAgreement.updatedAt;
-    delete expectedUpgradedAgreement.rejectionReason;
-    expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
+    expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
     expect(actualAgreementUpgraded).toEqual(toAgreementV2(returnedAgreement));
 
     expect(
@@ -544,9 +575,18 @@ describe("upgrade Agreement", () => {
       id: agreementId,
       descriptorId,
       producerId,
-      stamps: {},
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        submission: createStamp(authData.userId),
+        activation: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      contract: getMockContract(agreementId, consumerId, producerId),
+      suspendedAt: new Date(),
     };
 
     await addOneAgreement(agreementToBeUpgraded);
@@ -583,49 +623,49 @@ describe("upgrade Agreement", () => {
       stream_id: newAgreementId,
     });
 
-    const actualCreatedAgreementV2 = decodeProtobufPayload({
+    const actualCreatedAgreement = decodeProtobufPayload({
       messageType: AgreementAddedV2,
       payload: actualAgreementCreatedEvent.data,
     }).agreement;
 
     const expectedCreatedAgreement = toAgreementV2({
+      ...agreementToBeUpgraded,
       id: newAgreementId,
-      eserviceId: agreementToBeUpgraded.eserviceId,
       descriptorId,
-      producerId: agreementToBeUpgraded.producerId,
-      consumerId: agreementToBeUpgraded.consumerId,
-      verifiedAttributes: agreementToBeUpgraded.verifiedAttributes,
-      certifiedAttributes: agreementToBeUpgraded.certifiedAttributes,
-      declaredAttributes: agreementToBeUpgraded.declaredAttributes,
-      consumerNotes: agreementToBeUpgraded.consumerNotes,
       state: agreementState.draft,
       createdAt: TEST_EXECUTION_DATE,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
       consumerDocuments: [
         {
           id: unsafeBrandId<AgreementDocumentId>(
-            actualCreatedAgreementV2?.consumerDocuments[0].id as string
+            actualCreatedAgreement?.consumerDocuments[0].id as string
           ),
           name: agreementConsumerDocument.name,
           prettyName: agreementConsumerDocument.prettyName,
           contentType: agreementConsumerDocument.contentType,
-          path: actualCreatedAgreementV2?.consumerDocuments[0].path as string,
+          path: actualCreatedAgreement?.consumerDocuments[0].path as string,
           createdAt: TEST_EXECUTION_DATE,
         },
       ],
-      stamps: {},
+      stamps: {
+        suspensionByConsumer: agreementToBeUpgraded.stamps.suspensionByConsumer,
+        suspensionByProducer: agreementToBeUpgraded.stamps.suspensionByProducer,
+      },
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
+      contract: undefined,
     });
 
-    expectedCreatedAgreement.stamps = {};
-    delete expectedCreatedAgreement.updatedAt;
-    delete expectedCreatedAgreement.suspendedAt;
-    delete expectedCreatedAgreement.contract;
-    expect(actualCreatedAgreementV2).toMatchObject(expectedCreatedAgreement);
-    expect(actualCreatedAgreementV2).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     const expectedUploadedDocumentPath = `${
       config.consumerDocumentsPath
     }/${newAgreementId}/${
-      actualCreatedAgreementV2?.consumerDocuments[0].id as string
+      actualCreatedAgreement?.consumerDocuments[0].id as string
     }/${agreementConsumerDocument.name}`;
 
     expect(
@@ -717,9 +757,18 @@ describe("upgrade Agreement", () => {
       id: agreementId,
       descriptorId,
       producerId,
-      stamps: {},
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        submission: createStamp(authData.userId),
+        activation: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      contract: getMockContract(agreementId, consumerId, producerId),
+      suspendedAt: new Date(),
     };
 
     await addOneAgreement(agreementToBeUpgraded);
@@ -761,17 +810,14 @@ describe("upgrade Agreement", () => {
     }).agreement;
 
     const expectedCreatedAgreement = toAgreementV2({
+      ...agreementToBeUpgraded,
       id: newAgreementId,
-      eserviceId: agreementToBeUpgraded.eserviceId,
       descriptorId,
-      producerId: agreementToBeUpgraded.producerId,
-      consumerId: agreementToBeUpgraded.consumerId,
-      verifiedAttributes: agreementToBeUpgraded.verifiedAttributes,
-      certifiedAttributes: agreementToBeUpgraded.certifiedAttributes,
-      declaredAttributes: agreementToBeUpgraded.declaredAttributes,
-      consumerNotes: agreementToBeUpgraded.consumerNotes,
       state: agreementState.draft,
       createdAt: TEST_EXECUTION_DATE,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
       consumerDocuments: [
         {
           id: unsafeBrandId<AgreementDocumentId>(
@@ -784,14 +830,17 @@ describe("upgrade Agreement", () => {
           createdAt: TEST_EXECUTION_DATE,
         },
       ],
-      stamps: {},
+      stamps: {
+        suspensionByConsumer: agreementToBeUpgraded.stamps.suspensionByConsumer,
+        suspensionByProducer: agreementToBeUpgraded.stamps.suspensionByProducer,
+      },
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
+      contract: undefined,
     });
 
-    expectedCreatedAgreement.stamps = {};
-    delete expectedCreatedAgreement.updatedAt;
-    delete expectedCreatedAgreement.suspendedAt;
-    delete expectedCreatedAgreement.contract;
-    expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
     expect(actualCreatedAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualCreatedAgreement?.consumerDocuments[0].id}/${agreementConsumerDocument.name}`;
@@ -887,9 +936,18 @@ describe("upgrade Agreement", () => {
       id: agreementId,
       descriptorId,
       producerId,
-      stamps: {},
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: agreementConsumerDocuments,
+      suspendedByConsumer: randomBoolean(),
+      suspendedByProducer: randomBoolean(),
+      stamps: {
+        submission: createStamp(authData.userId),
+        activation: createStamp(authData.userId),
+        suspensionByConsumer: createStamp(authData.userId),
+        suspensionByProducer: createStamp(authData.userId),
+      },
+      contract: getMockContract(agreementId, consumerId, producerId),
+      suspendedAt: new Date(),
     };
 
     await addOneAgreement(agreementToBeUpgraded);
@@ -931,17 +989,14 @@ describe("upgrade Agreement", () => {
     }).agreement;
 
     const expectedCreatedAgreement = toAgreementV2({
+      ...agreementToBeUpgraded,
       id: newAgreementId,
-      eserviceId: agreementToBeUpgraded.eserviceId,
       descriptorId,
-      producerId: agreementToBeUpgraded.producerId,
-      consumerId: agreementToBeUpgraded.consumerId,
-      verifiedAttributes: agreementToBeUpgraded.verifiedAttributes,
-      certifiedAttributes: agreementToBeUpgraded.certifiedAttributes,
-      declaredAttributes: agreementToBeUpgraded.declaredAttributes,
-      consumerNotes: agreementToBeUpgraded.consumerNotes,
       state: agreementState.draft,
       createdAt: TEST_EXECUTION_DATE,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
       consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
         (doc, i) => ({
           ...doc,
@@ -951,14 +1006,17 @@ describe("upgrade Agreement", () => {
           path: actualCreatedAgreement?.consumerDocuments[i].path as string,
         })
       ),
-      stamps: {},
+      stamps: {
+        suspensionByConsumer: agreementToBeUpgraded.stamps.suspensionByConsumer,
+        suspensionByProducer: agreementToBeUpgraded.stamps.suspensionByProducer,
+      },
+      suspendedByPlatform: undefined,
+      updatedAt: undefined,
+      rejectionReason: undefined,
+      contract: undefined,
     });
 
-    expectedCreatedAgreement.stamps = {};
-    delete expectedCreatedAgreement.updatedAt;
-    delete expectedCreatedAgreement.suspendedAt;
-    delete expectedCreatedAgreement.contract;
-    expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+    expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
     expect(actualCreatedAgreement).toEqual(toAgreementV2(returnedAgreement));
 
     for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
@@ -1422,15 +1480,6 @@ describe("upgrade Agreement", () => {
 
     const agreementId = generateId<AgreementId>();
     const agreementConsumerDocument = getMockConsumerDocument(agreementId);
-    const agreementSubject = {
-      ...getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        randomArrayItem(agreementUpgradableStates)
-      ),
-      id: agreementId,
-      consumerDocuments: [agreementConsumerDocument],
-    };
 
     const validVerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
@@ -1486,11 +1535,15 @@ describe("upgrade Agreement", () => {
     };
 
     const agreementToBeUpgraded: Agreement = {
-      ...agreementSubject,
+      ...getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        randomArrayItem(agreementUpgradableStates)
+      ),
+      id: agreementId,
       descriptorId,
       producerId: tenantId,
       consumerId: tenantId,
-      stamps: {},
       createdAt: TEST_EXECUTION_DATE,
       consumerDocuments: [agreementConsumerDocument],
     };
@@ -1520,12 +1573,6 @@ describe("upgrade Agreement", () => {
     const tenantId = authData.organizationId;
     const descriptorId = generateId<DescriptorId>();
 
-    const agreementSubject = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementUpgradableStates)
-    );
-
     const validVerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
@@ -1580,11 +1627,14 @@ describe("upgrade Agreement", () => {
     };
 
     const agreementToBeUpgraded: Agreement = {
-      ...agreementSubject,
+      ...getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        randomArrayItem(agreementUpgradableStates)
+      ),
       descriptorId,
       producerId: tenantId,
       consumerId: tenantId,
-      stamps: {},
       createdAt: TEST_EXECUTION_DATE,
     };
     const agreementAlreadyExist = {
