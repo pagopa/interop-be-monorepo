@@ -1,6 +1,5 @@
 import { match } from "ts-pattern";
 import {
-  Logger,
   ReadModelRepository,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
@@ -8,9 +7,8 @@ import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
 
 const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
-export async function handleMessage(
-  message: TenantEventEnvelopeV1,
-  logger: Logger
+export async function handleMessageV1(
+  message: TenantEventEnvelopeV1
 ): Promise<void> {
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {
@@ -29,9 +27,8 @@ export async function handleMessage(
         { upsert: true }
       );
     })
-    .with({ type: "TenantDeleted" }, async (_msg) => {
-      logger.info("TODO");
-    })
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ type: "TenantDeleted" }, async (_msg) => {})
     .with(
       { type: "TenantUpdated" },
       async (msg) =>
@@ -50,11 +47,9 @@ export async function handleMessage(
           }
         )
     )
-    .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
-      logger.info("TODO");
-    })
-    .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {
-      logger.info("TODO");
-    })
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ type: "SelfcareMappingCreated" }, async (_msg) => {})
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {})
     .exhaustive();
 }
