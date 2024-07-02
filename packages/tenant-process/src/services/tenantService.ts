@@ -790,13 +790,14 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const certifierFeature = requesterTenant.data.features.find(
-        (f) => f.type === "PersistentCertifier"
-      )?.certifierId;
-
-      if (!certifierFeature) {
+      if (
+        !requesterTenant.data.features.find(
+          (f) => f.type === "PersistentCertifier"
+        )?.certifierId
+      ) {
         throw tenantIsNotACertifier(requesterTenant.data.id);
       }
+
       const targetTenant = await retrieveTenantByExternalId({
         tenantOrigin,
         tenantExternalId,
