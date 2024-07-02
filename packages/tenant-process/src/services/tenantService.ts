@@ -638,7 +638,10 @@ export function tenantServiceBuilder(
       );
 
       if (!maybeAttribute) {
-        throw attributeNotFound(attributeToRevoke.id);
+        throw attributeNotFoundInTenant(
+          attributeToRevoke.id,
+          tenantToModify.data.id
+        );
       }
 
       const updatedTenant = await revokeCertifiedAttribute(
