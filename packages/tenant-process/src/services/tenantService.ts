@@ -42,6 +42,7 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
+  tenantFromExternalIdNotFound,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerification,
 } from "../model/domain/errors.js";
@@ -79,6 +80,21 @@ const retrieveTenant = async (
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
     throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+const retrieveTenantByExternalId = async (
+  tenantOrigin: string,
+  tenantExternalId: string,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Tenant>> => {
+  const tenant = await readModelService.getTenantByExternalId({
+    origin: tenantExternalId,
+    value: tenantOrigin,
+  });
+  if (!tenant) {
+    throw tenantFromExternalIdNotFound(tenantOrigin, tenantExternalId);
   }
   return tenant;
 };
@@ -546,14 +562,10 @@ export function tenantServiceBuilder(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await readModelService.getTenantByExternalId({
-        origin: tenantOrigin,
-        value: tenantExternalId,
-      });
-
-      assertTenantExists(
-        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
-        tenantToModify
+      const tenantToModify = await retrieveTenantByExternalId(
+        tenantOrigin,
+        tenantExternalId,
+        readModelService
       );
 
       const attributeToAssign = await retrieveCertifiedAttribute(
@@ -598,14 +610,10 @@ export function tenantServiceBuilder(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await readModelService.getTenantByExternalId({
-        origin: tenantOrigin,
-        value: tenantExternalId,
-      });
-
-      assertTenantExists(
-        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
-        tenantToModify
+      const tenantToModify = await retrieveTenantByExternalId(
+        tenantOrigin,
+        tenantExternalId,
+        readModelService
       );
 
       const attributeToRevoke = await retrieveCertifiedAttribute(
@@ -745,16 +753,19 @@ export function tenantServiceBuilder(
 
     async m2mRevokeCertifiedAttribute({
       organizationId,
-      tenantId,
-      attributeExternalId,
+      tenantOrigin,
+      tenantExternalId,
       attributeOrigin,
+      attributeExternalId,
       correlationId,
       logger,
     }: {
       organizationId: TenantId;
       tenantId: TenantId;
-      attributeExternalId: string;
+      tenantOrigin: string;
+      tenantExternalId: string;
       attributeOrigin: string;
+      attributeExternalId: string;
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
@@ -771,7 +782,11 @@ export function tenantServiceBuilder(
       if (!certifierFeature) {
         throw tenantIsNotACertifier(requesterTenant.data.id);
       }
-      const targetTenant = await retrieveTenant(tenantId, readModelService);
+      const targetTenant = await retrieveTenantByExternalId(
+        tenantOrigin,
+        tenantExternalId,
+        readModelService
+      );
 
       const attributeToRevoke = await retrieveCertifiedAttribute(
         attributeOrigin,
