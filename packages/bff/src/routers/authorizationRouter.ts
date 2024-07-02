@@ -61,9 +61,10 @@ const authorizationRouter = (
 
       try {
         const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
-        const jwt = await authorizationService.samlLoginCallback(
+        const jwt = await authorizationService.generateJwtFromSaml(
           correlationId,
-          saml
+          saml,
+          config.pagoPaTenantId
         );
         return res.redirect(
           302,
