@@ -31,7 +31,7 @@ const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
 export const toKeyV1 = (input: Key): KeyV1 => ({
   ...input,
   use: toKeyUseV1(input.use),
-  createdAt: input.createdAt.toString(),
+  createdAt: input.createdAt.toISOString(),
 });
 
 export const toClientKindV1 = (input: ClientKind): ClientKindV1 =>
