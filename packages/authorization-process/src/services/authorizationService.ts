@@ -5,6 +5,7 @@ import {
   DescriptorId,
   EService,
   EServiceId,
+  Key,
   ListResult,
   Purpose,
   PurposeId,
@@ -471,6 +472,28 @@ export function authorizationServiceBuilder(
         client: updatedClient,
         showUsers: true,
       };
+    },
+    async getClientKeys({
+      clientId,
+      userIds,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      userIds: UserId[];
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key[]> {
+      logger.info(`Retrieving keys for client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+      if (userIds.length > 0) {
+        return client.data.keys.filter(
+          (k) => k.userId && userIds.includes(k.userId)
+        );
+      } else {
+        return client.data.keys;
+      }
     },
     async addClientPurpose({
       clientId,
