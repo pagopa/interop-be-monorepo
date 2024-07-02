@@ -3,10 +3,10 @@ import {
   generateId,
   unsafeBrandId,
   badRequestError,
+  CompactTenant,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { fromApiCompactTenant } from "../src/model/domain/apiConverter.js";
-import { CompactTenant } from "../src/model/domain/models.js";
 import { ApiCompactTenant } from "../src/model/types.js";
 import {
   getMockApiTenantCertifiedAttribute,
