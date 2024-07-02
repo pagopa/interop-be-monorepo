@@ -42,6 +42,7 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
+  tenantFromExternalIdNotFound,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerification,
 } from "../model/domain/errors.js";
@@ -83,6 +84,25 @@ const retrieveTenant = async (
   return tenant;
 };
 
+const retrieveTenantByExternalId = async ({
+  tenantOrigin,
+  tenantExternalId,
+  readModelService,
+}: {
+  tenantOrigin: string;
+  tenantExternalId: string;
+  readModelService: ReadModelService;
+}): Promise<WithMetadata<Tenant>> => {
+  const tenant = await readModelService.getTenantByExternalId({
+    origin: tenantExternalId,
+    value: tenantOrigin,
+  });
+  if (!tenant) {
+    throw tenantFromExternalIdNotFound(tenantOrigin, tenantExternalId);
+  }
+  return tenant;
+};
+
 export async function retrieveAttribute(
   attributeId: AttributeId,
   readModelService: ReadModelService
@@ -92,6 +112,26 @@ export async function retrieveAttribute(
     throw attributeNotFound(attributeId);
   }
   return attribute;
+}
+
+async function retrieveCertifiedAttribute({
+  attributeOrigin,
+  attributeExternalId,
+  readModelService,
+}: {
+  attributeOrigin: string;
+  attributeExternalId: string;
+  readModelService: ReadModelService;
+}): Promise<Attribute> {
+  const attributeToRevoke = await readModelService.getAttributeByOriginAndCode({
+    origin: attributeOrigin,
+    code: attributeExternalId,
+  });
+
+  if (!attributeToRevoke) {
+    throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
+  }
+  return attributeToRevoke;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -530,25 +570,17 @@ export function tenantServiceBuilder(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await readModelService.getTenantByExternalId({
-        origin: tenantOrigin,
-        value: tenantExternalId,
+      const tenantToModify = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
       });
 
-      assertTenantExists(
-        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
-        tenantToModify
-      );
-
-      const attributeToAssign =
-        await readModelService.getAttributeByOriginAndCode({
-          origin: attributeOrigin,
-          code: attributeExternalId,
-        });
-
-      if (!attributeToAssign) {
-        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
-      }
+      const attributeToAssign = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
 
       const updatedTenant = await assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
@@ -586,25 +618,17 @@ export function tenantServiceBuilder(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await readModelService.getTenantByExternalId({
-        origin: tenantOrigin,
-        value: tenantExternalId,
+      const tenantToModify = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
       });
 
-      assertTenantExists(
-        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
-        tenantToModify
-      );
-
-      const attributeToRevoke =
-        await readModelService.getAttributeByOriginAndCode({
-          origin: attributeOrigin,
-          code: attributeExternalId,
-        });
-
-      if (!attributeToRevoke) {
-        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
-      }
+      const attributeToRevoke = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
 
       const maybeAttribute = tenantToModify.data.attributes.find(
         (attr): attr is CertifiedTenantAttribute =>
