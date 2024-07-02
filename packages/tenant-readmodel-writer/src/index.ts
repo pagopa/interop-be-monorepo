@@ -5,10 +5,15 @@ import {
   readModelWriterConfig,
   tenantTopicConfig,
   decodeKafkaMessage,
+  ReadModelRepository,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEventV1 } from "pagopa-interop-models";
 import { handleMessage } from "./tenantConsumerService.js";
+
+const config = readModelWriterConfig();
+const { tenantTopic } = tenantTopicConfig();
+const { tenants } = ReadModelRepository.init(config);
 
 async function processMessage({
   message,
@@ -24,12 +29,10 @@ async function processMessage({
     correlationId: decodedMessage.correlation_id,
   });
 
-  await handleMessage(decodedMessage, loggerInstance);
+  await handleMessage(decodedMessage, tenants, loggerInstance);
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
 
-const config = readModelWriterConfig();
-const { tenantTopic } = tenantTopicConfig();
 await runConsumer(config, [tenantTopic], processMessage);
