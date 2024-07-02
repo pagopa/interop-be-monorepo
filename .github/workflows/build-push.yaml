@@ -51,6 +51,12 @@ jobs:
             dockerfile_path: packages/eservice-descriptors-archiver
           - image_name: agreement-email-sender
             dockerfile_path: packages/agreement-email-sender
+          - image_name: authorization-process
+            dockerfile_path: packages/authorization-process
+          - image_name: client-readmodel-writer
+            dockerfile_path: packages/client-readmodel-writer
+          - image_name: key-readmodel-writer
+            dockerfile_path: packages/key-readmodel-writer
 
     steps:
       - name: Checkout repository
