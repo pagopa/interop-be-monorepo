@@ -769,6 +769,78 @@ export function tenantServiceBuilder(
       }
       return tenant.data;
     },
+
+    async m2mRevokeCertifiedAttribute({
+      organizationId,
+      tenantOrigin,
+      tenantExternalId,
+      attributeOrigin,
+      attributeExternalId,
+      correlationId,
+      logger,
+    }: {
+      organizationId: TenantId;
+      tenantId: TenantId;
+      tenantOrigin: string;
+      tenantExternalId: string;
+      attributeOrigin: string;
+      attributeExternalId: string;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Revoking certified attribute to tenant`);
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const certifierFeature = requesterTenant.data.features.find(
+        (f) => f.type === "PersistentCertifier"
+      )?.certifierId;
+
+      if (!certifierFeature) {
+        throw tenantIsNotACertifier(requesterTenant.data.id);
+      }
+      const targetTenant = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
+      });
+
+      const attributeToRevoke = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
+
+      const attributePreviouslyAssigned = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedTenantAttribute =>
+          attr.type === tenantAttributeType.CERTIFIED &&
+          attr.id === attributeToRevoke.id
+      );
+
+      if (!attributePreviouslyAssigned) {
+        throw attributeNotFoundInTenant(
+          attributeToRevoke.id,
+          targetTenant.data.id
+        );
+      }
+
+      const updatedTenant = await revokeCertifiedAttribute(
+        targetTenant.data,
+        readModelService,
+        attributeToRevoke.id
+      );
+
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeRevoked(
+          targetTenant.metadata.version,
+          updatedTenant,
+          attributeToRevoke.id,
+          correlationId
+        )
+      );
+    },
   };
 }
 
