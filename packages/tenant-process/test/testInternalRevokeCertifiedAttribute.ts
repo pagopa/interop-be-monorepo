@@ -18,7 +18,7 @@ import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
-  tenantFromExternalIdNotFound,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -118,7 +118,7 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     });
-    it("Should throw tenantFromExternalIdNotFound if the target tenant doesn't exist", async () => {
+    it("Should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
       const mockAttribute = getMockAttribute();
       await addOneAttribute(mockAttribute, attributes);
       const targetTenant = getMockTenant();
@@ -134,7 +134,7 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
           genericLogger
         )
       ).rejects.toThrowError(
-        tenantFromExternalIdNotFound(
+        tenantNotFoundByExternalId(
           targetTenant.externalId.origin,
           targetTenant.externalId.value
         )

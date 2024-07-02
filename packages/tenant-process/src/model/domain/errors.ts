@@ -71,7 +71,7 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantFromExternalIdNotFound(
+export function tenantNotFoundByExternalId(
   origin: string,
   code: string
 ): ApiError<ErrorCodes> {

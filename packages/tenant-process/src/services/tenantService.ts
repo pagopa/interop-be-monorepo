@@ -43,8 +43,8 @@ import {
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantBySelfcareIdNotFound,
-  tenantFromExternalIdNotFound,
   tenantIsNotACertifier,
+  tenantNotFoundByExternalId,
   verifiedAttributeSelfVerification,
 } from "../model/domain/errors.js";
 import {
@@ -98,7 +98,7 @@ const retrieveTenantByExternalId = async ({
     value: tenantExternalId,
   });
   if (!tenant) {
-    throw tenantFromExternalIdNotFound(tenantOrigin, tenantExternalId);
+    throw tenantNotFoundByExternalId(tenantOrigin, tenantExternalId);
   }
   return tenant;
 };
@@ -750,7 +750,7 @@ export function tenantServiceBuilder(
       );
       const tenant = await readModelService.getTenantByExternalId(externalId);
       if (!tenant) {
-        throw tenantFromExternalIdNotFound(externalId.origin, externalId.value);
+        throw tenantNotFoundByExternalId(externalId.origin, externalId.value);
       }
       return tenant.data;
     },
