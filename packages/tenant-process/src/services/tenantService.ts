@@ -94,8 +94,8 @@ const retrieveTenantByExternalId = async ({
   readModelService: ReadModelService;
 }): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantByExternalId({
-    origin: tenantExternalId,
-    value: tenantOrigin,
+    origin: tenantOrigin,
+    value: tenantExternalId,
   });
   if (!tenant) {
     throw tenantFromExternalIdNotFound(tenantOrigin, tenantExternalId);
