@@ -176,3 +176,9 @@ replace(apiAgreementPath, agreementPatch);
 replace(apiAttributePath, attributePatch);
 replace(apiCatalogPath, catalogPatch);
 replace(apiPurposePath, purposePatch);
+
+const apiBffPath = new URL("./src/model/generated/api.ts", import.meta.url);
+replace(apiBffPath, agreementPatch);
+replace(apiBffPath, attributePatch);
+replace(apiBffPath, catalogPatch);
+replace(apiBffPath, purposePatch);
