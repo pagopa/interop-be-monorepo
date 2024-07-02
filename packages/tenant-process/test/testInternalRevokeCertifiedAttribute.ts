@@ -17,8 +17,8 @@ import {
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  tenantNotFound,
   attributeNotFound,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -118,14 +118,15 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     });
-    it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+    it("Should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
       const mockAttribute = getMockAttribute();
       await addOneAttribute(mockAttribute, attributes);
+      const targetTenant = getMockTenant();
       expect(
         tenantService.internalRevokeCertifiedAttribute(
           {
-            tenantOrigin: requesterTenant.externalId.origin,
-            tenantExternalId: requesterTenant.externalId.value,
+            tenantOrigin: targetTenant.externalId.origin,
+            tenantExternalId: targetTenant.externalId.value,
             attributeOrigin: mockAttribute.origin!,
             attributeExternalId: mockAttribute.code!,
             correlationId: generateId(),
@@ -133,10 +134,9 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
           genericLogger
         )
       ).rejects.toThrowError(
-        tenantNotFound(
-          unsafeBrandId(
-            `${requesterTenant.externalId.origin}/${requesterTenant.externalId.value}`
-          )
+        tenantNotFoundByExternalId(
+          targetTenant.externalId.origin,
+          targetTenant.externalId.value
         )
       );
     });
