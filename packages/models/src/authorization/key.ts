@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserId } from "../brandedIds.js";
+import { ClientId, UserId } from "../brandedIds.js";
 
 export const keyUse = {
   sig: "Sig",
@@ -12,6 +12,7 @@ export const KeyUse = z.enum([
 export type KeyUse = z.infer<typeof KeyUse>;
 
 export const Key = z.object({
+  clientId: ClientId,
   userId: UserId,
   kid: z.string(),
   name: z.string(),

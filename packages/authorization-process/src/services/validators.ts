@@ -7,17 +7,12 @@ import {
   organizationNotAllowedOnClient,
 } from "../model/domain/errors.js";
 
-export const isClientConsumer = (
-  consumerId: TenantId,
-  organizationId: string
-): boolean => (consumerId === organizationId ? true : false);
-
 export const assertUserSelfcareSecurityPrivileges = async (
   selfcareId: string,
   requesterUserId: UserId,
   consumerId: TenantId,
   selfcareV2Client: SelfcareV2Client,
-  userId: UserId
+  userId?: UserId
 ): Promise<void> => {
   const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
     params: { institutionId: selfcareId },

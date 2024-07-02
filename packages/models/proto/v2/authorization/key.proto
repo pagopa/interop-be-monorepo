@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package authorization.v2;
 
-
 message KeyV2 {
   string kid = 1;
   string encodedPem = 2;
@@ -11,6 +10,7 @@ message KeyV2 {
   int64 createdAt = 5;
   string name = 6;
   string userId = 7;
+  string clientId = 8;
 }
 
 enum KeyUseV2 {
