@@ -4,6 +4,7 @@
 import { attributeKind } from "pagopa-interop-models";
 import {
   getMockAttribute,
+  getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -23,7 +24,7 @@ import {
   tenantNotFound,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import { addOneTenant, getMockTenant, addOneAttribute } from "./utils.js";
+import { addOneTenant, addOneAttribute } from "./utils.js";
 import {
   attributes,
   postgresDB,

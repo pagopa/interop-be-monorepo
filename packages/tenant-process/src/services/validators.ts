@@ -21,22 +21,12 @@ import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
-  tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-
-export function assertTenantExists(
-  tenantId: TenantId,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
 
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,

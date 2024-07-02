@@ -22,19 +22,6 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 
-export const getMockTenant = (): Tenant => ({
-  name: "tenant_Name",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "1234",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
-
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),

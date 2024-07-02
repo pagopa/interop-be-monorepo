@@ -115,6 +115,7 @@ export const getMockTenant = (
   id: tenantId,
   createdAt: new Date(),
   attributes,
+  selfcareId: generateId(),
   externalId: {
     value: "123456",
     origin: "IPA",

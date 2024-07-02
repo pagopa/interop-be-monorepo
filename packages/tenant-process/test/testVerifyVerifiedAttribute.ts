@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAttribute,
+  getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -34,7 +35,6 @@ import {
   addOneAgreement,
   addOneEService,
   getMockAgreement,
-  getMockTenant,
   getMockDescriptor,
   getMockEService,
   getMockVerifiedTenantAttribute,
@@ -53,8 +53,8 @@ import {
 
 export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
   describe("verifyVerifiedAttribute", async () => {
-    const targetTenant: Tenant = getMockTenant();
-    const requesterTenant: Tenant = getMockTenant();
+    const targetTenant = getMockTenant();
+    const requesterTenant = getMockTenant();
     let tenantAttributeSeed: ApiVerifiedTenantAttributeSeed;
     let attribute: Attribute;
     let descriptor1: Descriptor;
