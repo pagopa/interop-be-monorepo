@@ -4,6 +4,7 @@ type FileManagerErrorCode =
   | "fileManagerCopyError"
   | "fileManagerDeleteError"
   | "fileManagerListFilesError"
+  | "fileManagerGetFileError"
   | "fileManagerStoreBytesError";
 
 export class FileManagerError extends InternalError<FileManagerErrorCode> {
@@ -52,6 +53,19 @@ export function fileManagerListFilesError(
   return new FileManagerError({
     code: "fileManagerListFilesError",
     detail: `Error listing files in bucket ${bucket}: ${parseErrorMessage(
+      error
+    )}`,
+  });
+}
+
+export function fileManagerGetFileError(
+  bucket: string,
+  path: string,
+  error: unknown
+): FileManagerError {
+  return new FileManagerError({
+    code: "fileManagerGetFileError",
+    detail: `Error getting file in bucket ${bucket} at path ${path}: ${parseErrorMessage(
       error
     )}`,
   });

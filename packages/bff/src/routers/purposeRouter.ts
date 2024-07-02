@@ -4,6 +4,7 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
+  initFileManager,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -17,6 +18,7 @@ import {
   reversePurposeUpdateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { config } from "../utilities/config.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -31,7 +33,8 @@ const purposeRouter = (
     clients.catalogProcessClient,
     clients.tenantProcessClient,
     clients.agreementProcessClient,
-    clients.authorizationClient
+    clients.authorizationClient,
+    initFileManager(config)
   );
 
   purposeRouter
