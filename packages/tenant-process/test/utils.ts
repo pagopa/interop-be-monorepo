@@ -57,20 +57,6 @@ export const writeTenantInEventstore = async (
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
 
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  selfcareId: generateId(),
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
-
 export const currentDate = new Date();
 
 export const getMockVerifiedBy = (): TenantVerifier => ({

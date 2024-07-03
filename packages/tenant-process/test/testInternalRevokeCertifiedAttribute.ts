@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAttribute,
+  getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -24,7 +25,6 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
-  getMockTenant,
   addOneAttribute,
   getMockCertifiedTenantAttribute,
 } from "./utils.js";

@@ -18,6 +18,7 @@ import {
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  getMockTenant,
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
@@ -71,7 +72,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
-  getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
