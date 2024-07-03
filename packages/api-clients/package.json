@@ -1,17 +1,22 @@
 {
   "name": "pagopa-interop-api-clients",
   "version": "1.0.0",
+  "private": true,
   "description": "PagoPA Interop Api Clients",
   "main": "dist",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "node --loader ts-node/esm ./generate.ts",
-    "check": "node --loader ts-node/esm ./generate.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "generate-model": "node --loader ts-node/esm ./generate.ts",
     "clean-generated": "pnpm exec rm ./src/generated/*.ts"
   },
   "keywords": [],
