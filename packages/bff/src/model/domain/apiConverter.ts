@@ -6,9 +6,9 @@ import {
 import { P, match } from "ts-pattern";
 import {
   ApiSelfcareInstitution,
-  ApiSelfcareProduct,
-  ApiSelfcareUser,
-} from "../api/selfcareTypes.js";
+  BffApiSelfcareProduct,
+  BffApiSelfcareUser,
+} from "../api/bffTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
@@ -33,7 +33,7 @@ export const toApiSelfcareInstitution = (
 
 export const toApiSelfcareProduct = (
   input: ProductResource
-): ApiSelfcareProduct =>
+): BffApiSelfcareProduct =>
   match(input)
     .with({ id: P.not(P.nullish), title: P.not(P.nullish) }, (product) => ({
       id: product.id,
@@ -46,7 +46,7 @@ export const toApiSelfcareProduct = (
 export const toApiSelfcareUser = (
   input: UserResource,
   tenantId: string
-): ApiSelfcareUser =>
+): BffApiSelfcareUser =>
   match(input)
     .with(
       {
