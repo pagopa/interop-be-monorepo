@@ -32,46 +32,13 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
-  CompactTenant,
 } from "pagopa-interop-models";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-lifecycle";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
-import {
-  agreementActivationFailed,
-  agreementAlreadyExists,
-  agreementDocumentAlreadyExists,
-  agreementDocumentNotFound,
-  agreementNotFound,
-  agreementSubmissionFailed,
-  descriptorNotFound,
-  eServiceNotFound,
-  noNewerDescriptor,
-  publishedDescriptorNotFound,
-  tenantNotFound,
-  unexpectedVersionFormat,
-} from "../model/domain/errors.js";
-import {
-  CompactEService,
-  CompactOrganization,
-  UpdateAgreementSeed,
-} from "../model/domain/models.js";
-import {
-  toCreateEventAgreementActivated,
-  toCreateEventAgreementAdded,
-  toCreateEventAgreementArchivedByConsumer,
-  toCreateEventAgreementArchivedByUpgrade,
-  toCreateEventAgreementConsumerDocumentAdded,
-  toCreateEventAgreementConsumerDocumentRemoved,
-  toCreateEventAgreementDeleted,
-  toCreateEventAgreementRejected,
-  toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
-  toCreateEventAgreementSubmitted,
-  toCreateEventDraftAgreementUpdated,
-} from "../model/domain/toEvent.js";
+import { z } from "zod";
 import {
   agreementArchivableStates,
   agreementClonableStates,
