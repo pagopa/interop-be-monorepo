@@ -1,7 +1,4 @@
 import {
-  Descriptor,
-  CompactTenant,
-  Tenant,
   TenantId,
   EServiceAttribute,
   TenantAttribute,
@@ -11,6 +8,10 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "../filters/attributesFilter.js";
+import {
+  DescriptorWithOnlyAttributes,
+  TenantWithOnlyAttributes,
+} from "../models/models.js";
 
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
@@ -24,8 +25,8 @@ const attributesSatisfied = (
   });
 
 export const certifiedAttributesSatisfied = (
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  descriptor: DescriptorWithOnlyAttributes,
+  tenant: TenantWithOnlyAttributes
 ): boolean => {
   const certifiedAttributes = filterCertifiedAttributes(tenant).map(
     (a) => a.id
@@ -38,8 +39,8 @@ export const certifiedAttributesSatisfied = (
 };
 
 export const declaredAttributesSatisfied = (
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  descriptor: DescriptorWithOnlyAttributes,
+  tenant: TenantWithOnlyAttributes
 ): boolean => {
   const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
 
@@ -51,8 +52,8 @@ export const declaredAttributesSatisfied = (
 
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  descriptor: DescriptorWithOnlyAttributes,
+  tenant: TenantWithOnlyAttributes
 ): boolean => {
   const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
     (a) => a.id
