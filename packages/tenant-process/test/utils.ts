@@ -1,7 +1,6 @@
-import { AttributeCollection, AuthData } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
-  Attribute,
   CertifiedTenantAttribute,
   Descriptor,
   DescriptorId,
@@ -9,7 +8,6 @@ import {
   EServiceId,
   Tenant,
   TenantEvent,
-  TenantEventV2,
   TenantId,
   TenantRevoker,
   TenantVerifier,
@@ -19,12 +17,10 @@ import {
   generateId,
   technology,
   tenantAttributeType,
-  toReadModelAttribute,
   toReadModelEService,
   toReadModelAgreement,
   toTenantV2,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
 import {
   ReadEvent,
   StoredEvent,
@@ -45,20 +41,17 @@ export const { cleanup, readModelRepository, postgresDB } =
 
 afterEach(cleanup);
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
+export const { agreements, clients, eservices, attributes, tenants } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 
 export const writeTenantInEventstore = async (
-  tenant: Tenant,
-  postgresDB: IDatabase<unknown>
+  tenant: Tenant
 ): Promise<void> => {
-  const tenantEvent: TenantEventV2 = {
+  const tenantEvent: TenantEvent = {
     type: "TenantOnboarded",
     event_version: 2,
     data: { tenant: toTenantV2(tenant) },
@@ -200,15 +193,8 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
-export const addOneAttribute = async (
-  attribute: Attribute,
-  attributes: AttributeCollection
-): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-};
-
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeTenantInEventstore(tenant, postgresDB);
+  await writeTenantInEventstore(tenant);
   await writeInReadmodel(tenant, tenants);
 };
 
