@@ -41,6 +41,7 @@ export function attributeServiceBuilder(
         toApiAttributeProcessSeed(seed),
         {
           headers,
+          withCredentials: true,
         }
       );
     },
@@ -68,6 +69,7 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributeById({
         params: { attributeId },
         headers,
+        withCredentials: true,
       });
     },
 
