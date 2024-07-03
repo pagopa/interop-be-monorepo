@@ -1,10 +1,4 @@
-import {
-  AgreementCollection,
-  AttributeCollection,
-  AuthData,
-  EServiceCollection,
-  TenantCollection,
-} from "pagopa-interop-commons";
+import { AttributeCollection, AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   Attribute,
