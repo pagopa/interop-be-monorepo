@@ -21,7 +21,6 @@ import {
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
 import { attributeNotFound } from "../model/domain/errors.js";
-import { TenantProcessConfig } from "../utilities/config.js";
 import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
 
 function listTenantsFilters(
@@ -143,8 +142,10 @@ async function getTenant(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(config: TenantProcessConfig) {
-  const { attributes, eservices, tenants } = ReadModelRepository.init(config);
+export function readModelServiceBuilder(
+  readModelRepository: ReadModelRepository
+) {
+  const { attributes, eservices, tenants } = readModelRepository;
   return {
     async getTenantsByName({
       name,
