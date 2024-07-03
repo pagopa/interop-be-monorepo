@@ -780,7 +780,6 @@ export function tenantServiceBuilder(
       logger,
     }: {
       organizationId: TenantId;
-      tenantId: TenantId;
       tenantOrigin: string;
       tenantExternalId: string;
       attributeOrigin: string;
