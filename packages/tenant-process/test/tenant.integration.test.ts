@@ -142,14 +142,6 @@ describe("Integration tests", () => {
   describe("tenantService", () => {
     describe("selfcareUpsertTenant", async () => {
       const correlationId = generateId();
-      const tenantSeed = {
-        externalId: {
-          origin: "IPA",
-          value: "123456",
-        },
-        name: "A tenant",
-        selfcareId: generateId(),
-      };
 
       it("Should update the tenant if it exists", async () => {
         await addOneTenant(mockTenant, postgresDB, tenants);
@@ -245,6 +237,14 @@ describe("Integration tests", () => {
         await addOneTenant(mockTenant, postgresDB, tenants);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
+        const tenantSeed: ApiSelfcareTenantSeed = {
+          externalId: {
+            origin: "IPA",
+            value: mockTenant.externalId.value,
+          },
+          name: "A tenant",
+          selfcareId: mockTenant.selfcareId!,
+        };
         expect(
           tenantService.selfcareUpsertTenant(tenantSeed, {
             authData: mockAuthData,
@@ -261,7 +261,11 @@ describe("Integration tests", () => {
         };
         await addOneTenant(tenant, postgresDB, tenants);
         const newTenantSeed = {
-          ...tenantSeed,
+          name: tenant.name,
+          externalId: {
+            origin: "IPA",
+            value: tenant.externalId.value,
+          },
           selfcareId: generateId(),
         };
         const mockAuthData = getMockAuthData(tenant.id);
