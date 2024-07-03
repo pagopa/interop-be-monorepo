@@ -21,6 +21,21 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: internal
+    description: Implements internal tenant process
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: m2m
+    description: Implements m2m tenant process
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: selfcare
+    description: Implements selfcare tenant process
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: health
     description: Verify service status
     externalDocs:
@@ -32,7 +47,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - tenant
+        - internal
       operationId: internalUpsertTenant
       description: |
         Creates the Tenant if it does not exist. Otherwise, add missing attributes.
@@ -85,7 +100,7 @@ paths:
           type: string
     post:
       tags:
-        - tenant
+        - internal
       operationId: internalAssignCertifiedAttribute
       description: Assigns a Certified attribute to the requesting Tenant
       responses:
@@ -105,7 +120,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
     delete:
       tags:
-        - tenant
+        - internal
       operationId: internalRevokeCertifiedAttribute
       description: Revokes a Certified attribute to the requesting Tenant
       responses:
@@ -128,7 +143,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - tenant
+        - m2m
       operationId: m2mUpsertTenant
       description: |
         Creates the Tenant if it does not exist. Otherwise, add missing attributes.
@@ -181,7 +196,7 @@ paths:
           type: string
     delete:
       tags:
-        - tenant
+        - m2m
       operationId: m2mRevokeAttribute
       description: Revokes the specific attribute from the tenant
       responses:
@@ -210,7 +225,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - tenant
+        - selfcare
       operationId: selfcareUpsertTenant
       description: |
         Creates the Tenant if it does not exist. Otherwise, set Tenant SelfcareId.
@@ -366,7 +381,7 @@ paths:
           format: uuid
     get:
       tags:
-        - tenant
+        - selfcare
       operationId: getTenantBySelfcareId
       description: Retrieve the Tenant
       responses:
