@@ -136,6 +136,7 @@ export const getMockTenant = (
   },
   features: [],
   mails: [],
+  selfcareId: generateId(),
 });
 
 export const getMockTenantMail = (
