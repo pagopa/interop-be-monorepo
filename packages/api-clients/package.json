@@ -1,0 +1,38 @@
+{
+  "name": "pagopa-interop-api-clients",
+  "version": "1.0.0",
+  "description": "PagoPA Interop Api Clients",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "node --loader ts-node/esm ./generate.ts",
+    "check": "node --loader ts-node/esm ./generate.ts",
+    "clean-generated": "pnpm exec rm ./src/generated/*.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/node": "20.14.6",
+    "handlebars": "^4.7.7",
+    "prettier": "2.8.8",
+    "ts-node": "10.9.2",
+    "openapi-zod-client": "1.18.1",
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "openapi3-ts": "3.1.0",
+    "typescript": "5.4.5"
+  },
+  "dependencies": {
+    "@zodios/core": "10.9.6",
+    "ts-pattern": "5.2.0",
+    "zod": "3.23.8",
+    "zod-validation-error": "3.3.0"
+  }
+}
