@@ -4,6 +4,7 @@ import { attributeKind } from "pagopa-interop-models";
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAttribute,
+  getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -29,7 +30,6 @@ import { ApiCertifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
   addOneAttribute,
   addOneTenant,
-  getMockTenant,
   getMockCertifiedTenantAttribute,
 } from "./utils.js";
 import {
@@ -47,7 +47,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
     const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
       id: generateId(),
     };
-    const targetTenant: Tenant = getMockTenant();
+    const targetTenant = getMockTenant();
 
     beforeAll(async () => {
       vi.useFakeTimers();
