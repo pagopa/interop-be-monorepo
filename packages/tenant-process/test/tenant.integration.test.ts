@@ -81,6 +81,7 @@ import { testAddDeclaredAttribute } from "./testAddDeclaredAttribute.js";
 import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
 import { testInternalAssignCertifiedAttribute } from "./testInternalAssignCertifiedAttribute.js";
 import { testInternalRevokeCertifiedAttribute } from "./testInternalRevokeCertifiedAttribute.js";
+import { testM2MRevokeCertifiedAttribute } from "./testm2mRevokeCertifiedAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -645,6 +646,7 @@ describe("Integration tests", () => {
     testVerifyVerifiedAttribute();
     testInternalAssignCertifiedAttribute();
     testInternalRevokeCertifiedAttribute();
+    testM2MRevokeCertifiedAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
