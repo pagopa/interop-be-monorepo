@@ -35,6 +35,7 @@ export function attributeServiceBuilder(
         toProcessAttributeSeed(seed),
         {
           headers,
+          withCredentials: true,
         }
       );
     },
@@ -61,6 +62,7 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributeById({
         params: { attributeId },
         headers,
+        withCredentials: true,
       });
     },
 
