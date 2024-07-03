@@ -6,16 +6,17 @@ import {
   DescriptorState,
   Document,
   EServiceAttribute,
-  Tenant,
   TenantAttribute,
-  TenantFeature,
   agreementApprovalPolicy,
   descriptorState,
   tenantAttributeType,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
+import {
+  DescriptorWithOnlyAttributes,
+  TenantWithOnlyAttributes,
+} from "pagopa-interop-lifecycle";
 import {
   AgreementProcessApiAgreement,
   agreementApiState,
@@ -38,6 +39,28 @@ import {
   TenantProcessApiTenant,
   TenantProcessApiTenantAttribute,
 } from "./tenantTypes.js";
+
+export function toDescriptorWithOnlyAttributes(
+  descriptor: CatalogProcessApiEServiceDescriptor
+): DescriptorWithOnlyAttributes {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const toAttribute = (
+    atts: CatalogProcessApiEServiceAttribute[]
+  ): EServiceAttribute[] =>
+    atts.map((att) => ({
+      ...att,
+      id: unsafeBrandId(att.id),
+    }));
+
+  return {
+    ...descriptor,
+    attributes: {
+      certified: descriptor.attributes.certified.map(toAttribute),
+      declared: descriptor.attributes.declared.map(toAttribute),
+      verified: descriptor.attributes.verified.map(toAttribute),
+    },
+  };
+}
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: BffGetCatalogApiQueryParam
@@ -244,34 +267,11 @@ export function toTenantAttribute(
   ] as TenantAttribute[];
 }
 
-export function toTenantFeatures(
+export function toTenantWithOnlyAttributes(
   tenant: TenantProcessApiTenant
-): TenantFeature[] {
-  const filteredFeatures: TenantFeature[] = tenant.features
-    .map(
-      (f) =>
-        f.certifier && {
-          type: "PersistentCertifier",
-          id: f.certifier.certifierId,
-        }
-    )
-    .filter((f) => f !== undefined);
-
-  return filteredFeatures;
-}
-
-export function toTenant(tenant: TenantProcessApiTenant): Tenant {
+): TenantWithOnlyAttributes {
   return {
     ...tenant,
-    id: unsafeBrandId(tenant.id),
-    createdAt: new Date(tenant.createdAt),
-    updatedAt: tenant.updatedAt ? new Date(tenant.updatedAt) : undefined,
-    attributes: [...tenant.attributes.map(toTenantAttribute).flat()],
-    features: toTenantFeatures(tenant),
-    mails: tenant.mails.map((m) => ({
-      ...m,
-      id: uuidv4(), // not provided in TenantProcessApiTenant
-      createdAt: new Date(m.createdAt),
-    })),
+    attributes: tenant.attributes.map(toTenantAttribute).flat(),
   };
 }
