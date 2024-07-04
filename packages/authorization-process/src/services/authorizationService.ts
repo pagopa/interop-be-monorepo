@@ -456,13 +456,13 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertUserSelfcareSecurityPrivileges(
-        authData.selfcareId,
-        authData.userId,
-        authData.organizationId,
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
         selfcareV2Client,
-        userId
-      );
+        userIdToCheck: userId,
+      });
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -596,7 +596,7 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      assertKeyIsBelowThreshold(
+      assertKeysCountIsBelowThreshold(
         clientId,
         client.data.keys.length + keysSeeds.length
       );
@@ -604,13 +604,13 @@ export function authorizationServiceBuilder(
         throw userNotFound(authData.userId, authData.selfcareId);
       }
 
-      await assertUserSelfcareSecurityPrivileges(
-        authData.selfcareId,
-        authData.userId,
-        authData.organizationId,
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
         selfcareV2Client,
-        client.data.users.find((userId) => userId === authData.userId)
-      );
+        userIdToCheck: authData.userId,
+      });
 
       if (keysSeeds.length !== 1) {
         throw genericInternalError("Wrong number of keys"); // TODO should we add a specific error?
@@ -656,7 +656,10 @@ export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
 
-const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
+const assertKeysCountIsBelowThreshold = (
+  clientId: ClientId,
+  size: number
+): void => {
   if (size > config.maxKeysPerClient) {
     throw tooManyKeysPerClient(clientId, size);
   }
