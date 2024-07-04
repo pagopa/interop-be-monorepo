@@ -13,7 +13,7 @@
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/authorization-service-spec.yml' -o './src/model/generated/api.ts'",
+    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/authorization-service-spec.yml' -o './src/model/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
   "keywords": [],
