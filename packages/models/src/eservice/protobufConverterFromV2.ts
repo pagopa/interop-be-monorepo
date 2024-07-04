@@ -15,6 +15,7 @@ import {
   RiskAnalysis,
   RiskAnalysisForm,
 } from "../risk-analysis/riskAnalysis.js";
+import { bigIntToDate } from "../utils.js";
 import {
   AgreementApprovalPolicy,
   agreementApprovalPolicy,
@@ -112,17 +113,11 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   agreementApprovalPolicy: fromAgreementApprovalPolicyV2(
     input.agreementApprovalPolicy
   ),
-  createdAt: new Date(Number(input.createdAt)),
-  publishedAt: input.publishedAt
-    ? new Date(Number(input.publishedAt))
-    : undefined,
-  suspendedAt: input.suspendedAt
-    ? new Date(Number(input.suspendedAt))
-    : undefined,
-  deprecatedAt: input.deprecatedAt
-    ? new Date(Number(input.deprecatedAt))
-    : undefined,
-  archivedAt: input.archivedAt ? new Date(Number(input.archivedAt)) : undefined,
+  createdAt: bigIntToDate(input.createdAt),
+  publishedAt: bigIntToDate(input.publishedAt),
+  suspendedAt: bigIntToDate(input.suspendedAt),
+  deprecatedAt: bigIntToDate(input.deprecatedAt),
+  archivedAt: bigIntToDate(input.archivedAt),
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -155,7 +150,7 @@ export const fromRiskAnalysisV2 = (
 ): RiskAnalysis => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
   riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
 });
 
@@ -165,7 +160,7 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   producerId: unsafeBrandId(input.producerId),
   technology: fromEServiceTechnologyV2(input.technology),
   descriptors: input.descriptors.map(fromDescriptorV2),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
 });
