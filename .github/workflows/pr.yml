@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm format:check
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm lint
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm check
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version-file: ./package.json 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm test
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm build
