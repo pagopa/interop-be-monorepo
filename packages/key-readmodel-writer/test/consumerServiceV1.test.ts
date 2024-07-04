@@ -135,9 +135,9 @@ describe("Events V1", async () => {
     const clientId: ClientId = generateId();
     const mockKey1: Key = { ...getMockKey(), clientId };
     const mockKey2: Key = { ...getMockKey(), clientId };
-    const mockClient = {
+    const mockClient: Client = {
       ...getMockClient(),
-      clientId,
+      id: clientId,
       keys: [mockKey1, mockKey2],
     };
 
