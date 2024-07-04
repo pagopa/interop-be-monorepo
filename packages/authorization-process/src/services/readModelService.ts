@@ -13,6 +13,7 @@ import {
   Purpose,
   Agreement,
   agreementState,
+  Key,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -28,7 +29,8 @@ export type GetClientsFilters = {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { agreements, clients, eservices, purposes } = readModelRepository;
+  const { agreements, clients, eservices, purposes, keys } =
+    readModelRepository;
 
   return {
     async getClientById(
@@ -233,6 +235,26 @@ export function readModelServiceBuilder(
         if (!result.success) {
           throw genericInternalError(
             `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
+    },
+    async getKeyByKid(kid: string): Promise<Key | undefined> {
+      const data = await keys.findOne(
+        { "data.kid": kid },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = Key.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse key item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
