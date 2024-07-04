@@ -23,7 +23,9 @@ export async function handleMessageV1(
             },
             {
               $set: {
-                data: toReadModelKey(fromKeyV1(key)),
+                data: toReadModelKey(
+                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                ),
                 metadata: {
                   version: message.version,
                 },
