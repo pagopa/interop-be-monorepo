@@ -259,9 +259,13 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
-    (targetSchema) => targetSchema.includes("authorization"),
-    () => {
-      checkSchema(config.sourceDbSchema, "authorization");
+    (targetSchema) =>
+      targetSchema.includes("authorization") || targetSchema.includes("authz"),
+    (targetSchema) => {
+      const schemaTemplate = targetSchema.includes("authz")
+        ? "authz"
+        : "authorization";
+      checkSchema(config.sourceDbSchema, schemaTemplate);
 
       const parseEventType = (event_ser_manifest: any) =>
         event_ser_manifest
