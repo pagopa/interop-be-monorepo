@@ -24,7 +24,7 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
         },
       });
 
-      const user = users.find((u) => u.id === userIdQuery);
+      const user = users.at(0);
       if (!user) {
         throw userNotFound(userIdQuery, institutionId);
       }
