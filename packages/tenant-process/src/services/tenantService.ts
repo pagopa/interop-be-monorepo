@@ -299,6 +299,7 @@ export function tenantServiceBuilder(
           mails: [],
           selfcareId: tenantSeed.selfcareId,
           kind: getTenantKind([], tenantSeed.externalId),
+          onboardedAt: new Date(),
           createdAt: new Date(),
         };
         return await repository.createEvent(
