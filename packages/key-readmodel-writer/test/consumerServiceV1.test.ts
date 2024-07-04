@@ -66,9 +66,11 @@ describe("Events V1", async () => {
     });
   });
   it("KeyDeleted", async () => {
-    const mockKey = getMockKey();
+    const clientId: ClientId = generateId();
+    const mockKey = { ...getMockKey(), clientId };
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey],
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
@@ -98,9 +100,15 @@ describe("Events V1", async () => {
     expect(retrievedKey).toBeNull();
   });
   it("KeyRelationshipToUserMigrated", async () => {
-    const mockKey: Key = { ...getMockKey(), userId: unsafeBrandId("") };
+    const clientId: ClientId = generateId();
+    const mockKey: Key = {
+      ...getMockKey(),
+      userId: unsafeBrandId(""),
+      clientId,
+    };
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey],
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
