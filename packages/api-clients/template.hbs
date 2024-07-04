@@ -8,7 +8,7 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 {{/each}}
 
 {{#each endpointsGroups}}
-const {{@key}}Endpoints = makeApi([
+export const {{@key}}Endpoints = makeApi([
 {{#each this.endpoints}}
 	{
 		method: "{{method}}",
