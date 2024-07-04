@@ -1,0 +1,24 @@
+syntax = "proto2";
+
+package authorization;
+
+message KeyEntryV1 {
+  required string keyId = 1;
+  required KeyV1 value = 2;
+}
+
+message KeyV1 {
+  optional string relationshipId = 1;
+  required string kid = 2;
+  required string encodedPem = 3;
+  required KeyUseV1 use = 4;
+  required string algorithm = 5;
+  required string createdAt = 6;
+  required string name = 7;
+  optional string userId = 8;
+}
+
+enum KeyUseV1 {
+  SIG = 1;
+  ENC = 2;
+}
