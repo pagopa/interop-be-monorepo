@@ -101,23 +101,47 @@ export function makeApiProblemBuilder<T extends string>(errors: {
       })),
     });
 
-    return match<unknown, Problem>(error)
-      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-        const problem = makeProblem(httpMapper(error), error);
-        logger.warn(makeProblemLogString(problem, error));
-        return problem;
-      })
-      .otherwise((error: unknown) => {
-        const problem = makeProblem(500, genericError("Unexpected error"));
-        logger.error(makeProblemLogString(problem, error));
-        return problem;
-      });
+    return (
+      match<unknown, Problem>(error)
+        .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
+          const problem = makeProblem(httpMapper(error), error);
+          logger.warn(makeProblemLogString(problem, error));
+          return problem;
+        })
+        // this case is to allow a passthrough of PROBLEM errors in the BFF
+        .with(
+          {
+            response: {
+              status: P.number,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
+                detail: P.string,
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
+            },
+          },
+          (e) => e.response.data
+        )
+        .otherwise((error: unknown) => {
+          const problem = makeProblem(500, genericError("Unexpected error"));
+          logger.error(makeProblemLogString(problem, error));
+          return problem;
+        })
+    );
   };
 }
 
 const errorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
+  htmlTemplateInterpolationError: "9002",
+  pdfGenerationError: "9003",
   operationForbidden: "9989",
   invalidClaim: "9990",
   genericError: "9991",
@@ -203,6 +227,24 @@ export function kafkaMessageProcessError(
   });
 }
 
+export function htmlTemplateInterpolationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "htmlTemplateInterpolationError",
+    detail: `Error compiling HTML template: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function pdfGenerationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "pdfGenerationError",
+    detail: `Error during pdf generation : ${parseErrorMessage(error)}`,
+  });
+}
+
 /* ===== API Error ===== */
 
 export function authenticationSaslFailed(
@@ -233,7 +275,7 @@ export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
 
 export function badRequestError(
   detail: string,
-  errors: Error[]
+  errors?: Error[]
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail,

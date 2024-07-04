@@ -660,57 +660,6 @@ paths:
       tags:
         - purpose
       description: archives the purpose version by id
-  /purposes/{purposeId}/versions/{versionId}/update/waitingForApproval:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-      - name: purposeId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: versionId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    post:
-      tags:
-        - purpose
-      summary: Update a purpose version in waiting for approval
-      operationId: updateWaitingForApprovalPurposeVersion
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/WaitingForApprovalPurposeVersionUpdateContent"
-        required: true
-      responses:
-        "200":
-          description: Purpose Version updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeVersion"
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Purpose version not in waiting for approval state or the organization is not a producer
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
   /purposes/riskAnalysis/latest:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -795,8 +744,8 @@ components:
       properties:
         rejectionReason:
           type: string
-          minimum: 10
-          maximum: 250
+          minLength: 10
+          maxLength: 250
       required:
         - rejectionReason
     TenantKind:
@@ -1122,16 +1071,6 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
-    WaitingForApprovalPurposeVersionUpdateContent:
-      type: object
-      description: contains the expected payload for purpose version update.
-      properties:
-        expectedApprovalDate:
-          description: "Estimated expected approval date for a purpose version"
-          type: string
-          format: date-time
-      required:
-        - expectedApprovalDate
     PurposeVersion:
       type: object
       properties:
@@ -1150,9 +1089,6 @@ components:
           type: string
           format: date-time
         firstActivationAt:
-          type: string
-          format: date-time
-        expectedApprovalDate:
           type: string
           format: date-time
         dailyCalls:
