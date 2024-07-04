@@ -16,7 +16,6 @@ import {
 
 import { TenantProcessApiTenant } from "../model/api/tenantTypes.js";
 
-
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
