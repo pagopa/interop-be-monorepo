@@ -135,7 +135,11 @@ describe("Events V1", async () => {
     const clientId: ClientId = generateId();
     const mockKey1: Key = { ...getMockKey(), clientId };
     const mockKey2: Key = { ...getMockKey(), clientId };
-    const mockClient = { ...getMockClient(), keys: [mockKey1, mockKey2] };
+    const mockClient = {
+      ...getMockClient(),
+      clientId,
+      keys: [mockKey1, mockKey2],
+    };
 
     await writeInReadmodel(toReadModelKey(mockKey1), keys);
     await writeInReadmodel(toReadModelKey(mockKey2), keys);
