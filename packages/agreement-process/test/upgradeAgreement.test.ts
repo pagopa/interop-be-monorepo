@@ -38,6 +38,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -51,9 +52,8 @@ import {
   tenantNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
-import { agreementUpgradableStates } from "../src/model/domain/validators.js";
-import { config } from "../src/utilities/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import { config } from "../src/utilities/config.js";
 import {
   addOneAgreement,
   addOneEService,
