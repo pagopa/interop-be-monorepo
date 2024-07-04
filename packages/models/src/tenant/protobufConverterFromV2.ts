@@ -13,6 +13,7 @@ import {
   TenantV2,
   TenantUnitTypeV2,
 } from "../gen/v2/tenant/tenant.js";
+import { bigIntToDate } from "../utils.js";
 import {
   TenantKind,
   tenantKind,
@@ -55,7 +56,7 @@ export const fromTenantMailKindV2 = (
 export const fromTenantMailV2 = (input: TenantMailV2): TenantMail => ({
   ...input,
   id: input.id ?? createHash("sha256").update(input.address).digest("hex"),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
   kind: fromTenantMailKindV2(input.kind),
 });
 
@@ -78,25 +79,17 @@ export const fromTenantVerifierV2 = (
   input: TenantVerifierV2
 ): TenantVerifier => ({
   ...input,
-  verificationDate: new Date(Number(input.verificationDate)),
-  expirationDate: input.expirationDate
-    ? new Date(Number(input.expirationDate))
-    : undefined,
-  extensionDate: input.extensionDate
-    ? new Date(Number(input.extensionDate))
-    : undefined,
+  verificationDate: bigIntToDate(input.verificationDate),
+  expirationDate: bigIntToDate(input.expirationDate),
+  extensionDate: bigIntToDate(input.extensionDate),
 });
 
 export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
   ...input,
-  expirationDate: input.expirationDate
-    ? new Date(Number(input.expirationDate))
-    : undefined,
-  extensionDate: input.extensionDate
-    ? new Date(Number(input.extensionDate))
-    : undefined,
-  revocationDate: new Date(Number(input.revocationDate)),
-  verificationDate: new Date(Number(input.verificationDate)),
+  expirationDate: bigIntToDate(input.expirationDate),
+  extensionDate: bigIntToDate(input.extensionDate),
+  revocationDate: bigIntToDate(input.revocationDate),
+  verificationDate: bigIntToDate(input.verificationDate),
 });
 
 export const fromTenantAttributesV2 = (
@@ -109,8 +102,8 @@ export const fromTenantAttributesV2 = (
       const { certifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(certifiedAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(certifiedAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          certifiedAttribute.assignmentTimestamp
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -118,8 +111,8 @@ export const fromTenantAttributesV2 = (
       const { verifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(verifiedAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(verifiedAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          verifiedAttribute.assignmentTimestamp
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV2),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV2),
@@ -129,8 +122,8 @@ export const fromTenantAttributesV2 = (
       const { declaredAttribute } = sealedValue;
       return {
         id: unsafeBrandId(declaredAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(declaredAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          declaredAttribute.assignmentTimestamp
         ),
         type: tenantAttributeType.DECLARED,
       };
@@ -167,16 +160,14 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
     ...input,
     id: unsafeBrandId(input.id),
     name: input.name ?? "",
-    createdAt: new Date(Number(input.createdAt)),
+    createdAt: bigIntToDate(input.createdAt),
     attributes: input.attributes.map(fromTenantAttributesV2),
     externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV2),
     mails: input.mails.map(fromTenantMailV2),
     kind: input.kind ? fromTenantKindV2(input.kind) : undefined,
-    updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
-    onboardedAt: input.onboardedAt
-      ? new Date(Number(input.onboardedAt))
-      : undefined,
+    updatedAt: bigIntToDate(input.updatedAt),
+    onboardedAt: bigIntToDate(input.onboardedAt),
     subUnitType: input.subUnitType
       ? fromTenantUnitTypeV2(input.subUnitType)
       : undefined,

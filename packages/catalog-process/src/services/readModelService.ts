@@ -181,7 +181,7 @@ export function readModelServiceBuilder(
         });
 
       const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
         authData
       )
         ? {

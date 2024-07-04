@@ -36,7 +36,7 @@ message AgreementUnsuspendedByPlatformV2 {
   AgreementV2 agreement = 1;
 }
 
-message AgreementArchivedV2 {
+message AgreementArchivedByConsumerV2 {
   AgreementV2 agreement = 1;
 }
 
@@ -74,3 +74,10 @@ message AgreementConsumerDocumentRemovedV2 {
   AgreementV2 agreement = 2;
 }
 
+message AgreementSetDraftByPlatformV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementSetMissingCertifiedAttributesByPlatformV2 {
+  AgreementV2 agreement = 1;
+}
