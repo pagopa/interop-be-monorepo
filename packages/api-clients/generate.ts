@@ -73,6 +73,7 @@ const main = async () => {
       handlebars,
       templatePath: "./template.hbs",
       options: {
+        withAlias: true,
         shouldExportAllTypes: true,
         groupStrategy: "tag",
       },
