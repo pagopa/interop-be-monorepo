@@ -649,6 +649,28 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
+    async getClientKeyById({
+      clientId,
+      kid,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      kid: string;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key> {
+      logger.info(`Retrieving key ${kid} in client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+      const key = client.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw keyNotFound(kid, clientId);
+      }
+      return key;
+    },
   };
 }
 
