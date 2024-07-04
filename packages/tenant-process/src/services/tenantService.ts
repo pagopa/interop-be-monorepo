@@ -562,9 +562,11 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      if (
-        !verifiedTenantAttribute.verifiedBy.find((a) => a.id === organizationId)
-      ) {
+      const verifier = verifiedTenantAttribute.verifiedBy.find(
+        (a) => a.id === organizationId
+      );
+
+      if (!verifier) {
         throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
@@ -577,18 +579,24 @@ export function tenantServiceBuilder(
       const updatedTenant = {
         ...targetTenant.data,
         createdAt: new Date(),
-        attributes: targetTenant.data.attributes.map((verifiedAttribute) =>
-          verifiedAttribute.id === attributeId
-            ? {
-                ...verifiedAttribute,
-                assignmentTimestamp:
-                  verifiedTenantAttribute.assignmentTimestamp,
-                revocationTimestamp: new Date(),
-              }
-            : verifiedAttribute
+        attributes: targetTenant.data.attributes.map((attr) =>
+          attr.id === attributeId
+            ? ({
+                ...verifiedTenantAttribute,
+                verifiedBy: verifiedTenantAttribute.verifiedBy.filter(
+                  (v) => v.id !== organizationId
+                ),
+                revokedBy: [
+                  ...verifiedTenantAttribute.revokedBy,
+                  {
+                    ...verifier,
+                    revocationDate: new Date(),
+                  },
+                ],
+              } as VerifiedTenantAttribute)
+            : attr
         ),
       };
-
       await repository.createEvent(
         toCreateEventTenantVerifiedAttributeRevoked(
           targetTenant.metadata.version,
