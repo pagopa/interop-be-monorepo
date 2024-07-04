@@ -192,10 +192,9 @@ export function toTenantAttribute(
   const certified: CertifiedTenantAttribute | undefined = att.certified && {
     id: unsafeBrandId<AttributeId>(att.certified.id),
     type: tenantAttributeType.CERTIFIED,
-    revocationTimestamp:
-      att.certified.revocationTimestamp
-        ? new Date(att.certified.revocationTimestamp)
-        : undefined,
+    revocationTimestamp: att.certified.revocationTimestamp
+      ? new Date(att.certified.revocationTimestamp)
+      : undefined,
     assignmentTimestamp: new Date(att.certified.assignmentTimestamp),
   };
 
@@ -206,27 +205,15 @@ export function toTenantAttribute(
     verifiedBy: att.verified.verifiedBy.map((v) => ({
       id: v.id,
       verificationDate: new Date(v.verificationDate),
-      expirationDate:
-        v.expirationDate
-          ? new Date(v.expirationDate)
-          : undefined,
-      extensionDate:
-        v.extensionDate
-          ? new Date(v.extensionDate)
-          : undefined,
+      expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
+      extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
     })),
     revokedBy: att.verified.revokedBy.map((r) => ({
       id: r.id,
       verificationDate: new Date(r.verificationDate),
       revocationDate: new Date(r.revocationDate),
-      expirationDate:
-        r.expirationDate
-          ? new Date(r.expirationDate)
-          : undefined,
-      extensionDate:
-        r.extensionDate
-          ? new Date(r.extensionDate)
-          : undefined,
+      expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
+      extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
     })),
   };
 
@@ -234,10 +221,9 @@ export function toTenantAttribute(
     id: unsafeBrandId<AttributeId>(att.declared.id),
     type: tenantAttributeType.DECLARED,
     assignmentTimestamp: new Date(att.declared.assignmentTimestamp),
-    revocationTimestamp:
-      att.declared.revocationTimestamp 
-        ? new Date(att.declared.revocationTimestamp)
-        : undefined,
+    revocationTimestamp: att.declared.revocationTimestamp
+      ? new Date(att.declared.revocationTimestamp)
+      : undefined,
   };
 
   return [certified, verified, declared].filter(
