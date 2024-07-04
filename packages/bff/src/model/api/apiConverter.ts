@@ -1,16 +1,18 @@
 /* eslint-disable max-params */
 import {
   AgreementApprovalPolicy,
+  TenantAttribute,
   AttributeId,
-  Descriptor,
   DescriptorState,
   Document,
   EServiceAttribute,
-  TenantAttribute,
   agreementApprovalPolicy,
   descriptorState,
-  tenantAttributeType,
   unsafeBrandId,
+  tenantAttributeType,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -166,7 +168,7 @@ export function toEServiceDescriptorDocument(
   };
 }
 
-export function toAttribute(
+export function toEserviceAttribute(
   attribute: CatalogProcessApiEServiceAttribute
 ): EServiceAttribute {
   return {
@@ -184,87 +186,65 @@ export function toApprovalPolicy(
     .exhaustive();
 }
 
-export function toDescriptor(
-  descriptor: CatalogProcessApiEServiceDescriptor
-): Descriptor {
-  return {
-    ...descriptor,
-    createdAt: new Date(), // not provided in CatalogProcessApiEServiceDescriptor
-    id: unsafeBrandId(descriptor.id),
-    state: toDescriptorState(descriptor.state),
-    interface:
-      descriptor.interface &&
-      toEServiceDescriptorDocument(descriptor.interface),
-    docs: descriptor.docs.map(toEServiceDescriptorDocument),
-    attributes: {
-      certified: descriptor.attributes.certified.map((a) => a.map(toAttribute)),
-      verified: descriptor.attributes.verified.map((a) => a.map(toAttribute)),
-      declared: descriptor.attributes.declared.map((a) => a.map(toAttribute)),
-    },
-    agreementApprovalPolicy: toApprovalPolicy(
-      descriptor.agreementApprovalPolicy
-    ),
-    archivedAt: descriptor.archivedAt
-      ? new Date(descriptor.archivedAt)
-      : undefined,
-    deprecatedAt: descriptor.deprecatedAt
-      ? new Date(descriptor.deprecatedAt)
-      : undefined,
-    suspendedAt: descriptor.suspendedAt
-      ? new Date(descriptor.suspendedAt)
-      : undefined,
-    publishedAt: descriptor.publishedAt
-      ? new Date(descriptor.publishedAt)
-      : undefined,
-  };
-}
-
 export function toTenantAttribute(
-  attribute: TenantProcessApiTenantAttribute
+  att: TenantProcessApiTenantAttribute
 ): TenantAttribute[] {
-  const declaredAttribute = attribute.declared && {
-    type: tenantAttributeType.DECLARED,
-    id: unsafeBrandId(attribute.declared.id),
-    assignmentTimestamp: new Date(attribute.declared.assignmentTimestamp),
-    revocationTimestamp: attribute.declared.revocationTimestamp
-      ? new Date(attribute.declared.revocationTimestamp)
-      : undefined,
-  };
-
-  const certifiedAttribute = attribute.certified && {
+  const certified: CertifiedTenantAttribute | undefined = att.certified && {
+    id: unsafeBrandId<AttributeId>(att.certified.id),
     type: tenantAttributeType.CERTIFIED,
-    id: unsafeBrandId(attribute.certified.id),
-    assignmentTimestamp: new Date(attribute.certified.assignmentTimestamp),
-    revocationTimestamp: attribute.certified.revocationTimestamp
-      ? new Date(attribute.certified.revocationTimestamp)
-      : undefined,
+    revocationTimestamp:
+      att.certified.revocationTimestamp &&
+      att.certified.revocationTimestamp !== ""
+        ? new Date(att.certified.revocationTimestamp)
+        : undefined,
+    assignmentTimestamp: new Date(att.certified.assignmentTimestamp),
   };
 
-  const verifiedAttributes = attribute.verified && {
+  const verified: VerifiedTenantAttribute | undefined = att.verified && {
+    id: unsafeBrandId<AttributeId>(att.verified.id),
     type: tenantAttributeType.VERIFIED,
-    id: unsafeBrandId(attribute.verified.id),
-    assignmentTimestamp: new Date(attribute.verified.assignmentTimestamp),
-    verifiedBy: attribute.verified.verifiedBy.map((v) => ({
+    assignmentTimestamp: new Date(att.verified.assignmentTimestamp),
+    verifiedBy: att.verified.verifiedBy.map((v) => ({
       id: v.id,
       verificationDate: new Date(v.verificationDate),
-      expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
-      extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
-      revocationDate: undefined, // not provided in TenantProcessApiTenantAttribute
+      expirationDate:
+        v.expirationDate && v.expirationDate !== ""
+          ? new Date(v.expirationDate)
+          : undefined,
+      extensionDate:
+        v.extensionDate && v.extensionDate !== ""
+          ? new Date(v.extensionDate)
+          : undefined,
     })),
-    revokedBy: attribute.verified.revokedBy.map((r) => ({
+    revokedBy: att.verified.revokedBy.map((r) => ({
       id: r.id,
-      expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
-      extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
-      revocationDate: new Date(r.revocationDate),
       verificationDate: new Date(r.verificationDate),
+      revocationDate: new Date(r.revocationDate),
+      expirationDate:
+        r.expirationDate && r.expirationDate !== ""
+          ? new Date(r.expirationDate)
+          : undefined,
+      extensionDate:
+        r.extensionDate && r.extensionDate !== ""
+          ? new Date(r.extensionDate)
+          : undefined,
     })),
   };
+  
+  const declared: DeclaredTenantAttribute | undefined = att.declared && {
+    id: unsafeBrandId<AttributeId>(att.declared.id),
+    type: tenantAttributeType.DECLARED,
+    assignmentTimestamp: new Date(att.declared.assignmentTimestamp),
+    revocationTimestamp:
+      att.declared.revocationTimestamp &&
+      att.declared.revocationTimestamp !== ""
+        ? new Date(att.declared.revocationTimestamp)
+        : undefined,
+  };
 
-  return [
-    declaredAttribute,
-    certifiedAttribute,
-    verifiedAttributes,
-  ] as TenantAttribute[];
+  return [certified, verified, declared].filter(
+    (a): a is TenantAttribute => !!a
+  );
 }
 
 export function toTenantWithOnlyAttributes(
