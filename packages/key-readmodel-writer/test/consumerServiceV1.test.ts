@@ -32,7 +32,7 @@ describe("Events V1", async () => {
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
 
-    const addedKey: Key = getMockKey();
+    const addedKey: Key = { ...getMockKey(), clientId: mockClient.id };
 
     const payload: KeysAddedV1 = {
       clientId: mockClient.id,
@@ -66,9 +66,11 @@ describe("Events V1", async () => {
     });
   });
   it("KeyDeleted", async () => {
-    const mockKey = getMockKey();
+    const clientId: ClientId = generateId();
+    const mockKey = { ...getMockKey(), clientId };
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey],
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
@@ -98,9 +100,15 @@ describe("Events V1", async () => {
     expect(retrievedKey).toBeNull();
   });
   it("KeyRelationshipToUserMigrated", async () => {
-    const mockKey: Key = { ...getMockKey(), userId: unsafeBrandId("") };
+    const clientId: ClientId = generateId();
+    const mockKey: Key = {
+      ...getMockKey(),
+      userId: unsafeBrandId(""),
+      clientId,
+    };
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey],
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
@@ -135,7 +143,11 @@ describe("Events V1", async () => {
     const clientId: ClientId = generateId();
     const mockKey1: Key = { ...getMockKey(), clientId };
     const mockKey2: Key = { ...getMockKey(), clientId };
-    const mockClient = { ...getMockClient(), keys: [mockKey1, mockKey2] };
+    const mockClient: Client = {
+      ...getMockClient(),
+      id: clientId,
+      keys: [mockKey1, mockKey2],
+    };
 
     await writeInReadmodel(toReadModelKey(mockKey1), keys);
     await writeInReadmodel(toReadModelKey(mockKey2), keys);
