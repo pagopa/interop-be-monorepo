@@ -13,7 +13,7 @@ import { supportApi } from "../model/generated/api.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { config } from "../utilities/config.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { makeApiProblem } from "../utilities/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 
 const supportRouter = (
   ctx: ZodiosContext,
@@ -45,7 +45,7 @@ const supportRouter = (
       return res.status(200).send({ session_token: jwt });
     } catch (error) {
       makeApiProblem(error, (_) => 500, logger);
-      return res.status(500).send(); // TODO handle error
+      return res.status(500).send();
     }
   });
 

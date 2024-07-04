@@ -155,7 +155,6 @@ export function authorizationServiceBuilder(
     if (!success) {
       throw samlNotValid(error.message);
     }
-
     if (!saml.Response) {
       throw samlNotValid("Response not found");
     }
@@ -169,35 +168,37 @@ export function authorizationServiceBuilder(
     const assertions = response.Assertion;
     const conditions = assertions
       .flatMap((a) => a.Conditions)
-      .filter(undefined);
+      .filter(filterUndefined);
     const audienceRestrictions = conditions
       .flatMap((c) => c.AudienceRestriction)
-      .filter(undefined);
-    if (audienceRestrictions.length === 0)
+      .filter(filterUndefined);
+    if (audienceRestrictions.length === 0) {
       throw samlNotValid("Missing Audience Restriction");
     }
     const notBeforeConditions = conditions
       .map((c) => c.NotBefore)
-      .filter(undefined);
-    if (notBeforeConditions.length === 0)
+      .filter(filterUndefined);
+    if (notBeforeConditions.length === 0) {
       throw samlNotValid("Missing Not Before Restrictions");
     }
     const notOnOrAfterConditions = conditions
       .map((c) => c.NotOnOrAfter)
-      .filter(undefined);
-    if (notOnOrAfterConditions.length === 0)
+      .filter(filterUndefined);
+    if (notOnOrAfterConditions.length === 0) {
       throw samlNotValid("Missing Not On Or After Restrictions");
     }
     const attributeStatements = assertions
       .flatMap((a) => a.AttributeStatement)
-      .filter(undefined);
-    if (attributeStatements.length === 0)
+      .filter(filterUndefined);
+    if (attributeStatements.length === 0) {
       throw samlNotValid("Missing Attribute Statement");
     }
     const attributes = attributeStatements
       .flatMap((a) => a.Attribute)
-      .filter(undefined);
-    if (attributes.length === 0) throw samlNotValid("Missing Attributes");
+      .filter(filterUndefined);
+    if (attributes.length === 0) {
+      throw samlNotValid("Missing Attributes");
+    }
     const now = +Date();
 
     validateSignature(saml);
@@ -352,4 +353,4 @@ export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
 
-const undefined = <T>(x: T | undefined): x is T => x !== undefined;
+const filterUndefined = <T>(x: T | undefined): x is T => x !== undefined;
