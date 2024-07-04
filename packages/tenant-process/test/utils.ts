@@ -1,7 +1,6 @@
 import {
   AgreementCollection,
   AttributeCollection,
-  AuthData,
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -9,10 +8,7 @@ import {
   Agreement,
   Attribute,
   CertifiedTenantAttribute,
-  Descriptor,
-  DescriptorId,
   EService,
-  EServiceId,
   Tenant,
   TenantEvent,
   TenantEventV2,
@@ -20,15 +16,15 @@ import {
   TenantRevoker,
   TenantVerifier,
   VerifiedTenantAttribute,
-  agreementState,
-  descriptorState,
   generateId,
-  technology,
   tenantAttributeType,
   toReadModelAttribute,
   toReadModelEService,
   toReadModelAgreement,
   toTenantV2,
+  EServiceId,
+  DescriptorId,
+  agreementState,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -85,49 +81,6 @@ export const getMockCertifiedTenantAttribute =
     type: tenantAttributeType.CERTIFIED,
     revocationTimestamp: undefined,
   });
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eService name",
-  description: "eService description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  attributes: undefined,
-  riskAnalysis: [],
-  mode: "Deliver",
-});
-
-export const getMockDescriptor = (): Descriptor => ({
-  id: generateId(),
-  version: "0",
-  docs: [],
-  state: descriptorState.draft,
-  audience: [],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: [],
-  agreementApprovalPolicy: "Automatic",
-  attributes: {
-    certified: [],
-    verified: [],
-    declared: [],
-  },
-});
 
 export const getMockAgreement = ({
   eserviceId,
