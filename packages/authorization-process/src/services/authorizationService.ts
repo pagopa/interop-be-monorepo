@@ -142,10 +142,9 @@ export function authorizationServiceBuilder(
     }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         client: client.data,
-        showUsers: true,
+        showUsers: organizationId === client.data.consumerId,
       };
     },
 
@@ -461,7 +460,8 @@ export function authorizationServiceBuilder(
         authData.selfcareId,
         authData.userId,
         authData.organizationId,
-        selfcareV2Client
+        selfcareV2Client,
+        userId
       );
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
@@ -603,11 +603,13 @@ export function authorizationServiceBuilder(
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
       }
+
       await assertUserSelfcareSecurityPrivileges(
         authData.selfcareId,
         authData.userId,
         authData.organizationId,
-        selfcareV2Client
+        selfcareV2Client,
+        client.data.users.find((userId) => userId === authData.userId)
       );
 
       if (keysSeeds.length !== 1) {

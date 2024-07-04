@@ -258,8 +258,8 @@ export const getMockKey = (): Key => ({
   userId: generateId(),
   name: "test key",
   createdAt: new Date(),
-  kid: generateId(),
-  encodedPem: generateId(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
 });

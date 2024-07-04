@@ -11,13 +11,14 @@ export const assertUserSelfcareSecurityPrivileges = async (
   selfcareId: string,
   requesterUserId: UserId,
   consumerId: TenantId,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2Client: SelfcareV2Client,
+  userId?: UserId
 ): Promise<void> => {
   const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
     params: { institutionId: selfcareId },
     queries: {
       userIdForAuth: requesterUserId,
-      userId: consumerId,
+      userId,
       productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
     },
   });
