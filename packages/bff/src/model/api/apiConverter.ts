@@ -193,8 +193,7 @@ export function toTenantAttribute(
     id: unsafeBrandId<AttributeId>(att.certified.id),
     type: tenantAttributeType.CERTIFIED,
     revocationTimestamp:
-      att.certified.revocationTimestamp &&
-      att.certified.revocationTimestamp !== ""
+      att.certified.revocationTimestamp
         ? new Date(att.certified.revocationTimestamp)
         : undefined,
     assignmentTimestamp: new Date(att.certified.assignmentTimestamp),
@@ -208,11 +207,11 @@ export function toTenantAttribute(
       id: v.id,
       verificationDate: new Date(v.verificationDate),
       expirationDate:
-        v.expirationDate && v.expirationDate !== ""
+        v.expirationDate
           ? new Date(v.expirationDate)
           : undefined,
       extensionDate:
-        v.extensionDate && v.extensionDate !== ""
+        v.extensionDate
           ? new Date(v.extensionDate)
           : undefined,
     })),
@@ -221,11 +220,11 @@ export function toTenantAttribute(
       verificationDate: new Date(r.verificationDate),
       revocationDate: new Date(r.revocationDate),
       expirationDate:
-        r.expirationDate && r.expirationDate !== ""
+        r.expirationDate
           ? new Date(r.expirationDate)
           : undefined,
       extensionDate:
-        r.extensionDate && r.extensionDate !== ""
+        r.extensionDate
           ? new Date(r.extensionDate)
           : undefined,
     })),
@@ -236,8 +235,7 @@ export function toTenantAttribute(
     type: tenantAttributeType.DECLARED,
     assignmentTimestamp: new Date(att.declared.assignmentTimestamp),
     revocationTimestamp:
-      att.declared.revocationTimestamp &&
-      att.declared.revocationTimestamp !== ""
+      att.declared.revocationTimestamp 
         ? new Date(att.declared.revocationTimestamp)
         : undefined,
   };
