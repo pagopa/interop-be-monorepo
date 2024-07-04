@@ -13,6 +13,7 @@ import {
   TenantV1,
   TenantUnitTypeV1,
 } from "../gen/v1/tenant/tenant.js";
+import { bigIntToDate } from "../utils.js";
 import {
   TenantKind,
   tenantKind,
@@ -61,7 +62,7 @@ export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
   id: input.id
     ? input.id
     : createHash("sha256").update(input.address).digest("hex"),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
   kind: fromTenantMailKindV1(input.kind),
 });
 
@@ -84,25 +85,17 @@ export const fromTenantVerifierV1 = (
   input: TenantVerifierV1
 ): TenantVerifier => ({
   ...input,
-  verificationDate: new Date(Number(input.verificationDate)),
-  expirationDate: input.expirationDate
-    ? new Date(Number(input.expirationDate))
-    : undefined,
-  extensionDate: input.extensionDate
-    ? new Date(Number(input.extensionDate))
-    : undefined,
+  verificationDate: bigIntToDate(input.verificationDate),
+  expirationDate: bigIntToDate(input.expirationDate),
+  extensionDate: bigIntToDate(input.extensionDate),
 });
 
 export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
   ...input,
-  expirationDate: input.expirationDate
-    ? new Date(Number(input.expirationDate))
-    : undefined,
-  extensionDate: input.extensionDate
-    ? new Date(Number(input.extensionDate))
-    : undefined,
-  revocationDate: new Date(Number(input.revocationDate)),
-  verificationDate: new Date(Number(input.verificationDate)),
+  expirationDate: bigIntToDate(input.expirationDate),
+  extensionDate: bigIntToDate(input.extensionDate),
+  revocationDate: bigIntToDate(input.revocationDate),
+  verificationDate: bigIntToDate(input.verificationDate),
 });
 
 export const fromTenantAttributesV1 = (
@@ -115,8 +108,8 @@ export const fromTenantAttributesV1 = (
       const { certifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(certifiedAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(certifiedAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          certifiedAttribute.assignmentTimestamp
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -124,8 +117,8 @@ export const fromTenantAttributesV1 = (
       const { verifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(verifiedAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(verifiedAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          verifiedAttribute.assignmentTimestamp
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
@@ -135,8 +128,8 @@ export const fromTenantAttributesV1 = (
       const { declaredAttribute } = sealedValue;
       return {
         id: unsafeBrandId(declaredAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(declaredAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          declaredAttribute.assignmentTimestamp
         ),
         type: tenantAttributeType.DECLARED,
       };
@@ -175,16 +168,14 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
     ...input,
     id: unsafeBrandId(input.id),
     name: input.name ?? "",
-    createdAt: new Date(Number(input.createdAt)),
+    createdAt: bigIntToDate(input.createdAt),
     attributes: input.attributes.map(fromTenantAttributesV1),
     externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV1),
     mails: input.mails.map(fromTenantMailV1),
     kind: input.kind ? fromTenantKindV1(input.kind) : undefined,
-    updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
-    onboardedAt: input.onboardedAt
-      ? new Date(Number(input.onboardedAt))
-      : undefined,
+    updatedAt: bigIntToDate(input.updatedAt),
+    onboardedAt: bigIntToDate(input.onboardedAt),
     subUnitType: input.subUnitType
       ? fromTenantUnitTypeV1(input.subUnitType)
       : undefined,
