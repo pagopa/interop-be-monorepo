@@ -37,13 +37,10 @@ import {
 } from "./utils.js";
 
 describe("addCertifiedAttribute", async () => {
-  console.log("CI SONOOOO");
   const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
     id: generateId(),
   };
   const targetTenant: Tenant = getMockTenant();
-
-  console.log("targetTenant", targetTenant);
 
   const requesterTenant: Tenant = {
     ...getMockTenant(),
@@ -73,34 +70,26 @@ describe("addCertifiedAttribute", async () => {
   });
 
   it("Should add the certified attribute if the tenant doesn't have that", async () => {
-    console.log("1");
-
-    console.log("SONO NEL PRIMO TEST");
-
-    const targetTenant1: Tenant = getMockTenant();
-    await addOneTenant(targetTenant1);
-    console.log("NON HO FALLITO");
-
+    await addOneTenant(targetTenant);
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    console.log("NEANCHE QUI");
-
     await addOneTenant(requesterTenant);
-    console.log(targetTenant1);
-    await tenantService.addCertifiedAttribute(targetTenant1.id, genericLogger, {
-      tenantAttributeSeed,
-      organizationId: requesterTenant.id,
-      correlationId: generateId(),
-    });
-    console.log(targetTenant1);
-
+    const returnedTenant = await tenantService.addCertifiedAttribute(
+      targetTenant.id,
+      genericLogger,
+      {
+        tenantAttributeSeed,
+        organizationId: requesterTenant.id,
+        correlationId: generateId(),
+      }
+    );
     const writtenEvent = await readLastEventByStreamId(
-      targetTenant1.id,
+      targetTenant.id,
       "tenant",
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: targetTenant1.id,
+      stream_id: targetTenant.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
       event_version: 2,
@@ -110,7 +99,7 @@ describe("addCertifiedAttribute", async () => {
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
-      ...targetTenant1,
+      ...targetTenant,
       attributes: [
         {
           id: unsafeBrandId(tenantAttributeSeed.id),
@@ -121,13 +110,10 @@ describe("addCertifiedAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    console.log(updatedTenant);
-
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should re-assign the certified attribute if it was revoked", async () => {
-    console.log("2");
-
     const tenantWithCertifiedAttribute: Tenant = {
       ...targetTenant,
       attributes: [
@@ -143,7 +129,7 @@ describe("addCertifiedAttribute", async () => {
 
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
-    await tenantService.addCertifiedAttribute(
+    const returnedTenant = await tenantService.addCertifiedAttribute(
       tenantWithCertifiedAttribute.id,
       genericLogger,
       {
@@ -181,10 +167,9 @@ describe("addCertifiedAttribute", async () => {
       updatedAt: new Date(),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
-    console.log("3");
-
     const tenantAlreadyAssigned: Tenant = {
       ...targetTenant,
       attributes: [
@@ -214,8 +199,6 @@ describe("addCertifiedAttribute", async () => {
     );
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    console.log("4");
-
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 
     expect(
@@ -227,8 +210,6 @@ describe("addCertifiedAttribute", async () => {
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
   });
   it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
-    console.log("5");
-
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
 
@@ -242,8 +223,6 @@ describe("addCertifiedAttribute", async () => {
   });
 
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
-    console.log("6");
-
     const tenant: Tenant = getMockTenant();
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 
@@ -259,13 +238,14 @@ describe("addCertifiedAttribute", async () => {
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
   it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
-    console.log("7");
-
     const notCompliantOriginAttribute: Attribute = {
       ...attribute,
       origin: generateId(),
     };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await writeInReadmodel(
+      toReadModelAttribute(notCompliantOriginAttribute),
+      attributes
+    );
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
 

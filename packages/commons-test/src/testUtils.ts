@@ -137,6 +137,7 @@ export const getMockTenant = (
   features: [],
   mails: [],
   selfcareId: generateId(),
+  onboardedAt: new Date(),
 });
 
 export const getMockTenantMail = (
