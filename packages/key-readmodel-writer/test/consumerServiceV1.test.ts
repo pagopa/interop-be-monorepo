@@ -32,7 +32,7 @@ describe("Events V1", async () => {
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
 
-    const addedKey: Key = getMockKey();
+    const addedKey: Key = { ...getMockKey(), clientId: mockClient.id };
 
     const payload: KeysAddedV1 = {
       clientId: mockClient.id,
