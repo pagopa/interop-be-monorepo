@@ -9,6 +9,7 @@ import {
   TenantUnitTypeV2,
   TenantV2,
   TenantVerifierV2,
+  dateToBigInt,
 } from "../index.js";
 import {
   Tenant,
@@ -42,27 +43,19 @@ export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
 export function toTenantVerifierV2(verifier: TenantVerifier): TenantVerifierV2 {
   return {
     id: verifier.id,
-    verificationDate: BigInt(verifier.verificationDate.getTime()),
-    expirationDate: verifier.expirationDate
-      ? BigInt(verifier.expirationDate.getTime())
-      : undefined,
-    extensionDate: verifier.extensionDate
-      ? BigInt(verifier.extensionDate.getTime())
-      : undefined,
+    verificationDate: dateToBigInt(verifier.verificationDate),
+    expirationDate: dateToBigInt(verifier.expirationDate),
+    extensionDate: dateToBigInt(verifier.extensionDate),
   };
 }
 
 export function toTenantRevokerV2(revoker: TenantRevoker): TenantRevokerV2 {
   return {
     id: revoker.id,
-    verificationDate: BigInt(revoker.verificationDate.getTime()),
-    expirationDate: revoker.expirationDate
-      ? BigInt(revoker.expirationDate.getTime())
-      : undefined,
-    extensionDate: revoker.extensionDate
-      ? BigInt(revoker.extensionDate.getTime())
-      : undefined,
-    revocationDate: BigInt(revoker.revocationDate.getTime()),
+    verificationDate: dateToBigInt(revoker.verificationDate),
+    expirationDate: dateToBigInt(revoker.expirationDate),
+    extensionDate: dateToBigInt(revoker.extensionDate),
+    revocationDate: dateToBigInt(revoker.revocationDate),
   };
 }
 
@@ -73,10 +66,8 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
         oneofKind: "certifiedAttribute",
         certifiedAttribute: {
           id: attribute.id,
-          assignmentTimestamp: BigInt(attribute.assignmentTimestamp.getTime()),
-          revocationTimestamp: attribute.revocationTimestamp
-            ? BigInt(attribute.revocationTimestamp?.getTime())
-            : undefined,
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
+          revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
         },
       },
     }))
@@ -85,7 +76,7 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
         oneofKind: "verifiedAttribute",
         verifiedAttribute: {
           id: attribute.id,
-          assignmentTimestamp: BigInt(attribute.assignmentTimestamp.getTime()),
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
           verifiedBy: attribute.verifiedBy.map(toTenantVerifierV2),
           revokedBy: attribute.revokedBy.map(toTenantRevokerV2),
         },
@@ -96,7 +87,7 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
         oneofKind: "declaredAttribute",
         declaredAttribute: {
           id: attribute.id,
-          assignmentTimestamp: BigInt(attribute.assignmentTimestamp.getTime()),
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
         },
       },
     }))
@@ -107,7 +98,7 @@ export function toTenantMailV2(mail: TenantMail): TenantMailV2 {
   return {
     ...mail,
     kind: toTenantMailKindV2(mail.kind),
-    createdAt: BigInt(mail.createdAt.getTime()),
+    createdAt: dateToBigInt(mail.createdAt),
     description: mail.description ?? undefined,
   };
 }
@@ -146,11 +137,11 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   selfcareId: checkSelfcareId(tenant.selfcareId),
   features: tenant.features.map(toFeatureV2),
   attributes: tenant.attributes.map(toAttributeV2),
-  createdAt: BigInt(tenant.createdAt.getTime()),
-  updatedAt: tenant.updatedAt ? BigInt(tenant.updatedAt.getTime()) : undefined,
+  createdAt: dateToBigInt(tenant.createdAt),
+  updatedAt: dateToBigInt(tenant.updatedAt),
   mails: tenant.mails.map(toTenantMailV2),
   kind: tenant.kind ? toTenantKindV2(tenant.kind) : undefined,
-  onboardedAt: BigInt(tenant.createdAt.getTime()),
+  onboardedAt: dateToBigInt(tenant.createdAt),
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
