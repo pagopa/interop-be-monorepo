@@ -3,6 +3,7 @@ import {
   AuthorizationEventEnvelopeV1,
   fromKeyV1,
   toReadModelKey,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -55,9 +56,14 @@ export async function handleMessageV1(
         { upsert: true }
       );
     })
+    .with({ type: "ClientDeleted" }, async (message) => {
+      await keys.deleteMany({
+        "data.clientId": message.data.clientId,
+        "metadata.version": { $lte: message.version },
+      });
+    })
     .with(
       { type: "ClientAdded" },
-      { type: "ClientDeleted" },
       { type: "RelationshipAdded" },
       { type: "RelationshipRemoved" },
       { type: "UserAdded" },
