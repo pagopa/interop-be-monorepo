@@ -24,6 +24,7 @@ import {
   descriptorState,
   generateId,
   purposeVersionState,
+  technology,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
@@ -80,10 +81,16 @@ export const getMockEService = (
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = []
 ): EService => ({
-  ...generateMock(EService),
   id: eserviceId,
+  name: "eService name",
+  description: "eService description",
+  createdAt: new Date(),
   producerId,
+  technology: technology.rest,
   descriptors,
+  attributes: undefined,
+  riskAnalysis: [],
+  mode: "Deliver",
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -185,4 +192,34 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   id: generateId(),
   contentType: "json",
   createdAt: new Date(),
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
+});
+
+export const getMockDescriptor = (): Descriptor => ({
+  id: generateId(),
+  version: "0",
+  docs: [],
+  state: descriptorState.draft,
+  audience: [],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: [],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
 });
