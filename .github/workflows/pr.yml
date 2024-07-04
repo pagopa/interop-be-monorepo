@@ -9,11 +9,11 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 18
-      - uses: pnpm/action-setup@v2
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm format:check
@@ -22,24 +22,24 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 18
-      - uses: pnpm/action-setup@v2
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm lint
 
   check:
-    name: Check 
+    name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 18
-      - uses: pnpm/action-setup@v2
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm check
@@ -48,11 +48,11 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 18
-      - uses: pnpm/action-setup@v2
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm test
@@ -61,11 +61,11 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 18
-      - uses: pnpm/action-setup@v2
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm build

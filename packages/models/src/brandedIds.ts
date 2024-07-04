@@ -62,6 +62,9 @@ export const PurposeVersionDocumentId = z
   .brand("PurposeVersionDocumentId");
 export type PurposeVersionDocumentId = z.infer<typeof PurposeVersionDocumentId>;
 
+export const ClientId = z.string().uuid().brand("ClientId");
+export type ClientId = z.infer<typeof ClientId>;
+
 export const SelfcareId = z.string().uuid().brand("SelfcareId");
 export type SelfcareId = z.infer<typeof SelfcareId>;
 
@@ -80,6 +83,7 @@ type IDS =
   | PurposeId
   | PurposeVersionId
   | PurposeVersionDocumentId
+  | ClientId
   | UserId
   | SelfcareId;
 
