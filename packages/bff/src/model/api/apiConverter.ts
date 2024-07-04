@@ -230,7 +230,7 @@ export function toTenantAttribute(
           : undefined,
     })),
   };
-  
+
   const declared: DeclaredTenantAttribute | undefined = att.declared && {
     id: unsafeBrandId<AttributeId>(att.declared.id),
     type: tenantAttributeType.DECLARED,
