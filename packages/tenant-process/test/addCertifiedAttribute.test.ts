@@ -16,7 +16,6 @@ import {
 import { describe, beforeAll, vi, afterAll, it, expect } from "vitest";
 import {
   writeInReadmodel,
-  getMockTenant,
   getMockAttribute,
   readLastEventByStreamId,
   getMockCertifiedTenantAttribute,
@@ -34,6 +33,7 @@ import {
   addOneTenant,
   tenantService,
   postgresDB,
+  getMockTenant,
 } from "./utils.js";
 
 describe("addCertifiedAttribute", async () => {
