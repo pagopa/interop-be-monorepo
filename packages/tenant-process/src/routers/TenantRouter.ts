@@ -435,9 +435,11 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const tenant = await tenantService.addCertifierId(
-            unsafeBrandId(req.params.tenantId),
-            req.ctx.correlationId,
-            req.body,
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              payload: req.body,
+              correlationId: req.ctx.correlationId,
+            },
             ctx.logger
           );
           return res.status(200).json(toApiTenant(tenant)).end();

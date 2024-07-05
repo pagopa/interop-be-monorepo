@@ -316,9 +316,15 @@ export function tenantServiceBuilder(
     },
 
     async addCertifierId(
-      tenantId: TenantId,
-      correlationId: string,
-      payload: CertifierPromotionPayload,
+      {
+        tenantId,
+        payload,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        payload: CertifierPromotionPayload;
+        correlationId: string;
+      },
       logger: Logger
     ): Promise<Tenant> {
       logger.info(`Adding certifierId to Tenant ${tenantId}`);
