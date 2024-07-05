@@ -36,6 +36,8 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
+  tenantNotFoundBySelfcareId,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
@@ -56,7 +58,6 @@ import {
 describe("Integration tests", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
-  const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
@@ -67,6 +68,7 @@ describe("Integration tests", () => {
       const correlationId = generateId();
 
       it("Should update the tenant if it exists", async () => {
+        const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
         const kind = tenantKind.PA;
         const selfcareId = mockTenant.selfcareId!;
@@ -142,19 +144,23 @@ describe("Integration tests", () => {
         ).parse(writtenEvent.data);
 
         const expectedTenant: Tenant = {
-          ...mockTenant,
           externalId: tenantSeed.externalId,
           id: unsafeBrandId(id),
           kind: getTenantKind([], tenantSeed.externalId),
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(),
           createdAt: new Date(),
+          name: tenantSeed.name,
+          attributes: [],
+          features: [],
+          mails: [],
         };
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
         vi.useRealTimers();
       });
       it("Should throw operation forbidden if role isn't internal", async () => {
+        const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
@@ -176,10 +182,7 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(operationForbidden);
       });
       it("Should throw selfcareIdConflict error if the given and existing selfcareId differs", async () => {
-        const tenant: Tenant = {
-          ...mockTenant,
-          selfcareId: generateId(),
-        };
+        const tenant = getMockTenant();
         await addOneTenant(tenant);
         const newTenantSeed = {
           name: tenant.name,
@@ -218,7 +221,7 @@ describe("Integration tests", () => {
         };
 
       const tenant: Tenant = {
-        ...mockTenant,
+        ...getMockTenant(),
         attributes: [
           {
             ...mockVerifiedTenantAttribute,
@@ -331,7 +334,7 @@ describe("Integration tests", () => {
       });
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         const updatedCertifiedTenant: Tenant = {
-          ...mockTenant,
+          ...getMockTenant(),
           attributes: [{ ...mockCertifiedTenantAttribute }],
           updatedAt: currentDate,
           name: "A updatedCertifiedTenant",
@@ -392,7 +395,7 @@ describe("Integration tests", () => {
       );
 
       const tenant: Tenant = {
-        ...mockTenant,
+        ...getMockTenant(),
         attributes: [
           {
             ...mockVerifiedTenantAttribute,
@@ -482,7 +485,7 @@ describe("Integration tests", () => {
         const expirationDate = undefined;
 
         const updatedTenantWithoutExpirationDate: Tenant = {
-          ...mockTenant,
+          ...getMockTenant(),
           attributes: [
             {
               ...mockVerifiedTenantAttribute,
@@ -522,11 +525,12 @@ describe("Integration tests", () => {
         );
       });
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+        const mockTenant: Tenant = { ...getMockTenant(), attributes: [] };
         await addOneTenant(mockTenant);
         const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
-            tenant.id,
+            mockTenant.id,
             attributeId,
             verifierId,
             {
@@ -564,28 +568,23 @@ describe("Integration tests", () => {
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
-      ...mockTenant,
-      id: generateId(),
+      ...getMockTenant(),
       name: "A tenant1",
     };
     const tenant2: Tenant = {
-      ...mockTenant,
-      id: generateId(),
+      ...getMockTenant(),
       name: "A tenant2",
     };
     const tenant3: Tenant = {
-      ...mockTenant,
-      id: generateId(),
+      ...getMockTenant(),
       name: "A tenant3",
     };
     const tenant4: Tenant = {
-      ...mockTenant,
-      id: generateId(),
+      ...getMockTenant(),
       name: "A tenant4",
     };
     const tenant5: Tenant = {
-      ...mockTenant,
-      id: generateId(),
+      ...getMockTenant(),
       name: "A tenant5",
     };
     describe("getConsumers", () => {
@@ -1395,12 +1394,17 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
         await addOneTenant(tenant2);
         await addOneTenant(tenant3);
-        const tenantById = await readModelService.getTenantById(tenant1.id);
-        expect(tenantById?.data).toEqual(tenant1);
+        const returnedTenant = await tenantService.getTenantById(
+          tenant1.id,
+          genericLogger
+        );
+        expect(returnedTenant).toEqual(tenant1);
       });
-      it("should not get the tenant by ID if it isn't in DB", async () => {
-        const tenantById = await readModelService.getTenantById(tenant1.id);
-        expect(tenantById?.data.id).toBeUndefined();
+      it("should throw tenantNotFound if the tenant isn't in DB", async () => {
+        await addOneTenant(tenant2);
+        expect(
+          tenantService.getTenantById(tenant1.id, genericLogger)
+        ).rejects.toThrowError(tenantNotFound(tenant1.id));
       });
     });
     describe("getTenantBySelfcareId", () => {
@@ -1408,18 +1412,20 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
         await addOneTenant(tenant2);
         await addOneTenant(tenant3);
-        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenant1.selfcareId!
+        const returnedTenant = await tenantService.getTenantBySelfcareId(
+          tenant1.selfcareId!,
+          genericLogger
         );
-        expect(tenantBySelfcareId?.data).toEqual(tenant1);
+        expect(returnedTenant).toEqual(tenant1);
       });
-      it("should not get the tenant by selfcareId if it isn't in DB", async () => {
-        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenant1.selfcareId!
-        );
-        expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
+      it("should throw tenantNotFoundBySelfcareId if the tenant isn't in DB", async () => {
+        await addOneTenant(tenant2);
+        expect(
+          tenantService.getTenantBySelfcareId(
+            tenant1.selfcareId!,
+            genericLogger
+          )
+        ).rejects.toThrowError(tenantNotFoundBySelfcareId(tenant1.selfcareId!));
       });
     });
     describe("getTenantByExternalId", () => {
@@ -1427,22 +1433,31 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
         await addOneTenant(tenant2);
         await addOneTenant(tenant3);
-        const tenantByExternalId = await readModelService.getTenantByExternalId(
+        const returnedTenant = await tenantService.getTenantByExternalId(
           {
             value: tenant1.externalId.value,
             origin: tenant1.externalId.origin,
-          }
+          },
+          genericLogger
         );
-        expect(tenantByExternalId?.data).toEqual(tenant1);
+        expect(returnedTenant).toEqual(tenant1);
       });
-      it("should not get the tenant by externalId if it isn't in DB", async () => {
-        const tenantByExternalId = await readModelService.getTenantByExternalId(
-          {
-            value: tenant1.externalId.value,
-            origin: tenant1.externalId.origin,
-          }
+      it("should throw tenantNotFoundByExternalId if it isn't in DB", async () => {
+        await addOneTenant(tenant2);
+        expect(
+          tenantService.getTenantByExternalId(
+            {
+              value: tenant1.externalId.value,
+              origin: tenant1.externalId.origin,
+            },
+            genericLogger
+          )
+        ).rejects.toThrowError(
+          tenantNotFoundByExternalId(
+            tenant1.externalId.origin,
+            tenant1.externalId.value
+          )
         );
-        expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });
     });
   });
