@@ -12,7 +12,7 @@ export const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
-  tenantBySelfcareIdNotFound: "0006",
+  tenantNotFoundBySelfcareId: "0006",
   operationForbidden: "0007",
   selfcareIdConflict: "0008",
   verifiedAttributeNotFoundInTenant: "0009",
@@ -26,6 +26,7 @@ export const errorCodes = {
   attributeVerificationNotAllowed: "0017",
   verifiedAttributeSelfVerification: "0018",
   attributeNotFoundInTenant: "0019",
+  tenantNotFoundByExternalId: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -78,7 +79,7 @@ export function tenantNotFoundByExternalId(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with externalId ${origin}/${code} not found`,
-    code: "tenantNotFound",
+    code: "tenantNotFoundByExternalId",
     title: "Tenant not found",
   });
 }
@@ -136,13 +137,13 @@ export function organizationNotFoundInVerifiers(
   });
 }
 
-export function tenantBySelfcareIdNotFound(
+export function tenantNotFoundBySelfcareId(
   selfcareId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found`,
-    code: "tenantBySelfcareIdNotFound",
-    title: "Tenant with selfcareId not found",
+    code: "tenantNotFoundBySelfcareId",
+    title: "Tenant not found by selfcareId",
   });
 }
 

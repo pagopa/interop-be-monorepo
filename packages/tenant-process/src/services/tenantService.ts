@@ -43,9 +43,9 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
-  tenantBySelfcareIdNotFound,
   tenantIsNotACertifier,
   tenantNotFoundByExternalId,
+  tenantNotFoundBySelfcareId,
   verifiedAttributeSelfVerification,
 } from "../model/domain/errors.js";
 import {
@@ -766,7 +766,7 @@ export function tenantServiceBuilder(
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       const tenant = await readModelService.getTenantBySelfcareId(selfcareId);
       if (!tenant) {
-        throw tenantBySelfcareIdNotFound(selfcareId);
+        throw tenantNotFoundBySelfcareId(selfcareId);
       }
       return tenant.data;
     },
