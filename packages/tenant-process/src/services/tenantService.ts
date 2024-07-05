@@ -292,17 +292,18 @@ export function tenantServiceBuilder(
     },
 
     async addCertifiedAttribute(
-      tenantId: TenantId,
-      logger: Logger,
       {
+        tenantId,
         tenantAttributeSeed,
         organizationId,
         correlationId,
       }: {
+        tenantId: TenantId;
         tenantAttributeSeed: ApiCertifiedTenantAttributeSeed;
         organizationId: TenantId;
         correlationId: string;
-      }
+      },
+      logger: Logger
     ): Promise<Tenant> {
       logger.info(
         `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
