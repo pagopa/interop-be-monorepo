@@ -55,8 +55,6 @@ import {
 } from "./utils.js";
 
 describe("Integration tests", () => {
-  const mockEService = getMockEService();
-  const mockDescriptor = getMockDescriptor();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
@@ -566,36 +564,35 @@ describe("Integration tests", () => {
   describe("readModelService", () => {
     const tenant1: Tenant = {
       ...getMockTenant(),
-      name: "A tenant1",
+      name: "Tenant 1",
     };
     const tenant2: Tenant = {
       ...getMockTenant(),
-      name: "A tenant2",
+      name: "Tenant 2",
     };
     const tenant3: Tenant = {
       ...getMockTenant(),
-      name: "A tenant3",
+      name: "Tenant 3",
     };
     const tenant4: Tenant = {
       ...getMockTenant(),
-      name: "A tenant4",
+      name: "Tenant 4",
     };
     const tenant5: Tenant = {
       ...getMockTenant(),
-      name: "A tenant5",
+      name: "Tenant 5",
     };
     describe("getConsumers", () => {
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -612,13 +609,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -636,13 +632,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -670,13 +665,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -693,13 +687,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -717,13 +710,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -751,13 +743,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -766,13 +757,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -782,13 +772,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -808,13 +797,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -823,13 +811,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -839,13 +826,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -853,7 +839,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3);
 
         const consumers = await readModelService.getConsumers({
-          consumerName: "A tenant4",
+          consumerName: "Tenant 4",
           producerId: eService1.producerId,
           offset: 0,
           limit: 50,
@@ -865,13 +851,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -888,13 +873,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -912,13 +896,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -945,13 +928,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -968,13 +950,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -992,13 +973,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -1027,13 +1007,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -1043,13 +1022,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -1059,13 +1037,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -1084,13 +1061,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -1100,13 +1076,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -1125,13 +1100,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -1141,13 +1115,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -1155,7 +1128,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2);
 
         const producers = await readModelService.getProducers({
-          producerName: "A tenant6",
+          producerName: "Tenant 6",
           offset: 0,
           limit: 50,
         });
@@ -1164,13 +1137,12 @@ describe("Integration tests", () => {
       });
       it("should not get any tenants if no one is in DB", async () => {
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -1178,13 +1150,12 @@ describe("Integration tests", () => {
         await addOneEService(eService1);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -1203,13 +1174,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -1219,13 +1189,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -1235,13 +1204,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -1258,13 +1226,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService1: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -1274,13 +1241,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService2: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -1290,13 +1256,12 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           state: descriptorState.published,
         };
 
         const eService3: EService = {
-          ...mockEService,
-          id: generateId(),
+          ...getMockEService(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -1330,7 +1295,7 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const tenantsByName = await readModelService.getTenantsByName({
-          name: "A tenant1",
+          name: "Tenant 1",
           offset: 0,
           limit: 50,
         });
@@ -1352,7 +1317,7 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2);
 
         const tenantsByName = await readModelService.getTenantsByName({
-          name: "A tenant6",
+          name: "Tenant 6",
           offset: 0,
           limit: 50,
         });
