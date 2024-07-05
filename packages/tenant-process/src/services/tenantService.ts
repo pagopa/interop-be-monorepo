@@ -289,10 +289,17 @@ export function tenantServiceBuilder(
     },
 
     async deleteTenantMailById(
-      tenantId: TenantId,
-      mailId: string,
-      organizationId: TenantId,
-      correlationId: string,
+      {
+        tenantId,
+        mailId,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailId: string;
+        organizationId: TenantId;
+        correlationId: string;
+      },
       logger: Logger
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
