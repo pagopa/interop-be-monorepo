@@ -10,7 +10,6 @@ import {
   EServiceAttribute,
   Tenant,
   VerifiedTenantAttribute,
-  WithMetadata,
   agreementState,
   descriptorState,
   tenantAttributeType,
@@ -22,25 +21,23 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
-import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
+import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
-  agreementNotFound,
   agreementNotInExpectedState,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
-  eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  tenantNotFound,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
+  CompactTenant,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -50,6 +47,13 @@ export const agreementActivableStates: AgreementState[] = [
   agreementState.pending,
   agreementState.suspended,
 ];
+
+export const agreementActivationAllowedDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+];
+
 export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
@@ -117,24 +121,6 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 
 /* ========= ASSERTIONS ========= */
 
-export function assertAgreementExist(
-  agreementId: AgreementId,
-  agreement: WithMetadata<Agreement> | undefined
-): asserts agreement is NonNullable<WithMetadata<Agreement>> {
-  if (agreement === undefined) {
-    throw agreementNotFound(agreementId);
-  }
-}
-
-export function assertEServiceExist(
-  eserviceId: EServiceId,
-  eservice: EService | undefined
-): asserts eservice is NonNullable<EService> {
-  if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
-  }
-}
-
 export const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
@@ -189,15 +175,6 @@ export const assertExpectedState = (
   }
 };
 
-export function assertTenantExist(
-  tenantId: string,
-  tenant: Tenant | undefined
-): asserts tenant is NonNullable<Tenant> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
-
 export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState
 ): void => {
@@ -211,16 +188,6 @@ export const assertActivableState = (agreement: Agreement): void => {
     throw agreementNotInExpectedState(agreement.id, agreement.state);
   }
 };
-
-export function assertDescriptorExist(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  descriptor: Descriptor | undefined
-): asserts descriptor is NonNullable<Descriptor> {
-  if (descriptor === undefined) {
-    throw descriptorNotFound(eserviceId, descriptorId);
-  }
-}
 
 /* =========  VALIDATIONS ========= */
 
@@ -273,32 +240,35 @@ export const validateCreationOnDescriptor = (
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
   agreement: ApiAgreementPayload,
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
     unsafeBrandId(agreement.eserviceId),
     agreementCreationConflictingStates,
-    agreementQuery
+    readModelService
   );
 };
 
 export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     agreement.consumerId,
     unsafeBrandId(agreement.eserviceId),
     agreementSubmissionConflictingStates,
-    agreementQuery
+    readModelService
   );
 };
 
-export const validateCertifiedAttributes = (
-  descriptor: Descriptor,
-  consumer: Tenant
-): void => {
+export const validateCertifiedAttributes = ({
+  descriptor,
+  consumer,
+}: {
+  descriptor: Descriptor;
+  consumer: Tenant;
+}): void => {
   if (!certifiedAttributesSatisfied(descriptor, consumer)) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
@@ -337,7 +307,7 @@ const attributesSatisfied = (
 
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const certifiedAttributes = filterCertifiedAttributes(tenant).map(
     (a) => a.id
@@ -351,7 +321,7 @@ export const certifiedAttributesSatisfied = (
 
 export const declaredAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
 
@@ -364,7 +334,7 @@ export const declaredAttributesSatisfied = (
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
     (a) => a.id
@@ -380,9 +350,9 @@ export const verifyConflictingAgreements = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   conflictingStates: AgreementState[],
-  agreementQuery: AgreementQuery
+  readModelService: ReadModelService
 ): Promise<void> => {
-  const agreements = await agreementQuery.getAllAgreements({
+  const agreements = await readModelService.getAllAgreements({
     consumerId,
     eserviceId,
     agreementStates: conflictingStates,
@@ -410,12 +380,6 @@ export const validateActivationOnDescriptor = (
   eservice: EService,
   descriptorId: Descriptor["id"]
 ): Descriptor => {
-  const allowedState: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.deprecated,
-    descriptorState.suspended,
-  ];
-
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
     throw descriptorNotFound(eservice.id, descriptorId);
@@ -425,7 +389,7 @@ export const validateActivationOnDescriptor = (
     eservice.id,
     descriptor.id,
     descriptor.state,
-    allowedState
+    agreementActivationAllowedDescriptorStates
   );
 
   return descriptor;
@@ -498,7 +462,7 @@ export const matchingVerifiedAttributes = (
 
 export const filterVerifiedAttributes = (
   producerId: TenantId,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -511,7 +475,7 @@ export const filterVerifiedAttributes = (
   ) as VerifiedTenantAttribute[];
 
 export const filterCertifiedAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): CertifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -519,7 +483,7 @@ export const filterCertifiedAttributes = (
   ) as CertifiedTenantAttribute[];
 
 export const filterDeclaredAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): DeclaredTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
