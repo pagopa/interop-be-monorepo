@@ -4,9 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAttribute,
-  getMockTenant,
-  mongoDBContainer,
-  postgreSQLContainer,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
