@@ -399,7 +399,7 @@ export const authorizationServiceBuilder = (
         {
           states: {
             eservice: {
-              state: convertEserviceState(descriptor.state), // to do: double-check
+              state: convertEserviceState(descriptor.state),
               eserviceId: eservice.id,
               descriptorId: agreement.descriptorId,
               audience: descriptor.audience,
@@ -407,12 +407,12 @@ export const authorizationServiceBuilder = (
             },
             agreement: {
               agreementId: agreement.id,
-              state: convertAgreementState(agreement.state), // to do: double-check
+              state: convertAgreementState(agreement.state),
               eserviceId: agreement.eserviceId,
               consumerId: agreement.consumerId,
             },
             purpose: {
-              state: convertPurposeState(purposeVersion.state), // to do: double-check
+              state: convertPurposeState(purposeVersion.state),
               versionId: purposeVersion.id,
               purposeId,
             },

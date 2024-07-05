@@ -827,7 +827,7 @@ describe("Authorization Updater processMessage", () => {
           name: mockKey.name,
           createdAt: mockKey.createdAt.toISOString(),
           userId: mockKey.userId,
-          key: mockKey.encodedPem, // TO DO: double-check
+          key: mockKey.encodedPem,
           use: keyUseToApiKeyUse(mockKey.use),
           alg: mockKey.algorithm,
         },
