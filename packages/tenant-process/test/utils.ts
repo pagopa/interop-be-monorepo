@@ -28,7 +28,6 @@ import {
 import { inject, afterEach } from "vitest";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
-import { config } from "../src/utilities/config.js";
 
 export const { cleanup, readModelRepository, postgresDB } =
   setupTestContainersVitest(
@@ -41,7 +40,7 @@ afterEach(cleanup);
 export const { agreements, clients, eservices, attributes, tenants } =
   readModelRepository;
 
-export const readModelService = readModelServiceBuilder(config);
+export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 
