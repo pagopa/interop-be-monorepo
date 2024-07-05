@@ -3,6 +3,7 @@
 import {
   getMockAttribute,
   getMockTenant,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Attribute,
@@ -13,6 +14,7 @@ import {
   protobufDecoder,
   tenantAttributeType,
   tenantKind,
+  toReadModelAttribute,
   toTenantV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -24,13 +26,12 @@ import {
   tenantNotFound,
   tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
-import { addOneAttribute, addOneTenant, readLastTenantEvent } from "./utils.js";
 import {
+  addOneTenant,
   attributes,
-  postgresDB,
+  readLastTenantEvent,
   tenantService,
-  tenants,
-} from "./tenant.integration.test.js";
+} from "./utils.js";
 
 export const testM2MRevokeCertifiedAttribute = (): ReturnType<
   typeof describe
@@ -66,9 +67,9 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
           },
         ],
       };
-      await addOneAttribute(mockAttribute, attributes);
-      await addOneTenant(requesterTenant, postgresDB, tenants);
-      await addOneTenant(targetTenant, postgresDB, tenants);
+      await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+      await addOneTenant(requesterTenant);
+      await addOneTenant(targetTenant);
 
       await tenantService.m2mRevokeCertifiedAttribute({
         organizationId: requesterTenant.id,
@@ -80,10 +81,7 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
         logger: genericLogger,
       });
 
-      const writtenEvent = await readLastTenantEvent(
-        targetTenant.id,
-        postgresDB
-      );
+      const writtenEvent = await readLastTenantEvent(targetTenant.id);
       expect(writtenEvent).toBeDefined();
       expect(writtenEvent.stream_id).toBe(targetTenant.id);
       expect(writtenEvent.version).toBe("1");
@@ -129,8 +127,8 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
           },
         ],
       };
-      await addOneAttribute(mockAttribute, attributes);
-      await addOneTenant(targetTenant, postgresDB, tenants);
+      await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+      await addOneTenant(targetTenant);
 
       expect(
         tenantService.m2mRevokeCertifiedAttribute({
@@ -166,9 +164,9 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
           },
         ],
       };
-      await addOneAttribute(mockAttribute, attributes);
-      await addOneTenant(requesterTenant, postgresDB, tenants);
-      await addOneTenant(targetTenant, postgresDB, tenants);
+      await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+      await addOneTenant(requesterTenant);
+      await addOneTenant(targetTenant);
 
       expect(
         tenantService.m2mRevokeCertifiedAttribute({
@@ -204,8 +202,8 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
           },
         ],
       };
-      await addOneAttribute(mockAttribute, attributes);
-      await addOneTenant(requesterTenant, postgresDB, tenants);
+      await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+      await addOneTenant(requesterTenant);
 
       expect(
         tenantService.m2mRevokeCertifiedAttribute({
@@ -246,8 +244,8 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
           },
         ],
       };
-      await addOneTenant(requesterTenant, postgresDB, tenants);
-      await addOneTenant(targetTenant, postgresDB, tenants);
+      await addOneTenant(requesterTenant);
+      await addOneTenant(targetTenant);
 
       expect(
         tenantService.m2mRevokeCertifiedAttribute({
@@ -279,9 +277,9 @@ export const testM2MRevokeCertifiedAttribute = (): ReturnType<
         kind: tenantKind.PA,
         attributes: [],
       };
-      await addOneAttribute(mockAttribute, attributes);
-      await addOneTenant(requesterTenant, postgresDB, tenants);
-      await addOneTenant(targetTenant, postgresDB, tenants);
+      await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+      await addOneTenant(requesterTenant);
+      await addOneTenant(targetTenant);
 
       expect(
         tenantService.m2mRevokeCertifiedAttribute({
