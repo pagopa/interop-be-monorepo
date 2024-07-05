@@ -1717,7 +1717,7 @@ describe("activate agreement", () => {
 
     it("should throw agreementSelfcareIdNotFound when the contract builder cannot find consumer selfcareId", async () => {
       const producer: Tenant = getMockTenant();
-      const consumer: Tenant = getMockTenant();
+      const consumer: Tenant = { ...getMockTenant(), selfcareId: undefined };
 
       const authData = getRandomAuthData(producer.id);
       const descriptor: Descriptor = {
