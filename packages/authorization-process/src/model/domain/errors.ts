@@ -27,6 +27,7 @@ export const errorCodes = {
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
   keyAlreadyExists: "0017",
+  unknownKeyType: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -204,5 +205,13 @@ export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
     detail: `Key with kid ${kid} already exists `,
     code: "keyAlreadyExists",
     title: "Key already exists",
+  });
+}
+
+export function unknownKeyType(kty: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `unknownKeyType ${kty}`,
+    code: "unknownKeyType",
+    title: "Unknown key type",
   });
 }

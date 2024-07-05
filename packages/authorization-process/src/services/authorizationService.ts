@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { JsonWebKey } from "crypto";
 import {
   Client,
@@ -48,12 +49,13 @@ import {
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
+  unknownKeyType,
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
   ApiKeysSeed,
   ApiPurposeAdditionSeed,
-  JWKKey,
+  ApiJWKKey,
 } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
@@ -692,7 +694,10 @@ export function authorizationServiceBuilder(
       }
 
       const jwk: JsonWebKey = createJWK(decodeBase64ToPem(key.encodedPem));
-      const JwkKey: JWKKey = {
+      if (jwk.kty!.toUpperCase() !== "RSA") {
+        throw unknownKeyType(jwk.kty!);
+      }
+      const jwkKey: ApiJWKKey = {
         kty: jwk.kty!,
         keyOps: [],
         use: key.use,
@@ -718,7 +723,7 @@ export function authorizationServiceBuilder(
       };
 
       return {
-        JWKKey: JwkKey,
+        JWKKey: jwkKey,
         client: client.data,
       };
     },

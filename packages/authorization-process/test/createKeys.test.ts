@@ -35,7 +35,6 @@ import {
   calculateKid,
   createJWK,
   decodeBase64ToPem,
-  sortJWK,
 } from "../../commons/src/auth/jwk.js";
 import {
   addOneClient,
