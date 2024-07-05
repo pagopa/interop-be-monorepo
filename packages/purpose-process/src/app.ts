@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import purposeRouter from "./routers/PurposeRouter.js";
@@ -17,6 +18,7 @@ app.disable("x-powered-by");
 app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
+app.use(loggerMiddleware(serviceName));
 app.use(purposeRouter(zodiosCtx));
 
 export default app;

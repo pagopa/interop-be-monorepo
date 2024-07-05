@@ -8,6 +8,7 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  ReadModelRepository,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -34,7 +35,9 @@ import { config } from "../utilities/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
-const readModelService = readModelServiceBuilder(config);
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const tenantService = tenantServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -478,10 +481,12 @@ const tenantsRouter = (
         try {
           const { tenantId, mailId } = req.params;
           await tenantService.deleteTenantMailById(
-            unsafeBrandId(tenantId),
-            mailId,
-            req.ctx.authData.organizationId,
-            req.ctx.correlationId,
+            {
+              tenantId: unsafeBrandId(tenantId),
+              mailId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
             ctx.logger
           );
           return res.status(204).end();
