@@ -167,7 +167,7 @@ describe("createPurposeVersion", () => {
   it("should write on event-store for the creation of a new purpose version in waiting for approval state (daily calls > threshold)", async () => {
     const descriptor: Descriptor = {
       ...mockEServiceDescriptor,
-      dailyCallsPerConsumer: 30,
+      dailyCallsPerConsumer: 25,
     };
     const eservice = { ...mockEService, descriptors: [descriptor] };
 
@@ -177,10 +177,10 @@ describe("createPurposeVersion", () => {
     await writeInReadmodel(mockConsumer, tenants);
     await writeInReadmodel(mockProducer, tenants);
 
-    const purposeVersion = await purposeService.createPurposeVersion({
+    const returnedPurposeVersion = await purposeService.createPurposeVersion({
       purposeId: mockPurpose.id,
       seed: {
-        dailyCalls: 1000,
+        dailyCalls: 30,
       },
       organizationId: mockPurpose.consumerId,
       correlationId: generateId(),
@@ -200,9 +200,16 @@ describe("createPurposeVersion", () => {
       event_version: 2,
     });
 
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      state: purposeVersionState.waitingForApproval,
+      dailyCalls: 30,
+    };
+
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [...mockPurpose.versions, purposeVersion],
+      versions: [...mockPurpose.versions, expectedPurposeVersion],
       updatedAt: new Date(),
     };
 
@@ -212,8 +219,8 @@ describe("createPurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-
-    expect(purposeVersion.state).toEqual(
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(returnedPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
     );
   });
