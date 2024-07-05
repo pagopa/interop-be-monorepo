@@ -1,10 +1,16 @@
-import { config } from "./utilities/config/config.js";
-import { createApiClient } from "./model/generated/api.js";
+import { ZodiosInstance } from "@zodios/core";
+import { SelfCareConfig } from "./utilities/config/config.js";
+import { createApiClient, api } from "./model/generated/api.js";
 
-export const selfcareV2Client = createApiClient(config.selfcare_baseUrl, {
-  axiosConfig: {
-    headers: {
-      "Ocp-Apim-Subscription-Key": config.selfcare_apiKey,
+export type SelfcareV2Client = ZodiosInstance<typeof api.api>;
+
+export const selfcareV2ClientBuilder = (
+  config: SelfCareConfig
+): SelfcareV2Client =>
+  createApiClient(config.selfcareBaseUrl, {
+    axiosConfig: {
+      headers: {
+        "Ocp-Apim-Subscription-Key": config.selfcareApiKey,
+      },
     },
-  },
-});
+  });
