@@ -62,6 +62,7 @@ import {
   riskAnalysisConfigVersionNotFound,
   riskAnalysisConfigLatestVersionNotFound,
   tenantKindNotFound,
+  unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -107,7 +108,6 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
-  assertDailyCallsIsDifferentThanBefore,
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
@@ -653,7 +653,13 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
-      assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
+      const previousDailyCalls = [...purpose.data.versions].sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      )[0]?.dailyCalls;
+
+      if (previousDailyCalls === seed.dailyCalls) {
+        throw unchangedDailyCalls(purpose.data.id);
+      }
 
       const conflictVersion = purpose.data.versions.find(
         (v) =>
@@ -682,7 +688,7 @@ export function purposeServiceBuilder(
         await isOverQuota(
           eservice,
           purpose.data,
-          seed.dailyCalls,
+          seed.dailyCalls - previousDailyCalls,
           readModelService
         )
       ) {
