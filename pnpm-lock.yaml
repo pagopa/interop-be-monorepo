@@ -528,9 +528,6 @@ importers:
       express:
         specifier: 4.19.2
         version: 4.19.2
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -556,6 +553,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      openapi-zod-client:
+        specifier: 1.18.1
+        version: 1.18.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
