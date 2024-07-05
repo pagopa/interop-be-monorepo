@@ -75,10 +75,12 @@ describe("revokeCertifiedAttributeById", async () => {
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
     await tenantService.revokeCertifiedAttributeById(
-      tenantWithCertifiedAttribute.id,
-      attribute.id,
-      requesterTenant.id,
-      generateId(),
+      {
+        tenantId: tenantWithCertifiedAttribute.id,
+        attributeId: attribute.id,
+        organizationId: requesterTenant.id,
+        correlationId: generateId(),
+      },
       genericLogger
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -116,10 +118,12 @@ describe("revokeCertifiedAttributeById", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     expect(
       tenantService.revokeCertifiedAttributeById(
-        targetTenant.id,
-        attribute.id,
-        requesterTenant.id,
-        generateId(),
+        {
+          tenantId: targetTenant.id,
+          attributeId: attribute.id,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
         genericLogger
       )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
@@ -130,10 +134,12 @@ describe("revokeCertifiedAttributeById", async () => {
 
     expect(
       tenantService.revokeCertifiedAttributeById(
-        targetTenant.id,
-        attribute.id,
-        requesterTenant.id,
-        generateId(),
+        {
+          tenantId: targetTenant.id,
+          attributeId: attribute.id,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
         genericLogger
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
@@ -149,10 +155,12 @@ describe("revokeCertifiedAttributeById", async () => {
 
     expect(
       tenantService.revokeCertifiedAttributeById(
-        targetTenant.id,
-        attribute.id,
-        notCertifierTenant.id,
-        generateId(),
+        {
+          tenantId: targetTenant.id,
+          attributeId: attribute.id,
+          organizationId: notCertifierTenant.id,
+          correlationId: generateId(),
+        },
         genericLogger
       )
     ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
@@ -171,10 +179,12 @@ describe("revokeCertifiedAttributeById", async () => {
 
     expect(
       tenantService.revokeCertifiedAttributeById(
-        targetTenant.id,
-        attribute.id,
-        requesterTenant.id,
-        generateId(),
+        {
+          tenantId: targetTenant.id,
+          attributeId: attribute.id,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
         genericLogger
       )
     ).rejects.toThrowError(
@@ -202,10 +212,12 @@ describe("revokeCertifiedAttributeById", async () => {
     await addOneTenant(requesterTenant);
     expect(
       tenantService.revokeCertifiedAttributeById(
-        tenantAlreadyRevoked.id,
-        attribute.id,
-        requesterTenant.id,
-        generateId(),
+        {
+          tenantId: tenantAlreadyRevoked.id,
+          attributeId: attribute.id,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
         genericLogger
       )
     ).rejects.toThrowError(
