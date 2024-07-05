@@ -113,7 +113,7 @@ describe("createPurposeVersion", () => {
     vi.useRealTimers();
   });
 
-  it.only("should write on event-store for the creation of a new purpose version (daily calls <= threshold)", async () => {
+  it("should write on event-store for the creation of a new purpose version (daily calls <= threshold)", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
