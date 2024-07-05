@@ -9,7 +9,6 @@ import {
   Descriptor,
   EService,
   Tenant,
-  TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
@@ -111,20 +110,19 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
-      it("Should create a tenant by the upsert if it does not exist", async () => {
+      it("Should create a tenant if it does not exist", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
-        const mockAuthData = getMockAuthData();
         const tenantSeed = {
           externalId: {
-            origin: "Nothing",
-            value: "0",
+            origin: "IPA",
+            value: generateId(),
           },
           name: "A tenant",
           selfcareId: generateId(),
         };
         const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
-          authData: mockAuthData,
+          authData: getMockAuthData(),
           correlationId,
           serviceName: "",
           logger: genericLogger,
@@ -159,10 +157,9 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
         vi.useRealTimers();
       });
-      it("Should throw operation forbidden if role isn't internal", async () => {
+      it("Should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
         const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
-        const mockAuthData = getMockAuthData(generateId<TenantId>());
 
         const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
@@ -174,25 +171,25 @@ describe("Integration tests", () => {
         };
         expect(
           tenantService.selfcareUpsertTenant(tenantSeed, {
-            authData: mockAuthData,
+            authData: getMockAuthData(),
             correlationId,
             serviceName: "",
             logger: genericLogger,
           })
         ).rejects.toThrowError(operationForbidden);
       });
-      it("Should throw selfcareIdConflict error if the given and existing selfcareId differs", async () => {
-        const tenant = getMockTenant();
-        await addOneTenant(tenant);
+      it("Should throw selfcareIdConflict error if the given and existing selfcareId differ", async () => {
+        const mockTenant = getMockTenant();
+        await addOneTenant(mockTenant);
         const newTenantSeed = {
-          name: tenant.name,
+          name: mockTenant.name,
           externalId: {
             origin: "IPA",
-            value: tenant.externalId.value,
+            value: mockTenant.externalId.value,
           },
           selfcareId: generateId(),
         };
-        const mockAuthData = getMockAuthData(tenant.id);
+        const mockAuthData = getMockAuthData(mockTenant.id);
         expect(
           tenantService.selfcareUpsertTenant(newTenantSeed, {
             authData: mockAuthData,
@@ -202,8 +199,8 @@ describe("Integration tests", () => {
           })
         ).rejects.toThrowError(
           selfcareIdConflict({
-            tenantId: tenant.id,
-            existingSelfcareId: tenant.selfcareId!,
+            tenantId: mockTenant.id,
+            existingSelfcareId: mockTenant.selfcareId!,
             newSelfcareId: newTenantSeed.selfcareId,
           })
         );
