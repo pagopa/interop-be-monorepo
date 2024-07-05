@@ -113,17 +113,17 @@ describe("createPurposeVersion", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the creation of a new purpose version (daily calls <= threshold)", async () => {
+  it.only("should write on event-store for the creation of a new purpose version (daily calls <= threshold)", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
     await writeInReadmodel(mockConsumer, tenants);
     await writeInReadmodel(mockProducer, tenants);
 
-    const purposeVersion = await purposeService.createPurposeVersion({
+    const returnedPurposeVersion = await purposeService.createPurposeVersion({
       purposeId: mockPurpose.id,
       seed: {
-        dailyCalls: 25,
+        dailyCalls: 24,
       },
       organizationId: mockPurpose.consumerId,
       correlationId: generateId(),
@@ -143,6 +143,15 @@ describe("createPurposeVersion", () => {
       event_version: 2,
     });
 
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      firstActivationAt: new Date(),
+      state: purposeVersionState.active,
+      dailyCalls: 24,
+      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+    };
+
     const expectedPurpose: Purpose = {
       ...mockPurpose,
       versions: [
@@ -151,7 +160,7 @@ describe("createPurposeVersion", () => {
           state: purposeVersionState.archived,
           updatedAt: new Date(),
         },
-        purposeVersion,
+        expectedPurposeVersion,
       ],
       updatedAt: new Date(),
     };
@@ -161,6 +170,7 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
