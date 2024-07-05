@@ -35,7 +35,6 @@ export function attributeServiceBuilder(
         toProcessAttributeSeed(seed),
         {
           headers,
-          withCredentials: true,
         }
       );
     },
