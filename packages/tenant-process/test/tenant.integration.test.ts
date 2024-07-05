@@ -1,32 +1,10 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import {
-  AgreementCollection,
-  AttributeCollection,
-  EServiceCollection,
-  ReadModelRepository,
-  TenantCollection,
-  genericLogger,
-  initDB,
-} from "pagopa-interop-commons";
-import {
-  TEST_MONGO_DB_PORT,
-  TEST_POSTGRES_DB_PORT,
-  getMockAuthData,
-  getMockDescriptor,
-  getMockEService,
-  getMockTenant,
-  mongoDBContainer,
-  postgreSQLContainer,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { IDatabase } from "pg-promise";
+import { describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   Descriptor,
   EService,
@@ -44,16 +22,6 @@ import {
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { StartedTestContainer } from "testcontainers";
-import { config } from "../src/utilities/config.js";
-import {
-  ReadModelService,
-  readModelServiceBuilder,
-} from "../src/services/readModelService.js";
-import {
-  TenantService,
-  tenantServiceBuilder,
-} from "../src/services/tenantService.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
@@ -75,49 +43,11 @@ import {
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
+  readModelService,
+  tenantService,
 } from "./utils.js";
-import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
-import { testAddDeclaredAttribute } from "./testAddDeclaredAttribute.js";
-import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
-import { testInternalAssignCertifiedAttribute } from "./testInternalAssignCertifiedAttribute.js";
-import { testInternalRevokeCertifiedAttribute } from "./testInternalRevokeCertifiedAttribute.js";
-
-export let tenants: TenantCollection;
-export let agreements: AgreementCollection;
-export let eservices: EServiceCollection;
-export let attributes: AttributeCollection;
-export let readModelService: ReadModelService;
-export let tenantService: TenantService;
-export let postgresDB: IDatabase<unknown>;
-export let startedPostgreSqlContainer: StartedTestContainer;
-export let startedMongodbContainer: StartedTestContainer;
 
 describe("Integration tests", () => {
-  beforeAll(async () => {
-    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
-    startedMongodbContainer = await mongoDBContainer(config).start();
-
-    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
-      TEST_POSTGRES_DB_PORT
-    );
-    config.readModelDbPort =
-      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    ({ tenants, agreements, eservices, attributes } =
-      ReadModelRepository.init(config));
-
-    readModelService = readModelServiceBuilder(config);
-    postgresDB = initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    });
-    tenantService = tenantServiceBuilder(postgresDB, readModelService);
-  });
-
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
@@ -125,26 +55,13 @@ describe("Integration tests", () => {
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
-  afterEach(async () => {
-    await tenants.deleteMany({});
-    await agreements.deleteMany({});
-    await eservices.deleteMany({});
-    await attributes.deleteMany({});
-    await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
-  });
-
-  afterAll(async () => {
-    await startedPostgreSqlContainer.stop();
-    await startedMongodbContainer.stop();
-  });
-
   // eslint-disable-next-line sonarjs/cognitive-complexity
   describe("tenantService", () => {
     describe("selfcareUpsertTenant", async () => {
       const correlationId = generateId();
 
       it("Should update the tenant if it exists", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
+        await addOneTenant(mockTenant);
         const kind = tenantKind.PA;
         const selfcareId = mockTenant.selfcareId!;
         const tenantSeed: ApiSelfcareTenantSeed = {
@@ -163,11 +80,7 @@ describe("Integration tests", () => {
           logger: genericLogger,
         });
 
-        const writtenEvent = await readLastEventByStreamId(
-          mockTenant.id,
-          "tenant",
-          postgresDB
-        );
+        const writtenEvent = await readLastTenantEvent(mockTenant.id);
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -191,6 +104,8 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
       it("Should create a tenant by the upsert if it does not exist", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
         const mockAuthData = getMockAuthData();
         const tenantSeed = {
           externalId: {
@@ -207,10 +122,7 @@ describe("Integration tests", () => {
           logger: genericLogger,
         });
         expect(id).toBeDefined();
-        const writtenEvent = await readLastTenantEvent(
-          unsafeBrandId(id),
-          postgresDB
-        );
+        const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
         if (!writtenEvent) {
           fail("Creation failed: tenant not found in event-store");
         }
@@ -222,19 +134,22 @@ describe("Integration tests", () => {
         const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
           TenantOnboardedV2
         ).parse(writtenEvent.data);
+
         const expectedTenant: Tenant = {
           ...mockTenant,
           externalId: tenantSeed.externalId,
           id: unsafeBrandId(id),
           kind: getTenantKind([], tenantSeed.externalId),
           selfcareId: tenantSeed.selfcareId,
-          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
+          onboardedAt: new Date(),
+          createdAt: new Date(),
         };
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+        vi.useRealTimers();
       });
       it("Should throw operation forbidden if role isn't internal", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
+        await addOneTenant(mockTenant);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
         const tenantSeed: ApiSelfcareTenantSeed = {
@@ -259,7 +174,7 @@ describe("Integration tests", () => {
           ...mockTenant,
           selfcareId: generateId(),
         };
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(tenant);
         const newTenantSeed = {
           name: tenant.name,
           externalId: {
@@ -315,7 +230,7 @@ describe("Integration tests", () => {
       const attributeId = tenant.attributes.map((a) => a.id)[0];
       const verifierId = mockVerifiedBy.id;
       it("Should update the expirationDate", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(tenant);
         await tenantService.updateTenantVerifiedAttribute(
           {
             verifierId,
@@ -330,7 +245,7 @@ describe("Integration tests", () => {
             authData: getMockAuthData(),
           }
         );
-        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
+        const writtenEvent = await readLastTenantEvent(tenant.id);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
@@ -388,7 +303,7 @@ describe("Integration tests", () => {
             expirationDate: expirationDateinPast.toISOString(),
           };
 
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(tenant);
         expect(
           tenantService.updateTenantVerifiedAttribute(
             {
@@ -418,7 +333,7 @@ describe("Integration tests", () => {
         const attributeId = updatedCertifiedTenant.attributes.map(
           (a) => a.id
         )[0];
-        await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
+        await addOneTenant(updatedCertifiedTenant);
         expect(
           tenantService.updateTenantVerifiedAttribute(
             {
@@ -442,7 +357,7 @@ describe("Integration tests", () => {
         );
       });
       it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(tenant);
         const verifierId = generateId();
         expect(
           tenantService.updateTenantVerifiedAttribute(
@@ -495,7 +410,7 @@ describe("Integration tests", () => {
               mockVerifiedBy.verificationDate.getTime())
         );
 
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(tenant);
         await tenantService.updateVerifiedAttributeExtensionDate(
           tenant.id,
           attributeId,
@@ -507,7 +422,7 @@ describe("Integration tests", () => {
             authData: getMockAuthData(),
           }
         );
-        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
+        const writtenEvent = await readLastTenantEvent(tenant.id);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
@@ -578,11 +493,7 @@ describe("Integration tests", () => {
         const attributeId = updatedTenantWithoutExpirationDate.attributes.map(
           (a) => a.id
         )[0];
-        await addOneTenant(
-          updatedTenantWithoutExpirationDate,
-          postgresDB,
-          tenants
-        );
+        await addOneTenant(updatedTenantWithoutExpirationDate);
         const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
@@ -605,7 +516,7 @@ describe("Integration tests", () => {
         );
       });
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
+        await addOneTenant(mockTenant);
         const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
@@ -624,7 +535,7 @@ describe("Integration tests", () => {
         );
       });
       it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(tenant);
         const verifierId = generateId();
         const correlationId = generateId();
         expect(
@@ -644,11 +555,6 @@ describe("Integration tests", () => {
         );
       });
     });
-    testAddCertifiedAttribute();
-    testAddDeclaredAttribute();
-    testVerifyVerifiedAttribute();
-    testInternalAssignCertifiedAttribute();
-    testInternalRevokeCertifiedAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
@@ -678,7 +584,7 @@ describe("Integration tests", () => {
     };
     describe("getConsumers", () => {
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -691,7 +597,7 @@ describe("Integration tests", () => {
           name: "A",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
         const agreementEservice1 = getMockAgreement({
           eserviceId: eService1.id,
@@ -699,9 +605,9 @@ describe("Integration tests", () => {
           producerId: eService1.producerId,
           consumerId: tenant1.id,
         });
-        await addOneAgreement(agreementEservice1, agreements);
+        await addOneAgreement(agreementEservice1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -715,7 +621,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const agreementEservice2 = getMockAgreement({
           eserviceId: eService2.id,
@@ -723,9 +629,9 @@ describe("Integration tests", () => {
           producerId: eService2.producerId,
           consumerId: tenant2.id,
         });
-        await addOneAgreement(agreementEservice2, agreements);
+        await addOneAgreement(agreementEservice2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -739,7 +645,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const agreementEservice3 = getMockAgreement({
           eserviceId: eService3.id,
@@ -747,7 +653,7 @@ describe("Integration tests", () => {
           producerId: eService3.producerId,
           consumerId: tenant3.id,
         });
-        await addOneAgreement(agreementEservice3, agreements);
+        await addOneAgreement(agreementEservice3);
 
         const consumers = await readModelService.getConsumers({
           consumerName: undefined,
@@ -759,7 +665,7 @@ describe("Integration tests", () => {
         expect(consumers.results).toEqual([tenant1, tenant2, tenant3]);
       });
       it("should get the tenants consuming any of the eservices of a specific name", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -772,7 +678,7 @@ describe("Integration tests", () => {
           name: "A",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
         const agreementEservice1 = getMockAgreement({
           eserviceId: eService1.id,
@@ -780,9 +686,9 @@ describe("Integration tests", () => {
           producerId: eService1.producerId,
           consumerId: tenant1.id,
         });
-        await addOneAgreement(agreementEservice1, agreements);
+        await addOneAgreement(agreementEservice1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -796,7 +702,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const agreementEservice2 = getMockAgreement({
           eserviceId: eService2.id,
@@ -804,9 +710,9 @@ describe("Integration tests", () => {
           producerId: eService2.producerId,
           consumerId: tenant2.id,
         });
-        await addOneAgreement(agreementEservice2, agreements);
+        await addOneAgreement(agreementEservice2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -820,7 +726,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const agreementEservice3 = getMockAgreement({
           eserviceId: eService3.id,
@@ -828,7 +734,7 @@ describe("Integration tests", () => {
           producerId: eService3.producerId,
           consumerId: tenant3.id,
         });
-        await addOneAgreement(agreementEservice3, agreements);
+        await addOneAgreement(agreementEservice3);
 
         const consumers = await readModelService.getConsumers({
           consumerName: tenant1.name,
@@ -840,7 +746,7 @@ describe("Integration tests", () => {
         expect(consumers.results).toEqual([tenant1]);
       });
       it("should not get any tenants, if no one is consuming any of the eservices of a specific producerId", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -853,9 +759,9 @@ describe("Integration tests", () => {
           name: "A",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -869,9 +775,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -885,7 +791,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const consumers = await readModelService.getConsumers({
           consumerName: undefined,
@@ -897,7 +803,7 @@ describe("Integration tests", () => {
         expect(consumers.results).toEqual([]);
       });
       it("should not get any tenants, if no one is consuming any of the eservices of a specific name", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -910,9 +816,9 @@ describe("Integration tests", () => {
           name: "A",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -926,9 +832,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -942,7 +848,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const consumers = await readModelService.getConsumers({
           consumerName: "A tenant4",
@@ -954,7 +860,7 @@ describe("Integration tests", () => {
         expect(consumers.results).toEqual([]);
       });
       it("Should get consumers (pagination: limit)", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -967,7 +873,7 @@ describe("Integration tests", () => {
           name: "A",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
         const agreementEservice1 = getMockAgreement({
           eserviceId: eService1.id,
@@ -975,9 +881,9 @@ describe("Integration tests", () => {
           producerId: eService1.producerId,
           consumerId: tenant1.id,
         });
-        await addOneAgreement(agreementEservice1, agreements);
+        await addOneAgreement(agreementEservice1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -991,7 +897,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const agreementEservice2 = getMockAgreement({
           eserviceId: eService2.id,
@@ -999,9 +905,9 @@ describe("Integration tests", () => {
           producerId: eService2.producerId,
           consumerId: tenant2.id,
         });
-        await addOneAgreement(agreementEservice2, agreements);
+        await addOneAgreement(agreementEservice2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1015,7 +921,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const agreementEservice3 = getMockAgreement({
           eserviceId: eService3.id,
@@ -1023,7 +929,7 @@ describe("Integration tests", () => {
           producerId: eService3.producerId,
           consumerId: tenant3.id,
         });
-        await addOneAgreement(agreementEservice3, agreements);
+        await addOneAgreement(agreementEservice3);
 
         const tenantsByName = await readModelService.getConsumers({
           consumerName: undefined,
@@ -1034,7 +940,7 @@ describe("Integration tests", () => {
         expect(tenantsByName.results.length).toBe(2);
       });
       it("Should get consumers (pagination: offset, limit)", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1047,7 +953,7 @@ describe("Integration tests", () => {
           name: "A",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
         const agreementEservice1 = getMockAgreement({
           eserviceId: eService1.id,
@@ -1055,9 +961,9 @@ describe("Integration tests", () => {
           producerId: eService1.producerId,
           consumerId: tenant1.id,
         });
-        await addOneAgreement(agreementEservice1, agreements);
+        await addOneAgreement(agreementEservice1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1071,7 +977,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const agreementEservice2 = getMockAgreement({
           eserviceId: eService2.id,
@@ -1079,9 +985,9 @@ describe("Integration tests", () => {
           producerId: eService2.producerId,
           consumerId: tenant2.id,
         });
-        await addOneAgreement(agreementEservice2, agreements);
+        await addOneAgreement(agreementEservice2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1095,7 +1001,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: eService1.producerId,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const agreementEservice3 = getMockAgreement({
           eserviceId: eService3.id,
@@ -1103,7 +1009,7 @@ describe("Integration tests", () => {
           producerId: eService3.producerId,
           consumerId: tenant3.id,
         });
-        await addOneAgreement(agreementEservice3, agreements);
+        await addOneAgreement(agreementEservice3);
 
         const tenantsByName = await readModelService.getConsumers({
           consumerName: undefined,
@@ -1116,7 +1022,7 @@ describe("Integration tests", () => {
     });
     describe("getProducers", () => {
       it("should get producers", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1130,9 +1036,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor1],
           producerId: tenant1.id,
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1146,9 +1052,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: tenant2.id,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1162,7 +1068,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: tenant3.id,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
 
         const producers = await readModelService.getProducers({
           producerName: undefined,
@@ -1173,7 +1079,7 @@ describe("Integration tests", () => {
         expect(producers.results).toEqual([tenant1, tenant2, tenant3]);
       });
       it("should get producers by name", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1187,9 +1093,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor1],
           producerId: tenant1.id,
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1203,7 +1109,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: tenant2.id,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const producers = await readModelService.getProducers({
           producerName: tenant1.name,
@@ -1214,7 +1120,7 @@ describe("Integration tests", () => {
         expect(producers.results).toEqual([tenant1]);
       });
       it("should not get any tenants if no one matches the requested name", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1228,9 +1134,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor1],
           producerId: tenant1.id,
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1244,7 +1150,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: tenant2.id,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const producers = await readModelService.getProducers({
           producerName: "A tenant6",
@@ -1267,7 +1173,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor1],
           producerId: tenant1.id,
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1281,7 +1187,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: tenant2.id,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
         const producers = await readModelService.getProducers({
           producerName: "A tenant",
@@ -1292,7 +1198,7 @@ describe("Integration tests", () => {
         expect(producers.results).toEqual([]);
       });
       it("Should get producers (pagination: limit)", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1306,9 +1212,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor1],
           producerId: tenant1.id,
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1322,9 +1228,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: tenant2.id,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1338,7 +1244,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: tenant3.id,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
         const tenantsByName = await readModelService.getProducers({
           producerName: undefined,
           offset: 0,
@@ -1347,7 +1253,7 @@ describe("Integration tests", () => {
         expect(tenantsByName.results.length).toBe(3);
       });
       it("Should get producers (pagination: offset, limit)", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1361,9 +1267,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor1],
           producerId: tenant1.id,
         };
-        await addOneEService(eService1, eservices);
+        await addOneEService(eService1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1377,9 +1283,9 @@ describe("Integration tests", () => {
           descriptors: [descriptor2],
           producerId: tenant2.id,
         };
-        await addOneEService(eService2, eservices);
+        await addOneEService(eService2);
 
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant3);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1393,7 +1299,7 @@ describe("Integration tests", () => {
           descriptors: [descriptor3],
           producerId: tenant3.id,
         };
-        await addOneEService(eService3, eservices);
+        await addOneEService(eService3);
         const tenantsByName = await readModelService.getProducers({
           producerName: undefined,
           offset: 2,
@@ -1404,9 +1310,9 @@ describe("Integration tests", () => {
     });
     describe("getTenants", () => {
       it("should get all the tenants with no filter", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant1);
+        await addOneTenant(tenant2);
+        await addOneTenant(tenant3);
 
         const tenantsByName = await readModelService.getTenantsByName({
           name: undefined,
@@ -1417,9 +1323,9 @@ describe("Integration tests", () => {
         expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
       });
       it("should get tenants by name", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const tenantsByName = await readModelService.getTenantsByName({
           name: "A tenant1",
@@ -1439,9 +1345,9 @@ describe("Integration tests", () => {
         expect(tenantsByName.results).toEqual([]);
       });
       it("should not get tenants if the name does not match", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant1);
 
-        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant2);
 
         const tenantsByName = await readModelService.getTenantsByName({
           name: "A tenant6",
@@ -1452,11 +1358,11 @@ describe("Integration tests", () => {
         expect(tenantsByName.results).toEqual([]);
       });
       it("Should get a maximun number of tenants based on a specified limit", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
-        await addOneTenant(tenant4, postgresDB, tenants);
-        await addOneTenant(tenant5, postgresDB, tenants);
+        await addOneTenant(tenant1);
+        await addOneTenant(tenant2);
+        await addOneTenant(tenant3);
+        await addOneTenant(tenant4);
+        await addOneTenant(tenant5);
         const tenantsByName = await readModelService.getTenantsByName({
           name: undefined,
           offset: 0,
@@ -1465,11 +1371,11 @@ describe("Integration tests", () => {
         expect(tenantsByName.results.length).toBe(4);
       });
       it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
-        await addOneTenant(tenant4, postgresDB, tenants);
-        await addOneTenant(tenant5, postgresDB, tenants);
+        await addOneTenant(tenant1);
+        await addOneTenant(tenant2);
+        await addOneTenant(tenant3);
+        await addOneTenant(tenant4);
+        await addOneTenant(tenant5);
         const tenantsByName = await readModelService.getTenantsByName({
           name: undefined,
           offset: 2,
@@ -1480,9 +1386,9 @@ describe("Integration tests", () => {
     });
     describe("getTenantById", () => {
       it("should get the tenant by ID", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant1);
+        await addOneTenant(tenant2);
+        await addOneTenant(tenant3);
         const tenantById = await readModelService.getTenantById(tenant1.id);
         expect(tenantById?.data).toEqual(tenant1);
       });
@@ -1493,9 +1399,9 @@ describe("Integration tests", () => {
     });
     describe("getTenantBySelfcareId", () => {
       it("should get the tenant by selfcareId", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant1);
+        await addOneTenant(tenant2);
+        await addOneTenant(tenant3);
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           tenant1.selfcareId!
@@ -1512,9 +1418,9 @@ describe("Integration tests", () => {
     });
     describe("getTenantByExternalId", () => {
       it("should get the tenant by externalId", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant1);
+        await addOneTenant(tenant2);
+        await addOneTenant(tenant3);
         const tenantByExternalId = await readModelService.getTenantByExternalId(
           {
             value: tenant1.externalId.value,

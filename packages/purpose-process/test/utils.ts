@@ -1,44 +1,85 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
-  PurposeCollection,
+  initPDFGenerator,
+  launchPuppeteerBrowser,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
+  ReadEvent,
   StoredEvent,
+  setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
+  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
   EService,
   Purpose,
   PurposeEvent,
   RiskAnalysis,
+  RiskAnalysisForm,
   generateId,
   technology,
   toPurposeV2,
   unsafeBrandId,
   toReadModelPurpose,
+  PurposeId,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
+import { afterAll, afterEach, inject, vi } from "vitest";
+import puppeteer, { Browser } from "puppeteer";
 import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
   ApiRiskAnalysisFormSeed,
 } from "../src/model/domain/models.js";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { purposeServiceBuilder } from "../src/services/purposeService.js";
 
-export const addOnePurpose = async (
-  purpose: Purpose,
-  postgresDB: IDatabase<unknown>,
-  purposes: PurposeCollection
-): Promise<void> => {
-  await writePurposeInEventstore(purpose, postgresDB);
+export const { cleanup, readModelRepository, postgresDB, fileManager } =
+  setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig")
+  );
+
+afterEach(cleanup);
+
+export const agreements = readModelRepository.agreements;
+export const eservices = readModelRepository.eservices;
+export const tenants = readModelRepository.tenants;
+export const attributes = readModelRepository.attributes;
+export const purposes = readModelRepository.purposes;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+
+const testBrowserInstance: Browser = await launchPuppeteerBrowser({
+  pipe: true,
+});
+const closeTestBrowserInstance = async (): Promise<void> =>
+  await testBrowserInstance.close();
+
+afterAll(closeTestBrowserInstance);
+
+vi.spyOn(puppeteer, "launch").mockImplementation(
+  async () => testBrowserInstance
+);
+const pdfGenerator = await initPDFGenerator();
+
+export const purposeService = purposeServiceBuilder(
+  postgresDB,
+  readModelService,
+  fileManager,
+  pdfGenerator
+);
+
+export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
+  await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 };
 
 export const writePurposeInEventstore = async (
-  purpose: Purpose,
-  postgresDB: IDatabase<unknown>
+  purpose: Purpose
 ): Promise<void> => {
   const purposeEvent: PurposeEvent = {
     type: "PurposeAdded",
@@ -72,6 +113,11 @@ export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
 ): ApiRiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
+
+export const buildRiskAnalysisFormSeed = (
+  riskAnalysisForm: RiskAnalysisForm
+): ApiRiskAnalysisFormSeed =>
+  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
 
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,
@@ -119,3 +165,8 @@ export const createUpdatedPurpose = (
     ),
   },
 });
+
+export const readLastPurposeEvent = async (
+  purposeId: PurposeId
+): Promise<ReadEvent<PurposeEvent>> =>
+  await readLastEventByStreamId(purposeId, "purpose", postgresDB);
