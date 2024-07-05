@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-const SelfCareConfig = z
+export const SelfCareConfig = z
   .object({
     SELFCARE_V2_URL: z.string(),
     SELFCARE_V2_API_KEY: z.string(),
   })
   .transform((c) => ({
-    selfcare_baseUrl: c.SELFCARE_V2_URL,
-    selfcare_apiKey: c.SELFCARE_V2_API_KEY,
+    selfcareBaseUrl: c.SELFCARE_V2_URL,
+    selfcareApiKey: c.SELFCARE_V2_API_KEY,
   }));
 
-export const config = SelfCareConfig.parse(process.env);
+export type SelfCareConfig = z.infer<typeof SelfCareConfig>;

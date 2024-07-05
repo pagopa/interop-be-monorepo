@@ -262,6 +262,7 @@ export function tenantServiceBuilder(
           mails: [],
           selfcareId: tenantSeed.selfcareId,
           kind: getTenantKind([], tenantSeed.externalId),
+          onboardedAt: new Date(),
           createdAt: new Date(),
         };
         return await repository.createEvent(
@@ -292,8 +293,13 @@ export function tenantServiceBuilder(
     },
 
     async maintenanceTenantDeleted(
-      tenantId: TenantId,
-      correlationId: string,
+      {
+        tenantId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        correlationId: string;
+      },
       logger: Logger
     ): Promise<void> {
       logger.info(`Deleting Tenant ${tenantId}`);
