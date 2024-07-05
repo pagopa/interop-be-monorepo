@@ -454,8 +454,10 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           await tenantService.maintenanceTenantDeleted(
-            unsafeBrandId(req.params.tenantId),
-            req.ctx.correlationId,
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              correlationId: req.ctx.correlationId,
+            },
             ctx.logger
           );
           return res.status(204).end();
