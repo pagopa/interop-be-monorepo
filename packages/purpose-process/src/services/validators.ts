@@ -158,19 +158,6 @@ export function assertPurposeIsDraft(purpose: Purpose): void {
   }
 }
 
-export function assertDailyCallsIsDifferentThanBefore(
-  purpose: Purpose,
-  dailyCalls: number
-): void {
-  const previousDailyCalls = [...purpose.versions].sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  )[0]?.dailyCalls;
-
-  if (previousDailyCalls === dailyCalls) {
-    throw unchangedDailyCalls(purpose.id);
-  }
-}
-
 export const isDeletable = (purpose: Purpose): boolean =>
   purpose.versions.every(
     (v) =>
