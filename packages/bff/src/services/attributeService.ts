@@ -26,7 +26,6 @@ export function attributeServiceBuilder(
         toApiAttributeProcessSeed(seed),
         {
           headers,
-          withCredentials: true,
         }
       );
     },
@@ -41,7 +40,6 @@ export function attributeServiceBuilder(
         toApiAttributeProcessSeed(seed),
         {
           headers,
-          withCredentials: true,
         }
       );
     },
@@ -56,7 +54,6 @@ export function attributeServiceBuilder(
         toApiAttributeProcessSeed(seed),
         {
           headers,
-          withCredentials: true,
         }
       );
     },
