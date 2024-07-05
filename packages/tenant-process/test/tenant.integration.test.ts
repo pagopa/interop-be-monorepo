@@ -66,7 +66,7 @@ describe("Integration tests", () => {
     describe("selfcareUpsertTenant", async () => {
       const correlationId = generateId();
 
-      it("Should update the tenant if it exists", async () => {
+      it("should update the tenant if it exists", async () => {
         const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
         const kind = tenantKind.PA;
@@ -110,7 +110,7 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
-      it("Should create a tenant if it does not exist", async () => {
+      it("should create a tenant if it does not exist", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
         const tenantSeed = {
@@ -157,7 +157,7 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
         vi.useRealTimers();
       });
-      it("Should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
+      it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
         const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
 
@@ -178,7 +178,7 @@ describe("Integration tests", () => {
           })
         ).rejects.toThrowError(operationForbidden);
       });
-      it("Should throw selfcareIdConflict error if the given and existing selfcareId differ", async () => {
+      it("should throw selfcareIdConflict error if the given and existing selfcareId differ", async () => {
         const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
         const newTenantSeed = {
@@ -235,7 +235,7 @@ describe("Integration tests", () => {
       };
       const attributeId = tenant.attributes.map((a) => a.id)[0];
       const verifierId = mockVerifiedBy.id;
-      it("Should update the expirationDate", async () => {
+      it("should update the expirationDate", async () => {
         await addOneTenant(tenant);
         await tenantService.updateTenantVerifiedAttribute(
           {
@@ -280,7 +280,7 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
-      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+      it("should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
           tenantService.updateTenantVerifiedAttribute(
             {
@@ -299,7 +299,7 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
-      it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
+      it("should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
         const expirationDateinPast = new Date(
           currentDate.setDate(currentDate.getDate() - 3)
         );
@@ -329,7 +329,7 @@ describe("Integration tests", () => {
           expirationDateCannotBeInThePast(expirationDateinPast)
         );
       });
-      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+      it("should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         const updatedCertifiedTenant: Tenant = {
           ...getMockTenant(),
           attributes: [{ ...mockCertifiedTenantAttribute }],
@@ -362,7 +362,7 @@ describe("Integration tests", () => {
           )
         );
       });
-      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+      it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
         await addOneTenant(tenant);
         const verifierId = generateId();
         expect(
@@ -409,7 +409,7 @@ describe("Integration tests", () => {
       };
       const attributeId = tenant.attributes.map((a) => a.id)[0];
       const verifierId = mockVerifiedBy.id;
-      it("Should update the extensionDate", async () => {
+      it("should update the extensionDate", async () => {
         const extensionDate = new Date(
           currentDate.getTime() +
             (expirationDate.getTime() -
@@ -461,7 +461,7 @@ describe("Integration tests", () => {
         };
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
-      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+      it("should throw tenantNotFound when tenant doesn't exist", async () => {
         const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
@@ -478,7 +478,7 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
-      it("Should throw expirationDateNotFoundInVerifier", async () => {
+      it("should throw expirationDateNotFoundInVerifier", async () => {
         const expirationDate = undefined;
 
         const updatedTenantWithoutExpirationDate: Tenant = {
@@ -521,7 +521,7 @@ describe("Integration tests", () => {
           )
         );
       });
-      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+      it("should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         const mockTenant: Tenant = { ...getMockTenant(), attributes: [] };
         await addOneTenant(mockTenant);
         const correlationId = generateId();
@@ -541,7 +541,7 @@ describe("Integration tests", () => {
           verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
         );
       });
-      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+      it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
         await addOneTenant(tenant);
         const verifierId = generateId();
         const correlationId = generateId();
@@ -861,7 +861,7 @@ describe("Integration tests", () => {
         expect(consumers.totalCount).toBe(0);
         expect(consumers.results).toEqual([]);
       });
-      it("Should get consumers (pagination: limit)", async () => {
+      it("should get consumers (pagination: limit)", async () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
@@ -941,7 +941,7 @@ describe("Integration tests", () => {
         });
         expect(tenantsByName.results.length).toBe(2);
       });
-      it("Should get consumers (pagination: offset, limit)", async () => {
+      it("should get consumers (pagination: offset, limit)", async () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
@@ -1199,7 +1199,7 @@ describe("Integration tests", () => {
         expect(producers.totalCount).toBe(0);
         expect(producers.results).toEqual([]);
       });
-      it("Should get producers (pagination: limit)", async () => {
+      it("should get producers (pagination: limit)", async () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
@@ -1254,7 +1254,7 @@ describe("Integration tests", () => {
         });
         expect(tenantsByName.results.length).toBe(3);
       });
-      it("Should get producers (pagination: offset, limit)", async () => {
+      it("should get producers (pagination: offset, limit)", async () => {
         await addOneTenant(tenant1);
 
         const descriptor1: Descriptor = {
@@ -1359,7 +1359,7 @@ describe("Integration tests", () => {
         expect(tenantsByName.totalCount).toBe(0);
         expect(tenantsByName.results).toEqual([]);
       });
-      it("Should get a maximun number of tenants based on a specified limit", async () => {
+      it("should get a maximun number of tenants based on a specified limit", async () => {
         await addOneTenant(tenant1);
         await addOneTenant(tenant2);
         await addOneTenant(tenant3);
@@ -1372,7 +1372,7 @@ describe("Integration tests", () => {
         });
         expect(tenantsByName.results.length).toBe(4);
       });
-      it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
+      it("should get a maximun number of tenants based on a specified limit and offset", async () => {
         await addOneTenant(tenant1);
         await addOneTenant(tenant2);
         await addOneTenant(tenant3);
