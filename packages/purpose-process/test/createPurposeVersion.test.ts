@@ -74,7 +74,11 @@ describe("createPurposeVersion", () => {
       kind: "PA",
     };
 
-    mockEServiceDescriptor = getMockDescriptorPublished();
+    mockEServiceDescriptor = {
+      ...getMockDescriptorPublished(),
+      dailyCallsPerConsumer: 25,
+      dailyCallsTotal: 50,
+    };
 
     mockEService = {
       ...getMockEService(),
@@ -93,6 +97,7 @@ describe("createPurposeVersion", () => {
     mockPurposeVersion = {
       ...getMockPurposeVersion(),
       state: purposeVersionState.active,
+      dailyCalls: 1,
     };
 
     mockPurpose = {
@@ -108,7 +113,7 @@ describe("createPurposeVersion", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the creation of a new purpose version", async () => {
+  it("should write on event-store for the creation of a new purpose version (daily calls <= threshold)", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
@@ -118,7 +123,7 @@ describe("createPurposeVersion", () => {
     const purposeVersion = await purposeService.createPurposeVersion({
       purposeId: mockPurpose.id,
       seed: {
-        dailyCalls: 20,
+        dailyCalls: 25,
       },
       organizationId: mockPurpose.consumerId,
       correlationId: generateId(),
@@ -159,10 +164,10 @@ describe("createPurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it("should write on event-store for the creation of a new purpose version in waiting for approval state", async () => {
+  it("should write on event-store for the creation of a new purpose version in waiting for approval state (daily calls > threshold)", async () => {
     const descriptor: Descriptor = {
       ...mockEServiceDescriptor,
-      dailyCallsPerConsumer: 99,
+      dailyCallsPerConsumer: 30,
     };
     const eservice = { ...mockEService, descriptors: [descriptor] };
 
@@ -225,7 +230,7 @@ describe("createPurposeVersion", () => {
         await purposeService.createPurposeVersion({
           purposeId: mockPurpose.id,
           seed: {
-            dailyCalls: 10,
+            dailyCalls: mockPurposeVersion.dailyCalls,
           },
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
