@@ -129,8 +129,8 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
       )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
-        requesterTenant.externalId.origin,
-        requesterTenant.externalId.value
+        targetTenant.externalId.origin,
+        targetTenant.externalId.value
       )
     );
   });
