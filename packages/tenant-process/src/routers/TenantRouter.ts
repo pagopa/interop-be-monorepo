@@ -477,10 +477,12 @@ const tenantsRouter = (
         try {
           const { tenantId, attributeId } = req.params;
           await tenantService.revokeCertifiedAttributeById(
-            unsafeBrandId(tenantId),
-            unsafeBrandId(attributeId),
-            req.ctx.authData.organizationId,
-            req.ctx.correlationId,
+            {
+              tenantId: unsafeBrandId(tenantId),
+              attributeId: unsafeBrandId(attributeId),
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
             ctx.logger
           );
           return res.status(204).end();

@@ -361,10 +361,17 @@ export function tenantServiceBuilder(
     },
 
     async revokeCertifiedAttributeById(
-      tenantId: TenantId,
-      attributeId: AttributeId,
-      organizationId: TenantId,
-      correlationId: string,
+      {
+        tenantId,
+        attributeId,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        attributeId: AttributeId;
+        organizationId: TenantId;
+        correlationId: string;
+      },
       logger: Logger
     ): Promise<void> {
       logger.info(
