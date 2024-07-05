@@ -24,9 +24,18 @@ import {
   descriptorState,
   generateId,
   purposeVersionState,
+  Document,
+  AgreementAttribute,
+  tenantMailKind,
+  TenantMailKind,
+  Client,
+  clientKind,
+  keyUse,
+  Key,
   technology,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -70,6 +79,12 @@ export const getMockEServiceAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
+  id: attributeId,
+});
+
+export const getMockAgreementAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): AgreementAttribute => ({
   id: attributeId,
 });
 
@@ -123,12 +138,23 @@ export const getMockTenant = (
   createdAt: new Date(),
   attributes,
   selfcareId: generateId(),
+  onboardedAt: new Date(),
   externalId: {
     value: generateId(),
     origin: "IPA",
   },
   features: [],
   mails: [],
+});
+
+export const getMockTenantMail = (
+  kind: TenantMailKind = tenantMailKind.ContactEmail
+): Tenant["mails"][number] => ({
+  id: generateId(),
+  createdAt: new Date(),
+  kind,
+  description: generateMock(z.string()),
+  address: generateMock(z.string().email()),
 });
 
 export const getMockAgreement = (
@@ -161,6 +187,7 @@ export const getMockPurpose = (): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
+  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
@@ -194,6 +221,57 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   createdAt: new Date(),
 });
 
+export const getMockDescriptor = (): Descriptor => ({
+  id: generateId(),
+  version: "1",
+  docs: [],
+  state: descriptorState.draft,
+  audience: [],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: generateId(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: "checksum",
+  uploadDate: new Date(),
+});
+
+export const getMockClient = (): Client => ({
+  id: generateId(),
+  consumerId: generateId(),
+  name: "Test client",
+  purposes: [],
+  description: "Client description",
+  users: [],
+  kind: clientKind.consumer,
+  createdAt: new Date(),
+  keys: [],
+});
+
+export const getMockKey = (): Key => ({
+  name: "test key",
+  createdAt: new Date(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
+  algorithm: "",
+  use: keyUse.sig,
+  userId: generateId(),
+});
+
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
@@ -203,23 +281,4 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     origin: "IPA",
   },
   selfcareId: generateId(),
-});
-
-export const getMockDescriptor = (): Descriptor => ({
-  id: generateId(),
-  version: "0",
-  docs: [],
-  state: descriptorState.draft,
-  audience: [],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: [],
-  agreementApprovalPolicy: "Automatic",
-  attributes: {
-    certified: [],
-    verified: [],
-    declared: [],
-  },
 });

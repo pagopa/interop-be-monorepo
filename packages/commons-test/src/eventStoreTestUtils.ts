@@ -5,6 +5,8 @@ import {
   AgreementId,
   AttributeEvent,
   AttributeId,
+  AuthorizationEvent,
+  ClientId,
   EServiceEvent,
   EServiceId,
   PurposeEvent,
@@ -13,6 +15,7 @@ import {
   TenantId,
   agreementEventToBinaryData,
   attributeEventToBinaryData,
+  authorizationEventToBinaryData,
   catalogEventToBinaryData,
   protobufDecoder,
   purposeEventToBinaryData,
@@ -26,7 +29,8 @@ type EventStoreSchema =
   | "attribute"
   | "catalog"
   | "tenant"
-  | "purpose";
+  | "purpose"
+  | '"authorization"';
 
 export type StoredEvent<T extends Event> = {
   stream_id: string;
@@ -53,6 +57,8 @@ export async function writeInEventstore<T extends EventStoreSchema>(
     ? StoredEvent<TenantEvent>
     : T extends "purpose"
     ? StoredEvent<PurposeEvent>
+    : T extends '"authorization"'
+    ? StoredEvent<AuthorizationEvent>
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -80,6 +86,9 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("purpose", () =>
           purposeEventToBinaryData(event.event as PurposeEvent)
         )
+        .with('"authorization"', () =>
+          authorizationEventToBinaryData(event.event as AuthorizationEvent)
+        )
         .exhaustive(),
     ]
   );
@@ -96,6 +105,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     ? TenantId
     : T extends "purpose"
     ? PurposeId
+    : T extends '"authorization"'
+    ? ClientId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -111,6 +122,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       ? TenantEvent
       : T extends "purpose"
       ? PurposeEvent
+      : T extends '"authorization"'
+      ? AuthorizationEvent
       : never
   >
 > {
@@ -130,7 +143,9 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     : T extends "tenant"
     ? TenantId
     : T extends "purpose"
-    ? never // Purpose events not implemented yet
+    ? PurposeId
+    : T extends '"authorization"'
+    ? ClientId
     : never,
   version: number,
   schema: T,
@@ -146,7 +161,9 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
       : T extends "tenant"
       ? TenantEvent
       : T extends "purpose"
-      ? never // Purpose events not implemented yet
+      ? PurposeEvent
+      : T extends '"authorization"'
+      ? AuthorizationEvent
       : never
   >
 > {

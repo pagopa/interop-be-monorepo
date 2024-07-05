@@ -141,7 +141,8 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   updatedAt: dateToBigInt(tenant.updatedAt),
   mails: tenant.mails.map(toTenantMailV2),
   kind: tenant.kind ? toTenantKindV2(tenant.kind) : undefined,
-  onboardedAt: dateToBigInt(tenant.createdAt),
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  onboardedAt: dateToBigInt(tenant.onboardedAt!),
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
