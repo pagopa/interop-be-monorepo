@@ -10,9 +10,21 @@ import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
 import { diff } from "json-diff";
-import { Agreement, Attribute, EService, Tenant } from "pagopa-interop-models";
+import {
+  Agreement,
+  Attribute,
+  EService,
+  Purpose,
+  Tenant,
+} from "pagopa-interop-models";
 
-const Collection = z.enum(["agreements", "attributes", "eservices", "tenants"]);
+const Collection = z.enum([
+  "agreements",
+  "attributes",
+  "eservices",
+  "tenants",
+  "purposes",
+]);
 type Collection = z.infer<typeof Collection>;
 
 const readModelSchemas = {
@@ -20,6 +32,7 @@ const readModelSchemas = {
   attributes: Attribute,
   eservices: EService,
   tenants: Tenant,
+  purposes: Purpose,
 } as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
