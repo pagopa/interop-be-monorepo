@@ -66,7 +66,6 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributeById({
         params: { attributeId },
         headers,
-        withCredentials: true,
       });
     },
 
@@ -81,7 +80,6 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributeByOriginAndCode({
         params: { origin, code },
         headers,
-        withCredentials: true,
       });
     },
 
@@ -104,7 +102,6 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds: kinds.join(","), name, origin },
         headers: ctx.headers,
-        withCredentials: true,
       });
     },
   };
