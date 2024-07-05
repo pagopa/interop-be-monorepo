@@ -1,53 +1,16 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { StartedTestContainer } from "testcontainers";
+import { describe, expect, it } from "vitest";
 import {
-  FileManager,
-  FileManagerConfig,
-  LoggerConfig,
   fileManagerCopyError,
   fileManagerDeleteError,
   fileManagerListFilesError,
   fileManagerStoreBytesError,
   genericLogger,
-  initFileManager,
 } from "pagopa-interop-commons";
-import { TEST_MINIO_PORT, minioContainer } from "../src/index.js";
+import { fileManager, s3Bucket } from "./utils.js";
 
 describe("FileManager tests", async () => {
-  process.env.AWS_CONFIG_FILE = "aws.config.local";
-
-  const config: FileManagerConfig & LoggerConfig = {
-    s3CustomServer: true,
-    s3ServerHost: "http://127.0.0.1",
-    s3ServerPort: 9000,
-    logLevel: "info",
-  };
-
-  const s3Bucket = "interop-be-test-bucket";
-
-  let fileManager: FileManager;
-  let startedMinioContainer: StartedTestContainer;
-
-  beforeAll(async () => {
-    startedMinioContainer = await minioContainer({ s3Bucket }).start();
-
-    config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
-    fileManager = initFileManager(config);
-  });
-
-  afterEach(async () => {
-    const files = await fileManager.listFiles(s3Bucket, genericLogger);
-    await Promise.all(
-      files.map((file) => fileManager.delete(s3Bucket, file, genericLogger))
-    );
-  });
-
-  afterAll(async () => {
-    await startedMinioContainer.stop();
-  });
-
   describe("FileManager storeBytes", () => {
     it("should store a file in the bucket", async () => {
       const result = await fileManager.storeBytes(
