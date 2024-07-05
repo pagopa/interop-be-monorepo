@@ -25,6 +25,9 @@ import {
   writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
+  getMockDescriptor,
+  getMockEService,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -36,9 +39,6 @@ import { ApiVerifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
   addOneTenant,
   getMockAgreement,
-  getMockTenant,
-  getMockDescriptor,
-  getMockEService,
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
   getMockRevokedBy,
@@ -50,8 +50,8 @@ import {
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
-  const targetTenant: Tenant = getMockTenant();
-  const requesterTenant: Tenant = getMockTenant();
+  const targetTenant = getMockTenant();
+  const requesterTenant = getMockTenant();
   const tenantAttributeSeed: ApiVerifiedTenantAttributeSeed = {
     id: generateId(),
   };

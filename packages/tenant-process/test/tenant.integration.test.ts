@@ -22,6 +22,12 @@ import {
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import {
+  getMockAuthData,
+  getMockDescriptor,
+  getMockEService,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
