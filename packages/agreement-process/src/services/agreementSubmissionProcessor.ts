@@ -13,6 +13,7 @@ import {
   agreementState,
   tenantMailKind,
 } from "pagopa-interop-models";
+import { agreementApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   agreementNotInExpectedState,
@@ -24,7 +25,6 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/validators.js";
-import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { createStamp } from "./agreementStampUtils.js";
 
 export type AgremeentSubmissionResults = {
@@ -51,7 +51,7 @@ export const createSubmissionUpdateAgreementSeed = (
   consumer: Tenant,
   eservice: EService,
   agreement: Agreement,
-  payload: ApiAgreementSubmissionPayload,
+  payload: agreementApi.AgreementSubmissionPayload,
   newState: AgreementState,
   userId: UserId,
   suspendedByPlatform: boolean | undefined

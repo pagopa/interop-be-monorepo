@@ -99,6 +99,9 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons

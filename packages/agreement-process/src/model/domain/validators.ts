@@ -20,8 +20,8 @@ import {
   TenantAttribute,
   TenantId,
 } from "pagopa-interop-models";
+import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
-import { ApiAgreementPayload } from "../types.js";
 import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
@@ -239,7 +239,7 @@ export const validateCreationOnDescriptor = (
 
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
-  agreement: ApiAgreementPayload,
+  agreement: agreementApi.AgreementPayload,
   readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(

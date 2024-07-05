@@ -9,6 +9,7 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -99,12 +100,6 @@ import {
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
-import {
-  ApiAgreementDocumentSeed,
-  ApiAgreementPayload,
-  ApiAgreementSubmissionPayload,
-  ApiAgreementUpdatePayload,
-} from "../model/types.js";
 import { config } from "../utilities/config.js";
 import {
   archiveRelatedToAgreements,
@@ -229,7 +224,7 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: ApiAgreementPayload,
+      agreementPayload: agreementApi.AgreementPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
@@ -305,7 +300,7 @@ export function agreementServiceBuilder(
     },
     async updateAgreement(
       agreementId: AgreementId,
-      agreement: ApiAgreementUpdatePayload,
+      agreement: agreementApi.AgreementUpdatePayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
@@ -366,7 +361,7 @@ export function agreementServiceBuilder(
     },
     async submitAgreement(
       agreementId: AgreementId,
-      payload: ApiAgreementSubmissionPayload,
+      payload: agreementApi.AgreementSubmissionPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
@@ -699,7 +694,7 @@ export function agreementServiceBuilder(
     },
     async addConsumerDocument(
       agreementId: AgreementId,
-      documentSeed: ApiAgreementDocumentSeed,
+      documentSeed: agreementApi.DocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
