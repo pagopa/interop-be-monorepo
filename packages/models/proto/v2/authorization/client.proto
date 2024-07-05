@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package authorization.v2;
+
+import "v2/authorization/key.proto";
+
+message ClientV2 {
+  string id = 1;
+  string consumerId = 2;
+  string name = 3;
+  optional string description = 4;
+  repeated string purposes = 5;
+  ClientKindV2 kind = 6;
+  int64 createdAt = 7;
+  repeated string users = 8;
+  repeated KeyV2 keys = 9;
+}
+
+enum ClientKindV2 {
+  CONSUMER = 0;
+  API = 1;
+}

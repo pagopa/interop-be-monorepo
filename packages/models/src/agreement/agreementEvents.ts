@@ -7,6 +7,10 @@ import {
   AgreementContractAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementConsumerDocumentRemovedV1,
+  AgreementActivatedV1,
+  AgreementSuspendedV1,
+  AgreementDeactivatedV1,
+  VerifiedAttributeUpdatedV1,
 } from "../gen/v1/agreement/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../index.js";
@@ -14,7 +18,7 @@ import {
   AgreementActivatedV2,
   AgreementAddedV2,
   AgreementArchivedByUpgradeV2,
-  AgreementArchivedV2,
+  AgreementArchivedByConsumerV2,
   AgreementConsumerDocumentAddedV2,
   AgreementConsumerDocumentRemovedV2,
   AgreementDeletedV2,
@@ -28,6 +32,8 @@ import {
   AgreementUnsuspendedByProducerV2,
   AgreementUpgradedV2,
   DraftAgreementUpdatedV2,
+  AgreementSetDraftByPlatformV2,
+  AgreementSetMissingCertifiedAttributesByPlatformV2,
 } from "../gen/v2/agreement/events.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
@@ -46,6 +52,18 @@ export function agreementEventToBinaryDataV1(
     )
     .with({ type: "AgreementAdded" }, ({ data }) =>
       AgreementAddedV1.toBinary(data)
+    )
+    .with({ type: "AgreementActivated" }, ({ data }) =>
+      AgreementActivatedV1.toBinary(data)
+    )
+    .with({ type: "AgreementSuspended" }, ({ data }) =>
+      AgreementSuspendedV1.toBinary(data)
+    )
+    .with({ type: "AgreementDeactivated" }, ({ data }) =>
+      AgreementDeactivatedV1.toBinary(data)
+    )
+    .with({ type: "VerifiedAttributeUpdated" }, ({ data }) =>
+      VerifiedAttributeUpdatedV1.toBinary(data)
     )
     .with({ type: "AgreementUpdated" }, ({ data }) =>
       AgreementUpdatedV1.toBinary(data)
@@ -90,8 +108,8 @@ export function agreementEventToBinaryDataV2(
     .with({ type: "AgreementUnsuspendedByPlatform" }, ({ data }) =>
       AgreementUnsuspendedByPlatformV2.toBinary(data)
     )
-    .with({ type: "AgreementArchived" }, ({ data }) =>
-      AgreementArchivedV2.toBinary(data)
+    .with({ type: "AgreementArchivedByConsumer" }, ({ data }) =>
+      AgreementArchivedByConsumerV2.toBinary(data)
     )
     .with({ type: "AgreementArchivedByUpgrade" }, ({ data }) =>
       AgreementArchivedByUpgradeV2.toBinary(data)
@@ -117,6 +135,14 @@ export function agreementEventToBinaryDataV2(
     .with({ type: "AgreementConsumerDocumentRemoved" }, ({ data }) =>
       AgreementConsumerDocumentRemovedV2.toBinary(data)
     )
+    .with({ type: "AgreementSetDraftByPlatform" }, ({ data }) =>
+      AgreementSetDraftByPlatformV2.toBinary(data)
+    )
+    .with(
+      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      ({ data }) =>
+        AgreementSetMissingCertifiedAttributesByPlatformV2.toBinary(data)
+    )
     .exhaustive();
 }
 
@@ -128,8 +154,28 @@ export const AgreementEventV1 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(1),
+    type: z.literal("AgreementActivated"),
+    data: protobufDecoder(AgreementActivatedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("AgreementSuspended"),
+    data: protobufDecoder(AgreementSuspendedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("AgreementDeactivated"),
+    data: protobufDecoder(AgreementDeactivatedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
     type: z.literal("AgreementDeleted"),
     data: protobufDecoder(AgreementDeletedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("VerifiedAttributeUpdated"),
+    data: protobufDecoder(VerifiedAttributeUpdatedV1),
   }),
   z.object({
     event_version: z.literal(1),
@@ -197,8 +243,8 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("AgreementArchived"),
-    data: protobufDecoder(AgreementArchivedV2),
+    type: z.literal("AgreementArchivedByConsumer"),
+    data: protobufDecoder(AgreementArchivedByConsumerV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -239,6 +285,16 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("AgreementConsumerDocumentRemoved"),
     data: protobufDecoder(AgreementConsumerDocumentRemovedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("AgreementSetDraftByPlatform"),
+    data: protobufDecoder(AgreementSetDraftByPlatformV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("AgreementSetMissingCertifiedAttributesByPlatform"),
+    data: protobufDecoder(AgreementSetMissingCertifiedAttributesByPlatformV2),
   }),
 ]);
 export type AgreementEventV2 = z.infer<typeof AgreementEventV2>;
