@@ -74,13 +74,13 @@ describe("addCertifiedAttribute", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     await addOneTenant(requesterTenant);
     const returnedTenant = await tenantService.addCertifiedAttribute(
-      targetTenant.id,
-      genericLogger,
       {
+        tenantId: targetTenant.id,
         tenantAttributeSeed,
         organizationId: requesterTenant.id,
         correlationId: generateId(),
-      }
+      },
+      genericLogger
     );
     const writtenEvent = await readLastEventByStreamId(
       targetTenant.id,
@@ -130,13 +130,13 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
     const returnedTenant = await tenantService.addCertifiedAttribute(
-      tenantWithCertifiedAttribute.id,
-      genericLogger,
       {
+        tenantId: tenantWithCertifiedAttribute.id,
         tenantAttributeSeed,
         organizationId: requesterTenant.id,
         correlationId: generateId(),
-      }
+      },
+      genericLogger
     );
     const writtenEvent = await readLastEventByStreamId(
       tenantWithCertifiedAttribute.id,
@@ -186,13 +186,13 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(requesterTenant);
     expect(
       tenantService.addCertifiedAttribute(
-        tenantAlreadyAssigned.id,
-        genericLogger,
         {
+          tenantId: tenantAlreadyAssigned.id,
           tenantAttributeSeed,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
-        }
+        },
+        genericLogger
       )
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(attribute.id, tenantAlreadyAssigned.id)
@@ -202,11 +202,15 @@ describe("addCertifiedAttribute", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 
     expect(
-      tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
-        tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      })
+      tenantService.addCertifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
   });
   it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
@@ -214,11 +218,15 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(requesterTenant);
 
     expect(
-      tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
-        tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      })
+      tenantService.addCertifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
 
@@ -230,11 +238,15 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(tenant);
 
     expect(
-      tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
-        tenantAttributeSeed,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-      })
+      tenantService.addCertifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
   it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
@@ -250,11 +262,15 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(requesterTenant);
 
     expect(
-      tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
-        tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      })
+      tenantService.addCertifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
     ).rejects.toThrowError(
       certifiedAttributeOriginIsNotCompliantWithCertifier(
         notCompliantOriginAttribute.origin!,

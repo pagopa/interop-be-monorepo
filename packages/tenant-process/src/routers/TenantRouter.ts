@@ -429,13 +429,13 @@ const tenantsRouter = (
         try {
           const { tenantId } = req.params;
           const tenant = await tenantService.addCertifiedAttribute(
-            unsafeBrandId(tenantId),
-            ctx.logger,
             {
+              tenantId: unsafeBrandId(tenantId),
               tenantAttributeSeed: req.body,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
-            }
+            },
+            ctx.logger
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
