@@ -36,20 +36,14 @@ import {
   RiskAnalysisId,
   eserviceMode,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
-import {
-  Consumer,
-  EServiceDescriptorSeed,
-  UpdateEServiceDescriptorSeed,
-  UpdateEServiceDescriptorQuotasSeed,
-  EServiceAttributesSeed,
-  EServiceRiskAnalysisSeed,
-} from "../model/domain/models.js";
+import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -73,12 +67,6 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import {
-  ApiEServiceDescriptorDocumentSeed,
-  ApiEServiceDescriptorDocumentUpdateSeed,
-  ApiEServiceSeed,
-  ApiGetEServicesFilters,
-} from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
@@ -273,7 +261,7 @@ const replaceRiskAnalysis = (
 };
 
 async function parseAndCheckAttributes(
-  attributesSeed: EServiceAttributesSeed,
+  attributesSeed: catalogApi.AttributesSeed,
   readModelService: ReadModelService
 ): Promise<EserviceAttributes> {
   const certifiedAttributes = attributesSeed.certified;
@@ -413,7 +401,7 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
+      apiEServicesSeed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -454,7 +442,7 @@ export function catalogServiceBuilder(
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: ApiEServiceSeed,
+      eserviceSeed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
@@ -551,7 +539,7 @@ export function catalogServiceBuilder(
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      document: ApiEServiceDescriptorDocumentSeed,
+      document: catalogApi.CreateEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -707,7 +695,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
+      apiEServiceDescriptorDocumentUpdateSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Document> {
       logger.info(
@@ -779,7 +767,7 @@ export function catalogServiceBuilder(
 
     async createDescriptor(
       eserviceId: EServiceId,
-      eserviceDescriptorSeed: EServiceDescriptorSeed,
+      eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
@@ -899,7 +887,7 @@ export function catalogServiceBuilder(
     async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorSeed,
+      seed: catalogApi.UpdateEServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1306,7 +1294,7 @@ export function catalogServiceBuilder(
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorQuotasSeed,
+      seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1355,7 +1343,7 @@ export function catalogServiceBuilder(
     },
     async createRiskAnalysis(
       eserviceId: EServiceId,
-      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
@@ -1401,7 +1389,7 @@ export function catalogServiceBuilder(
     async updateRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
-      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
