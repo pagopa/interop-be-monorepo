@@ -49,7 +49,6 @@ import {
   readModelService,
   tenantService,
 } from "./utils.js";
-import { testMaintenanceTenantDelete } from "./maintenanceTenantDelete.test.js";
 
 describe("Integration tests", () => {
   const mockEService = getMockEService();
@@ -554,7 +553,6 @@ describe("Integration tests", () => {
         );
       });
     });
-    testMaintenanceTenantDelete();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
