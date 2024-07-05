@@ -61,7 +61,6 @@ export function attributeServiceBuilder(
       return attributeClient.getAttributeById({
         params: { attributeId },
         headers,
-        withCredentials: true,
       });
     },
 
