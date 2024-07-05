@@ -28,6 +28,7 @@ import {
   operationForbidden,
   RiskAnalysisId,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
@@ -38,7 +39,6 @@ import {
   eServiceRiskAnalysisNotFound,
   riskAnalysisValidationFailed,
 } from "../src/model/domain/errors.js";
-import { EServiceRiskAnalysisSeed } from "../src/model/domain/models.js";
 import {
   addOneTenant,
   addOneEService,
@@ -80,10 +80,10 @@ describe("update risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
       buildRiskAnalysisSeed(riskAnalysis);
 
-    const riskAnalysisUpdatedSeed: EServiceRiskAnalysisSeed = {
+    const riskAnalysisUpdatedSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...riskAnalysisSeed,
       riskAnalysisForm: {
         ...riskAnalysisSeed.riskAnalysisForm,
@@ -385,10 +385,10 @@ describe("update risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
       buildRiskAnalysisSeed(riskAnalysis);
 
-    const riskAnalysisUpdatedSeed: EServiceRiskAnalysisSeed = {
+    const riskAnalysisUpdatedSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...riskAnalysisSeed,
       riskAnalysisForm: {
         ...riskAnalysisSeed.riskAnalysisForm,
