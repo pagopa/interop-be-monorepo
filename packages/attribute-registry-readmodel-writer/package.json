@@ -11,7 +11,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -20,25 +20,23 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/dotenv-flow": "3.2.0",
-    "@types/node": "20.3.1",
+    "@types/node": "20.14.6",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
-    "testcontainers": "10.2.2",
+    "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
-    "typescript": "5.1.3",
-    "vitest": "0.33.0"
+    "typescript": "5.4.5",
+    "vitest": "1.6.0"
   },
   "dependencies": {
-    "@jm18457/kafkajs-msk-iam-authentication-mechanism": "3.1.2",
     "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.3.6",
-    "dotenv-flow": "3.2.0",
+    "connection-string": "4.4.0",
+    "dotenv-flow": "4.1.0",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "5.0.6",
-    "zod": "3.22.3"
+    "ts-pattern": "5.2.0",
+    "zod": "3.23.8"
   }
 }
