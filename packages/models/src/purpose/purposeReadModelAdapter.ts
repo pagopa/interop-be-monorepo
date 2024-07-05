@@ -20,7 +20,6 @@ export const toReadModelPurposeVersion = (
   updatedAt: purposeVersion.updatedAt?.toISOString(),
   firstActivationAt: purposeVersion.firstActivationAt?.toISOString(),
   suspendedAt: purposeVersion.suspendedAt?.toISOString(),
-  expectedApprovalDate: purposeVersion.expectedApprovalDate?.toISOString(),
   riskAnalysis: purposeVersion.riskAnalysis
     ? toReadModelPurposeVersionDocument(purposeVersion.riskAnalysis)
     : undefined,
