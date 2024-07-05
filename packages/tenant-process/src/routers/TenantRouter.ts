@@ -454,10 +454,12 @@ const tenantsRouter = (
         try {
           const { tenantId, mailId } = req.params;
           await tenantService.deleteTenantMailById(
-            unsafeBrandId(tenantId),
-            mailId,
-            req.ctx.authData.organizationId,
-            req.ctx.correlationId,
+            {
+              tenantId: unsafeBrandId(tenantId),
+              mailId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
             ctx.logger
           );
           return res.status(204).end();
