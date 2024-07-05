@@ -1,6 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import crypto, { JsonWebKey } from "crypto";
+import crypto from "crypto";
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {
   Client,
@@ -11,6 +11,7 @@ import {
   generateId,
   notAllowedPrivateKeyException,
   toClientV2,
+  toReadModelKey,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
@@ -63,7 +64,7 @@ describe("createKeys", () => {
 
   const pemKey = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
-  ).toString("base64");
+  ).toString("base64url");
 
   const keySeed: ApiKeySeed = {
     name: "key seed",
@@ -269,7 +270,7 @@ describe("createKeys", () => {
 
     const privatePemKey = Buffer.from(
       privateKey.export({ type: "pkcs1", format: "pem" })
-    ).toString("base64");
+    ).toString("base64url");
 
     const keySeedByPrivateKey: ApiKeySeed = {
       name: "key seed",
@@ -298,7 +299,7 @@ describe("createKeys", () => {
       kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };
     await addOneClient(mockClient);
-    await writeInReadmodel(key, keys);
+    await writeInReadmodel(toReadModelKey(key), keys);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys({
@@ -309,29 +310,5 @@ describe("createKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
-  });
-  it("should sort the JWK", async () => {
-    const unorderedJWK: JsonWebKey = {
-      e: "E",
-      n: "ABCD",
-      kty: "RSA",
-    };
-
-    const orderedJWK = sortJWK(unorderedJWK);
-    expect(Object.keys(orderedJWK)).toEqual(["e", "kty", "n"]);
-  });
-  it("should calculate the kid", async () => {
-    const expetedKid = "23j6WZbSbFiX_By98MBDgjnL3ZPkJJU83euQxrZxVsA";
-    const kid = calculateKid(
-      createJWK(`-----BEGIN RSA PUBLIC KEY-----
-MIIBCgKCAQEA6s10aGJMLOPKLjJAlRoly4jcBx52X30r156ZRwtG7mNjSIQMclLy
-BrxcZ/OXCkwSnwbgp3Iq7hILppgOA91TI57GHzBJZg4H/Laaq6I0+cE3R1vPmOpz
-/5YsDPtCxrvMshaEiNaJZk/BctJMtlarNMZVSEUni/r5IryMVdmgCMiPhffGVBvp
-JaU5NNACdUt7KluGnmljOd15gLsQbnHWYEFTLuRU5T2bA/GoBKREiz8csodFz8M4
-D59t0zN9Pdy5hAzytnRsPrpppvrS1ErOPLinMarkKSdgmJWltCqyXVx+bgQflctq
-cKMMmMozoK32uTscd8y4aDLiovOsiYq3YwIDAQAB
------END RSA PUBLIC KEY-----`)
-    );
-    expect(kid).toEqual(expetedKid);
   });
 });

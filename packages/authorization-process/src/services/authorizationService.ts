@@ -145,10 +145,9 @@ export function authorizationServiceBuilder(
     }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         client: client.data,
-        showUsers: true,
+        showUsers: organizationId === client.data.consumerId,
       };
     },
 
@@ -460,12 +459,13 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertUserSelfcareSecurityPrivileges(
-        authData.selfcareId,
-        authData.userId,
-        authData.organizationId,
-        selfcareV2Client
-      );
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2Client,
+        userIdToCheck: userId,
+      });
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -599,19 +599,21 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      assertKeyIsBelowThreshold(
+      assertKeysCountIsBelowThreshold(
         clientId,
         client.data.keys.length + keysSeeds.length
       );
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
       }
-      await assertUserSelfcareSecurityPrivileges(
-        authData.selfcareId,
-        authData.userId,
-        authData.organizationId,
-        selfcareV2Client
-      );
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2Client,
+        userIdToCheck: authData.userId,
+      });
 
       if (keysSeeds.length !== 1) {
         throw genericInternalError("Wrong number of keys"); // TODO should we add a specific error?
@@ -727,7 +729,10 @@ export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
 
-const assertKeyIsBelowThreshold = (clientId: ClientId, size: number): void => {
+const assertKeysCountIsBelowThreshold = (
+  clientId: ClientId,
+  size: number
+): void => {
   if (size > config.maxKeysPerClient) {
     throw tooManyKeysPerClient(clientId, size);
   }
