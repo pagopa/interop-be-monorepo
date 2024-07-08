@@ -97,7 +97,7 @@ describe("createPurposeVersion", () => {
     mockPurposeVersion = {
       ...getMockPurposeVersion(),
       state: purposeVersionState.active,
-      dailyCalls: 1,
+      dailyCalls: 5,
     };
 
     mockPurpose = {
@@ -113,7 +113,7 @@ describe("createPurposeVersion", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the creation of a new purpose version (daily calls <= threshold)", async () => {
+  it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold)", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
@@ -149,6 +149,67 @@ describe("createPurposeVersion", () => {
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
+      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      versions: [
+        {
+          ...mockPurposeVersion,
+          state: purposeVersionState.archived,
+          updatedAt: new Date(),
+        },
+        expectedPurposeVersion,
+      ],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: NewPurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+  });
+
+  it("should write on event-store for the creation of a new purpose version (daily calls decreased and <= threshold)", async () => {
+    await addOnePurpose(mockPurpose);
+    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(mockConsumer, tenants);
+    await writeInReadmodel(mockProducer, tenants);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion({
+      purposeId: mockPurpose.id,
+      seed: {
+        dailyCalls: 4,
+      },
+      organizationId: mockPurpose.consumerId,
+      correlationId: generateId(),
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockPurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      firstActivationAt: new Date(),
+      state: purposeVersionState.active,
+      dailyCalls: 4,
       riskAnalysis: returnedPurposeVersion.riskAnalysis,
     };
 
