@@ -24,6 +24,7 @@ export const PurposeVersionReadModel = PurposeVersion.extend({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime().optional(),
   firstActivationAt: z.string().datetime().optional(),
+  expectedApprovalDate: z.string().datetime().optional(),
   suspendedAt: z.string().datetime().optional(),
   riskAnalysis: PurposeVersionDocumentReadModel.optional(),
 });

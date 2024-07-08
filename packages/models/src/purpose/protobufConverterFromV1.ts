@@ -57,6 +57,7 @@ export const fromPurposeVersionV1 = (
     : undefined,
   createdAt: bigIntToDate(input.createdAt),
   updatedAt: bigIntToDate(input.updatedAt),
+  expectedApprovalDate: bigIntToDate(input.expectedApprovalDate),
   firstActivationAt: bigIntToDate(input.firstActivationAt),
   suspendedAt: bigIntToDate(input.suspendedAt),
 });

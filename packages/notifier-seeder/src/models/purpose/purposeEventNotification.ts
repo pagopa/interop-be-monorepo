@@ -18,6 +18,7 @@ export type PurposeVersionV1Notification = Omit<
   | "updatedAt"
   | "firstActivationAt"
   | "suspendedAt"
+  | "expectedApprovalDate"
 > & {
   state: string;
   riskAnalysis?: PurposeVersionDocumentV1Notification;
