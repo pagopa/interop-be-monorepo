@@ -43,6 +43,7 @@ export const toPurposeVersionV1 = (
   updatedAt: dateToBigInt(input.updatedAt),
   firstActivationAt: dateToBigInt(input.firstActivationAt),
   suspendedAt: dateToBigInt(input.suspendedAt),
+  expectedApprovalDate: dateToBigInt(input.expectedApprovalDate),
   riskAnalysis: input.riskAnalysis
     ? toPurposeVersionDocumentV1(input.riskAnalysis)
     : undefined,
