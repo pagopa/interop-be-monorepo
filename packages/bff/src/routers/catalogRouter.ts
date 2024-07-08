@@ -49,6 +49,10 @@ const catalogRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
+    .get("/producers/eservices", async (_req, res) => res.status(501).send())
+    .get("/producers/eservices/:eserviceId", async (_req, res) =>
+      res.status(501).send()
+    )
     .get(
       "/producers/eservices/:eserviceId/descriptors/:descriptorId",
       async (_req, res) => res.status(501).send()
