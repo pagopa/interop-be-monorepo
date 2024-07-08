@@ -12,4 +12,4 @@ export type ApiPurposeAdditionSeed = z.infer<
   typeof api.schemas.PurposeAdditionDetails
 >;
 export type ApiJWKKey = z.infer<typeof api.schemas.JWKKey>;
-export type ApiotherPrimeInfo = z.infer<typeof api.schemas.OtherPrimeInfo>;
+export const ApiJWKKey = api.schemas.JWKKey;

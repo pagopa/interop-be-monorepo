@@ -68,7 +68,6 @@ import {
 } from "../model/domain/toEvent.js";
 import { config } from "../utilities/config.js";
 import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
-import { schemas } from "../model/generated/api.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
@@ -699,7 +698,7 @@ export function authorizationServiceBuilder(
       if (jwk.kty?.toUpperCase() !== "RSA") {
         throw unknownKeyType(jwk.kty ?? "unknown");
       }
-      const jwkKey: ApiJWKKey = schemas.JWKKey.parse({
+      const jwkKey = ApiJWKKey.parse({
         ...jwk,
         kid: key.kid,
         use: "sig",
