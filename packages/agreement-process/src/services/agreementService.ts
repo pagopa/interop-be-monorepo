@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -17,7 +18,6 @@ import {
   AgreementId,
   AgreementState,
   AttributeId,
-  CompactTenant,
   Descriptor,
   DescriptorId,
   EService,
@@ -100,7 +100,7 @@ import {
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
-} from "../model/domain/validators.js";
+} from "../model/domain/agreement-validators.js";
 import {
   ApiAgreementDocumentSeed,
   ApiAgreementPayload,
