@@ -653,6 +653,7 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+
       const previousDailyCalls = [...purpose.data.versions].sort(
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
       )[0]?.dailyCalls;
