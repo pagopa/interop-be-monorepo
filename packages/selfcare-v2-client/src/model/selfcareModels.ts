@@ -6,3 +6,6 @@ export type UserResponse = z.infer<typeof UserResponse>;
 
 const InstitutionResponse = schemas.Institution.strip();
 export type InstitutionResponse = z.infer<typeof InstitutionResponse>;
+
+const UserResource = schemas.UserResource.strip();
+export type UserResource = z.infer<typeof UserResource>;
