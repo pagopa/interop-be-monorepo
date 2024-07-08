@@ -1,8 +1,8 @@
 import { ZodiosBodyByPath } from "@zodios/core";
 import { Problem } from "pagopa-interop-models";
-import { api } from "./generated/api.js";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 
-type Api = typeof api.api;
+type Api = typeof attributeRegistryApi.attributeApi.api;
 
 export type ApiBulkAttributeSeed = ZodiosBodyByPath<
   Api,

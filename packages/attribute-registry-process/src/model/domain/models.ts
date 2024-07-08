@@ -1,4 +1,5 @@
-import { z } from "zod";
-import * as api from "../generated/api.js";
+import { Problem } from "pagopa-interop-models";
 
-export type ApiAttributeKind = z.infer<typeof api.schemas.AttributeKind>;
+export type ApiInternalServerError = Problem & {
+  status: 500;
+};
