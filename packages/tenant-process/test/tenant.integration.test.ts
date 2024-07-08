@@ -18,8 +18,8 @@ import {
   tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { toTenantV1 } from "../src/model/domain/toEvent.js";
-import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
@@ -28,7 +28,6 @@ import {
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
 } from "../src/model/domain/errors.js";
-import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
@@ -75,7 +74,7 @@ describe("Integration tests", () => {
         await addOneTenant(tenant);
         const kind = tenantKind.PA;
         const selfcareId = generateId();
-        const tenantSeed: ApiSelfcareTenantSeed = {
+        const tenantSeed: tenantApi.SelfcareTenantSeed = {
           externalId: {
             origin: tenant.externalId.origin,
             value: tenant.externalId.value,
@@ -199,7 +198,7 @@ describe("Integration tests", () => {
         currentDate.setDate(currentDate.getDate() + 1)
       );
 
-      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+      const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
         {
           expirationDate: expirationDate.toISOString(),
         };
@@ -285,7 +284,7 @@ describe("Integration tests", () => {
           currentDate.setDate(currentDate.getDate() - 3)
         );
 
-        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+        const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
           {
             expirationDate: expirationDateinPast.toISOString(),
           };
@@ -371,7 +370,7 @@ describe("Integration tests", () => {
         currentDate.setDate(currentDate.getDate() + 1)
       );
 
-      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+      const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
         {
           expirationDate: expirationDate.toISOString(),
         };
@@ -457,7 +456,7 @@ describe("Integration tests", () => {
           currentDate.setDate(currentDate.getDate() - 3)
         );
 
-        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+        const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
           {
             expirationDate: expirationDateinPast.toISOString(),
           };
