@@ -62,7 +62,7 @@ import {
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
