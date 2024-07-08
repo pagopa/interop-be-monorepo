@@ -6,8 +6,8 @@ import {
 
 export const errorCodes = {
   purposeNotFound: "0001",
-  userNotFound: "0001",
-  selfcareEntityNotFilled: "0032",
+  userNotFound: "0002",
+  selfcareEntityNotFilled: "0003",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
