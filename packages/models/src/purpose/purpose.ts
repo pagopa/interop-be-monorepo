@@ -39,6 +39,7 @@ export const PurposeVersion = z.object({
   rejectionReason: z.string().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
+  expectedApprovalDate: z.coerce.date().optional(),
   firstActivationAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
 });
