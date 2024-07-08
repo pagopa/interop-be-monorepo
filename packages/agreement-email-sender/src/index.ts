@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
+  buildHTMLTemplateService,
   decodeKafkaMessage,
   initEmailManager,
   logger,
@@ -10,19 +12,40 @@ import {
   AgreementEvent,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
+import {
+  sendAgreementActivationEmail,
+  senderAgreementSubmissionEmail,
+} from "./services/agreementEmailSenderService.js";
+
 import { config } from "./config/config.js";
 
-const emailManager = initEmailManager(config);
+const emailManager = initEmailManager({
+  smtpAddress: config.smtpAddress,
+  smtpPort: config.smtpPort,
+  smtpSecure: config.smtpSecure,
+  smtpUsername: config.smtpUsername,
+  smtpPassword: config.smtpPassword,
+});
+const pecEmailManager = initEmailManager({
+  smtpAddress: config.pecSmtpAddress,
+  smtpPort: config.pecSmtpPort,
+  smtpSecure: config.pecSmtpSecure,
+  smtpUsername: config.pecSmtpUsername,
+  smtpPassword: config.pecSmtpPassword,
+});
+
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const templateService = buildHTMLTemplateService();
 
 export async function processMessage({
   message,
 }: EachMessagePayload): Promise<void> {
+  const handleMessageToSkip = async (): Promise<void> => {};
+
   const decodedMessage = decodeKafkaMessage(message, AgreementEvent);
   const loggerInstance = logger({
     serviceName: "agreement-email-sender",
@@ -33,16 +56,77 @@ export async function processMessage({
   });
   loggerInstance.debug(decodedMessage);
 
-  match(decodedMessage).with(
-    { event_version: 2, type: "AgreementActivated" },
-    async ({ data: { agreement } }) => {
-      if (agreement) {
-        await sendAgreementEmail(agreement, readModelService, emailManager);
-      } else {
-        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+  await match(decodedMessage)
+    .with(
+      { event_version: 2, type: "AgreementActivated" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await sendAgreementActivationEmail({
+            agreementV2: agreement,
+            readModelService,
+            emailManager: pecEmailManager,
+            sender: {
+              label: config.pecSenderLabel,
+              mail: config.pecSenderMail,
+            },
+            templateService,
+            logger: loggerInstance,
+          });
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
       }
-    }
-  );
+    )
+    .with(
+      { event_version: 2, type: "AgreementSubmitted" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await senderAgreementSubmissionEmail({
+            agreementV2: agreement,
+            readModelService,
+            emailManager,
+            feBaseUrl: config.interopFeBaseUrl,
+            sender: { label: config.senderLabel, mail: config.senderMail },
+            templateService,
+            logger: loggerInstance,
+          });
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
+      }
+    )
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "AgreementAdded",
+          "AgreementDeleted",
+          "DraftAgreementUpdated",
+          "AgreementUnsuspendedByProducer",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByUpgrade",
+          "AgreementUpgraded",
+          "AgreementSuspendedByProducer",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByPlatform",
+          "AgreementRejected",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform"
+        ),
+      },
+      handleMessageToSkip
+    )
+    .with(
+      {
+        event_version: 1,
+      },
+      handleMessageToSkip
+    )
+    .exhaustive();
 }
 
 await runConsumer(config, [config.agreementTopic], processMessage);
