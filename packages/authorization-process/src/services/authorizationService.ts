@@ -1,4 +1,4 @@
-import crypto, { JsonWebKey } from "crypto";
+import { JsonWebKey } from "crypto";
 import {
   Client,
   ClientId,
@@ -68,6 +68,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { config } from "../utilities/config.js";
 import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
+import { schemas } from "../model/generated/api.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
@@ -694,34 +695,15 @@ export function authorizationServiceBuilder(
 
       const pemKey = decodeBase64ToPem(key.encodedPem);
       const jwk: JsonWebKey = createJWK(pemKey);
-      if (jwk.kty && jwk.kty.toUpperCase() !== "RSA") {
-        throw unknownKeyType(jwk.kty);
+
+      if (jwk.kty?.toUpperCase() !== "RSA") {
+        throw unknownKeyType(jwk.kty ?? "unknown");
       }
-      const jwkKey: ApiJWKKey = {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        kty: jwk.kty!,
-        keyOps: [],
+      const jwkKey: ApiJWKKey = schemas.JWKKey.parse({
+        ...jwk,
         kid: key.kid,
-        x5u: x5u(
-          "Qui dovrebbe andare l'URL del certificato, ma non sò come prenderlo",
-          pemKey
-        ),
-        x5t: crypto.createHash("sha1").update(pemKey).digest("base64"),
-        x5tS256: x5tS256(
-          "Qui dovrebbe andare il certificato DER, ma non sò come prenderlo"
-        ),
-        x5c: x5c([
-          "Qui dovrebbe andare l'array dei certificati DER, ma non sò come prenderlo",
-        ]),
-        d: jwk.d,
-        e: jwk.e,
-        p: jwk.p,
-        q: jwk.q,
-        dp: jwk.dp,
-        dq: jwk.dq,
-        qi: jwk.qi,
-        oth: [], // Non sò dove prendere questo campo
-      };
+        use: "sig",
+      });
 
       return {
         JWKKey: jwkKey,
@@ -743,20 +725,3 @@ const assertKeysCountIsBelowThreshold = (
     throw tooManyKeysPerClient(clientId, size);
   }
 };
-
-const x5u = (certificateUrl: string, pemKey: string): string => {
-  const hash = crypto.createHash("sha256").update(pemKey).digest("base64url");
-  return `${certificateUrl}#${hash}`;
-};
-
-const x5tS256 = (certificateDER: string): string => {
-  const hash = crypto.createHash("sha256").update(certificateDER).digest();
-  return hash
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-};
-
-const x5c = (certificatesDER: string[]): string[] =>
-  certificatesDER.map((certDER) => Buffer.from(certDER, "base64").toString());
