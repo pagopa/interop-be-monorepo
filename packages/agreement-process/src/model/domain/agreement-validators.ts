@@ -21,7 +21,7 @@ import {
   filterCertifiedAttributes,
   filterDeclaredAttributes,
   filterVerifiedAttributes,
-} from "pagopa-interop-lifecycle";
+} from "pagopa-interop-agreement-lifecycle";
 import { ApiAgreementPayload } from "../types.js";
 import { ReadModelService } from "../../services/readModelService.js";
 import {

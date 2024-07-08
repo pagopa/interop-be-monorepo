@@ -16,6 +16,7 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
+  genericInternalError,
   purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -25,23 +26,30 @@ import {
   Logger,
   eventRepository,
   userRoles,
+  calculateKid,
+  decodeBase64ToPem,
+  createJWK,
 } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   descriptorNotFound,
   eserviceNotFound,
+  keyAlreadyExists,
   keyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
+  tooManyKeysPerClient,
   userAlreadyAssigned,
   userIdNotFound,
+  userNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
+  ApiKeysSeed,
   ApiPurposeAdditionSeed,
 } from "../model/domain/models.js";
 import {
@@ -52,7 +60,10 @@ import {
   toCreateEventClientPurposeRemoved,
   toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
+  toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
+import { config } from "../utilities/config.js";
+import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
@@ -445,13 +456,13 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertUserSelfcareSecurityPrivileges(
-        authData.selfcareId,
-        authData.userId,
-        authData.organizationId,
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
         selfcareV2Client,
-        userId
-      );
+        userIdToCheck: userId,
+      });
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -565,9 +576,113 @@ export function authorizationServiceBuilder(
         )
       );
     },
+
+    async createKeys({
+      clientId,
+      authData,
+      keysSeeds,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      authData: AuthData;
+      keysSeeds: ApiKeysSeed;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(`Creating keys for client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(
+        unsafeBrandId(authData.organizationId),
+        client.data
+      );
+      assertKeysCountIsBelowThreshold(
+        clientId,
+        client.data.keys.length + keysSeeds.length
+      );
+      if (!client.data.users.includes(authData.userId)) {
+        throw userNotFound(authData.userId, authData.selfcareId);
+      }
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2Client,
+        userIdToCheck: authData.userId,
+      });
+
+      if (keysSeeds.length !== 1) {
+        throw genericInternalError("Wrong number of keys"); // TODO should we add a specific error?
+      }
+      const keySeed = keysSeeds[0];
+      const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      const newKey: Key = {
+        clientId,
+        name: keySeed.name,
+        createdAt: new Date(),
+        kid: calculateKid(jwk),
+        encodedPem: keySeed.key,
+        algorithm: keySeed.alg,
+        use: ApiKeyUseToKeyUse(keySeed.use),
+        userId: authData.userId,
+      };
+      const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
+      if (duplicateKid) {
+        throw keyAlreadyExists(newKey.kid);
+      }
+      const updatedClient: Client = {
+        ...client.data,
+        keys: [...client.data.keys, newKey],
+      };
+      await repository.createEvent(
+        toCreateEventKeyAdded(
+          newKey.kid,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
+
+      return {
+        client: updatedClient,
+        showUsers: true,
+      };
+    },
+    async getClientKeyById({
+      clientId,
+      kid,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      kid: string;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key> {
+      logger.info(`Retrieving key ${kid} in client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+      const key = client.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw keyNotFound(kid, clientId);
+      }
+      return key;
+    },
   };
 }
 
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
+
+const assertKeysCountIsBelowThreshold = (
+  clientId: ClientId,
+  size: number
+): void => {
+  if (size > config.maxKeysPerClient) {
+    throw tooManyKeysPerClient(clientId, size);
+  }
+};

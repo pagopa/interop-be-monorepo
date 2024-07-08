@@ -32,7 +32,7 @@ jobs:
       - run: pnpm lint
 
   check:
-    name: Check 
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version-file: ./package.json 
+          node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
         with:
           run_install: true

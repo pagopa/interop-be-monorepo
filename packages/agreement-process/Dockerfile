@@ -1,4 +1,4 @@
-FROM node:20.14.0@sha256:d0a9a2399581a9de1ff962a48a28b5cfe700678a6a5df8e31a63aaa47bebb923 as build
+FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
 
 RUN corepack enable
 
@@ -37,7 +37,7 @@ RUN pnpm build && \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0@sha256:d0a9a2399581a9de1ff962a48a28b5cfe700678a6a5df8e31a63aaa47bebb923 as final 
+FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \

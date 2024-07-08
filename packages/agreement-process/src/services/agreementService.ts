@@ -32,42 +32,13 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  CompactTenant,
 } from "pagopa-interop-models";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
-} from "pagopa-interop-lifecycle";
-import { z } from "zod";
-import {
-  agreementArchivableStates,
-  agreementClonableStates,
-  agreementCloningConflictingStates,
-  agreementDeletableStates,
-  agreementRejectableStates,
-  agreementSuspendableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
-  assertActivableState,
-  assertCanWorkOnConsumerDocuments,
-  assertExpectedState,
-  assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducer,
-  assertRequesterIsProducer,
-  assertSubmittableState,
-  failOnActivationFailure,
-  matchingCertifiedAttributes,
-  matchingDeclaredAttributes,
-  matchingVerifiedAttributes,
-  validateActivationOnDescriptor,
-  validateActiveOrPendingAgreement,
-  validateCertifiedAttributes,
-  validateCreationOnDescriptor,
-  validateSubmitOnDescriptor,
-  verifyConsumerDoesNotActivatePending,
-  verifyCreationConflictingAgreements,
-  verifySubmissionConflictingAgreements,
-} from "../model/domain/agreement-validators.js";
+} from "pagopa-interop-agreement-lifecycle";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -101,6 +72,35 @@ import {
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
+import {
+  agreementArchivableStates,
+  agreementClonableStates,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementSuspendableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  assertActivableState,
+  assertCanWorkOnConsumerDocuments,
+  assertExpectedState,
+  assertRequesterIsConsumer,
+  assertRequesterIsConsumerOrProducer,
+  assertRequesterIsProducer,
+  assertSubmittableState,
+  failOnActivationFailure,
+  matchingCertifiedAttributes,
+  matchingDeclaredAttributes,
+  matchingVerifiedAttributes,
+  validateActivationOnDescriptor,
+  validateActiveOrPendingAgreement,
+  validateCertifiedAttributes,
+  validateCreationOnDescriptor,
+  validateSubmitOnDescriptor,
+  verifyConsumerDoesNotActivatePending,
+  verifyCreationConflictingAgreements,
+  verifySubmissionConflictingAgreements,
+} from "../model/domain/validators.js";
 import {
   ApiAgreementDocumentSeed,
   ApiAgreementPayload,

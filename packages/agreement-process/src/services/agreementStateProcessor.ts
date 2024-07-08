@@ -1,7 +1,6 @@
 import {
   CreateEvent,
   Logger,
-  certifiedAttributesSatisfied,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -18,9 +17,10 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
+  certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
-} from "pagopa-interop-lifecycle";
+} from "pagopa-interop-agreement-lifecycle";
 import {
   toCreateEventAgreementSetDraftByPlatform,
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
