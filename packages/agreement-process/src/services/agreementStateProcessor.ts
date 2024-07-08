@@ -9,6 +9,7 @@ import {
   WithMetadata,
   agreementApprovalPolicy,
   agreementState,
+  CompactTenant,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { CreateEvent, Logger } from "pagopa-interop-commons";
@@ -16,14 +17,13 @@ import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
-} from "../model/domain/validators.js";
+} from "pagopa-interop-agreement-lifecycle";
 import {
   toCreateEventAgreementSetDraftByPlatform,
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
-import { CompactTenant } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveEService } from "./agreementService.js";
 
