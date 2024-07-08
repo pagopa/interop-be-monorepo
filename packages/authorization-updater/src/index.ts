@@ -269,7 +269,6 @@ export async function sendPurposeAuthUpdate(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionOverQuotaUnsuspended",
           "NewPurposeVersionActivated",
-          "NewPurposeVersionWaitingForApproval",
           "PurposeVersionRejected",
           "PurposeVersionActivated",
           "PurposeArchived"
@@ -322,6 +321,7 @@ export async function sendPurposeAuthUpdate(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "WaitingForApprovalPurposeVersionDeleted",
+          "NewPurposeVersionWaitingForApproval",
           "PurposeCloned"
         ),
       },
