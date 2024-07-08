@@ -38,7 +38,7 @@ import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
-} from "pagopa-interop-lifecycle";
+} from "pagopa-interop-agreement-lifecycle";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,

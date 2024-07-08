@@ -17,7 +17,7 @@ import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
-} from "pagopa-interop-lifecycle";
+} from "pagopa-interop-agreement-lifecycle";
 import {
   toCreateEventAgreementSetDraftByPlatform,
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,

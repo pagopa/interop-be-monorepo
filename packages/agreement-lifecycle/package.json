@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-lifecycle",
+  "name": "pagopa-interop-agreement-lifecycle",
   "version": "1.0.0",
   "private": true,
-  "description": "PagoPA Interoperability lifecycle",
+  "description": "PagoPA Interoperability agreement lifecycle",
   "main": "dist",
   "type": "module",
   "exports": {
