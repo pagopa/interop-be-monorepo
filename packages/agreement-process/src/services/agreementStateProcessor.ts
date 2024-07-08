@@ -1,7 +1,4 @@
-import {
-  CreateEvent,
-  Logger,
-} from "pagopa-interop-commons";
+import { CreateEvent, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
