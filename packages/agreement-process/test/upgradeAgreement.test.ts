@@ -70,7 +70,7 @@ import {
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
