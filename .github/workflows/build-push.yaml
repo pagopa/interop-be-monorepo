@@ -70,7 +70,7 @@ jobs:
       - name: (latest) Docker metadata
         id: meta_latest
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@f7b4ed12385588c3f9bc252f0a2b520d83b52d48
+        uses: docker/metadata-action@a64d0487d7069df33b279515d35d60fa80e2ea62
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -83,7 +83,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@f7b4ed12385588c3f9bc252f0a2b520d83b52d48
+        uses: docker/metadata-action@a64d0487d7069df33b279515d35d60fa80e2ea62
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -95,7 +95,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build_push
-        uses: docker/build-push-action@94f8f8c2eec4bc3f1d78c1755580779804cb87b2
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
           context: .
           file: ${{ matrix.dockerfile_path }}/Dockerfile
