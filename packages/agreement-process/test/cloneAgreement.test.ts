@@ -2,6 +2,7 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
+import { FileManagerError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -13,7 +14,6 @@ import {
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   AgreementAddedV2,
   AgreementDocument,
@@ -27,12 +27,11 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { FileManagerError, genericLogger } from "pagopa-interop-commons";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   agreementClonableStates,
   agreementCloningConflictingStates,
-} from "../src/model/domain/validators.js";
-import { config } from "../src/config/config.js";
+} from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -43,15 +42,16 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   agreementService,
   fileManager,
+  getMockConsumerDocument,
   readAgreementEventByVersion,
   uploadDocument,
-  getMockConsumerDocument,
 } from "./utils.js";
 
 describe("clone agreement", () => {

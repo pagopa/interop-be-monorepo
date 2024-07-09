@@ -2,7 +2,10 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -20,35 +23,37 @@ import {
   randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-} from "pagopa-interop-commons";
-import {
-  generateId,
-  AgreementId,
-  agreementState,
-  EService,
   Agreement,
-  Descriptor,
-  descriptorState,
-  TenantId,
+  AgreementActivatedV2,
+  AgreementId,
+  AgreementSetMissingCertifiedAttributesByPlatformV2,
+  AgreementSuspendedByPlatformV2,
+  AgreementUnsuspendedByConsumerV2,
+  AgreementUnsuspendedByPlatformV2,
+  AgreementUnsuspendedByProducerV2,
+  Attribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
-  VerifiedTenantAttribute,
+  Descriptor,
+  EService,
   Tenant,
   TenantAttribute,
-  fromAgreementV2,
-  AgreementUnsuspendedByProducerV2,
-  AgreementUnsuspendedByConsumerV2,
-  Attribute,
-  AgreementActivatedV2,
+  TenantId,
   UserId,
-  AgreementSetMissingCertifiedAttributesByPlatformV2,
-  AgreementUnsuspendedByPlatformV2,
-  AgreementSuspendedByPlatformV2,
+  VerifiedTenantAttribute,
+  agreementState,
+  descriptorState,
+  fromAgreementV2,
+  generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  agreementActivableStates,
+  agreementActivationAllowedDescriptorStates,
+  agreementArchivableStates,
+} from "../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
   agreementMissingUserInfo,
@@ -64,11 +69,6 @@ import {
   tenantNotFound,
   userNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  agreementActivableStates,
-  agreementActivationAllowedDescriptorStates,
-  agreementArchivableStates,
-} from "../src/model/domain/validators.js";
 import { config } from "../src/config/config.js";
 import {
   addOneAgreement,

@@ -5,29 +5,29 @@ import {
   AuthData,
 } from "pagopa-interop-commons";
 import {
-  WithMetadata,
   Agreement,
   AgreementEvent,
-  agreementState,
-  generateId,
   AgreementId,
   Descriptor,
   EService,
   Tenant,
+  WithMetadata,
+  agreementState,
+  generateId,
 } from "pagopa-interop-models";
-import {
-  toCreateEventAgreementArchivedByUpgrade,
-  toCreateEventAgreementUpgraded,
-  toCreateEventAgreementAdded,
-} from "../model/domain/toEvent.js";
 import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
-} from "../model/domain/validators.js";
-import { createStamp } from "./agreementStampUtils.js";
+} from "../model/domain/agreement-validators.js";
+import {
+  toCreateEventAgreementAdded,
+  toCreateEventAgreementArchivedByUpgrade,
+  toCreateEventAgreementUpgraded,
+} from "../model/domain/toEvent.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
+import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
 

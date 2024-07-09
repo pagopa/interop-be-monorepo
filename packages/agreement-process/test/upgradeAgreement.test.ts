@@ -55,6 +55,7 @@ import {
   vi,
 } from "vitest";
 import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -68,9 +69,8 @@ import {
   tenantNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
-import { agreementUpgradableStates } from "../src/model/domain/validators.js";
-import { config } from "../src/config/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
