@@ -216,7 +216,7 @@ describe("update Document", () => {
       catalogService.updateDocument(
         eservice.id,
         descriptor.id,
-        generateId(),
+        mockDocument.id,
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
