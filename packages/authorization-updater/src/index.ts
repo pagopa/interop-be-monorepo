@@ -33,7 +33,7 @@ import {
   authorizationServiceBuilder,
 } from "./authorizationService.js";
 import { ApiClientComponent } from "./model/models.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 import {
   ReadModelService,
   readModelServiceBuilder,

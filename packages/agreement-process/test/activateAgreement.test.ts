@@ -69,7 +69,7 @@ import {
   tenantNotFound,
   userNotFound,
 } from "../src/model/domain/errors.js";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
