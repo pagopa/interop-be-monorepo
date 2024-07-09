@@ -1,15 +1,10 @@
 import { match } from "ts-pattern";
-import {
-  Logger,
-  ReadModelRepository,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
+import { Logger, TenantCollection } from "pagopa-interop-commons";
 import { TenantEventEnvelope, fromTenantV1 } from "pagopa-interop-models";
-
-const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
 export async function handleMessage(
   message: TenantEventEnvelope,
+  tenants: TenantCollection,
   logger: Logger
 ): Promise<void> {
   await match(message)
@@ -38,7 +33,7 @@ export async function handleMessage(
         await tenants.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
