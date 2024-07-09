@@ -229,7 +229,7 @@ describe("update Document", () => {
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it.only("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
     const document1: Document = {
       ...getMockDocument(),
       prettyName: "test",
