@@ -1,4 +1,11 @@
 import { fail } from "assert";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockAgreement,
+  getRandomAuthData,
+  randomArrayItem,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
   AgreementArchivedByConsumerV2,
@@ -10,20 +17,13 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
-import {
-  decodeProtobufPayload,
-  getMockAgreement,
-  getRandomAuthData,
-  randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+import { agreementArchivableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
-import { agreementArchivableStates } from "../src/model/domain/validators.js";
 import {
   addOneAgreement,
   agreementService,

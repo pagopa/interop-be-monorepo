@@ -24,13 +24,13 @@ import {
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { config } from "../utilities/config.js";
 import {
   ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
   ApiInternalCertifiedAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
