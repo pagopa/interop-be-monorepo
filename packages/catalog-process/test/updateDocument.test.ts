@@ -9,6 +9,7 @@ import {
   EServiceDescriptorDocumentUpdatedV2,
   operationForbidden,
   generateId,
+  Document,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -16,6 +17,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptor,
   eServiceDocumentNotFound,
+  prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -214,7 +216,7 @@ describe("update Document", () => {
       catalogService.updateDocument(
         eservice.id,
         descriptor.id,
-        mockDocument.id,
+        generateId(),
         { prettyName: "updated prettyName" },
         {
           authData: getMockAuthData(eservice.producerId),
@@ -226,5 +228,40 @@ describe("update Document", () => {
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
+  });
+  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+    const document1: Document = {
+      ...getMockDocument(),
+      prettyName: "test",
+    };
+    const document2: Document = {
+      ...getMockDocument(),
+      prettyName: "test b",
+    };
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [document1, document2],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    expect(
+      catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        document2.id,
+        { prettyName: "test" },
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(prettyNameDuplicate("test", descriptor.id));
   });
 });

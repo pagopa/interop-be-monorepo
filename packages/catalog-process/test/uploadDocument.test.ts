@@ -9,6 +9,7 @@ import {
   toEServiceV2,
   unsafeBrandId,
   operationForbidden,
+  Document,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
@@ -17,6 +18,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptor,
   interfaceAlreadyExists,
+  prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -27,6 +29,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  buildDocumentSeed,
 } from "./utils.js";
 
 describe("upload Document", () => {
@@ -215,5 +218,38 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
+  });
+  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+    const document: Document = {
+      ...getMockDocument(),
+      prettyName: "test",
+    };
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [document],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+          prettyName: "test",
+        },
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(prettyNameDuplicate("test", descriptor.id));
   });
 });
