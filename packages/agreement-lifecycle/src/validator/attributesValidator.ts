@@ -11,6 +11,7 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "../filters/attributesFilter.js";
+import { DescriptorWithOnlyAttributes, TenantWithOnlyAttributes } from "../models/models.js";
 
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
@@ -24,8 +25,8 @@ const attributesSatisfied = (
   });
 
 export const certifiedAttributesSatisfied = (
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  descriptor: DescriptorWithOnlyAttributes,
+  tenant: TenantWithOnlyAttributes
 ): boolean => {
   const certifiedAttributes = filterCertifiedAttributes(tenant).map(
     (a) => a.id

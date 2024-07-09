@@ -12,7 +12,7 @@ import {
 import {
   DescriptorWithOnlyAttributes,
   TenantWithOnlyAttributes,
-} from "pagopa-interop-lifecycle";
+} from "pagopa-interop-agreement-lifecycle";
 import {
   AgreementProcessApiAgreement,
   agreementApiState,

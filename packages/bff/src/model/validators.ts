@@ -1,4 +1,4 @@
-import { certifiedAttributesSatisfied } from "pagopa-interop-lifecycle";
+import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
 import { CatalogProcessApiEServiceDescriptor } from "./api/catalogTypes.js";
 import { TenantProcessApiTenant } from "./api/tenantTypes.js";
 import {
