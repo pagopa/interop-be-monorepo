@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -33,7 +34,6 @@ import {
   unsafeBrandId,
   CompactTenant,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
@@ -100,7 +100,7 @@ import {
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
-} from "../model/domain/validators.js";
+} from "../model/domain/agreement-validators.js";
 import {
   ApiAgreementDocumentSeed,
   ApiAgreementPayload,
