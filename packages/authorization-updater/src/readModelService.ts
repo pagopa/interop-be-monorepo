@@ -43,7 +43,7 @@ export function readModelServiceBuilder(
       return undefined;
     },
 
-    async getClientsIdFromPurpose(purposeId: PurposeId): Promise<ClientId[]> {
+    async getClientsIdsFromPurpose(purposeId: PurposeId): Promise<ClientId[]> {
       const data = await clients
         .find(
           {
