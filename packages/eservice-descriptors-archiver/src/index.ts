@@ -17,7 +17,7 @@ import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
 
 const readModelService = readModelServiceBuilder(

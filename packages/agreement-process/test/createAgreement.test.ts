@@ -1,55 +1,55 @@
 import { fail } from "assert";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   expectPastTimestamp,
-  getRandomAuthData,
-  getMockDescriptorPublished,
-  getMockEServiceAttribute,
-  getMockEService,
-  getMockTenant,
+  getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockAgreement,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  AgreementId,
-  EServiceId,
-  DescriptorId,
-  TenantId,
-  AgreementV2,
-  AgreementAddedV2,
-  toAgreementStateV2,
-  agreementState,
-  generateId,
-  AttributeId,
-  unsafeBrandId,
-  Tenant,
-  EServiceAttribute,
-  TenantAttribute,
-  Descriptor,
-  descriptorState,
   Agreement,
+  AgreementAddedV2,
+  AgreementId,
+  AgreementV2,
+  AttributeId,
+  Descriptor,
+  DescriptorId,
+  EServiceAttribute,
+  EServiceId,
+  Tenant,
+  TenantAttribute,
+  TenantId,
+  agreementState,
+  descriptorState,
+  generateId,
+  toAgreementStateV2,
   toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { agreementCreationConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
-  eServiceNotFound,
-  notLatestEServiceDescriptor,
-  descriptorNotInExpectedState,
   agreementAlreadyExists,
-  tenantNotFound,
+  descriptorNotInExpectedState,
+  eServiceNotFound,
   missingCertifiedAttributesError,
+  notLatestEServiceDescriptor,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
-  readLastAgreementEvent,
+  addOneAgreement,
   addOneEService,
   addOneTenant,
   agreementService,
-  addOneAgreement,
+  readLastAgreementEvent,
 } from "./utils.js";
 
 /**

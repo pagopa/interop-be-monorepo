@@ -1,4 +1,4 @@
-FROM node:20.14.0@sha256:d0a9a2399581a9de1ff962a48a28b5cfe700678a6a5df8e31a63aaa47bebb923 as build
+FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
 
 RUN corepack enable
 
@@ -10,6 +10,7 @@ COPY pnpm-workspace.yaml /app/
 COPY ./packages/agreement-process/package.json /app/packages/agreement-process/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 COPY ./packages/selfcare-v2-client/package.json /app/packages/selfcare-v2-client/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
@@ -20,6 +21,7 @@ COPY turbo.json /app/
 COPY ./packages/agreement-process /app/packages/agreement-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/selfcare-v2-client /app/packages/selfcare-v2-client
 COPY ./packages/api-clients /app/packages/api-clients
 
@@ -32,12 +34,13 @@ RUN pnpm build && \
       package*.json packages/agreement-process/package*.json \
       packages/commons/ \
       packages/models/ \
+      packages/agreement-lifecycle/ \
       packages/selfcare-v2-client \
       packages/api-clients \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0@sha256:d0a9a2399581a9de1ff962a48a28b5cfe700678a6a5df8e31a63aaa47bebb923 as final 
+FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \
