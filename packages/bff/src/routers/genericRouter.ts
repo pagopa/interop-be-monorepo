@@ -6,6 +6,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { toolServiceBuilder } from "../services/toolService.js";
 
 const authorizationRouter = (
   ctx: ZodiosContext
@@ -28,9 +29,19 @@ const toolsRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  toolsRouter.post("/tools/validateTokenGeneration", async (_req, res) =>
-    res.status(501).send()
-  );
+  const toolService = toolServiceBuilder();
+
+  toolsRouter.post("/tools/validateTokenGeneration", async (req, res) => {
+    const accessTokenRequest = req.body;
+
+    try {
+      await toolService.validateTokenGeneration(accessTokenRequest);
+      return res.status(200).send();
+    } catch (error) {
+      // TODO handle error
+      return res.status(500).send();
+    }
+  });
 
   return toolsRouter;
 };
