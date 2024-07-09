@@ -43,8 +43,9 @@ import {
   deleteEServiceErrorMapper,
   deleteRiskAnalysisErrorMapper,
   documentCreateErrorMapper,
+  documentDeleteErrorMapper,
   documentGetErrorMapper,
-  documentUpdateDeleteErrorMapper,
+  documentUpdateErrorMapper,
   getEServiceErrorMapper,
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -360,7 +361,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateDeleteErrorMapper,
+            documentDeleteErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -388,7 +389,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateDeleteErrorMapper,
+            documentUpdateErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
