@@ -79,6 +79,25 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/agreement-lifecycle:
+    dependencies:
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+    devDependencies:
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+
   packages/agreement-process:
     dependencies:
       '@zodios/core':
@@ -99,6 +118,9 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0
+      pagopa-interop-agreement-lifecycle:
+        specifier: workspace:*
+        version: link:../agreement-lifecycle
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -244,7 +266,7 @@ importers:
         version: 3.3.0(zod@3.23.8)
     devDependencies:
       '@apidevtools/swagger-parser':
-        specifier: ^10.1.0
+        specifier: 10.1.0
         version: 10.1.0(openapi-types@12.1.3)
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -253,8 +275,8 @@ importers:
         specifier: 20.14.6
         version: 20.14.6
       handlebars:
-        specifier: ^4.7.7
-        version: 4.7.8
+        specifier: 4.7.7
+        version: 4.7.7
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
@@ -6764,6 +6786,19 @@ packages:
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
+    dev: true
+
+  /handlebars@4.7.7:
+    resolution: {integrity: sha512-aAcXm5OAfE/8IXkcZvCepKU3VzW1/39Fb5ZuqMtgI/hT8X2YgoMvBY5dLhq/cpOvw7Lk1nK/UF71aLG/ZnVYRA==}
+    engines: {node: '>=0.4.7'}
+    hasBin: true
+    dependencies:
+      minimist: 1.2.8
+      neo-async: 2.6.2
+      source-map: 0.6.1
+      wordwrap: 1.0.0
+    optionalDependencies:
+      uglify-js: 3.17.4
     dev: true
 
   /handlebars@4.7.8:

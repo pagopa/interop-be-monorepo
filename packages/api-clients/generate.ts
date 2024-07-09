@@ -71,7 +71,8 @@ const main = async () => {
       openApiDoc,
       distPath: `./src/generated/${fileName}.ts`,
       handlebars,
-      templatePath: "./template.hbs",
+      templatePath:
+        fileName === "bffApi" ? "./template-bff.hbs" : "./template.hbs",
       options: {
         withAlias: true,
         shouldExportAllTypes: true,

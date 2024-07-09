@@ -52,13 +52,7 @@ export const {{@key}}Endpoints = makeApi([
 			{{/each}}
 		],
 		{{/if}}
-		{{#if (and (eq method "get") (eq path "/agreements/:agreementId/consumer-documents/:documentId"))}}
-			response: z.instanceof(Buffer),
-		{{else if (and (eq method "get") (eq path "/privacyNotices/:consentType"))}}
-			response: z.instanceof(Buffer),
-		{{else}}
-			response: {{{response}}},
-		{{/if}}
+		response: {{{response}}},
 		{{#if errors.length}}
 		errors: [
 			{{#each errors}}
