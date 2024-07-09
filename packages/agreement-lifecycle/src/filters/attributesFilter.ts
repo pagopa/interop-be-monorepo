@@ -2,17 +2,16 @@
 
 import {
   CertifiedTenantAttribute,
-  CompactTenant,
   DeclaredTenantAttribute,
-  Tenant,
   TenantId,
   VerifiedTenantAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
+import { TenantWithOnlyAttributes } from "../models/models.js";
 
 export const filterVerifiedAttributes = (
   producerId: TenantId,
-  tenant: Tenant | CompactTenant
+  tenant: TenantWithOnlyAttributes
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -25,7 +24,7 @@ export const filterVerifiedAttributes = (
   ) as VerifiedTenantAttribute[];
 
 export const filterCertifiedAttributes = (
-  tenant: Tenant | CompactTenant
+  tenant: TenantWithOnlyAttributes
 ): CertifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -33,7 +32,7 @@ export const filterCertifiedAttributes = (
   ) as CertifiedTenantAttribute[];
 
 export const filterDeclaredAttributes = (
-  tenant: Tenant | CompactTenant
+  tenant: TenantWithOnlyAttributes
 ): DeclaredTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>

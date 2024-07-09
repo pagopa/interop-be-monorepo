@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -33,7 +34,6 @@ import {
   unsafeBrandId,
   CompactTenant,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
@@ -100,7 +100,7 @@ import {
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
-} from "../model/domain/validators.js";
+} from "../model/domain/agreement-validators.js";
 import {
   ApiAgreementDocumentSeed,
   ApiAgreementPayload,
@@ -489,7 +489,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updateSeed,
         updatedAgreement,
         authData
       );
@@ -588,7 +587,12 @@ export function agreementServiceBuilder(
       }
 
       const consumer = await retrieveTenant(
-        authData.organizationId,
+        agreementToBeUpgraded.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreementToBeUpgraded.data.producerId,
         readModelService
       );
 
@@ -610,15 +614,26 @@ export function agreementServiceBuilder(
         consumer
       );
 
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         newDescriptor,
         eservice,
         consumer,
+        producer,
         readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
-        userId: authData.userId,
+        authData,
+        contractBuilder: contractBuilderInstance,
         correlationId,
         logger,
       });
@@ -1035,7 +1050,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementSeed,
         updatedAgreementWithoutContract,
         authData
       );
@@ -1218,7 +1232,6 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  updateSeed: UpdateAgreementSeed,
   agreement: Agreement,
   authData: AuthData
 ): Promise<Agreement> {
@@ -1228,8 +1241,7 @@ async function addContractOnFirstActivation(
       agreement,
       eservice,
       consumer,
-      producer,
-      updateSeed
+      producer
     );
 
     return {
