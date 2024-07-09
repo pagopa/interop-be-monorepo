@@ -1,0 +1,16 @@
+import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
+import { CatalogProcessApiEServiceDescriptor } from "./api/catalogTypes.js";
+import { TenantProcessApiTenant } from "./api/tenantTypes.js";
+import {
+  toDescriptorWithOnlyAttributes,
+  toTenantWithOnlyAttributes,
+} from "./api/apiConverter.js";
+
+export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
+  descriptor: CatalogProcessApiEServiceDescriptor,
+  tenant: TenantProcessApiTenant
+): boolean =>
+  certifiedAttributesSatisfied(
+    toDescriptorWithOnlyAttributes(descriptor),
+    toTenantWithOnlyAttributes(tenant)
+  );
