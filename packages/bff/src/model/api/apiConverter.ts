@@ -1,20 +1,14 @@
 /* eslint-disable max-params */
 import {
-  AgreementApprovalPolicy,
   TenantAttribute,
   AttributeId,
-  DescriptorState,
-  Document,
   EServiceAttribute,
-  agreementApprovalPolicy,
-  descriptorState,
   unsafeBrandId,
   tenantAttributeType,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   DescriptorWithOnlyAttributes,
   TenantWithOnlyAttributes,
@@ -28,12 +22,9 @@ import {
   BffGetCatalogApiQueryParam,
 } from "./bffTypes.js";
 import {
-  CatalogProcessApiApprovalPolicy,
   CatalogProcessApiEService,
   CatalogProcessApiEServiceAttribute,
   CatalogProcessApiEServiceDescriptor,
-  CatalogProcessApiEServiceDescriptorState,
-  CatalogProcessApiEServiceDocument,
   CatalogProcessApiQueryParam,
   descriptorApiState,
 } from "./catalogTypes.js";
@@ -143,47 +134,6 @@ export function toBffCatalogApiEServiceResponse(
         }
       : {}),
   };
-}
-
-export function toDescriptorState(
-  state: CatalogProcessApiEServiceDescriptorState
-): DescriptorState {
-  return match(state)
-    .with("DRAFT", () => descriptorState.draft)
-    .with("PUBLISHED", () => descriptorState.published)
-    .with("DEPRECATED", () => descriptorState.deprecated)
-    .with("ARCHIVED", () => descriptorState.archived)
-    .with("SUSPENDED", () => descriptorState.suspended)
-    .exhaustive();
-}
-
-export function toEServiceDescriptorDocument(
-  document: CatalogProcessApiEServiceDocument
-): Document {
-  return {
-    ...document,
-    id: unsafeBrandId(document.id),
-    checksum: "", // not provided in CatalogProcessApiEServiceDocument
-    uploadDate: new Date(), // not provided in CatalogProcessApiEServiceDocument
-  };
-}
-
-export function toEserviceAttribute(
-  attribute: CatalogProcessApiEServiceAttribute
-): EServiceAttribute {
-  return {
-    ...attribute,
-    id: unsafeBrandId<AttributeId>(attribute.id),
-  };
-}
-
-export function toApprovalPolicy(
-  approvalPolicy: CatalogProcessApiApprovalPolicy
-): AgreementApprovalPolicy {
-  return match(approvalPolicy)
-    .with("MANUAL", () => agreementApprovalPolicy.manual)
-    .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
-    .exhaustive();
 }
 
 export function toTenantAttribute(
