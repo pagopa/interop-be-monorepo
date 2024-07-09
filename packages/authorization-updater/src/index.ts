@@ -277,8 +277,6 @@ export async function sendPurposeAuthUpdate(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionOverQuotaUnsuspended",
           "NewPurposeVersionActivated",
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeVersionRejected",
           "PurposeVersionActivated",
           "PurposeArchived"
         ),
@@ -302,7 +300,7 @@ export async function sendPurposeAuthUpdate(
     )
     .with(
       {
-        type: P.union("PurposeActivated", "PurposeWaitingForApproval"),
+        type: "PurposeActivated",
       },
       async (msg): Promise<void> => {
         const purpose = getPurposeFromEvent(msg, msg.type);
@@ -330,7 +328,10 @@ export async function sendPurposeAuthUpdate(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "WaitingForApprovalPurposeVersionDeleted",
-          "PurposeCloned"
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeCloned",
+          "PurposeVersionRejected",
+          "PurposeWaitingForApproval"
         ),
       },
       () => {

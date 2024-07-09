@@ -24,7 +24,6 @@ import {
   organizationIsNotTheConsumer,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
@@ -155,19 +154,6 @@ export function reverseValidateAndTransformRiskAnalysis(
 export function assertPurposeIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);
-  }
-}
-
-export function assertDailyCallsIsDifferentThanBefore(
-  purpose: Purpose,
-  dailyCalls: number
-): void {
-  const previousDailyCalls = [...purpose.versions].sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  )[0]?.dailyCalls;
-
-  if (previousDailyCalls === dailyCalls) {
-    throw unchangedDailyCalls(purpose.id);
   }
 }
 
