@@ -33,7 +33,7 @@ import {
   authorizationServiceBuilder,
 } from "./authorizationService.js";
 import { ApiClientComponent } from "./model/models.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 import {
   ReadModelService,
   readModelServiceBuilder,
@@ -269,8 +269,6 @@ export async function sendPurposeAuthUpdate(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionOverQuotaUnsuspended",
           "NewPurposeVersionActivated",
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeVersionRejected",
           "PurposeVersionActivated",
           "PurposeArchived"
         ),
@@ -294,7 +292,7 @@ export async function sendPurposeAuthUpdate(
     )
     .with(
       {
-        type: P.union("PurposeActivated", "PurposeWaitingForApproval"),
+        type: "PurposeActivated",
       },
       async (msg): Promise<void> => {
         const purpose = getPurposeFromEvent(msg, msg.type);
@@ -322,7 +320,10 @@ export async function sendPurposeAuthUpdate(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "WaitingForApprovalPurposeVersionDeleted",
-          "PurposeCloned"
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeCloned",
+          "PurposeVersionRejected",
+          "PurposeWaitingForApproval"
         ),
       },
       () => {
