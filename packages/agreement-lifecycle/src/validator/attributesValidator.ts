@@ -11,7 +11,10 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "../filters/attributesFilter.js";
-import { DescriptorWithOnlyAttributes, TenantWithOnlyAttributes } from "../models/models.js";
+import {
+  DescriptorWithOnlyAttributes,
+  TenantWithOnlyAttributes,
+} from "../models/models.js";
 
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],

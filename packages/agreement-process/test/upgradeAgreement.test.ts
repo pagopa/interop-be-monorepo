@@ -44,7 +44,6 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   afterAll,
   afterEach,
@@ -56,6 +55,7 @@ import {
   vi,
 } from "vitest";
 import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
