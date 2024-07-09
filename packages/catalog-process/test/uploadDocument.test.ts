@@ -241,7 +241,7 @@ describe("upload Document", () => {
         descriptor.id,
         {
           ...buildDocumentSeed(),
-          prettyName: "test",
+          prettyName: document.prettyName,
         },
         {
           authData: getMockAuthData(eservice.producerId),
@@ -250,6 +250,8 @@ describe("upload Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(prettyNameDuplicate("test", descriptor.id));
+    ).rejects.toThrowError(
+      prettyNameDuplicate(document.prettyName, descriptor.id)
+    );
   });
 });

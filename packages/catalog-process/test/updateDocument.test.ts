@@ -232,7 +232,7 @@ describe("update Document", () => {
   it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
     const document1: Document = {
       ...getMockDocument(),
-      prettyName: "test",
+      prettyName: "test a",
     };
     const document2: Document = {
       ...getMockDocument(),
