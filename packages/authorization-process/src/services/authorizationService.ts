@@ -48,7 +48,6 @@ import {
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
-  unknownKeyType,
 } from "../model/domain/errors.js";
 import {
   ApiClientSeed,
@@ -694,10 +693,6 @@ export function authorizationServiceBuilder(
 
       const pemKey = decodeBase64ToPem(key.encodedPem);
       const jwk: JsonWebKey = createJWK(pemKey);
-
-      if (jwk.kty?.toUpperCase() !== "RSA") {
-        throw unknownKeyType(jwk.kty ?? "unknown");
-      }
       const jwkKey = ApiJWKKey.parse({
         ...jwk,
         kid: key.kid,
