@@ -254,13 +254,14 @@ export const getMockClient = (): Client => ({
 });
 
 export const getMockKey = (): Key => ({
+  clientId: generateId(),
+  userId: generateId(),
   name: "test key",
   createdAt: new Date(),
   kid: `kid ${Math.random()}`,
   encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
-  userId: generateId(),
 });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
