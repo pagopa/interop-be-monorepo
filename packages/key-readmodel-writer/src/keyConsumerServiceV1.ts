@@ -3,6 +3,7 @@ import {
   AuthorizationEventEnvelopeV1,
   fromKeyV1,
   toReadModelKey,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -19,11 +20,13 @@ export async function handleMessageV1(
           await keys.updateOne(
             {
               "data.kid": key.kid,
-              "metadata.version": { $lt: message.version },
+              "metadata.version": { $lte: message.version },
             },
             {
               $set: {
-                data: toReadModelKey(fromKeyV1(key)),
+                data: toReadModelKey(
+                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                ),
                 metadata: {
                   version: message.version,
                 },
@@ -32,13 +35,12 @@ export async function handleMessageV1(
             { upsert: true }
           );
         }
-        await Promise.resolve();
       }
     })
     .with({ type: "KeyDeleted" }, async (message) => {
       await keys.deleteOne({
         "data.kid": message.data.keyId,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
@@ -47,15 +49,20 @@ export async function handleMessageV1(
       await keys.updateOne(
         {
           "data.kid": kid,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         { $set: { "data.userId": userId } },
         { upsert: true }
       );
     })
+    .with({ type: "ClientDeleted" }, async (message) => {
+      await keys.deleteMany({
+        "data.clientId": message.data.clientId,
+        "metadata.version": { $lte: message.version },
+      });
+    })
     .with(
       { type: "ClientAdded" },
-      { type: "ClientDeleted" },
       { type: "RelationshipAdded" },
       { type: "RelationshipRemoved" },
       { type: "UserAdded" },

@@ -3,7 +3,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -33,9 +33,8 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { agreementSuspendableStates } from "../src/model/domain/validators.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { agreementSuspendableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -44,6 +43,7 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
+import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
   addOneEService,

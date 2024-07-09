@@ -1,20 +1,24 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
-import { randomUUID } from "crypto";
 import { fail } from "assert";
+import { randomUUID } from "crypto";
 import {
-  getRandomAuthData,
-  getMockTenant,
-  getMockAgreement,
-  randomArrayItem,
-  getMockEService,
-  getMockDescriptor,
-  getMockEServiceAttribute,
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
-  getMockVerifiedTenantAttribute,
+  getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDescriptor,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getMockVerifiedTenantAttribute,
+  getRandomAuthData,
+  randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
@@ -40,12 +44,9 @@ import {
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-} from "pagopa-interop-commons";
 import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementMissingUserInfo,
@@ -61,18 +62,17 @@ import {
   tenantNotFound,
   userNotFound,
 } from "../src/model/domain/errors.js";
-import { agreementSubmissionConflictingStates } from "../src/model/domain/validators.js";
-import { config } from "../src/utilities/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import { config } from "../src/utilities/config.js";
 import {
-  agreementService,
   addOneAgreement,
-  addOneTenant,
+  addOneAttribute,
   addOneEService,
-  selfcareV2ClientMock,
+  addOneTenant,
+  agreementService,
   fileManager,
   readLastAgreementEvent,
-  addOneAttribute,
+  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("submit agreement", () => {

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -31,9 +32,13 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  CompactTenant,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import {
+  declaredAttributesSatisfied,
+  verifiedAttributesSatisfied,
+} from "pagopa-interop-agreement-lifecycle";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -52,7 +57,6 @@ import {
 import {
   CompactEService,
   CompactOrganization,
-  CompactTenant,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -84,7 +88,6 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertSubmittableState,
-  declaredAttributesSatisfied,
   failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -94,11 +97,10 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
-  verifiedAttributesSatisfied,
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
-} from "../model/domain/validators.js";
+} from "../model/domain/agreement-validators.js";
 import {
   ApiAgreementDocumentSeed,
   ApiAgreementPayload,
@@ -487,7 +489,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updateSeed,
         updatedAgreement,
         authData
       );
@@ -586,7 +587,12 @@ export function agreementServiceBuilder(
       }
 
       const consumer = await retrieveTenant(
-        authData.organizationId,
+        agreementToBeUpgraded.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreementToBeUpgraded.data.producerId,
         readModelService
       );
 
@@ -608,15 +614,26 @@ export function agreementServiceBuilder(
         consumer
       );
 
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         newDescriptor,
         eservice,
         consumer,
+        producer,
         readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
-        userId: authData.userId,
+        authData,
+        contractBuilder: contractBuilderInstance,
         correlationId,
         logger,
       });
@@ -1033,7 +1050,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementSeed,
         updatedAgreementWithoutContract,
         authData
       );
@@ -1216,7 +1232,6 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  updateSeed: UpdateAgreementSeed,
   agreement: Agreement,
   authData: AuthData
 ): Promise<Agreement> {
@@ -1226,8 +1241,7 @@ async function addContractOnFirstActivation(
       agreement,
       eservice,
       consumer,
-      producer,
-      updateSeed
+      producer
     );
 
     return {

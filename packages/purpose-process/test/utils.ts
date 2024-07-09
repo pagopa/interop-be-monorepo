@@ -25,13 +25,9 @@ import {
   toReadModelPurpose,
   PurposeId,
 } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import { afterAll, afterEach, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
-import {
-  ApiPurposeUpdateContent,
-  ApiReversePurposeUpdateContent,
-  ApiRiskAnalysisFormSeed,
-} from "../src/model/domain/models.js";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
@@ -111,19 +107,19 @@ export const getMockEService = (): EService => ({
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): ApiRiskAnalysisFormSeed =>
+): purposeApi.RiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
 
 export const buildRiskAnalysisFormSeed = (
   riskAnalysisForm: RiskAnalysisForm
-): ApiRiskAnalysisFormSeed =>
+): purposeApi.RiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
 
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,
   purposeUpdateContent:
-    | ApiPurposeUpdateContent
-    | ApiReversePurposeUpdateContent,
+    | purposeApi.PurposeUpdateContent
+    | purposeApi.ReversePurposeUpdateContent,
   mockValidRiskAnalysis: RiskAnalysis,
   writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
 ): Purpose => ({
