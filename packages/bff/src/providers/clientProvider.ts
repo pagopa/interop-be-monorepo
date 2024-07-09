@@ -7,23 +7,23 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../utilities/config.js";
 
-type TenantProcessClient = {
+export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
 };
 
-type AttributeProcessClient = ReturnType<
+export type AttributeProcessClient = ReturnType<
   typeof attributeRegistryApi.createAttributeApiClient
 >;
 
-type CatalogProcessClient = ReturnType<
+export type CatalogProcessClient = ReturnType<
   typeof catalogApi.createProcessApiClient
 >;
 
-type AgreementProcessClient = ReturnType<
+export type AgreementProcessClient = ReturnType<
   typeof agreementApi.createAgreementApiClient
 >;
 
-type PurposeProcessClient = ReturnType<
+export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
 >;
 

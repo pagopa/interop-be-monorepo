@@ -46,7 +46,7 @@ const enhanceCatalogEService =
   async (
     eservice: CatalogProcessApiEService
   ): Promise<BffCatalogApiEServiceResponse> => {
-    const producerTenant = await tenantProcessClient.getTenant({
+    const producerTenant = await tenantProcessClient.tenant.getTenant({
       headers,
       params: {
         id: eservice.producerId,
@@ -55,7 +55,7 @@ const enhanceCatalogEService =
 
     const requesterTenant: TenantProcessApiTenant =
       requesterId !== eservice.producerId
-        ? await tenantProcessClient.getTenant({
+        ? await tenantProcessClient.tenant.getTenant({
             headers,
             params: {
               id: requesterId,
