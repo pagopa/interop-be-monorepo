@@ -1,33 +1,33 @@
 /* eslint-disable functional/no-let */
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
-import { describe, expect, it, vi } from "vitest";
 import {
   AgreementDeletedV2,
   AgreementId,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
-import { agreementDeletableStates } from "../src/model/domain/validators.js";
+import { describe, expect, it, vi } from "vitest";
+import { agreementDeletableStates } from "../src/model/domain/agreement-validators.js";
 
-import { config } from "../src/utilities/config.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/utilities/config.js";
 import {
   addOneAgreement,
-  readLastAgreementEvent,
   agreementService,
   fileManager,
-  uploadDocument,
   getMockConsumerDocument,
+  readLastAgreementEvent,
+  uploadDocument,
 } from "./utils.js";
 
 describe("delete agreement", () => {
