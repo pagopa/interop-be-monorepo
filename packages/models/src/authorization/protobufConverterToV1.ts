@@ -9,7 +9,7 @@ import {
 } from "../gen/v1/authorization/client.js";
 import { dateToBigInt } from "../utils.js";
 import { PurposeId, generateId } from "../brandedIds.js";
-import { Key, KeyUse, keyUse } from "./key.js";
+import { Key, KeyUse, keyUse } from "./client.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 
 const clientComponentState = {
@@ -22,7 +22,7 @@ const ClientComponentState = z.enum([
 ]);
 type ClientComponentState = z.infer<typeof ClientComponentState>;
 
-const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
+export const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
   match(input)
     .with(keyUse.sig, () => KeyUseV1.SIG)
     .with(keyUse.enc, () => KeyUseV1.ENC)
@@ -31,7 +31,7 @@ const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
 export const toKeyV1 = (input: Key): KeyV1 => ({
   ...input,
   use: toKeyUseV1(input.use),
-  createdAt: input.createdAt.toString(),
+  createdAt: input.createdAt.toISOString(),
 });
 
 export const toClientKindV1 = (input: ClientKind): ClientKindV1 =>

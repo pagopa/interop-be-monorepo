@@ -12,6 +12,8 @@ import {
   ClientKeyDeletedV2,
   toReadModelKey,
   ClientDeletedV2,
+  ClientId,
+  generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/keyConsumerServiceV2.js";
@@ -19,10 +21,12 @@ import { keys } from "./utils.js";
 
 describe("Events V2", () => {
   it("ClientKeyAdded", async () => {
-    const mockKey = getMockKey();
+    const clientId: ClientId = generateId();
+    const mockKey = { ...getMockKey(), clientId };
 
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey],
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
@@ -59,9 +63,11 @@ describe("Events V2", () => {
     });
   });
   it("ClientKeyDeleted", async () => {
-    const mockKey: Key = getMockKey();
+    const clientId: ClientId = generateId();
+    const mockKey: Key = { ...getMockKey(), clientId };
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey],
     };
     await writeInReadmodel(toReadModelKey(mockKey), keys);
@@ -95,10 +101,12 @@ describe("Events V2", () => {
     expect(retrievedKey).toBeNull();
   });
   it("ClientDeleted", async () => {
-    const mockKey1 = getMockKey();
-    const mockKey2 = getMockKey();
+    const clientId: ClientId = generateId();
+    const mockKey1: Key = { ...getMockKey(), clientId };
+    const mockKey2: Key = { ...getMockKey(), clientId };
     const mockClient: Client = {
       ...getMockClient(),
+      id: clientId,
       keys: [mockKey1, mockKey2],
     };
     await writeInReadmodel(toReadModelKey(mockKey1), keys);

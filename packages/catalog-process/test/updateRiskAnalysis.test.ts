@@ -38,6 +38,7 @@ import {
   tenantKindNotFound,
   eServiceRiskAnalysisNotFound,
   riskAnalysisValidationFailed,
+  riskAnalysisDuplicated,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -358,6 +359,54 @@ describe("update risk analysis", () => {
       eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
     );
   });
+  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const riskAnalysis_1 = getMockValidRiskAnalysis(producerTenantKind);
+    const riskAnalysis_2 = getMockValidRiskAnalysis(producerTenantKind);
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+      riskAnalysis: [riskAnalysis_1, riskAnalysis_2],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+      ...buildRiskAnalysisSeed(riskAnalysis_1),
+      name: riskAnalysis_2.name,
+    };
+    expect(
+      catalogService.updateRiskAnalysis(
+        eservice.id,
+        riskAnalysis_1.id,
+        riskAnalysisSeed,
+        {
+          authData: getMockAuthData(producer.id),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(
+      riskAnalysisDuplicated(riskAnalysis_2.name, eservice.id)
+    );
+  });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
@@ -397,11 +446,11 @@ describe("update risk analysis", () => {
           purpose: ["INVALID"], // "purpose" is field expected for all tenant kinds
           unexpectedField: ["unexpected field value"],
           /*
-              This risk analysis form has an unexpected field and an invalid value for the purpose field.
-              The validation on update is schemaOnly: it does not check missing required fields or dependencies.
-              However, it checks for unexpected fields and invalid values.
-              So, the validation should fail with just two errors corresponding to the two invalid fields.
-           */
+            This risk analysis form has an unexpected field and an invalid value for the purpose field.
+            The validation on update is schemaOnly: it does not check missing required fields or dependencies.
+            However, it checks for unexpected fields and invalid values.
+            So, the validation should fail with just two errors corresponding to the two invalid fields.
+         */
         },
       },
     };

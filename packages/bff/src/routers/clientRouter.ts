@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { bffApi } from "pagopa-interop-api-clients";
 
 const clientRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const clientRouter = ctx.router(api.api, {
+  const clientRouter = ctx.router(bffApi.clientsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 

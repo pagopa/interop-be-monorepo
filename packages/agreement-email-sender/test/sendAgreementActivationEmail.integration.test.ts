@@ -22,11 +22,11 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  config,
   emailManager,
   getLatestMail,
   getMails,

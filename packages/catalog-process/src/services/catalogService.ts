@@ -67,7 +67,7 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   eServiceDescriptorNotFound,
@@ -82,6 +82,8 @@ import {
   originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
+  prettyNameDuplicate,
+  riskAnalysisDuplicated,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -568,6 +570,13 @@ export function catalogServiceBuilder(
         throw interfaceAlreadyExists(descriptor.id);
       }
 
+      if (
+        document.kind === "DOCUMENT" &&
+        descriptor.docs.some((d) => d.prettyName === document.prettyName)
+      ) {
+        throw prettyNameDuplicate(document.prettyName, descriptor.id);
+      }
+
       const isInterface = document.kind === "INTERFACE";
       const newDocument: Document = {
         id: unsafeBrandId(document.documentId),
@@ -717,6 +726,19 @@ export function catalogServiceBuilder(
       }
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
+
+      if (
+        descriptor.docs.some(
+          (d) =>
+            d.id !== apiEServiceDescriptorDocumentUpdateSeed.id &&
+            d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
+        )
+      ) {
+        throw prettyNameDuplicate(
+          apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+          descriptor.id
+        );
+      }
 
       const updatedDocument = {
         ...document,
@@ -1360,6 +1382,18 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
+
+      if (isDuplicateRiskAnalysis) {
+        throw riskAnalysisDuplicated(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind
@@ -1412,6 +1446,19 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
+
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.id !== riskAnalysisId &&
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
+
+      if (isDuplicateRiskAnalysis) {
+        throw riskAnalysisDuplicated(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,

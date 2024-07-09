@@ -2,8 +2,6 @@ import {
   AgreementAttribute,
   AgreementStamps,
   AgreementState,
-  TenantAttribute,
-  TenantId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -50,9 +48,3 @@ export const CompactEService = z.object({
   name: z.string(),
 });
 export type CompactEService = z.infer<typeof CompactEService>;
-
-export const CompactTenant = z.object({
-  id: TenantId,
-  attributes: z.array(TenantAttribute),
-});
-export type CompactTenant = z.infer<typeof CompactTenant>;
