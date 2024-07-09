@@ -1138,7 +1138,7 @@ importers:
   packages/kafka-iam-auth:
     dependencies:
       aws-msk-iam-sasl-signer-js:
-        specifier: ^1.0.0
+        specifier: 1.0.0
         version: 1.0.0(@aws-sdk/client-sso-oidc@3.609.0)
       kafkajs:
         specifier: 2.2.4
