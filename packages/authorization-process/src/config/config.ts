@@ -21,6 +21,6 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 
-export const config: AuthorizationConfig = {
-  ...AuthorizationConfig.parse(process.env),
-};
+export const config: AuthorizationConfig = AuthorizationConfig.parse(
+  process.env
+);

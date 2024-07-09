@@ -40,7 +40,7 @@ import {
   attributeNotFound,
   userNotFound,
 } from "../model/domain/errors.js";
-import { AgreementProcessConfig } from "../utilities/config.js";
+import { AgreementProcessConfig } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";

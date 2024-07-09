@@ -85,7 +85,7 @@ import {
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
