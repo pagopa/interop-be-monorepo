@@ -16,6 +16,7 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -25,7 +26,6 @@ import {
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
-import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveActiveAgreement } from "./purposeService.js";
 
@@ -92,7 +92,7 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   tenantKind,
 }: {
-  riskAnalysisForm: ApiRiskAnalysisFormSeed;
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
 }): RiskAnalysisValidatedForm {
@@ -109,7 +109,7 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
