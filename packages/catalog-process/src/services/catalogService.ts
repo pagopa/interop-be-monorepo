@@ -552,14 +552,14 @@ export function catalogServiceBuilder(
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentSeed: ApiEServiceDescriptorDocumentSeed,
+      document: ApiEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
-        `Creating EService Document ${documentSeed.documentId.toString()} of kind ${
-          documentSeed.kind
-        }, name ${documentSeed.fileName}, path ${
-          documentSeed.filePath
+        `Creating EService Document ${document.documentId.toString()} of kind ${
+          document.kind
+        }, name ${document.fileName}, path ${
+          document.filePath
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
@@ -577,28 +577,25 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      if (
-        documentSeed.kind === "INTERFACE" &&
-        descriptor.interface !== undefined
-      ) {
+      if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
         throw interfaceAlreadyExists(descriptor.id);
       }
 
       if (
-        documentSeed.kind === "DOCUMENT" &&
-        descriptor.docs.some((d) => d.prettyName === documentSeed.prettyName)
+        document.kind === "DOCUMENT" &&
+        descriptor.docs.some((d) => d.prettyName === document.prettyName)
       ) {
-        throw prettyNameDuplicate(documentSeed.prettyName, descriptor.id);
+        throw prettyNameDuplicate(document.prettyName, descriptor.id);
       }
 
-      const isInterface = documentSeed.kind === "INTERFACE";
+      const isInterface = document.kind === "INTERFACE";
       const newDocument: Document = {
-        id: unsafeBrandId(documentSeed.documentId),
-        name: documentSeed.fileName,
-        contentType: documentSeed.contentType,
-        prettyName: documentSeed.prettyName,
-        path: documentSeed.filePath,
-        checksum: documentSeed.checksum,
+        id: unsafeBrandId(document.documentId),
+        name: document.fileName,
+        contentType: document.contentType,
+        prettyName: document.prettyName,
+        path: document.filePath,
+        checksum: document.checksum,
         uploadDate: new Date(),
       };
 
@@ -610,22 +607,20 @@ export function catalogServiceBuilder(
                 ...d,
                 interface: isInterface ? newDocument : d.interface,
                 docs: isInterface ? d.docs : [...d.docs, newDocument],
-                serverUrls: isInterface
-                  ? documentSeed.serverUrls
-                  : d.serverUrls,
+                serverUrls: isInterface ? document.serverUrls : d.serverUrls,
               }
             : d
         ),
       };
 
       const event =
-        documentSeed.kind === "INTERFACE"
+        document.kind === "INTERFACE"
           ? toCreateEventEServiceInterfaceAdded(
               eserviceId,
               eservice.metadata.version,
               {
                 descriptorId,
-                documentId: unsafeBrandId(documentSeed.documentId),
+                documentId: unsafeBrandId(document.documentId),
                 eservice: updatedEService,
               },
               correlationId
@@ -635,7 +630,7 @@ export function catalogServiceBuilder(
               eservice.metadata.version,
               {
                 descriptorId,
-                documentId: unsafeBrandId(documentSeed.documentId),
+                documentId: unsafeBrandId(document.documentId),
                 eservice: updatedEService,
               },
               correlationId
@@ -720,7 +715,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      documentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
+      apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Document> {
       logger.info(
@@ -746,16 +741,19 @@ export function catalogServiceBuilder(
       if (
         descriptor.docs.some(
           (d) =>
-            d.id !== documentUpdateSeed.id &&
-            d.prettyName === documentUpdateSeed.prettyName
+            d.id !== apiEServiceDescriptorDocumentUpdateSeed.id &&
+            d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
         )
       ) {
-        throw prettyNameDuplicate(documentUpdateSeed.prettyName, descriptor.id);
+        throw prettyNameDuplicate(
+          apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+          descriptor.id
+        );
       }
 
       const updatedDocument = {
         ...document,
-        prettyName: documentUpdateSeed.prettyName,
+        prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
       };
 
       const isInterface = document.id === descriptor?.interface?.id;
