@@ -160,6 +160,17 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
   checksum: "checksum",
 });
 
+export const buildDocumentSeed = (): ApiEServiceDescriptorDocumentSeed => ({
+  contentType: "json",
+  prettyName: "prettyName",
+  serverUrls: ["pagopa.it"],
+  documentId: generateId(),
+  kind: "DOCUMENT",
+  filePath: "filePath",
+  fileName: "fileName",
+  checksum: "checksum",
+});
+
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
