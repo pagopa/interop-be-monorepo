@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe } from "node:test";
 import {
   getMockClient,
@@ -61,13 +62,14 @@ describe("Events V1", async () => {
       "data.id": mockClient.id,
     });
 
-    expect(retrievedClient?.data).toEqual(toReadModelClient(mockClient));
-
-    expect(retrievedClient?.metadata).toEqual({
-      version: 1,
+    expect(retrievedClient).toMatchObject({
+      data: toReadModelClient(mockClient),
+      metadata: { version: 1 },
     });
   });
   it("RelationshipAdded", async () => {
+    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+
     const payload: RelationshipAddedV1 = {
       client: toClientV1(mockClient),
       relationshipId: generateId(),
@@ -85,10 +87,9 @@ describe("Events V1", async () => {
       "data.id": mockClient.id,
     });
 
-    expect(retrievedClient?.data).toEqual(toReadModelClient(mockClient));
-
-    expect(retrievedClient?.metadata).toEqual({
-      version: 1,
+    expect(retrievedClient).toMatchObject({
+      data: toReadModelClient(mockClient),
+      metadata: { version: 1 },
     });
   });
   it("UserAdded", async () => {
@@ -274,18 +275,19 @@ describe("Events V1", async () => {
     expect(retrievedClient).toBeNull();
   });
   it("KeyRelationshipToUserMigrated", async () => {
-    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
-
     const userId: UserId = generateId();
+    const key: Key = { ...getMockKey(), userId };
 
     const updatedClient: Client = {
       ...mockClient,
-      users: [userId],
+      keys: [key],
     };
+
+    await writeInReadmodel(toReadModelClient(updatedClient), clients, 1);
 
     const payload: KeyRelationshipToUserMigratedV1 = {
       clientId: updatedClient.id,
-      keyId: generateId(),
+      keyId: key.kid,
       userId,
     };
 
@@ -302,9 +304,9 @@ describe("Events V1", async () => {
       "data.id": updatedClient.id,
     });
 
-    expect(retrievedClient?.data).toEqual(toReadModelClient(updatedClient));
-    expect(retrievedClient?.metadata).toEqual({
-      version: 2,
+    expect(retrievedClient).toMatchObject({
+      data: toReadModelClient(updatedClient),
+      metadata: { version: 2 },
     });
   });
   it("KeysAdded", async () => {

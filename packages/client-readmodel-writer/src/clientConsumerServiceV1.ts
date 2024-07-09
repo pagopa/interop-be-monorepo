@@ -13,36 +13,79 @@ export async function handleMessageV1(
   clients: ClientCollection
 ): Promise<void> {
   await match(message)
-    .with(
-      { type: "ClientAdded" },
-      { type: "RelationshipAdded" },
-      { type: "UserAdded" },
-      { type: "UserRemoved" },
-      async (message) => {
-        await clients.updateOne(
-          {
-            "data.id": message.stream_id,
-            "metadata.version": { $lt: message.version },
-          },
-          {
-            $set: {
-              data: message.data.client
-                ? toReadModelClient(fromClientV1(message.data.client))
-                : undefined,
-              metadata: {
-                version: message.version,
-              },
+    .with({ type: "ClientAdded" }, async (message) => {
+      await clients.updateOne(
+        {
+          "data.id": message.stream_id,
+          "metadata.version": { $lte: message.version },
+        },
+        {
+          $set: {
+            data: message.data.client
+              ? toReadModelClient(fromClientV1(message.data.client))
+              : undefined,
+            metadata: {
+              version: message.version,
             },
           },
-          { upsert: true }
-        );
-      }
-    )
+        },
+        { upsert: true }
+      );
+    })
+    .with({ type: "RelationshipAdded" }, async (message) => {
+      await clients.updateOne(
+        {
+          "data.id": message.stream_id,
+          "metadata.version": { $lte: message.version },
+        },
+        {
+          $set: {
+            "metadata.version": message.version,
+          },
+          $push: {
+            "data.relationships": message.data.relationshipId,
+          },
+        }
+      );
+    })
+    .with({ type: "UserAdded" }, async (message) => {
+      await clients.updateOne(
+        {
+          "data.id": message.stream_id,
+          "metadata.version": { $lte: message.version },
+        },
+        {
+          $set: {
+            "metadata.version": message.version,
+          },
+          $push: {
+            "data.users": message.data.userId,
+          },
+        }
+      );
+    })
+    .with({ type: "UserRemoved" }, async (message) => {
+      //
+      await clients.updateOne(
+        {
+          "data.id": message.stream_id,
+          "metadata.version": { $lte: message.version },
+        },
+        {
+          $set: {
+            "metadata.version": message.version,
+          },
+          $pull: {
+            "data.users": message.data.userId,
+          },
+        }
+      );
+    })
     .with({ type: "ClientPurposeAdded" }, async (message) => {
       await clients.updateOne(
         {
           "data.id": message.stream_id,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $set: {
@@ -58,7 +101,7 @@ export async function handleMessageV1(
       await clients.updateOne(
         {
           "data.id": message.stream_id,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $pull: {
@@ -74,7 +117,7 @@ export async function handleMessageV1(
       await clients.updateOne(
         {
           "data.id": message.stream_id,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $pull: {
@@ -90,7 +133,7 @@ export async function handleMessageV1(
       await clients.updateOne(
         {
           "data.id": message.stream_id,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $push: {
@@ -112,7 +155,7 @@ export async function handleMessageV1(
       await clients.updateOne(
         {
           "data.id": message.stream_id,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $pull: {
@@ -127,22 +170,29 @@ export async function handleMessageV1(
     .with({ type: "ClientDeleted" }, async (message) => {
       await clients.deleteOne({
         "data.id": message.stream_id,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
       await clients.updateOne(
         {
           "data.id": message.stream_id,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $push: {
-            "data.users": message.data.userId,
+            "data.keys.$[key].users": message.data.userId,
           },
           $set: {
             "metadata.version": message.version,
           },
+        },
+        {
+          arrayFilters: [
+            {
+              "key.kid": message.data.keyId,
+            },
+          ],
         }
       );
     })
