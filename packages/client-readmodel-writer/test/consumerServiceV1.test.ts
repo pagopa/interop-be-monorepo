@@ -317,7 +317,11 @@ describe("Events V1", async () => {
     await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
 
     const keyId = generateId();
-    const addedKey: Key = { ...getMockKey(), kid: keyId };
+    const addedKey: Key = {
+      ...getMockKey(),
+      kid: keyId,
+      clientId: mockClient.id,
+    };
 
     const updatedClient: Client = {
       ...mockClient,
@@ -327,7 +331,6 @@ describe("Events V1", async () => {
         },
       ],
     };
-
     const payload: KeysAddedV1 = {
       clientId: updatedClient.id,
       keys: [
@@ -354,9 +357,9 @@ describe("Events V1", async () => {
       "data.id": updatedClient.id,
     });
 
-    expect(retrievedClient?.data).toEqual(toReadModelClient(updatedClient));
-    expect(retrievedClient?.metadata).toEqual({
-      version: 2,
+    expect(retrievedClient).toMatchObject({
+      data: toReadModelClient(updatedClient),
+      metadata: { version: 2 },
     });
   });
   it("KeyDeleted", async () => {
