@@ -6,16 +6,35 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { agreementServiceBuilder } from "../services/agreementService.js";
+import { fromBffAppContext } from "../utilities/context.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { emptyErrorMapper } from "../utilities/errorMappers.js";
 
 const agreementRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  { agreementProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const agreementService = agreementServiceBuilder(agreementProcessClient);
+
   agreementRouter
     .get("/agreements", async (_req, res) => res.status(501).send())
-    .post("/agreements", async (_req, res) => res.status(501).send())
+    .post("/agreements", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.createAgreement(req.body, ctx);
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/producers/agreements/eservices", async (_req, res) =>
       res.status(501).send()
     )

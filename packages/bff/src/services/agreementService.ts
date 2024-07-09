@@ -1,11 +1,35 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
+import { bffApi } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   AgreementProcessApiAgreement,
   AgreementProcessApiResponse,
 } from "../model/api/agreementTypes.js";
 import { BffGetCatalogApiHeaders } from "../model/api/bffTypes.js";
 import { CatalogProcessApiEService } from "../model/api/catalogTypes.js";
-import { AgreementProcessClient } from "../providers/clientProvider.js";
+import {
+  AgreementProcessClient,
+  PagoPAInteropBeClients,
+} from "../providers/clientProvider.js";
+import { BffAppContext } from "../utilities/context.js";
+
+export function agreementServiceBuilder(
+  agreementClient: PagoPAInteropBeClients["agreementProcessClient"]
+) {
+  return {
+    async createAgreement(
+      payload: bffApi.AgreementPayload,
+      { headers, logger }: WithLogger<BffAppContext>
+    ) {
+      logger.info(`Creating agreement with seed ${JSON.stringify(payload)}`);
+      return await agreementClient.createAgreement(payload, {
+        headers,
+      });
+    },
+  };
+}
 
 export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
