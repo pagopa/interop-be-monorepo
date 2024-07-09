@@ -3,14 +3,30 @@ import { createApiClient as createApiClientAgreementProcess } from "../model/gen
 import { createApiClient as createApiClientCatalogProcess } from "../model/generated/catalog-process/api.js";
 import { createApiClient as createApiClientAttributeProcess } from "../model/generated/attribute-process/api.js";
 import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
+
+export type TenantProcessClient = ReturnType<
+  typeof createApiClientTenantProcess
+>;
+export type AgreementProcessClient = ReturnType<
+  typeof createApiClientAgreementProcess
+>;
+export type CatalogProcessClient = ReturnType<
+  typeof createApiClientCatalogProcess
+>;
+export type AttributeProcessClient = ReturnType<
+  typeof createApiClientAttributeProcess
+>;
+export type PurposeProcessClient = ReturnType<
+  typeof createApiClientPurposeProcess
+>;
 
 export type PagoPAInteropBeClients = {
-  tenantProcessClient: ReturnType<typeof createApiClientTenantProcess>;
-  attributeProcessClient: ReturnType<typeof createApiClientAttributeProcess>;
-  catalogProcessClient: ReturnType<typeof createApiClientCatalogProcess>;
-  agreementProcessClient: ReturnType<typeof createApiClientAgreementProcess>;
-  purposeProcessClient: ReturnType<typeof createApiClientPurposeProcess>;
+  tenantProcessClient: TenantProcessClient;
+  attributeProcessClient: AttributeProcessClient;
+  catalogProcessClient: CatalogProcessClient;
+  agreementProcessClient: AgreementProcessClient;
+  purposeProcessClient: PurposeProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {

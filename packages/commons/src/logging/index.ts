@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import winston from "winston";
-import { LoggerConfig } from "../config/commonConfig.js";
+import { LoggerConfig } from "../config/loggerConfig.js";
 import { bigIntReplacer } from "./utils.js";
 
 export type LoggerMetadata = {
