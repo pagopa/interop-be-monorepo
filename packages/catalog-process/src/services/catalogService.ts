@@ -744,9 +744,10 @@ export function catalogServiceBuilder(
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       if (
-        documentUpdateSeed.kind === "DOCUMENT" &&
         descriptor.docs.some(
-          (d) => d.prettyName === documentUpdateSeed.prettyName
+          (d) =>
+            d.id !== documentUpdateSeed.id &&
+            d.prettyName === documentUpdateSeed.prettyName
         )
       ) {
         throw prettyNameDuplicate(documentUpdateSeed.prettyName, descriptor.id);
