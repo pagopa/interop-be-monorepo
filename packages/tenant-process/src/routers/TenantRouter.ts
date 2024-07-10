@@ -50,7 +50,7 @@ const tenantService = tenantServiceBuilder(
 
 const tenantsRouter = (
   ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>[] => {
+): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
