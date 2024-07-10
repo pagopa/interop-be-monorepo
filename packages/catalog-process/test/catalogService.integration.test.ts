@@ -4683,24 +4683,21 @@ describe("database test", async () => {
           riskAnalysis: [riskAnalysis],
         };
         await addOneEService(eservice, postgresDB, eservices);
-        const newRiskAnalysis: RiskAnalysis = getMockValidRiskAnalysis(
-          producerTenantKind,
-          riskAnalysis.name
-        );
+
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+          ...buildRiskAnalysisSeed(riskAnalysis),
+          name: riskAnalysis.name,
+        };
 
         expect(
-          catalogService.createRiskAnalysis(
-            eservice.id,
-            buildRiskAnalysisSeed(newRiskAnalysis),
-            {
-              authData: getMockAuthData(producer.id),
-              correlationId: "",
-              serviceName: "",
-              logger: genericLogger,
-            }
-          )
+          catalogService.createRiskAnalysis(eservice.id, riskAnalysisSeed, {
+            authData: getMockAuthData(producer.id),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          })
         ).rejects.toThrowError(
-          riskAnalysisDuplicated(newRiskAnalysis.name, eservice.id)
+          riskAnalysisDuplicated(riskAnalysis.name, eservice.id)
         );
       });
       it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
@@ -5114,11 +5111,16 @@ describe("database test", async () => {
         await addOneTenant(producer, tenants);
         await addOneEService(eservice, postgresDB, eservices);
 
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+          ...buildRiskAnalysisSeed(riskAnalysis_1),
+          name: riskAnalysis_2.name,
+        };
+
         expect(
           catalogService.updateRiskAnalysis(
             eservice.id,
             riskAnalysis_1.id,
-            buildRiskAnalysisSeed(riskAnalysis_1, riskAnalysis_2.name),
+            riskAnalysisSeed,
             {
               authData: getMockAuthData(producer.id),
               correlationId: "",

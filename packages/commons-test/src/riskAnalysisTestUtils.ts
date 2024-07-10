@@ -149,20 +149,19 @@ export const validSchemaOnlyRiskAnalysis2_0_Private: RiskAnalysisFormToValidate 
   };
 
 export function getMockValidRiskAnalysis(
-  producerTenantKind: TenantKind,
-  name?: string
+  producerTenantKind: TenantKind
 ): RiskAnalysis {
   return match<TenantKind, RiskAnalysis>(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis3_0_Pa,
-        name ?? generateMock(z.string())
+        generateMock(z.string())
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis2_0_Private,
-        name ?? generateMock(z.string())
+        generateMock(z.string())
       )
     )
     .exhaustive();
