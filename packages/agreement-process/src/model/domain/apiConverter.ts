@@ -3,7 +3,6 @@ import {
   AgreementState,
   AgreementDocument,
   agreementState,
-  CompactTenant,
   unsafeBrandId,
   TenantAttribute,
   tenantAttributeType,
@@ -11,6 +10,7 @@ import {
   TenantVerifier,
   TenantRevoker,
   badRequestError,
+  CompactTenant,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
