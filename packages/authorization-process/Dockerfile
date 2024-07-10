@@ -19,6 +19,7 @@ COPY turbo.json /app/
 COPY ./packages/authorization-process /app/packages/authorization-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/selfcare-v2-client /app/packages/selfcare-v2-client
 
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
@@ -29,6 +30,7 @@ RUN pnpm build && \
   package*.json packages/authorization-process/package*.json \
   packages/commons/ \
   packages/models/ \
+  packages/selfcare-v2-client \
   packages/authorization-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
