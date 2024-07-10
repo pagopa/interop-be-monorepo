@@ -1043,8 +1043,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionSeed"
       responses:
-        "204":
+        "200":
           description: EService description updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:

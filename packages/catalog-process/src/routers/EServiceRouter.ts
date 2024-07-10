@@ -51,6 +51,7 @@ import {
   suspendDescriptorErrorMapper,
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
+  updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
   updateRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -659,6 +660,33 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateEServiceDescription(
+              unsafeBrandId(req.params.eServiceId),
+              req.body.description,
+              ctx
+            );
+          return res
+            .status(200)
+            .json(eServiceToApiEService(updatedEService))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceDescriptionErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

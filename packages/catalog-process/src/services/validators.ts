@@ -22,6 +22,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  eserviceNotActive,
 } from "../model/domain/errors.js";
 import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
@@ -99,4 +100,14 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+export function assertEserviceIsActive(eservice: EService): void {
+  const isEserviceActive = eservice.descriptors.some(
+    (d: Descriptor) =>
+      d.state !== descriptorState.draft && d.state !== descriptorState.archived
+  );
+  if (isEserviceActive) {
+    throw eserviceNotActive(eservice.id);
+  }
 }

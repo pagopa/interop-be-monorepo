@@ -31,6 +31,7 @@ export const errorCodes = {
   riskAnalysisNotValid: "0019",
   prettyNameDuplicate: "0020",
   riskAnalysisDuplicated: "0021",
+  eserviceNotActive: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -247,5 +248,15 @@ export function prettyNameDuplicate(
     detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
     code: "prettyNameDuplicate",
     title: "Duplicated prettyName",
+  });
+}
+
+export function eserviceNotActive(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not published`,
+    code: "eserviceNotActive",
+    title: "EService is not published",
   });
 }

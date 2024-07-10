@@ -54,6 +54,7 @@ import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
@@ -106,6 +107,7 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
+  assertEserviceIsActive,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1532,6 +1534,31 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceDescription(
+      eserviceId: EServiceId,
+      description: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} description`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData);
+      assertEserviceIsActive(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
     },
   };
 }
