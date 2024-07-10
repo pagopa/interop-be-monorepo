@@ -58,9 +58,8 @@ export function initRedisRateLimiter(config: {
       return {
         limitReached: false,
         maxRequests: config.maxRequests,
-        rateInterval: config.rateInterval,
         remainingRequests: rateLimiterRes.remainingPoints,
-        msBeforeNext: rateLimiterRes.msBeforeNext,
+        rateInterval: config.rateInterval,
       };
     } catch (error) {
       return match(error)
@@ -71,9 +70,8 @@ export function initRedisRateLimiter(config: {
           return {
             limitReached: true,
             maxRequests: config.maxRequests,
-            rateInterval: config.rateInterval,
             remainingRequests: rejRes.remainingPoints,
-            msBeforeNext: rejRes.msBeforeNext,
+            rateInterval: config.rateInterval,
           };
         })
         .with(
@@ -85,6 +83,7 @@ export function initRedisRateLimiter(config: {
             return {
               limitReached: false,
               maxRequests: config.maxRequests,
+              remainingRequests: config.maxRequests,
               rateInterval: config.rateInterval,
             };
           }
@@ -96,6 +95,7 @@ export function initRedisRateLimiter(config: {
           return {
             limitReached: false,
             maxRequests: config.maxRequests,
+            remainingRequests: config.maxRequests,
             rateInterval: config.rateInterval,
           };
         });
