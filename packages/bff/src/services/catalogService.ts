@@ -3,18 +3,18 @@
 import { randomUUID } from "crypto";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  FileManager,
-  WithLogger,
-  formatDateyyyyMMddThhmmss,
-  getAllFromPaginated,
-} from "pagopa-interop-commons";
-import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import {
+  FileManager,
+  formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { config } from "../config/config.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
