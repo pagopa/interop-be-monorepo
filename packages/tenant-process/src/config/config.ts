@@ -9,6 +9,6 @@ const TenantProcessConfig =
   CommonHTTPServiceConfig.and(EventStoreConfig).and(ReadModelDbConfig);
 export type TenantProcessConfig = z.infer<typeof TenantProcessConfig>;
 
-export const config: TenantProcessConfig = {
-  ...TenantProcessConfig.parse(process.env),
-};
+export const config: TenantProcessConfig = TenantProcessConfig.parse(
+  process.env
+);
