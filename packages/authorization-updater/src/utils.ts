@@ -23,9 +23,9 @@ import {
   clientKind,
   DescriptorState,
   descriptorState,
-  AgreementState,
   PurposeVersionState,
   purposeVersionState,
+  AgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -75,9 +75,9 @@ export const getAgreementFromEvent = (
 };
 
 export const agreementStateToClientState = (
-  agreement: Agreement
+  state: AgreementState
 ): ApiClientComponentState =>
-  match(agreement.state)
+  match(state)
     .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
     .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
@@ -174,21 +174,14 @@ export const ClientComponentState = z.enum([
 ]);
 export type ClientComponentState = z.infer<typeof ClientComponentState>;
 
-export const convertEserviceState = (
+export const descriptorStateToClientState = (
   state: DescriptorState
 ): ClientComponentState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? clientComponentState.active
     : clientComponentState.inactive;
 
-export const convertAgreementState = (
-  state: AgreementState
-): ClientComponentState =>
-  state === agreementState.active
-    ? clientComponentState.active
-    : clientComponentState.inactive;
-
-export const convertPurposeState = (
+export const purposeStateToClientState = (
   state: PurposeVersionState
 ): ClientComponentState =>
   state === purposeVersionState.active

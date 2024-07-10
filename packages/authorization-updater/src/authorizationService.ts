@@ -16,11 +16,11 @@ import {
 import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
 import {
+  agreementStateToClientState,
   clientKindToApiClientKind,
-  convertAgreementState,
-  convertEserviceState,
-  convertPurposeState,
+  descriptorStateToClientState,
   keyUseToApiKeyUse,
+  purposeStateToClientState,
 } from "./utils.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -399,7 +399,7 @@ export const authorizationServiceBuilder = (
         {
           states: {
             eservice: {
-              state: convertEserviceState(descriptor.state),
+              state: descriptorStateToClientState(descriptor.state),
               eserviceId: eservice.id,
               descriptorId: agreement.descriptorId,
               audience: descriptor.audience,
@@ -407,12 +407,12 @@ export const authorizationServiceBuilder = (
             },
             agreement: {
               agreementId: agreement.id,
-              state: convertAgreementState(agreement.state),
+              state: agreementStateToClientState(agreement.state),
               eserviceId: agreement.eserviceId,
               consumerId: agreement.consumerId,
             },
             purpose: {
-              state: convertPurposeState(purposeVersion.state),
+              state: purposeStateToClientState(purposeVersion.state),
               versionId: purposeVersion.id,
               purposeId,
             },

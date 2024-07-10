@@ -231,7 +231,7 @@ describe("Authorization Updater processMessage", () => {
       );
 
       const expectedUpdateAgreementStatePayload = {
-        state: agreementStateToClientState(agreement),
+        state: agreementStateToClientState(agreement.state),
         agreementId: agreement.id,
       };
 
@@ -298,7 +298,7 @@ describe("Authorization Updater processMessage", () => {
 
     const expectedUpdateAgreementAndEServiceStatesPayload = {
       agreementId: agreement.id,
-      agreementState: agreementStateToClientState(agreement),
+      agreementState: agreementStateToClientState(agreement.state),
       descriptorId: descriptor.id,
       eserviceState: match(descriptor.state)
         .with(

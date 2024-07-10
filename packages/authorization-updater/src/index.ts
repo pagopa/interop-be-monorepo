@@ -158,7 +158,7 @@ export async function sendAgreementAuthUpdate(
         const agreement = getAgreementFromEvent(msg, decodedMessage.type);
 
         await authService.updateAgreementState(
-          agreementStateToClientState(agreement),
+          agreementStateToClientState(agreement.state),
           agreement.id,
           agreement.eserviceId,
           agreement.consumerId,
@@ -196,7 +196,7 @@ export async function sendAgreementAuthUpdate(
         .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
       await authService.updateAgreementAndEServiceStates(
-        agreementStateToClientState(agreement),
+        agreementStateToClientState(agreement.state),
         eserviceClientState,
         agreement.id,
         agreement.eserviceId,
