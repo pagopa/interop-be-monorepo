@@ -8,3 +8,8 @@ export const rateLimiterHeadersFromStatus = (
   "X-RateLimit-Interval": rateLimiterStatus.rateInterval,
   "X-RateLimit-Remaining": rateLimiterStatus.remainingRequests,
 });
+// TODO why are these different from the ones in the openapi spec?
+// The spec specifies the headers with a dash, Rate-Limit instead of RateLimit
+// "X-Rate-Limit-Limit
+// "X-Rate-Limit-Remaining"
+// "X-Rate-Limit-Interval"
