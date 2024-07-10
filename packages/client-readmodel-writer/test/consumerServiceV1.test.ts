@@ -202,7 +202,10 @@ describe("Events V1", async () => {
     };
     await writeInReadmodel(toReadModelClient(client), clients, 1);
 
-    const updatedClient = mockClient;
+    const updatedClient: Client = {
+      ...client,
+      purposes: [],
+    };
 
     const payload: ClientPurposeRemovedV1 = {
       purposeId,

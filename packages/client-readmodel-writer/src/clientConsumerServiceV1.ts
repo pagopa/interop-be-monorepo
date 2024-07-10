@@ -66,7 +66,6 @@ export async function handleMessageV1(
       );
     })
     .with({ type: "UserRemoved" }, async (message) => {
-      //
       await clients.updateOne(
         {
           "data.id": message.stream_id,
