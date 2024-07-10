@@ -16,6 +16,7 @@ import {
   AttributeKind,
   ListResult,
 } from "pagopa-interop-models";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
@@ -24,12 +25,6 @@ import {
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import {
-  ApiCertifiedAttributeSeed,
-  ApiDeclaredAttributeSeed,
-  ApiInternalCertifiedAttributeSeed,
-  ApiVerifiedAttributeSeed,
-} from "../model/types.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -131,7 +126,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createDeclaredAttribute(
-      apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
+      apiDeclaredAttributeSeed: attributeRegistryApi.ApiDeclaredAttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -173,7 +168,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createVerifiedAttribute(
-      apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
+      apiVerifiedAttributeSeed: attributeRegistryApi.ApiVerifiedAttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -214,7 +209,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createCertifiedAttribute(
-      apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
+      apiCertifiedAttributeSeed: attributeRegistryApi.ApiCertifiedAttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -262,7 +257,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
+      apiInternalCertifiedAttributeSeed: attributeRegistryApi.ApiInternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
