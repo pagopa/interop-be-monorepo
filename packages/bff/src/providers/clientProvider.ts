@@ -5,7 +5,7 @@ import {
   agreementApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
