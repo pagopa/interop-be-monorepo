@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const CataloProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
+const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
@@ -25,8 +25,8 @@ const CataloProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   );
 
-export type CatalogProcessConfig = z.infer<typeof CataloProcessConfig>;
+export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
-export const config: CatalogProcessConfig = {
-  ...CataloProcessConfig.parse(process.env),
-};
+export const config: CatalogProcessConfig = CatalogProcessConfig.parse(
+  process.env
+);

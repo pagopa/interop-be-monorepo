@@ -13,7 +13,7 @@ import {
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import {
@@ -35,6 +35,7 @@ import {
   removeClientPurposeErrorMapper,
   removeUserErrorMapper,
   createKeysErrorMapper,
+  getClientKeyWithClientErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -383,6 +384,40 @@ const authorizationRouter = (
           const errorRes = makeApiProblem(
             error,
             getClientKeyErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/clients/:clientId/keys/:keyId/bundle",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { JWKKey, client } =
+            await authorizationService.getKeyWithClientByKeyId({
+              clientId: unsafeBrandId(req.params.clientId),
+              kid: req.params.keyId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json({
+              key: JWKKey,
+              client: clientToApiClient({ client, showUsers: false }),
+            })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientKeyWithClientErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
