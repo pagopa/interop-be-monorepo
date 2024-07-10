@@ -16,6 +16,7 @@ export type QueryParameters<T extends ZodiosEndpointParameter[]> = {
     : never]: K["schema"] extends ZodType ? z.infer<K["schema"]> : never;
 };
 
+// Similar to ZodiosQueryParamsByAlias but resolve an issue with array types inference
 export type QueryParametersByAlias<
   T extends ZodiosEndpointDefinition[],
   K extends T[number]["alias"]
