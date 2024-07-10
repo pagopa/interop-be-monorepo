@@ -12,8 +12,12 @@ import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
+import authorizationRouter from "./routers/authorizationRouter.js";
+import getAllowList from "./utilities/getAllowList.js";
 
 const serviceName = "bff-process";
+
+const allowList = await getAllowList(serviceName);
 
 const clients = getInteropBeClients();
 
@@ -25,6 +29,7 @@ app.disable("x-powered-by");
 
 app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
+app.use(authorizationRouter(zodiosCtx, clients, allowList));
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
