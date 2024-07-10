@@ -1005,7 +1005,7 @@ describe("Authorization Updater processMessage", () => {
           },
           agreement: {
             agreementId: mockAgreement.id,
-            state: ApiClientComponent.Values.INACTIVE,
+            state: ApiClientComponent.Values.ACTIVE,
             eserviceId: mockEservice.id,
             consumerId: mockConsumerId,
           },
