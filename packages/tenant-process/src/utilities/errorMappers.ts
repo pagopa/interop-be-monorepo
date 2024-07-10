@@ -109,3 +109,11 @@ export const verifyVerifiedAttributeErrorMapper = (
     .with("verifiedAttributeSelfVerification", () => HTTP_STATUS_FORBIDDEN)
     .with("attributeVerificationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalUpsertTenantErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -671,35 +671,30 @@ export function tenantServiceBuilder(
     },
 
     async internalUpsertTenant(
-      {
-        internalTenantSeed,
-        correlationId,
-      }: {
-        internalTenantSeed: ApiInternalTenantSeed;
-        correlationId: string;
-      },
-      logger: Logger
+      internalTenantSeed: ApiInternalTenantSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
-      logger.info(
-        `Creating tenant with external id ${internalTenantSeed.externalId} via internal request`
-      );
-
       const existingTenant = await readModelService.getTenantByExternalId(
         internalTenantSeed.externalId
       );
+
+      const externalIds: ExternalId[] =
+        internalTenantSeed.certifiedAttributes.map((oc) =>
+          ExternalId.parse({ value: oc.code, origin: oc.origin })
+        );
+
+      const attributesByExternalId =
+        await readModelService.getAttributesByExternalIds(externalIds);
 
       if (existingTenant) {
         logger.info(
           `Updating tenant with external id ${internalTenantSeed.externalId} via internal request"`
         );
 
-        const externalIds: ExternalId[] =
-          internalTenantSeed.certifiedAttributes.map((oc) =>
-            ExternalId.parse({ value: oc.code, origin: oc.origin })
-          );
+        await assertResourceAllowed(existingTenant.data.id, authData);
 
         const updatedTenant = await updateTenantCertifiedAttributes(
-          externalIds,
+          attributesByExternalId,
           existingTenant.data,
           readModelService
         );
@@ -716,14 +711,27 @@ export function tenantServiceBuilder(
         logger.info(
           `Creating tenant with external id ${internalTenantSeed.externalId} via internal request"`
         );
+        // eslint-disable-next-line functional/no-let
+        const attributes: CertifiedTenantAttribute[] = [];
+
+        for (const attribute of attributesByExternalId) {
+          const tenantAttribute: CertifiedTenantAttribute = {
+            type: "PersistentCertifiedAttribute",
+            id: attribute.id,
+            assignmentTimestamp: new Date(),
+          };
+          // eslint-disable-next-line functional/immutable-data
+          attributes.push(tenantAttribute);
+        }
+
         const newTenant: Tenant = {
           id: generateId(),
           name: internalTenantSeed.name,
-          attributes: [],
+          attributes,
           externalId: internalTenantSeed.externalId,
           features: [],
           mails: [],
-          selfcareId: generateId(), // NON NE SONO SICURO
+          selfcareId: authData.selfcareId,
           kind: getTenantKind([], internalTenantSeed.externalId),
           onboardedAt: new Date(),
           createdAt: new Date(),
@@ -803,19 +811,16 @@ async function assignCertifiedAttribute({
 }
 
 async function updateTenantCertifiedAttributes(
-  attributes: ExternalId[],
+  attributes: Attribute[],
   tenant: Tenant,
   readModelService: ReadModelService
 ): Promise<Tenant> {
-  const attributesByExternalId =
-    await readModelService.getAttributesByExternalIds(attributes);
-
   // eslint-disable-next-line functional/no-let
   let updatedTenant: Tenant = {
     ...tenant,
     updatedAt: new Date(),
   };
-  for (const attribute of attributesByExternalId) {
+  for (const attribute of attributes) {
     const certifiedTenantAttribute = tenant.attributes.find(
       (attr): attr is CertifiedTenantAttribute =>
         attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
@@ -824,13 +829,18 @@ async function updateTenantCertifiedAttributes(
       continue;
     }
 
-    const updatedAttribute: CertifiedTenantAttribute = {
-      ...certifiedTenantAttribute,
-      assignmentTimestamp: new Date(),
-      revocationTimestamp: undefined,
+    updatedTenant = {
+      ...updatedTenant,
+      attributes: tenant.attributes.map((b) =>
+        b.id === attribute.id
+          ? {
+              ...b,
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            }
+          : b
+      ),
     };
-    // eslint-disable-next-line functional/immutable-data
-    updatedTenant.attributes.push(updatedAttribute);
   }
 
   const tenantKind = await getTenantKindLoadingCertifiedAttributes(
