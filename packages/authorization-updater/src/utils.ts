@@ -28,11 +28,11 @@ import {
   AgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { z } from "zod";
 import {
   ApiClientComponentState,
   ApiClientComponent,
   ApiKeyUse,
+  ApiClientKind,
 } from "./model/models.js";
 
 export const getDescriptorFromEvent = (
@@ -135,16 +135,6 @@ export const getClientFromEvent = (
 
   return fromClientV2(msg.data.client);
 };
-
-export const apiClientKind = {
-  consumer: "CONSUMER",
-  api: "API",
-} as const;
-export const ApiClientKind = z.enum([
-  Object.values(apiClientKind)[0],
-  ...Object.values(apiClientKind).slice(1),
-]);
-export type ApiClientKind = z.infer<typeof ApiClientKind>;
 
 export const clientKindToApiClientKind = (kid: ClientKind): ApiClientKind =>
   match<ClientKind, ApiClientKind>(kid)

@@ -53,6 +53,8 @@ import {
   getPurposeFromEvent,
   getPurposeVersionFromEvent,
   getClientFromEvent,
+  descriptorStateToClientState,
+  purposeStateToClientState,
 } from "./utils.js";
 
 export async function sendCatalogAuthUpdate(
@@ -187,13 +189,9 @@ export async function sendAgreementAuthUpdate(
         );
       }
 
-      const eserviceClientState = match(descriptor.state)
-        .with(
-          descriptorState.published,
-          descriptorState.deprecated,
-          () => ApiClientComponent.Values.ACTIVE
-        )
-        .otherwise(() => ApiClientComponent.Values.INACTIVE);
+      const eserviceClientState = descriptorStateToClientState(
+        descriptor.state
+      );
 
       await authService.updateAgreementAndEServiceStates(
         agreementStateToClientState(agreement.state),
@@ -290,9 +288,7 @@ export async function sendPurposeAuthUpdate(
         await authService.updatePurposeState(
           purposeId,
           purposeVersion.id,
-          purposeVersion.state === purposeVersionState.active
-            ? "ACTIVE"
-            : "INACTIVE",
+          purposeStateToClientState(purposeVersion.state),
           logger,
           correlationId
         );
@@ -314,9 +310,7 @@ export async function sendPurposeAuthUpdate(
         await authService.updatePurposeState(
           purpose.id,
           purposeVersion.id,
-          purposeVersion.state === purposeVersionState.active
-            ? "ACTIVE"
-            : "INACTIVE",
+          purposeStateToClientState(purposeVersion.state),
           logger,
           correlationId
         );
