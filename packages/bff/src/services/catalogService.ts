@@ -6,13 +6,13 @@ import {
   bffApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   DescriptorId,
   EServiceId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   toBffCatalogApiDescriptorAttribute,
   toBffCatalogApiDescriptorInterface,
@@ -114,7 +114,7 @@ const getBulkAttributes = async (
         headers,
         queries: {
           limit: 50,
-          offset: offset,
+          offset,
         },
       }
     );
