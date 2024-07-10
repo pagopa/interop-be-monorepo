@@ -165,7 +165,7 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      if (eservice.producerId === requesterId) {
+      if (eservice.producerId !== requesterId) {
         throw invalidEServiceRequester(
           unsafeBrandId<EServiceId>(eServiceId),
           unsafeBrandId<TenantId>(requesterId)
@@ -173,7 +173,7 @@ export function catalogServiceBuilder(
       }
 
       const descriptor = eservice.descriptors.find(
-        (e) => e.descriptorId === descriptorId
+        (e) => e.id === descriptorId
       );
 
       if (!descriptor) {
