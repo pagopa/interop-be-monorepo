@@ -35,6 +35,7 @@ import {
   ApiSelfcareTenantSeed,
   ApiDeclaredTenantAttributeSeed,
   ApiVerifiedTenantAttributeSeed,
+  ApiInternalTenantSeed,
 } from "../model/types.js";
 import {
   attributeNotFound,
@@ -668,6 +669,70 @@ export function tenantServiceBuilder(
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       return readModelService.getTenantBySelfcareId(selfcareId);
     },
+
+    async internalUpsertTenant(
+      {
+        internalTenantSeed,
+        correlationId,
+      }: {
+        internalTenantSeed: ApiInternalTenantSeed;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<string> {
+      logger.info(
+        `Creating tenant with external id ${internalTenantSeed.externalId} via internal request`
+      );
+
+      const existingTenant = await readModelService.getTenantByExternalId(
+        internalTenantSeed.externalId
+      );
+
+      if (existingTenant) {
+        logger.info(
+          `Updating tenant with external id ${internalTenantSeed.externalId} via internal request"`
+        );
+
+        const externalIds: ExternalId[] =
+          internalTenantSeed.certifiedAttributes.map((oc) =>
+            ExternalId.parse({ value: oc.code, origin: oc.origin })
+          );
+
+        const updatedTenant = await updateTenantCertifiedAttributes(
+          externalIds,
+          existingTenant.data,
+          readModelService
+        );
+
+        return await repository.createEvent(
+          toCreateEventTenantOnboardDetailsUpdated(
+            existingTenant.data.id,
+            existingTenant.metadata.version,
+            updatedTenant,
+            correlationId
+          )
+        );
+      } else {
+        logger.info(
+          `Creating tenant with external id ${internalTenantSeed.externalId} via internal request"`
+        );
+        const newTenant: Tenant = {
+          id: generateId(),
+          name: internalTenantSeed.name,
+          attributes: [],
+          externalId: internalTenantSeed.externalId,
+          features: [],
+          mails: [],
+          selfcareId: generateId(), // NON NE SONO SICURO
+          kind: getTenantKind([], internalTenantSeed.externalId),
+          onboardedAt: new Date(),
+          createdAt: new Date(),
+        };
+        return await repository.createEvent(
+          toCreateEventTenantOnboarded(newTenant, correlationId)
+        );
+      }
+    },
   };
 }
 
@@ -734,6 +799,53 @@ async function assignCertifiedAttribute({
       kind: tenantKind,
     };
   }
+  return updatedTenant;
+}
+
+async function updateTenantCertifiedAttributes(
+  attributes: ExternalId[],
+  tenant: Tenant,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const attributesByExternalId =
+    await readModelService.getAttributesByExternalIds(attributes);
+
+  // eslint-disable-next-line functional/no-let
+  let updatedTenant: Tenant = {
+    ...tenant,
+    updatedAt: new Date(),
+  };
+  for (const attribute of attributesByExternalId) {
+    const certifiedTenantAttribute = tenant.attributes.find(
+      (attr): attr is CertifiedTenantAttribute =>
+        attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
+    );
+    if (!certifiedTenantAttribute) {
+      continue;
+    }
+
+    const updatedAttribute: CertifiedTenantAttribute = {
+      ...certifiedTenantAttribute,
+      assignmentTimestamp: new Date(),
+      revocationTimestamp: undefined,
+    };
+    // eslint-disable-next-line functional/immutable-data
+    updatedTenant.attributes.push(updatedAttribute);
+  }
+
+  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+    readModelService,
+    updatedTenant.attributes,
+    updatedTenant.externalId
+  );
+
+  if (updatedTenant.kind !== tenantKind) {
+    updatedTenant = {
+      ...updatedTenant,
+      kind: tenantKind,
+    };
+  }
+
   return updatedTenant;
 }
 
