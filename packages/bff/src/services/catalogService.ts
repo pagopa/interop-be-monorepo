@@ -22,9 +22,10 @@ import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogApiEService,
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
-  toBffCatalogApiEService,
+  toCatalogCreateEServiceSeed,
 } from "../model/api/converters/catalogClientApiConverter.js";
 import {
   eserviceRiskNotFound,
@@ -54,7 +55,7 @@ const enhanceCatalogEService =
     requesterId: string
   ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
   async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await tenantProcessClient.tenant.getTenant({
+    const producerTenant = await tenantProcessClient.getTenant({
       headers,
       params: {
         id: eservice.producerId,
@@ -63,7 +64,7 @@ const enhanceCatalogEService =
 
     const requesterTenant: tenantApi.Tenant =
       requesterId !== eservice.producerId
-        ? await tenantProcessClient.tenant.getTenant({
+        ? await tenantProcessClient.getTenant({
             headers,
             params: {
               id: requesterId,
@@ -229,11 +230,11 @@ export function catalogServiceBuilder(
     getProducerEServiceDescriptor: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      {authData,headers }: WithLogger<BffAppContext>
-    ): Promise< bffApi.ProducerEServiceDescriptor> => {
+      { authData, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServiceDescriptor> => {
       const requesterId = authData.organizationId;
 
-      const eservice: CatalogProcessApiEService =
+      const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
           params: {
             eServiceId,

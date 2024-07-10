@@ -65,7 +65,7 @@ export function toEserviceCatalogProcessQueryParams(
   };
 }
 
-export function toBffCatalogApiEServiceResponse(
+export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   hasCertifiedAttributes: boolean,
@@ -192,8 +192,8 @@ export function toBffCatalogApiDescriptorDoc(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysis(
-  riskAnalysis: EServiceRiskAnalysis
-): BffCatalogApiProducerEServiceRiskAnalysis {
+  riskAnalysis: catalogApi.EServiceRiskAnalysis
+): bffApi.EServiceRiskAnalysis {
   const answers: { [key: string]: string[] } = {};
 
   riskAnalysis.riskAnalysisForm.singleAnswers
@@ -213,7 +213,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
       }
     });
 
-  const riskAnalysisForm: BffCatalogApiProducerRiskAnalysisForm = {
+  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
     riskAnalysisId: riskAnalysis.id,
     version: riskAnalysis.riskAnalysisForm.version,
     answers,
@@ -228,17 +228,17 @@ export function toBffCatalogApiEserviceRiskAnalysis(
 }
 
 export function toBffCatalogApiProducerDescriptorEService(
-  eservice: EServiceDescriptor,
-  producer: TenantProcessApiTenant
-): bffApi.CatalogEService {
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.ProducerDescriptorEService {
   const producerMail = producer.mails.find(
     (m) => m.kind === tenantMailKind.ContactEmail
   );
 
-  const notDraftDecriptors: BffCatalogApiCompactDescriptor[] =
+  const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
 
-  const draftDescriptor: BffCatalogApiCompactDescriptor | undefined =
+  const draftDescriptor: bffApi.CompactDescriptor | undefined =
     eservice.descriptors.find((d) => d.state === descriptorApiState.DRAFT);
 
   return {
