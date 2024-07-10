@@ -14,32 +14,19 @@ import {
   TenantWithOnlyAttributes,
 } from "pagopa-interop-agreement-lifecycle";
 import {
-  AgreementProcessApiAgreement,
-  agreementApiState,
-} from "./agreementTypes.js";
-import {
-  BffCatalogApiEServiceResponse,
-  BffGetCatalogApiQueryParam,
-} from "./bffTypes.js";
-import {
-  CatalogProcessApiEService,
-  CatalogProcessApiEServiceAttribute,
-  CatalogProcessApiEServiceDescriptor,
-  CatalogProcessApiQueryParam,
-  descriptorApiState,
-} from "./catalogTypes.js";
-import {
-  TenantProcessApiTenant,
-  TenantProcessApiTenantAttribute,
-} from "./tenantTypes.js";
+  agreementApi,
+  bffApi,
+  catalogApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { agreementApiState } from "./agreementTypes.js";
+import { descriptorApiState } from "./catalogTypes.js";
 
 export function toDescriptorWithOnlyAttributes(
-  descriptor: CatalogProcessApiEServiceDescriptor
+  descriptor: catalogApi.EServiceDescriptor
 ): DescriptorWithOnlyAttributes {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const toAttribute = (
-    atts: CatalogProcessApiEServiceAttribute[]
-  ): EServiceAttribute[] =>
+  const toAttribute = (atts: catalogApi.Attribute[]): EServiceAttribute[] =>
     atts.map((att) => ({
       ...att,
       id: unsafeBrandId(att.id),
@@ -56,32 +43,24 @@ export function toDescriptorWithOnlyAttributes(
 }
 
 export function toEserviceCatalogProcessQueryParams(
-  queryParams: BffGetCatalogApiQueryParam
-): CatalogProcessApiQueryParam {
+  queryParams: bffApi.GetCatalogQueryParam
+): catalogApi.GetCatalogQueryParam {
   return {
     ...queryParams,
-    producersIds: queryParams.producersIds
-      ? queryParams.producersIds.join(",")
-      : undefined,
-    states: queryParams.states ? queryParams.states.join(",") : undefined,
-    attributesIds: queryParams.attributesIds
-      ? queryParams.attributesIds.join(",")
-      : undefined,
-    agreementStates: queryParams.agreementStates
-      ? queryParams.agreementStates.join(",")
-      : undefined,
+    eservicesIds: [],
+    name: queryParams.q,
   };
 }
 
 export function toBffCatalogApiEServiceResponse(
-  eservice: CatalogProcessApiEService,
-  producerTenant: TenantProcessApiTenant,
+  eservice: catalogApi.EService,
+  producerTenant: tenantApi.Tenant,
   hasCertifiedAttributes: boolean,
   isRequesterEqProducer: boolean,
-  activeDescriptor?: CatalogProcessApiEServiceDescriptor,
-  agreement?: AgreementProcessApiAgreement
-): BffCatalogApiEServiceResponse {
-  const isUpgradable = (agreement: AgreementProcessApiAgreement): boolean => {
+  activeDescriptor?: catalogApi.EServiceDescriptor,
+  agreement?: agreementApi.Agreement
+): bffApi.CatalogEService {
+  const isUpgradable = (agreement: agreementApi.Agreement): boolean => {
     const eserviceDescriptor = eservice.descriptors.find(
       (e) => e.id === agreement.descriptorId
     );
@@ -137,7 +116,7 @@ export function toBffCatalogApiEServiceResponse(
 }
 
 export function toTenantAttribute(
-  att: TenantProcessApiTenantAttribute
+  att: tenantApi.TenantAttribute
 ): TenantAttribute[] {
   const certified: CertifiedTenantAttribute | undefined = att.certified && {
     id: unsafeBrandId<AttributeId>(att.certified.id),
@@ -182,7 +161,7 @@ export function toTenantAttribute(
 }
 
 export function toTenantWithOnlyAttributes(
-  tenant: TenantProcessApiTenant
+  tenant: tenantApi.Tenant
 ): TenantWithOnlyAttributes {
   return {
     ...tenant,
