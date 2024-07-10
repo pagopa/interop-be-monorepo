@@ -148,10 +148,10 @@ export const validSchemaOnlyRiskAnalysis2_0_Private: RiskAnalysisFormToValidate 
     },
   };
 
-export function getMockValidRiskAnalysis(
+export const getMockValidRiskAnalysis = (
   producerTenantKind: TenantKind
-): RiskAnalysis {
-  return match<TenantKind, RiskAnalysis>(producerTenantKind)
+): RiskAnalysis =>
+   match<TenantKind, RiskAnalysis>(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis3_0_Pa,
