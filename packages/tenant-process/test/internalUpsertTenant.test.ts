@@ -99,12 +99,15 @@ describe("internalUpsertTenant", async () => {
     await addOneTenant(tenant);
     const kind = tenantKind.PA;
 
-    await tenantService.internalUpsertTenant(tenantSeed, {
-      authData,
-      correlationId,
-      serviceName: "",
-      logger: genericLogger,
-    });
+    const returnedTenant = await tenantService.internalUpsertTenant(
+      tenantSeed,
+      {
+        authData,
+        correlationId,
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
     const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
@@ -118,7 +121,7 @@ describe("internalUpsertTenant", async () => {
     const writtenPayload: TenantOnboardDetailsUpdatedV2 | undefined =
       protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(writtenEvent?.data);
 
-    const updatedTenant: Tenant = {
+    const expectedTenant: Tenant = {
       ...tenant,
       kind,
       updatedAt: new Date(),
@@ -132,23 +135,28 @@ describe("internalUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(returnedTenant).toEqual(expectedTenant);
   });
   it("Should create a tenant by the upsert if it does not exist", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
-    const tenantId = await tenantService.internalUpsertTenant(tenantSeed, {
-      authData: mockAuthData,
-      correlationId,
-      serviceName: "",
-      logger: genericLogger,
-    });
-    expect(tenantId).toBeDefined();
-    const writtenEvent = await readLastTenantEvent(unsafeBrandId(tenantId));
+    const returnedTenant = await tenantService.internalUpsertTenant(
+      tenantSeed,
+      {
+        authData: mockAuthData,
+        correlationId,
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastTenantEvent(
+      unsafeBrandId(returnedTenant.id)
+    );
     if (!writtenEvent) {
       fail("Creation failed: tenant not found in event-store");
     }
     expect(writtenEvent).toMatchObject({
-      stream_id: tenantId,
+      stream_id: returnedTenant.id,
       version: "0",
       type: "TenantOnboarded",
     });
@@ -177,6 +185,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(returnedTenant).toEqual(expectedTenant);
   });
   it("Should throw operation forbidden if role isn't internal", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute1), attributes);

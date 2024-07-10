@@ -31,6 +31,7 @@ import {
   addDeclaredAttributeErrorMapper,
   verifyVerifiedAttributeErrorMapper,
   internalAddCertifiedAttributeErrorMapper,
+  internalUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -326,24 +327,27 @@ const tenantsRouter = (
         }
       }
     )
-    // .post(
-    //   "/internal/tenants",
-    //   authorizationMiddleware([INTERNAL_ROLE]),
-    //   async (req, res) => {
-    //     const ctx = fromAppContext(req.ctx);
-    //     try {
-    //       const id = await tenantService.internalUpsertTenant(req.body, ctx);
-    //       return res.status(200).json({ id }).send();
-    //     } catch (error) {
-    //       const errorRes = makeApiProblem(
-    //         error,
-    //         internalUpsertTenantErrorMapper,
-    //         ctx.logger
-    //       );
-    //       return res.status(errorRes.status).json(errorRes).end();
-    //     }
-    //   }
-    // )
+    .post(
+      "/internal/tenants",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.internalUpsertTenant(
+            req.body,
+            ctx
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalUpsertTenantErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
