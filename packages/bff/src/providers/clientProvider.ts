@@ -7,9 +7,9 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type TenantProcessClient = {
-  tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
-};
+export type TenantProcessClient = ReturnType<
+  typeof tenantApi.createTenantApiClient
+>;
 
 export type AttributeProcessClient = ReturnType<
   typeof attributeRegistryApi.createAttributeApiClient
@@ -37,9 +37,10 @@ export type PagoPAInteropBeClients = {
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
-    tenantProcessClient: {
-      tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
-    },
+    tenantProcessClient: tenantApi.createTenantApiClient(
+      config.tenantProcessUrl
+    ),
+
     agreementProcessClient: agreementApi.createAgreementApiClient(
       config.agreementProcessUrl
     ),

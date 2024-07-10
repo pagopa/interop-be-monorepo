@@ -4,23 +4,19 @@ import {
   catalogApi,
   tenantApi,
   bffApi,
-  descriptorApiState,
-  CatalogProcessApiEService,
-  CatalogProcessApiQueryParam,
-  BffGetEserviceByDescriptorIdQueryParam,
-  descriptorApiState,
+  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import {} from "../model/api/catalogTypes.js";
+import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   DescriptorId,
   EServiceId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { BffCatalogApiProducersEServiceDescriptorResponse } from "../model/api/bffTypes.js";
 import {
   toBffCatalogApiDescriptorAttribute,
   toBffCatalogApiDescriptorInterface,
+  toBffCatalogApiEService,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
@@ -54,7 +50,7 @@ const enhanceCatalogEService =
     requesterId: string
   ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
   async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await tenantProcessClient.tenant.getTenant({
+    const producerTenant = await tenantProcessClient.getTenant({
       headers,
       params: {
         id: eservice.producerId,
@@ -63,7 +59,7 @@ const enhanceCatalogEService =
 
     const requesterTenant: tenantApi.Tenant =
       requesterId !== eservice.producerId
-        ? await tenantProcessClient.tenant.getTenant({
+        ? await tenantProcessClient.getTenant({
             headers,
             params: {
               id: requesterId,
@@ -101,6 +97,37 @@ const enhanceCatalogEService =
       latestAgreement
     );
   };
+
+const getBulkAttributes = async (
+  attributeProcessClient: AttributeProcessClient,
+  headers: Headers,
+  descriptorAttributeIds: string[]
+) => {
+  // Fetched all attributes in a recursive way
+  const attributesBulk = async (
+    offset: number,
+    result: attributeRegistryApi.Attribute[]
+  ): Promise<attributeRegistryApi.Attribute[]> => {
+    const attributes = await attributeProcessClient.getBulkedAttributes(
+      descriptorAttributeIds,
+      {
+        headers,
+        queries: {
+          limit: 50,
+          offset: offset,
+        },
+      }
+    );
+
+    if (attributes.totalCount <= 50) {
+      return result.concat(attributes.results);
+    } else {
+      return await attributesBulk(offset + 50, result);
+    }
+  };
+
+  return await attributesBulk(0, []);
+};
 
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
@@ -151,13 +178,12 @@ export function catalogServiceBuilder(
     getProducerEServiceDescriptor: async (
       eServiceId: string,
       descriptorId: string,
-      queries: CatalogProcessApiQueryParam,
       context: WithLogger<BffAppContext>
-    ): Promise<BffCatalogApiProducersEServiceDescriptorResponse> => {
+    ): Promise<bffApi.ProducerEServiceDescriptor> => {
       const requesterId = context.authData.organizationId;
       const headers = context.headers;
 
-      const eservice: CatalogProcessApiEService =
+      const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
           params: {
             eServiceId,
@@ -195,15 +221,11 @@ export function catalogServiceBuilder(
         ),
       ];
 
-      const attributes = (
-        await attributeProcessClient.getBulkedAttributes(
-          descriptorAttributeIds,
-          {
-            headers,
-            queries,
-          }
-        )
-      ).results;
+      const attributes = await getBulkAttributes(
+        attributeProcessClient,
+        headers,
+        descriptorAttributeIds
+      );
 
       const descriptorAttributes = {
         certified: [

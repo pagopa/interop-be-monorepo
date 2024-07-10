@@ -64,7 +64,6 @@ const catalogRouter = (
           const response = await catalogService.getProducerEServiceDescriptor(
             req.params.eserviceId,
             req.params.descriptorId,
-            req.query,
             ctx
           );
           return res.status(200).json(response).send();
