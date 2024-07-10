@@ -361,6 +361,7 @@ describe("update risk analysis", () => {
   });
   it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
     );
     const producer: Tenant = {
       ...getMockTenant(),
@@ -375,6 +376,7 @@ describe("update risk analysis", () => {
       producerId: producer.id,
       mode: eserviceMode.receive,
       descriptors: [
+        {
           ...mockDescriptor,
           state: descriptorState.draft,
         },
