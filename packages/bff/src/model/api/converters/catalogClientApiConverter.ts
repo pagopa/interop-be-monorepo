@@ -1,44 +1,33 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
 import {
-  TenantAttribute,
-  EServiceAttribute,
-  unsafeBrandId,
-  tenantAttributeType,
-  CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
-  tenantMailKind,
-  VerifiedTenantAttribute,
-} from "pagopa-interop-models";
-import {
   DescriptorWithOnlyAttributes,
   TenantWithOnlyAttributes,
 } from "pagopa-interop-agreement-lifecycle";
 import {
+  agreementApi,
   bffApi,
   catalogApi,
   tenantApi,
-  agreementApi,
-  descriptorApiState,
-  agreementApiState,
-  GetCatalogQueryParam,
-  BffGetCatalogQueryParam,
-  EService,
-  EServiceDoc,
-  EServiceDescriptor,
-  EServiceRiskAnalysis,
-  BffCatalogApiDescriptorAttribute,
-  BffCatalogApiCompactDescriptor,
-  BffCatalogApiEServiceDoc,
-  BffCatalogApiProducerEServiceRiskAnalysis,
-  BffCatalogApiProducerRiskAnalysisForm,
-  AttributeProcessApi,
+  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
+import {
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  EServiceAttribute,
+  TenantAttribute,
+  VerifiedTenantAttribute,
+  tenantAttributeType,
+  tenantMailKind,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
+import { agreementApiState } from "../agreementTypes.js";
+import { descriptorApiState } from "../catalogTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
-  queryParams: BffGetCatalogQueryParam
-): GetCatalogQueryParam {
+  queryParams: bffApi.BffGetCatalogQueryParam
+): catalogApi.GetCatalogQueryParam {
   return {
     ...queryParams,
     eservicesIds: [],
@@ -46,7 +35,7 @@ export function toEserviceCatalogProcessQueryParams(
   };
 }
 
-export function toBffCatalogApiEServiceResponse(
+export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   hasCertifiedAttributes: boolean,
@@ -110,9 +99,9 @@ export function toBffCatalogApiEServiceResponse(
 }
 
 export function toBffCatalogApiDescriptorAttribute(
-  attributes: AttributeProcessApi[],
-  descriptorAttributes: EServiceAttribute[]
-): BffCatalogApiDescriptorAttribute[] {
+  attributes: attributeRegistryApi.Attribute[],
+  descriptorAttributes: catalogApi.Attribute[]
+): bffApi.DescriptorAttribute[] {
   return descriptorAttributes.map((attribute) => {
     const foundAttribute = attributes.find((att) => att.id === attribute.id);
     if (!foundAttribute) {
@@ -129,8 +118,8 @@ export function toBffCatalogApiDescriptorAttribute(
 }
 
 export function toBffCatalogApiDescriptorInterface(
-  document: EServiceDoc
-): BffCatalogApiEServiceDoc {
+  document: catalogApi.EServiceDoc
+): bffApi.EServiceDoc {
   return {
     id: document.id,
     name: document.name,
@@ -140,8 +129,8 @@ export function toBffCatalogApiDescriptorInterface(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysis(
-  riskAnalysis: EServiceRiskAnalysis
-): BffCatalogApiProducerEServiceRiskAnalysis {
+  riskAnalysis: catalogApi.EServiceRiskAnalysis
+): bffApi.EServiceRiskAnalysis {
   const answers: { [key: string]: string[] } = {};
 
   riskAnalysis.riskAnalysisForm.singleAnswers
@@ -161,7 +150,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
       }
     });
 
-  const riskAnalysisForm: BffCatalogApiProducerRiskAnalysisForm = {
+  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
     riskAnalysisId: riskAnalysis.id,
     version: riskAnalysis.riskAnalysisForm.version,
     answers,
@@ -176,17 +165,17 @@ export function toBffCatalogApiEserviceRiskAnalysis(
 }
 
 export function toBffCatalogApiProducerDescriptorEService(
-  eservice: EServiceDescriptor,
-  producer: TenantProcessApiTenant
-): bffApi.CatalogEService {
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.ProducerDescriptorEService {
   const producerMail = producer.mails.find(
     (m) => m.kind === tenantMailKind.ContactEmail
   );
 
-  const notDraftDecriptor: BffCatalogApiCompactDescriptor[] =
+  const notDraftDecriptor: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
 
-  const draftDescriptor: BffCatalogApiCompactDescriptor | undefined =
+  const draftDescriptor: bffApi.CompactDescriptor | undefined =
     eservice.descriptors.find((d) => d.state === descriptorApiState.DRAFT);
 
   return {
@@ -208,7 +197,7 @@ export function toBffCatalogApiProducerDescriptorEService(
 }
 
 export function toEserviceAttribute(
-  attributes: EServiceAttribute[]
+  attributes: catalogApi.Attribute[]
 ): EServiceAttribute[] {
   return attributes.map((attribute) => ({
     ...attribute,
@@ -217,7 +206,7 @@ export function toEserviceAttribute(
 }
 
 export function toDescriptorWithOnlyAttributes(
-  descriptor: EServiceDescriptor
+  descriptor: catalogApi.EServiceDescriptor
 ): DescriptorWithOnlyAttributes {
   return {
     ...descriptor,
