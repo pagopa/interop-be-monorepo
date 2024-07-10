@@ -105,6 +105,24 @@ const catalogRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
+    .get("/producers/eservices", async (_req, res) => res.status(501).send())
+    .get("/producers/eservices/:eserviceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getProducerEServiceDetails(
+          req.params.eserviceId,
+          ctx
+        );
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/producers/eservices/:eserviceId/descriptors/:descriptorId",
       async (req, res) => {
