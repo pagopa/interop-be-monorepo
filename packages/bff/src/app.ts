@@ -28,7 +28,15 @@ const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
-const redisRateLimiter = initRedisRateLimiter(config);
+const redisRateLimiter = initRedisRateLimiter({
+  limiterGroup: "BFF",
+  maxRequests: config.rateLimiterMaxRequests,
+  rateInterval: config.rateLimiterRateInterval,
+  redisHost: config.rateLimiterRedisHost,
+  redisPort: config.rateLimiterRedisPort,
+  timeout: config.rateLimiterTimeout,
+});
+
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");

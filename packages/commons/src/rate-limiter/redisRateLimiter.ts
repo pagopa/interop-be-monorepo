@@ -7,13 +7,17 @@ import {
 } from "rate-limiter-flexible";
 
 import { match, P } from "ts-pattern";
-import { RedisRateLimiterConfig } from "../config/redisRateLimiterConfig.js";
 import { Logger } from "../logging/index.js";
 import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 
-export function initRedisRateLimiter(
-  config: RedisRateLimiterConfig
-): RateLimiter {
+export function initRedisRateLimiter(config: {
+  limiterGroup: string;
+  maxRequests: number;
+  rateInterval: number;
+  redisHost: string;
+  redisPort: number;
+  timeout: number;
+}): RateLimiter {
   const redisClient = new Redis({
     enableOfflineQueue: false,
     host: config.redisHost,

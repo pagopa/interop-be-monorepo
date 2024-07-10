@@ -171,3 +171,8 @@ services:
     volumes:
       - ./local-kms-seed/jwks.json:/usr/share/nginx/html/jwks.json
 
+  # Redis local cache database used by the RateLimiter
+  redis:
+    image: 'redis:7.2.5-alpine3.20'
+    ports:
+      - '6379:6379'
