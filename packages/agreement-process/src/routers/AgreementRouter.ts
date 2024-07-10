@@ -28,7 +28,7 @@ import {
 import { api } from "../model/generated/api.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import {
   activateAgreementErrorMapper,
   addConsumerDocumentErrorMapper,

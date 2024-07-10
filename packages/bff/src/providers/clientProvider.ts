@@ -3,7 +3,7 @@ import { createApiClient as createApiClientAgreementProcess } from "../model/gen
 import { createApiClient as createApiClientCatalogProcess } from "../model/generated/catalog-process/api.js";
 import { createApiClient as createApiClientAttributeProcess } from "../model/generated/attribute-process/api.js";
 import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 
 export type TenantProcessClient = ReturnType<
   typeof createApiClientTenantProcess
