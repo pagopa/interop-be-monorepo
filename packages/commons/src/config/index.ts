@@ -9,3 +9,4 @@ export * from "./fileManagerConfig.js";
 export * from "./kafkaTopicConfig.js";
 export * from "./tokenGenerationConfig.js";
 export * from "./emailManagerConfig.js";
+export * from "./redisRateLimiterConfig.js";

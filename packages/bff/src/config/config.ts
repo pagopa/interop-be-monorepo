@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  RedisRateLimiterConfig,
+} from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -60,7 +64,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
-  .and(PurposeProcessServerConfig);
+  .and(PurposeProcessServerConfig)
+  .and(RedisRateLimiterConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
