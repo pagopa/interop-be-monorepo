@@ -164,26 +164,16 @@ export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
-export const clientComponentState = {
-  active: "ACTIVE",
-  inactive: "INACTIVE",
-} as const;
-export const ClientComponentState = z.enum([
-  Object.values(clientComponentState)[0],
-  ...Object.values(clientComponentState).slice(1),
-]);
-export type ClientComponentState = z.infer<typeof ClientComponentState>;
-
 export const descriptorStateToClientState = (
   state: DescriptorState
-): ClientComponentState =>
+): ApiClientComponentState =>
   state === descriptorState.published || state === descriptorState.deprecated
-    ? clientComponentState.active
-    : clientComponentState.inactive;
+    ? ApiClientComponent.Values.ACTIVE
+    : ApiClientComponent.Values.INACTIVE;
 
 export const purposeStateToClientState = (
   state: PurposeVersionState
-): ClientComponentState =>
+): ApiClientComponentState =>
   state === purposeVersionState.active
-    ? clientComponentState.active
-    : clientComponentState.inactive;
+    ? ApiClientComponent.Values.ACTIVE
+    : ApiClientComponent.Values.INACTIVE;
