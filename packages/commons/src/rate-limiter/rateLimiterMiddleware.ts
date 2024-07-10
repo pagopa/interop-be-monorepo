@@ -31,14 +31,17 @@ export function rateLimiterMiddleware(
       ctx.logger
     );
 
+    const headers = rateLimiterHeadersFromStatus(rateLimiterStatus);
+    res.set(headers);
+
     if (rateLimiterStatus.limitReached) {
       const erorrRes = makeApiProblem(
         tooManyRequestsError(ctx.authData.organizationId),
-        () => constants.HTTP_STATUS_BAD_REQUEST,
+        () => constants.HTTP_STATUS_TOO_MANY_REQUESTS,
         ctx.logger
       );
-      const headers = rateLimiterHeadersFromStatus(rateLimiterStatus);
-      res.set(headers).status(erorrRes.status).json(erorrRes).send();
+
+      res.status(erorrRes.status).json(erorrRes).send();
     } else {
       next();
     }
