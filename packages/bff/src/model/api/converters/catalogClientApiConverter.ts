@@ -1,8 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
-import {
-  DescriptorWithOnlyAttributes,
-} from "pagopa-interop-agreement-lifecycle";
+import { DescriptorWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
   bffApi,
@@ -211,4 +209,3 @@ export function toDescriptorWithOnlyAttributes(
     },
   };
 }
-
