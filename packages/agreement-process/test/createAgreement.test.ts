@@ -1,53 +1,55 @@
 import { fail } from "assert";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   expectPastTimestamp,
-  getRandomAuthData,
-  getMockDescriptorPublished,
-  getMockEServiceAttribute,
-  getMockEService,
-  getMockTenant,
+  getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockAgreement,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
-  AgreementId,
-  EServiceId,
-  DescriptorId,
-  TenantId,
-  AgreementV2,
+  Agreement,
   AgreementAddedV2,
-  toAgreementStateV2,
-  agreementState,
-  generateId,
+  AgreementId,
+  AgreementV2,
   AttributeId,
-  unsafeBrandId,
-  Tenant,
-  EServiceAttribute,
-  TenantAttribute,
   Descriptor,
+  DescriptorId,
+  EServiceAttribute,
+  EServiceId,
+  Tenant,
+  TenantAttribute,
+  TenantId,
+  agreementState,
   descriptorState,
+  generateId,
+  toAgreementStateV2,
+  toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { agreementCreationConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
-  eServiceNotFound,
-  notLatestEServiceDescriptor,
-  descriptorNotInExpectedState,
   agreementAlreadyExists,
-  tenantNotFound,
+  descriptorNotInExpectedState,
+  eServiceNotFound,
   missingCertifiedAttributesError,
+  notLatestEServiceDescriptor,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
-  readLastAgreementEvent,
+  addOneAgreement,
   addOneEService,
   addOneTenant,
   agreementService,
-  addOneAgreement,
+  readLastAgreementEvent,
 } from "./utils.js";
 
 /**
@@ -62,12 +64,13 @@ import {
  * @returns A Promise that resolves return the created AgreementV1 object.
  */
 const expectedAgreementCreation = async (
-  agreementId: AgreementId | undefined,
+  agreement: Agreement,
   expectedEserviceId: EServiceId,
   expectedDescriptorId: DescriptorId,
   expectedProducerId: TenantId,
   expectedConsumerId: TenantId
 ): Promise<AgreementV2> => {
+  const agreementId = unsafeBrandId<AgreementId>(agreement.id);
   expect(agreementId).toBeDefined();
   if (!agreementId) {
     fail("Unhandled error: returned agreementId is undefined");
@@ -112,6 +115,7 @@ const expectedAgreementCreation = async (
     stamps: {},
     createdAt: expect.any(BigInt),
   });
+  expect(actualAgreement).toEqual(toAgreementV2(agreement));
 
   return actualAgreement;
 };
@@ -144,7 +148,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eserviceId,
       descriptorId,
       authData.organizationId,
@@ -203,7 +207,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -240,7 +244,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -285,7 +289,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor0.id,
       tenant.id,
@@ -327,7 +331,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      unsafeBrandId<AgreementId>(createdAgreement.id),
+      createdAgreement,
       eservice.id,
       descriptor.id,
       tenant.id,

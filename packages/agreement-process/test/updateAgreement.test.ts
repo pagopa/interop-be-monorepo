@@ -19,7 +19,7 @@ import {
   agreementNotInExpectedState,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
-import { agreementUpdatableStates } from "../src/model/domain/validators.js";
+import { agreementUpdatableStates } from "../src/model/domain/agreement-validators.js";
 import {
   addOneAgreement,
   agreementService,
@@ -34,7 +34,7 @@ describe("update agreement", () => {
     };
     await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
-    await agreementService.updateAgreement(
+    const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
       { authData, serviceName: "", correlationId: "", logger: genericLogger }
@@ -58,6 +58,9 @@ describe("update agreement", () => {
       ...toAgreementV2(agreement),
       consumerNotes: "Updated consumer notes",
     });
+    expect(actualAgreementUptaded).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {

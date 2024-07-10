@@ -1,17 +1,19 @@
-/* eslint-disable no-constant-condition */
-export * from "./constants.js";
-export * from "./create-authenticator.js";
-export * from "./create-mechanism.js";
-export * from "./create-payload.js";
-export * from "./create-sasl-authentication-request.js";
-export * from "./create-sasl-authentication-response.js";
-import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
-import { KafkaConsumerConfig, genericLogger } from "pagopa-interop-commons";
+import { generateAuthToken } from "aws-msk-iam-sasl-signer-js";
+import {
+  Consumer,
+  EachMessagePayload,
+  Kafka,
+  KafkaConfig,
+  OauthbearerProviderResponse,
+  logLevel,
+} from "kafkajs";
+import {
+  KafkaConsumerConfig,
+  Logger,
+  genericLogger,
+} from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
-import { createMechanism } from "./create-mechanism.js";
-
-export const DEFAULT_AUTHENTICATION_TIMEOUT = 60 * 60 * 1000;
-export const REAUTHENTICATION_THRESHOLD = 20 * 1000;
+import { P, match } from "ts-pattern";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
@@ -90,14 +92,35 @@ const kafkaCommitMessageOffsets = async (
   );
 };
 
+async function oauthBearerTokenProvider(
+  region: string,
+  logger: Logger
+): Promise<OauthbearerProviderResponse> {
+  logger.debug("Fetching token from AWS");
+
+  const authTokenResponse = await generateAuthToken({
+    region,
+  });
+
+  logger.debug(
+    `Token fetched from AWS expires at ${authTokenResponse.expiryTime}`
+  );
+
+  return {
+    value: authTokenResponse.token,
+  };
+}
+
 const initConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
-  genericLogger.info(`Consumer connecting to topics ${JSON.stringify(topics)}`);
+  genericLogger.debug(
+    `Consumer connecting to topics ${JSON.stringify(topics)}`
+  );
 
-  const kafkaConfig = config.kafkaDisableAwsIamAuth
+  const kafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
@@ -108,14 +131,45 @@ const initConsumer = async (
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
         logLevel: config.kafkaLogLevel,
+        reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
-        sasl: createMechanism({
-          region: config.awsRegion,
-          ttl: DEFAULT_AUTHENTICATION_TIMEOUT.toString(),
-        }),
+        sasl: {
+          mechanism: "oauthbearer",
+          oauthBearerProvider: () =>
+            oauthBearerTokenProvider(config.awsRegion, genericLogger),
+        },
       };
 
-  const kafka = new Kafka(kafkaConfig);
+  const kafka = new Kafka({
+    ...kafkaConfig,
+    logCreator:
+      (_logLevel) =>
+      ({ level, log }) => {
+        const { message, error } = log;
+
+        const filteredLevel = match(error)
+          .with(
+            P.string,
+            (error) =>
+              (level === logLevel.ERROR || level === logLevel.WARN) &&
+              error.includes("The group is rebalancing, so a rejoin is needed"),
+            () => logLevel.INFO
+          )
+          .otherwise(() => level);
+
+        // eslint-disable-next-line sonarjs/no-nested-template-literals
+        const msg = `${message}${error ? ` - ${error}` : ""}`;
+
+        match(filteredLevel)
+          .with(logLevel.NOTHING, logLevel.ERROR, () =>
+            genericLogger.error(msg)
+          )
+          .with(logLevel.WARN, () => genericLogger.warn(msg))
+          .with(logLevel.INFO, () => genericLogger.info(msg))
+          .with(logLevel.DEBUG, () => genericLogger.debug(msg))
+          .otherwise(() => genericLogger.error(msg));
+      },
+  });
 
   const consumer = kafka.consumer({
     groupId: config.kafkaGroupId,
@@ -143,10 +197,10 @@ const initConsumer = async (
 
   await consumer.subscribe({
     topics,
-    fromBeginning: true,
+    fromBeginning: config.topicStartingOffset === "earliest",
   });
 
-  genericLogger.debug(`Consumer subscribed topic ${topics}`);
+  genericLogger.info(`Consumer subscribed topic ${topics}`);
 
   await consumer.run({
     autoCommit: false,
@@ -172,27 +226,14 @@ export const runConsumer = async (
   topics: string[],
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
-  do {
-    try {
-      const consumer = await initConsumer(config, topics, consumerHandler);
-
-      await new Promise((resolve) =>
-        setTimeout(
-          resolve,
-          DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
-        )
-      );
-
-      await consumer.disconnect().finally(() => {
-        genericLogger.debug("Consumer disconnected");
-      });
-    } catch (e) {
-      genericLogger.error(
-        `Generic error occurs during consumer initialization: ${e}`
-      );
-      processExit();
-    }
-  } while (true);
+  try {
+    await initConsumer(config, topics, consumerHandler);
+  } catch (e) {
+    genericLogger.error(
+      `Generic error occurs during consumer initialization: ${e}`
+    );
+    processExit();
+  }
 };
 
 export const validateTopicMetadata = async (

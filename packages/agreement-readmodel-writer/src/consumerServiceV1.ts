@@ -34,32 +34,39 @@ export async function handleMessageV1(
     .with({ type: "AgreementDeleted" }, async (msg) => {
       await agreements.deleteOne({
         "data.id": msg.stream_id,
-        "metadata.version": { $lt: msg.version },
+        "metadata.version": { $lte: msg.version },
       });
     })
-    .with({ type: "AgreementUpdated" }, async (msg) => {
-      await agreements.updateOne(
-        {
-          "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
-        },
-        {
-          $set: {
-            data: msg.data.agreement
-              ? toReadModelAgreement(fromAgreementV1(msg.data.agreement))
-              : undefined,
-            metadata: {
-              version: msg.version,
-            },
+    .with(
+      { type: "AgreementUpdated" },
+      { type: "AgreementActivated" },
+      { type: "AgreementSuspended" },
+      { type: "AgreementDeactivated" },
+      { type: "VerifiedAttributeUpdated" },
+      async (msg) => {
+        await agreements.updateOne(
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lte: msg.version },
           },
-        }
-      );
-    })
+          {
+            $set: {
+              data: msg.data.agreement
+                ? toReadModelAgreement(fromAgreementV1(msg.data.agreement))
+                : undefined,
+              metadata: {
+                version: msg.version,
+              },
+            },
+          }
+        );
+      }
+    )
     .with({ type: "AgreementConsumerDocumentAdded" }, async (msg) => {
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $push: {
@@ -81,7 +88,7 @@ export async function handleMessageV1(
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $pull: {
@@ -101,7 +108,7 @@ export async function handleMessageV1(
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {

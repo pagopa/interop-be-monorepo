@@ -39,6 +39,14 @@ export * from "./purpose/protobufConverterFromV1.js";
 export * from "./purpose/protobufConverterFromV2.js";
 export * from "./purpose/protobufConverterToV2.js";
 
+export * from "./authorization/client.js";
+export * from "./authorization/authorizationEvents.js";
+export * from "./authorization/protobufConverterFromV1.js";
+export * from "./authorization/protobufConverterToV1.js";
+export * from "./authorization/protobufConverterFromV2.js";
+export * from "./authorization/protobufConverterToV2.js";
+export * from "./authorization/authorizationReadModelAdapter.js";
+
 export * from "./user/user.js";
 
 // Protobuf
@@ -50,6 +58,7 @@ export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
+export * from "./read-models/authorizationReadModel.js";
 
 // Utilities
 export * from "./brandedIds.js";
@@ -70,9 +79,15 @@ export * from "./gen/v1/tenant/events.js";
 export * from "./gen/v1/tenant/tenant.js";
 export * from "./gen/v1/purpose/purpose.js";
 export * from "./gen/v1/purpose/events.js";
+export * from "./gen/v1/authorization/client.js";
+export * from "./gen/v1/authorization/key.js";
+export * from "./gen/v1/authorization/events.js";
 export * from "./gen/v2/eservice/eservice.js";
 export * from "./gen/v2/eservice/events.js";
 export * from "./gen/v2/agreement/agreement.js";
 export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
 export * from "./gen/v2/purpose/events.js";
+export * from "./gen/v2/authorization/client.js";
+export * from "./gen/v2/authorization/key.js";
+export * from "./gen/v2/authorization/events.js";

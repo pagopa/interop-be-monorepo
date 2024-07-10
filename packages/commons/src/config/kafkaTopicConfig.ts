@@ -8,8 +8,6 @@ export const CatalogTopicConfig = z
     catalogTopic: c.CATALOG_TOPIC,
   }));
 export type CatalogTopicConfig = z.infer<typeof CatalogTopicConfig>;
-export const catalogTopicConfig: () => CatalogTopicConfig = () =>
-  CatalogTopicConfig.parse(process.env);
 
 export const AgreementTopicConfig = z
   .object({
@@ -19,8 +17,6 @@ export const AgreementTopicConfig = z
     agreementTopic: c.AGREEMENT_TOPIC,
   }));
 export type AgreementTopicConfig = z.infer<typeof AgreementTopicConfig>;
-export const agreementTopicConfig: () => AgreementTopicConfig = () =>
-  AgreementTopicConfig.parse(process.env);
 
 export const TenantTopicConfig = z
   .object({
@@ -30,8 +26,6 @@ export const TenantTopicConfig = z
     tenantTopic: c.TENANT_TOPIC,
   }));
 export type TenantTopicConfig = z.infer<typeof TenantTopicConfig>;
-export const tenantTopicConfig: () => TenantTopicConfig = () =>
-  TenantTopicConfig.parse(process.env);
 
 export const AttributeTopicConfig = z
   .object({
@@ -41,8 +35,6 @@ export const AttributeTopicConfig = z
     attributeTopic: c.ATTRIBUTE_TOPIC,
   }));
 export type AttributeTopicConfig = z.infer<typeof AttributeTopicConfig>;
-export const attributeTopicConfig: () => AttributeTopicConfig = () =>
-  AttributeTopicConfig.parse(process.env);
 
 export const PurposeTopicConfig = z
   .object({
@@ -52,8 +44,15 @@ export const PurposeTopicConfig = z
     purposeTopic: c.PURPOSE_TOPIC,
   }));
 export type PurposeTopicConfig = z.infer<typeof PurposeTopicConfig>;
-export const purposeTopicConfig: () => PurposeTopicConfig = () =>
-  PurposeTopicConfig.parse(process.env);
+
+export const AuthorizationTopicConfig = z
+  .object({
+    AUTHORIZATION_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    authorizationTopic: c.AUTHORIZATION_TOPIC,
+  }));
+export type AuthorizationTopicConfig = z.infer<typeof AuthorizationTopicConfig>;
 
 export const KafkaTopicConfig = z.union([
   CatalogTopicConfig,
@@ -61,5 +60,6 @@ export const KafkaTopicConfig = z.union([
   TenantTopicConfig,
   AttributeTopicConfig,
   PurposeTopicConfig,
+  AuthorizationTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;

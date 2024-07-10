@@ -8,12 +8,16 @@ import {
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
-import { AgreementEvent, fromAgreementV2 } from "pagopa-interop-models";
+import {
+  AgreementEvent,
+  fromAgreementV2,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
 
 const readModelService = readModelServiceBuilder(
@@ -65,9 +69,7 @@ async function processMessage({
             correlationId
           );
         } else {
-          loggerInstance.error(
-            `Agreement not found in message ${decodedMsg.type}`
-          );
+          throw missingKafkaMessageDataError("agreement", decodedMsg.type);
         }
       }
     )

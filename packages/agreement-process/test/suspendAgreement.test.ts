@@ -3,7 +3,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -33,9 +33,8 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { agreementSuspendableStates } from "../src/model/domain/validators.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { agreementSuspendableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -44,6 +43,7 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
+import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -118,12 +118,15 @@ describe("suspend agreement", () => {
     ]);
     const authData = getRandomAuthData(requesterId);
 
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.suspendAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -181,6 +184,9 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toMatchObject(
       toAgreementV2(expectedAgreementSuspended)
     );
+    expect(actualAgreementSuspended).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -235,12 +241,15 @@ describe("suspend agreement", () => {
 
     const authData = getRandomAuthData(producerAndConsumerId);
 
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.suspendAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -278,6 +287,9 @@ describe("suspend agreement", () => {
     };
     expect(actualAgreementSuspended).toMatchObject(
       toAgreementV2(expectedAgreementSuspended)
+    );
+    expect(actualAgreementSuspended).toMatchObject(
+      toAgreementV2(returnedAgreement)
     );
   });
 
@@ -320,12 +332,15 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    await agreementService.suspendAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const returnedAgreement = await agreementService.suspendAgreement(
+      agreement.id,
+      {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      }
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -380,6 +395,9 @@ describe("suspend agreement", () => {
     };
     expect(actualAgreementSuspended).toMatchObject(
       toAgreementV2(expectedAgreementSuspended)
+    );
+    expect(actualAgreementSuspended).toMatchObject(
+      toAgreementV2(returnedAgreement)
     );
   });
 

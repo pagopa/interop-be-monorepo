@@ -1,7 +1,9 @@
 import {
   AgreementReadModel,
   AttributeReadmodel,
+  ClientReadModel,
   EServiceReadModel,
+  KeyReadModel,
   PurposeReadModel,
   Tenant,
   genericInternalError,
@@ -34,13 +36,17 @@ export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
+export type ClientCollection = GenericCollection<ClientReadModel>;
+export type KeyCollection = GenericCollection<KeyReadModel>;
 
 export type Collections =
   | EServiceCollection
   | AgreementCollection
   | TenantCollection
   | AttributeCollection
-  | PurposeCollection;
+  | PurposeCollection
+  | ClientCollection
+  | KeyCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -143,6 +149,10 @@ export class ReadModelRepository {
 
   public purposes: PurposeCollection;
 
+  public clients: ClientCollection;
+
+  public keys: KeyCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -166,7 +176,9 @@ export class ReadModelRepository {
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
-    this.purposes = this.db.collection("purpose", { ignoreUndefined: true });
+    this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
+    this.clients = this.db.collection("clients", { ignoreUndefined: true });
+    this.keys = this.db.collection("keys", { ignoreUndefined: true });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {

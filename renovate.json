@@ -6,9 +6,11 @@
     ":automergeLinters",
     ":automergeTesters",
     ":automergeTypes",
+    ":automergeDigest",
     ":combinePatchMinorReleases",
     ":ignoreUnstable",
-    ":rebaseStalePrs"
+    ":rebaseStalePrs",
+    ":dependencyDashboard"
   ],
   "prConcurrentLimit": 2,
   "labels": [

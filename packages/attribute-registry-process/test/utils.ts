@@ -6,7 +6,6 @@ import {
   AttributeEvent,
   AttributeId,
   Tenant,
-  TenantId,
   generateId,
   toAttributeV1,
   toReadModelAttribute,
@@ -18,7 +17,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
-import { AuthData } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
@@ -84,15 +82,4 @@ export const getMockTenant = (): Tenant => ({
   },
   features: [],
   mails: [],
-});
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
 });

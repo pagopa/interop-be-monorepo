@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 import { runConsumer } from "kafka-iam-auth";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
@@ -12,6 +12,7 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
   decodeKafkaMessage,
+  PurposeTopicConfig,
 } from "pagopa-interop-commons";
 import {
   kafkaMessageProcessError,
@@ -21,6 +22,10 @@ import {
   EServiceEventV2,
   AgreementEventV2,
   AgreementEventEnvelopeV2,
+  PurposeEventEnvelopeV2,
+  PurposeEventV2,
+  purposeVersionState,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -28,7 +33,7 @@ import {
   authorizationServiceBuilder,
 } from "./authorizationService.js";
 import { ApiClientComponent } from "./model/models.js";
-import { config } from "./utilities/config.js";
+import { config } from "./config/config.js";
 import {
   ReadModelService,
   readModelServiceBuilder,
@@ -38,77 +43,120 @@ import {
   getDescriptorFromEvent,
   getAgreementFromEvent,
   agreementStateToClientState,
+  getPurposeFromEvent,
+  getPurposeVersionFromEvent,
 } from "./utils.js";
 
-export async function sendAuthUpdate(
-  decodedMessage: EServiceEventEnvelopeV2 | AgreementEventEnvelopeV2,
+export async function sendCatalogAuthUpdate(
+  decodedMessage: EServiceEventEnvelopeV2,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorActivated"
+        ),
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          ApiClientComponent.Values.ACTIVE,
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorArchived"
+        ),
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          ApiClientComponent.Values.INACTIVE,
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceAdded",
+          "EServiceCloned",
+          "EServiceDeleted",
+          "DraftEServiceUpdated",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptorQuotasUpdated"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
+    )
+    .exhaustive();
+}
+
+export async function sendAgreementAuthUpdate(
+  decodedMessage: AgreementEventEnvelopeV2,
   readModelService: ReadModelService,
   authService: AuthorizationService,
   logger: Logger,
   correlationId: string
 ): Promise<void> {
-  const update: (() => Promise<void>) | undefined = await match(decodedMessage)
+  await match(decodedMessage)
     .with(
       {
-        type: "EServiceDescriptorPublished",
+        type: P.union(
+          "AgreementSubmitted",
+          "AgreementActivated",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByProducer",
+          "AgreementSuspendedByPlatform",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByProducer",
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByUpgrade"
+        ),
       },
-      {
-        type: "EServiceDescriptorActivated",
-      },
-      async (msg) => {
-        const data = getDescriptorFromEvent(msg, decodedMessage.type);
-        return (): Promise<void> =>
-          authService.updateEServiceState(
-            ApiClientComponent.Values.ACTIVE,
-            data.descriptor.id,
-            data.eserviceId,
-            data.descriptor.audience,
-            data.descriptor.voucherLifespan,
-            logger,
-            correlationId
-          );
-      }
-    )
-    .with(
-      { type: "EServiceDescriptorSuspended" },
-      { type: "EServiceDescriptorArchived" },
-      async (msg) => {
-        const data = getDescriptorFromEvent(msg, decodedMessage.type);
-        return (): Promise<void> =>
-          authService.updateEServiceState(
-            ApiClientComponent.Values.INACTIVE,
-            data.descriptor.id,
-            data.eserviceId,
-            data.descriptor.audience,
-            data.descriptor.voucherLifespan,
-            logger,
-            correlationId
-          );
-      }
-    )
-    .with(
-      { type: "AgreementSubmitted" },
-      { type: "AgreementActivated" },
-      { type: "AgreementUnsuspendedByPlatform" },
-      { type: "AgreementUnsuspendedByConsumer" },
-      { type: "AgreementUnsuspendedByProducer" },
-      { type: "AgreementSuspendedByPlatform" },
-      { type: "AgreementSuspendedByConsumer" },
-      { type: "AgreementSuspendedByProducer" },
-      { type: "AgreementArchivedByConsumer" },
-      { type: "AgreementArchivedByUpgrade" },
       async (msg) => {
         const agreement = getAgreementFromEvent(msg, decodedMessage.type);
 
-        return (): Promise<void> =>
-          authService.updateAgreementState(
-            agreementStateToClientState(agreement),
-            agreement.id,
-            agreement.eserviceId,
-            agreement.consumerId,
-            logger,
-            correlationId
-          );
+        await authService.updateAgreementState(
+          agreementStateToClientState(agreement),
+          agreement.id,
+          agreement.eserviceId,
+          agreement.consumerId,
+          logger,
+          correlationId
+        );
       }
     )
     .with({ type: "AgreementUpgraded" }, async (msg) => {
@@ -139,72 +187,206 @@ export async function sendAuthUpdate(
         )
         .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
-      return (): Promise<void> =>
-        authService.updateAgreementAndEServiceStates(
-          agreementStateToClientState(agreement),
-          eserviceClientState,
-          agreement.id,
-          agreement.eserviceId,
-          agreement.descriptorId,
-          agreement.consumerId,
-          descriptor.audience,
-          descriptor.voucherLifespan,
+      await authService.updateAgreementAndEServiceStates(
+        agreementStateToClientState(agreement),
+        eserviceClientState,
+        agreement.id,
+        agreement.eserviceId,
+        agreement.descriptorId,
+        agreement.consumerId,
+        descriptor.audience,
+        descriptor.voucherLifespan,
+        logger,
+        correlationId
+      );
+    })
+    .with(
+      {
+        type: P.union(
+          "AgreementAdded",
+          "AgreementDeleted",
+          "AgreementRejected",
+          "DraftAgreementUpdated",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
+    )
+    .exhaustive();
+}
+
+export async function sendPurposeAuthUpdate(
+  decodedMessage: PurposeEventEnvelopeV2,
+  readModelService: ReadModelService,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    /**
+     * With the new purpose logic, this part should not be needed, since the purpose with the first version
+     * in DRAFT or WAITING_FOR_APPROVAL, which are deletable, could not be added to any client.
+     * We decided to keep this part since there are still deletable purposes added to clients in the read model.
+     *
+     * This whole consumer will be replaced/updated once the refactor of the authorization server will be implemented.
+     */
+    .with(
+      {
+        type: P.union(
+          "DraftPurposeDeleted",
+          "WaitingForApprovalPurposeDeleted"
+        ),
+      },
+      async (msg): Promise<void> => {
+        const purpose = getPurposeFromEvent(msg, msg.type);
+
+        const purposeClientsIds =
+          await readModelService.getClientsIdFromPurpose(purpose.id);
+
+        await Promise.all(
+          purposeClientsIds.map((clientId) =>
+            authService.deletePurposeFromClient(
+              purpose.id,
+              clientId,
+              logger,
+              correlationId
+            )
+          )
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "PurposeVersionSuspendedByConsumer",
+          "PurposeVersionSuspendedByProducer",
+          "PurposeVersionUnsuspendedByConsumer",
+          "PurposeVersionUnsuspendedByProducer",
+          "PurposeVersionOverQuotaUnsuspended",
+          "NewPurposeVersionActivated",
+          "PurposeVersionActivated",
+          "PurposeArchived"
+        ),
+      },
+      async (msg): Promise<void> => {
+        const { purposeId, purposeVersion } = getPurposeVersionFromEvent(
+          msg,
+          msg.type
+        );
+
+        await authService.updatePurposeState(
+          purposeId,
+          purposeVersion.id,
+          purposeVersion.state === purposeVersionState.active
+            ? "ACTIVE"
+            : "INACTIVE",
           logger,
           correlationId
         );
-    })
-    .with({ type: "EServiceAdded" }, () => undefined)
-    .with({ type: "EServiceCloned" }, () => undefined)
-    .with({ type: "EServiceDeleted" }, () => undefined)
-    .with({ type: "DraftEServiceUpdated" }, () => undefined)
-    .with({ type: "EServiceDescriptorAdded" }, () => undefined)
-    .with({ type: "EServiceDraftDescriptorDeleted" }, () => undefined)
-    .with({ type: "EServiceDraftDescriptorUpdated" }, () => undefined)
-    .with({ type: "EServiceDescriptorDocumentAdded" }, () => undefined)
-    .with({ type: "EServiceDescriptorDocumentUpdated" }, () => undefined)
-    .with({ type: "EServiceDescriptorDocumentDeleted" }, () => undefined)
-    .with({ type: "EServiceDescriptorInterfaceAdded" }, () => undefined)
-    .with({ type: "EServiceDescriptorInterfaceUpdated" }, () => undefined)
-    .with({ type: "EServiceDescriptorInterfaceDeleted" }, () => undefined)
-    .with({ type: "EServiceRiskAnalysisAdded" }, () => undefined)
-    .with({ type: "EServiceRiskAnalysisUpdated" }, () => undefined)
-    .with({ type: "EServiceRiskAnalysisDeleted" }, () => undefined)
-    .with({ type: "EServiceDescriptorQuotasUpdated" }, () => undefined)
-    .with({ type: "AgreementAdded" }, () => undefined)
-    .with({ type: "AgreementDeleted" }, () => undefined)
-    .with({ type: "AgreementRejected" }, () => undefined)
-    .with({ type: "DraftAgreementUpdated" }, () => undefined)
-    .with({ type: "AgreementConsumerDocumentAdded" }, () => undefined)
-    .with({ type: "AgreementConsumerDocumentRemoved" }, () => undefined)
-    .with({ type: "AgreementSetDraftByPlatform" }, () => undefined)
+      }
+    )
     .with(
-      { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-      () => undefined
+      {
+        type: "PurposeActivated",
+      },
+      async (msg): Promise<void> => {
+        const purpose = getPurposeFromEvent(msg, msg.type);
+
+        const purposeVersion = purpose.versions[0];
+
+        if (!purposeVersion) {
+          throw missingKafkaMessageDataError("purposeVersion", msg.type);
+        }
+
+        await authService.updatePurposeState(
+          purpose.id,
+          purposeVersion.id,
+          purposeVersion.state === purposeVersionState.active
+            ? "ACTIVE"
+            : "INACTIVE",
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "PurposeAdded",
+          "DraftPurposeUpdated",
+          "WaitingForApprovalPurposeVersionDeleted",
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeCloned",
+          "PurposeVersionRejected",
+          "PurposeWaitingForApproval"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
     )
     .exhaustive();
-
-  if (update) {
-    await update();
-  } else {
-    logger.info(`No auth update needed for ${decodedMessage.type} message`);
-  }
 }
 
 function processMessage(
   catalogTopicConfig: CatalogTopicConfig,
   agreementTopicConfig: AgreementTopicConfig,
+  purposeTopicConfig: PurposeTopicConfig,
   readModelService: ReadModelService,
   authService: AuthorizationService
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const decodedMessage = match(messagePayload.topic)
-        .with(catalogTopicConfig.catalogTopic, () =>
-          decodeKafkaMessage(messagePayload.message, EServiceEventV2)
-        )
-        .with(agreementTopicConfig.agreementTopic, () =>
-          decodeKafkaMessage(messagePayload.message, AgreementEventV2)
-        )
+      const { decodedMessage, updater } = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            EServiceEventV2
+          );
+
+          const updater = sendCatalogAuthUpdate.bind(
+            null,
+            decodedMessage,
+            authService
+          );
+
+          return { decodedMessage, updater };
+        })
+        .with(agreementTopicConfig.agreementTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            AgreementEventV2
+          );
+
+          const updater = sendAgreementAuthUpdate.bind(
+            null,
+            decodedMessage,
+            readModelService,
+            authService
+          );
+
+          return { decodedMessage, updater };
+        })
+        .with(purposeTopicConfig.purposeTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            PurposeEventV2
+          );
+
+          const updater = sendPurposeAuthUpdate.bind(
+            null,
+            decodedMessage,
+            readModelService,
+            authService
+          );
+
+          return { decodedMessage, updater };
+        })
         .otherwise(() => {
           throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
         });
@@ -223,13 +405,7 @@ function processMessage(
         `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
       );
 
-      await sendAuthUpdate(
-        decodedMessage,
-        readModelService,
-        authService,
-        loggerInstance,
-        correlationId
-      );
+      await updater(loggerInstance, correlationId);
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
@@ -259,13 +435,16 @@ try {
   );
   await runConsumer(
     config,
-    [config.catalogTopic, config.agreementTopic],
+    [config.catalogTopic, config.agreementTopic, config.purposeTopic],
     processMessage(
       {
         catalogTopic: config.catalogTopic,
       },
       {
         agreementTopic: config.agreementTopic,
+      },
+      {
+        purposeTopic: config.purposeTopic,
       },
       readModelService,
       authService

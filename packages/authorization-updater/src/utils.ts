@@ -9,6 +9,11 @@ import {
   Agreement,
   fromAgreementV2,
   agreementState,
+  PurposeV2,
+  Purpose,
+  fromPurposeV2,
+  PurposeId,
+  PurposeVersion,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ApiClientComponentState, ApiClientComponent } from "./model/models.js";
@@ -62,3 +67,39 @@ export const agreementStateToClientState = (
   match(agreement.state)
     .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
     .otherwise(() => ApiClientComponent.Values.INACTIVE);
+
+export const getPurposeFromEvent = (
+  msg: {
+    data: {
+      purpose?: PurposeV2;
+    };
+  },
+  eventType: string
+): Purpose => {
+  if (!msg.data.purpose) {
+    throw missingKafkaMessageDataError("purpose", eventType);
+  }
+
+  return fromPurposeV2(msg.data.purpose);
+};
+
+export const getPurposeVersionFromEvent = (
+  msg: {
+    data: {
+      purpose?: PurposeV2;
+      versionId: string;
+    };
+  },
+  eventType: string
+): { purposeId: PurposeId; purposeVersion: PurposeVersion } => {
+  const purpose = getPurposeFromEvent(msg, eventType);
+  const purposeVersion = purpose.versions.find(
+    (v) => v.id === msg.data.versionId
+  );
+
+  if (!purposeVersion) {
+    throw missingKafkaMessageDataError("purposeVersion", eventType);
+  }
+
+  return { purposeId: purpose.id, purposeVersion };
+};

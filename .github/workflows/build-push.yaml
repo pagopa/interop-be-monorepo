@@ -9,6 +9,7 @@ on:
     paths:
       - "packages/**"
       - "!packages/*/scripts/**"
+      - ".github/workflows/build-push.yaml"
 
 jobs:
   build_push_image:
@@ -48,13 +49,15 @@ jobs:
             dockerfile_path: packages/notifier-seeder
           - image_name: eservice-descriptors-archiver
             dockerfile_path: packages/eservice-descriptors-archiver
+          - image_name: agreement-email-sender
+            dockerfile_path: packages/agreement-email-sender
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}
@@ -62,12 +65,12 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
 
       - name: (latest) Docker metadata
         id: meta_latest
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@a64d0487d7069df33b279515d35d60fa80e2ea62
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -80,7 +83,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@a64d0487d7069df33b279515d35d60fa80e2ea62
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -92,7 +95,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build_push
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
           context: .
           file: ${{ matrix.dockerfile_path }}/Dockerfile

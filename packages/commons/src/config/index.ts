@@ -1,5 +1,6 @@
 export * from "./awsConfig.js";
-export * from "./commonConfig.js";
+export * from "./loggerConfig.js";
+export * from "./httpServiceConfig.js";
 export * from "./consumerServiceConfig.js";
 export * from "./kafkaConfig.js";
 export * from "./readmodelDbConfig.js";
@@ -7,3 +8,4 @@ export * from "./eventStoreConfig.js";
 export * from "./fileManagerConfig.js";
 export * from "./kafkaTopicConfig.js";
 export * from "./tokenGenerationConfig.js";
+export * from "./emailManagerConfig.js";

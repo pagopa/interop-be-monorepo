@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 import { generateMock } from "@anatine/zod-mock";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -8,34 +9,33 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
-  AgreementDocument,
-  generateId,
-  AgreementId,
-  TenantId,
-  AgreementDocumentId,
-  EServiceId,
   AgreementConsumerDocumentAddedV2,
-  agreementState,
   AgreementConsumerDocumentRemovedV2,
+  AgreementDocument,
+  AgreementDocumentId,
+  AgreementId,
+  EServiceId,
+  TenantId,
+  agreementState,
+  generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { describe, beforeEach, it, expect, vi } from "vitest";
-import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it } from "vitest";
+import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/agreement-validators.js";
 import {
-  agreementNotFound,
-  operationNotAllowed,
-  agreementDocumentNotFound,
-  documentChangeNotAllowed,
   agreementDocumentAlreadyExists,
+  agreementDocumentNotFound,
+  agreementNotFound,
+  documentChangeNotAllowed,
+  operationNotAllowed,
 } from "../src/model/domain/errors.js";
-import { config } from "../src/utilities/config.js";
-import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/validators.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   agreementService,
   fileManager,
-  readLastAgreementEvent,
   getMockConsumerDocument,
+  readLastAgreementEvent,
 } from "./utils.js";
 
 describe("agreement consumer document", () => {
@@ -129,12 +129,6 @@ describe("agreement consumer document", () => {
   });
 
   describe("add", () => {
-    beforeEach(async () => {
-      const TEST_EXECUTION_DATE = new Date();
-      vi.useFakeTimers();
-      vi.setSystemTime(TEST_EXECUTION_DATE);
-    });
-
     it("should succeed on happy path", async () => {
       const authData = getRandomAuthData();
       const organizationId = authData.organizationId;
@@ -147,16 +141,17 @@ describe("agreement consumer document", () => {
 
       await addOneAgreement(agreement);
 
-      await agreementService.addConsumerDocument(
-        agreement.id,
-        consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        }
-      );
+      const returnedConsumerDocument =
+        await agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
+        );
       const { data: payload } = await readLastAgreementEvent(agreement.id);
 
       const actualConsumerDocument = decodeProtobufPayload({
@@ -164,14 +159,33 @@ describe("agreement consumer document", () => {
         payload,
       });
 
+      const expectedConsumerDocument = {
+        ...consumerDocument,
+        createdAt: returnedConsumerDocument.createdAt,
+      };
+
       const expectedAgreement = {
         ...agreement,
-        consumerDocuments: [...agreement.consumerDocuments, consumerDocument],
+        consumerDocuments: [
+          ...agreement.consumerDocuments,
+          expectedConsumerDocument,
+        ],
       };
 
       expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
+      });
+
+      expect(actualConsumerDocument).toEqual({
+        agreement: toAgreementV2({
+          ...agreement,
+          consumerDocuments: [
+            ...agreement.consumerDocuments,
+            returnedConsumerDocument,
+          ],
+        }),
+        documentId: returnedConsumerDocument.id,
       });
     });
 
@@ -320,16 +334,17 @@ describe("agreement consumer document", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(agreement1.consumerDocuments[0].path);
 
-      await agreementService.removeAgreementConsumerDocument(
-        agreement1.id,
-        consumerDocument.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: "",
-          logger: genericLogger,
-        }
-      );
+      const returnedAgreementId =
+        await agreementService.removeAgreementConsumerDocument(
+          agreement1.id,
+          consumerDocument.id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
+        );
 
       // Check that the file is removed from the bucket after removing it
       expect(
@@ -349,6 +364,7 @@ describe("agreement consumer document", () => {
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
+      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {

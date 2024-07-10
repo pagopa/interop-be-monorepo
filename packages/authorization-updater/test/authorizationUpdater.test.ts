@@ -3,21 +3,30 @@
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
+  getMockClient,
   getMockDescriptorPublished,
   getMockEService,
+  getMockPurpose,
+  getMockPurposeVersion,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementEventEnvelopeV2,
+  Client,
   Descriptor,
   EService,
   EServiceEventEnvelopeV2,
+  Purpose,
+  PurposeEventEnvelopeV2,
+  PurposeVersion,
   descriptorState,
   generateId,
   genericInternalError,
+  purposeVersionState,
   toAgreementV2,
   toEServiceV2,
+  toPurposeV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -37,10 +46,14 @@ import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "../src/authorizationService.js";
-import { sendAuthUpdate } from "../src/index.js";
+import {
+  sendAgreementAuthUpdate,
+  sendCatalogAuthUpdate,
+  sendPurposeAuthUpdate,
+} from "../src/index.js";
 import { ApiClientComponent } from "../src/model/models.js";
 import { agreementStateToClientState } from "../src/utils.js";
-import { addOneEService, readModelService } from "./utils.js";
+import { addOneClient, addOneEService, readModelService } from "./utils.js";
 
 describe("Authorization Updater processMessage", () => {
   const testCorrelationId = generateId();
@@ -71,6 +84,8 @@ describe("Authorization Updater processMessage", () => {
     authorizationManagementClient.updateEServiceState = vi.fn();
     authorizationManagementClient.updateAgreementState = vi.fn();
     authorizationManagementClient.updateAgreementAndEServiceStates = vi.fn();
+    authorizationManagementClient.updatePurposeState = vi.fn();
+    authorizationManagementClient.removeClientPurpose = vi.fn();
   });
 
   afterEach(async () => {
@@ -106,9 +121,8 @@ describe("Authorization Updater processMessage", () => {
         log_date: new Date(),
       } as EServiceEventEnvelopeV2;
 
-      await sendAuthUpdate(
+      await sendCatalogAuthUpdate(
         message,
-        readModelService,
         authorizationService,
         genericLogger,
         testCorrelationId
@@ -175,7 +189,7 @@ describe("Authorization Updater processMessage", () => {
         log_date: new Date(),
       } as AgreementEventEnvelopeV2;
 
-      await sendAuthUpdate(
+      await sendAgreementAuthUpdate(
         message,
         readModelService,
         authorizationService,
@@ -241,7 +255,7 @@ describe("Authorization Updater processMessage", () => {
       log_date: new Date(),
     } as AgreementEventEnvelopeV2;
 
-    await sendAuthUpdate(
+    await sendAgreementAuthUpdate(
       message,
       readModelService,
       authorizationService,
@@ -301,7 +315,7 @@ describe("Authorization Updater processMessage", () => {
     } as AgreementEventEnvelopeV2;
 
     await expect(
-      sendAuthUpdate(
+      sendAgreementAuthUpdate(
         message,
         readModelService,
         authorizationService,
@@ -346,7 +360,7 @@ describe("Authorization Updater processMessage", () => {
     } as AgreementEventEnvelopeV2;
 
     await expect(
-      sendAuthUpdate(
+      sendAgreementAuthUpdate(
         message,
         readModelService,
         authorizationService,
@@ -367,6 +381,302 @@ describe("Authorization Updater processMessage", () => {
     ).not.toHaveBeenCalled();
     expect(
       authorizationManagementClient.updateEServiceState
+    ).not.toHaveBeenCalled();
+  });
+
+  it.each(["DraftPurposeDeleted", "WaitingForApprovalPurposeDeleted"])(
+    "should correctly process purposes message with type %t and call deletePurposeFromClient",
+    async (eventType) => {
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+      };
+
+      const message = {
+        sequence_num: 1,
+        stream_id: purpose.id,
+        version: 1,
+        type: eventType,
+        event_version: 2,
+        data: {
+          purpose: toPurposeV2(purpose),
+        },
+        log_date: new Date(),
+      } as PurposeEventEnvelopeV2;
+
+      const client1: Client = {
+        ...getMockClient(),
+        purposes: [purpose.id],
+      };
+      const client2: Client = {
+        ...getMockClient(),
+        purposes: [purpose.id],
+      };
+      const client3: Client = {
+        ...getMockClient(),
+        purposes: [generateId()],
+      };
+
+      await addOneClient(client1);
+      await addOneClient(client2);
+      await addOneClient(client3);
+
+      await sendPurposeAuthUpdate(
+        message,
+        readModelService,
+        authorizationService,
+        genericLogger,
+        testCorrelationId
+      );
+
+      expect(
+        authorizationManagementClient.removeClientPurpose
+      ).toHaveBeenCalledTimes(2);
+
+      expect(
+        authorizationManagementClient.removeClientPurpose
+      ).toHaveBeenCalledWith(undefined, {
+        params: { purposeId: purpose.id, clientId: client1.id },
+        withCredentials: true,
+        headers: testHeaders,
+      });
+
+      expect(
+        authorizationManagementClient.removeClientPurpose
+      ).toHaveBeenCalledWith(undefined, {
+        params: { purposeId: purpose.id, clientId: client2.id },
+        withCredentials: true,
+        headers: testHeaders,
+      });
+
+      expect(
+        authorizationManagementClient.updatePurposeState
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    "PurposeVersionSuspendedByConsumer",
+    "PurposeVersionSuspendedByProducer",
+    "PurposeVersionUnsuspendedByConsumer",
+    "PurposeVersionUnsuspendedByProducer",
+    "PurposeVersionOverQuotaUnsuspended",
+    "NewPurposeVersionActivated",
+    "PurposeVersionActivated",
+    "PurposeArchived",
+  ])(
+    "should correctly process purposes message with type %t and call updatePurposeState with ACTIVE state",
+    async (eventType) => {
+      const purposeVersion: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: purposeVersionState.active,
+      };
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: [purposeVersion],
+      };
+
+      const message = {
+        sequence_num: 1,
+        stream_id: purpose.id,
+        version: 1,
+        type: eventType,
+        event_version: 2,
+        data: {
+          purpose: toPurposeV2(purpose),
+          versionId: purposeVersion.id,
+        },
+        log_date: new Date(),
+      } as PurposeEventEnvelopeV2;
+
+      await sendPurposeAuthUpdate(
+        message,
+        readModelService,
+        authorizationService,
+        genericLogger,
+        testCorrelationId
+      );
+
+      expect(
+        authorizationManagementClient.updatePurposeState
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        authorizationManagementClient.updatePurposeState
+      ).toHaveBeenCalledWith(
+        { versionId: purposeVersion.id, state: "ACTIVE" },
+        {
+          params: { purposeId: purpose.id },
+          withCredentials: true,
+          headers: testHeaders,
+        }
+      );
+
+      expect(
+        authorizationManagementClient.removeClientPurpose
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    "PurposeVersionSuspendedByConsumer",
+    "PurposeVersionSuspendedByProducer",
+    "PurposeVersionUnsuspendedByConsumer",
+    "PurposeVersionUnsuspendedByProducer",
+    "PurposeVersionOverQuotaUnsuspended",
+    "NewPurposeVersionActivated",
+    "PurposeVersionActivated",
+    "PurposeArchived",
+  ])(
+    "should correctly process purposes message with type %t and call updatePurposeState with INACTIVE state",
+    async (eventType) => {
+      const purposeVersion: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: purposeVersionState.suspended,
+      };
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: [purposeVersion],
+      };
+
+      const message = {
+        sequence_num: 1,
+        stream_id: purpose.id,
+        version: 1,
+        type: eventType,
+        event_version: 2,
+        data: {
+          purpose: toPurposeV2(purpose),
+          versionId: purposeVersion.id,
+        },
+        log_date: new Date(),
+      } as PurposeEventEnvelopeV2;
+
+      await sendPurposeAuthUpdate(
+        message,
+        readModelService,
+        authorizationService,
+        genericLogger,
+        testCorrelationId
+      );
+
+      expect(
+        authorizationManagementClient.updatePurposeState
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        authorizationManagementClient.updatePurposeState
+      ).toHaveBeenCalledWith(
+        { versionId: purposeVersion.id, state: "INACTIVE" },
+        {
+          params: { purposeId: purpose.id },
+          withCredentials: true,
+          headers: testHeaders,
+        }
+      );
+
+      expect(
+        authorizationManagementClient.removeClientPurpose
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("should correctly process purposes message with type PurposeActivated and call updatePurposeState with ACTIVE state", async () => {
+    const purposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.active,
+    };
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [purposeVersion],
+    };
+
+    const message = {
+      sequence_num: 1,
+      stream_id: purpose.id,
+      version: 1,
+      type: "PurposeActivated",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+      },
+      log_date: new Date(),
+    } as PurposeEventEnvelopeV2;
+
+    await sendPurposeAuthUpdate(
+      message,
+      readModelService,
+      authorizationService,
+      genericLogger,
+      testCorrelationId
+    );
+
+    expect(
+      authorizationManagementClient.updatePurposeState
+    ).toHaveBeenCalledTimes(1);
+
+    expect(
+      authorizationManagementClient.updatePurposeState
+    ).toHaveBeenCalledWith(
+      { versionId: purposeVersion.id, state: "ACTIVE" },
+      {
+        params: { purposeId: purpose.id },
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
+
+    expect(
+      authorizationManagementClient.removeClientPurpose
+    ).not.toHaveBeenCalled();
+  });
+
+  it("should correctly process purposes message with type PurposeActivated and call updatePurposeState with INACTIVE state", async () => {
+    const purposeVersion: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.suspended,
+    };
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [purposeVersion],
+    };
+
+    const message = {
+      sequence_num: 1,
+      stream_id: purpose.id,
+      version: 1,
+      type: "PurposeActivated",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+      },
+      log_date: new Date(),
+    } as PurposeEventEnvelopeV2;
+
+    await sendPurposeAuthUpdate(
+      message,
+      readModelService,
+      authorizationService,
+      genericLogger,
+      testCorrelationId
+    );
+
+    expect(
+      authorizationManagementClient.updatePurposeState
+    ).toHaveBeenCalledTimes(1);
+
+    expect(
+      authorizationManagementClient.updatePurposeState
+    ).toHaveBeenCalledWith(
+      { versionId: purposeVersion.id, state: "INACTIVE" },
+      {
+        params: { purposeId: purpose.id },
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
+
+    expect(
+      authorizationManagementClient.removeClientPurpose
     ).not.toHaveBeenCalled();
   });
 });

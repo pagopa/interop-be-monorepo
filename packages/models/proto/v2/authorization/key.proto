@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package authorization.v2;
+
+message KeyV2 {
+  string kid = 1;
+  string encodedPem = 2;
+  KeyUseV2 use = 3;
+  string algorithm = 4;
+  int64 createdAt = 5;
+  string name = 6;
+  string userId = 7;
+  string clientId = 8;
+}
+
+enum KeyUseV2 {
+  SIG = 0;
+  ENC = 1;
+}

@@ -26,8 +26,16 @@ import {
   purposeVersionState,
   Document,
   AgreementAttribute,
+  tenantMailKind,
+  TenantMailKind,
+  Client,
+  clientKind,
+  keyUse,
+  Key,
+  AttributeKind,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -131,6 +139,16 @@ export const getMockTenant = (
   mails: [],
 });
 
+export const getMockTenantMail = (
+  kind: TenantMailKind = tenantMailKind.ContactEmail
+): Tenant["mails"][number] => ({
+  id: generateId(),
+  createdAt: new Date(),
+  kind,
+  description: generateMock(z.string()),
+  address: generateMock(z.string().email()),
+});
+
 export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
@@ -142,10 +160,13 @@ export const getMockAgreement = (
   state,
 });
 
-export const getMockAttribute = (): Attribute => ({
-  id: generateId(),
+export const getMockAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
+): Attribute => ({
+  id,
   name: "attribute name",
-  kind: attributeKind.certified,
+  kind,
   description: "attribute description",
   creationTime: new Date(),
   code: undefined,
@@ -161,6 +182,7 @@ export const getMockPurpose = (): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
+  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
@@ -221,4 +243,38 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockClient = (): Client => ({
+  id: generateId(),
+  consumerId: generateId(),
+  name: "Test client",
+  purposes: [],
+  description: "Client description",
+  users: [],
+  kind: clientKind.consumer,
+  createdAt: new Date(),
+  keys: [],
+});
+
+export const getMockKey = (): Key => ({
+  clientId: generateId(),
+  userId: generateId(),
+  name: "test key",
+  createdAt: new Date(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
+  algorithm: "",
+  use: keyUse.sig,
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });

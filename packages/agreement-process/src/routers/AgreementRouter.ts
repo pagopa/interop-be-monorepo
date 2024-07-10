@@ -18,6 +18,7 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
@@ -27,7 +28,7 @@ import {
 import { api } from "../model/generated/api.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import {
   activateAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -64,7 +65,8 @@ const agreementService = agreementServiceBuilder(
   }),
   readModelService,
   initFileManager(config),
-  pdfGenerator
+  pdfGenerator,
+  selfcareV2ClientBuilder(config)
 );
 
 const {
@@ -471,13 +473,13 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.updateAgreement(
+        const agreement = await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
           ctx
         );
 
-        return res.status(200).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

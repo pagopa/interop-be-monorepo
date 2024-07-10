@@ -15,19 +15,17 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  agreementNotInExpectedState,
-  consumerWithNotValidEmail,
-} from "../model/domain/errors.js";
-import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
-} from "../model/domain/validators.js";
-import { ApiAgreementSubmissionPayload } from "../model/types.js";
+} from "../model/domain/agreement-validators.js";
+import {
+  agreementNotInExpectedState,
+  consumerWithNotValidEmail,
+} from "../model/domain/errors.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import { retrieveTenant } from "./agreementService.js";
+import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { ReadModelService } from "./readModelService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -36,11 +34,9 @@ export type AgremeentSubmissionResults = {
 };
 
 export const validateConsumerEmail = async (
-  agreement: Agreement,
-  readModelService: ReadModelService
+  consumer: Tenant,
+  agreement: Agreement
 ): Promise<void> => {
-  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
-
   const hasContactEmail = consumer.mails.some(
     (mail) => mail.kind === tenantMailKind.ContactEmail
   );
@@ -57,11 +53,19 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   newState: AgreementState,
-  userId: UserId
+  userId: UserId,
+  suspendedByPlatform: boolean | undefined
 ): UpdateAgreementSeed => {
   const stamps = calculateStamps(agreement, newState, createStamp(userId));
+  const isActivation = newState === agreementState.active;
 
-  return newState === agreementState.active
+  /* As we do in the upgrade, we copy suspendedByProducer, suspendedByProducer, and suspendedAt
+    event if the agreement was never activated before and thus never suspended.
+    In this way, if this is an agreement that was upgraded, we keep suspension flags
+    from the original agreement before the upgrade, so that if it is being activated
+    by the producer, it will be suspended right away if the original
+    agreement was suspended by the consumer, and viceversa. */
+  return isActivation
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
@@ -73,6 +77,8 @@ export const createSubmissionUpdateAgreementSeed = (
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
+        suspendedAt: agreement.suspendedAt,
+        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       }
@@ -81,8 +87,10 @@ export const createSubmissionUpdateAgreementSeed = (
         certifiedAttributes: [],
         declaredAttributes: [],
         verifiedAttributes: [],
-        suspendedByConsumer: undefined,
-        suspendedByProducer: undefined,
+        suspendedByConsumer: agreement.suspendedByConsumer,
+        suspendedByProducer: agreement.suspendedByProducer,
+        suspendedAt: agreement.suspendedAt,
+        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       };

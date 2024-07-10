@@ -29,7 +29,8 @@ export const errorCodes = {
   eServiceRiskAnalysisNotFound: "0017",
   eServiceRiskAnalysisIsRequired: "0018",
   riskAnalysisNotValid: "0019",
-  riskAnalysisDuplicated: "0020",
+  prettyNameDuplicate: "0020",
+  riskAnalysisDuplicated: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -235,5 +236,16 @@ export function riskAnalysisNotValid(): ApiError<ErrorCodes> {
     detail: `Risk Analysis did not pass validation`,
     code: "riskAnalysisNotValid",
     title: "Risk Analysis did not pass validation",
+  });
+}
+
+export function prettyNameDuplicate(
+  prettyName: string,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
+    code: "prettyNameDuplicate",
+    title: "Duplicated prettyName",
   });
 }

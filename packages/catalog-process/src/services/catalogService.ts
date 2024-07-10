@@ -79,7 +79,7 @@ import {
   ApiEServiceSeed,
   ApiGetEServicesFilters,
 } from "../model/types.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   eServiceDescriptorNotFound,
@@ -94,6 +94,7 @@ import {
   originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
+  prettyNameDuplicate,
   riskAnalysisDuplicated,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
@@ -568,12 +569,24 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
+      if (
+        descriptor.state !== descriptorState.draft &&
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
       if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
         throw interfaceAlreadyExists(descriptor.id);
+      }
+
+      if (
+        document.kind === "DOCUMENT" &&
+        descriptor.docs.some((d) => d.prettyName === document.prettyName)
+      ) {
+        throw prettyNameDuplicate(document.prettyName, descriptor.id);
       }
 
       const isInterface = document.kind === "INTERFACE";
@@ -644,7 +657,12 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
+      if (
+        descriptor.state !== descriptorState.draft &&
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
@@ -710,11 +728,29 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
+      if (
+        descriptor.state !== descriptorState.draft &&
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
+
+      if (
+        descriptor.docs.some(
+          (d) =>
+            d.id !== apiEServiceDescriptorDocumentUpdateSeed.id &&
+            d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
+        )
+      ) {
+        throw prettyNameDuplicate(
+          apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+          descriptor.id
+        );
+      }
 
       const updatedDocument = {
         ...document,
@@ -1504,8 +1540,10 @@ const isUserAllowedToSeeDraft = (
   authData: AuthData,
   producerId: TenantId
 ): boolean =>
-  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
-  authData.organizationId === producerId;
+  hasPermission(
+    [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+    authData
+  ) && authData.organizationId === producerId;
 
 const applyVisibilityToEService = (
   eservice: EService,

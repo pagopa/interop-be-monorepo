@@ -1,7 +1,14 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { RefreshableInteropToken, Logger } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId, TenantId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  ClientId,
+  PurposeId,
+  PurposeVersionId,
+  TenantId,
+} from "pagopa-interop-models";
 import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
 
@@ -15,7 +22,6 @@ export type AuthorizationService = {
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
-
   updateAgreementState: (
     state: ApiClientComponentState,
     agreementId: string,
@@ -24,7 +30,6 @@ export type AuthorizationService = {
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
-
   updateAgreementAndEServiceStates: (
     agreementState: ApiClientComponentState,
     eserviceState: ApiClientComponentState,
@@ -34,6 +39,19 @@ export type AuthorizationService = {
     consumerId: TenantId,
     audience: string[],
     voucherLifespan: number,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deletePurposeFromClient: (
+    purposeId: PurposeId,
+    clientId: ClientId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updatePurposeState: (
+    purposeId: PurposeId,
+    versionId: PurposeVersionId,
+    state: ApiClientComponentState,
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
@@ -141,6 +159,40 @@ export const authorizationServiceBuilder = (
       logger.info(
         `Updated Agreement ${agreementId} and EService ${eserviceId} states for all clients`
       );
+    },
+    async deletePurposeFromClient(
+      purposeId: PurposeId,
+      clientId: ClientId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.removeClientPurpose(undefined, {
+        params: { purposeId, clientId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted purpose ${purposeId} from client ${clientId}`);
+    },
+    async updatePurposeState(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      state: ApiClientComponentState,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.updatePurposeState(
+        { versionId, state },
+        {
+          params: { purposeId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Updated Purpose ${purposeId} state for all clients`);
     },
   };
 };

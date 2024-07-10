@@ -5,7 +5,6 @@ import {
   PurposeVersion,
   PurposeRiskAnalysisForm,
   RiskAnalysisForm,
-  Tenant,
   TenantId,
   TenantKind,
   purposeVersionState,
@@ -17,17 +16,18 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
 } from "../model/domain/errors.js";
-import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
+import { retrieveActiveAgreement } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -92,7 +92,7 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   tenantKind,
 }: {
-  riskAnalysisForm: ApiRiskAnalysisFormSeed;
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
 }): RiskAnalysisValidatedForm {
@@ -109,7 +109,7 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
@@ -149,14 +149,6 @@ export function reverseValidateAndTransformRiskAnalysis(
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
     riskAnalysisId: riskAnalysisForm.riskAnalysisId,
   };
-}
-
-export function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (!tenant.kind) {
-    throw tenantKindNotFound(tenant.id);
-  }
 }
 
 export function assertPurposeIsDraft(purpose: Purpose): void {
@@ -201,3 +193,58 @@ export const assertPurposeTitleIsNotDuplicated = async ({
     throw duplicatedPurposeTitle(title);
   }
 };
+
+export async function isOverQuota(
+  eservice: EService,
+  purpose: Purpose,
+  dailyCalls: number,
+  readModelService: ReadModelService
+): Promise<boolean> {
+  const allPurposes = await readModelService.getAllPurposes({
+    eservicesIds: [eservice.id],
+    consumersIds: [],
+    producersIds: [],
+    states: [purposeVersionState.active],
+    excludeDraft: true,
+  });
+
+  const consumerPurposes = allPurposes.filter(
+    (p) => p.consumerId === purpose.consumerId
+  );
+
+  const agreement = await retrieveActiveAgreement(
+    eservice.id,
+    purpose.consumerId,
+    readModelService
+  );
+
+  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
+    purposes
+      .flatMap((p) => p.versions)
+      .filter((v) => v.state === purposeVersionState.active);
+
+  const consumerActiveVersions = getActiveVersions(consumerPurposes);
+  const allPurposesActiveVersions = getActiveVersions(allPurposes);
+
+  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
+    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
+
+  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
+  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
+
+  const currentDescriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!currentDescriptor) {
+    throw descriptorNotFound(eservice.id, agreement.descriptorId);
+  }
+
+  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
+
+  return !(
+    consumerLoadRequestsSum + dailyCalls <= maxDailyCallsPerConsumer &&
+    allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
+  );
+}

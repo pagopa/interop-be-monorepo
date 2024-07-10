@@ -12,13 +12,17 @@ export interface PDFGenerator {
   ) => Promise<Buffer>;
 }
 
-export async function initPDFGenerator(): Promise<PDFGenerator> {
-  const templateService = buildHTMLTemplateService();
-  let browserInstance = await puppeteer.launch({
-    /* NOTE 
-      those configurations allow link (file://) usages for 
-      resources files in template's folder
-    */
+/* Function to launch puppeteer for testing
+with the same params used in production, but allowing to set
+pipe option to true. Pipe true allows test suites to run
+without spawning a new browser instance for each test. */
+export const launchPuppeteerBrowser = (
+  options: { pipe: boolean } = { pipe: false }
+): Promise<Browser> =>
+  puppeteer.launch({
+    ...options,
+    /* the following args allow file:// usages for
+    resources files in template's folder */
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -29,18 +33,22 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
     ],
   });
 
+export async function initPDFGenerator(): Promise<PDFGenerator> {
+  const templateService = buildHTMLTemplateService();
+  let browserInstance = await launchPuppeteerBrowser();
+
   const getBrowser = async (): Promise<Browser> => {
     if (browserInstance?.connected) {
       return browserInstance;
     } else {
-      browserInstance = await puppeteer.launch();
+      browserInstance = await launchPuppeteerBrowser();
       return browserInstance;
     }
   };
 
   // During unexpected browser crash restarts browser handling "disconnected" event
   browserInstance.on("disconnected", async () => {
-    browserInstance = await puppeteer.launch();
+    browserInstance = await launchPuppeteerBrowser();
   });
 
   return {
@@ -52,9 +60,11 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
       const dirname = path.dirname(filename);
       const polyfillFilePath = path.resolve(dirname, "paged.polyfill.js");
 
+      let page: puppeteer.Page | undefined;
+
       try {
         const browser = await getBrowser();
-        const page = await browser.newPage();
+        page = await browser.newPage();
         await page.goto(`file://${templatePath}`);
 
         // Injecting polyfill paged.js to current html and set in the page
@@ -77,6 +87,8 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
         });
       } catch (error) {
         throw pdfGenerationError(error);
+      } finally {
+        await page?.close();
       }
     },
   };

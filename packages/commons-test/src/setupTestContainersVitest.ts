@@ -5,6 +5,7 @@
 
 import {
   DB,
+  EmailManager,
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
@@ -14,8 +15,11 @@ import {
   S3Config,
   genericLogger,
   initDB,
+  initEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
+import axios from "axios";
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -63,11 +67,25 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  emailManagerConfig?: EmailManagerConfigTest
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  emailManager: EmailManager;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  emailManagerConfig?: EmailManagerConfigTest
 ): {
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
+  emailManager?: EmailManager;
   cleanup: () => Promise<void>;
 } {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
@@ -75,6 +93,7 @@ export function setupTestContainersVitest(
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
+  let emailManager: EmailManager | undefined;
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -96,16 +115,23 @@ export function setupTestContainersVitest(
     fileManager = initFileManager(fileManagerConfig);
   }
 
+  if (emailManagerConfig) {
+    emailManager = initEmailManager(emailManagerConfig, false);
+  }
+
   return {
     readModelRepository,
     postgresDB,
     fileManager,
+    emailManager,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
       await readModelRepository?.tenants.deleteMany({});
       await readModelRepository?.purposes.deleteMany({});
       await readModelRepository?.attributes.deleteMany({});
+      await readModelRepository?.clients.deleteMany({});
+      await readModelRepository?.keys.deleteMany({});
 
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -116,6 +142,9 @@ export function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
+      );
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
@@ -131,6 +160,15 @@ export function setupTestContainersVitest(
         );
         // Some tests change the bucket name, so we need to reset it
         fileManagerConfig.s3Bucket = s3OriginalBucket;
+      }
+
+      if (
+        emailManagerConfig?.smtpAddress &&
+        emailManagerConfig?.mailpitAPIPort
+      ) {
+        await axios.delete(
+          `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
+        );
       }
     },
   };

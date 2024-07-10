@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   EService,
+  genericError,
   WithMetadata,
   EServiceId,
   TenantId,
@@ -20,10 +21,9 @@ import {
   purposeVersionState,
   Agreement,
   agreementState,
-  genericError,
   PurposeVersionState,
 } from "pagopa-interop-models";
-import { Filter, WithId } from "mongodb";
+import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
 
 export type GetPurposesFilters = {
@@ -106,6 +106,125 @@ async function getTenant(
   }
 }
 
+async function buildGetPurposesAggregation(
+  filters: GetPurposesFilters,
+  eservices: EServiceCollection
+): Promise<Document[]> {
+  const {
+    title,
+    eservicesIds,
+    consumersIds,
+    producersIds,
+    states,
+    excludeDraft,
+  } = filters;
+
+  const titleFilter: ReadModelFilter<Purpose> = title
+    ? {
+        "data.title": {
+          $regex: ReadModelRepository.escapeRegExp(title),
+          $options: "i",
+        },
+      }
+    : {};
+
+  const consumersIdsFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(consumersIds, {
+      "data.consumerId": { $in: consumersIds },
+    });
+
+  const notArchivedStates = Object.values(PurposeVersionState.Values).filter(
+    (state) => state !== purposeVersionState.archived
+  );
+
+  const versionStateFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(states, {
+      $or: states.map((state) =>
+        state === purposeVersionState.archived
+          ? {
+              $and: [
+                { "data.versions.state": { $eq: state } },
+                ...notArchivedStates.map((otherState) => ({
+                  "data.versions.state": { $ne: otherState },
+                })),
+              ],
+            }
+          : { "data.versions.state": { $eq: state } }
+      ),
+    });
+
+  const draftFilter: ReadModelFilter<Purpose> = excludeDraft
+    ? {
+        $nor: [
+          { "data.versions": { $size: 0 } },
+          {
+            $and: [
+              { "data.versions": { $size: 1 } },
+              {
+                "data.versions.state": {
+                  $eq: purposeVersionState.draft,
+                },
+              },
+            ],
+          },
+        ],
+      }
+    : {};
+
+  const producerEServiceIds =
+    producersIds.length > 0
+      ? await eservices
+          .find({ "data.producerId": { $in: producersIds } })
+          .toArray()
+          .then((results) =>
+            results.map((eservice) => eservice.data.id.toString())
+          )
+      : [];
+
+  const eservicesIdsFilter: ReadModelFilter<Purpose> =
+    /**
+     * In case both producersIds and eservicesIds filters are present,
+     * we need to filter by the intersection of the two
+     */
+    producersIds.length > 0 && eservicesIds.length > 0
+      ? {
+          "data.eserviceId": {
+            $in: eservicesIds.filter((eserviceId) =>
+              producerEServiceIds.includes(eserviceId)
+            ),
+          },
+        }
+      : ReadModelRepository.arrayToFilter(
+          [...eservicesIds, ...producerEServiceIds],
+          {
+            "data.eserviceId": {
+              $in: [...eservicesIds, ...producerEServiceIds],
+            },
+          }
+        );
+
+  return [
+    {
+      $match: {
+        ...titleFilter,
+        ...eservicesIdsFilter,
+        ...consumersIdsFilter,
+        ...versionStateFilter,
+        ...draftFilter,
+      } satisfies ReadModelFilter<Purpose>,
+    },
+    {
+      $project: {
+        data: 1,
+        computedColumn: { $toLower: ["$data.title"] },
+      },
+    },
+    {
+      $sort: { computedColumn: 1 },
+    },
+  ];
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
@@ -142,109 +261,10 @@ export function readModelServiceBuilder(
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      const {
-        title,
-        eservicesIds,
-        consumersIds,
-        producersIds,
-        states,
-        excludeDraft,
-      } = filters;
-
-      const titleFilter: ReadModelFilter<Purpose> = title
-        ? {
-            "data.title": {
-              $regex: ReadModelRepository.escapeRegExp(title),
-              $options: "i",
-            },
-          }
-        : {};
-
-      const eservicesIdsFilter: ReadModelFilter<Purpose> =
-        ReadModelRepository.arrayToFilter(eservicesIds, {
-          "data.eserviceId": { $in: eservicesIds },
-        });
-
-      const consumersIdsFilter: ReadModelFilter<Purpose> =
-        ReadModelRepository.arrayToFilter(consumersIds, {
-          "data.consumerId": { $in: consumersIds },
-        });
-
-      const notArchivedStates = Object.values(
-        PurposeVersionState.Values
-      ).filter((state) => state !== purposeVersionState.archived);
-
-      const versionStateFilter: ReadModelFilter<Purpose> =
-        ReadModelRepository.arrayToFilter(states, {
-          $or: states.map((state) =>
-            state === purposeVersionState.archived
-              ? {
-                  $and: [
-                    { "data.versions.state": { $eq: state } },
-                    ...notArchivedStates.map((otherState) => ({
-                      "data.versions.state": { $ne: otherState },
-                    })),
-                  ],
-                }
-              : { "data.versions.state": { $eq: state } }
-          ),
-        });
-
-      const draftFilter: ReadModelFilter<Purpose> = excludeDraft
-        ? {
-            $nor: [
-              { "data.versions": { $size: 0 } },
-              {
-                $and: [
-                  { "data.versions": { $size: 1 } },
-                  {
-                    "data.versions.state": {
-                      $eq: purposeVersionState.draft,
-                    },
-                  },
-                ],
-              },
-            ],
-          }
-        : {};
-
-      const eserviceIds =
-        producersIds.length > 0
-          ? await eservices
-              .find({ "data.producerId": { $in: producersIds } })
-              .toArray()
-              .then((results) =>
-                results.map((eservice) => eservice.data.id.toString())
-              )
-          : [];
-
-      const producerIdsFilter: ReadModelFilter<Purpose> =
-        ReadModelRepository.arrayToFilter(eserviceIds, {
-          "data.eserviceId": { $in: eserviceIds },
-        });
-
-      const aggregationPipeline = [
-        {
-          $match: {
-            ...titleFilter,
-            ...eservicesIdsFilter,
-            ...consumersIdsFilter,
-            ...versionStateFilter,
-            ...draftFilter,
-            ...producerIdsFilter,
-          } satisfies ReadModelFilter<Purpose>,
-        },
-        {
-          $project: {
-            data: 1,
-            computedColumn: { $toLower: ["$data.title"] },
-          },
-        },
-        {
-          $sort: { computedColumn: 1 },
-        },
-      ];
-
+      const aggregationPipeline = await buildGetPurposesAggregation(
+        filters,
+        eservices
+      );
       const data = await purposes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
@@ -288,6 +308,27 @@ export function readModelServiceBuilder(
         }
         return result.data;
       }
+    },
+    async getAllPurposes(filters: GetPurposesFilters): Promise<Purpose[]> {
+      const aggregationPipeline = await buildGetPurposesAggregation(
+        filters,
+        eservices
+      );
+
+      const data = await purposes
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .toArray();
+
+      const result = z.array(Purpose).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse purposes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
