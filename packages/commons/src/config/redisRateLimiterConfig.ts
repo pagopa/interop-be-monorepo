@@ -2,21 +2,19 @@ import { z } from "zod";
 
 export const RedisRateLimiterConfig = z
   .object({
-    LIMITER_GROUP: z.string(),
-    MAX_REQUESTS: z.number(),
-    BURST_PERCENTAGE: z.number(),
-    RATE_INTERVAL: z.number(),
-    REDIS_HOST: z.string(),
-    REDIS_PORT: z.coerce.number().min(1001),
-    TIMEOUT: z.number(),
+    RATE_LIMITER_MAX_REQUESTS: z.coerce.number(),
+    RATE_LIMITER_BURST_PERCENTAGE: z.coerce.number(),
+    RATE_LIMITER_RATE_INTERVAL: z.coerce.number(),
+    RATE_LIMITER_REDIS_HOST: z.string(),
+    RATE_LIMITER_REDIS_PORT: z.coerce.number().min(1001),
+    RATE_LIMITER_TIMEOUT: z.coerce.number(),
   })
   .transform((c) => ({
-    limiterGroup: c.LIMITER_GROUP,
-    maxRequests: c.MAX_REQUESTS,
-    burstPercentage: c.BURST_PERCENTAGE,
-    rateInterval: c.RATE_INTERVAL,
-    redisHost: c.REDIS_HOST,
-    redisPort: c.REDIS_PORT,
-    timeout: c.TIMEOUT,
+    rateLimiterMaxRequests: c.RATE_LIMITER_MAX_REQUESTS,
+    rateLimiterBurstPercentage: c.RATE_LIMITER_BURST_PERCENTAGE,
+    rateLimiterRateInterval: c.RATE_LIMITER_RATE_INTERVAL,
+    rateLimiterRedisHost: c.RATE_LIMITER_REDIS_HOST,
+    rateLimiterRedisPort: c.RATE_LIMITER_REDIS_PORT,
+    rateLimiterTimeout: c.RATE_LIMITER_TIMEOUT,
   }));
 export type RedisRateLimiterConfig = z.infer<typeof RedisRateLimiterConfig>;
