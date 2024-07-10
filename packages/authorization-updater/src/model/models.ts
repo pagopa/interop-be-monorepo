@@ -6,3 +6,7 @@ export type ApiClientComponentState = z.infer<
 >;
 
 export const ApiClientComponent = api.schemas.ClientComponentState;
+
+export type ApiKeyUse = z.infer<typeof api.schemas.KeyUse>;
+
+export const ApiKeyUse = api.schemas.KeyUse;

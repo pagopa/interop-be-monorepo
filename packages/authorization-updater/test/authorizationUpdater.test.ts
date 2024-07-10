@@ -68,7 +68,6 @@ import {
 import { ApiClientComponent } from "../src/model/models.js";
 import {
   agreementStateToClientState,
-  clientComponentState,
   clientKindToApiClientKind,
   keyUseToApiKeyUse,
 } from "../src/utils.js";
@@ -998,7 +997,7 @@ describe("Authorization Updater processMessage", () => {
       {
         states: {
           eservice: {
-            state: clientComponentState.active,
+            state: ApiClientComponent.Values.ACTIVE,
             eserviceId: mockEservice.id,
             descriptorId: mockDescriptor.id,
             audience: mockDescriptor.audience,
@@ -1006,12 +1005,12 @@ describe("Authorization Updater processMessage", () => {
           },
           agreement: {
             agreementId: mockAgreement.id,
-            state: clientComponentState.active,
+            state: ApiClientComponent.Values.INACTIVE,
             eserviceId: mockEservice.id,
             consumerId: mockConsumerId,
           },
           purpose: {
-            state: clientComponentState.active,
+            state: ApiClientComponent.Values.ACTIVE,
             versionId: mockPurposeVersion.id,
             purposeId: mockPurpose.id,
           },
