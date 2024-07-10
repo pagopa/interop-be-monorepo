@@ -32,6 +32,9 @@ export function initRedisRateLimiter(
     // TODO should we recover on some erorrs?
     // Documentation says its useful especially if using AWS ElastiCache with
     // automatic failover disabled: https://github.com/redis/ioredis?tab=readme-ov-file#reconnect-on-error
+
+    // TODO figure out redis version we are using and set
+    // useRedisPackage accordingly: https://github.com/animir/node-rate-limiter-flexible/wiki/Redis#redis-package
   };
 
   // TODO do we need to allow traffict bursts and use the BURST_PERCENTAGE config?
