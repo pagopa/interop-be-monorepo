@@ -1,6 +1,13 @@
 import { TenantWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { CertifiedTenantAttribute, DeclaredTenantAttribute, TenantAttribute, VerifiedTenantAttribute, tenantAttributeType, unsafeBrandId } from "pagopa-interop-models";
+import {
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  TenantAttribute,
+  VerifiedTenantAttribute,
+  tenantAttributeType,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 export function toTenantAttribute(
   att: tenantApi.TenantAttribute
