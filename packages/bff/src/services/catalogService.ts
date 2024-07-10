@@ -1,21 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { WithLogger } from "pagopa-interop-commons";
-import {
-  BffCatalogApiEServiceResponse,
-  BffGetCatalogApiHeaders,
-  BffGetCatalogApiResponse,
-} from "../model/api/bffTypes.js";
-
-import {
-  CatalogProcessApiEService,
-  CatalogProcessApiEServiceDescriptor,
-  CatalogProcessApiEServicesResponse,
-  CatalogProcessApiQueryParam,
-  descriptorApiState,
-} from "../model/api/catalogTypes.js";
-
-import { TenantProcessApiTenant } from "../model/api/tenantTypes.js";
-
+import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
+import { descriptorApiState } from "../model/api/catalogTypes.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
@@ -23,7 +9,7 @@ import {
   CatalogProcessClient,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 const ACTIVE_DESCRIPTOR_STATES_FILTER = [
@@ -38,14 +24,10 @@ const enhanceCatalogEService =
   (
     tenantProcessClient: TenantProcessClient,
     agreementProcessClient: AgreementProcessClient,
-    headers: BffGetCatalogApiHeaders,
+    headers: Headers,
     requesterId: string
-  ): ((
-    eservice: CatalogProcessApiEService
-  ) => Promise<BffCatalogApiEServiceResponse>) =>
-  async (
-    eservice: CatalogProcessApiEService
-  ): Promise<BffCatalogApiEServiceResponse> => {
+  ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
+  async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
     const producerTenant = await tenantProcessClient.tenant.getTenant({
       headers,
       params: {
@@ -53,7 +35,7 @@ const enhanceCatalogEService =
       },
     });
 
-    const requesterTenant: TenantProcessApiTenant =
+    const requesterTenant: tenantApi.Tenant =
       requesterId !== eservice.producerId
         ? await tenantProcessClient.tenant.getTenant({
             headers,
@@ -63,12 +45,11 @@ const enhanceCatalogEService =
           })
         : producerTenant;
 
-    const latestActiveDescriptor:
-      | CatalogProcessApiEServiceDescriptor
-      | undefined = eservice.descriptors
-      .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
-      .sort((a, b) => Number(a.version) - Number(b.version))
-      .at(-1);
+    const latestActiveDescriptor: catalogApi.EServiceDescriptor | undefined =
+      eservice.descriptors
+        .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
+        .sort((a, b) => Number(a.version) - Number(b.version))
+        .at(-1);
 
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
@@ -103,14 +84,21 @@ export function catalogServiceBuilder(
   return {
     getCatalog: async (
       context: WithLogger<BffAppContext>,
-      queries: CatalogProcessApiQueryParam
-    ): Promise<BffGetCatalogApiResponse> => {
+      queries: catalogApi.GetCatalogQueryParam
+    ): Promise<bffApi.CatalogEServices> => {
       const requesterId = context.authData.organizationId;
       const { offset, limit } = queries;
-      const eservicesResponse: CatalogProcessApiEServicesResponse =
+      const eservicesResponse: catalogApi.EServices =
         await catalogProcessClient.getEServices({
           headers: context.headers,
-          queries,
+          queries: {
+            ...queries,
+            eservicesIds: queries.eservicesIds.join(","),
+            producersIds: queries.producersIds.join(","),
+            states: queries.states.join(","),
+            attributesIds: queries.attributesIds.join(","),
+            agreementStates: queries.agreementStates.join(","),
+          },
         });
 
       const results = await Promise.all(
@@ -123,7 +111,7 @@ export function catalogServiceBuilder(
           )
         )
       );
-      const response: BffGetCatalogApiResponse = {
+      const response: bffApi.CatalogEServices = {
         results,
         pagination: {
           offset,
