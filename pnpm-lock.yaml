@@ -596,6 +596,9 @@ importers:
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
