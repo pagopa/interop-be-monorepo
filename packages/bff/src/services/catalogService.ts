@@ -17,6 +17,7 @@ import {
   toBffCatalogApiDescriptorAttribute,
   toBffCatalogApiDescriptorInterface,
   toBffCatalogApiEService,
+  toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
@@ -129,6 +130,18 @@ const getBulkAttributes = async (
   return await attributesBulk(0, []);
 };
 
+const assertRequesterIsProducer = (
+  eservice: catalogApi.EService,
+  requesterId: string
+) => {
+  if (eservice.producerId !== requesterId) {
+    throw invalidEServiceRequester(
+      unsafeBrandId<EServiceId>(eservice.id),
+      unsafeBrandId<TenantId>(requesterId)
+    );
+  }
+};
+
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
@@ -191,12 +204,7 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      if (eservice.producerId !== requesterId) {
-        throw invalidEServiceRequester(
-          unsafeBrandId<EServiceId>(eServiceId),
-          unsafeBrandId<TenantId>(requesterId)
-        );
-      }
+      assertRequesterIsProducer(eservice, requesterId);
 
       const descriptor = eservice.descriptors.find(
         (e) => e.id === descriptorId
@@ -273,6 +281,34 @@ export function catalogServiceBuilder(
         eservice: toBffCatalogApiProducerDescriptorEService(
           eservice,
           requesterTenant
+        ),
+      };
+    },
+    getProducerEServiceDetails: async (
+      eServiceId: string,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServiceDetails> => {
+      const requesterId = context.authData.organizationId;
+      const headers = context.headers;
+
+      const eservice: catalogApi.EService =
+        await catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId,
+          },
+          headers,
+        });
+
+      assertRequesterIsProducer(eservice, requesterId);
+
+      return {
+        id: eservice.id,
+        name: eservice.name,
+        description: eservice.description,
+        technology: eservice.technology,
+        mode: eservice.mode,
+        riskAnalysis: eservice.riskAnalysis.map(
+          toBffCatalogApiEserviceRiskAnalysis
         ),
       };
     },
