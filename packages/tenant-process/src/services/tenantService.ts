@@ -673,7 +673,7 @@ export function tenantServiceBuilder(
     async internalUpsertTenant(
       internalTenantSeed: ApiInternalTenantSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<string> {
+    ): Promise<Tenant> {
       const existingTenant = await readModelService.getTenantByExternalId(
         internalTenantSeed.externalId
       );
@@ -699,7 +699,7 @@ export function tenantServiceBuilder(
           readModelService
         );
 
-        return await repository.createEvent(
+        await repository.createEvent(
           toCreateEventTenantOnboardDetailsUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
@@ -707,6 +707,8 @@ export function tenantServiceBuilder(
             correlationId
           )
         );
+
+        return updatedTenant;
       } else {
         logger.info(
           `Creating tenant with external id ${internalTenantSeed.externalId} via internal request"`
@@ -736,9 +738,10 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(),
           createdAt: new Date(),
         };
-        return await repository.createEvent(
+        await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
         );
+        return newTenant;
       }
     },
   };
