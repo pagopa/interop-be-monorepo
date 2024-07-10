@@ -31,6 +31,7 @@ import {
   tenantNotFound,
   tenantKindNotFound,
   riskAnalysisValidationFailed,
+  riskAnalysisDuplicated,
 } from "../src/model/domain/errors.js";
 import { EServiceRiskAnalysisSeed } from "../src/model/domain/models.js";
 import {
@@ -280,7 +281,44 @@ describe("create risk analysis", () => {
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
+  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated", async () => {
+    const producerTenantKind: TenantKind = randomArrayItem(
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
 
+    await addOneTenant(producer);
+
+    const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+      riskAnalysis: [riskAnalysis],
+    };
+    await addOneEService(eservice);
+
+    const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+      ...buildRiskAnalysisSeed(riskAnalysis),
+      name: riskAnalysis.name,
+    };
+
+    expect(
+      catalogService.createRiskAnalysis(eservice.id, riskAnalysisSeed, {
+        authData: getMockAuthData(producer.id),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      riskAnalysisDuplicated(riskAnalysis.name, eservice.id)
+    );
+  });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
@@ -304,11 +342,11 @@ describe("create risk analysis", () => {
           purpose: ["invalid purpose"], // "purpose" is field expected for all tenant kinds
           unexpectedField: ["updated other purpose"],
           /*
-            This risk analysis form has an unexpected field and an invalid value for the purpose field.
-            The validation on create is schemaOnly: it does not check missing required fields or dependencies.
-            However, it checks for unexpected fields and invalid values.
-            So, the validation should fail with just two errors corresponding to the two invalid fields.
-           */
+          This risk analysis form has an unexpected field and an invalid value for the purpose field.
+          The validation on create is schemaOnly: it does not check missing required fields or dependencies.
+          However, it checks for unexpected fields and invalid values.
+          So, the validation should fail with just two errors corresponding to the two invalid fields.
+         */
         },
       },
     };
