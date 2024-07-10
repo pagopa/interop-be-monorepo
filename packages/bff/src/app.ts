@@ -4,6 +4,8 @@ import {
   initFileManager,
   loggerMiddleware,
   zodiosCtx,
+  initRedisRateLimiter,
+  rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
 import genericRouter from "./routers/genericRouter.js";
@@ -26,6 +28,7 @@ const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
+const redisRateLimiter = initRedisRateLimiter(config);
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
@@ -34,6 +37,7 @@ app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authorizationRouter(zodiosCtx, clients, allowList));
 app.use(authenticationMiddleware);
+app.use(rateLimiterMiddleware(redisRateLimiter));
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
 app.use(catalogRouter(zodiosCtx, clients));

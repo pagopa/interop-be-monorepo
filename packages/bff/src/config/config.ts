@@ -6,6 +6,7 @@ import {
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
@@ -93,6 +94,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig);
+  .and(SelfCareConfig)
+  .and(RedisRateLimiterConfig);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
