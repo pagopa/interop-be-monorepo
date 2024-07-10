@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package authorization.v2;
 
-import "v2/authorization/key.proto";
 import "v2/authorization/client.proto";
 
 message ClientAddedV2 {
