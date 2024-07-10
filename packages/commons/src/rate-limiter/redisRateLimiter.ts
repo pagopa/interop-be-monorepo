@@ -7,7 +7,7 @@ import {
 } from "rate-limiter-flexible";
 
 import { match, P } from "ts-pattern";
-import { RedisRateLimiterConfig } from "../config/rateLimiterConfig.js";
+import { RedisRateLimiterConfig } from "../config/redisRateLimiterConfig.js";
 import { Logger } from "../logging/index.js";
 import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 

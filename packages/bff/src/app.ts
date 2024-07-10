@@ -3,6 +3,8 @@ import {
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
+  initRedisRateLimiter,
+  rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
 import genericRouter from "./routers/genericRouter.js";
@@ -12,6 +14,7 @@ import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
+import { config } from "./config/config.js";
 
 const serviceName = "bff-process";
 
@@ -19,6 +22,7 @@ const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
+const redisRateLimiter = initRedisRateLimiter(config);
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
@@ -26,6 +30,7 @@ app.disable("x-powered-by");
 app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
+app.use(rateLimiterMiddleware(redisRateLimiter));
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
 app.use(catalogRouter(zodiosCtx, clients));
