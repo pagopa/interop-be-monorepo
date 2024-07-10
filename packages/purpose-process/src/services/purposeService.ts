@@ -647,9 +647,14 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      const previousDailyCalls = [...purpose.data.versions].sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0]?.dailyCalls;
+      const previousDailyCalls = [
+        ...purpose.data.versions.filter(
+          (v) =>
+            v.state === purposeVersionState.active ||
+            v.state === purposeVersionState.suspended
+        ),
+      ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+        ?.dailyCalls;
 
       if (previousDailyCalls === seed.dailyCalls) {
         throw unchangedDailyCalls(purpose.data.id);
