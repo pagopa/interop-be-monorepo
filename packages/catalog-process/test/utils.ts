@@ -157,16 +157,17 @@ export const buildInterfaceSeed =
     checksum: "checksum",
   });
 
-export const buildDocumentSeed = (): ApiEServiceDescriptorDocumentSeed => ({
-  contentType: "json",
-  prettyName: "prettyName",
-  serverUrls: ["pagopa.it"],
-  documentId: generateId(),
-  kind: "DOCUMENT",
-  filePath: "filePath",
-  fileName: "fileName",
-  checksum: "checksum",
-});
+export const buildDocumentSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "DOCUMENT",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
 
 export const getMockDocument = (): Document => ({
   name: "fileName",

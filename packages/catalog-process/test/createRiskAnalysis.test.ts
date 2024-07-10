@@ -307,7 +307,7 @@ describe("create risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(riskAnalysis),
       name: riskAnalysis.name,
     };

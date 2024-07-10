@@ -387,7 +387,7 @@ describe("update risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(riskAnalysis_1),
       name: riskAnalysis_2.name,
     };
