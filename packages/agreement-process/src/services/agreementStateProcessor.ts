@@ -1,3 +1,4 @@
+import { CreateEvent, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -12,7 +13,6 @@ import {
   CompactTenant,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { CreateEvent, Logger } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
