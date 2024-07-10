@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
-import { CompactTenant } from "./models.js";
 
 export function agreementStateToApiAgreementState(
   input: AgreementState
