@@ -29,7 +29,11 @@ export function initRedisRateLimiter(
     keyPrefix: config.limiterGroup,
     points: config.maxRequests,
     duration: config.rateInterval / 1000, // seconds
+    // TODO should we recover on some erorrs?
+    // Documentation says its useful especially if using AWS ElastiCache with
+    // automatic failover disabled: https://github.com/redis/ioredis?tab=readme-ov-file#reconnect-on-error
   };
+
   // TODO do we need to allow traffict bursts and use the BURST_PERCENTAGE config?
   // Seems to be supported but we need to set a burst points limit
   // and also a burst rate interval.
