@@ -28,7 +28,8 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { getLatestAgreement } from "./agreementService.js";
+import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -83,6 +84,18 @@ const enhanceCatalogEService =
       latestAgreement
     );
   };
+
+const enhanceProducesEService = (
+  eservice: catalogApi.EService
+): bffApi.ProducerEService => ({
+  id: eservice.id,
+  name: eservice.name,
+  mode: eservice.mode,
+  activeDescriptor: getLatestAcriveDescriptor(eservice),
+  draftDescriptor: eservice.descriptors.find(
+    (d) => d.state === catalogApiDescriptorState.DRAFT
+  ),
+});
 
 const getBulkAttributes = async (
   attributeProcessClient: AttributeProcessClient,
@@ -292,6 +305,74 @@ export function catalogServiceBuilder(
 
       return {
         id: updatedEservice.id,
+      };
+    },
+    getProducerEServices: async (
+      eserviceName: string | undefined,
+      consumerIds: string[],
+      offset: number,
+      limit: number,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServices> => {
+      const producerId = context.authData.organizationId;
+      const res: {
+        results: catalogApi.EService[];
+        totalCount: number;
+      } = {
+        results: [],
+        totalCount: 0,
+      };
+
+      if (consumerIds.length === 0) {
+        const { results, totalCount } = await catalogProcessClient.getEServices(
+          {
+            headers: context.headers,
+            queries: {
+              name: eserviceName,
+              producersIds: producerId,
+              offset,
+              limit,
+            },
+          }
+        );
+
+        res.results = results;
+        res.totalCount = totalCount;
+      } else {
+        const eserviceIds = (
+          await getAllAgreements(
+            agreementProcessClient,
+            context.headers,
+            consumerIds,
+            [],
+            [producerId]
+          )
+        ).map((agreement) => agreement.eserviceId);
+
+        const { results, totalCount } = await catalogProcessClient.getEServices(
+          {
+            headers: context.headers,
+            queries: {
+              name: eserviceName,
+              eservicesIds: eserviceIds.join(","),
+              producersIds: producerId,
+              offset,
+              limit,
+            },
+          }
+        );
+
+        res.results = results;
+        res.totalCount = totalCount;
+      }
+
+      return {
+        results: res.results.map(enhanceProducesEService),
+        pagination: {
+          offset,
+          limit,
+          totalCount: res.totalCount,
+        },
       };
     },
   };
