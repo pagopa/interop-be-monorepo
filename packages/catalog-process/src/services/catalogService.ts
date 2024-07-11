@@ -50,6 +50,7 @@ import {
   EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
   ApiEServiceSeed,
+  ApiUpdateEServiceSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -426,20 +427,20 @@ export function catalogServiceBuilder(
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
-          name: seed.name,
+          name: seed.eservice.name,
           producerId: authData.organizationId,
         });
       if (eserviceWithSameName) {
-        throw eServiceDuplicate(seed.name);
+        throw eServiceDuplicate(seed.eservice.name);
       }
 
       const newEService: EService = {
         id: generateId(),
         producerId: authData.organizationId,
-        name: seed.name,
-        description: seed.description,
-        technology: apiTechnologyToTechnology(seed.technology),
-        mode: apiEServiceModeToEServiceMode(seed.mode),
+        name: seed.eservice.name,
+        description: seed.eservice.description,
+        technology: apiTechnologyToTechnology(seed.eservice.technology),
+        mode: apiEServiceModeToEServiceMode(seed.eservice.mode),
         attributes: undefined,
         descriptors: [],
         createdAt: new Date(),
@@ -464,7 +465,7 @@ export function catalogServiceBuilder(
 
       const draftDescriptor: Descriptor = {
         id: generateId(),
-        description: seed.description,
+        description: seed.eservice.description,
         version: "1",
         interface: undefined,
         docs: [],
@@ -508,7 +509,7 @@ export function catalogServiceBuilder(
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: ApiEServiceSeed,
+      eserviceSeed: ApiUpdateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);

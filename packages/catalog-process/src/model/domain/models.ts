@@ -12,7 +12,10 @@ import {
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
-export type ApiEServiceSeed = z.infer<typeof api.schemas.EServiceSeed>;
+export type ApiEServiceSeed = z.infer<typeof api.schemas.CreateEServiceSeed>;
+export type ApiUpdateEServiceSeed = z.infer<
+  typeof api.schemas.UpdateEServiceSeed
+>;
 
 export type EServiceDocument = {
   readonly eserviceId: EServiceId;
