@@ -80,7 +80,7 @@ describe("create eservice", () => {
 
     const eserviceCreationPayload = decodeProtobufPayload({
       messageType: EServiceAddedV2,
-      payload: descriptorCreationEvent.data,
+      payload: eserviceCreationEvent.data,
     });
     const descriptorCreationPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorAddedV2,
@@ -97,7 +97,14 @@ describe("create eservice", () => {
       ...mockEService,
       createdAt: new Date(),
       id: eservice.id,
-      descriptors: [{ ...mockDescriptor }],
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: eservice.descriptors[0].id,
+          createdAt: new Date(),
+          serverUrls: [],
+        },
+      ],
     };
 
     expect(eserviceCreationPayload.eservice).toEqual(
