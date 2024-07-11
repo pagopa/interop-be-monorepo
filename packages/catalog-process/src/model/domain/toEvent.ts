@@ -99,13 +99,12 @@ export const toCreateEventEServiceDocumentAdded = (
 });
 
 export const toCreateEventEServiceDescriptorAdded = (
-  streamId: string,
+  eservice: EService,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService,
   correlationId: string
 ): CreateEvent<EServiceEvent> => ({
-  streamId,
+  streamId: eservice.id,
   version,
   event: {
     type: "EServiceDescriptorAdded",
