@@ -31,6 +31,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 
+
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
 const enhanceCatalogEService =
@@ -309,13 +310,13 @@ export function catalogServiceBuilder(
     },
     getProducerEServices: async (
       eserviceName: string | undefined,
-      consumersIds: string[],
+      consumerIds: string[],
       offset: number,
       limit: number,
       context: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
       const producerId = context.authData.organizationId;
-      const response: {
+      const res: {
         results: catalogApi.EService[];
         totalCount: number;
       } = {
@@ -323,7 +324,7 @@ export function catalogServiceBuilder(
         totalCount: 0,
       };
 
-      if (consumersIds.length === 0) {
+      if (consumerIds.length === 0) {
         const { results, totalCount } = await catalogProcessClient.getEServices(
           {
             headers: context.headers,
@@ -336,14 +337,14 @@ export function catalogServiceBuilder(
           }
         );
 
-        response.results = results;
-        response.totalCount = totalCount;
+        res.results = results;
+        res.totalCount = totalCount;
       } else {
         const eserviceIds = (
           await getAllAgreements(
             agreementProcessClient,
             context.headers,
-            consumersIds,
+            consumerIds,
             [],
             [producerId]
           )
@@ -362,16 +363,16 @@ export function catalogServiceBuilder(
           }
         );
 
-        response.results = results;
-        response.totalCount = totalCount;
+        res.results = results;
+        res.totalCount = totalCount;
       }
 
       return {
-        results: response.results.map(enhanceProducesEService),
+        results: res.results.map(enhanceProducesEService),
         pagination: {
           offset,
           limit,
-          totalCount: response.totalCount,
+          totalCount: res.totalCount,
         },
       };
     },
