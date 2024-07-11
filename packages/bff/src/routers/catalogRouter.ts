@@ -125,7 +125,7 @@ const catalogRouter = (
         );
         return res.status(200).send(eService);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger); // TODO add error mapper
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -142,7 +142,7 @@ const catalogRouter = (
         });
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger); // TODO add error mapper
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -164,7 +164,7 @@ const catalogRouter = (
         );
         return res.status(200).send({ id });
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger); // TODO add error mapper
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
