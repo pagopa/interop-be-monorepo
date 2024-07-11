@@ -126,7 +126,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createDeclaredAttribute(
-      apiDeclaredAttributeSeed: attributeRegistryApi.ApiDeclaredAttributeSeed,
+      apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -168,7 +168,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createVerifiedAttribute(
-      apiVerifiedAttributeSeed: attributeRegistryApi.ApiVerifiedAttributeSeed,
+      apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -209,7 +209,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createCertifiedAttribute(
-      apiCertifiedAttributeSeed: attributeRegistryApi.ApiCertifiedAttributeSeed,
+      apiCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -257,7 +257,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: attributeRegistryApi.ApiInternalCertifiedAttributeSeed,
+      apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
