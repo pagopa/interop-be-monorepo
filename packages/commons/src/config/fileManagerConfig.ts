@@ -13,6 +13,8 @@ const S3CustomServerConfig = z.preprocess(
         S3_CUSTOM_SERVER: z.literal("true"),
         S3_SERVER_HOST: z.string(),
         S3_SERVER_PORT: z.coerce.number().min(1001),
+        MINIO_ACCESS_KEY: z.string(),
+        MINIO_SECRET_KEY: z.string(),
       }),
       z.object({
         S3_CUSTOM_SERVER: z.literal("false"),
@@ -24,6 +26,8 @@ const S3CustomServerConfig = z.preprocess(
             s3CustomServer: true as const,
             s3ServerHost: c.S3_SERVER_HOST,
             s3ServerPort: c.S3_SERVER_PORT,
+            minioAccessKey: c.MINIO_ACCESS_KEY,
+            minioSecretKey: c.MINIO_SECRET_KEY,
           }
         : {
             s3CustomServer: false as const,
