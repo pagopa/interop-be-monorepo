@@ -404,7 +404,7 @@ export function catalogServiceBuilder(
       { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
       const producerId = authData.organizationId;
-      const response: {
+      const res: {
         results: catalogApi.EService[];
         totalCount: number;
       } = {
@@ -425,8 +425,8 @@ export function catalogServiceBuilder(
           }
         );
 
-        response.results = results;
-        response.totalCount = totalCount;
+        res.results = results;
+        res.totalCount = totalCount;
       } else {
         const eserviceIds = (
           await getAllFromPaginated(async (offset: number, limit: number) =>
@@ -457,16 +457,16 @@ export function catalogServiceBuilder(
           }
         );
 
-        response.results = results;
-        response.totalCount = totalCount;
+        res.results = results;
+        res.totalCount = totalCount;
       }
 
       return {
-        results: response.results.map(enhanceProducerEService),
+        results: res.results.map(enhanceProducerEService),
         pagination: {
           offset,
           limit,
-          totalCount: response.totalCount,
+          totalCount: res.totalCount,
         },
       };
     },
