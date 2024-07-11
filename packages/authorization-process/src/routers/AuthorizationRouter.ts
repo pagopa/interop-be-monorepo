@@ -13,7 +13,7 @@ import {
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import {
