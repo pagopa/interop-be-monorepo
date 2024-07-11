@@ -10,7 +10,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { emptyErrorMapper, makeApiProblem } from "../model/domain/errors.js";
 import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
