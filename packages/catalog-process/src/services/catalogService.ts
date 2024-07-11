@@ -44,13 +44,13 @@ import {
 } from "../model/domain/apiConverter.js";
 import {
   Consumer,
-  EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
   UpdateEServiceDescriptorQuotasSeed,
   EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
   ApiCreateEServiceSeed,
   ApiUpdateEServiceSeed,
+  CreateEServiceDescriptorSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -802,7 +802,7 @@ export function catalogServiceBuilder(
 
     async createDescriptor(
       eserviceId: EServiceId,
-      eserviceDescriptorSeed: EServiceDescriptorSeed,
+      eserviceDescriptorSeed: CreateEServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
