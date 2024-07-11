@@ -37,8 +37,6 @@ const apiGatewayRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
-        // TODO ^ this is not compiling: "Argument of type 'Problem' is not assignable to parameter of type 'void'."
-        // Why? We have Problem as response in the API GW spec.
       }
     })
     .get("/agreements/:agreementId/attributes", async (_req, res) =>
