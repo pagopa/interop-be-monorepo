@@ -10,6 +10,7 @@ import { fromApiGatewayAppContext } from "../utilities/context.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
+import { emptyErrorMapper } from "../utilities/errorMapper.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -34,12 +35,10 @@ const apiGatewayRouter = (
 
         return res.status(200).json(response).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          () => 500, // TODO how does the code coming from agreement process gets mapped?
-          ctx.logger
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
+        // TODO ^ this is not compiling: "Argument of type 'Problem' is not assignable to parameter of type 'void'."
+        // Why? We have Problem as response in the API GW spec.
       }
     })
     .get("/agreements/:agreementId/attributes", async (_req, res) =>
