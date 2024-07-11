@@ -11,9 +11,9 @@ import {
 import { bffApi } from "pagopa-interop-api-clients";
 
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { config } from "../utilities/config.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 
 const supportRouter = (
   ctx: ZodiosContext,
