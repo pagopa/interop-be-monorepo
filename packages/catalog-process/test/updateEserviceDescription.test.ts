@@ -22,7 +22,7 @@ import {
 } from "./utils.js";
 
 describe("update eService description", () => {
-  it.only("should write on event-store for the update of the eService description", async () => {
+  it("should write on event-store for the update of the eService description", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
