@@ -1,8 +1,9 @@
 /* eslint-disable functional/immutable-data */
-import { apiGatewayApi } from "pagopa-interop-api-clients";
+import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { AgreementProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
+import { toApiGatewayAgreement } from "../api/apiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
@@ -12,15 +13,16 @@ export function agreementServiceBuilder(
     getAgreementById: async (
       context: WithLogger<ApiGatewayAppContext>,
       agreementId: string
-      // TODO ^ should be agreementApi.GetAgreementByIdQueryParam but it's not working
-    ): Promise<apiGatewayApi.GetAgreementQueryParam> => {
+    ): Promise<apiGatewayApi.Agreement> => {
       context.logger.info(`Retrieving agreement by id = ${agreementId}`);
-      return await agreementProcessClient.getAgreementById({
-        headers: context.headers,
-        params: {
-          agreementId,
-        },
-      });
+      const result: agreementApi.Agreement =
+        await agreementProcessClient.getAgreementById({
+          headers: context.headers,
+          params: {
+            agreementId,
+          },
+        });
+      return toApiGatewayAgreement(result);
     },
   };
 }
