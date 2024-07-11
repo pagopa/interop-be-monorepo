@@ -49,6 +49,7 @@ import {
   UpdateEServiceDescriptorQuotasSeed,
   EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
+  ApiEServiceSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -76,7 +77,6 @@ import {
 import {
   ApiEServiceDescriptorDocumentSeed,
   ApiEServiceDescriptorDocumentUpdateSeed,
-  ApiEServiceSeed,
   ApiGetEServicesFilters,
 } from "../model/types.js";
 import { config } from "../config/config.js";
@@ -415,12 +415,10 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
+      seed: ApiEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(
-        `Creating EService with service name ${apiEServicesSeed.name}`
-      );
+      logger.info(`Creating EService with service name ${seed.name}`);
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
@@ -428,28 +426,82 @@ export function catalogServiceBuilder(
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
-          name: apiEServicesSeed.name,
+          name: seed.name,
           producerId: authData.organizationId,
         });
       if (eserviceWithSameName) {
-        throw eServiceDuplicate(apiEServicesSeed.name);
+        throw eServiceDuplicate(seed.name);
       }
 
       const newEService: EService = {
         id: generateId(),
         producerId: authData.organizationId,
-        name: apiEServicesSeed.name,
-        description: apiEServicesSeed.description,
-        technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
-        mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
+        name: seed.name,
+        description: seed.description,
+        technology: apiTechnologyToTechnology(seed.technology),
+        mode: apiEServiceModeToEServiceMode(seed.mode),
         attributes: undefined,
         descriptors: [],
         createdAt: new Date(),
         riskAnalysis: [],
       };
 
-      const event = toCreateEventEServiceAdded(newEService, correlationId);
-      await repository.createEvent(event);
+      const eserviceCreationEvent = toCreateEventEServiceAdded(
+        newEService,
+        correlationId
+      );
+
+      if (
+        seed.descriptor.dailyCallsPerConsumer > seed.descriptor.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.descriptor.attributes,
+        readModelService
+      );
+
+      const draftDescriptor: Descriptor = {
+        id: generateId(),
+        description: seed.description,
+        version: "1",
+        interface: undefined,
+        docs: [],
+        state: descriptorState.draft,
+        voucherLifespan: seed.descriptor.voucherLifespan,
+        audience: seed.descriptor.audience,
+        dailyCallsPerConsumer: seed.descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.descriptor.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.descriptor.agreementApprovalPolicy
+          ),
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: new Date(),
+        attributes: parsedAttributes,
+      };
+
+      const eserviceWithDescriptor: EService = {
+        ...newEService,
+        descriptors: [draftDescriptor],
+      };
+
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
+        eserviceWithDescriptor,
+        1,
+        draftDescriptor.id,
+        correlationId
+      );
+
+      await repository.createEvents([
+        eserviceCreationEvent,
+        descriptorCreationEvent,
+      ]);
 
       return newEService;
     },
@@ -856,10 +908,9 @@ export function catalogServiceBuilder(
       };
 
       const event = toCreateEventEServiceDescriptorAdded(
-        eservice.data.id,
+        newEservice,
         eservice.metadata.version,
         descriptorId,
-        newEservice,
         correlationId
       );
       await repository.createEvent(event);
