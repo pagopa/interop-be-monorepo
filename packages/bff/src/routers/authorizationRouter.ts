@@ -48,7 +48,24 @@ const authorizationRouter = (
         return res.status(err.status).send();
       }
     })
-    .post("/support", async (_req, res) => res.status(501).send());
+    .post("/support", async (req, res) => {
+      const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
+      const { correlationId, logger } = fromAppContext(req.ctx);
+
+      try {
+        const jwt = await authorizationService.samlLoginCallback(
+          correlationId,
+          saml
+        );
+        return res.redirect(
+          302,
+          `${config.saml2CallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
+        );
+      } catch (error) {
+        makeApiProblem(error, (_) => 500, logger);
+        return res.redirect(302, config.saml2CallbackErrorUrl);
+      }
+    });
 
   return authorizationRouter;
 };
