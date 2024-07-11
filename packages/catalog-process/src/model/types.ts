@@ -10,7 +10,6 @@ import {
 import { api } from "./generated/api.js";
 
 type Api = typeof api.api;
-export type ApiEServiceSeed = ZodiosBodyByPath<Api, "post", "/eservices">;
 
 export type ApiEServiceDescriptorDocumentSeed = ZodiosBodyByPath<
   Api,

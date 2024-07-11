@@ -49,6 +49,8 @@ import {
   UpdateEServiceDescriptorQuotasSeed,
   EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
+  ApiCreateEServiceSeed,
+  ApiUpdateEServiceSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -76,7 +78,6 @@ import {
 import {
   ApiEServiceDescriptorDocumentSeed,
   ApiEServiceDescriptorDocumentUpdateSeed,
-  ApiEServiceSeed,
   ApiGetEServicesFilters,
 } from "../model/types.js";
 import { config } from "../config/config.js";
@@ -415,7 +416,7 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
+      apiEServicesSeed: ApiCreateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -456,7 +457,7 @@ export function catalogServiceBuilder(
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: ApiEServiceSeed,
+      eserviceSeed: ApiUpdateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);

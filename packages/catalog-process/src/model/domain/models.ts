@@ -8,14 +8,16 @@ import {
   AgreementState,
   DescriptorId,
   EServiceId,
-  TenantId,
 } from "pagopa-interop-models";
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
-export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
-  readonly producerId: TenantId;
-};
+export type ApiCreateEServiceSeed = z.infer<
+  typeof api.schemas.CreateEServiceSeed
+>;
+export type ApiUpdateEServiceSeed = z.infer<
+  typeof api.schemas.UpdateEServiceSeed
+>;
 
 export type EServiceDocument = {
   readonly eserviceId: EServiceId;
