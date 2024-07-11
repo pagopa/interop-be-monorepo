@@ -6,7 +6,11 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import {
+  getAllFromPaginated,
+  WithLogger,
+  formatDateyyyyMMddThhmmss,
+} from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
