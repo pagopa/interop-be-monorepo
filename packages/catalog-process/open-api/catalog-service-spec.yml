@@ -1072,10 +1072,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
     CreateEServiceSeed:
-      type: object
       $ref: "#/components/schemas/EServiceSeed"
     UpdateEServiceSeed:
-      type: object
       $ref: "#/components/schemas/EServiceSeed"
     EServiceDescriptorSeed:
       required:
