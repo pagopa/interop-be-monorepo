@@ -483,7 +483,7 @@ export function catalogServiceBuilder(
         suspendedAt: undefined,
         deprecatedAt: undefined,
         archivedAt: undefined,
-        createdAt: new Date(),
+        createdAt: new Date(), // TO DO: use newEService.createdAt instead?
         attributes: parsedAttributes,
       };
 
