@@ -6,8 +6,11 @@ import {
 } from "pagopa-interop-commons";
 import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 
 const serviceName = "api-gateway";
+
+const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
@@ -19,6 +22,6 @@ app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
-app.use(apiGatewayRouter(zodiosCtx));
+app.use(apiGatewayRouter(zodiosCtx, clients));
 
 export default app;
