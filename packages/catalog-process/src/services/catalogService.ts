@@ -49,7 +49,7 @@ import {
   UpdateEServiceDescriptorQuotasSeed,
   EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
-  ApiEServiceSeed,
+  ApiCreateEServiceSeed,
   ApiUpdateEServiceSeed,
 } from "../model/domain/models.js";
 import {
@@ -416,7 +416,7 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      seed: ApiEServiceSeed,
+      seed: ApiCreateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Creating EService with service name ${seed.name}`);
