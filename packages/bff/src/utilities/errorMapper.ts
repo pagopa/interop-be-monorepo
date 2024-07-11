@@ -7,15 +7,12 @@ type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
 const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
 
-export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const getSelfcareErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export const getSelfcareUserErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
