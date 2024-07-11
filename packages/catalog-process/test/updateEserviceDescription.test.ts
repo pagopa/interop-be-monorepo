@@ -10,7 +10,10 @@ import {
   EServiceDescriptionUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { eServiceNotFound } from "../src/model/domain/errors.js";
+import {
+  eserviceNotActive,
+  eServiceNotFound,
+} from "../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
@@ -100,33 +103,31 @@ describe("update eService description", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  //   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {
-  //     const descriptor: Descriptor = {
-  //       ...getMockDescriptor(),
-  //       interface: mockDocument,
-  //       state: descriptorState.published,
-  //     };
-  //     const eservice: EService = {
-  //       ...mockEService,
-  //       descriptors: [descriptor],
-  //     };
-  //     await addOneEService(eservice);
-  //     expect(
-  //       catalogService.updateEService(
-  //         eservice.id,
-  //         {
-  //           name: "eservice new name",
-  //           description: "eservice description",
-  //           technology: "REST",
-  //           mode: "DELIVER",
-  //         },
-  //         {
-  //           authData: getMockAuthData(eservice.producerId),
-  //           correlationId: "",
-  //           serviceName: "",
-  //           logger: genericLogger,
-  //         }
-  //       )
-  //     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
-  //   });
+  it.each([descriptorState.draft, descriptorState.archived])(
+    "should throw eserviceNotActive if the eservice is not active (Descriptor with state %s)",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        interface: getMockDocument(),
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      expect(
+        catalogService.updateEServiceDescription(
+          eservice.id,
+          "eservice new description",
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(eserviceNotActive(eservice.id));
+    }
+  );
 });
