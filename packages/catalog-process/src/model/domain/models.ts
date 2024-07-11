@@ -12,7 +12,6 @@ import {
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
-
 export type ApiCreateEServiceSeed = z.infer<
   typeof api.schemas.CreateEServiceSeed
 >;
