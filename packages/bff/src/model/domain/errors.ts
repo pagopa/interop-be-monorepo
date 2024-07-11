@@ -11,6 +11,10 @@ export const errorCodes = {
   tokenVerificationFailed: "0004",
   userNotFound: "0005",
   selfcareEntityNotFilled: "0006",
+  unknownTenantOrigin: "0008",
+  invalidJwtClaim: "0009",
+  samlNotValid: "0010",
+  missingSelfcareId: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -70,5 +74,21 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function samlNotValid(message: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error while validating saml -> ${message}`,
+    code: "samlNotValid",
+    title: "SAML not valid",
+  });
+}
+
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId.toString()} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
   });
 }
