@@ -10,7 +10,7 @@ import { fromApiGatewayAppContext } from "../utilities/context.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
-import { emptyErrorMapper } from "../utilities/errorMapper.js";
+import { emptyErrorMapper } from "../utilities/errorMappers.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
