@@ -1077,7 +1077,6 @@ components:
     UpdateEServiceSeed:
       type: object
       $ref: "#/components/schemas/EServiceSeed"
-
     EServiceDescriptorSeed:
       required:
         - audience
