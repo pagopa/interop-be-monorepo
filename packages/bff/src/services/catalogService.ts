@@ -26,6 +26,10 @@ import {
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
+import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
+import { descriptorApiState } from "../model/api/catalogTypes.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -569,6 +573,48 @@ export function catalogServiceBuilder(
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+    },
+    createDescriptor: async (
+      eServiceId: string,
+      eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
+      headers: Headers
+    ): Promise<CreatedResource> => {
+      const { id } = await catalogProcessClient.createDescriptor(
+        eServiceDescriptorSeed,
+        {}
+      );
+      return { id };
+    },
+    deleteDraft: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.deleteDraft(undefined, {
+        headers,
+        params: {
+          descriptorId,
+          eServiceId,
+        },
+      });
+    },
+    updateDraftDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
+      headers: Headers
+    ): Promise<CreatedResource> => {
+      const { id } = await catalogProcessClient.updateDraftDescriptor(
+        updateEServiceDescriptorSeed,
+        {
+          headers,
+          params: {
+            descriptorId,
+            eServiceId,
+          },
+        }
+      );
+      return { id };
     },
   };
 }
