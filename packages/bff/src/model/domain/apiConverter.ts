@@ -4,22 +4,18 @@ import {
   UserResource,
 } from "pagopa-interop-selfcare-v2-client";
 import { P, match } from "ts-pattern";
-import {
-  ApiSelfcareInstitution,
-  BffApiSelfcareProduct,
-  BffApiSelfcareUser,
-} from "../api/bffTypes.js";
+import { bffApi } from "pagopa-interop-api-clients";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
   input: InstitutionResource
-): ApiSelfcareInstitution =>
+): bffApi.SelfcareInstitution =>
   match(input)
     .with(
       {
-        id: P.not(P.nullish),
-        description: P.not(P.nullish),
-        userProductRoles: P.not(P.nullish),
+        id: P.nonNullable,
+        description: P.nonNullable,
+        userProductRoles: P.nonNullable,
       },
       (institution) => ({
         id: institution.id,
@@ -42,9 +38,9 @@ export const toApiSelfcareInstitution = (
 
 export const toApiSelfcareProduct = (
   input: ProductResource
-): BffApiSelfcareProduct =>
+): bffApi.SelfcareProduct =>
   match(input)
-    .with({ id: P.not(P.nullish), title: P.not(P.nullish) }, (product) => ({
+    .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
       id: product.id,
       name: product.title,
     }))
@@ -61,14 +57,14 @@ export const toApiSelfcareProduct = (
 export const toApiSelfcareUser = (
   input: UserResource,
   tenantId: string
-): BffApiSelfcareUser =>
+): bffApi.User =>
   match(input)
     .with(
       {
-        id: P.not(P.nullish),
-        name: P.not(P.nullish),
-        surname: P.not(P.nullish),
-        roles: P.not(P.nullish),
+        id: P.nonNullable,
+        name: P.nonNullable,
+        surname: P.nonNullable,
+        roles: P.nonNullable,
       },
       (user) => ({
         userId: user.id,
