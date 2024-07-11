@@ -5,7 +5,11 @@ import { ErrorCodes as BFFErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = BFFErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_UNAUTHORIZED } = constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_UNAUTHORIZED,
+} = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
