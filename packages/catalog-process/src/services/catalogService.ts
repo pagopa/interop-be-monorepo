@@ -419,7 +419,7 @@ export function catalogServiceBuilder(
       seed: ApiCreateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(`Creating EService with service name ${seed.name}`);
+      logger.info(`Creating EService with name ${seed.eservice.name}`);
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
