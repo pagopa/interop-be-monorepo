@@ -4,7 +4,8 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import healthRouter from "./routers/HealthRouter.js";
+import healthRouter from "./routers/healthRouter.js";
+import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 
 const serviceName = "api-gateway";
 
@@ -18,5 +19,6 @@ app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
+app.use(apiGatewayRouter(zodiosCtx));
 
 export default app;
