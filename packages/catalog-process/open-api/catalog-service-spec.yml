@@ -1058,6 +1058,7 @@ components:
         - description
         - technology
         - mode
+        - descriptor
       properties:
         name:
           type: string
@@ -1071,6 +1072,8 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        descriptor:
+          $ref: "#/components/schemas/EServiceDescriptorSeed"
     UpdateEServiceSeed:
       type: object
       required:
