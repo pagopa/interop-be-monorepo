@@ -10,10 +10,14 @@ import {
   EService,
   toEServiceV2,
   EServiceDescriptorAddedV2,
+  AttributeId,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
+  attributeNotFound,
   eServiceDuplicate,
+  inconsistentDailyCalls,
   originNotCompliant,
 } from "../src/model/domain/errors.js";
 import {
@@ -165,6 +169,63 @@ describe("create eservice", () => {
       )
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
-});
 
-// todo add tests for inconsistentDailyCalls and attributeNotFound
+  it("should throw inconsistentDailyCalls if the descriptor seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {
+    expect(
+      catalogService.createEService(
+        {
+          eservice: {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+          },
+          descriptor: {
+            ...buildDescriptorSeed(mockDescriptor),
+            dailyCallsPerConsumer: 100,
+            dailyCallsTotal: 99,
+          },
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it("should throw attributeNotFound if the descriptor includes attributes that don't exist", async () => {
+    const attributeId: AttributeId = generateId();
+
+    expect(
+      catalogService.createEService(
+        {
+          eservice: {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+          },
+          descriptor: {
+            ...buildDescriptorSeed(mockDescriptor),
+            attributes: {
+              certified: [],
+              declared: [
+                [{ id: attributeId, explicitAttributeVerification: false }],
+              ],
+              verified: [],
+            },
+          },
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(attributeNotFound(attributeId));
+  });
+});
