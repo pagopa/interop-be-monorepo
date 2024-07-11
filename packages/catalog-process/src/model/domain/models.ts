@@ -15,6 +15,7 @@ import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 export type ApiCreateEServiceSeed = z.infer<
   typeof api.schemas.CreateEServiceSeed
 >;
+
 export type ApiUpdateEServiceSeed = z.infer<
   typeof api.schemas.UpdateEServiceSeed
 >;
