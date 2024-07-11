@@ -1051,12 +1051,6 @@ components:
         id:
           type: string
           format: uuid
-    CreateEServiceSeed:
-      type: object
-      $ref: "#/components/schemas/EServiceSeed"
-    UpdateEServiceSeed:
-      type: object
-      $ref: "#/components/schemas/EServiceSeed"
     EServiceSeed:
       type: object
       required:
@@ -1077,6 +1071,13 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+    CreateEServiceSeed:
+      type: object
+      $ref: "#/components/schemas/EServiceSeed"
+    UpdateEServiceSeed:
+      type: object
+      $ref: "#/components/schemas/EServiceSeed"
+
     EServiceDescriptorSeed:
       required:
         - audience
