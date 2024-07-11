@@ -85,7 +85,7 @@ import {
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
@@ -647,9 +647,15 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      const previousDailyCalls = [...purpose.data.versions].sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0]?.dailyCalls;
+      const previousDailyCalls =
+        [
+          ...purpose.data.versions.filter(
+            (v) =>
+              v.state === purposeVersionState.active ||
+              v.state === purposeVersionState.suspended
+          ),
+        ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+          ?.dailyCalls || 0;
 
       if (previousDailyCalls === seed.dailyCalls) {
         throw unchangedDailyCalls(purpose.data.id);

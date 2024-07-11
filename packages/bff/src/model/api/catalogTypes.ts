@@ -1,32 +1,9 @@
-import { ZodiosQueryParamsByPath, ZodiosResponseByPath } from "@zodios/core";
-import { z } from "zod";
-import { api as catalog, schemas } from "../generated/catalog-process/api.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
-export type CatalogProcessClientApi = typeof catalog.api;
-export type CatalogProcessApiEServicesResponse = ZodiosResponseByPath<
-  CatalogProcessClientApi,
-  "get",
-  "/eservices"
->;
-
-export type CatalogProcessApiQueryParam = ZodiosQueryParamsByPath<
-  CatalogProcessClientApi,
-  "get",
-  "/eservices"
->;
-
-export type CatalogProcessApiEService = z.infer<typeof schemas.EService>;
-
-export type CatalogProcessApiEServiceDescriptor = z.infer<
-  typeof schemas.EServiceDescriptor
->;
-
-export type CatalogProcessApiEServiceDescriptorState = z.infer<
-  typeof schemas.EServiceDescriptorState
->;
+export type CatalogProcessClientApi = typeof catalogApi.processApi.api;
 
 export const descriptorApiState: {
-  [key: string]: CatalogProcessApiEServiceDescriptorState;
+  [key: string]: catalogApi.EServiceDescriptorState;
 } = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
@@ -35,20 +12,8 @@ export const descriptorApiState: {
   ARCHIVED: "ARCHIVED",
 } as const;
 
-export type CatalogProcessApiEServiceAttribute = z.infer<
-  typeof schemas.Attribute
->;
-
-export type CatalogProcessApiEServiceDocument = z.infer<
-  typeof schemas.EServiceDoc
->;
-
-export type CatalogProcessApiApprovalPolicy = z.infer<
-  typeof schemas.AgreementApprovalPolicy
->;
-
 export const agreementApiState: {
-  [key: string]: CatalogProcessApiApprovalPolicy;
+  [key: string]: catalogApi.AgreementApprovalPolicy;
 } = {
   MANUAL: "MANUAL",
   AUTOMATIC: "AUTOMATIC",

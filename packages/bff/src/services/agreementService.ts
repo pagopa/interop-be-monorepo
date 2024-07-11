@@ -1,19 +1,13 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { bffApi } from "pagopa-interop-api-clients";
+import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import {
-  AgreementProcessApiAgreement,
-  AgreementProcessApiResponse,
-} from "../model/api/agreementTypes.js";
-import { BffGetCatalogApiHeaders } from "../model/api/bffTypes.js";
-import { CatalogProcessApiEService } from "../model/api/catalogTypes.js";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 
 export function agreementServiceBuilder(
   agreementClient: PagoPAInteropBeClients["agreementProcessClient"]
@@ -34,14 +28,14 @@ export function agreementServiceBuilder(
 export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
   consumerId: string,
-  eservice: CatalogProcessApiEService,
-  headers: BffGetCatalogApiHeaders
-): Promise<AgreementProcessApiAgreement> => {
+  eservice: catalogApi.EService,
+  headers: Headers
+): Promise<agreementApi.Agreement> => {
   const getAgreementsFrom = async (
     start: number
-  ): Promise<AgreementProcessApiResponse> =>
+  ): Promise<agreementApi.Agreements> =>
     await agreementProcessClient.getAgreements({
-      headers,
+      headers: { ...headers },
       queries: {
         consumersIds: consumerId,
         eservicesIds: eservice.id,
@@ -53,7 +47,7 @@ export const getLatestAgreement = async (
   // Fetched all agreements in a recursive way
   const getAgreements = async (
     start: number
-  ): Promise<AgreementProcessApiAgreement[]> => {
+  ): Promise<agreementApi.Agreement[]> => {
     const agreements = (await getAgreementsFrom(start)).results;
 
     if (agreements.length >= 50) {
