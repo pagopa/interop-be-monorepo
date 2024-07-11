@@ -67,15 +67,53 @@ const catalogRouter = (
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.deleteDraft(
+            req.params.eServiceId,
+            req.body,
+            headers
+          );
+          return res.status(204).json().send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .put(
       "/eservices/:eServiceId/descriptors/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const createdResource = await catalogService.updateDraftDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.body,
+            headers
+          );
+          return res.status(200).json(createdResource).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
-    .post("/eservices/:eServiceId/descriptors", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/eservices/:eServiceId/descriptors", async (req, res) => {
+      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.createDescriptor(
+          req.params.eServiceId,
+          req.body,
+          headers
+        );
+        return res.status(200).json(createdResource).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
       async (_req, res) => res.status(501).send()
