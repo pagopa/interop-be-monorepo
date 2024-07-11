@@ -8,4 +8,5 @@ export type GetCatalogQueryParam = QueryParametersByAlias<
   "getEServices"
 >;
 
+
 export * from "./generated/catalogApi.js";
