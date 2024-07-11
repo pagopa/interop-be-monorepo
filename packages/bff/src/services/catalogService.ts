@@ -28,7 +28,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -298,23 +297,17 @@ export function catalogServiceBuilder(
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       headers: Headers
-    ): Promise<CreatedResource> => {
-      const { id } = await catalogProcessClient.createEService(
-        {
-          ...eServiceSeed,
-          descriptor: undefined,
-        },
-        {
-          headers,
-        }
-      );
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.createEService(eServiceSeed, {
+        headers,
+      });
       return { id };
     },
     updateEServiceById: async (
       eServiceId: string,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
       headers: Headers
-    ): Promise<CreatedResource> => {
+    ): Promise<bffApi.CreatedResource> => {
       const { id } = await catalogProcessClient.updateEServiceById(
         updateEServiceSeed,
         {
