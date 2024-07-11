@@ -101,7 +101,6 @@ const catalogRouter = (
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
       async (_req, res) => res.status(501).send()
     )
-    .post("/eservices", async (_req, res) => res.status(501).send())
     .get("/eservices/:eServiceId/consumers", async (_req, res) =>
       res.status(501).send()
     )
@@ -152,10 +151,63 @@ const catalogRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       async (_req, res) => res.status(501).send()
     )
-    .delete("/eservices/:eServiceId", async (_req, res) =>
-      res.status(501).send()
-    )
-    .put("/eservices/:eServiceId", async (_req, res) => res.status(501).send())
+    .post("/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const eServiceSeed = req.body;
+
+      try {
+        const eService = await catalogProcessClient.createEService(
+          eServiceSeed,
+          {
+            headers: ctx.headers,
+          }
+        );
+        return res.status(200).send(eService);
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger); // TODO add error mapper
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .delete("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const eServiceId = req.params.eServiceId;
+
+      try {
+        await catalogProcessClient.deleteEService(undefined, {
+          headers: ctx.headers,
+          params: {
+            eServiceId,
+          },
+        });
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger); // TODO add error mapper
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .put("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const updateEServiceSeed = req.body;
+      const eServiceId = req.params.eServiceId;
+
+      try {
+        const { id } = await catalogProcessClient.updateEServiceById(
+          updateEServiceSeed,
+          {
+            headers: ctx.headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+        return res.status(200).send({ id });
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger); // TODO add error mapper
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/eservices/:eServiceId/riskAnalysis", async (_req, res) =>
       res.status(501).send()
     )
