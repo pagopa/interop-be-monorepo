@@ -465,7 +465,7 @@ export function catalogServiceBuilder(
 
       const draftDescriptor: Descriptor = {
         id: generateId(),
-        description: seed.eservice.description,
+        description: seed.descriptor.description,
         version: "1",
         interface: undefined,
         docs: [],
@@ -494,7 +494,7 @@ export function catalogServiceBuilder(
 
       const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         eserviceWithDescriptor,
-        1,
+        0,
         draftDescriptor.id,
         correlationId
       );
@@ -504,7 +504,7 @@ export function catalogServiceBuilder(
         descriptorCreationEvent,
       ]);
 
-      return newEService;
+      return eserviceWithDescriptor;
     },
 
     async updateEService(
