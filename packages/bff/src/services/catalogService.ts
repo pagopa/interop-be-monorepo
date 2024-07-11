@@ -11,6 +11,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 
 const ACTIVE_DESCRIPTOR_STATES_FILTER = [
   descriptorApiState.PUBLISHED,
@@ -121,6 +122,42 @@ export function catalogServiceBuilder(
       };
 
       return response;
+    },
+    createEService: async (
+      eServiceSeed: bffApi.EServiceSeed,
+      headers: Headers
+    ): Promise<CreatedResource> => {
+      const { id } = await catalogProcessClient.createEService(eServiceSeed, {
+        headers,
+      });
+      return { id };
+    },
+    updateEServiceById: async (
+      eServiceId: string,
+      updateEServiceSeed: bffApi.UpdateEServiceSeed,
+      headers: Headers
+    ): Promise<CreatedResource> => {
+      const { id } = await catalogProcessClient.updateEServiceById(
+        updateEServiceSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+      return { id };
+    },
+    deleteEService: async (
+      eServiceId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.deleteEService(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
     },
   };
 }

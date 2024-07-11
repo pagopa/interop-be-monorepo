@@ -112,59 +112,39 @@ const catalogRouter = (
       async (_req, res) => res.status(501).send()
     )
     .post("/eservices", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      const eServiceSeed = req.body;
-
+      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
       try {
-        const eService = await catalogProcessClient.createEService(
-          eServiceSeed,
-          {
-            headers: ctx.headers,
-          }
+        const createdResource = await catalogService.createEService(
+          req.body,
+          headers
         );
-        return res.status(200).send(eService);
+        return res.status(200).send(createdResource);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
     .delete("/eservices/:eServiceId", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      const eServiceId = req.params.eServiceId;
-
+      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogProcessClient.deleteEService(undefined, {
-          headers: ctx.headers,
-          params: {
-            eServiceId,
-          },
-        });
+        await catalogService.deleteEService(req.params.eServiceId, headers);
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
     .put("/eservices/:eServiceId", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      const updateEServiceSeed = req.body;
-      const eServiceId = req.params.eServiceId;
-
+      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
       try {
-        const { id } = await catalogProcessClient.updateEServiceById(
-          updateEServiceSeed,
-          {
-            headers: ctx.headers,
-            params: {
-              eServiceId,
-            },
-          }
+        const createdResource = await catalogService.updateEServiceById(
+          req.params.eServiceId,
+          req.body,
+          headers
         );
-        return res.status(200).send({ id });
+        return res.status(200).send(createdResource);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
