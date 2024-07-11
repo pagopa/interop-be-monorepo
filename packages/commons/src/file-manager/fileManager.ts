@@ -50,6 +50,12 @@ export function initFileManager(
       : undefined,
     forcePathStyle: config.s3CustomServer,
     logger: config.logLevel === "debug" ? console : undefined,
+    credentials: config.s3CustomServer
+      ? {
+          accessKeyId: config.minioAccessKey,
+          secretAccessKey: config.minioSecretKey,
+        }
+      : undefined,
   };
   const client = new S3Client(s3ClientConfig);
 
