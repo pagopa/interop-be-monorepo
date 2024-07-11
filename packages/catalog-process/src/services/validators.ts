@@ -107,7 +107,7 @@ export function assertEserviceIsActive(eservice: EService): void {
     (d: Descriptor) =>
       d.state !== descriptorState.draft && d.state !== descriptorState.archived
   );
-  if (isEserviceActive) {
+  if (!isEserviceActive) {
     throw eserviceNotActive(eservice.id);
   }
 }

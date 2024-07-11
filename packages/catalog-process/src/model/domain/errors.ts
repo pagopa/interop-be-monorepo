@@ -255,7 +255,7 @@ export function eserviceNotActive(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} is not published`,
+    detail: `EService ${eserviceId} is not active`,
     code: "eserviceNotActive",
     title: "EService is not published",
   });
