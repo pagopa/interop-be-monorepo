@@ -43,7 +43,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
-import { getLatestAgreement } from "./agreementService.js";
+import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -403,7 +403,7 @@ export function catalogServiceBuilder(
       limit: number,
       { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
-      const producerId = authData.organizationId;
+      const producerId = context.authData.organizationId;
       const res: {
         results: catalogApi.EService[];
         totalCount: number;
@@ -429,18 +429,12 @@ export function catalogServiceBuilder(
         res.totalCount = totalCount;
       } else {
         const eserviceIds = (
-          await getAllFromPaginated(async (offset: number, limit: number) =>
-            agreementProcessClient.getAgreements({
-              headers,
-              queries: {
-                consumersIds,
-                producersIds: [producerId],
-                eservicesIds: [],
-                states: [],
-                offset,
-                limit,
-              },
-            })
+          await getAllAgreements(
+            agreementProcessClient,
+            headers,
+            consumersIds,
+            [],
+            [producerId]
           )
         ).map((agreement) => agreement.eserviceId);
 

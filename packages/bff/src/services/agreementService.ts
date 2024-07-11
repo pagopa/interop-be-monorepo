@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -19,15 +20,13 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
+import { isAgreementUpgradable } from "../model/validators.js";
 import {
+  toCompactDescriptor,
+  toCompactEservice,
   toCompactEserviceLight,
   toCompactOrganization,
-} from "../model/api/apiConverter.js";
-import {
-  toCompactEservice,
-  toCompactDescriptor,
-} from "../model/api/apiConverter.js";
-import { isAgreementUpgradable } from "../model/validators.js";
+} from "../model/api/converters/catalogClientApiConverter.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
@@ -373,6 +372,65 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     },
   };
 }
+
+// Fetched all agreements in a recursive way
+export const getAllAgreements = async (
+  agreementProcessClient: AgreementProcessClient,
+  headers: Headers,
+  consumerIds: string[] = [],
+  eserviceIds: string[] = [],
+  producerIds: string[] = [],
+  states: agreementApi.AgreementState[] = [],
+  start: number = 0
+): Promise<agreementApi.Agreement[]> => {
+  const agreements = (
+    await getAgreementsFrom(
+      agreementProcessClient,
+      headers,
+      start,
+      consumerIds,
+      eserviceIds,
+      producerIds
+    )
+  ).results;
+
+  if (agreements.length >= 50) {
+    return agreements.concat(
+      await getAllAgreements(
+        agreementProcessClient,
+        headers,
+        consumerIds,
+        eserviceIds,
+        producerIds,
+        states,
+        start + 50
+      )
+    );
+  }
+  return agreements;
+};
+
+export const getAgreementsFrom = async (
+  agreementProcessClient: AgreementProcessClient,
+  headers: Headers,
+  start: number,
+  consumerIds?: string[],
+  eserviceIds?: string[],
+  producerIds?: string[],
+  states: agreementApi.AgreementState[] = [],
+  limit: number = 50
+): Promise<agreementApi.Agreements> =>
+  await agreementProcessClient.getAgreements({
+    headers,
+    queries: {
+      consumersIds: consumerIds?.join(","),
+      producersIds: producerIds?.join(","),
+      eservicesIds: eserviceIds?.join(","),
+      states: states.join(","),
+      offset: start,
+      limit,
+    },
+  });
 
 export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
