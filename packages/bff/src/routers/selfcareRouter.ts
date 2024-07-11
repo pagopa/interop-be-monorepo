@@ -7,7 +7,7 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
-import { api } from "../model/generated/api.js";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   toApiSelfcareInstitution,
   toApiSelfcareProduct,
@@ -18,15 +18,15 @@ import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
 } from "../utilities/errorMapper.js";
-import { config } from "../utilities/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 
 const selfcareService = selfcareServiceBuilder(selfcareV2ClientBuilder(config));
 
 const selfcareRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const selfcareRouter = ctx.router(api.api, {
+  const selfcareRouter = ctx.router(bffApi.selfcareApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
