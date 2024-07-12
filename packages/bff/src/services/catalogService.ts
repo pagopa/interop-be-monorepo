@@ -2,9 +2,9 @@
 /* eslint-disable functional/immutable-data */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  getAllFromPaginated,
   WithLogger,
   formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -20,6 +20,8 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -33,7 +35,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -569,6 +570,60 @@ export function catalogServiceBuilder(
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+    },
+    activateDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.activateDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    updateDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
+      headers: Headers
+    ): Promise<CreatedResource> => {
+      const { id } = await catalogProcessClient.updateDescriptor(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+      return { id };
+    },
+    publishDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.publishDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    suspendDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.suspendDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
     },
   };
 }
