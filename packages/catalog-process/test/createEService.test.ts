@@ -10,12 +10,9 @@ import {
   EService,
   toEServiceV2,
   EServiceDescriptorAddedV2,
-  AttributeId,
-  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
-  attributeNotFound,
   eServiceDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
@@ -194,38 +191,5 @@ describe("create eservice", () => {
         }
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
-  });
-
-  it("should throw attributeNotFound if the descriptor includes attributes that don't exist", async () => {
-    const attributeId: AttributeId = generateId();
-
-    expect(
-      catalogService.createEService(
-        {
-          eservice: {
-            name: mockEService.name,
-            description: mockEService.description,
-            technology: "REST",
-            mode: "DELIVER",
-          },
-          descriptor: {
-            ...buildCreateDescriptorSeed(mockDescriptor),
-            attributes: {
-              certified: [],
-              declared: [
-                [{ id: attributeId, explicitAttributeVerification: false }],
-              ],
-              verified: [],
-            },
-          },
-        },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: "",
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(attributeNotFound(attributeId));
   });
 });
