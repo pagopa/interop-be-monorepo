@@ -37,6 +37,7 @@ describe("create descriptor", async () => {
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
 
+  // To do: remove this use case also from tests?
   it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
     const attribute: Attribute = {
       name: "Attribute name",
