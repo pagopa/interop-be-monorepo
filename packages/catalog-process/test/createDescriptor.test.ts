@@ -238,8 +238,6 @@ describe("create descriptor", async () => {
             : d
       ),
     };
-    console.log(expectedEserviceAfterDescriptorCreation);
-    console.log(expectedEserviceAfterDocumentAddition);
 
     expect(descriptorCreationPayload).toEqual({
       descriptorId: newDescriptorId,
