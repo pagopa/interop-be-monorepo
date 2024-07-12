@@ -6,6 +6,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { fromKeyToReadModelJWKKey } from "../../commons/src/auth/jwk.js";
 
 export async function handleMessageV1(
   message: AuthorizationEventEnvelopeV1,
@@ -24,8 +25,10 @@ export async function handleMessageV1(
             },
             {
               $set: {
-                data: toReadModelKey(
-                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                data: fromKeyToReadModelJWKKey(
+                  toReadModelKey(
+                    fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                  )
                 ),
                 metadata: {
                   version: message.version,
