@@ -19,10 +19,9 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
 } from "../src/model/domain/errors.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { CreateEServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   addOneAttribute,
-  buildDescriptorSeed,
   addOneEService,
   catalogService,
   getMockAuthData,
@@ -30,6 +29,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  buildCreateDescriptorSeed,
 } from "./utils.js";
 
 describe("create descriptor", async () => {
@@ -46,8 +46,8 @@ describe("create descriptor", async () => {
       creationTime: new Date(),
     };
     await addOneAttribute(attribute);
-    const descriptorSeed: EServiceDescriptorSeed = {
-      ...buildDescriptorSeed(mockDescriptor),
+    const descriptorSeed: CreateEServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
         declared: [
@@ -128,8 +128,8 @@ describe("create descriptor", async () => {
       creationTime: new Date(),
     };
     await addOneAttribute(attribute);
-    const descriptorSeed: EServiceDescriptorSeed = {
-      ...buildDescriptorSeed(mockDescriptor),
+    const descriptorSeed: CreateEServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
         declared: [
@@ -220,7 +220,7 @@ describe("create descriptor", async () => {
     expect(
       catalogService.createDescriptor(
         eservice.id,
-        buildDescriptorSeed(descriptor),
+        buildCreateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: "",
@@ -235,7 +235,7 @@ describe("create descriptor", async () => {
     expect(
       catalogService.createDescriptor(
         mockEService.id,
-        buildDescriptorSeed(mockDescriptor),
+        buildCreateDescriptorSeed(mockDescriptor),
         {
           authData: getMockAuthData(mockEService.producerId),
           correlationId: "",
@@ -263,7 +263,7 @@ describe("create descriptor", async () => {
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
     const descriptorSeed = {
-      ...buildDescriptorSeed(mockDescriptor),
+      ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
         declared: [
@@ -306,7 +306,7 @@ describe("create descriptor", async () => {
     expect(
       catalogService.createDescriptor(
         eservice.id,
-        buildDescriptorSeed(descriptor),
+        buildCreateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(),
           correlationId: "",
@@ -317,8 +317,8 @@ describe("create descriptor", async () => {
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
-    const descriptorSeed: EServiceDescriptorSeed = {
-      ...buildDescriptorSeed(mockDescriptor),
+    const descriptorSeed: CreateEServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(mockDescriptor),
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
     };

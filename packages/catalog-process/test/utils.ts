@@ -37,8 +37,9 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { inject, afterEach } from "vitest";
 import {
-  EServiceDescriptorSeed,
+  CreateEServiceDescriptorSeed,
   EServiceRiskAnalysisSeed,
+  UpdateEServiceDescriptorSeed,
 } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -77,9 +78,25 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const buildDescriptorSeed = (
+export const buildCreateDescriptorSeed = (
   descriptor: Descriptor
-): EServiceDescriptorSeed => ({
+): CreateEServiceDescriptorSeed => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+});
+
+export const buildUpdateDescriptorSeed = (
+  descriptor: Descriptor
+): UpdateEServiceDescriptorSeed => ({
   audience: descriptor.audience,
   voucherLifespan: descriptor.voucherLifespan,
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,

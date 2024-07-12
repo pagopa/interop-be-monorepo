@@ -19,17 +19,17 @@ import {
   inconsistentDailyCalls,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { UpdateEServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   addOneEService,
   addOneAttribute,
-  buildDescriptorSeed,
   catalogService,
   getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  buildUpdateDescriptorSeed,
 } from "./utils.js";
 
 describe("update draft descriptor", () => {
@@ -55,8 +55,8 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const updatedDescriptorSeed: EServiceDescriptorSeed = {
-      ...buildDescriptorSeed(descriptor),
+    const updatedDescriptorSeed: UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
         certified: [],
@@ -118,7 +118,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         mockEService.id,
         descriptor.id,
-        buildDescriptorSeed(descriptor),
+        buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(mockEService.producerId),
           correlationId: "",
@@ -140,7 +140,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        buildDescriptorSeed(mockDescriptor),
+        buildUpdateDescriptorSeed(mockDescriptor),
         {
           authData: getMockAuthData(mockEService.producerId),
           correlationId: "",
@@ -169,7 +169,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildDescriptorSeed(descriptor),
+        buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: "",
@@ -198,7 +198,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildDescriptorSeed(descriptor),
+        buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: "",
@@ -227,7 +227,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildDescriptorSeed(descriptor),
+        buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: "",
@@ -256,7 +256,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildDescriptorSeed(descriptor),
+        buildUpdateDescriptorSeed(descriptor),
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: "",
@@ -288,7 +288,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildDescriptorSeed(updatedDescriptor),
+        buildUpdateDescriptorSeed(updatedDescriptor),
         {
           authData: getMockAuthData(),
           correlationId: "",
@@ -319,7 +319,7 @@ describe("update draft descriptor", () => {
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildDescriptorSeed(updatedDescriptor),
+        buildUpdateDescriptorSeed(updatedDescriptor),
         {
           authData: getMockAuthData(eservice.producerId),
           correlationId: "",
@@ -358,7 +358,7 @@ describe("update draft descriptor", () => {
     const notExistingId2 = generateId();
 
     const descriptorSeed = {
-      ...buildDescriptorSeed(mockDescriptor),
+      ...buildUpdateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
         declared: [

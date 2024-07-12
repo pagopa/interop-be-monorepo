@@ -35,8 +35,8 @@ export type EServiceDocument = {
   readonly serverUrls: string[];
 };
 
-export type EServiceDescriptorSeed = z.infer<
-  typeof api.schemas.EServiceDescriptorSeed
+export type CreateEServiceDescriptorSeed = z.infer<
+  typeof api.schemas.CreateEServiceDescriptorSeed
 >;
 
 export type EServiceRiskAnalysisSeed = z.infer<
@@ -97,30 +97,6 @@ export const convertToDocumentEServiceEventData = (
   },
   isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
   serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
-});
-
-export const convertToDescriptorEServiceEventData = (
-  eserviceDescriptorSeed: EServiceDescriptorSeed,
-  descriptorId: DescriptorId,
-  version: string
-): EServiceDescriptor => ({
-  id: descriptorId,
-  description: eserviceDescriptorSeed.description,
-  version,
-  interface: undefined,
-  docs: [],
-  state: "DRAFT",
-  voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
-  audience: eserviceDescriptorSeed.audience,
-  dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
-  dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
-  agreementApprovalPolicy: eserviceDescriptorSeed.agreementApprovalPolicy,
-  serverUrls: [],
-  publishedAt: undefined,
-  suspendedAt: undefined,
-  deprecatedAt: undefined,
-  archivedAt: undefined,
-  attributes: eserviceDescriptorSeed.attributes,
 });
 
 export type ApiEServiceMode = z.infer<typeof api.schemas.EServiceMode>;
