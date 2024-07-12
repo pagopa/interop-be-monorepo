@@ -133,7 +133,7 @@ describe("create descriptor", async () => {
   });
 
   // To do: this is the only use case that will remain active
-  it.only("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
+  it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
     const mockDocument = getMockDocument();
     const existingDescriptor: Descriptor = {
       ...getMockDescriptor(),
