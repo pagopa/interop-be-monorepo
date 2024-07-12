@@ -1,15 +1,10 @@
 import { match } from "ts-pattern";
-import {
-  Logger,
-  ReadModelRepository,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
-import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
-
-const { tenants } = ReadModelRepository.init(readModelWriterConfig());
+import { Logger, TenantCollection } from "pagopa-interop-commons";
+import { TenantEventEnvelope, fromTenantV1 } from "pagopa-interop-models";
 
 export async function handleMessage(
-  message: TenantEventEnvelopeV1,
+  message: TenantEventEnvelope,
+  tenants: TenantCollection,
   logger: Logger
 ): Promise<void> {
   await match(message)

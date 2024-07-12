@@ -1,3 +1,4 @@
+import { JsonWebKey } from "crypto";
 import {
   Client,
   ClientId,
@@ -6,6 +7,7 @@ import {
   EService,
   EServiceId,
   Key,
+  KeyWithClient,
   ListResult,
   Purpose,
   PurposeId,
@@ -51,6 +53,7 @@ import {
   ApiClientSeed,
   ApiKeysSeed,
   ApiPurposeAdditionSeed,
+  ApiJWKKey,
 } from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
@@ -62,7 +65,7 @@ import {
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
@@ -670,6 +673,36 @@ export function authorizationServiceBuilder(
         throw keyNotFound(kid, clientId);
       }
       return key;
+    },
+    async getKeyWithClientByKeyId({
+      clientId,
+      kid,
+      logger,
+    }: {
+      clientId: ClientId;
+      kid: string;
+      logger: Logger;
+    }): Promise<KeyWithClient> {
+      logger.info(`Getting client ${clientId} and key ${kid}`);
+      const client = await retrieveClient(clientId, readModelService);
+      const key = client.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw keyNotFound(kid, clientId);
+      }
+
+      const pemKey = decodeBase64ToPem(key.encodedPem);
+      const jwk: JsonWebKey = createJWK(pemKey);
+      const jwkKey = ApiJWKKey.parse({
+        ...jwk,
+        kid: key.kid,
+        use: "sig",
+      });
+
+      return {
+        JWKKey: jwkKey,
+        client: client.data,
+      };
     },
   };
 }
