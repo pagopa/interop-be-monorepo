@@ -675,7 +675,6 @@ export function catalogServiceBuilder(
               correlationId
             )
           : toCreateEventEServiceDocumentAdded(
-              eserviceId,
               eservice.metadata.version,
               {
                 descriptorId,
@@ -874,7 +873,8 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
-      const newDescriptor: Descriptor = {
+      // eslint-disable-next-line functional/no-let
+      let newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
         version: newVersion,
@@ -910,6 +910,40 @@ export function catalogServiceBuilder(
         correlationId
       );
       await repository.createEvent(event);
+
+      for (const document of eserviceDescriptorSeed.docs) {
+        if (
+          newDescriptor.docs.some((d) => d.prettyName === document.prettyName)
+        ) {
+          throw prettyNameDuplicate(document.prettyName, newDescriptor.id);
+        }
+        const newDocument: Document = {
+          id: unsafeBrandId(document.documentId),
+          name: document.fileName,
+          contentType: document.contentType,
+          prettyName: document.prettyName,
+          path: document.filePath,
+          checksum: document.checksum,
+          uploadDate: new Date(),
+        };
+
+        newDescriptor = {
+          ...newDescriptor,
+          docs: [...newDescriptor.docs, newDocument],
+        };
+
+        const updatedEService = replaceDescriptor(newEservice, newDescriptor);
+
+        toCreateEventEServiceDocumentAdded(
+          eservice.metadata.version,
+          {
+            descriptorId,
+            documentId: unsafeBrandId(document.documentId),
+            eservice: updatedEService,
+          },
+          correlationId
+        );
+      }
 
       return newDescriptor;
     },
