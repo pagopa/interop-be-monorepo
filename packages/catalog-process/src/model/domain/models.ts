@@ -12,9 +12,7 @@ import {
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
-export type ApiCreateEServiceSeed = z.infer<
-  typeof api.schemas.CreateEServiceSeed
->;
+export type ApiCreateEServiceSeed = z.infer<typeof api.schemas.EServiceSeed>;
 
 export type ApiUpdateEServiceSeed = z.infer<
   typeof api.schemas.UpdateEServiceSeed
@@ -35,12 +33,8 @@ export type EServiceDocument = {
   readonly serverUrls: string[];
 };
 
-export type DescriptorSeedForEServiceCreation = z.infer<
-  typeof api.schemas.EServiceDescriptorSeedWithoutAttributes
->;
-
 export type CreateEServiceDescriptorSeed = z.infer<
-  typeof api.schemas.CreateEServiceDescriptorSeed
+  typeof api.schemas.EServiceDescriptorSeed
 >;
 
 export type UpdateEServiceDescriptorSeed = z.infer<
