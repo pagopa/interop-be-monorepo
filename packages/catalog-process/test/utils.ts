@@ -37,6 +37,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { inject, afterEach } from "vitest";
 import {
+  ApiDescriptorSeedForEServiceCreation,
   CreateEServiceDescriptorSeed,
   EServiceRiskAnalysisSeed,
   UpdateEServiceDescriptorSeed,
@@ -76,6 +77,17 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     origin: "IPA",
   },
   selfcareId: generateId(),
+});
+
+export const buildDescriptorSeedForEserviceCreation = (
+  descriptor: Descriptor
+): ApiDescriptorSeedForEServiceCreation => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
 });
 
 export const buildCreateDescriptorSeed = (
