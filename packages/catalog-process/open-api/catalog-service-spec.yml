@@ -1080,7 +1080,7 @@ components:
         eservice:
           $ref: "#/components/schemas/EServiceSeed"
         descriptor:
-          $ref: "#/components/schemas/EServiceDescriptorSeed"
+          $ref: "#/components/schemas/EServiceDescriptorSeedWithoutAttributes"
     UpdateEServiceSeed:
       type: object
       $ref: "#/components/schemas/EServiceSeed"

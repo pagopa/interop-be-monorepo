@@ -458,11 +458,6 @@ export function catalogServiceBuilder(
         throw inconsistentDailyCalls();
       }
 
-      const parsedAttributes = await parseAndCheckAttributes(
-        seed.descriptor.attributes,
-        readModelService
-      );
-
       const draftDescriptor: Descriptor = {
         id: generateId(),
         description: seed.descriptor.description,
@@ -484,7 +479,7 @@ export function catalogServiceBuilder(
         deprecatedAt: undefined,
         archivedAt: undefined,
         createdAt: new Date(), // TO DO: use newEService.createdAt instead?
-        attributes: parsedAttributes,
+        attributes: { certified: [], declared: [], verified: [] },
       };
 
       const eserviceWithDescriptor: EService = {

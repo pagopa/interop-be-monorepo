@@ -22,7 +22,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
-  buildDescriptorSeed,
+  buildCreateDescriptorSeed,
   catalogService,
   getMockAuthData,
   getMockEService,
@@ -49,7 +49,7 @@ describe("create eservice", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        descriptor: buildDescriptorSeed(mockDescriptor),
+        descriptor: buildCreateDescriptorSeed(mockDescriptor),
       },
       {
         authData: getMockAuthData(mockEService.producerId),
@@ -130,7 +130,7 @@ describe("create eservice", () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          descriptor: buildDescriptorSeed(mockDescriptor),
+          descriptor: buildCreateDescriptorSeed(mockDescriptor),
         },
         {
           authData: getMockAuthData(mockEService.producerId),
@@ -152,7 +152,7 @@ describe("create eservice", () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          descriptor: buildDescriptorSeed(mockDescriptor),
+          descriptor: buildCreateDescriptorSeed(mockDescriptor),
         },
         {
           authData: {
@@ -181,7 +181,7 @@ describe("create eservice", () => {
             mode: "DELIVER",
           },
           descriptor: {
-            ...buildDescriptorSeed(mockDescriptor),
+            ...buildCreateDescriptorSeed(mockDescriptor),
             dailyCallsPerConsumer: 100,
             dailyCallsTotal: 99,
           },
@@ -209,7 +209,7 @@ describe("create eservice", () => {
             mode: "DELIVER",
           },
           descriptor: {
-            ...buildDescriptorSeed(mockDescriptor),
+            ...buildCreateDescriptorSeed(mockDescriptor),
             attributes: {
               certified: [],
               declared: [
