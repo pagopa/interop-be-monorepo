@@ -129,7 +129,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceSeed"
+              $ref: "#/components/schemas/CreateEServiceSeed"
         required: true
       responses:
         "200":
@@ -1071,26 +1071,12 @@ components:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+    CreateEServiceSeed:
+      type: object
+      $ref: "#/components/schemas/EServiceSeed"
     UpdateEServiceSeed:
       type: object
-      required:
-        - name
-        - description
-        - technology
-        - mode
-      properties:
-        name:
-          type: string
-          minLength: 5
-          maxLength: 60
-        description:
-          type: string
-          minLength: 10
-          maxLength: 250
-        technology:
-          $ref: "#/components/schemas/EServiceTechnology"
-        mode:
-          $ref: "#/components/schemas/EServiceMode"
+      $ref: "#/components/schemas/EServiceSeed"
     EServiceDescriptorSeed:
       required:
         - audience
