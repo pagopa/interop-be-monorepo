@@ -90,6 +90,22 @@ export const buildCreateDescriptorSeedWithoutAttributes = (
   description: descriptor.description,
 });
 
+export const buildCreateDescriptorForEserviceCreation = (
+  descriptor: Descriptor
+): EServiceDescriptorSeedWithoutAttributes => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+});
+
 export const buildCreateDescriptorSeed = (
   descriptor: Descriptor
 ): CreateEServiceDescriptorSeed => ({
@@ -104,6 +120,7 @@ export const buildCreateDescriptorSeed = (
     declared: [],
     verified: [],
   },
+  docs: [],
 });
 
 export const buildUpdateDescriptorSeed = (
