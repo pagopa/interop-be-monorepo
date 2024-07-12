@@ -204,7 +204,7 @@ const catalogRouter = (
             req.body,
             headers
           );
-          return res.status(204).json().send({ id });
+          return res.status(200).json().send({ id });
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
           return res.status(errorRes.status).json(errorRes).end();
