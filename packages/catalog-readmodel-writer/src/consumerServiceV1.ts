@@ -65,7 +65,7 @@ export async function handleMessageV1(
         await eservices.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: adaptEserviceToReadModel(msg.version, msg.data.eservice),
@@ -78,7 +78,7 @@ export async function handleMessageV1(
         await eservices.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $pull: {
@@ -135,7 +135,7 @@ export async function handleMessageV1(
       await eservices.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -149,7 +149,7 @@ export async function handleMessageV1(
       async (msg) =>
         await eservices.deleteOne({
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         })
     )
     .with({ type: "EServiceDocumentAdded" }, async (msg) => {
@@ -157,7 +157,7 @@ export async function handleMessageV1(
         await eservices.updateMany(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
@@ -179,7 +179,7 @@ export async function handleMessageV1(
         await eservices.updateMany(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
@@ -203,7 +203,7 @@ export async function handleMessageV1(
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
       await eservices.updateOne(
-        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
+        { "data.id": msg.stream_id, "metadata.version": { $lte: msg.version } },
         {
           $pull: {
             "data.descriptors.$[descriptor].docs": {
@@ -220,7 +220,7 @@ export async function handleMessageV1(
         }
       );
       await eservices.updateOne(
-        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
+        { "data.id": msg.stream_id, "metadata.version": { $lte: msg.version } },
         {
           $unset: {
             "data.descriptors.$[descriptor].interface": "",
@@ -239,7 +239,7 @@ export async function handleMessageV1(
         }
       );
       await eservices.updateOne(
-        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
+        { "data.id": msg.stream_id, "metadata.version": { $lte: msg.version } },
         {
           $set: {
             "metadata.version": msg.version,
@@ -253,7 +253,7 @@ export async function handleMessageV1(
         await eservices.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
@@ -273,7 +273,7 @@ export async function handleMessageV1(
         await eservices.updateMany(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
@@ -298,7 +298,7 @@ export async function handleMessageV1(
         await eservices.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $pull: {

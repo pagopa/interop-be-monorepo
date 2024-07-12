@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Client } from "../authorization/client.js";
-import { Key } from "../authorization/key.js";
+import { Key } from "../authorization/client.js";
 
 export const KeyReadModel = Key.extend({
   createdAt: z.string().datetime(),
