@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
-import { descriptorApiState } from "../model/api/catalogTypes.js";
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
+import { descriptorApiState } from "../model/api/catalogTypes.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
   AgreementProcessClient,
@@ -121,6 +122,60 @@ export function catalogServiceBuilder(
       };
 
       return response;
+    },
+    activateDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.activateDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    updateDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
+      headers: Headers
+    ): Promise<CreatedResource> => {
+      const { id } = await catalogProcessClient.updateDescriptor(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+      return { id };
+    },
+    publishDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.publishDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    suspendDescriptor: async (
+      eServiceId: string,
+      descriptorId: string,
+      headers: Headers
+    ): Promise<void> => {
+      await catalogProcessClient.suspendDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
     },
   };
 }
