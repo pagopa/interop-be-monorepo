@@ -19,7 +19,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
-  buildCreateDescriptorSeed,
+  buildCreateDescriptorSeedWithoutAttributes,
   catalogService,
   getMockAuthData,
   getMockEService,
@@ -46,7 +46,7 @@ describe("create eservice", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        descriptor: buildCreateDescriptorSeed(mockDescriptor),
+        descriptor: buildCreateDescriptorSeedWithoutAttributes(mockDescriptor),
       },
       {
         authData: getMockAuthData(mockEService.producerId),
@@ -127,7 +127,8 @@ describe("create eservice", () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          descriptor: buildCreateDescriptorSeed(mockDescriptor),
+          descriptor:
+            buildCreateDescriptorSeedWithoutAttributes(mockDescriptor),
         },
         {
           authData: getMockAuthData(mockEService.producerId),
@@ -149,7 +150,8 @@ describe("create eservice", () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          descriptor: buildCreateDescriptorSeed(mockDescriptor),
+          descriptor:
+            buildCreateDescriptorSeedWithoutAttributes(mockDescriptor),
         },
         {
           authData: {
@@ -178,7 +180,7 @@ describe("create eservice", () => {
             mode: "DELIVER",
           },
           descriptor: {
-            ...buildCreateDescriptorSeed(mockDescriptor),
+            ...buildCreateDescriptorSeedWithoutAttributes(mockDescriptor),
             dailyCallsPerConsumer: 100,
             dailyCallsTotal: 99,
           },
