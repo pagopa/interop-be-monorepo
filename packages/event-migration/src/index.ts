@@ -74,9 +74,7 @@ const Config = z
   }));
 export type Config = z.infer<typeof Config>;
 
-export const config: Config = {
-  ...Config.parse(process.env),
-};
+export const config: Config = Config.parse(process.env);
 
 export type DB = IDatabase<unknown>;
 

@@ -2,7 +2,7 @@ import { match } from "ts-pattern";
 import { dateToBigInt } from "../utils.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
 import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
-import { Key, KeyUse, keyUse } from "./key.js";
+import { Key, KeyUse, keyUse } from "./client.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 
 const toKeyUseV2 = (input: KeyUse): KeyUseV2 =>
