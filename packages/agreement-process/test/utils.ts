@@ -37,7 +37,7 @@ import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import { ApiTenantAttribute } from "../src/model/types.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
