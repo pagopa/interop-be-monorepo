@@ -25,7 +25,7 @@ async function processMessage({
     correlationId: decodedMessage.correlation_id,
   });
 
-  await handleMessage(decodedMessage, tenants, loggerInstance);
+  await handleMessage(decodedMessage, tenants);
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
