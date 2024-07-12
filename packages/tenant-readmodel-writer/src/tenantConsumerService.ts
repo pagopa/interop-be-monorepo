@@ -1,5 +1,4 @@
 import { match } from "ts-pattern";
-
 import { TenantCollection } from "pagopa-interop-commons";
 import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
 
