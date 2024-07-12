@@ -35,7 +35,7 @@ export type EServiceDocument = {
   readonly serverUrls: string[];
 };
 
-export type EServiceDescriptorSeedWithoutAttributes = z.infer<
+export type DescriptorSeedForEServiceCreation = z.infer<
   typeof api.schemas.EServiceDescriptorSeedWithoutAttributes
 >;
 
