@@ -1126,9 +1126,14 @@ components:
         - type: object
           required:
             - attributes
+            - docs
           properties:
             attributes:
               $ref: "#/components/schemas/AttributesSeed"
+            docs:
+              type: array
+              items:
+                $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
     UpdateEServiceDescriptorSeed:
       allOf:
         - $ref: "#/components/schemas/EServiceDescriptorSeedWithoutAttributes"
