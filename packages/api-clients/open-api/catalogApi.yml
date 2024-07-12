@@ -330,7 +330,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateEServiceDescriptorSeed"
+              $ref: "#/components/schemas/EServiceDescriptorSeed"
         required: true
       responses:
         "200":
@@ -1092,42 +1092,6 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
     EServiceDescriptorSeed:
-      required:
-        - audience
-        - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-        - agreementApprovalPolicy
-      type: object
-      properties:
-        description:
-          type: string
-          minLength: 10
-          maxLength: 250
-        audience:
-          type: array
-          items:
-            type: string
-            minLength: 1
-            maxLength: 250
-        voucherLifespan:
-          type: integer
-          format: int32
-          minimum: 60
-          maximum: 86400
-        dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford."
-          type: integer
-          format: int32
-          minimum: 1
-        dailyCallsTotal:
-          description: "total daily calls available for this e-service."
-          type: integer
-          format: int32
-          minimum: 1
-        agreementApprovalPolicy:
-          $ref: "#/components/schemas/AgreementApprovalPolicy"
-    CreateEServiceDescriptorSeed:
       required:
         - audience
         - voucherLifespan
