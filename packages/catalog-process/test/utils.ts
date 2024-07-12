@@ -38,6 +38,7 @@ import {
 import { inject, afterEach } from "vitest";
 import {
   CreateEServiceDescriptorSeed,
+  EServiceDescriptorSeedWithoutAttributes,
   EServiceRiskAnalysisSeed,
   UpdateEServiceDescriptorSeed,
 } from "../src/model/domain/models.js";
@@ -76,6 +77,17 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     origin: "IPA",
   },
   selfcareId: generateId(),
+});
+
+export const buildCreateDescriptorSeedWithoutAttributes = (
+  descriptor: Descriptor
+): EServiceDescriptorSeedWithoutAttributes => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
 });
 
 export const buildCreateDescriptorSeed = (
