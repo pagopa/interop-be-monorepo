@@ -42,12 +42,8 @@ export function toTenantVerifierV1(verifier: TenantVerifier): TenantVerifierV1 {
   return {
     id: verifier.id,
     verificationDate: dateToBigInt(verifier.verificationDate),
-    expirationDate: verifier.expirationDate
-      ? dateToBigInt(verifier.expirationDate)
-      : undefined,
-    extensionDate: verifier.extensionDate
-      ? dateToBigInt(verifier.extensionDate)
-      : undefined,
+    expirationDate: dateToBigInt(verifier.expirationDate),
+    extensionDate: dateToBigInt(verifier.extensionDate),
   };
 }
 
@@ -55,12 +51,8 @@ export function toTenantRevokerV1(revoker: TenantRevoker): TenantRevokerV1 {
   return {
     id: revoker.id,
     verificationDate: dateToBigInt(revoker.verificationDate),
-    expirationDate: revoker.expirationDate
-      ? dateToBigInt(revoker.expirationDate)
-      : undefined,
-    extensionDate: revoker.extensionDate
-      ? dateToBigInt(revoker.extensionDate)
-      : undefined,
+    expirationDate: dateToBigInt(revoker.expirationDate),
+    extensionDate: dateToBigInt(revoker.extensionDate),
     revocationDate: dateToBigInt(revoker.revocationDate),
   };
 }
@@ -73,9 +65,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         certifiedAttribute: {
           id: attribute.id,
           assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
-          revocationTimestamp: attribute.revocationTimestamp
-            ? dateToBigInt(attribute.revocationTimestamp)
-            : undefined,
+          revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
         },
       },
     }))
@@ -138,10 +128,10 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   features: tenant.features.map(toFeatureV1),
   attributes: tenant.attributes.map(toAttributeV1),
   createdAt: dateToBigInt(tenant.createdAt),
-  updatedAt: tenant.updatedAt ? dateToBigInt(tenant.updatedAt) : undefined,
+  updatedAt: dateToBigInt(tenant.updatedAt),
   mails: tenant.mails.map(toTenantMailV1),
   kind: tenant.kind ? toTenantKindV1(tenant.kind) : undefined,
-  onboardedAt: tenant.createdAt ? dateToBigInt(tenant.createdAt) : undefined,
+  onboardedAt: dateToBigInt(tenant.createdAt),
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV1(tenant.subUnitType)
     : undefined,
