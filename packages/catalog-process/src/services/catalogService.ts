@@ -419,7 +419,7 @@ export function catalogServiceBuilder(
       seed: ApiCreateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(`Creating EService with name ${seed.eservice.name}`);
+      logger.info(`Creating EService with name ${seed.name}`);
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
@@ -427,20 +427,20 @@ export function catalogServiceBuilder(
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
-          name: seed.eservice.name,
+          name: seed.name,
           producerId: authData.organizationId,
         });
       if (eserviceWithSameName) {
-        throw eServiceDuplicate(seed.eservice.name);
+        throw eServiceDuplicate(seed.name);
       }
 
       const newEService: EService = {
         id: generateId(),
         producerId: authData.organizationId,
-        name: seed.eservice.name,
-        description: seed.eservice.description,
-        technology: apiTechnologyToTechnology(seed.eservice.technology),
-        mode: apiEServiceModeToEServiceMode(seed.eservice.mode),
+        name: seed.name,
+        description: seed.description,
+        technology: apiTechnologyToTechnology(seed.technology),
+        mode: apiEServiceModeToEServiceMode(seed.mode),
         attributes: undefined,
         descriptors: [],
         createdAt: new Date(),

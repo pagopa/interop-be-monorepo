@@ -40,12 +40,10 @@ describe("create eservice", () => {
   it("should write on event-store for the creation of an eservice", async () => {
     const eservice = await catalogService.createEService(
       {
-        eservice: {
-          name: mockEService.name,
-          description: mockEService.description,
-          technology: "REST",
-          mode: "DELIVER",
-        },
+        name: mockEService.name,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
       },
       {
@@ -121,12 +119,10 @@ describe("create eservice", () => {
     expect(
       catalogService.createEService(
         {
-          eservice: {
-            name: mockEService.name,
-            description: mockEService.description,
-            technology: "REST",
-            mode: "DELIVER",
-          },
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
         {
@@ -143,12 +139,10 @@ describe("create eservice", () => {
     expect(
       catalogService.createEService(
         {
-          eservice: {
-            name: mockEService.name,
-            description: mockEService.description,
-            technology: "REST",
-            mode: "DELIVER",
-          },
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
         {
@@ -171,12 +165,10 @@ describe("create eservice", () => {
     expect(
       catalogService.createEService(
         {
-          eservice: {
-            name: mockEService.name,
-            description: mockEService.description,
-            technology: "REST",
-            mode: "DELIVER",
-          },
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
           descriptor: {
             ...buildDescriptorSeedForEserviceCreation(mockDescriptor),
             dailyCallsPerConsumer: 100,
