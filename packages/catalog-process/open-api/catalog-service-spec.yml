@@ -1138,6 +1138,7 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - attributes
+        - docs
       type: object
       properties:
         description:
@@ -1169,6 +1170,10 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
     UpdateEServiceDescriptorSeed:
       required:
         - audience
