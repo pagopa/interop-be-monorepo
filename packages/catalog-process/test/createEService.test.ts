@@ -10,12 +10,9 @@ import {
   EService,
   toEServiceV2,
   EServiceDescriptorAddedV2,
-  AttributeId,
-  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
-  attributeNotFound,
   eServiceDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
