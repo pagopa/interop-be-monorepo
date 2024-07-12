@@ -49,7 +49,7 @@ describe("create descriptor", async () => {
   it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
     const mockDescriptor = {
       ...getMockDescriptor(),
-      docs: [getMockDocument()],
+      docs: [],
     };
     const attribute: Attribute = {
       name: "Attribute name",
