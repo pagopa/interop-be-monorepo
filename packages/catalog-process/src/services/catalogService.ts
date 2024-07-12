@@ -12,6 +12,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
   formatDateddMMyyyyHHmmss,
+  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -35,6 +36,7 @@ import {
   RiskAnalysis,
   RiskAnalysisId,
   eserviceMode,
+  EServiceEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -903,13 +905,15 @@ export function catalogServiceBuilder(
         descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
-      const event = toCreateEventEServiceDescriptorAdded(
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         newEservice,
         eservice.metadata.version,
         descriptorId,
         correlationId
       );
-      await repository.createEvent(event);
+
+      // eslint-disable-next-line functional/no-let
+      let events: Array<CreateEvent<EServiceEvent>> = [descriptorCreationEvent];
 
       for (const document of eserviceDescriptorSeed.docs) {
         if (
@@ -934,7 +938,7 @@ export function catalogServiceBuilder(
 
         const updatedEService = replaceDescriptor(newEservice, newDescriptor);
 
-        toCreateEventEServiceDocumentAdded(
+        const documentEvent = toCreateEventEServiceDocumentAdded(
           eservice.metadata.version,
           {
             descriptorId,
@@ -943,8 +947,10 @@ export function catalogServiceBuilder(
           },
           correlationId
         );
+        events = [...events, documentEvent];
       }
 
+      await repository.createEvents(events);
       return newDescriptor;
     },
 
