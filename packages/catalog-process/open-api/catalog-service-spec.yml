@@ -1128,15 +1128,15 @@ components:
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
-           $ref: "#/components/schemas/AttributesSeed"
+          $ref: "#/components/schemas/AttributesSeed"
     CreateEServiceDescriptorSeed:
-     required:
-         - audience
-         - voucherLifespan
-         - dailyCallsPerConsumer
-         - dailyCallsTotal
-         - agreementApprovalPolicy
-         - attributes
+      required:
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+        - attributes
       type: object
       properties:
         description:
@@ -1170,12 +1170,12 @@ components:
           $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorSeed:
       required:
-         - audience
-         - voucherLifespan
-         - dailyCallsPerConsumer
-         - dailyCallsTotal
-         - agreementApprovalPolicy
-         - attributes
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+        - attributes
       type: object
       properties:
         description:
