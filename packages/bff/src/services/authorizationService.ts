@@ -17,9 +17,9 @@ import {
 } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
 import {
-  invalidJwtClaim,
   missingClaim,
-  unknownTenantOrigin,
+  tenantLoginNotAllowed,
+  tokenVerificationFailed,
 } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { config } from "../config/config.js";
@@ -41,7 +41,7 @@ export function authorizationServiceBuilder(
   }> => {
     const verified = await verifyJwtToken(identityToken, logger);
     if (!verified) {
-      throw invalidJwtClaim("Token verification failed");
+      throw tokenVerificationFailed();
     }
 
     const decoded = decodeJwtToken(identityToken);
@@ -76,7 +76,7 @@ export function authorizationServiceBuilder(
       !config.tenantAllowedOrigins.includes(origin) &&
       !allowList.includes(selfcareId)
     ) {
-      throw unknownTenantOrigin(selfcareId);
+      throw tenantLoginNotAllowed(selfcareId);
     }
   };
 

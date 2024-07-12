@@ -12,7 +12,7 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { reverseSessionTokenErrorMapper } from "../utilities/errorMappers.js";
+import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 
 const authorizationRouter = (
@@ -38,7 +38,7 @@ const authorizationRouter = (
       const { identity_token: identityToken } = req.body;
       const { correlationId, logger } = fromAppContext(req.ctx);
 
-      logger.debug("Received request to /session/tokens");
+      logger.info("Received session token exchange request");
 
       try {
         const session_token = await authorizationService.getSessionToken(
@@ -48,11 +48,7 @@ const authorizationRouter = (
         );
         return res.status(200).send({ session_token });
       } catch (error) {
-        const err = makeApiProblem(
-          error,
-          reverseSessionTokenErrorMapper,
-          logger
-        );
+        const err = makeApiProblem(error, sessionTokenErrorMapper, logger);
 
         return res.status(err.status).send();
       }

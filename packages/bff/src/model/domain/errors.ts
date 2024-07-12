@@ -7,8 +7,8 @@ import {
 export const errorCodes = {
   purposeNotFound: "0001",
   missingClaim: "9990",
-  unknownTenantOrigin: "0011",
-  invalidJwtClaim: "0000", // Not used, change it if needed for a more specific error
+  tenantLoginNotAllowed: "0011",
+  tokenVerificationFailed: "0002",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -31,18 +31,20 @@ export function missingClaim(claimName: string): ApiError<ErrorCodes> {
   });
 }
 
-export function unknownTenantOrigin(selfcareId: string): ApiError<ErrorCodes> {
+export function tenantLoginNotAllowed(
+  selfcareId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `SelfcareID ${selfcareId} is not inside whitelist or related with IPA`,
-    code: "unknownTenantOrigin",
-    title: "Unknown tenant origin",
+    detail: `Tenant origin is not allowed and SelfcareID ${selfcareId} does not belong to allow list`,
+    code: "tenantLoginNotAllowed",
+    title: "Tenant login not allowed",
   });
 }
 
-export function invalidJwtClaim(message: string): ApiError<ErrorCodes> {
+export function tokenVerificationFailed(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid JWT claims - ${message}`,
-    code: "invalidJwtClaim",
-    title: "Invalid JWT claim",
+    detail: "Token verification failed",
+    code: "tokenVerificationFailed",
+    title: "Token verification failed",
   });
 }

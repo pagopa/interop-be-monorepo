@@ -5,6 +5,7 @@ import {
   FileManagerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { SessionTokenGenerationConfig } from "../../../commons/dist/config/sessionTokenGenerationConfig.js";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -88,6 +89,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(TokenGenerationConfig)
+  .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;

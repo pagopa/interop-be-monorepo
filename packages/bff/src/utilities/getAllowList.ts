@@ -1,15 +1,11 @@
-import {
-  initFileManager,
-  logger,
-  streamToString,
-} from "pagopa-interop-commons";
-import { config } from "../config/config.js";
+import { FileManager, logger, streamToString } from "pagopa-interop-commons";
+import { BffProcessConfig } from "../config/config.js";
 
 export default async function getAllowList(
-  serviceName: string
+  serviceName: string,
+  fileManager: FileManager,
+  config: BffProcessConfig
 ): Promise<string[]> {
-  const fileManager = initFileManager(config);
-
   const loggerInstance = logger({ serviceName });
 
   const stream = await fileManager.get(
