@@ -1020,6 +1020,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
