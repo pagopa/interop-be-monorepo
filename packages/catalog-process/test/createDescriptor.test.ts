@@ -120,6 +120,7 @@ describe("create descriptor", async () => {
     });
   });
 
+  // To do: this is the only use case that will remain active
   it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
     const attribute: Attribute = {
       name: "Attribute name",
