@@ -43,7 +43,6 @@ export type SessionJwtPayload = {
   jti: string;
   iss: string;
   aud: string[];
-  sub: string;
   iat: number;
   nbf: number;
   exp: number;

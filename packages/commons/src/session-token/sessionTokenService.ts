@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
-import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
+import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import {
   CustomClaims,
   SessionClaims,
@@ -9,6 +8,7 @@ import {
   SessionJwtPayload,
   SessionToken,
 } from "./models.js";
+import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 
 const JWT_HEADER_ALG = "RS256";
 const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";
@@ -16,7 +16,7 @@ const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";
 export class SessionTokenGenerator {
   private kmsClient: KMSClient;
 
-  constructor(private config: TokenGenerationConfig) {
+  constructor(private config: SessionTokenGenerationConfig) {
     this.kmsClient = new KMSClient();
   }
 
@@ -36,7 +36,6 @@ export class SessionTokenGenerator {
       jti: crypto.randomUUID(),
       iss: this.config.generatedIssuer,
       aud: this.config.generatedAudience,
-      sub: this.config.generatedSubject,
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp: currentTimestamp + this.config.generatedSecondsDuration,
