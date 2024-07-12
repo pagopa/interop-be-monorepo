@@ -33,7 +33,7 @@ import {
 } from "./utils.js";
 
 describe("create descriptor", async () => {
-  const mockDescriptor = getMockDescriptor();
+  const mockDescriptor = { ...getMockDescriptor(), docs: [getMockDocument()] };
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
 
