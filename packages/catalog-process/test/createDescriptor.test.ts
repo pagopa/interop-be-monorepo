@@ -33,12 +33,12 @@ import {
 } from "./utils.js";
 
 describe("create descriptor", async () => {
-  const mockDescriptor = { ...getMockDescriptor(), docs: [getMockDocument()] };
-  const mockEService = getMockEService();
-  const mockDocument = getMockDocument();
-
   // To do: remove this use case also from tests?
   it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
+    const mockDescriptor = {
+      ...getMockDescriptor(),
+      docs: [getMockDocument()],
+    };
     const attribute: Attribute = {
       name: "Attribute name",
       id: generateId(),
@@ -58,7 +58,7 @@ describe("create descriptor", async () => {
       },
     };
     const eservice: EService = {
-      ...mockEService,
+      ...getMockEService(),
       descriptors: [],
     };
     await addOneEService(eservice);
@@ -122,6 +122,10 @@ describe("create descriptor", async () => {
 
   // To do: this is the only use case that will remain active
   it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
+    const mockDescriptor = {
+      ...getMockDescriptor(),
+      docs: [getMockDocument()],
+    };
     const attribute: Attribute = {
       name: "Attribute name",
       id: generateId(),
@@ -142,11 +146,11 @@ describe("create descriptor", async () => {
     };
     const descriptor: Descriptor = {
       ...mockDescriptor,
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.published,
     };
     const eservice: EService = {
-      ...mockEService,
+      ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
@@ -210,11 +214,11 @@ describe("create descriptor", async () => {
 
   it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
     const descriptor: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
       state: descriptorState.draft,
     };
     const eservice: EService = {
-      ...mockEService,
+      ...getMockEService(),
       descriptors: [descriptor],
     };
 
@@ -234,10 +238,11 @@ describe("create descriptor", async () => {
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    const mockEService = getMockEService();
     expect(
       catalogService.createDescriptor(
         mockEService.id,
-        buildCreateDescriptorSeed(mockDescriptor),
+        buildCreateDescriptorSeed(getMockDescriptor()),
         {
           authData: getMockAuthData(mockEService.producerId),
           correlationId: "",
@@ -249,7 +254,7 @@ describe("create descriptor", async () => {
   });
   it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
     const eservice: EService = {
-      ...mockEService,
+      ...getMockEService(),
       descriptors: [],
     };
     await addOneEService(eservice);
@@ -265,7 +270,7 @@ describe("create descriptor", async () => {
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
     const descriptorSeed = {
-      ...buildCreateDescriptorSeed(mockDescriptor),
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
       attributes: {
         certified: [],
         declared: [
@@ -296,12 +301,12 @@ describe("create descriptor", async () => {
   });
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
       state: descriptorState.published,
     };
     const eservice: EService = {
-      ...mockEService,
+      ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
@@ -320,12 +325,12 @@ describe("create descriptor", async () => {
   });
   it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
     const descriptorSeed: CreateEServiceDescriptorSeed = {
-      ...buildCreateDescriptorSeed(mockDescriptor),
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
     };
     const eservice: EService = {
-      ...mockEService,
+      ...getMockEService(),
       descriptors: [],
     };
 
