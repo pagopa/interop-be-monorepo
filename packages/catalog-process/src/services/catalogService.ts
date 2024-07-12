@@ -876,6 +876,8 @@ export function catalogServiceBuilder(
       const descriptorId = generateId<DescriptorId>();
 
       // eslint-disable-next-line functional/no-let
+      let eserviceVersion = eservice.metadata.version;
+      // eslint-disable-next-line functional/no-let
       let newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
@@ -907,7 +909,7 @@ export function catalogServiceBuilder(
 
       const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         newEservice,
-        eservice.metadata.version,
+        eserviceVersion,
         descriptorId,
         correlationId
       );
@@ -939,7 +941,7 @@ export function catalogServiceBuilder(
         const updatedEService = replaceDescriptor(newEservice, newDescriptor);
 
         const documentEvent = toCreateEventEServiceDocumentAdded(
-          eservice.metadata.version,
+          ++eserviceVersion,
           {
             descriptorId,
             documentId: unsafeBrandId(document.documentId),
