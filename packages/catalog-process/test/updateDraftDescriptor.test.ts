@@ -19,7 +19,7 @@ import {
   inconsistentDailyCalls,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { UpdateEServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   addOneEService,
   addOneAttribute,
@@ -55,7 +55,7 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const updatedDescriptorSeed: EServiceDescriptorSeed = {
+    const updatedDescriptorSeed: UpdateEServiceDescriptorSeed = {
       ...buildDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
