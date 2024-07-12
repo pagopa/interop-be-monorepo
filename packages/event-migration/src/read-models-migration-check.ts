@@ -71,9 +71,7 @@ const Config = z
 
 type Config = z.infer<typeof Config>;
 
-const config: Config = {
-  ...Config.parse(process.env),
-};
+const config: Config = Config.parse(process.env);
 
 async function main(): Promise<void> {
   const scalaReadModel = connectToReadModel(config.scalaReadModelConfig);

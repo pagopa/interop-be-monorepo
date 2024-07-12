@@ -41,9 +41,9 @@ export async function handleMessageV2(
       });
     })
     .with({ type: "ClientDeleted" }, async (message) => {
-      const keysToRemove = message.data.client?.keys;
       await keys.deleteMany({
-        "data.kid": { $in: keysToRemove?.map((key) => key.kid) },
+        "data.clientId": message.data.clientId,
+        "metadata.version": { $lte: message.version },
       });
     })
     .with(
