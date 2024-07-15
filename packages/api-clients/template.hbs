@@ -1,5 +1,6 @@
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
+import qs from "qs";
 
 {{#each schemas}}
 export const {{@key}} = {{{this}}};
@@ -36,15 +37,15 @@ export const {{@key}}Endpoints = makeApi([
 				type: "{{type}}",
 				{{/if}}
 				{{#if (and (eq type "Query") (eq schema "z.array(z.string()).optional().default([])"))}}
-						schema: z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string()).optional().default([])),
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string()).optional().default([])), z.array(z.string()).optional().default([])]),
 				{{else if (and (eq type "Query") (eq schema "z.array(AttributeKind)"))}}
-						schema: z.string().transform(v => v.split(",")).pipe(z.array(AttributeKind)),
+						schema: z.union([z.string().transform(v => v.split(",")).pipe(z.array(AttributeKind)), z.array(AttributeKind)])
 				{{else if (and (eq type "Query") (eq schema "z.array(AgreementState).optional().default([])"))}}
-						schema: z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(AgreementState).optional().default([])),
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(AgreementState).optional().default([])),z.array(AgreementState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(EServiceDescriptorState).optional().default([])"))}}
-						schema: z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(EServiceDescriptorState).optional().default([])),
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(EServiceDescriptorState).optional().default([])), z.array(EServiceDescriptorState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(PurposeVersionState).optional().default([])"))}}
-						schema: z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(PurposeVersionState).optional().default([])),
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(PurposeVersionState).optional().default([])), z.array(PurposeVersionState).optional().default([])])
 				{{else}}
 					schema: {{{schema}}},
 				{{/if}}
@@ -77,7 +78,16 @@ export const {{@key}}Endpoints = makeApi([
 export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}", {{/if}}{{@key}}Endpoints);
 
 export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions) {
-    return new Zodios(baseUrl, {{@key}}Endpoints, options);
+    return new Zodios(baseUrl, {{@key}}Endpoints, {
+			...options,
+			axiosConfig: {
+				...options?.axiosConfig,
+				// This configuration is used to serialize properly query parameter name when value is array  
+				// the default client serialization produce query param name appending the invalid chars "[]"	at the end
+				// eg: ids[]=1,2,3 instead of ids=1,2,3
+				paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+			},
+		});
 }
 
 {{/each}}

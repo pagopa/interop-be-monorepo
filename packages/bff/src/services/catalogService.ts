@@ -94,10 +94,10 @@ export function catalogServiceBuilder(
           headers: context.headers,
           queries: {
             ...queries,
-            eservicesIds: queries.eservicesIds.join(","),
-            producersIds: queries.producersIds.join(","),
+            eservicesIds: queries.eservicesIds,
+            producersIds: queries.producersIds,
             states: queries.states.join(","),
-            attributesIds: queries.attributesIds.join(","),
+            attributesIds: queries.attributesIds,
             agreementStates: queries.agreementStates.join(","),
           },
         });
