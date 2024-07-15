@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, inject, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { generateId, TenantId } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { sleep } from "../src/testUtils.js";
@@ -149,34 +149,4 @@ describe("Redis rate limiter tests", async () => {
       "1"
     );
   });
-
-  // it("should let requests pass if redis times out", async () => {
-  //   // Setting timeout to 0 milliseconds to force a timeout
-  //   inject("redisRateLimiterConfig")!.rateLimiterRedisPort = 1234;
-
-  //   const organizationId: TenantId = generateId();
-  //   expect(
-  //     await redisRateLimiter.rateLimitByOrganization(
-  //       organizationId,
-  //       genericLogger
-  //     )
-  //   ).toEqual({
-  //     limitReached: false,
-  //     maxRequests: 2,
-  //     rateInterval: 1000,
-  //     remainingRequests: 2,
-  //   });
-
-  //   expect(
-  //     await redisRateLimiter.rateLimitByOrganization(
-  //       organizationId,
-  //       genericLogger
-  //     )
-  //   ).toEqual({
-  //     limitReached: false,
-  //     maxRequests: 2,
-  //     rateInterval: 1000,
-  //     remainingRequests: 2,
-  //   });
-  // });
 });
