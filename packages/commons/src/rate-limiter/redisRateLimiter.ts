@@ -11,6 +11,8 @@ import { match, P } from "ts-pattern";
 import { genericLogger, Logger } from "../logging/index.js";
 import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 
+const burstKeyPrefix = "BURST_";
+
 export function initRedisRateLimiter(config: {
   limiterGroup: string;
   maxRequests: number;
@@ -21,7 +23,6 @@ export function initRedisRateLimiter(config: {
   timeout: number;
 }): RateLimiter {
   const redisClient = new Redis({
-    enableOfflineQueue: false,
     host: config.redisHost,
     port: config.redisPort,
     commandTimeout: config.timeout,
@@ -42,7 +43,7 @@ export function initRedisRateLimiter(config: {
 
   const burstOptions: IRateLimiterRedisOptions = {
     ...options,
-    keyPrefix: `BURST_${config.limiterGroup}`,
+    keyPrefix: `${burstKeyPrefix}${config.limiterGroup}`,
     points: config.maxRequests * config.burstPercentage,
     duration: (config.rateInterval / 1000) * config.burstPercentage,
   };
@@ -109,5 +110,15 @@ export function initRedisRateLimiter(config: {
 
   return {
     rateLimitByOrganization,
+    getCountByOrganization: async (
+      organizationId: TenantId
+    ): Promise<string | null> =>
+      redisClient.get(`${config.limiterGroup}:${organizationId}`),
+    getBurstCountByOrganization: async (
+      organizationId: TenantId
+    ): Promise<string | null> =>
+      redisClient.get(
+        `${burstKeyPrefix}${config.limiterGroup}:${organizationId}`
+      ),
   };
 }

@@ -10,13 +10,16 @@ import {
   FileManager,
   FileManagerConfig,
   LoggerConfig,
+  RateLimiter,
   ReadModelDbConfig,
   ReadModelRepository,
+  RedisRateLimiterConfig,
   S3Config,
   genericLogger,
   initDB,
   initEmailManager,
   initFileManager,
+  initRedisRateLimiter,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { EmailManagerConfigTest } from "./testConfig.js";
@@ -80,12 +83,28 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfigTest
+  emailManagerConfig?: EmailManagerConfigTest,
+  RedisRateLimiterConfig?: RedisRateLimiterConfig
+): {
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  emailManager: EmailManager;
+  redisRateLimiter: RateLimiter;
+  cleanup: () => Promise<void>;
+};
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  emailManagerConfig?: EmailManagerConfigTest,
+  redisRateLimiterConfig?: RedisRateLimiterConfig
 ): {
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
   emailManager?: EmailManager;
+  redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
 } {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
@@ -94,6 +113,8 @@ export function setupTestContainersVitest(
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
   let emailManager: EmailManager | undefined;
+  let redisRateLimiter: RateLimiter | undefined;
+  const redisRateLimiterGroup = "TEST";
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -119,11 +140,24 @@ export function setupTestContainersVitest(
     emailManager = initEmailManager(emailManagerConfig, false);
   }
 
+  if (redisRateLimiterConfig) {
+    redisRateLimiter = initRedisRateLimiter({
+      limiterGroup: redisRateLimiterGroup,
+      maxRequests: redisRateLimiterConfig.rateLimiterMaxRequests,
+      rateInterval: redisRateLimiterConfig.rateLimiterRateInterval,
+      burstPercentage: redisRateLimiterConfig.rateLimiterBurstPercentage,
+      redisHost: redisRateLimiterConfig.rateLimiterRedisHost,
+      redisPort: redisRateLimiterConfig.rateLimiterRedisPort,
+      timeout: redisRateLimiterConfig.rateLimiterTimeout,
+    });
+  }
+
   return {
     readModelRepository,
     postgresDB,
     fileManager,
     emailManager,
+    redisRateLimiter,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
