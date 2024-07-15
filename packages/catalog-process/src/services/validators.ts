@@ -14,6 +14,7 @@ import {
   TenantKind,
   Descriptor,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -23,7 +24,6 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
 } from "../model/domain/errors.js";
-import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
 export function assertRequesterAllowed(
   producerId: TenantId,
@@ -67,7 +67,7 @@ export function assertHasNoDraftDescriptor(eservice: EService): void {
 }
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
+  riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
