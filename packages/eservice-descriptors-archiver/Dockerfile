@@ -21,7 +21,6 @@ COPY ./packages/eservice-descriptors-archiver /app/packages/eservice-descriptors
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
-COPY ./packages/catalog-process/open-api/catalog-service-spec.yml /app/packages/catalog-process/open-api/catalog-service-spec.yml
 COPY ./packages/api-clients /app/packages/api-clients
 
 RUN pnpm build && \
