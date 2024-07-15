@@ -21,18 +21,63 @@ import {
 } from "../model/api/apiConverter.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
 
-export function agreementServiceBuilder(
-  agreementClient: PagoPAInteropBeClients["agreementProcessClient"]
-) {
+export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
+  const { agreementProcessClient } = clients;
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
       { headers, logger }: WithLogger<BffAppContext>
     ) {
       logger.info(`Creating agreement with seed ${JSON.stringify(payload)}`);
-      return await agreementClient.createAgreement(payload, {
+      return await agreementProcessClient.createAgreement(payload, {
         headers,
       });
+    },
+
+    async getAgreements({
+      offset,
+      limit,
+      producersIds,
+      eservicesIds,
+      consumersIds,
+      states,
+      ctx,
+      showOnlyUpgradeable,
+    }: {
+      offset: number;
+      limit: number;
+      producersIds: string[];
+      eservicesIds: string[];
+      consumersIds: string[];
+      states: bffApi.AgreementState[];
+      ctx: WithLogger<BffAppContext>;
+      showOnlyUpgradeable?: boolean;
+    }): Promise<bffApi.Agreements> {
+      ctx.logger.info("Retrieving agreements");
+
+      const { results, totalCount } =
+        await agreementProcessClient.getAgreements({
+          queries: {
+            offset,
+            limit,
+            showOnlyUpgradeable,
+            eservicesIds: eservicesIds.join(","),
+            consumersIds: consumersIds.join(","),
+            producersIds: producersIds.join(","),
+            states: states.join(","),
+          },
+          headers: ctx.headers,
+        });
+
+      const agreements = results.map((a) => enrichAgreement(a, clients, ctx));
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+        results: await Promise.all(agreements),
+      };
     },
   };
 }
@@ -91,6 +136,71 @@ export const getLatestAgreement = async (
     }
   })[0];
 };
+
+function isUpgradable(
+  descriptor: catalogApi.EServiceDescriptor,
+  agreement: agreementApi.Agreement,
+  descriptors: catalogApi.EServiceDescriptor[]
+): boolean {
+  return descriptors
+    .filter((d) => parseInt(d.version, 10) > parseInt(descriptor.version, 10))
+    .some(
+      (d) =>
+        (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
+        (agreement.state === "ACTIVE" || agreement.state === "SUSPENDED")
+    );
+}
+
+async function enrichAgreement(
+  agreement: agreementApi.Agreement,
+  clients: PagoPAInteropBeClients,
+  ctx: WithLogger<BffAppContext>
+): Promise<bffApi.AgreementListEntry> {
+  const { consumer, producer, eservice } = await parallelGet(
+    agreement,
+    clients,
+    ctx
+  );
+
+  const currentDescriptior = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+  if (!currentDescriptior) {
+    throw agreementDescriptorNotFound(agreement.id);
+  }
+
+  return {
+    id: agreement.id,
+    state: agreement.state,
+    consumer: {
+      id: consumer.id,
+      name: consumer.name,
+      kind: consumer.kind,
+    },
+    eservice: {
+      id: eservice.id,
+      name: eservice.name,
+      producer: {
+        id: producer.id,
+        name: producer.name,
+      },
+    },
+    descriptor: {
+      id: currentDescriptior.id,
+      audience: currentDescriptior.audience,
+      state: currentDescriptior.state,
+      version: currentDescriptior.version,
+    },
+    canBeUpgraded: isUpgradable(
+      currentDescriptior,
+      agreement,
+      eservice.descriptors
+    ),
+    suspendedByConsumer: agreement.suspendedByConsumer,
+    suspendedByProducer: agreement.suspendedByProducer,
+    suspendedByPlatform: agreement.suspendedByPlatform,
+  };
+}
 
 export async function enhanceAgreement(
   agreement: agreementApi.Agreement,
@@ -213,21 +323,30 @@ async function parallelGet(
   producer: tenantApi.Tenant;
   eservice: catalogApi.EService;
 }> {
-  const consumer = await tenantProcessClient.tenant.getTenant({
+  const consumerTask = tenantProcessClient.tenant.getTenant({
     params: { id: agreement.consumerId },
     headers,
   });
 
-  const producer = await tenantProcessClient.tenant.getTenant({
+  const producerTask = tenantProcessClient.tenant.getTenant({
     params: { id: agreement.producerId },
     headers,
   });
-  const eservice = await catalogProcessClient.getEServiceById({
+  const eserviceTask = catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
     headers,
   });
+  const [consumer, producer, eservice] = await Promise.all([
+    consumerTask,
+    producerTask,
+    eserviceTask,
+  ]);
 
-  return { consumer, producer, eservice };
+  return {
+    consumer,
+    producer,
+    eservice,
+  };
 }
 
 async function getBulkAttributes(
