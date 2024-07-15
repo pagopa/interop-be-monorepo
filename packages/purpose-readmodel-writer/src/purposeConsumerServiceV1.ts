@@ -37,7 +37,7 @@ export async function handleMessageV1(
         await purposes.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $set: {
@@ -79,7 +79,7 @@ export async function handleMessageV1(
       await purposes.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -103,7 +103,7 @@ export async function handleMessageV1(
     .with({ type: "PurposeDeleted" }, async (msg) => {
       await purposes.deleteOne({
         "data.id": msg.stream_id,
-        "metadata.version": { $lt: msg.version },
+        "metadata.version": { $lte: msg.version },
       });
     })
     .with(
@@ -112,7 +112,7 @@ export async function handleMessageV1(
         await purposes.updateOne(
           {
             "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
+            "metadata.version": { $lte: msg.version },
           },
           {
             $pull: {
