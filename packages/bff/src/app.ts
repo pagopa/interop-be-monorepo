@@ -32,6 +32,7 @@ const redisRateLimiter = initRedisRateLimiter({
   limiterGroup: "BFF",
   maxRequests: config.rateLimiterMaxRequests,
   rateInterval: config.rateLimiterRateInterval,
+  burstPercentage: config.rateLimiterBurstPercentage,
   redisHost: config.rateLimiterRedisHost,
   redisPort: config.rateLimiterRedisPort,
   timeout: config.rateLimiterTimeout,
