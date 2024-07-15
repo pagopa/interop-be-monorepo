@@ -319,6 +319,9 @@ importers:
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
