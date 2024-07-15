@@ -4,10 +4,7 @@ import {
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  ApiUpdateReversePurposePayload,
-  VersionState,
-} from "../model/types.js";
+import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { purposeNotFound } from "../model/domain/errors.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -19,7 +16,7 @@ export function purposeServiceBuilder(
   return {
     async reversePurposeUpdate(
       id: PurposeId,
-      updateSeed: ApiUpdateReversePurposePayload,
+      updateSeed: bffApi.ReversePurposeUpdateContent,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
       logger.info(`Updating reverse purpose ${id}`);
@@ -34,7 +31,7 @@ export function purposeServiceBuilder(
         }
       );
 
-      const statesToExclude: VersionState[] = [
+      const statesToExclude: bffApi.PurposeVersionState[] = [
         "WAITING_FOR_APPROVAL",
         "REJECTED",
       ];
