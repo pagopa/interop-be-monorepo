@@ -1,13 +1,25 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import {
+  bffApi,
+  catalogApi,
+  agreementApi,
+  tenantApi,
+  attributeRegistryApi,
+} from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import {
+  toApiDeclaredTenantAttribute,
+  toApiCertifiedTenantAttribute,
+  toApiVerifiedTenantAttribute,
+} from "../model/api/apiConverter.js";
+import { agreementDescriptorNotFound } from "../model/domain/errors.js";
 
 export function agreementServiceBuilder(
   agreementClient: PagoPAInteropBeClients["agreementProcessClient"]
@@ -79,3 +91,205 @@ export const getLatestAgreement = async (
     }
   })[0];
 };
+
+export async function enhanceAgreement(
+  agreement: agreementApi.Agreement,
+  clients: PagoPAInteropBeClients,
+  ctx: WithLogger<BffAppContext>
+): Promise<bffApi.Agreement> {
+  const { consumer, producer, eservice } = await parallelGet(
+    agreement,
+    clients,
+    ctx
+  );
+
+  const currentDescriptior = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+  if (!currentDescriptior) {
+    throw agreementDescriptorNotFound(agreement.id);
+  }
+
+  const activeDescriptor = eservice.descriptors
+    .toSorted((a, b) => parseInt(a.version, 10) - parseInt(b.version, 10))
+    .at(-1);
+  const activeDescriptorAttributes = activeDescriptor
+    ? descriptorAttributesIds(activeDescriptor)
+    : [];
+  const allAttributesIds = Array.from(
+    new Set([...activeDescriptorAttributes, ...tenantAttributesIds(consumer)])
+  );
+
+  const attributes = await getBulkAttributes(
+    allAttributesIds,
+    clients.attributeProcessClient,
+    ctx
+  );
+
+  const agreementVerifiedAttrs = filterAttributes(
+    attributes,
+    agreement.verifiedAttributes.map((attr) => attr.id)
+  );
+  const agreementCertifiedAttrs = filterAttributes(
+    attributes,
+    agreement.certifiedAttributes.map((attr) => attr.id)
+  );
+  const agreementDeclaredAttrs = filterAttributes(
+    attributes,
+    agreement.declaredAttributes.map((attr) => attr.id)
+  );
+  const tenantAttributes = enhanceTenantAttributes(
+    consumer.attributes,
+    attributes
+  );
+  return {
+    id: agreement.id,
+    descriptorId: agreement.descriptorId,
+    producer: {
+      id: agreement.producerId,
+      name: producer.name,
+      kind: producer.kind,
+      contactMail: producer.mails.find((m) => m.kind === "CONTACT_EMAIL"),
+    },
+    consumer: {
+      id: agreement.consumerId,
+      selfcareId: consumer.selfcareId,
+      externalId: consumer.externalId,
+      createdAt: consumer.createdAt,
+      updatedAt: consumer.updatedAt,
+      name: consumer.name,
+      attributes: tenantAttributes,
+      contactMail: consumer.mails.find((m) => m.kind === "CONTACT_EMAIL"),
+      features: consumer.features,
+    },
+    eservice: {
+      id: agreement.eserviceId,
+      name: eservice.name,
+      version: currentDescriptior.version,
+      activeDescriptor,
+    },
+    state: agreement.state,
+    verifiedAttributes: agreementVerifiedAttrs,
+    certifiedAttributes: agreementCertifiedAttrs,
+    declaredAttributes: agreementDeclaredAttrs,
+    suspendedByConsumer: agreement.suspendedByConsumer,
+    suspendedByProducer: agreement.suspendedByProducer,
+    isContractPresent: agreement.contract !== undefined,
+    consumerDocuments: agreement.consumerDocuments,
+    createdAt: agreement.createdAt,
+    updatedAt: agreement.updatedAt,
+    suspendedAt: agreement.suspendedAt,
+  };
+}
+
+function descriptorAttributesIds(
+  descriptor: catalogApi.EServiceDescriptor
+): string[] {
+  const { verified, declared, certified } = descriptor.attributes;
+  const allAttributes = [
+    ...verified.flat(),
+    ...declared.flat(),
+    ...certified.flat(),
+  ];
+  return allAttributes.map((attr) => attr.id);
+}
+
+function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
+  const verifiedIds = tenant.attributes.map((attr) => attr.verified?.id);
+  const certifiedIds = tenant.attributes.map((attr) => attr.certified?.id);
+  const declaredIds = tenant.attributes.map((attr) => attr.declared?.id);
+
+  return [...verifiedIds, ...certifiedIds, ...declaredIds].filter(
+    (x): x is string => x !== undefined
+  );
+}
+
+async function parallelGet(
+  agreement: agreementApi.Agreement,
+  { tenantProcessClient, catalogProcessClient }: PagoPAInteropBeClients,
+  { headers }: WithLogger<BffAppContext>
+): Promise<{
+  consumer: tenantApi.Tenant;
+  producer: tenantApi.Tenant;
+  eservice: catalogApi.EService;
+}> {
+  const consumer = await tenantProcessClient.tenant.getTenant({
+    params: { id: agreement.consumerId },
+    headers,
+  });
+
+  const producer = await tenantProcessClient.tenant.getTenant({
+    params: { id: agreement.producerId },
+    headers,
+  });
+  const eservice = await catalogProcessClient.getEServiceById({
+    params: { eServiceId: agreement.eserviceId },
+    headers,
+  });
+
+  return { consumer, producer, eservice };
+}
+
+async function getBulkAttributes(
+  ids: string[],
+  attributeProcess: PagoPAInteropBeClients["attributeProcessClient"],
+  { headers }: WithLogger<BffAppContext>
+): Promise<attributeRegistryApi.Attribute[]> {
+  async function getAttributesFrom(
+    offset: number
+  ): Promise<attributeRegistryApi.Attribute[]> {
+    const response = await attributeProcess.getBulkedAttributes(ids, {
+      queries: { offset, limit: 50 },
+      headers,
+    });
+    return response.results;
+  }
+
+  async function aggregate(
+    start: number,
+    attributes: attributeRegistryApi.Attribute[]
+  ): Promise<attributeRegistryApi.Attribute[]> {
+    const attrs = await getAttributesFrom(start);
+    if (attrs.length < 50) {
+      return attributes.concat(attrs);
+    } else {
+      return aggregate(start + 50, attributes.concat(attrs));
+    }
+  }
+
+  return aggregate(0, []);
+}
+
+function filterAttributes(
+  attributes: attributeRegistryApi.Attribute[],
+  filterIds: string[]
+): attributeRegistryApi.Attribute[] {
+  return attributes.filter((attr) => filterIds.includes(attr.id));
+}
+
+function enhanceTenantAttributes(
+  tenantAttributes: tenantApi.TenantAttribute[],
+  registryAttributes: attributeRegistryApi.Attribute[]
+): bffApi.TenantAttributes {
+  const registryAttributesMap: Map<string, bffApi.Attribute> = new Map(
+    registryAttributes.map((attribute) => [attribute.id, attribute])
+  );
+
+  const declared = tenantAttributes
+    .map((attr) => toApiDeclaredTenantAttribute(attr, registryAttributesMap))
+    .filter((x): x is bffApi.DeclaredTenantAttribute => x !== null);
+
+  const certified = tenantAttributes
+    .map((attr) => toApiCertifiedTenantAttribute(attr, registryAttributesMap))
+    .filter((x): x is bffApi.CertifiedTenantAttribute => x !== null);
+
+  const verified = tenantAttributes
+    .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
+    .filter((x): x is bffApi.VerifiedTenantAttribute => x !== null);
+
+  return {
+    certified,
+    declared,
+    verified,
+  };
+}
