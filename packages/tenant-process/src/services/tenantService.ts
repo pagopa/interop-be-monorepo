@@ -353,11 +353,18 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      const updatedTenant = await assignCertifiedAttribute({
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant;
+
+      updatedTenant = await assignCertifiedAttribute({
         targetTenant: targetTenant.data,
         attribute,
-        readModelService,
       });
+
+      updatedTenant = await revaluateTenantKind(
+        updatedTenant,
+        readModelService
+      );
 
       await repository.createEvent(
         toCreateEventTenantCertifiedAttributeAssigned(
@@ -551,11 +558,18 @@ export function tenantServiceBuilder(
         throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
       }
 
-      const updatedTenant = await assignCertifiedAttribute({
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant;
+
+      updatedTenant = await assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
         attribute: attributeToAssign,
-        readModelService,
       });
+
+      updatedTenant = await revaluateTenantKind(
+        updatedTenant,
+        readModelService
+      );
 
       await repository.createEvent(
         toCreateEventTenantCertifiedAttributeAssigned(
@@ -674,75 +688,61 @@ export function tenantServiceBuilder(
       internalTenantSeed: ApiInternalTenantSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
+      logger.info(
+        `Updating tenant with external id ${internalTenantSeed.externalId} via internal request`
+      );
+
       const existingTenant = await readModelService.getTenantByExternalId(
         internalTenantSeed.externalId
       );
 
-      const externalIds: ExternalId[] =
-        internalTenantSeed.certifiedAttributes.map((oc) =>
-          ExternalId.parse({ value: oc.code, origin: oc.origin })
+      assertTenantExists(
+        unsafeBrandId(
+          `${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value}`
+        ),
+        existingTenant
+      );
+
+      await assertResourceAllowed(existingTenant.data.id, authData);
+
+      const attributesExternalIds: ExternalId[] =
+        internalTenantSeed.certifiedAttributes.map((externalId) =>
+          ExternalId.parse({
+            value: externalId.code,
+            origin: externalId.origin,
+          })
         );
 
       const attributesByExternalId =
-        await readModelService.getAttributesByExternalIds(externalIds);
-
-      if (existingTenant) {
-        logger.info(
-          `Updating tenant with external id ${internalTenantSeed.externalId} via internal request"`
+        await readModelService.getAttributesByExternalIds(
+          attributesExternalIds
         );
 
-        await assertResourceAllowed(existingTenant.data.id, authData);
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = { ...existingTenant.data };
 
-        const updatedTenant = await updateTenantCertifiedAttributes(
-          attributesByExternalId,
-          existingTenant.data,
-          readModelService
-        );
-
-        await repository.createEvent(
-          toCreateEventTenantOnboardDetailsUpdated(
-            existingTenant.data.id,
-            existingTenant.metadata.version,
-            updatedTenant,
-            correlationId
-          )
-        );
-
-        return updatedTenant;
-      } else {
-        logger.info(
-          `Creating tenant with external id ${internalTenantSeed.externalId} via internal request"`
-        );
-        // eslint-disable-next-line functional/no-let
-        const attributes: CertifiedTenantAttribute[] = [];
-
-        for (const attribute of attributesByExternalId) {
-          const tenantAttribute: CertifiedTenantAttribute = {
-            type: "PersistentCertifiedAttribute",
-            id: attribute.id,
-            assignmentTimestamp: new Date(),
-          };
-          // eslint-disable-next-line functional/immutable-data
-          attributes.push(tenantAttribute);
-        }
-
-        const newTenant: Tenant = {
-          id: generateId(),
-          name: internalTenantSeed.name,
-          attributes,
-          externalId: internalTenantSeed.externalId,
-          features: [],
-          mails: [],
-          selfcareId: authData.selfcareId,
-          kind: getTenantKind([], internalTenantSeed.externalId),
-          onboardedAt: new Date(),
-          createdAt: new Date(),
-        };
-        await repository.createEvent(
-          toCreateEventTenantOnboarded(newTenant, correlationId)
-        );
-        return newTenant;
+      for (const attribute of attributesByExternalId) {
+        updatedTenant = await assignCertifiedAttribute({
+          targetTenant: updatedTenant,
+          attribute,
+        });
       }
+
+      updatedTenant = await revaluateTenantKind(
+        updatedTenant,
+        readModelService
+      );
+
+      await repository.createEvent(
+        toCreateEventTenantOnboardDetailsUpdated(
+          existingTenant.data.id,
+          existingTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+
+      return updatedTenant;
     },
   };
 }
@@ -750,11 +750,9 @@ export function tenantServiceBuilder(
 async function assignCertifiedAttribute({
   targetTenant,
   attribute,
-  readModelService,
 }: {
   targetTenant: Tenant;
   attribute: Attribute;
-  readModelService: ReadModelService;
 }): Promise<Tenant> {
   const certifiedTenantAttribute = targetTenant.attributes.find(
     (attr): attr is CertifiedTenantAttribute =>
@@ -798,67 +796,27 @@ async function assignCertifiedAttribute({
       ),
     };
   }
-  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-    readModelService,
-    updatedTenant.attributes,
-    updatedTenant.externalId
-  );
-
-  if (updatedTenant.kind !== tenantKind) {
-    updatedTenant = {
-      ...updatedTenant,
-      kind: tenantKind,
-    };
-  }
   return updatedTenant;
 }
 
-async function updateTenantCertifiedAttributes(
-  attributes: Attribute[],
+async function revaluateTenantKind(
   tenant: Tenant,
   readModelService: ReadModelService
 ): Promise<Tenant> {
-  // eslint-disable-next-line functional/no-let
-  let updatedTenant: Tenant = {
-    ...tenant,
-    updatedAt: new Date(),
-  };
-  for (const attribute of attributes) {
-    const certifiedTenantAttribute = tenant.attributes.find(
-      (attr): attr is CertifiedTenantAttribute =>
-        attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
-    );
-    if (!certifiedTenantAttribute) {
-      continue;
-    }
-
-    updatedTenant = {
-      ...updatedTenant,
-      attributes: tenant.attributes.map((b) =>
-        b.id === attribute.id
-          ? {
-              ...b,
-              assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
-            }
-          : b
-      ),
-    };
-  }
-
   const tenantKind = await getTenantKindLoadingCertifiedAttributes(
     readModelService,
-    updatedTenant.attributes,
-    updatedTenant.externalId
+    tenant.attributes,
+    tenant.externalId
   );
 
-  if (updatedTenant.kind !== tenantKind) {
+  // eslint-disable-next-line functional/no-let
+  let updatedTenant: Tenant = { ...tenant };
+  if (tenant.kind !== tenantKind) {
     updatedTenant = {
-      ...updatedTenant,
+      ...tenant,
       kind: tenantKind,
     };
   }
-
   return updatedTenant;
 }
 
