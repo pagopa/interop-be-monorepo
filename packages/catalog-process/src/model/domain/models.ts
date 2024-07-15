@@ -12,7 +12,6 @@ import {
   AttributeId,
   TenantId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
