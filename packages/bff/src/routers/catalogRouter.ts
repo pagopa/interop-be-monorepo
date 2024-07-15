@@ -44,7 +44,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          "Error retrieving Catalog EServices"
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
