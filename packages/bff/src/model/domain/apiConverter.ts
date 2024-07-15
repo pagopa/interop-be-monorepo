@@ -5,7 +5,6 @@ import {
   selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import { BffApiAttributeSeed } from "../api/attributeTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
@@ -92,8 +91,8 @@ export const toApiSelfcareUser = (
     });
 
 export const toApiAttributeProcessSeed = (
-  seed: BffApiAttributeSeed
-): attributeRegistryApi.AttributeSeed => ({
+  seed: bffApi.AttributeSeed
+): attributeRegistryApi.CertifiedAttributeSeed => ({
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
