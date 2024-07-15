@@ -17,4 +17,9 @@ export const reversePurposeUpdateErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("agreementDescriptionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;

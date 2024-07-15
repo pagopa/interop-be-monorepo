@@ -9,21 +9,58 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
+import {
+  emptyErrorMapper,
+  getAgreementsErrorMapper,
+} from "../utilities/errorMappers.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  { agreementProcessClient }: PagoPAInteropBeClients
+  clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(bffApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const agreementService = agreementServiceBuilder(agreementProcessClient);
+  const agreementService = agreementServiceBuilder(clients);
 
   agreementRouter
-    .get("/agreements", async (_req, res) => res.status(501).send())
+    .get("/agreements", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const {
+          consumersIds,
+          eservicesIds,
+          limit,
+          offset,
+          producersIds,
+          showOnlyUpgradeable,
+          states,
+        } = req.query;
+
+        const result = await agreementService.getAgreements({
+          offset,
+          limit,
+          producersIds,
+          eservicesIds,
+          consumersIds,
+          states,
+          ctx,
+          showOnlyUpgradeable,
+        });
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementsErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
     .post("/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
