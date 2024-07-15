@@ -1,6 +1,7 @@
 import { Redis } from "ioredis";
 import { TenantId } from "pagopa-interop-models";
 import {
+  BurstyRateLimiter,
   IRateLimiterRedisOptions,
   RateLimiterRedis,
   RateLimiterRes,
@@ -14,6 +15,7 @@ export function initRedisRateLimiter(config: {
   limiterGroup: string;
   maxRequests: number;
   rateInterval: number;
+  burstPercentage: number;
   redisHost: string;
   redisPort: number;
   timeout: number;
@@ -41,20 +43,26 @@ export function initRedisRateLimiter(config: {
     // useRedisPackage accordingly: https://github.com/animir/node-rate-limiter-flexible/wiki/Redis#redis-package
   };
 
-  // TODO do we need to allow traffict bursts and use the BURST_PERCENTAGE config?
-  // Seems to be supported but we need to set a burst points limit
-  // and also a burst rate interval.
-  // In Scala I see burstRequests = config.maxRequests * config.burstPercentage
-  // but what about the burst interval? Shoul we config.rateIntervalSeconds * config.burstPercentage?
+  const burstOptions: IRateLimiterRedisOptions = {
+    ...options,
+    keyPrefix: `burst_${config.limiterGroup}`,
+    points: config.maxRequests * config.burstPercentage,
+    duration: (config.rateInterval / 1000) * config.burstPercentage,
+  };
+
+  const rateLimiter = new BurstyRateLimiter(
+    new RateLimiterRedis(options),
+    new RateLimiterRedis(burstOptions)
+  );
+  // ^ The BurstyRateLimiter is a RateLimiter that allows traffic bursts that exceed the rate limit.
   // See: https://github.com/animir/node-rate-limiter-flexible/wiki/BurstyRateLimiter
-  const rateLimiterRedis = new RateLimiterRedis(options);
 
   async function rateLimitByOrganization(
     organizationId: TenantId,
     logger: Logger
   ): Promise<RateLimiterStatus> {
     try {
-      const rateLimiterRes = await rateLimiterRedis.consume(organizationId);
+      const rateLimiterRes = await rateLimiter.consume(organizationId);
       return {
         limitReached: false,
         maxRequests: config.maxRequests,
