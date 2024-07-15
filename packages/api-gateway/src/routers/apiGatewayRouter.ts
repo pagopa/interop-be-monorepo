@@ -64,12 +64,12 @@ const apiGatewayRouter = (
     .get("/events/eservices", async (_req, res) => res.status(501).send())
     .get("/events/keys", async (_req, res) => res.status(501).send())
     .get("/keys/:kid", async (_req, res) => res.status(501).send())
-    .get("/organizations/:organizationId", async (_req, res) =>
-      res.status(501).send()
-    )
     .get("/purposes", async (_req, res) => res.status(501).send())
     .get("/purposes/:purposeId", async (_req, res) => res.status(501).send())
     .get("/purposes/:purposeId/agreement", async (_req, res) =>
+      res.status(501).send()
+    )
+    .get("/organizations/:organizationId", async (_req, res) =>
       res.status(501).send()
     )
     .post(
