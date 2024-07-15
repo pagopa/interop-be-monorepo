@@ -10,7 +10,7 @@ import { fromApiGatewayAppContext } from "../utilities/context.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
+import { getAgreementErrorMapper } from "../utilities/errorMappers.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -35,7 +35,11 @@ const apiGatewayRouter = (
 
         return res.status(200).json(response).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })

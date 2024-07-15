@@ -1,7 +1,9 @@
 import { constants } from "http2";
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ErrorCodes } from "../models/errors.js";
+import { ErrorCodes as APIGatewayErrorCodes } from "../models/errors.js";
+
+type ErrorCodes = APIGatewayErrorCodes | CommonErrorCodes;
 
 const { HTTP_STATUS_NOT_FOUND, HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
 
