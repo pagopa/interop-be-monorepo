@@ -17,13 +17,6 @@ import {
   ExternalId,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import {
-  toCreateEventTenantAdded,
-  toCreateEventTenantUpdated,
-} from "../model/domain/toEvent.js";
-  CertifiedAttributeQueryResult,
-  UpdateVerifiedTenantAttributeSeed,
-} from "../model/domain/models.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
