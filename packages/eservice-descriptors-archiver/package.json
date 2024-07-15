@@ -14,10 +14,7 @@
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
-    "trim-open-api": "mkdir -p ./src/model/generated && openapi-endpoint-trimmer -i '../catalog-process/open-api/catalog-service-spec.yml' -o './src/model/generated/spec.yaml' -p '/eservices/{eServiceId}/descriptors/{descriptorId}/archive'",
-    "generate-model": "pnpm trim-open-api && pnpm openapi-zod-client './src/model/generated/spec.yaml' -o './src/model/generated/api.ts'",
-    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
@@ -42,6 +39,7 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
     "ts-pattern": "5.2.0",
     "uuid": "10.0.0",
     "zod": "3.23.8"
