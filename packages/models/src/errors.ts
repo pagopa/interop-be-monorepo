@@ -128,7 +128,9 @@ export function makeApiProblemBuilder<T extends string>(errors: {
             },
           },
           (e) => {
+            const receivedProblem: Problem = e.response.data;
             logger.warn(logMessage ?? "");
+            logger.warn(makeProblemLogString(receivedProblem, error));
             return e.response.data;
           }
         )
