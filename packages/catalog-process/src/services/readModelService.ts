@@ -30,8 +30,11 @@ import {
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
-import { Consumer, consumer } from "../model/domain/models.js";
-import { ApiGetEServicesFilters } from "../model/types.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  consumer,
+} from "../model/domain/models.js";
 
 async function getEService(
   eservices: EServiceCollection,
