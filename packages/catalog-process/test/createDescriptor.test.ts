@@ -16,14 +16,14 @@ import {
   operationForbidden,
   EServiceDescriptorDocumentAddedV2,
 } from "pagopa-interop-models";
-import { expect, describe, it, afterAll, beforeAll, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
   attributeNotFound,
   inconsistentDailyCalls,
 } from "../src/model/domain/errors.js";
-import { CreateEServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   addOneAttribute,
   addOneEService,
@@ -59,7 +59,7 @@ describe("create descriptor", async () => {
       creationTime: new Date(),
     };
     await addOneAttribute(attribute);
-    const descriptorSeed: CreateEServiceDescriptorSeed = {
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
@@ -157,7 +157,7 @@ describe("create descriptor", async () => {
       creationTime: new Date(),
     };
     await addOneAttribute(attribute);
-    const descriptorSeed: CreateEServiceDescriptorSeed = {
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
@@ -362,7 +362,7 @@ describe("create descriptor", async () => {
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
-    const descriptorSeed: CreateEServiceDescriptorSeed = {
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
