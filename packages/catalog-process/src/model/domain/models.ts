@@ -24,10 +24,6 @@ export type ApiGetEServicesFilters = {
   mode?: EServiceMode;
 };
 
-export type ApiDescriptorSeedForEServiceCreation = z.infer<
-  typeof api.schemas.DescriptorSeedForEServiceCreation
->;
-
 export type EServiceDocument = {
   readonly eserviceId: EServiceId;
   readonly descriptorId: DescriptorId;

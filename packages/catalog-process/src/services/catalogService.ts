@@ -403,7 +403,7 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: catalogApi.EServiceSeed,
+      seed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Creating EService with name ${seed.name}`);
