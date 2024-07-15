@@ -8,7 +8,7 @@ import {
 } from "rate-limiter-flexible";
 
 import { match, P } from "ts-pattern";
-import { Logger } from "../logging/index.js";
+import { genericLogger, Logger } from "../logging/index.js";
 import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 
 export function initRedisRateLimiter(config: {
@@ -27,18 +27,17 @@ export function initRedisRateLimiter(config: {
     commandTimeout: config.timeout,
     // ^ If a command does not return a reply within a set number of milliseconds,
     // a "Command timed out" error will be thrown.
+    reconnectOnError: (error): boolean => {
+      genericLogger.warn(`Reconnecting on Redis error: ${error}`);
+      return true;
+    },
   });
-  // TODO should we recover on some erorrs?
-  // Documentation says its useful especially if using AWS ElastiCache with
-  // automatic failover disabled: https://github.com/redis/ioredis?tab=readme-ov-file#reconnect-on-error
 
   const options: IRateLimiterRedisOptions = {
     storeClient: redisClient,
     keyPrefix: config.limiterGroup,
     points: config.maxRequests,
     duration: config.rateInterval / 1000, // seconds
-    useRedisPackage: true,
-    // ^ https://github.com/animir/node-rate-limiter-flexible/wiki/Options#useredispackage
   };
 
   const burstOptions: IRateLimiterRedisOptions = {
