@@ -26,7 +26,7 @@ export async function handleMessageV1(
     .with({ type: "TenantDeleted" }, async (msg) => {
       await tenants.deleteOne({
         "data.id": msg.stream_id,
-        "metadata.version": { $lt: msg.version },
+        "metadata.version": { $lte: msg.version },
       });
     })
     .with(
@@ -51,7 +51,7 @@ export async function handleMessageV1(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -65,7 +65,7 @@ export async function handleMessageV1(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -79,7 +79,7 @@ export async function handleMessageV1(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -95,7 +95,7 @@ export async function handleMessageV1(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $pull: {
