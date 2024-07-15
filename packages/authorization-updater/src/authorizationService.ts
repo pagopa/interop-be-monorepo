@@ -8,9 +8,21 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
+  Client,
+  Key,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
+import {
+  agreementStateToClientState,
+  clientKindToApiClientKind,
+  descriptorStateToClientState,
+  keyUseToApiKeyUse,
+  purposeStateToClientState,
+} from "./utils.js";
+import { ReadModelService } from "./readModelService.js";
 
 export type AuthorizationService = {
   updateEServiceState: (
@@ -43,8 +55,8 @@ export type AuthorizationService = {
     correlationId: string
   ) => Promise<void>;
   deletePurposeFromClient: (
-    purposeId: PurposeId,
     clientId: ClientId,
+    purposeId: PurposeId,
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
@@ -52,6 +64,47 @@ export type AuthorizationService = {
     purposeId: PurposeId,
     versionId: PurposeVersionId,
     state: ApiClientComponentState,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClient: (
+    client: Client,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deleteClient: (
+    clientId: ClientId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClientKey: (
+    client: ClientId,
+    key: Key,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deleteClientKey: (
+    clientId: ClientId,
+    kid: string,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClientUser: (
+    clientId: ClientId,
+    userId: UserId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deleteClientUser: (
+    clientId: ClientId,
+    userId: UserId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClientPurpose: (
+    clientId: ClientId,
+    purposeId: PurposeId,
+    readModelService: ReadModelService,
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
@@ -161,8 +214,8 @@ export const authorizationServiceBuilder = (
       );
     },
     async deletePurposeFromClient(
-      purposeId: PurposeId,
       clientId: ClientId,
+      purposeId: PurposeId,
       logger: Logger,
       correlationId: string
     ) {
@@ -193,6 +246,185 @@ export const authorizationServiceBuilder = (
         }
       );
       logger.info(`Updated Purpose ${purposeId} state for all clients`);
+    },
+    async addClient(client: Client, logger: Logger, correlationId: string) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.createClient(
+        {
+          id: client.id,
+          name: client.name,
+          description: client.description,
+          consumerId: client.consumerId,
+          createdAt: client.createdAt.toISOString(),
+          kind: clientKindToApiClientKind(client.kind),
+          users: client.users,
+        },
+        {
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Added client ${client.id}`);
+    },
+    async deleteClient(
+      clientId: ClientId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.deleteClient(undefined, {
+        params: { clientId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted client ${clientId}`);
+    },
+    async addClientKey(
+      clientId: ClientId,
+      key: Key,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.createKeys(
+        [
+          {
+            name: key.name,
+            createdAt: key.createdAt.toISOString(),
+            userId: key.userId,
+            key: key.encodedPem,
+            use: keyUseToApiKeyUse(key.use),
+            alg: key.algorithm,
+          },
+        ],
+        {
+          params: { clientId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Added key ${key.kid} in client ${clientId}`);
+    },
+    async deleteClientKey(
+      clientId: ClientId,
+      kid: string,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.deleteClientKeyById(undefined, {
+        params: { clientId, keyId: kid },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted client ${clientId}`);
+    },
+    async addClientUser(
+      clientId: ClientId,
+      userId: UserId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.addUser(
+        { userId },
+        {
+          params: { clientId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Added user ${userId} in client ${clientId}`);
+    },
+    async deleteClientUser(
+      clientId: ClientId,
+      userId: UserId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.removeClientUser(undefined, {
+        params: { clientId, userId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Removed user ${userId} from client ${clientId}`);
+    },
+    async addClientPurpose(
+      clientId: ClientId,
+      purposeId: PurposeId,
+      readModelService: ReadModelService,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      const purpose = await readModelService.getPurposeById(purposeId);
+      if (!purpose) {
+        throw genericInternalError("purpose not found");
+      }
+
+      const eservice = await readModelService.getEServiceById(
+        purpose.eserviceId
+      );
+      if (!eservice) {
+        throw genericInternalError("eservice not found");
+      }
+
+      const agreement = await readModelService.getAgreement(
+        eservice.id,
+        purpose.consumerId
+      );
+      if (!agreement) {
+        throw genericInternalError("agreement not found");
+      }
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (!descriptor) {
+        throw genericInternalError("descriptor not found");
+      }
+
+      const purposeVersion = purpose.versions[purpose.versions.length - 1];
+
+      await authMgmtClient.addClientPurpose(
+        {
+          states: {
+            eservice: {
+              state: descriptorStateToClientState(descriptor.state),
+              eserviceId: eservice.id,
+              descriptorId: agreement.descriptorId,
+              audience: descriptor.audience,
+              voucherLifespan: descriptor.voucherLifespan,
+            },
+            agreement: {
+              agreementId: agreement.id,
+              state: agreementStateToClientState(agreement.state),
+              eserviceId: agreement.eserviceId,
+              consumerId: agreement.consumerId,
+            },
+            purpose: {
+              state: purposeStateToClientState(purposeVersion.state),
+              versionId: purposeVersion.id,
+              purposeId,
+            },
+          },
+        },
+        {
+          params: { clientId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Linked purpose ${purposeId} to client ${clientId}`);
     },
   };
 };

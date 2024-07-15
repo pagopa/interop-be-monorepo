@@ -14,9 +14,26 @@ import {
   fromPurposeV2,
   PurposeId,
   PurposeVersion,
+  ClientV2,
+  Client,
+  fromClientV2,
+  KeyUse,
+  keyUse,
+  ClientKind,
+  clientKind,
+  DescriptorState,
+  descriptorState,
+  PurposeVersionState,
+  purposeVersionState,
+  AgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ApiClientComponentState, ApiClientComponent } from "./model/models.js";
+import {
+  ApiClientComponentState,
+  ApiClientComponent,
+  ApiKeyUse,
+  ApiClientKind,
+} from "./model/models.js";
 
 export const getDescriptorFromEvent = (
   msg: {
@@ -62,9 +79,9 @@ export const getAgreementFromEvent = (
 };
 
 export const agreementStateToClientState = (
-  agreement: Agreement
+  state: AgreementState
 ): ApiClientComponentState =>
-  match(agreement.state)
+  match(state)
     .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
     .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
@@ -103,3 +120,44 @@ export const getPurposeVersionFromEvent = (
 
   return { purposeId: purpose.id, purposeVersion };
 };
+
+export const getClientFromEvent = (
+  msg: {
+    data: {
+      client?: ClientV2;
+    };
+  },
+  eventType: string
+): Client => {
+  if (!msg.data.client) {
+    throw missingKafkaMessageDataError("client", eventType);
+  }
+
+  return fromClientV2(msg.data.client);
+};
+
+export const clientKindToApiClientKind = (kid: ClientKind): ApiClientKind =>
+  match<ClientKind, ApiClientKind>(kid)
+    .with(clientKind.consumer, () => "CONSUMER")
+    .with(clientKind.api, () => "API")
+    .exhaustive();
+
+export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
+  match<KeyUse, ApiKeyUse>(kid)
+    .with(keyUse.enc, () => "ENC")
+    .with(keyUse.sig, () => "SIG")
+    .exhaustive();
+
+export const descriptorStateToClientState = (
+  state: DescriptorState
+): ApiClientComponentState =>
+  state === descriptorState.published || state === descriptorState.deprecated
+    ? ApiClientComponent.Values.ACTIVE
+    : ApiClientComponent.Values.INACTIVE;
+
+export const purposeStateToClientState = (
+  state: PurposeVersionState
+): ApiClientComponentState =>
+  state === purposeVersionState.active
+    ? ApiClientComponent.Values.ACTIVE
+    : ApiClientComponent.Values.INACTIVE;

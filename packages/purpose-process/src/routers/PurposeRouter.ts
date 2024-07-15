@@ -13,7 +13,7 @@ import {
   initPDFGenerator,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
@@ -22,7 +22,7 @@ import {
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activatePurposeVersionErrorMapper,
@@ -67,7 +67,7 @@ const purposeService = purposeServiceBuilder(
 const purposeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const purposeRouter = ctx.router(api.api, {
+  const purposeRouter = ctx.router(purposeApi.purposeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {
