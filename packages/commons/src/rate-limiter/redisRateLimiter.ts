@@ -28,19 +28,17 @@ export function initRedisRateLimiter(config: {
     // ^ If a command does not return a reply within a set number of milliseconds,
     // a "Command timed out" error will be thrown.
   });
-  // TODO Should we set reconnectOnError to reconnect on specific errors?
+  // TODO should we recover on some erorrs?
+  // Documentation says its useful especially if using AWS ElastiCache with
+  // automatic failover disabled: https://github.com/redis/ioredis?tab=readme-ov-file#reconnect-on-error
 
   const options: IRateLimiterRedisOptions = {
     storeClient: redisClient,
     keyPrefix: config.limiterGroup,
     points: config.maxRequests,
     duration: config.rateInterval / 1000, // seconds
-    // TODO should we recover on some erorrs?
-    // Documentation says its useful especially if using AWS ElastiCache with
-    // automatic failover disabled: https://github.com/redis/ioredis?tab=readme-ov-file#reconnect-on-error
-
-    // TODO figure out redis version we are using and set
-    // useRedisPackage accordingly: https://github.com/animir/node-rate-limiter-flexible/wiki/Redis#redis-package
+    useRedisPackage: true,
+    // ^ https://github.com/animir/node-rate-limiter-flexible/wiki/Options#useredispackage
   };
 
   const burstOptions: IRateLimiterRedisOptions = {
