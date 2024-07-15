@@ -1,30 +1,22 @@
 import { createHash } from "crypto";
 import {
-  InstitutionResource,
-  ProductResource,
-  UserResource,
-} from "pagopa-interop-selfcare-v2-client";
-import { P, match } from "ts-pattern";
-import {
-  BffApiAttributeSeed,
-  AttributeProcessApiAttributeSeed,
-} from "../api/attributeTypes.js";
-import {
-  ApiSelfcareInstitution,
-  BffApiSelfcareProduct,
-  BffApiSelfcareUser,
-} from "../api/bffTypes.js";
+  bffApi,
+  attributeRegistryApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
+import { BffApiAttributeSeed } from "../api/attributeTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
-  input: InstitutionResource
-): ApiSelfcareInstitution =>
+  input: selfcareV2ClientApi.InstitutionResource
+): bffApi.SelfcareInstitution =>
   match(input)
     .with(
       {
-        id: P.not(P.nullish),
-        description: P.not(P.nullish),
-        userProductRoles: P.not(P.nullish),
+        id: P.nonNullable,
+        description: P.nonNullable,
+        userProductRoles: P.nonNullable,
       },
       (institution) => ({
         id: institution.id,
@@ -46,10 +38,10 @@ export const toApiSelfcareInstitution = (
     });
 
 export const toApiSelfcareProduct = (
-  input: ProductResource
-): BffApiSelfcareProduct =>
+  input: selfcareV2ClientApi.ProductResource
+): bffApi.SelfcareProduct =>
   match(input)
-    .with({ id: P.not(P.nullish), title: P.not(P.nullish) }, (product) => ({
+    .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
       id: product.id,
       name: product.title,
     }))
@@ -64,16 +56,16 @@ export const toApiSelfcareProduct = (
     });
 
 export const toApiSelfcareUser = (
-  input: UserResource,
+  input: selfcareV2ClientApi.UserResource,
   tenantId: string
-): BffApiSelfcareUser =>
+): bffApi.User =>
   match(input)
     .with(
       {
-        id: P.not(P.nullish),
-        name: P.not(P.nullish),
-        surname: P.not(P.nullish),
-        roles: P.not(P.nullish),
+        id: P.nonNullable,
+        name: P.nonNullable,
+        surname: P.nonNullable,
+        roles: P.nonNullable,
       },
       (user) => ({
         userId: user.id,
@@ -101,7 +93,7 @@ export const toApiSelfcareUser = (
 
 export const toApiAttributeProcessSeed = (
   seed: BffApiAttributeSeed
-): AttributeProcessApiAttributeSeed => ({
+): attributeRegistryApi.AttributeSeed => ({
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
