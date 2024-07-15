@@ -21,7 +21,16 @@ import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
+  CertifiedAttributeQueryResult,
+  UpdateVerifiedTenantAttributeSeed,
+} from "../model/domain/models.js";
 import { tenantNotFound } from "../model/domain/errors.js";
+import {
+  toCreateEventTenantVerifiedAttributeExpirationUpdated,
+  toCreateEventTenantVerifiedAttributeExtensionUpdated,
+  toCreateEventTenantOnboardDetailsUpdated,
+  toCreateEventTenantOnboarded,
+} from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -120,10 +129,11 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = toCreateEventTenantUpdated(
+      const event = toCreateEventTenantVerifiedAttributeExtensionUpdated(
         tenant.data.id,
         tenant.metadata.version,
         updatedTenant,
+        attributeId,
         correlationId
       );
       await repository.createEvent(event);
@@ -180,10 +190,11 @@ export function tenantServiceBuilder(
         ],
         updatedAt: new Date(),
       };
-      const event = toCreateEventTenantUpdated(
+      const event = toCreateEventTenantVerifiedAttributeExpirationUpdated(
         tenant.data.id,
         tenant.metadata.version,
         updatedTenant,
+        attributeId,
         correlationId
       );
       await repository.createEvent(event);
@@ -228,7 +239,7 @@ export function tenantServiceBuilder(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
         return await repository.createEvent(
-          toCreateEventTenantUpdated(
+          toCreateEventTenantOnboardDetailsUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
             updatedTenant,
@@ -248,10 +259,11 @@ export function tenantServiceBuilder(
           mails: [],
           selfcareId: tenantSeed.selfcareId,
           kind: getTenantKind([], tenantSeed.externalId),
+          onboardedAt: new Date(),
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant, correlationId)
+          toCreateEventTenantOnboarded(newTenant, correlationId)
         );
       }
     },
