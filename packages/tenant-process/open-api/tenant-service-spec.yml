@@ -50,6 +50,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already assigned to Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       requestBody:
         content:
           application/json:
@@ -722,11 +734,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
 
   /tenants/{tenantId}/attributes/certified:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
         in: path
         description: Tenant id
@@ -743,27 +755,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CertifiedTenantAttributeSeed'
+              $ref: "#/components/schemas/CertifiedTenantAttributeSeed"
         required: true
       responses:
-        '200':
+        "200":
           description: Updated Tenant
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tenant'
-        '403':
+                $ref: "#/components/schemas/Tenant"
+        "403":
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Tenant Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []

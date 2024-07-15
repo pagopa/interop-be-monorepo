@@ -116,4 +116,6 @@ export const internalUpsertTenantErrorMapper = (
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

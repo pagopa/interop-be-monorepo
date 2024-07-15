@@ -15,14 +15,16 @@ import {
   Attribute,
   unsafeBrandId,
   toReadModelAttribute,
-  TenantOnboardedV2,
   operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
 import { ApiInternalTenantSeed } from "../src/model/types.js";
-import { getTenantKind } from "../src/services/validators.js";
-import { attributeNotFound } from "../src/model/domain/errors.js";
+import {
+  attributeNotFound,
+  certifiedAttributeAlreadyAssigned,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   tenantService,
@@ -32,11 +34,8 @@ import {
 } from "./utils.js";
 
 describe("internalUpsertTenant", async () => {
-  const correlationId = generateId();
   const mockTenant = getMockTenant();
   const mockAuthData = getMockAuthData(generateId<TenantId>());
-
-  const id = generateId();
 
   const tenantSeed: ApiInternalTenantSeed = {
     externalId: {
@@ -49,12 +48,17 @@ describe("internalUpsertTenant", async () => {
 
   const attribute1: Attribute = {
     name: "an Attribute",
-    id: unsafeBrandId(id),
+    id: generateId(),
     kind: "Certified",
     description: "",
     origin: "ORIGIN",
     code: "CODE",
     creationTime: new Date(),
+  };
+
+  const authData: AuthData = {
+    ...mockAuthData,
+    userRoles: ["internal"],
   };
 
   beforeAll(async () => {
@@ -65,45 +69,95 @@ describe("internalUpsertTenant", async () => {
   afterAll(() => {
     vi.useRealTimers();
   });
+  it("Should add the certified attribute if the Tenant doesn't have it", async () => {
+    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await addOneTenant(mockTenant);
+    const returnedTenant = await tenantService.internalUpsertTenant(
+      tenantSeed,
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastTenantEvent(mockTenant.id);
+    if (!writtenEvent) {
+      fail("Update failed: tenant not found in event-store");
+    }
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantOnboardDetailsUpdated",
+    });
+    const writtenPayload: TenantOnboardDetailsUpdatedV2 | undefined =
+      protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(writtenEvent?.data);
 
-  it("Should update the tenant if it exists", async () => {
-    const authData: AuthData = {
-      ...mockAuthData,
-      userRoles: ["internal"],
+    const expectedTenant: Tenant = {
+      ...mockTenant,
+      kind: tenantKind.PA,
+      updatedAt: new Date(),
+      attributes: [
+        {
+          assignmentTimestamp: new Date(),
+          id: attribute1.id,
+          type: "PersistentCertifiedAttribute",
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+
+    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(returnedTenant).toEqual(expectedTenant);
+  });
+
+  it("Should re-assign the attributes if they were revoked", async () => {
+    const tenantSeed2: ApiInternalTenantSeed = {
+      ...tenantSeed,
+      certifiedAttributes: [
+        ...tenantSeed.certifiedAttributes,
+        { origin: "ORIGIN 2", code: "CODE 2" },
+      ],
     };
 
     const attribute2: Attribute = {
-      name: "an Attribute",
-      id: unsafeBrandId(id),
-      kind: "Declared",
+      name: "an Attribute 2",
+      id: generateId(),
+      kind: "Certified",
       description: "",
-      origin: "ORIGIN",
-      code: "CODE",
+      origin: "ORIGIN 2",
+      code: "CODE 2",
       creationTime: new Date(),
     };
+
+    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
 
     const tenant: Tenant = {
       ...mockTenant,
       attributes: [
         {
           type: "PersistentCertifiedAttribute",
-          id: unsafeBrandId(id),
+          id: attribute1.id,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: new Date(),
+        },
+        {
+          type: "PersistentCertifiedAttribute",
+          id: attribute2.id,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
-    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
 
     await addOneTenant(tenant);
-    const kind = tenantKind.PA;
 
     const returnedTenant = await tenantService.internalUpsertTenant(
-      tenantSeed,
+      tenantSeed2,
       {
         authData,
-        correlationId,
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       }
@@ -122,13 +176,19 @@ describe("internalUpsertTenant", async () => {
       protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(writtenEvent?.data);
 
     const expectedTenant: Tenant = {
-      ...tenant,
-      kind,
+      ...mockTenant,
+      kind: tenantKind.PA,
       updatedAt: new Date(),
       attributes: [
         {
           assignmentTimestamp: new Date(),
-          id: unsafeBrandId(id),
+          id: attribute1.id,
+          type: "PersistentCertifiedAttribute",
+          revocationTimestamp: undefined,
+        },
+        {
+          assignmentTimestamp: new Date(),
+          id: attribute2.id,
           type: "PersistentCertifiedAttribute",
           revocationTimestamp: undefined,
         },
@@ -138,54 +198,51 @@ describe("internalUpsertTenant", async () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
     expect(returnedTenant).toEqual(expectedTenant);
   });
-  it("Should create a tenant by the upsert if it does not exist", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
-    const returnedTenant = await tenantService.internalUpsertTenant(
-      tenantSeed,
-      {
-        authData: mockAuthData,
-        correlationId,
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
-    const writtenEvent = await readLastTenantEvent(
-      unsafeBrandId(returnedTenant.id)
-    );
-    if (!writtenEvent) {
-      fail("Creation failed: tenant not found in event-store");
-    }
-    expect(writtenEvent).toMatchObject({
-      stream_id: returnedTenant.id,
-      version: "0",
-      type: "TenantOnboarded",
-    });
-    const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
-      TenantOnboardedV2
-    ).parse(writtenEvent.data);
-
-    const expectedTenant: Tenant = {
-      ...mockTenant,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      id: unsafeBrandId(writtenPayload.tenant!.id),
+  it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
+    const tenantAlreadyAssigned: Tenant = {
+      ...getMockTenant(),
       attributes: [
         {
+          id: attribute1.id,
           type: "PersistentCertifiedAttribute",
-          id: unsafeBrandId(id),
           assignmentTimestamp: new Date(),
           revocationTimestamp: undefined,
         },
       ],
-      name: tenantSeed.name,
-      externalId: tenantSeed.externalId,
-      kind: getTenantKind([], tenantSeed.externalId),
-      selfcareId: mockAuthData.selfcareId,
-      onboardedAt: new Date(),
-      createdAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await addOneTenant(tenantAlreadyAssigned);
+    expect(
+      tenantService.internalUpsertTenant(tenantSeed, {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      certifiedAttributeAlreadyAssigned(
+        unsafeBrandId(attribute1.id),
+        unsafeBrandId(tenantAlreadyAssigned.id)
+      )
+    );
+  });
+  it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    expect(
+      tenantService.internalUpsertTenant(tenantSeed, {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      tenantNotFound(
+        unsafeBrandId(
+          `${mockTenant.externalId.origin}/${mockTenant.externalId.value}`
+        )
+      )
+    );
   });
   it("Should throw operation forbidden if role isn't internal", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
@@ -194,7 +251,7 @@ describe("internalUpsertTenant", async () => {
     expect(
       tenantService.internalUpsertTenant(tenantSeed, {
         authData: mockAuthData,
-        correlationId,
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
@@ -205,8 +262,8 @@ describe("internalUpsertTenant", async () => {
 
     expect(
       tenantService.internalUpsertTenant(tenantSeed, {
-        authData: mockAuthData,
-        correlationId,
+        authData,
+        correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
       })
