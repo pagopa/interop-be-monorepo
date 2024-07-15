@@ -18,12 +18,12 @@ export function rateLimiterMiddleware(
     const ctx = fromAppContext(req.ctx);
 
     if (!ctx.authData?.organizationId) {
-      const erorrRes = makeApiProblem(
+      const errorRes = makeApiProblem(
         genericError("Missing expected organizationId claim in token"),
         () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
         ctx.logger
       );
-      res.status(erorrRes.status).json(erorrRes).send();
+      res.status(errorRes.status).json(errorRes).send();
     }
 
     const rateLimiterStatus = await rateLimiter.rateLimitByOrganization(
@@ -35,13 +35,13 @@ export function rateLimiterMiddleware(
     res.set(headers);
 
     if (rateLimiterStatus.limitReached) {
-      const erorrRes = makeApiProblem(
+      const errorRes = makeApiProblem(
         tooManyRequestsError(ctx.authData.organizationId),
         () => constants.HTTP_STATUS_TOO_MANY_REQUESTS,
         ctx.logger
       );
 
-      res.status(erorrRes.status).json(erorrRes).send();
+      res.status(errorRes.status).json(errorRes).send();
     } else {
       next();
     }
