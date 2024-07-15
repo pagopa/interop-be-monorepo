@@ -42,7 +42,7 @@ export function initRedisRateLimiter(config: {
 
   const burstOptions: IRateLimiterRedisOptions = {
     ...options,
-    keyPrefix: `burst_${config.limiterGroup}`,
+    keyPrefix: `BURST_${config.limiterGroup}`,
     points: config.maxRequests * config.burstPercentage,
     duration: (config.rateInterval / 1000) * config.burstPercentage,
   };
