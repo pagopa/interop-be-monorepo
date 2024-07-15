@@ -79,6 +79,19 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         results: await Promise.all(agreements),
       };
     },
+
+    async getAgreementById(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enhanceAgreement(agreement, clients, ctx);
+    },
   };
 }
 
