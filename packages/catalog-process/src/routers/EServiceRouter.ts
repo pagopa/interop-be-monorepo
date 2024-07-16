@@ -17,6 +17,7 @@ import {
   TenantId,
   AttributeId,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -27,7 +28,6 @@ import {
   documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { api } from "../model/generated/api.js";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
@@ -77,7 +77,7 @@ const catalogService = catalogServiceBuilder(
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const eservicesRouter = ctx.router(api.api, {
+  const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {
