@@ -95,7 +95,7 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
-  assertEserviceIsActive,
+  assertEserviceHasValidDescriptors,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1532,7 +1532,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterAllowed(eservice.data.producerId, authData);
-      assertEserviceIsActive(eservice.data);
+      assertEserviceHasValidDescriptors(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,

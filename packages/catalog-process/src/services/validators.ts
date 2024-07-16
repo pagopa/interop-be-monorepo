@@ -23,7 +23,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
-  eserviceNotActive,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 
 export function assertRequesterAllowed(
@@ -102,12 +102,12 @@ export function assertRiskAnalysisIsValidForPublication(
   });
 }
 
-export function assertEserviceIsActive(eservice: EService): void {
+export function assertEserviceHasValidDescriptors(eservice: EService): void {
   const isEserviceActive = eservice.descriptors.some(
     (d: Descriptor) =>
       d.state !== descriptorState.draft && d.state !== descriptorState.archived
   );
   if (!isEserviceActive) {
-    throw eserviceNotActive(eservice.id);
+    throw eserviceWithoutValidDescriptors(eservice.id);
   }
 }
