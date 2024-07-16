@@ -4,7 +4,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   generateId,
