@@ -35,6 +35,7 @@ import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
+  tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import {
   CertifiedAttributeQueryResult,
@@ -390,6 +391,10 @@ export function tenantServiceBuilder(
       const certifierId = requesterTenant.data.features.find(
         (feature) => feature.type === "PersistentCertifier"
       )?.certifierId;
+
+      if (!certifierId) {
+        throw tenantIsNotACertifier(organizationId);
+      }
 
       const attribute = await retrieveAttribute(attributeId, readModelService);
 

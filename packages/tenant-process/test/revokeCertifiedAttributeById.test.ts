@@ -21,7 +21,7 @@ import {
   tenantNotFound,
   attributeNotFound,
   tenantIsNotACertifier,
-  certifiedAttributeOriginIsNotCompliantWithCertifier,
+  attributeDoesNotBelongToCertifier,
   attributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import {
@@ -165,7 +165,7 @@ describe("revokeCertifiedAttributeById", async () => {
       )
     ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
   });
-  it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
+  it("Should throw attributeDoesNotBelongToCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
     const notCompliantOriginAttribute: Attribute = {
       ...attribute,
       origin: generateId(),
@@ -188,11 +188,10 @@ describe("revokeCertifiedAttributeById", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      certifiedAttributeOriginIsNotCompliantWithCertifier(
-        notCompliantOriginAttribute.origin!,
+      attributeDoesNotBelongToCertifier(
+        notCompliantOriginAttribute.id,
         requesterTenant.id,
-        targetTenant.id,
-        requesterTenant.features[0].certifierId
+        targetTenant.id
       )
     );
   });
