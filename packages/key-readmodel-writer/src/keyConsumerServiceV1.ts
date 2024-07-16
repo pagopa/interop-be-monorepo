@@ -46,9 +46,6 @@ export async function handleMessageV1(
         "metadata.version": { $lte: message.version },
       });
     })
-    .with({ type: "KeyRelationshipToUserMigrated" }, async () =>
-      Promise.resolve()
-    )
     .with({ type: "ClientDeleted" }, async (message) => {
       await keys.deleteMany({
         "data.clientId": message.data.clientId,
@@ -63,6 +60,7 @@ export async function handleMessageV1(
       { type: "UserRemoved" },
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
+      { type: "KeyRelationshipToUserMigrated" },
       () => Promise.resolve
     )
     .exhaustive();
