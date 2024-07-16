@@ -421,6 +421,7 @@ export function catalogServiceBuilder(
         throw eServiceDuplicate(seed.name);
       }
 
+      const creationDate = new Date();
       const newEService: EService = {
         id: generateId(),
         producerId: authData.organizationId,
@@ -430,7 +431,7 @@ export function catalogServiceBuilder(
         mode: apiEServiceModeToEServiceMode(seed.mode),
         attributes: undefined,
         descriptors: [],
-        createdAt: new Date(),
+        createdAt: creationDate,
         riskAnalysis: [],
       };
 
@@ -465,7 +466,7 @@ export function catalogServiceBuilder(
         suspendedAt: undefined,
         deprecatedAt: undefined,
         archivedAt: undefined,
-        createdAt: new Date(), // TO DO: use newEService.createdAt instead?
+        createdAt: creationDate,
         attributes: { certified: [], declared: [], verified: [] },
       };
 
