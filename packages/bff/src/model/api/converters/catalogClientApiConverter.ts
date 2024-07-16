@@ -164,7 +164,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     (m) => m.kind === tenantMailKind.ContactEmail
   );
 
-  const notDraftDecriptor: bffApi.CompactDescriptor[] =
+  const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
 
   const draftDescriptor: bffApi.CompactDescriptor | undefined =
@@ -184,7 +184,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
     ),
-    descriptors: notDraftDecriptor,
+    descriptors: notDraftDecriptors,
   };
 }
 
