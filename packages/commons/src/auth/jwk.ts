@@ -1,10 +1,7 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
 import {
   jwkDecodingError,
-  JWKKeyInReadModel,
-  KeyReadModel,
   notAllowedPrivateKeyException,
-  missingRequiredJWKClaim,
 } from "pagopa-interop-models";
 
 export const decodeBase64ToPem = (base64String: string): string => {
@@ -43,21 +40,3 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
       {}
     );
 }
-
-export const fromKeyToReadModelJWKKey = (
-  key: KeyReadModel
-): JWKKeyInReadModel => {
-  const jwk = createJWK(decodeBase64ToPem(key.encodedPem));
-  if (!jwk.e || !jwk.kty || !jwk.n) {
-    throw missingRequiredJWKClaim();
-  }
-  return {
-    clientId: key.clientId,
-    kid: key.kid,
-    use: key.use,
-    alg: key.algorithm,
-    e: jwk.e,
-    kty: jwk.kty,
-    n: jwk.n,
-  };
-};

@@ -5,7 +5,7 @@ import {
   toReadModelClient,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { fromKeyToReadModelJWKKey } from "../../commons/src/auth/jwk.js";
+import { fromKeyToReadModelJWKKey } from "./../../commons/src/auth/converters.js";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,

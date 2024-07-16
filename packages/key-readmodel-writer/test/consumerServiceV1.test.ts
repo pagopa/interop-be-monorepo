@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
-import { fromKeyToReadModelJWKKey } from "../../commons/src/auth/jwk.js";
+import { fromKeyToReadModelJWKKey } from "./../../commons/src/auth/converters.js";
 import { keys } from "./utils.js";
 
 describe("Events V1", async () => {
