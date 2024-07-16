@@ -126,7 +126,7 @@ export function catalogServiceBuilder(
     createDescriptor: async (
       eServiceId: string,
       eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
-      headers: Headers
+      { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } = await catalogProcessClient.createDescriptor(
         eServiceDescriptorSeed,
@@ -142,7 +142,7 @@ export function catalogServiceBuilder(
     deleteDraft: async (
       eServiceId: string,
       descriptorId: string,
-      headers: Headers
+      { headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       await catalogProcessClient.deleteDraft(undefined, {
         headers,
@@ -156,7 +156,7 @@ export function catalogServiceBuilder(
       eServiceId: string,
       descriptorId: string,
       updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
-      headers: Headers
+      { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } = await catalogProcessClient.updateDraftDescriptor(
         updateEServiceDescriptorSeed,
