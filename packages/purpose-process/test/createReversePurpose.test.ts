@@ -35,7 +35,7 @@ import {
   genericLogger,
   unexpectedRulesVersionError,
 } from "pagopa-interop-commons";
-import { ApiReversePurposeSeed } from "../src/model/domain/models.js";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   agreementNotFound,
   duplicatedPurposeTitle,
@@ -87,7 +87,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -179,7 +179,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -231,7 +231,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -285,7 +285,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: randomRiskAnalysisId,
@@ -339,7 +339,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -391,7 +391,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -436,7 +436,7 @@ describe("createReversePurpose", () => {
       mode: eserviceMode.receive,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -495,7 +495,7 @@ describe("createReversePurpose", () => {
       consumerId: consumer.id,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -556,7 +556,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,

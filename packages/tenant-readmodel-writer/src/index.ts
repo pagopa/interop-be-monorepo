@@ -1,18 +1,14 @@
-/* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  readModelWriterConfig,
-  tenantTopicConfig,
   decodeKafkaMessage,
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEventV1 } from "pagopa-interop-models";
 import { handleMessage } from "./tenantConsumerService.js";
+import { config } from "./config/config.js";
 
-const config = readModelWriterConfig();
-const { tenantTopic } = tenantTopicConfig();
 const { tenants } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -29,10 +25,10 @@ async function processMessage({
     correlationId: decodedMessage.correlation_id,
   });
 
-  await handleMessage(decodedMessage, tenants, loggerInstance);
+  await handleMessage(decodedMessage, tenants);
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
 
-await runConsumer(config, [tenantTopic], processMessage);
+await runConsumer(config, [config.tenantTopic], processMessage);

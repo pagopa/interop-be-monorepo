@@ -32,6 +32,7 @@ import {
   RiskAnalysis,
   eserviceMode,
 } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
   purposeNotFound,
@@ -45,10 +46,6 @@ import {
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
-import {
-  ApiPurposeUpdateContent,
-  ApiReversePurposeUpdateContent,
-} from "../src/model/domain/models.js";
 import {
   getMockEService,
   buildRiskAnalysisSeed,
@@ -68,8 +65,8 @@ describe("updatePurpose and updateReversePurpose", () => {
   let purposeForReceive: Purpose;
   let purposeForDeliver: Purpose;
   let validRiskAnalysis: RiskAnalysis;
-  let purposeUpdateContent: ApiPurposeUpdateContent;
-  let reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
+  let purposeUpdateContent: purposeApi.PurposeUpdateContent;
+  let reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent;
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -477,7 +474,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       },
     };
 
-    const mockPurposeUpdateContent: ApiPurposeUpdateContent = {
+    const mockPurposeUpdateContent: purposeApi.PurposeUpdateContent = {
       ...purposeUpdateContent,
       riskAnalysisForm: buildRiskAnalysisSeed(invalidRiskAnalysis),
     };

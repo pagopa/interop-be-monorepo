@@ -35,12 +35,8 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { inject, afterEach } from "vitest";
-import {
-  EServiceDescriptorSeed,
-  EServiceRiskAnalysisSeed,
-} from "../src/model/domain/models.js";
-import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
@@ -79,7 +75,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
 
 export const buildDescriptorSeed = (
   descriptor: Descriptor
-): EServiceDescriptorSeed => ({
+): catalogApi.EServiceDescriptorSeed => ({
   audience: descriptor.audience,
   voucherLifespan: descriptor.voucherLifespan,
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
@@ -95,7 +91,7 @@ export const buildDescriptorSeed = (
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): EServiceRiskAnalysisSeed => ({
+): catalogApi.EServiceRiskAnalysisSeed => ({
   name: riskAnalysis.name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
@@ -149,16 +145,29 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
   verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
 
-export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
-  contentType: "json",
-  prettyName: "prettyName",
-  serverUrls: ["pagopa.it"],
-  documentId: generateId(),
-  kind: "INTERFACE",
-  filePath: "filePath",
-  fileName: "fileName",
-  checksum: "checksum",
-});
+export const buildInterfaceSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
+export const buildDocumentSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "DOCUMENT",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
 
 export const getMockDocument = (): Document => ({
   name: "fileName",
