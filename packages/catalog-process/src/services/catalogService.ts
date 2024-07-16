@@ -862,10 +862,8 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
-      // eslint-disable-next-line functional/no-let
-      let eserviceVersion = eservice.metadata.version;
-      // eslint-disable-next-line functional/no-let
-      let newDescriptor: Descriptor = {
+      const eserviceVersion = eservice.metadata.version;
+      const newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
         version: newVersion,
@@ -901,46 +899,53 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      // eslint-disable-next-line functional/no-let
-      let events: Array<CreateEvent<EServiceEvent>> = [descriptorCreationEvent];
+      type AccumulatorType = {
+        events: Array<CreateEvent<EServiceEvent>>;
+        descriptorWithDocs: Descriptor;
+      };
+      const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
+        (acc: AccumulatorType, document, index) => {
+          const newDocument: Document = {
+            id: unsafeBrandId(document.documentId),
+            name: document.fileName,
+            contentType: document.contentType,
+            prettyName: document.prettyName,
+            path: document.filePath,
+            checksum: document.checksum,
+            uploadDate: new Date(),
+          };
 
-      for (const document of eserviceDescriptorSeed.docs) {
-        if (
-          newDescriptor.docs.some((d) => d.prettyName === document.prettyName)
-        ) {
-          throw prettyNameDuplicate(document.prettyName, newDescriptor.id);
+          const descriptorWithDocs: Descriptor = {
+            ...acc.descriptorWithDocs,
+            docs: [...acc.descriptorWithDocs.docs, newDocument],
+          };
+          const updatedEService = replaceDescriptor(
+            newEservice,
+            descriptorWithDocs
+          );
+          const version = eserviceVersion + index + 1;
+          const documentEvent = toCreateEventEServiceDocumentAdded(
+            version,
+            {
+              descriptorId,
+              documentId: unsafeBrandId(document.documentId),
+              eservice: updatedEService,
+            },
+            correlationId
+          );
+          return {
+            events: [...acc.events, documentEvent],
+            descriptorWithDocs,
+          } as AccumulatorType;
+        },
+        {
+          events: [descriptorCreationEvent],
+          descriptorWithDocs: newDescriptor,
         }
-        const newDocument: Document = {
-          id: unsafeBrandId(document.documentId),
-          name: document.fileName,
-          contentType: document.contentType,
-          prettyName: document.prettyName,
-          path: document.filePath,
-          checksum: document.checksum,
-          uploadDate: new Date(),
-        };
-
-        newDescriptor = {
-          ...newDescriptor,
-          docs: [...newDescriptor.docs, newDocument],
-        };
-
-        const updatedEService = replaceDescriptor(newEservice, newDescriptor);
-
-        const documentEvent = toCreateEventEServiceDocumentAdded(
-          ++eserviceVersion,
-          {
-            descriptorId,
-            documentId: unsafeBrandId(document.documentId),
-            eservice: updatedEService,
-          },
-          correlationId
-        );
-        events = [...events, documentEvent];
-      }
+      );
 
       await repository.createEvents(events);
-      return newDescriptor;
+      return descriptorWithDocs;
     },
 
     async deleteDraftDescriptor(
