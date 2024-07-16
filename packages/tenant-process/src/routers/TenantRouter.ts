@@ -31,7 +31,7 @@ import {
   revokeCertifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
@@ -430,13 +430,13 @@ const tenantsRouter = (
         try {
           const { tenantId } = req.params;
           const tenant = await tenantService.addCertifiedAttribute(
-            unsafeBrandId(tenantId),
-            ctx.logger,
             {
+              tenantId: unsafeBrandId(tenantId),
               tenantAttributeSeed: req.body,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
-            }
+            },
+            ctx.logger
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
