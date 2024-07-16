@@ -11,14 +11,12 @@ import {
   generateId,
   notAllowedPrivateKeyException,
   toClientV2,
-  toReadModelKey,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockKey,
   readLastEventByStreamId,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
 import { UserResource } from "pagopa-interop-selfcare-v2-client";
@@ -39,7 +37,6 @@ import {
 import {
   addOneClient,
   authorizationService,
-  keys,
   postgresDB,
   selfcareV2Client,
 } from "./utils.js";
@@ -292,17 +289,53 @@ describe("createKeys", () => {
       })
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
-  it("should throw keyAlreadyExists if the kid already exist in  the client keys ", async () => {
+  it("should throw keyAlreadyExists if the kid already exists in the keys of that client ", async () => {
     const key: Key = {
       ...getMockKey(),
       kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };
-    await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelKey(key), keys);
+
+    const clientWithDuplicateKey: Client = {
+      ...mockClient,
+      keys: [key],
+    };
+    await addOneClient(clientWithDuplicateKey);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
     expect(
       authorizationService.createKeys({
-        clientId: mockClient.id,
+        clientId: clientWithDuplicateKey.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it("should throw keyAlreadyExists if the kid already exists in the keys of a different client ", async () => {
+    const key: Key = {
+      ...getMockKey(),
+      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
+    };
+
+    const client: Client = {
+      ...mockClient,
+      id: generateId(),
+    };
+
+    const clientWithDuplicateKey: Client = {
+      ...mockClient,
+      id: generateId(),
+      keys: [key],
+    };
+    await addOneClient(client);
+    await addOneClient(clientWithDuplicateKey);
+
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    expect(
+      authorizationService.createKeys({
+        clientId: client.id,
         authData: mockAuthData,
         keysSeeds,
         correlationId: generateId(),
