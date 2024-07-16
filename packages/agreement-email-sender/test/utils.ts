@@ -13,12 +13,9 @@ import {
 import axios, { AxiosResponse } from "axios";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { agreementEmailSenderConfig } from "../src/utilities/config.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
-
-export const config = agreementEmailSenderConfig();
 
 export const { cleanup, readModelRepository, emailManager } =
   setupTestContainersVitest(

@@ -1,32 +1,21 @@
 import { createHash } from "crypto";
 import {
-  InstitutionResource,
-  ProductResource,
-  UserResource,
-  UserResponse,
-} from "pagopa-interop-selfcare-v2-client";
+  bffApi,
+  attributeRegistryApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import { AttributeProcessApiAttributeSeed } from "../api/attributeTypes.js";
-import {
-  BffApiSelfcareInstitution,
-  BffApiSelfcareProduct,
-  BffApiSelfcareUser,
-  BffApiAttributeSeed,
-  BffApiCompactClient,
-  BffApiCompactUser,
-} from "../api/bffTypes.js";
-import { AuthProcessApiClientWithKeys } from "../api/clientTypes.js";
 import { selfcareEntityNotFilled } from "./errors.js";
 
-export const toBffApiSelfcareInstitution = (
-  input: InstitutionResource
-): BffApiSelfcareInstitution =>
+export const toApiSelfcareInstitution = (
+  input: selfcareV2ClientApi.InstitutionResource
+): bffApi.SelfcareInstitution =>
   match(input)
     .with(
       {
-        id: P.not(P.nullish),
-        description: P.not(P.nullish),
-        userProductRoles: P.not(P.nullish),
+        id: P.nonNullable,
+        description: P.nonNullable,
+        userProductRoles: P.nonNullable,
       },
       (institution) => ({
         id: institution.id,
@@ -34,33 +23,48 @@ export const toBffApiSelfcareInstitution = (
         userProductRoles: institution.userProductRoles,
       })
     )
+    .with({ id: P.nullish }, () => {
+      throw selfcareEntityNotFilled("InstitutionResource", "id");
+    })
+    .with({ description: P.nullish }, () => {
+      throw selfcareEntityNotFilled("InstitutionResource", "description");
+    })
+    .with({ userProductRoles: P.nullish }, () => {
+      throw selfcareEntityNotFilled("InstitutionResource", "userProductRoles");
+    })
     .otherwise(() => {
-      throw selfcareEntityNotFilled("InstitutionResource");
+      throw selfcareEntityNotFilled("InstitutionResource", "unkown");
     });
 
-export const toBffApiSelfcareProduct = (
-  input: ProductResource
-): BffApiSelfcareProduct =>
+export const toApiSelfcareProduct = (
+  input: selfcareV2ClientApi.ProductResource
+): bffApi.SelfcareProduct =>
   match(input)
-    .with({ id: P.not(P.nullish), title: P.not(P.nullish) }, (product) => ({
+    .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
       id: product.id,
       name: product.title,
     }))
+    .with({ id: P.nullish }, () => {
+      throw selfcareEntityNotFilled("ProductResource", "id");
+    })
+    .with({ title: P.nullish }, () => {
+      throw selfcareEntityNotFilled("ProductResource", "title");
+    })
     .otherwise(() => {
-      throw selfcareEntityNotFilled("ProductResource");
+      throw selfcareEntityNotFilled("ProductResource", "unknown");
     });
 
-export const toBffApiSelfcareUser = (
-  input: UserResource,
+export const toApiSelfcareUser = (
+  input: selfcareV2ClientApi.UserResource,
   tenantId: string
-): BffApiSelfcareUser =>
+): bffApi.User =>
   match(input)
     .with(
       {
-        id: P.not(P.nullish),
-        name: P.not(P.nullish),
-        surname: P.not(P.nullish),
-        roles: P.not(P.nullish),
+        id: P.nonNullable,
+        name: P.nonNullable,
+        surname: P.nonNullable,
+        roles: P.nonNullable,
       },
       (user) => ({
         userId: user.id,
@@ -70,29 +74,41 @@ export const toBffApiSelfcareUser = (
         tenantId,
       })
     )
+    .with({ id: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserResource", "id");
+    })
+    .with({ name: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserResource", "name");
+    })
+    .with({ surname: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserResource", "surname");
+    })
+    .with({ roles: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserResource", "roles");
+    })
     .otherwise(() => {
-      throw selfcareEntityNotFilled("UserResource");
+      throw selfcareEntityNotFilled("UserResource", "unknown");
     });
 
-export const toProcessAttributeSeed = (
-  seed: BffApiAttributeSeed
-): AttributeProcessApiAttributeSeed => ({
+export const toApiAttributeProcessSeed = (
+  seed: bffApi.AttributeSeed
+): attributeRegistryApi.CertifiedAttributeSeed => ({
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
 
 export const toBffApiCompactClient = (
   input: AuthProcessApiClientWithKeys
-): BffApiCompactClient => ({
+): bffApi.CompactClient => ({
   hasKeys: input.keys.length > 0,
   id: input.client.id,
   name: input.client.name,
 });
 
 export const toBffApiCompactUser = (
-  input: UserResponse,
+  input: selfcareV2ClientApi.UserResponse,
   userId: string
-): BffApiCompactUser =>
+): bffApi.CompactUser =>
   match(input)
     .with({ name: P.nullish, surname: P.nullish }, () => ({
       userId,
