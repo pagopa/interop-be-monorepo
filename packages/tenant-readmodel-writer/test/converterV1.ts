@@ -21,6 +21,7 @@ import {
   TenantUnitTypeV1,
   tenantUnitType,
   TenantUnitType,
+  dateToBigInt,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -40,27 +41,19 @@ export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
 export function toTenantVerifierV1(verifier: TenantVerifier): TenantVerifierV1 {
   return {
     id: verifier.id,
-    verificationDate: BigInt(verifier.verificationDate.getTime()),
-    expirationDate: verifier.expirationDate
-      ? BigInt(verifier.expirationDate?.getTime())
-      : undefined,
-    extensionDate: verifier.extensionDate
-      ? BigInt(verifier.extensionDate?.getTime())
-      : undefined,
+    verificationDate: dateToBigInt(verifier.verificationDate),
+    expirationDate: dateToBigInt(verifier.expirationDate),
+    extensionDate: dateToBigInt(verifier.extensionDate),
   };
 }
 
 export function toTenantRevokerV1(revoker: TenantRevoker): TenantRevokerV1 {
   return {
     id: revoker.id,
-    verificationDate: BigInt(revoker.verificationDate.getTime()),
-    expirationDate: revoker.expirationDate
-      ? BigInt(revoker.expirationDate?.getTime())
-      : undefined,
-    extensionDate: revoker.extensionDate
-      ? BigInt(revoker.extensionDate?.getTime())
-      : undefined,
-    revocationDate: BigInt(revoker.revocationDate.getTime()),
+    verificationDate: dateToBigInt(revoker.verificationDate),
+    expirationDate: dateToBigInt(revoker.expirationDate),
+    extensionDate: dateToBigInt(revoker.extensionDate),
+    revocationDate: dateToBigInt(revoker.revocationDate),
   };
 }
 
@@ -71,10 +64,8 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         oneofKind: "certifiedAttribute",
         certifiedAttribute: {
           id: attribute.id,
-          assignmentTimestamp: BigInt(attribute.assignmentTimestamp.getTime()),
-          revocationTimestamp: attribute.revocationTimestamp
-            ? BigInt(attribute.revocationTimestamp?.getTime())
-            : undefined,
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
+          revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
         },
       },
     }))
@@ -83,7 +74,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         oneofKind: "verifiedAttribute",
         verifiedAttribute: {
           id: attribute.id,
-          assignmentTimestamp: BigInt(attribute.assignmentTimestamp.getTime()),
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
           verifiedBy: attribute.verifiedBy.map(toTenantVerifierV1),
           revokedBy: attribute.revokedBy.map(toTenantRevokerV1),
         },
@@ -94,7 +85,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         oneofKind: "declaredAttribute",
         declaredAttribute: {
           id: attribute.id,
-          assignmentTimestamp: BigInt(attribute.assignmentTimestamp.getTime()),
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
         },
       },
     }))
@@ -105,7 +96,7 @@ export function toTenantMailV1(mail: TenantMail): TenantMailV1 {
   return {
     kind: toTenantMailKindV1(mail.kind),
     address: mail.address,
-    createdAt: BigInt(mail.createdAt.getTime()),
+    createdAt: dateToBigInt(mail.createdAt),
     description: mail.description ?? undefined,
   };
 }
@@ -136,13 +127,11 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   ...tenant,
   features: tenant.features.map(toFeatureV1),
   attributes: tenant.attributes.map(toAttributeV1),
-  createdAt: BigInt(tenant.createdAt.getTime()),
-  updatedAt: tenant.updatedAt ? BigInt(tenant.updatedAt.getTime()) : undefined,
+  createdAt: dateToBigInt(tenant.createdAt),
+  updatedAt: dateToBigInt(tenant.updatedAt),
   mails: tenant.mails.map(toTenantMailV1),
   kind: tenant.kind ? toTenantKindV1(tenant.kind) : undefined,
-  onboardedAt: tenant.createdAt
-    ? BigInt(tenant.createdAt.getTime())
-    : undefined,
+  onboardedAt: dateToBigInt(tenant.createdAt),
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV1(tenant.subUnitType)
     : undefined,

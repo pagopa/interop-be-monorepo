@@ -6,6 +6,8 @@ import {
   TenantDeletedV1,
   SelfcareMappingCreatedV1,
   SelfcareMappingDeletedV1,
+  TenantMailAddedV1,
+  TenantMailDeletedV1,
 } from "../gen/v1/tenant/events.js";
 import {
   TenantOnboardedV2,
@@ -48,6 +50,12 @@ export function tenantEventToBinaryDataV1(event: TenantEventV1): Uint8Array {
     )
     .with({ type: "SelfcareMappingDeleted" }, ({ data }) =>
       SelfcareMappingDeletedV1.toBinary(data)
+    )
+    .with({ type: "TenantMailAdded" }, ({ data }) =>
+      TenantMailAddedV1.toBinary(data)
+    )
+    .with({ type: "TenantMailDeleted" }, ({ data }) =>
+      TenantMailDeletedV1.toBinary(data)
     )
     .exhaustive();
 }
@@ -121,6 +129,16 @@ export const TenantEventV1 = z.discriminatedUnion("type", [
     event_version: z.literal(1),
     type: z.literal("SelfcareMappingDeleted"),
     data: protobufDecoder(SelfcareMappingDeletedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("TenantMailAdded"),
+    data: protobufDecoder(TenantMailAddedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("TenantMailDeleted"),
+    data: protobufDecoder(TenantMailDeletedV1),
   }),
 ]);
 

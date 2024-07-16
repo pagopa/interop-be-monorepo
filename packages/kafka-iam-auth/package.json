@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-msk-iam-sasl-signer-js": "^1.0.0",
+    "aws-msk-iam-sasl-signer-js": "1.0.0",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -3,13 +3,10 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
-  agreementTopicConfig,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initEmailManager,
-  kafkaConsumerConfig,
   logger,
-  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import {
   AgreementEvent,
@@ -21,22 +18,26 @@ import {
   sendAgreementActivationEmail,
   senderAgreementSubmissionEmail,
 } from "./services/agreementEmailSenderService.js";
-import {
-  pecEmailManagerConfig,
-  emailManagerConfig,
-  agreementEmailSenderConfig,
-} from "./utilities/config.js";
 
-const config = agreementEmailSenderConfig();
-const kafkaConfig = kafkaConsumerConfig();
-const readModelConfig = readModelWriterConfig();
-const topicsConfig = agreementTopicConfig();
-const pecEmailConfig = pecEmailManagerConfig();
-const pecEmailManager = initEmailManager(pecEmailConfig);
-const emailConfig = emailManagerConfig();
-const emailManager = initEmailManager(emailConfig);
+import { config } from "./config/config.js";
+
+const emailManager = initEmailManager({
+  smtpAddress: config.smtpAddress,
+  smtpPort: config.smtpPort,
+  smtpSecure: config.smtpSecure,
+  smtpUsername: config.smtpUsername,
+  smtpPassword: config.smtpPassword,
+});
+const pecEmailManager = initEmailManager({
+  smtpAddress: config.pecSmtpAddress,
+  smtpPort: config.pecSmtpPort,
+  smtpSecure: config.pecSmtpSecure,
+  smtpUsername: config.pecSmtpUsername,
+  smtpPassword: config.pecSmtpPassword,
+});
+
 const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(readModelConfig)
+  ReadModelRepository.init(config)
 );
 const templateService = buildHTMLTemplateService();
 
@@ -128,4 +129,4 @@ export async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(kafkaConfig, [topicsConfig.agreementTopic], processMessage);
+await runConsumer(config, [config.agreementTopic], processMessage);

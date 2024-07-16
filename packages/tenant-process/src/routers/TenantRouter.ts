@@ -30,7 +30,7 @@ import {
   getCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
