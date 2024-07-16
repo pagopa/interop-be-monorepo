@@ -96,9 +96,9 @@ export function catalogServiceBuilder(
             ...queries,
             eservicesIds: queries.eservicesIds,
             producersIds: queries.producersIds,
-            states: queries.states.join(","),
+            states: queries.states,
             attributesIds: queries.attributesIds,
-            agreementStates: queries.agreementStates.join(","),
+            agreementStates: queries.agreementStates,
           },
         });
 
