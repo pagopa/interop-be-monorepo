@@ -50,7 +50,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantDeleted", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants, 1);
+      await writeInReadmodel<Tenant>(mockTenant, tenants);
 
       const payload: TenantDeletedV1 = {
         tenantId: mockTenant.id,
@@ -74,7 +74,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantUpdated", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants, 1);
+      await writeInReadmodel<Tenant>(mockTenant, tenants);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -105,7 +105,7 @@ describe("Integration tests", async () => {
     });
 
     it("SelfcareMappingCreated", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants, 1);
+      await writeInReadmodel<Tenant>(mockTenant, tenants);
 
       const selfcareId = generateId();
 
@@ -145,11 +145,10 @@ describe("Integration tests", async () => {
         ...mockTenant,
         selfcareId,
       };
-      await writeInReadmodel<Tenant>(tenant, tenants, 1);
+      await writeInReadmodel<Tenant>(tenant, tenants);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
-        selfcareId: undefined,
       };
 
       const payload: SelfcareMappingDeletedV1 = {
@@ -192,8 +191,9 @@ describe("Integration tests", async () => {
         ],
       };
       const payload: TenantMailAddedV1 = {
-        tenantId: mockTenant.id,
+        tenantId: updatedTenant.id,
         mailId,
+        tenant: toTenantV1(updatedTenant),
       };
 
       const message: TenantEventEnvelope = {
