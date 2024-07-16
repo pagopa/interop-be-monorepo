@@ -109,7 +109,7 @@ export function toBffCatalogApiDescriptorAttribute(
   });
 }
 
-export function toBffCatalogApiDescriptorInterface(
+export function toBffCatalogApiDescriptorDoc(
   document: catalogApi.EServiceDoc
 ): bffApi.EServiceDoc {
   return {
