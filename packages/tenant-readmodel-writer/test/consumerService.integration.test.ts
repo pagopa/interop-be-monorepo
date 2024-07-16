@@ -11,6 +11,8 @@ import {
   TenantCreatedV1,
   TenantDeletedV1,
   TenantEventEnvelope,
+  TenantMailAddedV1,
+  TenantMailDeletedV1,
   TenantUpdatedV1,
   generateId,
 } from "pagopa-interop-models";
@@ -174,8 +176,89 @@ describe("Integration tests", async () => {
       });
     });
 
-    it("TenantMailAdded", () => {});
+    it("TenantMailAdded", async () => {
+      await writeInReadmodel<Tenant>(mockTenant, tenants);
 
-    it("TenantMailDeleted", () => {});
+      const mailId = generateId();
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        mails: [
+          {
+            id: mailId,
+            createdAt: new Date(),
+            kind: "CONTACT_EMAIL",
+            address: "test@pagopa.it",
+          },
+        ],
+      };
+      const payload: TenantMailAddedV1 = {
+        tenantId: mockTenant.id,
+        mailId,
+      };
+
+      const message: TenantEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockTenant.id,
+        version: 2,
+        type: "TenantMailAdded",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessage(message, tenants);
+
+      const retrievedTenant = await tenants.findOne({
+        "data.id": mockTenant.id,
+      });
+
+      expect(retrievedTenant).toMatchObject({
+        data: updatedTenant,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("TenantMailDeleted", async () => {
+      const mailId = generateId();
+      const tenantWithMail: Tenant = {
+        ...mockTenant,
+        mails: [
+          {
+            id: mailId,
+            createdAt: new Date(),
+            kind: "CONTACT_EMAIL",
+            address: "test@pagopa.it",
+          },
+        ],
+      };
+      await writeInReadmodel<Tenant>(tenantWithMail, tenants);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        mails: [],
+      };
+      const payload: TenantMailDeletedV1 = {
+        tenantId: mockTenant.id,
+        mailId,
+      };
+      const message: TenantEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockTenant.id,
+        version: 2,
+        type: "TenantMailDeleted",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessage(message, tenants);
+
+      const retrievedTenant = await tenants.findOne({
+        "data.id": mockTenant.id,
+      });
+
+      expect(retrievedTenant).toMatchObject({
+        data: updatedTenant,
+        metadata: { version: 2 },
+      });
+    });
   });
 });
