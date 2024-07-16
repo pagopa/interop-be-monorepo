@@ -626,6 +626,9 @@ importers:
       pagopa-interop-selfcare-v2-client:
         specifier: workspace:*
         version: link:../selfcare-v2-client
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -645,6 +648,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8

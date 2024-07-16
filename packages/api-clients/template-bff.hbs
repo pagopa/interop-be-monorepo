@@ -1,5 +1,6 @@
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
+import qs from "qs";
 
 {{#each schemas}}
 export const {{@key}} = {{{this}}};
