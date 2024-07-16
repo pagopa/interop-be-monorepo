@@ -85,6 +85,7 @@ import {
   eServiceRiskAnalysisNotFound,
   prettyNameDuplicate,
   riskAnalysisDuplicated,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -95,7 +96,6 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
-  assertEserviceHasValidDescriptors,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1532,7 +1532,15 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterAllowed(eservice.data.producerId, authData);
-      assertEserviceHasValidDescriptors(eservice.data);
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
 
       const updatedEservice: EService = {
         ...eservice.data,
