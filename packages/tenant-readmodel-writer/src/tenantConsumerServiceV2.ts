@@ -12,7 +12,7 @@ export async function handleMessageV2(
     .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
       await tenants.deleteOne({
         "data.id": message.stream_id,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with(
@@ -27,11 +27,12 @@ export async function handleMessageV2(
       { type: "TenantVerifiedAttributeExpirationUpdated" },
       { type: "TenantVerifiedAttributeExtensionUpdated" },
       { type: "TenantMailAdded" },
+      { type: "TenantKindUpdated" },
       async (message) =>
         await tenants.updateOne(
           {
             "data.id": message.stream_id,
-            "metadata.version": { $lt: message.version },
+            "metadata.version": { $lte: message.version },
           },
           {
             $set: {

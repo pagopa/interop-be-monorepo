@@ -61,3 +61,8 @@ message TenantMailAddedV2 {
   string mailId = 1;
   TenantV2 tenant = 2;
 }
+
+message TenantKindUpdatedV2 {
+  string oldKind = 1;
+  TenantV2 tenant = 2;
+}

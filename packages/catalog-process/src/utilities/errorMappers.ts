@@ -60,6 +60,7 @@ export const documentCreateErrorMapper = (
       "interfaceAlreadyExists",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -73,7 +74,7 @@ export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const documentUpdateDeleteErrorMapper = (
+export const documentDeleteErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -84,6 +85,21 @@ export const documentUpdateDeleteErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const documentUpdateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eServiceDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -231,6 +247,7 @@ export const createRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("riskAnalysisDuplicated", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateRiskAnalysisErrorMapper = (
@@ -249,6 +266,7 @@ export const updateRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("riskAnalysisDuplicated", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteRiskAnalysisErrorMapper = (
