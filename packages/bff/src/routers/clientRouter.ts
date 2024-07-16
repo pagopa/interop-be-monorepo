@@ -6,23 +6,23 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { api } from "../model/generated/api.js";
+import { bffApi } from "pagopa-interop-api-clients";
 import { clientServiceBuilder } from "../services/clientService.js";
+import { config } from "../config/config.js";
+import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { fromBffAppContext } from "../utilities/context.js";
 import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
-import { config } from "../utilities/config.js";
-import { fromBffAppContext } from "../utilities/context.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
   processClients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const clientRouter = ctx.router(api.api, {
+  const clientRouter = ctx.router(bffApi.clientsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 

@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { UserId } from "pagopa-interop-models";
-import {
-  InstitutionResource,
-  ProductResource,
-  SelfcareV2Client,
-  UserResource,
-} from "pagopa-interop-selfcare-v2-client";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { userNotFound } from "../model/domain/errors.js";
 
 export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
@@ -15,7 +11,7 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
       userId: UserId,
       userIdQuery: string,
       institutionId: string
-    ): Promise<UserResource> {
+    ): Promise<selfcareV2ClientApi.UserResource> {
       const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
         params: { institutionId },
         queries: {
@@ -24,7 +20,7 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
         },
       });
 
-      const user = users.find((u) => u.id === userIdQuery);
+      const user = users.at(0);
       if (!user) {
         throw userNotFound(userIdQuery, institutionId);
       }
@@ -34,7 +30,7 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
     async getSelfcareInstitutionsProducts(
       userId: UserId,
       institutionId: string
-    ): Promise<ProductResource[]> {
+    ): Promise<selfcareV2ClientApi.ProductResource[]> {
       return selfcareV2Client.getInstitutionUserProductsUsingGET({
         params: { institutionId },
         queries: { userId },
@@ -43,7 +39,7 @@ export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
 
     async getSelfcareInstitutions(
       userId: UserId
-    ): Promise<InstitutionResource[]> {
+    ): Promise<selfcareV2ClientApi.InstitutionResource[]> {
       return selfcareV2Client.getInstitutionsUsingGET({
         queries: { userIdForAuth: userId },
       });

@@ -6,17 +6,20 @@ import {
 
 export const errorCodes = {
   purposeNotFound: "0001",
-  userNotFound: "0001",
-  selfcareEntityNotFilled: "0032",
+  userNotFound: "0002",
+  selfcareEntityNotFilled: "0003",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function selfcareEntityNotFilled(entity: string): ApiError<ErrorCodes> {
+export function selfcareEntityNotFilled(
+  className: string,
+  field: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Selfcare entity not filled for ${entity}`,
+    detail: `Selfcare entity ${className} with field ${field} not filled`,
     code: "selfcareEntityNotFilled",
     title: "Selfcare Entity not filled",
   });
