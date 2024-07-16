@@ -25,7 +25,7 @@ import {
   tenantNotFound,
   attributeNotFound,
   tenantIsNotACertifier,
-  certifiedAttributeOriginIsNotCompliantWithCertifier,
+  attributeDoesNotBelongToCertifier,
 } from "../src/model/domain/errors.js";
 import { ApiCertifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
@@ -90,7 +90,7 @@ describe("addCertifiedAttribute", async () => {
 
     expect(writtenEvent).toMatchObject({
       stream_id: targetTenant.id,
-      version: "1",
+      version: "2",
       type: "TenantCertifiedAttributeAssigned",
       event_version: 2,
     });
@@ -146,7 +146,7 @@ describe("addCertifiedAttribute", async () => {
 
     expect(writtenEvent).toMatchObject({
       stream_id: tenantWithCertifiedAttribute.id,
-      version: "1",
+      version: "2",
       type: "TenantCertifiedAttributeAssigned",
       event_version: 2,
     });
@@ -249,7 +249,7 @@ describe("addCertifiedAttribute", async () => {
       )
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
-  it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
+  it("Should throw attributeDoesNotBelongToCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
     const notCompliantOriginAttribute: Attribute = {
       ...attribute,
       origin: generateId(),
@@ -272,11 +272,10 @@ describe("addCertifiedAttribute", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      certifiedAttributeOriginIsNotCompliantWithCertifier(
-        notCompliantOriginAttribute.origin!,
+      attributeDoesNotBelongToCertifier(
+        notCompliantOriginAttribute.id,
         requesterTenant.id,
-        targetTenant.id,
-        requesterTenant.features[0].certifierId
+        targetTenant.id
       )
     );
   });
