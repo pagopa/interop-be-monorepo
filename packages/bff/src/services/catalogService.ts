@@ -129,6 +129,38 @@ const getBulkAttributes = async (
   return await attributesBulk(0, []);
 };
 
+const getEserviceDesciptor = (
+  eservice: catalogApi.EService,
+  descriptorId: string
+): catalogApi.EServiceDescriptor => {
+  const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+
+  if (!descriptor) {
+    throw eserviceDescriptorNotFound(
+      unsafeBrandId<EServiceId>(eservice.id),
+      unsafeBrandId<DescriptorId>(descriptorId)
+    );
+  }
+
+  return descriptor;
+};
+
+const getAttributeIds = (
+  descriptor: catalogApi.EServiceDescriptor
+): string[] => {
+  return [
+    ...descriptor.attributes.certified.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+    ...descriptor.attributes.declared.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+    ...descriptor.attributes.verified.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+  ];
+};
+
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
@@ -198,28 +230,9 @@ export function catalogServiceBuilder(
         );
       }
 
-      const descriptor = eservice.descriptors.find(
-        (e) => e.id === descriptorId
-      );
+      const descriptor = getEserviceDesciptor(eservice, descriptorId);
 
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(
-          unsafeBrandId<EServiceId>(eServiceId),
-          unsafeBrandId<DescriptorId>(descriptorId)
-        );
-      }
-
-      const descriptorAttributeIds: string[] = [
-        ...descriptor.attributes.certified.flatMap((atts) =>
-          atts.map((att) => att.id)
-        ),
-        ...descriptor.attributes.declared.flatMap((atts) =>
-          atts.map((att) => att.id)
-        ),
-        ...descriptor.attributes.verified.flatMap((atts) =>
-          atts.map((att) => att.id)
-        ),
-      ];
+      const descriptorAttributeIds = getAttributeIds(descriptor);
 
       const attributes = await getBulkAttributes(
         attributeProcessClient,
