@@ -430,7 +430,7 @@ export function tenantServiceBuilder(
       logger: Logger
     ): Promise<Tenant> {
       logger.info(
-        `Revoking declared attribute ${attributeId} to ${organizationId}`
+        `Revoking declared attribute ${attributeId} to tenant ${organizationId}`
       );
       const requesterTenant = await retrieveTenant(
         organizationId,
