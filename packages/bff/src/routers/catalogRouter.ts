@@ -79,16 +79,16 @@ const catalogRouter = (
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
       async (req, res) => {
-        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.activateDescriptor(
             req.params.eServiceId,
             req.params.descriptorId,
-            headers
+            ctx
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -96,17 +96,17 @@ const catalogRouter = (
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       async (req, res) => {
-        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const { id } = await catalogService.updateDescriptor(
             req.params.eServiceId,
             req.params.descriptorId,
             req.body,
-            headers
+            ctx
           );
           return res.status(200).json().send({ id });
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -114,16 +114,16 @@ const catalogRouter = (
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       async (req, res) => {
-        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.publishDescriptor(
             req.params.eServiceId,
             req.params.descriptorId,
-            headers
+            ctx
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -131,16 +131,16 @@ const catalogRouter = (
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
       async (req, res) => {
-        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.suspendDescriptor(
             req.params.eServiceId,
             req.params.descriptorId,
-            headers
+            ctx
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
