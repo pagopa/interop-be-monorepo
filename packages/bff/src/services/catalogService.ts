@@ -15,7 +15,7 @@ import {
 import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   toBffCatalogApiDescriptorAttribute,
-  toBffCatalogApiDescriptorInterface,
+  toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
@@ -274,8 +274,8 @@ export function catalogServiceBuilder(
         description: descriptor.description,
         interface:
           descriptor.interface &&
-          toBffCatalogApiDescriptorInterface(descriptor.interface),
-        docs: descriptor.docs.map(toBffCatalogApiDescriptorInterface),
+          toBffCatalogApiDescriptorDoc(descriptor.interface),
+        docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
         state: descriptor.state,
         audience: descriptor.audience,
         voucherLifespan: descriptor.voucherLifespan,
