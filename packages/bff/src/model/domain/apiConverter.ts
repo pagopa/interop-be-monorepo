@@ -3,6 +3,7 @@ import {
   bffApi,
   attributeRegistryApi,
   selfcareV2ClientApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
@@ -98,11 +99,11 @@ export const toApiAttributeProcessSeed = (
 });
 
 export const toBffApiCompactClient = (
-  input: AuthProcessApiClientWithKeys
+  input: authorizationApi.Client
 ): bffApi.CompactClient => ({
   hasKeys: input.keys.length > 0,
-  id: input.client.id,
-  name: input.client.name,
+  id: input.id,
+  name: input.name,
 });
 
 export const toBffApiCompactUser = (
