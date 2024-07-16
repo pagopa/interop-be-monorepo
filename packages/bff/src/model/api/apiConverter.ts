@@ -19,8 +19,6 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { agreementApiState } from "./agreementTypes.js";
-import { descriptorApiState } from "./catalogTypes.js";
 
 export function toDescriptorWithOnlyAttributes(
   descriptor: catalogApi.EServiceDescriptor
@@ -71,10 +69,11 @@ export function toBffCatalogApiEServiceResponse(
         .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
         .find(
           (d) =>
-            (d.state === descriptorApiState.PUBLISHED ||
-              d.state === descriptorApiState.SUSPENDED) &&
-            (agreement.state === agreementApiState.ACTIVE ||
-              agreement.state === agreementApiState.SUSPENDED)
+            (d.state === catalogApi.EServiceDescriptorState.Values.PUBLISHED ||
+              d.state ===
+                catalogApi.EServiceDescriptorState.Values.SUSPENDED) &&
+            (agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+              agreement.state === agreementApi.AgreementState.Values.SUSPENDED)
         ) !== undefined
     );
   };
