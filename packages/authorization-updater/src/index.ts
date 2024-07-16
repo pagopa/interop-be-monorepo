@@ -33,17 +33,17 @@ import {
   fromClientV2,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
-import { ApiClientComponent } from "./model/models.js";
 import { config } from "./config/config.js";
 import {
   ReadModelService,
   readModelServiceBuilder,
 } from "./readModelService.js";
-import { authorizationManagementClientBuilder } from "./authorizationManagementClient.js";
+import { buildAuthorizationManagementClients } from "./authorizationManagementClient.js";
 import {
   getDescriptorFromEvent,
   getAgreementFromEvent,
@@ -72,7 +72,7 @@ export async function sendCatalogAuthUpdate(
       async (msg) => {
         const data = getDescriptorFromEvent(msg, decodedMessage.type);
         await authService.updateEServiceState(
-          ApiClientComponent.Values.ACTIVE,
+          authorizationManagementApi.ClientComponentState.Values.ACTIVE,
           data.descriptor.id,
           data.eserviceId,
           data.descriptor.audience,
@@ -92,7 +92,7 @@ export async function sendCatalogAuthUpdate(
       async (msg) => {
         const data = getDescriptorFromEvent(msg, decodedMessage.type);
         await authService.updateEServiceState(
-          ApiClientComponent.Values.INACTIVE,
+          authorizationManagementApi.ClientComponentState.Values.INACTIVE,
           data.descriptor.id,
           data.eserviceId,
           data.descriptor.audience,
@@ -535,7 +535,7 @@ function processMessage(
 }
 
 try {
-  const authMgmtClient = authorizationManagementClientBuilder(
+  const authMgmtClients = buildAuthorizationManagementClients(
     config.authorizationManagementUrl
   );
   const tokenGenerator = new InteropTokenGenerator(config);
@@ -543,7 +543,7 @@ try {
   await refreshableToken.init();
 
   const authService = authorizationServiceBuilder(
-    authMgmtClient,
+    authMgmtClients,
     refreshableToken
   );
 
