@@ -13,26 +13,22 @@ import {
   Descriptor,
   Document,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { z } from "zod";
-import * as api from "../generated/api.js";
-import {
-  ApiAgreementApprovalPolicy,
-  ApiAgreementState,
-  ApiEServiceDescriptorState,
-  ApiEServiceMode,
-  ApiTechnology,
-} from "./models.js";
 
-export function technologyToApiTechnology(input: Technology): ApiTechnology {
-  return match<Technology, ApiTechnology>(input)
+export function technologyToApiTechnology(
+  input: Technology
+): catalogApi.EServiceTechnology {
+  return match<Technology, catalogApi.EServiceTechnology>(input)
     .with(technology.rest, () => "REST")
     .with(technology.soap, () => "SOAP")
     .exhaustive();
 }
 
-export function apiTechnologyToTechnology(input: ApiTechnology): Technology {
-  return match<ApiTechnology, Technology>(input)
+export function apiTechnologyToTechnology(
+  input: catalogApi.EServiceTechnology
+): Technology {
+  return match<catalogApi.EServiceTechnology, Technology>(input)
     .with("REST", () => technology.rest)
     .with("SOAP", () => technology.soap)
     .exhaustive();
@@ -40,8 +36,8 @@ export function apiTechnologyToTechnology(input: ApiTechnology): Technology {
 
 export function descriptorStateToApiEServiceDescriptorState(
   input: DescriptorState
-): ApiEServiceDescriptorState {
-  return match<DescriptorState, ApiEServiceDescriptorState>(input)
+): catalogApi.EServiceDescriptorState {
+  return match<DescriptorState, catalogApi.EServiceDescriptorState>(input)
     .with(descriptorState.draft, () => "DRAFT")
     .with(descriptorState.published, () => "PUBLISHED")
     .with(descriptorState.suspended, () => "SUSPENDED")
@@ -51,9 +47,9 @@ export function descriptorStateToApiEServiceDescriptorState(
 }
 
 export function apiDescriptorStateToDescriptorState(
-  input: ApiEServiceDescriptorState
+  input: catalogApi.EServiceDescriptorState
 ): DescriptorState {
-  return match<ApiEServiceDescriptorState, DescriptorState>(input)
+  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
     .with("DRAFT", () => descriptorState.draft)
     .with("PUBLISHED", () => descriptorState.published)
     .with("SUSPENDED", () => descriptorState.suspended)
@@ -64,19 +60,22 @@ export function apiDescriptorStateToDescriptorState(
 
 export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
   input: AgreementApprovalPolicy | undefined
-): ApiAgreementApprovalPolicy {
-  return match<AgreementApprovalPolicy | undefined, ApiAgreementApprovalPolicy>(
-    input
-  )
+): catalogApi.AgreementApprovalPolicy {
+  return match<
+    AgreementApprovalPolicy | undefined,
+    catalogApi.AgreementApprovalPolicy
+  >(input)
     .with(agreementApprovalPolicy.automatic, () => "AUTOMATIC")
     .with(agreementApprovalPolicy.manual, () => "MANUAL")
     .otherwise(() => "AUTOMATIC");
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-  input: ApiAgreementApprovalPolicy
+  input: catalogApi.AgreementApprovalPolicy
 ): AgreementApprovalPolicy {
-  return match<ApiAgreementApprovalPolicy, AgreementApprovalPolicy>(input)
+  return match<catalogApi.AgreementApprovalPolicy, AgreementApprovalPolicy>(
+    input
+  )
     .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
     .with("MANUAL", () => agreementApprovalPolicy.manual)
     .exhaustive();
@@ -84,8 +83,8 @@ export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
 
 export function agreementStateToApiAgreementState(
   input: AgreementState
-): ApiAgreementState {
-  return match<AgreementState, ApiAgreementState>(input)
+): catalogApi.AgreementState {
+  return match<AgreementState, catalogApi.AgreementState>(input)
     .with(agreementState.pending, () => "PENDING")
     .with(agreementState.rejected, () => "REJECTED")
     .with(agreementState.active, () => "ACTIVE")
@@ -100,9 +99,9 @@ export function agreementStateToApiAgreementState(
 }
 
 export function apiAgreementStateToAgreementState(
-  input: ApiAgreementState
+  input: catalogApi.AgreementState
 ): AgreementState {
-  return match<ApiAgreementState, AgreementState>(input)
+  return match<catalogApi.AgreementState, AgreementState>(input)
     .with("PENDING", () => agreementState.pending)
     .with("REJECTED", () => agreementState.rejected)
     .with("ACTIVE", () => agreementState.active)
@@ -117,9 +116,9 @@ export function apiAgreementStateToAgreementState(
 }
 
 export function apiEServiceModeToEServiceMode(
-  input: ApiEServiceMode
+  input: catalogApi.EServiceMode
 ): EServiceMode {
-  return match<ApiEServiceMode, EServiceMode>(input)
+  return match<catalogApi.EServiceMode, EServiceMode>(input)
     .with("RECEIVE", () => eserviceMode.receive)
     .with("DELIVER", () => eserviceMode.deliver)
     .exhaustive();
@@ -127,8 +126,8 @@ export function apiEServiceModeToEServiceMode(
 
 export function eServiceModeToApiEServiceMode(
   input: EServiceMode
-): ApiEServiceMode {
-  return match<EServiceMode, ApiEServiceMode>(input)
+): catalogApi.EServiceMode {
+  return match<EServiceMode, catalogApi.EServiceMode>(input)
     .with(eserviceMode.receive, () => "RECEIVE")
     .with(eserviceMode.deliver, () => "DELIVER")
     .exhaustive();
@@ -136,7 +135,7 @@ export function eServiceModeToApiEServiceMode(
 
 export const documentToApiDocument = (
   document: Document
-): z.infer<typeof api.schemas.EServiceDoc> => ({
+): catalogApi.EServiceDoc => ({
   id: document.id,
   name: document.name,
   contentType: document.contentType,
@@ -147,7 +146,7 @@ export const documentToApiDocument = (
 
 export const descriptorToApiDescriptor = (
   descriptor: Descriptor
-): z.infer<typeof api.schemas.EServiceDescriptor> => ({
+): catalogApi.EServiceDescriptor => ({
   id: descriptor.id,
   version: descriptor.version,
   description: descriptor.description,
@@ -175,7 +174,7 @@ export const descriptorToApiDescriptor = (
 
 export const eServiceToApiEService = (
   eservice: EService
-): z.infer<typeof api.schemas.EService> => ({
+): catalogApi.EService => ({
   id: eservice.id,
   producerId: eservice.producerId,
   name: eservice.name,
