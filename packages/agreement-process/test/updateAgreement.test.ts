@@ -19,7 +19,7 @@ import {
   agreementNotInExpectedState,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
-import { agreementUpdatableStates } from "../src/model/domain/validators.js";
+import { agreementUpdatableStates } from "../src/model/domain/agreement-validators.js";
 import {
   addOneAgreement,
   agreementService,

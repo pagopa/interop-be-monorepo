@@ -17,6 +17,7 @@ import {
   TenantId,
   AttributeId,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -27,8 +28,7 @@ import {
   documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { api } from "../model/generated/api.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -43,8 +43,9 @@ import {
   deleteEServiceErrorMapper,
   deleteRiskAnalysisErrorMapper,
   documentCreateErrorMapper,
+  documentDeleteErrorMapper,
   documentGetErrorMapper,
-  documentUpdateDeleteErrorMapper,
+  documentUpdateErrorMapper,
   getEServiceErrorMapper,
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -75,7 +76,7 @@ const catalogService = catalogServiceBuilder(
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const eservicesRouter = ctx.router(api.api, {
+  const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {
@@ -360,7 +361,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateDeleteErrorMapper,
+            documentDeleteErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -388,7 +389,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateDeleteErrorMapper,
+            documentUpdateErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
