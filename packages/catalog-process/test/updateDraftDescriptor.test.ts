@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -19,7 +20,6 @@ import {
   inconsistentDailyCalls,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   addOneEService,
   addOneAttribute,
@@ -55,7 +55,7 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const updatedDescriptorSeed: EServiceDescriptorSeed = {
+    const updatedDescriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {

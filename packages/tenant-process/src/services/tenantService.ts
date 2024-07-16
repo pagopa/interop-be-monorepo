@@ -16,11 +16,7 @@ import {
   tenantEventToBinaryData,
   ExternalId,
 } from "pagopa-interop-models";
-import {
-  CertifiedAttributeQueryResult,
-  UpdateVerifiedTenantAttributeSeed,
-} from "../model/domain/models.js";
-import { ApiSelfcareTenantSeed } from "../model/types.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
@@ -147,7 +143,7 @@ export function tenantServiceBuilder(
         verifierId: string;
         tenantId: TenantId;
         attributeId: AttributeId;
-        updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+        updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed;
       },
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
@@ -199,7 +195,7 @@ export function tenantServiceBuilder(
     },
 
     async selfcareUpsertTenant(
-      tenantSeed: ApiSelfcareTenantSeed,
+      tenantSeed: tenantApi.SelfcareTenantSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(
@@ -273,7 +269,7 @@ export function tenantServiceBuilder(
       organizationId: TenantId;
       offset: number;
       limit: number;
-    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
+    }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const tenant = await readModelService.getTenantById(organizationId);
       assertTenantExists(organizationId, tenant);
 
