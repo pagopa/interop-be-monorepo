@@ -2,17 +2,8 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { afterEach, afterAll, beforeAll, describe, it, expect } from "vitest";
-import {
-  ReadModelRepository,
-  TenantCollection,
-  readModelWriterConfig,
-} from "pagopa-interop-commons";
-import {
-  mongoDBContainer,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
-import { StartedTestContainer } from "testcontainers";
+import { describe, it, expect } from "vitest";
+import { getMockTenant, writeInReadmodel } from "pagopa-interop-commons-test";
 import {
   SelfcareMappingCreatedV1,
   SelfcareMappingDeletedV1,
@@ -25,30 +16,9 @@ import {
 } from "pagopa-interop-models";
 import { handleMessage } from "../src/tenantConsumerService.js";
 import { toTenantV1 } from "./converterV1.js";
+import { tenants } from "./utils.js";
 
-describe("database test", async () => {
-  let tenants: TenantCollection;
-  let startedMongoDBContainer: StartedTestContainer;
-
-  const config = readModelWriterConfig();
-
-  beforeAll(async () => {
-    startedMongoDBContainer = await mongoDBContainer(config).start();
-
-    config.readModelDbPort = startedMongoDBContainer.getMappedPort(27017);
-
-    const readModelRepository = ReadModelRepository.init(config);
-    tenants = readModelRepository.tenants;
-  });
-
-  afterEach(async () => {
-    await tenants.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await startedMongoDBContainer.stop();
-  });
-
+describe("Integration tests", async () => {
   describe("Events V1", async () => {
     const mockTenant = getMockTenant();
 
@@ -208,18 +178,4 @@ describe("database test", async () => {
 
     it("TenantMailDeleted", () => {});
   });
-});
-
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  selfcareId: undefined,
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
 });
