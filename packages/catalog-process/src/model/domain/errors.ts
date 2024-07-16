@@ -255,7 +255,7 @@ export function eserviceWithoutValidDescriptors(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} does not have a valid descriptor (Not DRAFT or ARCHIVED)`,
+    detail: `EService ${eserviceId} does not have a valid descriptor`,
     code: "eserviceWithoutValidDescriptors",
     title: "EService without valid descriptors",
   });
