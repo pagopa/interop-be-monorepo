@@ -309,13 +309,13 @@ export function catalogServiceBuilder(
     },
     getProducerEServices: async (
       eserviceName: string | undefined,
-      consumerIds: string[],
+      consumersIds: string[],
       offset: number,
       limit: number,
       context: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
       const producerId = context.authData.organizationId;
-      const res: {
+      const response: {
         results: catalogApi.EService[];
         totalCount: number;
       } = {
@@ -323,7 +323,7 @@ export function catalogServiceBuilder(
         totalCount: 0,
       };
 
-      if (consumerIds.length === 0) {
+      if (consumersIds.length === 0) {
         const { results, totalCount } = await catalogProcessClient.getEServices(
           {
             headers: context.headers,
@@ -336,14 +336,14 @@ export function catalogServiceBuilder(
           }
         );
 
-        res.results = results;
-        res.totalCount = totalCount;
+        response.results = results;
+        response.totalCount = totalCount;
       } else {
         const eserviceIds = (
           await getAllAgreements(
             agreementProcessClient,
             context.headers,
-            consumerIds,
+            consumersIds,
             [],
             [producerId]
           )
@@ -362,16 +362,16 @@ export function catalogServiceBuilder(
           }
         );
 
-        res.results = results;
-        res.totalCount = totalCount;
+        response.results = results;
+        response.totalCount = totalCount;
       }
 
       return {
-        results: res.results.map(enhanceProducesEService),
+        results: response.results.map(enhanceProducesEService),
         pagination: {
           offset,
           limit,
-          totalCount: res.totalCount,
+          totalCount: response.totalCount,
         },
       };
     },
