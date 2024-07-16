@@ -16,12 +16,7 @@ import {
   AttributeKind,
   ListResult,
 } from "pagopa-interop-models";
-import {
-  ApiCertifiedAttributeSeed,
-  ApiDeclaredAttributeSeed,
-  ApiInternalCertifiedAttributeSeed,
-  ApiVerifiedAttributeSeed,
-} from "../model/types.js";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
@@ -131,7 +126,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createDeclaredAttribute(
-      apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
+      apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -173,7 +168,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createVerifiedAttribute(
-      apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
+      apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -214,7 +209,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createCertifiedAttribute(
-      apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
+      apiCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
@@ -262,7 +257,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
+      apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
