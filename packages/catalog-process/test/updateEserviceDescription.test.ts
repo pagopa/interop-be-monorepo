@@ -120,7 +120,7 @@ describe("update eService description", () => {
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
   it.each([descriptorState.draft, descriptorState.archived])(
-    "should throw eserviceWithoutValidDescriptors if the eservice is not active (Descriptor with state %s)",
+    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have valid descriptors (Descriptor with state %s)",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
