@@ -292,5 +292,5 @@ export const updateEServiceDescriptionErrorMapper = (
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceNotActive", () => HTTP_STATUS_BAD_REQUEST)
+    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

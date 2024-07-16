@@ -14,6 +14,7 @@ import {
   TenantKind,
   Descriptor,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -22,9 +23,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
-  eserviceNotActive,
 } from "../model/domain/errors.js";
-import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
 export function assertRequesterAllowed(
   producerId: TenantId,
@@ -68,7 +67,7 @@ export function assertHasNoDraftDescriptor(eservice: EService): void {
 }
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
+  riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
@@ -100,14 +99,4 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
-}
-
-export function assertEserviceIsActive(eservice: EService): void {
-  const isEserviceActive = eservice.descriptors.some(
-    (d: Descriptor) =>
-      d.state !== descriptorState.draft && d.state !== descriptorState.archived
-  );
-  if (!isEserviceActive) {
-    throw eserviceNotActive(eservice.id);
-  }
 }

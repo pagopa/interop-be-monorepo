@@ -11,7 +11,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
-  eserviceNotActive,
+  eserviceWithoutValidDescriptors,
   eServiceNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -102,9 +102,25 @@ describe("update eService description", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it("shoudl throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
+    const eservice = getMockEService();
+    await addOneEService(eservice);
 
+    expect(
+      catalogService.updateEServiceDescription(
+        eservice.id,
+        "eservice new description",
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
+  });
   it.each([descriptorState.draft, descriptorState.archived])(
-    "should throw eserviceNotActive if the eservice is not active (Descriptor with state %s)",
+    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have valid descriptors (Descriptor with state %s)",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -127,7 +143,7 @@ describe("update eService description", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(eserviceNotActive(eservice.id));
+      ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
 });

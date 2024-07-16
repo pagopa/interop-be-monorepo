@@ -31,7 +31,7 @@ export const errorCodes = {
   riskAnalysisNotValid: "0019",
   prettyNameDuplicate: "0020",
   riskAnalysisDuplicated: "0021",
-  eserviceNotActive: "0022",
+  eserviceWithoutValidDescriptors: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -251,12 +251,12 @@ export function prettyNameDuplicate(
   });
 }
 
-export function eserviceNotActive(
+export function eserviceWithoutValidDescriptors(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} is not active`,
-    code: "eserviceNotActive",
-    title: "EService is not published",
+    detail: `EService ${eserviceId} does not have a valid descriptor`,
+    code: "eserviceWithoutValidDescriptors",
+    title: "EService without valid descriptors",
   });
 }
