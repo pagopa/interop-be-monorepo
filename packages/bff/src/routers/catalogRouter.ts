@@ -112,39 +112,39 @@ const catalogRouter = (
       async (_req, res) => res.status(501).send()
     )
     .post("/eservices", async (req, res) => {
-      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const createdResource = await catalogService.createEService(
           req.body,
-          headers
+          ctx
         );
         return res.status(200).send(createdResource);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
     .delete("/eservices/:eServiceId", async (req, res) => {
-      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogService.deleteEService(req.params.eServiceId, headers);
+        await catalogService.deleteEService(req.params.eServiceId, ctx);
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
     .put("/eservices/:eServiceId", async (req, res) => {
-      const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const createdResource = await catalogService.updateEServiceById(
           req.params.eServiceId,
           req.body,
-          headers
+          ctx
         );
         return res.status(200).send(createdResource);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })

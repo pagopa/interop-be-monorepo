@@ -125,7 +125,7 @@ export function catalogServiceBuilder(
     },
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
-      headers: Headers
+      { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } = await catalogProcessClient.createEService(eServiceSeed, {
         headers,
@@ -135,7 +135,7 @@ export function catalogServiceBuilder(
     updateEServiceById: async (
       eServiceId: string,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
-      headers: Headers
+      { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } = await catalogProcessClient.updateEServiceById(
         updateEServiceSeed,
@@ -150,7 +150,7 @@ export function catalogServiceBuilder(
     },
     deleteEService: async (
       eServiceId: string,
-      headers: Headers
+      { headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       await catalogProcessClient.deleteEService(undefined, {
         headers,
