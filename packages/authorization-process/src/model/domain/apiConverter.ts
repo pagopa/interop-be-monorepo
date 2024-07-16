@@ -1,3 +1,4 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   Client,
   ClientKind,
@@ -7,16 +8,17 @@ import {
   keyUse,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ApiClient, ApiClientKind, ApiKey, ApiKeyUse } from "./models.js";
 
-export const clientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
-  match<ClientKind, ApiClientKind>(kind)
+export const clientKindToApiClientKind = (
+  kind: ClientKind
+): authorizationApi.ClientKind =>
+  match<ClientKind, authorizationApi.ClientKind>(kind)
     .with(clientKind.consumer, () => "CONSUMER")
     .with(clientKind.api, () => "API")
     .exhaustive();
 
-export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
-  match<KeyUse, ApiKeyUse>(kid)
+export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
+  match<KeyUse, authorizationApi.KeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
@@ -27,7 +29,7 @@ export function clientToApiClient({
 }: {
   client: Client;
   showUsers: boolean;
-}): ApiClient {
+}): authorizationApi.Client {
   return {
     id: client.id,
     name: client.name,
@@ -40,7 +42,7 @@ export function clientToApiClient({
   };
 }
 
-export const keyToApiKey = (key: Key): ApiKey => ({
+export const keyToApiKey = (key: Key): authorizationApi.Key => ({
   name: key.name,
   createdAt: key.createdAt.toJSON(),
   kid: key.kid,
@@ -50,8 +52,8 @@ export const keyToApiKey = (key: Key): ApiKey => ({
   userId: key.userId,
 });
 
-export const ApiKeyUseToKeyUse = (kid: ApiKeyUse): KeyUse =>
-  match<ApiKeyUse, KeyUse>(kid)
+export const ApiKeyUseToKeyUse = (kid: authorizationApi.KeyUse): KeyUse =>
+  match<authorizationApi.KeyUse, KeyUse>(kid)
     .with("ENC", () => keyUse.enc)
     .with("SIG", () => keyUse.sig)
     .exhaustive();
