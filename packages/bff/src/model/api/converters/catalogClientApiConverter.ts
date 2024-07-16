@@ -177,24 +177,26 @@ export function toBffCatalogApiDescriptorDoc(
 export function toBffCatalogApiEserviceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis
 ): bffApi.EServiceRiskAnalysis {
-  const answers: { [key: string]: string[] } = {};
-
-  riskAnalysis.riskAnalysisForm.singleAnswers
-    .concat(riskAnalysis.riskAnalysisForm.multiAnswers)
-    .map((answer) => ({
-      questionId: answer.questionId,
-      answer: answer.value,
-    }))
-    .forEach((QA) => {
-      if (answers[`${QA.questionId}`] && QA.answer) {
-        answers[`${QA.questionId}`] = [
-          ...answers[`${QA.questionId}`],
-          QA.answer,
-        ];
+  const answers = riskAnalysis.riskAnalysisForm.singleAnswers
+    .concat(
+      riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
+        multiAnswer.values.map((answerValue) => ({
+          id: multiAnswer.id,
+          value: answerValue,
+          key: multiAnswer.key,
+        }))
+      )
+    )
+    .reduce((answers: { [key: string]: string[] }, answer) => {
+      const key = `${answer.key}`;
+      if (answers[key] && answer.value) {
+        answers[key] = [...answers[key], answer.value];
       } else {
-        answers[`${QA.questionId}`] = [];
+        answers[key] = [];
       }
-    });
+
+      return answers;
+    }, {});
 
   const riskAnalysisForm: bffApi.RiskAnalysisForm = {
     riskAnalysisId: riskAnalysis.id,
