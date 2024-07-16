@@ -3,11 +3,7 @@
 import { Logger } from "pagopa-interop-commons";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { WithLogger } from "pagopa-interop-commons";
-import {
-  authorizationApi,
-  authorizationManagementApi,
-  bffApi,
-} from "pagopa-interop-api-clients";
+import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { userNotFound } from "../model/domain/errors.js";
 import { toBffApiCompactUser } from "../model/domain/apiConverter.js";
@@ -268,7 +264,7 @@ export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 async function enhanceClient(
   apiClients: PagoPAInteropBeClients,
-  client: authorizationManagementApi.Client,
+  client: authorizationApi.Client,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
   const consumer = await apiClients.tenantProcessClient.tenant.getTenant({
@@ -300,24 +296,23 @@ async function enhancePurpose(
     tenantProcessClient,
     purposeProcessClient,
   }: PagoPAInteropBeClients,
-  clientPurpose: authorizationManagementApi.Purpose,
+  clientPurposeId: string,
   { headers }: WithLogger<BffAppContext>
 ): Promise<bffApi.ClientPurpose> {
-  const eservice = await catalogProcessClient.getEServiceById({
-    params: { eServiceId: clientPurpose.states.eservice.eserviceId },
-    headers: { ...requestHeaders },
+  const purpose = await purposeProcessClient.getPurpose({
+    params: { id: clientPurposeId },
+    headers,
   });
 
-  const producerRes = tenantProcessClient.tenant.getTenant({
+  const eservice = await catalogProcessClient.getEServiceById({
+    params: { eServiceId: purpose.eserviceId },
+    headers,
+  });
+
+  const producer = await tenantProcessClient.tenant.getTenant({
     params: { id: eservice.producerId },
     headers: { ...requestHeaders },
   });
-
-  const purposeRes = purposeProcessClient.getPurpose({
-    params: { id: clientPurpose.states.purpose.purposeId },
-    headers: { ...requestHeaders },
-  });
-  const [producer, purpose] = await Promise.all([producerRes, purposeRes]);
 
   return {
     purposeId: purpose.id,
