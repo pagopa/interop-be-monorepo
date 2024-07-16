@@ -34,6 +34,18 @@ export const ClientKind = z.enum([
 ]);
 export type ClientKind = z.infer<typeof ClientKind>;
 
+export const JWKKeyInReadModel = z.object({
+  alg: z.string(),
+  clientId: z.string(),
+  e: z.string(),
+  kid: z.string(),
+  kty: z.string(),
+  n: z.string(),
+  use: z.string(),
+});
+
+export type JWKKeyInReadModel = z.infer<typeof JWKKeyInReadModel>;
+
 export const Client = z.object({
   id: ClientId,
   consumerId: TenantId,
