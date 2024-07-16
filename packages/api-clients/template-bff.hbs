@@ -88,8 +88,8 @@ export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: Zo
 			...options,
 			axiosConfig: {
 				...options?.axiosConfig,
-				// This configuration is used to serialize properly query parameter name when value is array  
-				// the default client serialization produce query param name appending the invalid chars "[]"	at the end
+				// This configuration is used to serialize correctly array query parameters.
+				// The default serialization produces a query param name appending "[]" after the equals:
 				// eg: ids[]=1,2,3 instead of ids=1,2,3
 				paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
 			},
