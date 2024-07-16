@@ -102,7 +102,23 @@ describe("update eService description", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it("shoudl throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
+    const eservice = getMockEService();
+    await addOneEService(eservice);
 
+    expect(
+      catalogService.updateEServiceDescription(
+        eservice.id,
+        "eservice new description",
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
+  });
   it.each([descriptorState.draft, descriptorState.archived])(
     "should throw eserviceWithoutValidDescriptors if the eservice is not active (Descriptor with state %s)",
     async (state) => {
