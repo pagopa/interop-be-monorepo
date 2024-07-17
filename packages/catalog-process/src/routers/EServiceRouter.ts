@@ -17,6 +17,7 @@ import {
   TenantId,
   AttributeId,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -27,7 +28,6 @@ import {
   documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { api } from "../model/generated/api.js";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
@@ -51,6 +51,7 @@ import {
   suspendDescriptorErrorMapper,
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
+  updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
   updateRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -76,7 +77,7 @@ const catalogService = catalogServiceBuilder(
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const eservicesRouter = ctx.router(api.api, {
+  const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {
@@ -659,6 +660,33 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateEServiceDescription(
+              unsafeBrandId(req.params.eServiceId),
+              req.body.description,
+              ctx
+            );
+          return res
+            .status(200)
+            .json(eServiceToApiEService(updatedEService))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceDescriptionErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
