@@ -71,17 +71,17 @@ spec:
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-key-readmodel-writer
+                  name: interop-be-client-readmodel-writer
                   key: KAFKA_CLIENT_ID
             - name: KAFKA_GROUP_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-key-readmodel-writer
+                  name: interop-be-client-readmodel-writer
                   key: KAFKA_GROUP_ID
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-key-readmodel-writer
+                  name: interop-be-client-readmodel-writer
                   key: KAFKA_BROKERS
             - name: AUTHORIZATION_TOPIC
               valueFrom:
