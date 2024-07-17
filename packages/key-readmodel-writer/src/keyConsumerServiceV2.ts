@@ -1,4 +1,7 @@
-import { KeyCollection, fromKeyToReadModelJWKKey } from "pagopa-interop-commons";
+import {
+  KeyCollection,
+  fromKeyToReadModelJWKKey,
+} from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
