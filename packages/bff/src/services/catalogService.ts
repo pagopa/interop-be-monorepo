@@ -50,7 +50,7 @@ const enhanceCatalogEService =
     requesterId: string
   ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
   async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await tenantProcessClient.getTenant({
+    const producerTenant = await tenantProcessClient.tenant.getTenant({
       headers,
       params: {
         id: eservice.producerId,
@@ -59,7 +59,7 @@ const enhanceCatalogEService =
 
     const requesterTenant: tenantApi.Tenant =
       requesterId !== eservice.producerId
-        ? await tenantProcessClient.getTenant({
+        ? await tenantProcessClient.tenant.getTenant({
             headers,
             params: {
               id: requesterId,
@@ -147,19 +147,17 @@ const getEserviceDesciptor = (
 
 const getAttributeIds = (
   descriptor: catalogApi.EServiceDescriptor
-): string[] => {
-  return [
-    ...descriptor.attributes.certified.flatMap((atts) =>
-      atts.map((att) => att.id)
-    ),
-    ...descriptor.attributes.declared.flatMap((atts) =>
-      atts.map((att) => att.id)
-    ),
-    ...descriptor.attributes.verified.flatMap((atts) =>
-      atts.map((att) => att.id)
-    ),
-  ];
-};
+): string[] => [
+  ...descriptor.attributes.certified.flatMap((atts) =>
+    atts.map((att) => att.id)
+  ),
+  ...descriptor.attributes.declared.flatMap((atts) =>
+    atts.map((att) => att.id)
+  ),
+  ...descriptor.attributes.verified.flatMap((atts) =>
+    atts.map((att) => att.id)
+  ),
+];
 
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
@@ -261,7 +259,7 @@ export function catalogServiceBuilder(
         ],
       };
 
-      const requesterTenant = await tenantProcessClient.getTenant({
+      const requesterTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
           id: requesterId,
