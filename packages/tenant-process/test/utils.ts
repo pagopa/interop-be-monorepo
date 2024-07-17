@@ -8,6 +8,7 @@ import {
   EServiceId,
   Tenant,
   TenantEvent,
+  TenantEventV2,
   TenantId,
   TenantRevoker,
   TenantVerifier,
@@ -19,6 +20,7 @@ import {
   tenantAttributeType,
   toReadModelEService,
   toReadModelAgreement,
+  toTenantV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -30,7 +32,6 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
-import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 
@@ -54,10 +55,10 @@ export const writeTenantInEventstore = async (
   tenant: Tenant,
   postgresDB: IDatabase<unknown>
 ): Promise<void> => {
-  const tenantEvent: TenantEvent = {
-    type: "TenantCreated",
-    event_version: 1,
-    data: { tenant: toTenantV1(tenant) },
+  const tenantEvent: TenantEventV2 = {
+    type: "TenantOnboarded",
+    event_version: 2,
+    data: { tenant: toTenantV2(tenant) },
   };
   const eventToWrite: StoredEvent<TenantEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -75,6 +76,7 @@ export const getMockTenant = (): Tenant => ({
   createdAt: new Date(),
   attributes: [],
   selfcareId: generateId(),
+  onboardedAt: new Date(),
   externalId: {
     value: "123456",
     origin: "IPA",
