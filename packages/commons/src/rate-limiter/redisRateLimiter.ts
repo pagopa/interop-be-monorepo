@@ -108,16 +108,18 @@ export async function initRedisRateLimiter(config: {
 
   async function getCountByOrganization(
     organizationId: TenantId
-  ): Promise<string | null> {
-    return redisClient.get(`${config.limiterGroup}:${organizationId}`);
+  ): Promise<number> {
+    return redisClient
+      .get(`${config.limiterGroup}:${organizationId}`)
+      .then(Number);
   }
 
   async function getBurstCountByOrganization(
     organizationId: TenantId
-  ): Promise<string | null> {
-    return redisClient.get(
-      `${burstKeyPrefix}${config.limiterGroup}:${organizationId}`
-    );
+  ): Promise<number> {
+    return redisClient
+      .get(`${burstKeyPrefix}${config.limiterGroup}:${organizationId}`)
+      .then(Number);
   }
 
   return {
