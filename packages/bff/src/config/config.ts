@@ -3,9 +3,9 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
-import { SessionTokenGenerationConfig } from "../../../commons/dist/config/sessionTokenGenerationConfig.js";
 
 export const TenantProcessServerConfig = z
   .object({
