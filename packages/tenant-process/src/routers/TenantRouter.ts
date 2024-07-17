@@ -11,7 +11,7 @@ import {
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   tenantBySelfcareIdNotFound,
@@ -32,7 +32,6 @@ import {
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
-import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -52,10 +51,7 @@ const tenantService = tenantServiceBuilder(
 
 const tenantsRouter = (
   ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const tenantsRouter = ctx.router(api.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
-  });
+): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
@@ -64,6 +60,9 @@ const tenantsRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
   } = userRoles;
+  const tenantsRouter = ctx.router(tenantApi.tenantApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   tenantsRouter
     .get(
       "/consumers",
@@ -246,49 +245,6 @@ const tenantsRouter = (
     )
 
     .get(
-      "/tenants/selfcare/:selfcareId",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        M2M_ROLE,
-        SECURITY_ROLE,
-        INTERNAL_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const tenant = await tenantService.getTenantBySelfcareId(
-            req.params.selfcareId,
-            ctx.logger
-          );
-
-          if (tenant) {
-            return res.status(200).json(toApiTenant(tenant.data)).end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  tenantBySelfcareIdNotFound(req.params.selfcareId),
-                  getTenantBySelfcareIdErrorMapper,
-                  ctx.logger
-                )
-              )
-              .end();
-          }
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getTenantBySelfcareIdErrorMapper,
-            ctx.logger
-          );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
-    )
-    .get(
       "/tenants/attributes/certified",
       authorizationMiddleware([
         ADMIN_ROLE,
@@ -310,52 +266,13 @@ const tenantsRouter = (
             });
 
           return res.status(200).json({
-            results: results satisfies ApiCertifiedAttribute[],
+            results: results satisfies tenantApi.CertifiedAttribute[],
             totalCount,
           });
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getCertifiedAttributesErrorMapper,
-            ctx.logger
-          );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
-    )
-    .post(
-      "/internal/tenants",
-      authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
-      authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/m2m/tenants",
-      authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/selfcare/tenants",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        INTERNAL_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
-          return res.status(200).json({ id }).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            selfcareUpsertTenantErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -454,16 +371,6 @@ const tenantsRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
-      authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
-      "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
-      authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
@@ -474,6 +381,113 @@ const tenantsRouter = (
       async (_req, res) => res.status(501).send()
     );
 
-  return tenantsRouter;
+  const m2mRouter = ctx.router(tenantApi.m2mApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+  m2mRouter
+    .post(
+      "/m2m/tenants",
+      authorizationMiddleware([M2M_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
+      authorizationMiddleware([M2M_ROLE]),
+      async (_req, res) => res.status(501).send()
+    );
+
+  const selfcareRouter = ctx.router(tenantApi.selfcareApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+  selfcareRouter
+    .get(
+      "/tenants/selfcare/:selfcareId",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        M2M_ROLE,
+        SECURITY_ROLE,
+        INTERNAL_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const tenant = await tenantService.getTenantBySelfcareId(
+            req.params.selfcareId,
+            ctx.logger
+          );
+
+          if (tenant) {
+            return res.status(200).json(toApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(
+                makeApiProblem(
+                  tenantBySelfcareIdNotFound(req.params.selfcareId),
+                  getTenantBySelfcareIdErrorMapper,
+                  ctx.logger
+                )
+              )
+              .end();
+          }
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getTenantBySelfcareIdErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/selfcare/tenants",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        INTERNAL_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
+          return res.status(200).json({ id }).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            selfcareUpsertTenantErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    );
+
+  const internalRouter = ctx.router(tenantApi.internalApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+  internalRouter
+    .post(
+      "/internal/tenants",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .post(
+      "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (_req, res) => res.status(501).send()
+    );
+
+  return [tenantsRouter, m2mRouter, selfcareRouter, internalRouter];
 };
 export default tenantsRouter;
