@@ -15,6 +15,10 @@ describe("Redis rate limiter tests", async () => {
   it("should rate limit requests by organizationId", async () => {
     const organizationId: TenantId = generateId();
 
+    expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
+      0
+    );
+
     expect(
       await redisRateLimiter.rateLimitByOrganization(
         organizationId,
@@ -28,7 +32,7 @@ describe("Redis rate limiter tests", async () => {
     });
 
     expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
-      "1"
+      1
     );
 
     expect(
@@ -44,7 +48,7 @@ describe("Redis rate limiter tests", async () => {
     });
 
     expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
-      "2"
+      2
     );
 
     // Burst rate limiter kicks in.
@@ -64,7 +68,7 @@ describe("Redis rate limiter tests", async () => {
 
     expect(
       await redisRateLimiter.getBurstCountByOrganization(organizationId)
-    ).toBe("1");
+    ).toBe(1);
 
     expect(
       await redisRateLimiter.rateLimitByOrganization(
@@ -80,7 +84,7 @@ describe("Redis rate limiter tests", async () => {
 
     expect(
       await redisRateLimiter.getBurstCountByOrganization(organizationId)
-    ).toBe("2");
+    ).toBe(2);
 
     expect(
       await redisRateLimiter.rateLimitByOrganization(
@@ -96,7 +100,7 @@ describe("Redis rate limiter tests", async () => {
 
     expect(
       await redisRateLimiter.getBurstCountByOrganization(organizationId)
-    ).toBe("3");
+    ).toBe(3);
 
     // Limit reached
     expect(
@@ -115,6 +119,10 @@ describe("Redis rate limiter tests", async () => {
   it("should reset requests count after rate interval", async () => {
     const organizationId: TenantId = generateId();
 
+    expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
+      0
+    );
+
     expect(
       await redisRateLimiter.rateLimitByOrganization(
         organizationId,
@@ -128,7 +136,7 @@ describe("Redis rate limiter tests", async () => {
     });
 
     expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
-      "1"
+      1
     );
 
     await sleep(1000);
@@ -146,7 +154,7 @@ describe("Redis rate limiter tests", async () => {
     });
 
     expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
-      "1"
+      1
     );
   });
 });
