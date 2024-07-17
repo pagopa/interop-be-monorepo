@@ -145,7 +145,7 @@ const authorizationRouter = (
             offset,
             limit,
             logger: ctx.logger,
-          }); //
+          });
           return res
             .status(200)
             .json({
