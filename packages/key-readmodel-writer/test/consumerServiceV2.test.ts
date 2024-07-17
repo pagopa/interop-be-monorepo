@@ -11,7 +11,6 @@ import {
   toClientV2,
   AuthorizationEventEnvelopeV2,
   ClientKeyDeletedV2,
-  toReadModelKey,
   ClientDeletedV2,
   ClientId,
   generateId,
@@ -41,7 +40,7 @@ describe("Events V2", () => {
   it("ClientKeyAdded", async () => {
     const clientId: ClientId = generateId();
     const mockKey = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const jwkKey = keyToJWKKey(toReadModelKey(mockKey));
+    const jwkKey = keyToJWKKey(mockKey);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -77,7 +76,7 @@ describe("Events V2", () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(keyToJWKKey(toReadModelKey(addedKey)));
+    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey));
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
@@ -85,7 +84,7 @@ describe("Events V2", () => {
   it("ClientKeyDeleted", async () => {
     const clientId: ClientId = generateId();
     const mockKey: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const jwkKey = keyToJWKKey(toReadModelKey(mockKey));
+    const jwkKey = keyToJWKKey(mockKey);
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
@@ -125,8 +124,8 @@ describe("Events V2", () => {
     const clientId: ClientId = generateId();
     const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
     const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
-    const jwkKey1 = keyToJWKKey(toReadModelKey(mockKey1));
-    const jwkKey2 = keyToJWKKey(toReadModelKey(mockKey2));
+    const jwkKey1 = keyToJWKKey(mockKey1);
+    const jwkKey2 = keyToJWKKey(mockKey2);
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
