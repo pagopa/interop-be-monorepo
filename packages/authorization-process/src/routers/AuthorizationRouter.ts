@@ -336,7 +336,7 @@ const authorizationRouter = (
           );
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -457,7 +457,10 @@ const authorizationRouter = (
             .status(200)
             .json({
               key: JWKKey,
-              client: clientToApiClient({ client, showUsers: false }),
+              client: clientToApiClient(client, {
+                includeKeys: false,
+                showUsers: false,
+              }),
             })
             .end();
         } catch (error) {
