@@ -12,37 +12,28 @@ import {
   TenantFeature,
   tenantAttributeType,
 } from "pagopa-interop-models";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
-import {
-  ApiExternalId,
-  ApiTenantFeature,
-  ApiTenantKind,
-  ApiTenantAttribute,
-  ApiTenantVerifier,
-  ApiTenantRevoker,
-  ApiMail,
-  ApiMailKind,
-  ApiTenant,
-} from "./models.js";
-
-export function toApiTenantKind(input: TenantKind): ApiTenantKind {
-  return match<TenantKind, ApiTenantKind>(input)
+export function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
+  return match<TenantKind, tenantApi.TenantKind>(input)
     .with(tenantKind.GSP, () => "GSP")
     .with(tenantKind.PA, () => "PA")
     .with(tenantKind.PRIVATE, () => "PRIVATE")
     .exhaustive();
 }
 
-export function toApiTenantExternalId(input: ExternalId): ApiExternalId {
+export function toApiTenantExternalId(input: ExternalId): tenantApi.ExternalId {
   return {
     origin: input.origin,
     value: input.value,
   };
 }
 
-export function toApiTenantFeature(input: TenantFeature): ApiTenantFeature {
-  return match<TenantFeature, ApiTenantFeature>(input)
+export function toApiTenantFeature(
+  input: TenantFeature
+): tenantApi.TenantFeature {
+  return match<TenantFeature, tenantApi.TenantFeature>(input)
     .with({ type: "PersistentCertifier" }, (feature) => ({
       certifier: {
         certifierId: feature.certifierId,
@@ -53,7 +44,7 @@ export function toApiTenantFeature(input: TenantFeature): ApiTenantFeature {
 
 export function toApiTenantVerifier(
   verifier: TenantVerifier
-): ApiTenantVerifier {
+): tenantApi.TenantVerifier {
   return {
     id: verifier.id,
     verificationDate: verifier.verificationDate.toJSON(),
@@ -62,7 +53,9 @@ export function toApiTenantVerifier(
   };
 }
 
-export function toApiTenantRevoker(revoker: TenantRevoker): ApiTenantRevoker {
+export function toApiTenantRevoker(
+  revoker: TenantRevoker
+): tenantApi.TenantRevoker {
   return {
     id: revoker.id,
     verificationDate: revoker.verificationDate.toJSON(),
@@ -74,8 +67,8 @@ export function toApiTenantRevoker(revoker: TenantRevoker): ApiTenantRevoker {
 
 export function toApiTenantAttribute(
   input: TenantAttribute
-): ApiTenantAttribute {
-  return match<TenantAttribute, ApiTenantAttribute>(input)
+): tenantApi.TenantAttribute {
+  return match<TenantAttribute, tenantApi.TenantAttribute>(input)
     .with({ type: tenantAttributeType.CERTIFIED }, (attribute) => ({
       certified: {
         id: attribute.id,
@@ -100,14 +93,14 @@ export function toApiTenantAttribute(
     .exhaustive();
 }
 
-export function toApiMailKind(kind: TenantMailKind): ApiMailKind {
-  return match<TenantMailKind, ApiMailKind>(kind)
+export function toApiMailKind(kind: TenantMailKind): tenantApi.MailKind {
+  return match<TenantMailKind, tenantApi.MailKind>(kind)
     .with(tenantMailKind.ContactEmail, () => "CONTACT_EMAIL")
     .with(tenantMailKind.DigitalAddress, () => "DIGITAL_ADDRESS")
     .exhaustive();
 }
 
-export function toApiMail(mail: TenantMail): ApiMail {
+export function toApiMail(mail: TenantMail): tenantApi.Mail {
   return {
     kind: toApiMailKind(mail.kind),
     address: mail.address,
@@ -116,7 +109,7 @@ export function toApiMail(mail: TenantMail): ApiMail {
   };
 }
 
-export function toApiTenant(tenant: Tenant): ApiTenant {
+export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
   return {
     id: tenant.id,
     kind: tenant.kind ? toApiTenantKind(tenant.kind) : undefined,

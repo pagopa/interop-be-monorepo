@@ -23,6 +23,7 @@ import {
   unsafeBrandId,
   operationForbidden,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
@@ -33,7 +34,6 @@ import {
   riskAnalysisValidationFailed,
   riskAnalysisDuplicated,
 } from "../src/model/domain/errors.js";
-import { EServiceRiskAnalysisSeed } from "../src/model/domain/models.js";
 import {
   buildRiskAnalysisSeed,
   addOneTenant,
@@ -58,9 +58,8 @@ describe("create risk analysis", () => {
     };
 
     const mockValidRiskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed = buildRiskAnalysisSeed(
-      mockValidRiskAnalysis
-    );
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
+      buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     const eservice: EService = {
       ...mockEService,
@@ -308,7 +307,7 @@ describe("create risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(riskAnalysis),
       name: riskAnalysis.name,
     };
@@ -335,7 +334,7 @@ describe("create risk analysis", () => {
 
     const mockValidRiskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
 
-    const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
     };
 
