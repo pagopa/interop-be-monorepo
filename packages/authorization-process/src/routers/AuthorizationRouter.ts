@@ -79,7 +79,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -106,7 +106,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -145,7 +145,7 @@ const authorizationRouter = (
             offset,
             limit,
             logger: ctx.logger,
-          });
+          }); //
           return res
             .status(200)
             .json({
@@ -196,8 +196,8 @@ const authorizationRouter = (
             .status(200)
             .json({
               results: clients.results.map((client) =>
-                clientToApiClient({
-                  client,
+                clientToApiClient(client, {
+                  includeKeys: false,
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -233,7 +233,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
