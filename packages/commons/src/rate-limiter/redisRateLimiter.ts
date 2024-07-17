@@ -106,17 +106,23 @@ export async function initRedisRateLimiter(config: {
     }
   }
 
+  async function getCountByOrganization(
+    organizationId: TenantId
+  ): Promise<string | null> {
+    return redisClient.get(`${config.limiterGroup}:${organizationId}`);
+  }
+
+  async function getBurstCountByOrganization(
+    organizationId: TenantId
+  ): Promise<string | null> {
+    return redisClient.get(
+      `${burstKeyPrefix}${config.limiterGroup}:${organizationId}`
+    );
+  }
+
   return {
     rateLimitByOrganization,
-    getCountByOrganization: async (
-      organizationId: TenantId
-    ): Promise<string | null> =>
-      redisClient.get(`${config.limiterGroup}:${organizationId}`),
-    getBurstCountByOrganization: async (
-      organizationId: TenantId
-    ): Promise<string | null> =>
-      redisClient.get(
-        `${burstKeyPrefix}${config.limiterGroup}:${organizationId}`
-      ),
+    getCountByOrganization,
+    getBurstCountByOrganization,
   };
 }
