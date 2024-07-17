@@ -43,70 +43,70 @@ import { EmailManagerConfigTest } from "./testConfig.js";
  * afterEach(cleanup);
  * ```
  */
-export function setupTestContainersVitest(
+export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig
-): {
+): Promise<{
   readModelRepository: ReadModelRepository;
   cleanup: () => Promise<void>;
-};
+}>;
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig
-): {
+): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   cleanup: () => Promise<void>;
-};
+}>;
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
-): {
+): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   cleanup: () => Promise<void>;
-};
+}>;
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: EmailManagerConfigTest
-): {
+): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   emailManager: EmailManager;
   cleanup: () => Promise<void>;
-};
+}>;
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: EmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig
-): {
+): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   emailManager: EmailManager;
   redisRateLimiter: RateLimiter;
   cleanup: () => Promise<void>;
-};
-export function setupTestContainersVitest(
+}>;
+export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: EmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig
-): {
+): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
   emailManager?: EmailManager;
   redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
-} {
+}> {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
 
   let readModelRepository: ReadModelRepository | undefined;
@@ -141,7 +141,7 @@ export function setupTestContainersVitest(
   }
 
   if (redisRateLimiterConfig) {
-    redisRateLimiter = initRedisRateLimiter({
+    redisRateLimiter = await initRedisRateLimiter({
       limiterGroup: redisRateLimiterGroup,
       maxRequests: redisRateLimiterConfig.rateLimiterMaxRequests,
       rateInterval: redisRateLimiterConfig.rateLimiterRateInterval,

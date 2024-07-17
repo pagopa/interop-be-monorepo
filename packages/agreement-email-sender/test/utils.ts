@@ -18,7 +18,7 @@ export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
 
 export const { cleanup, readModelRepository, emailManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     readModelConfig,
     undefined,
     undefined,

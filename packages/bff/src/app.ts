@@ -23,7 +23,7 @@ const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
 
-const redisRateLimiter = initRedisRateLimiter({
+const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "BFF",
   maxRequests: config.rateLimiterMaxRequests,
   rateInterval: config.rateLimiterRateInterval,
