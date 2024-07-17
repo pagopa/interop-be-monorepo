@@ -31,7 +31,6 @@ export async function initRedisRateLimiter(config: {
       port: config.redisPort,
       connectTimeout: config.timeout,
     },
-    disableOfflineQueue: true,
   })
     .on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`))
     .connect();
