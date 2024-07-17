@@ -1,4 +1,10 @@
-import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
+import {
+  AppContext,
+  DB,
+  Logger,
+  WithLogger,
+  eventRepository,
+} from "pagopa-interop-commons";
 import {
   Attribute,
   WithMetadata,
@@ -10,12 +16,7 @@ import {
   AttributeKind,
   ListResult,
 } from "pagopa-interop-models";
-import {
-  ApiCertifiedAttributeSeed,
-  ApiDeclaredAttributeSeed,
-  ApiInternalCertifiedAttributeSeed,
-  ApiVerifiedAttributeSeed,
-} from "../model/types.js";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
@@ -24,7 +25,7 @@ import {
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -35,19 +36,22 @@ export function attributeRegistryServiceBuilder(
   const repository = eventRepository(dbInstance, attributeEventToBinaryData);
 
   return {
-    async getAttributesByKindsNameOrigin({
-      kinds,
-      name,
-      origin,
-      offset,
-      limit,
-    }: {
-      kinds: AttributeKind[];
-      name: string | undefined;
-      origin: string | undefined;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Attribute>> {
+    async getAttributesByKindsNameOrigin(
+      {
+        kinds,
+        name,
+        origin,
+        offset,
+        limit,
+      }: {
+        kinds: AttributeKind[];
+        name: string | undefined;
+        origin: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Attribute>> {
       logger.info(
         `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
       );
@@ -60,7 +64,10 @@ export function attributeRegistryServiceBuilder(
       });
     },
 
-    async getAttributeByName(name: string): Promise<WithMetadata<Attribute>> {
+    async getAttributeByName(
+      name: string,
+      logger: Logger
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with name ${name}`);
       const attribute = await readModelService.getAttributeByName(name);
       if (attribute === undefined) {
@@ -69,13 +76,16 @@ export function attributeRegistryServiceBuilder(
       return attribute;
     },
 
-    async getAttributeByOriginAndCode({
-      origin,
-      code,
-    }: {
-      origin: string;
-      code: string;
-    }): Promise<WithMetadata<Attribute>> {
+    async getAttributeByOriginAndCode(
+      {
+        origin,
+        code,
+      }: {
+        origin: string;
+        code: string;
+      },
+      logger: Logger
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute ${origin}/${code}`);
       const attribute = await readModelService.getAttributeByOriginAndCode({
         origin,
@@ -87,7 +97,10 @@ export function attributeRegistryServiceBuilder(
       return attribute;
     },
 
-    async getAttributeById(id: AttributeId): Promise<WithMetadata<Attribute>> {
+    async getAttributeById(
+      id: AttributeId,
+      logger: Logger
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with ID ${id}`);
       const attribute = await readModelService.getAttributeById(id);
       if (attribute === undefined) {
@@ -96,23 +109,25 @@ export function attributeRegistryServiceBuilder(
       return attribute;
     },
 
-    async getAttributesByIds({
-      ids,
-      offset,
-      limit,
-    }: {
-      ids: AttributeId[];
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Attribute>> {
+    async getAttributesByIds(
+      {
+        ids,
+        offset,
+        limit,
+      }: {
+        ids: AttributeId[];
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Attribute>> {
       logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
       return await readModelService.getAttributesByIds({ ids, offset, limit });
     },
 
     async createDeclaredAttribute(
-      apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      authData: AuthData,
-      correlationId: string
+      apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -153,9 +168,8 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createVerifiedAttribute(
-      apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      authData: AuthData,
-      correlationId: string
+      apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -195,9 +209,8 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createCertifiedAttribute(
-      apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      authData: AuthData,
-      correlationId: string
+      apiCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
@@ -244,8 +257,8 @@ export function attributeRegistryServiceBuilder(
     },
 
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
-      correlationId: string
+      apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
+      { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`

@@ -1,4 +1,4 @@
-FROM node:18.17.1-slim as build
+FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
 
 RUN corepack enable
 
@@ -34,7 +34,7 @@ RUN pnpm build && \
       packages/agreement-readmodel-writer/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:18.17.1-slim as final 
+FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
 
 COPY --from=build /out /app
 

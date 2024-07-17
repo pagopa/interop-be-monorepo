@@ -27,8 +27,6 @@ type RoleValidation =
     }
   | { isValid: true };
 
-const makeApiProblem = makeApiProblemBuilder(logger, {});
-
 const hasValidRoles = (
   req: Request,
   admittedRoles: UserRole[]
@@ -65,6 +63,8 @@ const hasValidRoles = (
       };
 };
 
+const makeApiProblem = makeApiProblemBuilder({});
+
 export const authorizationMiddleware =
   <
     Api extends ZodiosEndpointDefinition[],
@@ -85,6 +85,13 @@ export const authorizationMiddleware =
       return next();
     } catch (err) {
       const headers = readHeaders(req as Request);
+
+      const loggerInstance = logger({
+        userId: headers?.userId,
+        organizationId: headers?.organizationId,
+        correlationId: headers?.correlationId,
+      });
+
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
@@ -94,7 +101,8 @@ export const authorizationMiddleware =
               title: error.title,
               correlationId: headers?.correlationId,
             }),
-            (error) => (error.code === "unauthorizedError" ? 403 : 500)
+            (error) => (error.code === "unauthorizedError" ? 403 : 500),
+            loggerInstance
           )
         )
         .otherwise(() =>
@@ -102,7 +110,8 @@ export const authorizationMiddleware =
             genericError(
               "An unexpected error occurred during authorization checks"
             ),
-            () => 500
+            () => 500,
+            loggerInstance
           )
         );
 

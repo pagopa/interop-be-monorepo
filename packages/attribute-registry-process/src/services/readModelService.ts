@@ -2,7 +2,6 @@ import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import {
   AttributeCollection,
-  logger,
   ReadModelRepository,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -11,13 +10,14 @@ import {
   Attribute,
   WithMetadata,
   ListResult,
-  genericError,
   Tenant,
   AttributeId,
   TenantId,
   AttributeReadmodel,
   TenantReadModel,
+  genericInternalError,
 } from "pagopa-interop-models";
+
 async function getAttribute(
   attributes: AttributeCollection,
   filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
@@ -35,12 +35,11 @@ async function getAttribute(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse attribute item");
     }
     return {
       data: result.data.data,
@@ -63,13 +62,11 @@ async function getTenant(
     const result = Tenant.safeParse(data.data);
 
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-
-      throw genericError("Unable to parse tenant item");
     }
 
     return result.data;
@@ -92,18 +89,18 @@ async function getAttributes({
     .toArray();
   const result = z.array(Attribute).safeParse(data.map((d) => d.data));
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse attributes items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse attribute items");
   }
   return {
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       attributes,
-      aggregationPipeline
+      aggregationPipeline,
+      false
     ),
   };
 }

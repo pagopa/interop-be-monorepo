@@ -7,7 +7,7 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue, logger } from "pagopa-interop-commons";
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0001",
@@ -29,11 +29,14 @@ export const errorCodes = {
   eServiceRiskAnalysisNotFound: "0017",
   eServiceRiskAnalysisIsRequired: "0018",
   riskAnalysisNotValid: "0019",
+  prettyNameDuplicate: "0020",
+  riskAnalysisDuplicated: "0021",
+  eserviceWithoutValidDescriptors: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -48,6 +51,17 @@ export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
     detail: `An EService with name ${eserviceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
+  });
+}
+
+export function riskAnalysisDuplicated(
+  riskAnalysisName: string,
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A Risk Analysis with name ${riskAnalysisName} already exists for EService ${eserviceId}`,
+    code: "riskAnalysisDuplicated",
+    title: "Duplicated risk analysis name",
   });
 }
 
@@ -223,5 +237,26 @@ export function riskAnalysisNotValid(): ApiError<ErrorCodes> {
     detail: `Risk Analysis did not pass validation`,
     code: "riskAnalysisNotValid",
     title: "Risk Analysis did not pass validation",
+  });
+}
+
+export function prettyNameDuplicate(
+  prettyName: string,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
+    code: "prettyNameDuplicate",
+    title: "Duplicated prettyName",
+  });
+}
+
+export function eserviceWithoutValidDescriptors(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have a valid descriptor`,
+    code: "eserviceWithoutValidDescriptors",
+    title: "EService without valid descriptors",
   });
 }

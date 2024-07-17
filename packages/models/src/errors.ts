@@ -67,6 +67,12 @@ export type Problem = {
   toString: () => string;
 };
 
+export type MakeApiProblemFn<T extends string> = (
+  error: unknown,
+  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
+  logger: { error: (message: string) => void; warn: (message: string) => void }
+) => Problem;
+
 const makeProblemLogString = (
   problem: Problem,
   originalError: unknown
@@ -75,17 +81,11 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
-export function makeApiProblemBuilder<T extends string>(
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  errors: {
-    [K in T]: string;
-  }
-): (
-  error: unknown,
-  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
-) => Problem {
+export function makeApiProblemBuilder<T extends string>(errors: {
+  [K in T]: string;
+}): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper) => {
+  return (error, httpMapper, logger) => {
     const makeProblem = (
       httpStatus: number,
       { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>
@@ -101,23 +101,47 @@ export function makeApiProblemBuilder<T extends string>(
       })),
     });
 
-    return match<unknown, Problem>(error)
-      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-        const problem = makeProblem(httpMapper(error), error);
-        logger.warn(makeProblemLogString(problem, error));
-        return problem;
-      })
-      .otherwise((error: unknown) => {
-        const problem = makeProblem(500, genericError("Unexpected error"));
-        logger.error(makeProblemLogString(problem, error));
-        return problem;
-      });
+    return (
+      match<unknown, Problem>(error)
+        .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
+          const problem = makeProblem(httpMapper(error), error);
+          logger.warn(makeProblemLogString(problem, error));
+          return problem;
+        })
+        // this case is to allow a passthrough of PROBLEM errors in the BFF
+        .with(
+          {
+            response: {
+              status: P.number,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
+                detail: P.string,
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
+            },
+          },
+          (e) => e.response.data
+        )
+        .otherwise((error: unknown) => {
+          const problem = makeProblem(500, genericError("Unexpected error"));
+          logger.error(makeProblemLogString(problem, error));
+          return problem;
+        })
+    );
   };
 }
 
 const errorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
+  htmlTemplateInterpolationError: "9002",
+  pdfGenerationError: "9003",
   operationForbidden: "9989",
   invalidClaim: "9990",
   genericError: "9991",
@@ -129,6 +153,9 @@ const errorCodes = {
   missingKafkaMessageData: "9997",
   kafkaMessageProcessError: "9998",
   badRequestError: "9999",
+  jwkDecodingError: "10000",
+  notAllowedPrivateKeyException: "10001",
+  missingRequiredJWKClaim: "10002",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -203,6 +230,24 @@ export function kafkaMessageProcessError(
   });
 }
 
+export function htmlTemplateInterpolationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "htmlTemplateInterpolationError",
+    detail: `Error compiling HTML template: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function pdfGenerationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "pdfGenerationError",
+    detail: `Error during pdf generation : ${parseErrorMessage(error)}`,
+  });
+}
+
 /* ===== API Error ===== */
 
 export function authenticationSaslFailed(
@@ -233,7 +278,7 @@ export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
 
 export function badRequestError(
   detail: string,
-  errors: Error[]
+  errors?: Error[]
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail,
@@ -281,3 +326,29 @@ export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   code: "operationForbidden",
   title: "Insufficient privileges",
 });
+
+export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected error on JWK base64 decoding: ${parseErrorMessage(
+      error
+    )}`,
+    code: "jwkDecodingError",
+    title: "JWK decoding error",
+  });
+}
+
+export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key is a private key`,
+    code: "notAllowedPrivateKeyException",
+    title: "Not allowed private key exception",
+  });
+}
+
+export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `One or more required JWK claims are missing`,
+    code: "missingRequiredJWKClaim",
+    title: "Missing required JWK claims",
+  });
+}

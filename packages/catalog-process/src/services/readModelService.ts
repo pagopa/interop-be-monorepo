@@ -1,5 +1,4 @@
 import {
-  logger,
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
@@ -18,7 +17,6 @@ import {
   agreementState,
   ListResult,
   emptyListResult,
-  genericError,
   DescriptorId,
   WithMetadata,
   Attribute,
@@ -28,12 +26,16 @@ import {
   Tenant,
   EServiceReadModel,
   TenantReadModel,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
-import { Consumer, consumer } from "../model/domain/models.js";
-import { ApiGetEServicesFilters } from "../model/types.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  consumer,
+} from "../model/domain/models.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -52,12 +54,11 @@ async function getEService(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse eService item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse eService item");
     }
     return {
       data: result.data.data,
@@ -80,13 +81,11 @@ async function getTenant(
   const result = Tenant.safeParse(data.data);
 
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse tenant item: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-
-    throw genericError("Unable to parse tenant item");
   }
 
   return result.data;
@@ -186,7 +185,7 @@ export function readModelServiceBuilder(
         });
 
       const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
         authData
       )
         ? {
@@ -259,20 +258,19 @@ export function readModelServiceBuilder(
 
       const result = z.array(EService).safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse eservices items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse eservices items");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline
+          aggregationPipeline,
+          false
         ),
       };
     },
@@ -391,20 +389,19 @@ export function readModelServiceBuilder(
 
       const result = z.array(consumer).safeParse(data);
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse consumers: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse consumers");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline
+          aggregationPipeline,
+          false
         ),
       };
     },
@@ -469,13 +466,11 @@ export function readModelServiceBuilder(
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse agreements: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse agreements");
       }
 
       return result.data;
@@ -492,13 +487,11 @@ export function readModelServiceBuilder(
 
       const result = z.array(Attribute).safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse attributes items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse attributes items");
       }
 
       return result.data;

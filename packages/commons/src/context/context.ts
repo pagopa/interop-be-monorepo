@@ -1,66 +1,45 @@
-/* eslint-disable functional/immutable-data */
-import { AsyncLocalStorage } from "async_hooks";
-import { NextFunction, Request, Response } from "express";
-import { zodiosContext } from "@zodios/express";
+import {
+  ZodiosRouterContextRequestHandler,
+  zodiosContext,
+} from "@zodios/express";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { P, match } from "ts-pattern";
-import { AuthData, defaultAuthData } from "../auth/authData.js";
-import { readHeaders } from "../auth/headers.js";
+import { AuthData } from "../auth/authData.js";
+import { Logger, logger } from "../logging/index.js";
+import { readCorrelationIdHeader } from "../auth/headers.js";
 
-export type AppContext = {
-  authData: AuthData;
-  messageData?: {
-    eventType: string;
-    eventVersion: number;
-    streamId: string;
-  };
-  correlationId?: string | null | undefined;
-};
-export type ZodiosContext = NonNullable<typeof zodiosCtx>;
-export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
-
-export const ctx = z.object({
+export const AppContext = z.object({
+  serviceName: z.string(),
   authData: AuthData,
   correlationId: z.string(),
 });
+export type AppContext = z.infer<typeof AppContext>;
 
-export const zodiosCtx = zodiosContext(z.object({ ctx }));
+export const zodiosCtx = zodiosContext(z.object({ ctx: AppContext }));
+export type ZodiosContext = NonNullable<typeof zodiosCtx>;
+export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
-const globalStore = new AsyncLocalStorage<AppContext>();
-const defaultAppContext: AppContext = {
-  authData: defaultAuthData,
-};
+export type WithLogger<T> = T & { logger: Logger };
 
-export const getContext = (): AppContext => {
-  const context = globalStore.getStore();
-  return !context ? defaultAppContext : context;
-};
-
-export const contextMiddleware = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-): void => {
-  const headers = readHeaders(req);
-  const context = match(headers)
-    .with(P.not(P.nullish), (headers) => ({
-      authData: {
-        userId: headers.userId,
-        organizationId: headers.organizationId,
-        userRoles: headers.userRoles,
-        externalId: headers.externalId,
-      },
-      correlationId: headers.correlationId,
-    }))
-    .with(P.nullish, () => defaultAppContext)
-    .exhaustive();
-
-  globalStore.run(context, () => next());
-};
-
-export async function runWithContext(
-  context: Partial<AppContext>,
-  fn: () => Promise<void>
-): Promise<void> {
-  await globalStore.run({ ...defaultAppContext, ...context }, fn);
+export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
+  return { ...ctx, logger: logger({ ...ctx }) };
 }
+
+export const contextMiddleware =
+  (
+    serviceName: string,
+    overrideCorrelationId: boolean = false
+  ): ZodiosRouterContextRequestHandler<ExpressContext> =>
+  (req, _res, next): void => {
+    const correlationId = overrideCorrelationId
+      ? uuidv4()
+      : readCorrelationIdHeader(req) ?? uuidv4();
+
+    // eslint-disable-next-line functional/immutable-data
+    req.ctx = {
+      serviceName,
+      correlationId,
+    } as AppContext;
+
+    next();
+  };

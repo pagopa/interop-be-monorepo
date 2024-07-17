@@ -1,916 +1,1249 @@
 import { z } from "zod";
 import {
+  AppContext,
   AuthData,
   CreateEvent,
   DB,
   FileManager,
+  Logger,
+  PDFGenerator,
+  WithLogger,
   eventRepository,
-  logger,
 } from "pagopa-interop-commons";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  generateId,
   Agreement,
   AgreementDocument,
+  AgreementDocumentId,
   AgreementEvent,
+  AgreementId,
+  AgreementState,
+  AttributeId,
+  Descriptor,
+  DescriptorId,
+  EService,
+  EServiceId,
   ListResult,
+  Tenant,
+  TenantId,
+  UserId,
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementDocumentId,
-  AgreementId,
+  generateId,
+  unsafeBrandId,
+  CompactTenant,
 } from "pagopa-interop-models";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
+  declaredAttributesSatisfied,
+  verifiedAttributesSatisfied,
+} from "pagopa-interop-agreement-lifecycle";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
+import {
+  agreementActivationFailed,
   agreementAlreadyExists,
-  descriptorNotFound,
-  noNewerDescriptor,
-  unexpectedVersionFormat,
-  publishedDescriptorNotFound,
+  agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
+  agreementNotFound,
+  agreementSubmissionFailed,
+  descriptorNotFound,
+  eServiceNotFound,
+  noNewerDescriptor,
+  publishedDescriptorNotFound,
+  tenantNotFound,
+  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
-
 import {
+  CompactEService,
+  CompactOrganization,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
+import {
+  toCreateEventAgreementActivated,
   toCreateEventAgreementAdded,
+  toCreateEventAgreementArchivedByConsumer,
+  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementConsumerDocumentAdded,
+  toCreateEventAgreementConsumerDocumentRemoved,
   toCreateEventAgreementDeleted,
-  toCreateEventAgreementUpdated,
+  toCreateEventAgreementRejected,
+  toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
+  toCreateEventAgreementSubmitted,
+  toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
-  assertAgreementExist,
-  assertEServiceExist,
+  agreementArchivableStates,
+  agreementClonableStates,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementSuspendableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  assertActivableState,
+  assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
-  assertTenantExist,
-  assertDescriptorExist,
-  declaredAttributesSatisfied,
+  assertSubmittableState,
+  failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
+  validateActivationOnDescriptor,
+  validateActiveOrPendingAgreement,
   validateCertifiedAttributes,
-  verifiedAttributesSatisfied,
-  verifyConflictingAgreements,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
-  agreementArchivableStates,
-} from "../model/domain/validators.js";
+  validateCreationOnDescriptor,
+  validateSubmitOnDescriptor,
+  verifyConsumerDoesNotActivatePending,
+  verifyCreationConflictingAgreements,
+  verifySubmissionConflictingAgreements,
+} from "../model/domain/agreement-validators.js";
+import { config } from "../config/config.js";
 import {
-  CompactEService,
-  CompactOrganization,
-} from "../model/domain/models.js";
+  archiveRelatedToAgreements,
+  createActivationEvent,
+  createActivationUpdateAgreementSeed,
+} from "./agreementActivationProcessor.js";
 import {
-  ApiAgreementPayload,
-  ApiAgreementSubmissionPayload,
-  ApiAgreementUpdatePayload,
-  ApiAgreementDocumentSeed,
-} from "../model/types.js";
-import { config } from "../utilities/config.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
+  ContractBuilder,
+  contractBuilder,
+} from "./agreementContractBuilder.js";
+import { createStamp } from "./agreementStampUtils.js";
+import {
+  agreementStateByFlags,
+  computeAgreementsStateByAttribute,
+  nextStateByAttributesFSM,
+  suspendedByConsumerFlag,
+  suspendedByPlatformFlag,
+  suspendedByProducerFlag,
+} from "./agreementStateProcessor.js";
+import {
+  createSubmissionUpdateAgreementSeed,
+  isActiveOrSuspended,
+  validateConsumerEmail,
+} from "./agreementSubmissionProcessor.js";
+import {
+  createAgreementSuspendedEvent,
+  createSuspensionUpdatedAgreement,
+} from "./agreementSuspensionProcessor.js";
+import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
-} from "./readmodel/readModelService.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
-import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
-import { createStamp } from "./agreementStampUtils.js";
-import {
-  removeAgreementConsumerDocumentLogic,
-  addConsumerDocumentLogic,
-} from "./agreementConsumerDocumentProcessor.js";
-import { activateAgreementLogic } from "./agreementActivationProcessor.js";
-import { createAgreementLogic } from "./agreementCreationProcessor.js";
+  ReadModelService,
+} from "./readModelService.js";
+
+export const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (!eservice) {
+    throw eServiceNotFound(eserviceId);
+  }
+  return eservice;
+};
+
+export const retrieveAgreement = async (
+  agreementId: AgreementId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Agreement>> => {
+  const agreement = await readModelService.getAgreementById(agreementId);
+  if (!agreement) {
+    throw agreementNotFound(agreementId);
+  }
+  return agreement;
+};
+
+export const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+const retrieveDescriptor = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
+};
+
+function retrieveAgreementDocument(
+  agreement: Agreement,
+  documentId: AgreementDocumentId
+): AgreementDocument {
+  const document = agreement.consumerDocuments.find((d) => d.id === documentId);
+
+  if (!document) {
+    throw agreementDocumentNotFound(documentId, agreement.id);
+  }
+  return document;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
-  eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery,
-  fileManager: FileManager
+  readModelService: ReadModelService,
+  fileManager: FileManager,
+  pdfGenerator: PDFGenerator,
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await agreementQuery.getAgreements(filters, limit, offset);
+      return await readModelService.getAgreements(filters, limit, offset);
     },
-    async getAgreementById(agreementId: AgreementId): Promise<Agreement> {
+    async getAgreementById(
+      agreementId: AgreementId,
+      logger: Logger
+    ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
-      const agreement = await agreementQuery.getAgreementById(agreementId);
-      assertAgreementExist(agreementId, agreement);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       return agreement.data;
     },
     async createAgreement(
-      agreement: ApiAgreementPayload,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<string> {
+      agreementPayload: agreementApi.AgreementPayload,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
+        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
       );
-      const createAgreementEvent = await createAgreementLogic(
-        agreement,
-        authData,
-        agreementQuery,
-        eserviceQuery,
-        tenantQuery,
-        correlationId
+
+      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
+        agreementPayload.eserviceId
       );
-      return await repository.createEvent(createAgreementEvent);
+      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
+        agreementPayload.descriptorId
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const descriptor = validateCreationOnDescriptor(eservice, descriptorId);
+
+      await verifyCreationConflictingAgreements(
+        authData.organizationId,
+        agreementPayload,
+        readModelService
+      );
+      const consumer = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      if (eservice.producerId !== consumer.id) {
+        validateCertifiedAttributes({ descriptor, consumer });
+      }
+
+      const agreement: Agreement = {
+        id: generateId(),
+        eserviceId,
+        descriptorId,
+        producerId: eservice.producerId,
+        consumerId: authData.organizationId,
+        state: agreementState.draft,
+        verifiedAttributes: [],
+        certifiedAttributes: [],
+        declaredAttributes: [],
+        consumerDocuments: [],
+        createdAt: new Date(),
+        stamps: {},
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementAdded(agreement, correlationId)
+      );
+
+      return agreement;
     },
     async getAgreementProducers(
       producerName: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await agreementQuery.getProducers(producerName, limit, offset);
+      return await readModelService.getProducers(producerName, limit, offset);
     },
     async getAgreementConsumers(
       consumerName: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      return await agreementQuery.getConsumers(consumerName, limit, offset);
+      return await readModelService.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
       agreementId: AgreementId,
-      agreement: ApiAgreementUpdatePayload,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<void> {
+      agreement: agreementApi.AgreementUpdatePayload,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
-      const agreementToBeUpdated = await agreementQuery.getAgreementById(
-        agreementId
+      const agreementToBeUpdated = await retrieveAgreement(
+        agreementId,
+        readModelService
       );
 
+      assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeUpdated.data.state,
+        agreementUpdatableStates
+      );
+
+      const updatedAgreement: Agreement = {
+        ...agreementToBeUpdated.data,
+        consumerNotes: agreement.consumerNotes,
+      };
+
       await repository.createEvent(
-        await updateAgreementLogic(
-          {
-            agreementId,
-            agreement,
-            authData,
-            agreementToBeUpdated,
-          },
+        toCreateEventDraftAgreementUpdated(
+          updatedAgreement,
+          agreementToBeUpdated.metadata.version,
           correlationId
         )
       );
+
+      return updatedAgreement;
     },
     async deleteAgreementById(
       agreementId: AgreementId,
-      authData: AuthData,
-      correlationId: string
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
-      const agreement = await agreementQuery.getAgreementById(agreementId);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumer(agreement.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementDeletableStates
+      );
+
+      for (const d of agreement.data.consumerDocuments) {
+        await fileManager.delete(config.s3Bucket, d.path, logger);
+      }
 
       await repository.createEvent(
-        await deleteAgreementLogic(
-          {
-            agreementId,
-            authData,
-            deleteFile: fileManager.delete,
-            agreement,
-          },
+        toCreateEventAgreementDeleted(
+          agreement.data,
+          agreement.metadata.version,
           correlationId
         )
       );
     },
     async submitAgreement(
       agreementId: AgreementId,
-      payload: ApiAgreementSubmissionPayload,
-      correlationId: string
-    ): Promise<string> {
+      payload: agreementApi.AgreementSubmissionPayload,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
-      const updatesEvents = await submitAgreementLogic(
-        agreementId,
-        payload,
-        contractBuilder(attributeQuery, fileManager.storeBytes),
-        eserviceQuery,
-        agreementQuery,
-        tenantQuery,
-        correlationId
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertSubmittableState(agreement.data.state, agreement.data.id);
+      await verifySubmissionConflictingAgreements(
+        agreement.data,
+        readModelService
       );
 
-      for (const event of updatesEvents) {
-        await repository.createEvent(event);
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      await validateConsumerEmail(consumer, agreement.data);
+
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = await validateSubmitOnDescriptor(
+        eservice,
+        agreement.data.descriptorId
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
+        readModelService
+      );
+
+      const nextStateByAttributes = nextStateByAttributesFSM(
+        agreement.data,
+        descriptor,
+        consumer
+      );
+
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
+
+      const setToMissingCertifiedAttributesByPlatformEvent =
+        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+          agreement,
+          nextStateByAttributes,
+          suspendedByPlatform,
+          correlationId
+        );
+
+      if (setToMissingCertifiedAttributesByPlatformEvent) {
+        /* In this case, it means that one of the certified attributes is not
+          valid anymore. We put the agreement in the missingCertifiedAttributes state
+          and fail the submission */
+
+        await repository.createEvent(
+          setToMissingCertifiedAttributesByPlatformEvent
+        );
+        throw agreementSubmissionFailed(agreement.data.id);
       }
 
-      return agreementId;
+      const newState = agreementStateByFlags(
+        nextStateByAttributes,
+        // TODO this should actually recalculate flags and consider them
+        // in the calculation of the new state, otherwise a suspended agreement
+        // that was upgraded will become active - https://pagopa.atlassian.net/browse/IMN-626
+        undefined,
+        undefined,
+        suspendedByPlatform
+      );
+
+      validateActiveOrPendingAgreement(agreement.data.id, newState);
+
+      const updateSeed = createSubmissionUpdateAgreementSeed(
+        descriptor,
+        consumer,
+        eservice,
+        agreement.data,
+        payload,
+        newState,
+        authData.userId,
+        suspendedByPlatform
+      );
+
+      const agreements = (
+        await readModelService.getAllAgreements({
+          consumerId: agreement.data.consumerId,
+          eserviceId: agreement.data.eserviceId,
+          agreementStates: [agreementState.active, agreementState.suspended],
+        })
+      ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
+
+      const hasRelatedAgreements = agreements.length > 0;
+      const updatedAgreement = {
+        ...agreement.data,
+        ...updateSeed,
+      };
+
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
+      const isFirstActivation =
+        updatedAgreement.state === agreementState.active &&
+        !hasRelatedAgreements;
+
+      const submittedAgreement = await addContractOnFirstActivation(
+        isFirstActivation,
+        contractBuilderInstance,
+        eservice,
+        consumer,
+        producer,
+        updatedAgreement,
+        authData
+      );
+
+      const agreementEvent =
+        submittedAgreement.state === agreementState.active
+          ? toCreateEventAgreementActivated(
+              submittedAgreement,
+              agreement.metadata.version,
+              correlationId
+            )
+          : toCreateEventAgreementSubmitted(
+              submittedAgreement,
+              agreement.metadata.version,
+              correlationId
+            );
+
+      const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+        /*
+          This condition can only check if state is ACTIVE
+          at this point the SUSPENDED state is not available
+          after validateActiveOrPendingAgreement validation.
+
+          TODO: this will not be true anymore if https://pagopa.atlassian.net/browse/IMN-626
+          is confirmed and gets fixed - the agreement could also be in SUSPENDED state.
+          Remove the comment at that point.
+        */
+        isActiveOrSuspended(submittedAgreement.state)
+          ? agreements.map((agreement) =>
+              createAgreementArchivedByUpgradeEvent(
+                agreement,
+                authData.userId,
+                correlationId
+              )
+            )
+          : [];
+
+      await repository.createEvents([
+        agreementEvent,
+        ...archivedAgreementsUpdates,
+      ]);
+
+      return submittedAgreement;
     },
     async upgradeAgreement(
       agreementId: AgreementId,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<string> {
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Upgrading agreement ${agreementId}`);
-      const { streamId, events } = await upgradeAgreementLogic(
-        {
-          agreementId,
-          authData,
-          agreementQuery,
-          eserviceQuery,
-          tenantQuery,
-          copyFile: fileManager.copy,
-        },
-        correlationId
+
+      const agreementToBeUpgraded = await retrieveAgreement(
+        agreementId,
+        readModelService
       );
 
-      for (const event of events) {
-        await repository.createEvent(event);
+      assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeUpgraded.data.state,
+        agreementUpgradableStates
+      );
+
+      const eservice = await retrieveEService(
+        agreementToBeUpgraded.data.eserviceId,
+        readModelService
+      );
+
+      const newDescriptor = eservice.descriptors.find(
+        (d) => d.state === descriptorState.published
+      );
+      if (newDescriptor === undefined) {
+        throw publishedDescriptorNotFound(eservice.id);
+      }
+      const latestDescriptorVersion = z
+        .preprocess((x) => Number(x), z.number())
+        .safeParse(newDescriptor.version);
+      if (!latestDescriptorVersion.success) {
+        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
       }
 
-      return streamId;
+      const currentDescriptor = retrieveDescriptor(
+        agreementToBeUpgraded.data.descriptorId,
+        eservice
+      );
+
+      const currentVersion = z
+        .preprocess((x) => Number(x), z.number())
+        .safeParse(currentDescriptor.version);
+      if (!currentVersion.success) {
+        throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
+      }
+
+      if (latestDescriptorVersion.data <= currentVersion.data) {
+        throw noNewerDescriptor(eservice.id, currentDescriptor.id);
+      }
+
+      const consumer = await retrieveTenant(
+        agreementToBeUpgraded.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreementToBeUpgraded.data.producerId,
+        readModelService
+      );
+
+      if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
+        validateCertifiedAttributes({
+          descriptor: newDescriptor,
+          consumer,
+        });
+      }
+
+      const verifiedValid = verifiedAttributesSatisfied(
+        agreementToBeUpgraded.data.producerId,
+        newDescriptor,
+        consumer
+      );
+
+      const declaredValid = declaredAttributesSatisfied(
+        newDescriptor,
+        consumer
+      );
+
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
+      const [agreement, events] = await createUpgradeOrNewDraft({
+        agreement: agreementToBeUpgraded,
+        newDescriptor,
+        eservice,
+        consumer,
+        producer,
+        readModelService,
+        canBeUpgraded: verifiedValid && declaredValid,
+        copyFile: fileManager.copy,
+        authData,
+        contractBuilder: contractBuilderInstance,
+        correlationId,
+        logger,
+      });
+
+      await repository.createEvents(events);
+
+      return agreement;
     },
     async cloneAgreement(
       agreementId: AgreementId,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<string> {
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Cloning agreement ${agreementId}`);
-      const { streamId, events } = await cloneAgreementLogic(
-        {
-          agreementId,
-          authData,
-          agreementQuery,
-          eserviceQuery,
-          tenantQuery,
-          copyFile: fileManager.copy,
-        },
-        correlationId
+
+      const agreementToBeCloned = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+      assertRequesterIsConsumer(agreementToBeCloned.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeCloned.data.state,
+        agreementClonableStates
       );
 
-      for (const event of events) {
-        await repository.createEvent(event);
+      const activeAgreement = await readModelService.getAllAgreements({
+        consumerId: authData.organizationId,
+        eserviceId: agreementToBeCloned.data.eserviceId,
+        agreementStates: agreementCloningConflictingStates,
+      });
+      if (activeAgreement.length > 0) {
+        throw agreementAlreadyExists(
+          authData.organizationId,
+          agreementToBeCloned.data.eserviceId
+        );
       }
 
-      return streamId;
+      const eservice = await retrieveEService(
+        agreementToBeCloned.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(
+        agreementToBeCloned.data.descriptorId,
+        eservice
+      );
+
+      validateCertifiedAttributes({
+        descriptor,
+        consumer: await retrieveTenant(
+          agreementToBeCloned.data.consumerId,
+          readModelService
+        ),
+      });
+
+      const id = generateId<AgreementId>();
+      const newAgreement: Agreement = {
+        ...agreementToBeCloned.data,
+        id,
+        verifiedAttributes: [],
+        certifiedAttributes: [],
+        declaredAttributes: [],
+        state: agreementState.draft,
+        createdAt: new Date(),
+        consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+          id,
+          agreementToBeCloned.data,
+          fileManager.copy,
+          logger
+        ),
+        stamps: {},
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementAdded(newAgreement, correlationId)
+      );
+
+      return newAgreement;
     },
     async addConsumerDocument(
       agreementId: AgreementId,
-      documentSeed: ApiAgreementDocumentSeed,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<string> {
+      documentSeed: agreementApi.DocumentSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
-      const addDocumentEvent = await addConsumerDocumentLogic(
-        agreementId,
-        documentSeed,
-        agreementQuery,
-        authData,
-        correlationId
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+      const existentDocument = agreement.data.consumerDocuments.find(
+        (d) => d.id === documentSeed.id
       );
-      return await repository.createEvent(addDocumentEvent);
+
+      if (existentDocument) {
+        throw agreementDocumentAlreadyExists(agreementId);
+      }
+      const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
+
+      const updatedAgreement = {
+        ...agreement.data,
+        consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementConsumerDocumentAdded(
+          newDocument.id,
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
+
+      return newDocument;
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      authData: AuthData
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<AgreementDocument> {
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
-      const agreement = await agreementQuery.getAgreementById(agreementId);
-      assertAgreementExist(agreementId, agreement);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
-      const document = agreement.data.consumerDocuments.find(
-        (d) => d.id === documentId
-      );
-
-      if (!document) {
-        throw agreementDocumentNotFound(documentId, agreementId);
-      }
-
-      return document;
+      return retrieveAgreementDocument(agreement.data, documentId);
     },
     async suspendAgreement(
       agreementId: AgreementId,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<AgreementId> {
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Suspending agreement ${agreementId}`);
-      await repository.createEvent(
-        await suspendAgreementLogic({
-          agreementId,
-          authData,
-          agreementQuery,
-          tenantQuery,
-          eserviceQuery,
-          correlationId,
-        })
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementSuspendableStates
       );
 
-      return agreementId;
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(
+        agreement.data.descriptorId,
+        eservice
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      const updatedAgreement: Agreement = createSuspensionUpdatedAgreement({
+        agreement: agreement.data,
+        authData,
+        descriptor,
+        consumer,
+      });
+
+      await repository.createEvent(
+        createAgreementSuspendedEvent(
+          authData.organizationId,
+          correlationId,
+          updatedAgreement,
+          agreement
+        )
+      );
+
+      return updatedAgreement;
     },
     async getAgreementEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<CompactEService>> {
       logger.info(
         `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
 
-      return await agreementQuery.getEServices(filters, limit, offset);
+      return await readModelService.getAgreementsEServices(
+        filters,
+        limit,
+        offset
+      );
     },
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      authData: AuthData,
-      correlationId: string
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
 
-      const removeDocumentEvent = await removeAgreementConsumerDocumentLogic(
-        agreementId,
-        documentId,
-        agreementQuery,
-        authData,
-        fileManager.delete,
-        correlationId
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+      const existentDocument = retrieveAgreementDocument(
+        agreement.data,
+        documentId
       );
 
-      return await repository.createEvent(removeDocumentEvent);
+      await fileManager.delete(config.s3Bucket, existentDocument.path, logger);
+
+      const updatedAgreement = {
+        ...agreement.data,
+        consumerDocuments: agreement.data.consumerDocuments.filter(
+          (d) => d.id !== documentId
+        ),
+      };
+
+      return await repository.createEvent(
+        toCreateEventAgreementConsumerDocumentRemoved(
+          documentId,
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
     },
     async rejectAgreement(
       agreementId: AgreementId,
       rejectionReason: string,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<string> {
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Rejecting agreement ${agreementId}`);
+
+      const agreementToBeRejected = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      assertRequesterIsProducer(agreementToBeRejected.data, authData);
+
+      assertExpectedState(
+        agreementId,
+        agreementToBeRejected.data.state,
+        agreementRejectableStates
+      );
+
+      const eservice = await retrieveEService(
+        agreementToBeRejected.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(
+        agreementToBeRejected.data.descriptorId,
+        eservice
+      );
+
+      const consumer = await retrieveTenant(
+        agreementToBeRejected.data.consumerId,
+        readModelService
+      );
+
+      const rejectedAgreement: Agreement = {
+        ...agreementToBeRejected.data,
+        state: agreementState.rejected,
+        certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
+        verifiedAttributes: matchingVerifiedAttributes(
+          eservice,
+          descriptor,
+          consumer
+        ),
+        rejectionReason,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedByPlatform: undefined,
+        stamps: {
+          ...agreementToBeRejected.data.stamps,
+          rejection: createStamp(authData.userId),
+        },
+      };
+
       await repository.createEvent(
-        await rejectAgreementLogic(
-          {
-            agreementId,
-            rejectionReason,
-            authData,
-            agreementQuery,
-            tenantQuery,
-            eserviceQuery,
-          },
+        toCreateEventAgreementRejected(
+          rejectedAgreement,
+          agreementToBeRejected.metadata.version,
           correlationId
         )
       );
-      return agreementId;
+      return rejectedAgreement;
     },
     async activateAgreement(
-      agreementId: Agreement["id"],
-      authData: AuthData,
-      correlationId: string
-    ): Promise<Agreement["id"]> {
+      agreementId: AgreementId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
-      const updatesEvents = await activateAgreementLogic(
-        agreementId,
-        agreementQuery,
-        eserviceQuery,
-        tenantQuery,
-        attributeQuery,
+
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+      verifyConsumerDoesNotActivatePending(agreement.data, authData);
+      assertActivableState(agreement.data);
+
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
+
+      const descriptor = validateActivationOnDescriptor(
+        eservice,
+        agreement.data.descriptorId
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
+        readModelService
+      );
+
+      /* nextAttributesState VS targetDestinationState
+      -- targetDestinationState is the state where the caller wants to go (active, in this case)
+      -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+      */
+      const targetDestinationState = agreementState.active;
+      const nextStateByAttributes = nextStateByAttributesFSM(
+        agreement.data,
+        descriptor,
+        consumer
+      );
+
+      const suspendedByPlatform = suspendedByPlatformFlag(
+        nextStateByAttributes
+      );
+
+      const setToMissingCertifiedAttributesByPlatformEvent =
+        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+          agreement,
+          nextStateByAttributes,
+          suspendedByPlatform,
+          correlationId
+        );
+      if (setToMissingCertifiedAttributesByPlatformEvent) {
+        /* In this case, it means that one of the certified attributes is not
+          valid anymore. We put the agreement in the missingCertifiedAttributes state
+          and fail the activation */
+        await repository.createEvent(
+          setToMissingCertifiedAttributesByPlatformEvent
+        );
+        throw agreementActivationFailed(agreement.data.id);
+      }
+
+      const suspendedByConsumer = suspendedByConsumerFlag(
+        agreement.data,
+        authData.organizationId,
+        targetDestinationState
+      );
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        targetDestinationState
+      );
+
+      const newState = agreementStateByFlags(
+        nextStateByAttributes,
+        suspendedByProducer,
+        suspendedByConsumer,
+        suspendedByPlatform
+      );
+
+      failOnActivationFailure(newState, agreement.data);
+
+      const isFirstActivation =
+        agreement.data.state === agreementState.pending &&
+        newState === agreementState.active;
+
+      const updatedAgreementSeed: UpdateAgreementSeed =
+        createActivationUpdateAgreementSeed({
+          isFirstActivation,
+          newState,
+          descriptor,
+          consumer,
+          eservice,
+          authData,
+          agreement: agreement.data,
+          suspendedByConsumer,
+          suspendedByProducer,
+          suspendedByPlatform,
+        });
+
+      const updatedAgreementWithoutContract: Agreement = {
+        ...agreement.data,
+        ...updatedAgreementSeed,
+      };
+
+      const updatedAgreement: Agreement = await addContractOnFirstActivation(
+        isFirstActivation,
+        contractBuilderInstance,
+        eservice,
+        consumer,
+        producer,
+        updatedAgreementWithoutContract,
+        authData
+      );
+
+      const suspendedByPlatformChanged =
+        agreement.data.suspendedByPlatform !==
+        updatedAgreement.suspendedByPlatform;
+
+      const activationEvents = await createActivationEvent(
+        isFirstActivation,
+        updatedAgreement,
+        agreement.data.suspendedByPlatform,
+        suspendedByPlatformChanged,
+        agreement.metadata.version,
         authData,
-        fileManager.storeBytes,
         correlationId
       );
 
-      for (const event of updatesEvents) {
-        await repository.createEvent(event);
-      }
-      return agreementId;
+      const archiveEvents = await archiveRelatedToAgreements(
+        agreement.data,
+        authData.userId,
+        readModelService,
+        correlationId
+      );
+
+      await repository.createEvents([...activationEvents, ...archiveEvents]);
+
+      return updatedAgreement;
     },
     async archiveAgreement(
       agreementId: AgreementId,
-      authData: AuthData,
-      correlationId: string
-    ): Promise<Agreement["id"]> {
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Agreement> {
       logger.info(`Archiving agreement ${agreementId}`);
 
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertRequesterIsConsumer(agreement.data, authData);
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementArchivableStates
+      );
+
+      const updatedAgreement: Agreement = {
+        ...agreement.data,
+        state: agreementState.archived,
+        stamps: {
+          ...agreement.data.stamps,
+          archiving: createStamp(authData.userId),
+        },
+      };
+
       await repository.createEvent(
-        await archiveAgreementLogic(
-          agreementId,
-          authData,
-          agreementQuery,
+        toCreateEventAgreementArchivedByConsumer(
+          updatedAgreement,
+          agreement.metadata.version,
           correlationId
         )
       );
 
-      return agreementId;
+      return updatedAgreement;
+    },
+    async computeAgreementsStateByAttribute(
+      attributeId: AttributeId,
+      consumer: CompactTenant,
+      { logger, correlationId }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Recalculating agreements state for Attribute ${attributeId} - Consumer Tenant ${consumer.id}`
+      );
+
+      const events = await computeAgreementsStateByAttribute(
+        attributeId,
+        consumer,
+        readModelService,
+        correlationId,
+        logger
+      );
+
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
     },
   };
 }
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
-async function createAndCopyDocumentsForClonedAgreement(
+export async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
   clonedAgreement: Agreement,
-  startingVersion: number,
-  copyFile: (
-    bucket: string,
-    sourcePath: string,
-    destinationPath: string,
-    destinationFileName: string,
-    docName: string
-  ) => Promise<string>,
-  correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+  copyFile: FileManager["copy"],
+  logger: Logger
+): Promise<AgreementDocument[]> {
   const docs = await Promise.all(
     clonedAgreement.consumerDocuments.map(async (d) => {
       const newId: AgreementDocumentId = generateId();
+      const documentDestinationPath = `${config.consumerDocumentsPath}/${newAgreementId}`;
+
       return {
         newId,
         newPath: await copyFile(
           config.s3Bucket,
-          `${config.consumerDocumentsPath}/${newAgreementId}`,
           d.path,
+          documentDestinationPath,
           newId,
-          d.name
+          d.name,
+          logger
         ),
       };
     })
   );
 
-  return docs.map((d, i) =>
-    toCreateEventAgreementConsumerDocumentAdded(
-      newAgreementId,
-      {
-        id: d.newId,
-        name: clonedAgreement.consumerDocuments[i].name,
-        prettyName: clonedAgreement.consumerDocuments[i].prettyName,
-        contentType: clonedAgreement.consumerDocuments[i].contentType,
-        path: d.newPath,
-        createdAt: new Date(),
-      },
-      startingVersion + i,
-      correlationId
-    )
-  );
-}
-
-export async function deleteAgreementLogic(
-  {
-    agreementId,
-    authData,
-    deleteFile,
-    agreement,
-  }: {
-    agreementId: AgreementId;
-    authData: AuthData;
-    deleteFile: (bucket: string, path: string) => Promise<void>;
-    agreement: WithMetadata<Agreement> | undefined;
-  },
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
-  assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreement.data.state,
-    agreementDeletableStates
-  );
-
-  for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(config.s3Bucket, d.path);
-  }
-
-  return toCreateEventAgreementDeleted(
-    agreementId,
-    agreement.metadata.version,
-    correlationId
-  );
-}
-
-export async function updateAgreementLogic(
-  {
-    agreementId,
-    agreement,
-    authData,
-    agreementToBeUpdated,
-  }: {
-    agreementId: AgreementId;
-    agreement: ApiAgreementUpdatePayload;
-    authData: AuthData;
-    agreementToBeUpdated: WithMetadata<Agreement> | undefined;
-  },
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
-  assertAgreementExist(agreementId, agreementToBeUpdated);
-  assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeUpdated.data.state,
-    agreementUpdatableStates
-  );
-
-  const agreementUpdated: Agreement = {
-    ...agreementToBeUpdated.data,
-    consumerNotes: agreement.consumerNotes,
-  };
-
-  return toCreateEventAgreementUpdated(
-    agreementUpdated,
-    agreementToBeUpdated.metadata.version,
-    correlationId
-  );
-}
-
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export async function upgradeAgreementLogic(
-  {
-    agreementId,
-    authData,
-    agreementQuery,
-    eserviceQuery,
-    tenantQuery,
-    copyFile,
-  }: {
-    agreementId: AgreementId;
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    eserviceQuery: EserviceQuery;
-    tenantQuery: TenantQuery;
-    copyFile: (
-      bucket: string,
-      sourcePath: string,
-      destinationPath: string,
-      destinationFileName: string,
-      docName: string
-    ) => Promise<string>;
-  },
-  correlationId: string
-): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
-  const agreementToBeUpgraded = await agreementQuery.getAgreementById(
-    agreementId
-  );
-  const tenant = await tenantQuery.getTenantById(authData.organizationId);
-  assertTenantExist(authData.organizationId, tenant);
-  assertAgreementExist(agreementId, agreementToBeUpgraded);
-  assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeUpgraded.data.state,
-    agreementUpgradableStates
-  );
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeUpgraded.data.eserviceId
-  );
-  assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
-
-  const newDescriptor = eservice.descriptors.find(
-    (d) => d.state === descriptorState.published
-  );
-  if (newDescriptor === undefined) {
-    throw publishedDescriptorNotFound(agreementToBeUpgraded.data.eserviceId);
-  }
-  const latestDescriptorVersion = z
-    .preprocess((x) => Number(x), z.number())
-    .safeParse(newDescriptor.version);
-  if (!latestDescriptorVersion.success) {
-    throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-  }
-
-  const currentDescriptor = eservice.descriptors.find(
-    (d) => d.id === agreementToBeUpgraded.data.descriptorId
-  );
-  if (currentDescriptor === undefined) {
-    throw descriptorNotFound(
-      eservice.id,
-      agreementToBeUpgraded.data.descriptorId
-    );
-  }
-
-  const currentVersion = z
-    .preprocess((x) => Number(x), z.number())
-    .safeParse(currentDescriptor.version);
-  if (!currentVersion.success) {
-    throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
-  }
-
-  if (latestDescriptorVersion.data <= currentVersion.data) {
-    throw noNewerDescriptor(eservice.id, currentDescriptor.id);
-  }
-
-  if (eservice.producerId !== authData.organizationId) {
-    validateCertifiedAttributes(newDescriptor, tenant);
-  }
-
-  const verifiedValid = verifiedAttributesSatisfied(
-    agreementToBeUpgraded.data.producerId,
-    newDescriptor,
-    tenant
-  );
-
-  const declaredValid = declaredAttributesSatisfied(newDescriptor, tenant);
-
-  if (verifiedValid && declaredValid) {
-    // upgradeAgreement
-    const stamp = createStamp(authData);
-    const archived: Agreement = {
-      ...agreementToBeUpgraded.data,
-      state: agreementState.archived,
-      stamps: {
-        ...agreementToBeUpgraded.data.stamps,
-        archiving: stamp,
-      },
-    };
-    const upgraded: Agreement = {
-      ...agreementToBeUpgraded.data,
-      id: generateId(),
-      descriptorId: newDescriptor.id,
-      createdAt: new Date(),
-      updatedAt: undefined,
-      rejectionReason: undefined,
-      stamps: {
-        ...agreementToBeUpgraded.data.stamps,
-        upgrade: stamp,
-      },
-    };
-
-    return {
-      streamId: upgraded.id,
-      events: [
-        toCreateEventAgreementUpdated(
-          archived,
-          agreementToBeUpgraded.metadata.version,
-          correlationId
-        ),
-        toCreateEventAgreementAdded(upgraded, correlationId),
-      ],
-    };
-  } else {
-    // createNewDraftAgreement
-    await verifyConflictingAgreements(
-      agreementToBeUpgraded.data.consumerId,
-      agreementToBeUpgraded.data.eserviceId,
-      [agreementState.draft],
-      agreementQuery
-    );
-
-    const newAgreement: Agreement = {
-      id: generateId(),
-      eserviceId: agreementToBeUpgraded.data.eserviceId,
-      descriptorId: newDescriptor.id,
-      producerId: agreementToBeUpgraded.data.producerId,
-      consumerId: agreementToBeUpgraded.data.consumerId,
-      verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
-      certifiedAttributes: agreementToBeUpgraded.data.certifiedAttributes,
-      declaredAttributes: agreementToBeUpgraded.data.declaredAttributes,
-      consumerNotes: agreementToBeUpgraded.data.consumerNotes,
-      state: agreementState.draft,
-      createdAt: new Date(),
-      consumerDocuments: [],
-      stamps: {},
-    };
-
-    const createEvent = toCreateEventAgreementAdded(
-      newAgreement,
-      correlationId
-    );
-
-    const docEvents = await createAndCopyDocumentsForClonedAgreement(
-      newAgreement.id,
-      agreementToBeUpgraded.data,
-      1,
-      copyFile,
-      correlationId
-    );
-
-    return {
-      streamId: createEvent.streamId,
-      events: [createEvent, ...docEvents],
-    };
-  }
-}
-
-export async function cloneAgreementLogic(
-  {
-    agreementId,
-    authData,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-    copyFile,
-  }: {
-    agreementId: AgreementId;
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    tenantQuery: TenantQuery;
-    eserviceQuery: EserviceQuery;
-    copyFile: (
-      bucket: string,
-      sourcePath: string,
-      destinationPath: string,
-      destinationFileName: string,
-      docName: string
-    ) => Promise<string>;
-  },
-  correlationId: string
-): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
-  const agreementToBeCloned = await agreementQuery.getAgreementById(
-    agreementId
-  );
-  assertAgreementExist(agreementId, agreementToBeCloned);
-  assertRequesterIsConsumer(agreementToBeCloned.data, authData);
-
-  assertExpectedState(agreementId, agreementToBeCloned.data.state, [
-    agreementState.rejected,
-  ]);
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeCloned.data.eserviceId
-  );
-  assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
-
-  const activeAgreement = await agreementQuery.getAllAgreements({
-    consumerId: authData.organizationId,
-    eserviceId: agreementToBeCloned.data.eserviceId,
-    agreementStates: agreementCloningConflictingStates,
-  });
-  if (activeAgreement.length > 0) {
-    throw agreementAlreadyExists(
-      authData.organizationId,
-      agreementToBeCloned.data.eserviceId
-    );
-  }
-
-  const consumer = await tenantQuery.getTenantById(
-    agreementToBeCloned.data.consumerId
-  );
-  assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreementToBeCloned.data.descriptorId
-  );
-  assertDescriptorExist(
-    eservice.id,
-    agreementToBeCloned.data.descriptorId,
-    descriptor
-  );
-
-  validateCertifiedAttributes(descriptor, consumer);
-
-  const newAgreement: Agreement = {
-    id: generateId(),
-    eserviceId: agreementToBeCloned.data.eserviceId,
-    descriptorId: agreementToBeCloned.data.descriptorId,
-    producerId: agreementToBeCloned.data.producerId,
-    consumerId: agreementToBeCloned.data.consumerId,
-    consumerNotes: agreementToBeCloned.data.consumerNotes,
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    state: agreementState.draft,
+  return docs.map((d, i) => ({
+    id: d.newId,
+    name: clonedAgreement.consumerDocuments[i].name,
+    prettyName: clonedAgreement.consumerDocuments[i].prettyName,
+    contentType: clonedAgreement.consumerDocuments[i].contentType,
+    path: d.newPath,
     createdAt: new Date(),
-    consumerDocuments: [],
-    stamps: {},
-  };
-
-  const createEvent = toCreateEventAgreementAdded(newAgreement, correlationId);
-
-  const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    newAgreement.id,
-    agreementToBeCloned.data,
-    0,
-    copyFile,
-    correlationId
-  );
-
-  return {
-    streamId: createEvent.streamId,
-    events: [createEvent, ...docEvents],
-  };
+  }));
 }
 
-export async function rejectAgreementLogic(
-  {
-    agreementId,
-    rejectionReason,
-    authData,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-  }: {
-    agreementId: AgreementId;
-    rejectionReason: string;
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    tenantQuery: TenantQuery;
-    eserviceQuery: EserviceQuery;
-  },
+export function createAgreementArchivedByUpgradeEvent(
+  agreement: WithMetadata<Agreement>,
+  userId: UserId,
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
-  const agreementToBeRejected = await agreementQuery.getAgreementById(
-    agreementId
-  );
-  assertAgreementExist(agreementId, agreementToBeRejected);
-
-  assertRequesterIsProducer(agreementToBeRejected.data, authData);
-
-  assertExpectedState(
-    agreementId,
-    agreementToBeRejected.data.state,
-    agreementRejectableStates
-  );
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeRejected.data.eserviceId
-  );
-  assertEServiceExist(agreementToBeRejected.data.eserviceId, eservice);
-
-  const consumer = await tenantQuery.getTenantById(
-    agreementToBeRejected.data.consumerId
-  );
-  assertTenantExist(agreementToBeRejected.data.consumerId, consumer);
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreementToBeRejected.data.descriptorId
-  );
-  assertDescriptorExist(
-    eservice.id,
-    agreementToBeRejected.data.descriptorId,
-    descriptor
-  );
-
-  const stamp = createStamp(authData);
-  const rejected: Agreement = {
-    ...agreementToBeRejected.data,
-    state: agreementState.rejected,
-    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
-    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
-    verifiedAttributes: matchingVerifiedAttributes(
-      eservice,
-      descriptor,
-      consumer
-    ),
-    rejectionReason,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    suspendedByPlatform: undefined,
-    stamps: {
-      ...agreementToBeRejected.data.stamps,
-      rejection: stamp,
-    },
-  };
-
-  return toCreateEventAgreementUpdated(
-    rejected,
-    agreementToBeRejected.metadata.version,
-    correlationId
-  );
-}
-
-export async function archiveAgreementLogic(
-  agreementId: Agreement["id"],
-  authData: AuthData,
-  agreementQuery: AgreementQuery,
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-  assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data, authData);
-  assertExpectedState(
-    agreementId,
-    agreement.data.state,
-    agreementArchivableStates
-  );
-
-  const updateSeed = {
-    ...agreement.data,
+): CreateEvent<AgreementEvent> {
+  const updateSeed: UpdateAgreementSeed = {
     state: agreementState.archived,
     stamps: {
       ...agreement.data.stamps,
-      archiving: createStamp(authData),
+      archiving: createStamp(userId),
     },
   };
 
-  return toCreateEventAgreementUpdated(
-    updateSeed,
+  return toCreateEventAgreementArchivedByUpgrade(
+    {
+      ...agreement.data,
+      ...updateSeed,
+    },
     agreement.metadata.version,
     correlationId
   );
+}
+
+function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+  agreement: WithMetadata<Agreement>,
+  nextStateByAttributes: AgreementState,
+  recalculatedSuspendedByPlatform: boolean,
+  correlationId: string
+): CreateEvent<AgreementEvent> | undefined {
+  if (
+    nextStateByAttributes === agreementState.missingCertifiedAttributes &&
+    recalculatedSuspendedByPlatform &&
+    recalculatedSuspendedByPlatform !== agreement.data.suspendedByPlatform
+  ) {
+    /* In this case, it means that one of the certified attributes is not
+      valid anymore. We put the agreement in the missingCertifiedAttributes state
+      and fail the submission */
+    const missingCertifiedAttributesByPlatformAgreement: Agreement = {
+      ...agreement.data,
+      state: agreementState.missingCertifiedAttributes,
+      suspendedByPlatform: true,
+    };
+
+    return toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
+      missingCertifiedAttributesByPlatformAgreement,
+      agreement.metadata.version,
+      correlationId
+    );
+  }
+  return undefined;
+}
+
+// eslint-disable-next-line max-params
+async function addContractOnFirstActivation(
+  isFirstActivation: boolean,
+  contractBuilder: ContractBuilder,
+  eservice: EService,
+  consumer: Tenant,
+  producer: Tenant,
+  agreement: Agreement,
+  authData: AuthData
+): Promise<Agreement> {
+  if (isFirstActivation) {
+    const contract = await contractBuilder.createContract(
+      authData.selfcareId,
+      agreement,
+      eservice,
+      consumer,
+      producer
+    );
+
+    return {
+      ...agreement,
+      contract,
+    };
+  }
+
+  return agreement;
 }

@@ -1,15 +1,28 @@
+/* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { pluginToken } from "@zodios/plugins";
+import { RefreshableInteropToken, Logger } from "pagopa-interop-commons";
 import {
-  buildInteropTokenGenerator,
-  getContext,
-  jwtSeedConfig,
-  logger,
-} from "pagopa-interop-commons";
-import { v4 } from "uuid";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
+  DescriptorId,
+  EServiceId,
+  ClientId,
+  PurposeId,
+  PurposeVersionId,
+  TenantId,
+  UserId,
+  Client,
+  Key,
+  genericInternalError,
+} from "pagopa-interop-models";
+import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
+import {
+  agreementStateToClientState,
+  clientKindToApiClientKind,
+  descriptorStateToClientState,
+  keyUseToApiKeyUse,
+  purposeStateToClientState,
+} from "./utils.js";
+import { ReadModelService } from "./readModelService.js";
 
 export type AuthorizationService = {
   updateEServiceState: (
@@ -17,72 +30,401 @@ export type AuthorizationService = {
     descriptorId: DescriptorId,
     eserviceId: EServiceId,
     audience: string[],
-    voucherLifespan: number
+    voucherLifespan: number,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updateAgreementState: (
+    state: ApiClientComponentState,
+    agreementId: string,
+    eserviceId: EServiceId,
+    consumerId: TenantId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updateAgreementAndEServiceStates: (
+    agreementState: ApiClientComponentState,
+    eserviceState: ApiClientComponentState,
+    agreementId: string,
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    consumerId: TenantId,
+    audience: string[],
+    voucherLifespan: number,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deletePurposeFromClient: (
+    clientId: ClientId,
+    purposeId: PurposeId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  updatePurposeState: (
+    purposeId: PurposeId,
+    versionId: PurposeVersionId,
+    state: ApiClientComponentState,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClient: (
+    client: Client,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deleteClient: (
+    clientId: ClientId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClientKey: (
+    client: ClientId,
+    key: Key,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deleteClientKey: (
+    clientId: ClientId,
+    kid: string,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClientUser: (
+    clientId: ClientId,
+    userId: UserId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  deleteClientUser: (
+    clientId: ClientId,
+    userId: UserId,
+    logger: Logger,
+    correlationId: string
+  ) => Promise<void>;
+  addClientPurpose: (
+    clientId: ClientId,
+    purposeId: PurposeId,
+    readModelService: ReadModelService,
+    logger: Logger,
+    correlationId: string
   ) => Promise<void>;
 };
 
-export const authorizationServiceBuilder =
-  async (): Promise<AuthorizationService> => {
-    const authMgmtClient = buildAuthMgmtClient();
-    const tokenGenerator = buildInteropTokenGenerator();
-    const jwtConfig = jwtSeedConfig();
+export const authorizationServiceBuilder = (
+  authMgmtClient: AuthorizationManagementClient,
+  refreshableToken: RefreshableInteropToken
+): AuthorizationService => {
+  const getHeaders = (correlationId: string, token: string) => ({
+    "X-Correlation-Id": correlationId,
+    Authorization: `Bearer ${token}`,
+  });
 
-    const tokenPayloadSeed = {
-      subject: jwtConfig.subject,
-      audience: jwtConfig.audience,
-      tokenIssuer: jwtConfig.tokenIssuer,
-      expirationInSeconds: jwtConfig.secondsToExpire,
-    };
-    const token = await tokenGenerator.generateInternalToken(tokenPayloadSeed);
-
-    authMgmtClient.use(
-      pluginToken({
-        getToken: async () => token.serialized,
-        renewToken: async () => {
-          /* 
-            This function is called when the service responds with a 401, 
-            automatically renews the token, and executes the request again.
-            more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
-          */
-          logger.info("Renewing token");
-
-          const newToken = await tokenGenerator.generateInternalToken(
-            tokenPayloadSeed
-          );
-          return newToken.serialized;
-        },
-      })
-    );
-
-    const getHeaders = () => {
-      const appContext = getContext();
-      return {
-        "X-Correlation-Id": appContext.correlationId || v4(),
+  return {
+    // eslint-disable-next-line max-params
+    async updateEServiceState(
+      state: ApiClientComponentState,
+      descriptorId: DescriptorId,
+      eserviceId: EServiceId,
+      audience: string[],
+      voucherLifespan: number,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const clientEServiceDetailsUpdate = {
+        state,
+        descriptorId,
+        audience,
+        voucherLifespan,
       };
-    };
 
-    return {
-      async updateEServiceState(
-        state: ApiClientComponentState,
-        descriptorId: DescriptorId,
-        eserviceId: EServiceId,
-        audience: string[],
-        voucherLifespan: number
-      ) {
-        const clientEServiceDetailsUpdate = {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
+        params: { eserviceId },
+        withCredentials: true,
+        headers,
+      });
+
+      logger.info(`Updating EService ${eserviceId} state for all clients`);
+    },
+    async updateAgreementState(
+      state: ApiClientComponentState,
+      agreementId: string,
+      eserviceId: EServiceId,
+      consumerId: TenantId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      await authMgmtClient.updateAgreementState(
+        {
+          agreementId,
           state,
+        },
+        {
+          params: {
+            eserviceId,
+            consumerId,
+          },
+          withCredentials: true,
+          headers,
+        }
+      );
+
+      logger.info(`Updated Agreement ${agreementId} state for all clients`);
+    },
+    async updateAgreementAndEServiceStates(
+      agreementState: ApiClientComponentState,
+      eserviceState: ApiClientComponentState,
+      agreementId: string,
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      consumerId: TenantId,
+      audience: string[],
+      voucherLifespan: number,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      await authMgmtClient.updateAgreementAndEServiceStates(
+        {
+          agreementId,
+          agreementState,
           descriptorId,
+          eserviceState,
           audience,
           voucherLifespan,
-        };
-
-        await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
-          params: { eserviceId },
+        },
+        {
+          params: {
+            eserviceId,
+            consumerId,
+          },
           withCredentials: true,
-          headers: getHeaders(),
-        });
+          headers,
+        }
+      );
 
-        logger.info(`Updating EService ${eserviceId} state for all clients`);
-      },
-    };
+      logger.info(
+        `Updated Agreement ${agreementId} and EService ${eserviceId} states for all clients`
+      );
+    },
+    async deletePurposeFromClient(
+      clientId: ClientId,
+      purposeId: PurposeId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.removeClientPurpose(undefined, {
+        params: { purposeId, clientId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted purpose ${purposeId} from client ${clientId}`);
+    },
+    async updatePurposeState(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      state: ApiClientComponentState,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.updatePurposeState(
+        { versionId, state },
+        {
+          params: { purposeId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Updated Purpose ${purposeId} state for all clients`);
+    },
+    async addClient(client: Client, logger: Logger, correlationId: string) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.createClient(
+        {
+          id: client.id,
+          name: client.name,
+          description: client.description,
+          consumerId: client.consumerId,
+          createdAt: client.createdAt.toISOString(),
+          kind: clientKindToApiClientKind(client.kind),
+          users: client.users,
+        },
+        {
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Added client ${client.id}`);
+    },
+    async deleteClient(
+      clientId: ClientId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.deleteClient(undefined, {
+        params: { clientId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted client ${clientId}`);
+    },
+    async addClientKey(
+      clientId: ClientId,
+      key: Key,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.createKeys(
+        [
+          {
+            name: key.name,
+            createdAt: key.createdAt.toISOString(),
+            userId: key.userId,
+            key: key.encodedPem,
+            use: keyUseToApiKeyUse(key.use),
+            alg: key.algorithm,
+          },
+        ],
+        {
+          params: { clientId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Added key ${key.kid} in client ${clientId}`);
+    },
+    async deleteClientKey(
+      clientId: ClientId,
+      kid: string,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.deleteClientKeyById(undefined, {
+        params: { clientId, keyId: kid },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Deleted client ${clientId}`);
+    },
+    async addClientUser(
+      clientId: ClientId,
+      userId: UserId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.addUser(
+        { userId },
+        {
+          params: { clientId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Added user ${userId} in client ${clientId}`);
+    },
+    async deleteClientUser(
+      clientId: ClientId,
+      userId: UserId,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await authMgmtClient.removeClientUser(undefined, {
+        params: { clientId, userId },
+        withCredentials: true,
+        headers,
+      });
+      logger.info(`Removed user ${userId} from client ${clientId}`);
+    },
+    async addClientPurpose(
+      clientId: ClientId,
+      purposeId: PurposeId,
+      readModelService: ReadModelService,
+      logger: Logger,
+      correlationId: string
+    ) {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      const purpose = await readModelService.getPurposeById(purposeId);
+      if (!purpose) {
+        throw genericInternalError("purpose not found");
+      }
+
+      const eservice = await readModelService.getEServiceById(
+        purpose.eserviceId
+      );
+      if (!eservice) {
+        throw genericInternalError("eservice not found");
+      }
+
+      const agreement = await readModelService.getAgreement(
+        eservice.id,
+        purpose.consumerId
+      );
+      if (!agreement) {
+        throw genericInternalError("agreement not found");
+      }
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (!descriptor) {
+        throw genericInternalError("descriptor not found");
+      }
+
+      const purposeVersion = purpose.versions[purpose.versions.length - 1];
+
+      await authMgmtClient.addClientPurpose(
+        {
+          states: {
+            eservice: {
+              state: descriptorStateToClientState(descriptor.state),
+              eserviceId: eservice.id,
+              descriptorId: agreement.descriptorId,
+              audience: descriptor.audience,
+              voucherLifespan: descriptor.voucherLifespan,
+            },
+            agreement: {
+              agreementId: agreement.id,
+              state: agreementStateToClientState(agreement.state),
+              eserviceId: agreement.eserviceId,
+              consumerId: agreement.consumerId,
+            },
+            purpose: {
+              state: purposeStateToClientState(purposeVersion.state),
+              versionId: purposeVersion.id,
+              purposeId,
+            },
+          },
+        },
+        {
+          params: { clientId },
+          withCredentials: true,
+          headers,
+        }
+      );
+      logger.info(`Linked purpose ${purposeId} to client ${clientId}`);
+    },
   };
+};

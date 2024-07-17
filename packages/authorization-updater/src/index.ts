@@ -1,153 +1,529 @@
 /* eslint-disable functional/immutable-data */
 import { runConsumer } from "kafka-iam-auth";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
 import {
-  messageDecoderSupplier,
-  kafkaConsumerConfig,
   logger,
   CatalogTopicConfig,
-  catalogTopicConfig,
-  runWithContext,
+  Logger,
+  genericLogger,
+  AgreementTopicConfig,
+  ReadModelRepository,
+  InteropTokenGenerator,
+  RefreshableInteropToken,
+  decodeKafkaMessage,
+  PurposeTopicConfig,
+  AuthorizationTopicConfig,
 } from "pagopa-interop-commons";
 import {
-  Descriptor,
-  EServiceV2,
-  fromEServiceV2,
-  missingKafkaMessageDataError,
   kafkaMessageProcessError,
-  EServiceId,
-  EService,
+  genericInternalError,
+  EServiceEventEnvelopeV2,
+  EServiceEventV2,
+  AgreementEventV2,
+  AgreementEventEnvelopeV2,
+  PurposeEventEnvelopeV2,
+  PurposeEventV2,
+  missingKafkaMessageDataError,
+  AuthorizationEventV2,
+  unsafeBrandId,
+  ClientId,
+  UserId,
+  PurposeId,
+  fromClientV2,
 } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
 import { ApiClientComponent } from "./model/models.js";
+import { config } from "./config/config.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "./readModelService.js";
+import { authorizationManagementClientBuilder } from "./authorizationManagementClient.js";
+import {
+  getDescriptorFromEvent,
+  getAgreementFromEvent,
+  agreementStateToClientState,
+  getPurposeFromEvent,
+  getPurposeVersionFromEvent,
+  getClientFromEvent,
+  descriptorStateToClientState,
+  purposeStateToClientState,
+} from "./utils.js";
 
-const getDescriptorFromEvent = (
-  msg: {
-    data: {
-      descriptorId: string;
-      eservice?: EServiceV2;
-    };
-  },
-  eventType: string
-): {
-  eserviceId: EServiceId;
-  descriptor: Descriptor;
-} => {
-  if (!msg.data.eservice) {
-    throw missingKafkaMessageDataError("eservice", eventType);
-  }
-
-  const eservice: EService = fromEServiceV2(msg.data.eservice);
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === msg.data.descriptorId
-  );
-
-  if (!descriptor) {
-    throw missingKafkaMessageDataError("descriptor", eventType);
-  }
-
-  return { eserviceId: eservice.id, descriptor };
-};
-
-async function executeUpdate(
-  eventType: string,
-  messagePayload: EachMessagePayload,
-  update: () => Promise<void>
+export async function sendCatalogAuthUpdate(
+  decodedMessage: EServiceEventEnvelopeV2,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
 ): Promise<void> {
-  await update();
-  logger.info(
-    `Authorization updated after ${JSON.stringify(
-      eventType
-    )} event - Partition number: ${messagePayload.partition} - Offset: ${
-      messagePayload.message.offset
-    }`
-  );
+  await match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorActivated"
+        ),
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          ApiClientComponent.Values.ACTIVE,
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorArchived"
+        ),
+      },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          ApiClientComponent.Values.INACTIVE,
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceAdded",
+          "EServiceCloned",
+          "EServiceDeleted",
+          "DraftEServiceUpdated",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptionUpdated"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
+    )
+    .exhaustive();
 }
 
+export async function sendAgreementAuthUpdate(
+  decodedMessage: AgreementEventEnvelopeV2,
+  readModelService: ReadModelService,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "AgreementSubmitted",
+          "AgreementActivated",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByProducer",
+          "AgreementSuspendedByPlatform",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByProducer",
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByUpgrade"
+        ),
+      },
+      async (msg) => {
+        const agreement = getAgreementFromEvent(msg, decodedMessage.type);
+
+        await authService.updateAgreementState(
+          agreementStateToClientState(agreement.state),
+          agreement.id,
+          agreement.eserviceId,
+          agreement.consumerId,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with({ type: "AgreementUpgraded" }, async (msg) => {
+      const agreement = getAgreementFromEvent(msg, decodedMessage.type);
+      const eservice = await readModelService.getEServiceById(
+        agreement.eserviceId
+      );
+      if (!eservice) {
+        throw genericInternalError(
+          `Unable to find EService with id ${agreement.eserviceId}`
+        );
+      }
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (!descriptor) {
+        throw genericInternalError(
+          `Unable to find descriptor with id ${agreement.descriptorId}`
+        );
+      }
+
+      const eserviceClientState = descriptorStateToClientState(
+        descriptor.state
+      );
+
+      await authService.updateAgreementAndEServiceStates(
+        agreementStateToClientState(agreement.state),
+        eserviceClientState,
+        agreement.id,
+        agreement.eserviceId,
+        agreement.descriptorId,
+        agreement.consumerId,
+        descriptor.audience,
+        descriptor.voucherLifespan,
+        logger,
+        correlationId
+      );
+    })
+    .with(
+      {
+        type: P.union(
+          "AgreementAdded",
+          "AgreementDeleted",
+          "AgreementRejected",
+          "DraftAgreementUpdated",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
+    )
+    .exhaustive();
+}
+
+export async function sendPurposeAuthUpdate(
+  decodedMessage: PurposeEventEnvelopeV2,
+  readModelService: ReadModelService,
+  authService: AuthorizationService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    /**
+     * With the new purpose logic, this part should not be needed, since the purpose with the first version
+     * in DRAFT or WAITING_FOR_APPROVAL, which are deletable, could not be added to any client.
+     * We decided to keep this part since there are still deletable purposes added to clients in the read model.
+     *
+     * This whole consumer will be replaced/updated once the refactor of the authorization server will be implemented.
+     */
+    .with(
+      {
+        type: P.union(
+          "DraftPurposeDeleted",
+          "WaitingForApprovalPurposeDeleted"
+        ),
+      },
+      async (msg): Promise<void> => {
+        const purpose = getPurposeFromEvent(msg, msg.type);
+
+        const purposeClientsIds =
+          await readModelService.getClientsIdsFromPurpose(purpose.id);
+
+        await Promise.all(
+          purposeClientsIds.map((clientId) =>
+            authService.deletePurposeFromClient(
+              clientId,
+              purpose.id,
+              logger,
+              correlationId
+            )
+          )
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "PurposeVersionSuspendedByConsumer",
+          "PurposeVersionSuspendedByProducer",
+          "PurposeVersionUnsuspendedByConsumer",
+          "PurposeVersionUnsuspendedByProducer",
+          "PurposeVersionOverQuotaUnsuspended",
+          "NewPurposeVersionActivated",
+          "PurposeVersionActivated",
+          "PurposeArchived"
+        ),
+      },
+      async (msg): Promise<void> => {
+        const { purposeId, purposeVersion } = getPurposeVersionFromEvent(
+          msg,
+          msg.type
+        );
+
+        await authService.updatePurposeState(
+          purposeId,
+          purposeVersion.id,
+          purposeStateToClientState(purposeVersion.state),
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: "PurposeActivated",
+      },
+      async (msg): Promise<void> => {
+        const purpose = getPurposeFromEvent(msg, msg.type);
+
+        const purposeVersion = purpose.versions[0];
+
+        if (!purposeVersion) {
+          throw missingKafkaMessageDataError("purposeVersion", msg.type);
+        }
+
+        await authService.updatePurposeState(
+          purpose.id,
+          purposeVersion.id,
+          purposeStateToClientState(purposeVersion.state),
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "PurposeAdded",
+          "DraftPurposeUpdated",
+          "WaitingForApprovalPurposeVersionDeleted",
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeCloned",
+          "PurposeVersionRejected",
+          "PurposeWaitingForApproval"
+        ),
+      },
+      () => {
+        logger.info(`No auth update needed for ${decodedMessage.type} message`);
+      }
+    )
+    .exhaustive();
+}
+
+export async function sendAuthorizationAuthUpdate(
+  decodedMessage: AuthorizationEventV2,
+  authService: AuthorizationService,
+  readModelService: ReadModelService,
+  logger: Logger,
+  correlationId: string
+): Promise<void> {
+  await match(decodedMessage)
+    .with({ type: "ClientAdded" }, async (msg): Promise<void> => {
+      const client = getClientFromEvent(msg, msg.type);
+
+      if (!client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      await authService.addClient(client, logger, correlationId);
+    })
+    .with({ type: "ClientDeleted" }, async (msg): Promise<void> => {
+      const clientId = unsafeBrandId<ClientId>(msg.data.clientId);
+
+      if (!clientId) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      await authService.deleteClient(clientId, logger, correlationId);
+    })
+    .with({ type: "ClientKeyAdded" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const client = fromClientV2(msg.data.client);
+      const clientId = client.id;
+      const kid = msg.data.kid;
+      const key = client.keys.find((key) => key.kid === kid);
+      if (!key) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      await authService.addClientKey(clientId, key, logger, correlationId);
+    })
+    .with({ type: "ClientKeyDeleted" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const kid = msg.data.kid;
+
+      await authService.deleteClientKey(clientId, kid, logger, correlationId);
+    })
+    .with({ type: "ClientUserAdded" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const userId = unsafeBrandId<UserId>(msg.data.userId);
+
+      await authService.addClientUser(clientId, userId, logger, correlationId);
+    })
+    .with({ type: "ClientUserDeleted" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const userId = unsafeBrandId<UserId>(msg.data.userId);
+
+      await authService.deleteClientUser(
+        clientId,
+        userId,
+        logger,
+        correlationId
+      );
+    })
+    .with({ type: "ClientPurposeAdded" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
+      await authService.addClientPurpose(
+        clientId,
+        purposeId,
+        readModelService,
+        logger,
+        correlationId
+      );
+    })
+    .with({ type: "ClientPurposeRemoved" }, async (msg) => {
+      if (!msg.data.client) {
+        throw missingKafkaMessageDataError("client", msg.type);
+      }
+      const clientId = unsafeBrandId<ClientId>(msg.data.client.id);
+      const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
+
+      await authService.deletePurposeFromClient(
+        clientId,
+        purposeId,
+        logger,
+        correlationId
+      );
+    })
+    .exhaustive();
+}
+
+// eslint-disable-next-line max-params
 function processMessage(
-  topicConfig: CatalogTopicConfig,
+  catalogTopicConfig: CatalogTopicConfig,
+  agreementTopicConfig: AgreementTopicConfig,
+  purposeTopicConfig: PurposeTopicConfig,
+  authorizationTopicConfig: AuthorizationTopicConfig,
+  readModelService: ReadModelService,
   authService: AuthorizationService
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const messageDecoder = messageDecoderSupplier(
-        topicConfig,
-        messagePayload.topic
-      );
-      const decodedMsg = messageDecoder(messagePayload.message);
+      const { decodedMessage, updater } = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            EServiceEventV2
+          );
 
-      await runWithContext(
-        {
-          messageData: {
-            eventType: decodedMsg.type,
-            eventVersion: decodedMsg.event_version,
-            streamId: decodedMsg.stream_id,
-          },
-          correlationId: decodedMsg.correlation_id,
-        },
-        async () => {
-          const updateSeed = match(decodedMsg)
-            .with(
-              {
-                event_version: 2,
-                type: "EServiceDescriptorPublished",
-              },
-              {
-                event_version: 2,
-                type: "EServiceDescriptorActivated",
-              },
-              (msg) => {
-                const data = getDescriptorFromEvent(msg, decodedMsg.type);
-                return {
-                  state: "ACTIVE",
-                  descriptorId: data.descriptor.id,
-                  eserviceId: data.eserviceId,
-                  audience: data.descriptor.audience,
-                  voucherLifespan: data.descriptor.voucherLifespan,
-                  eventType: decodedMsg.type,
-                };
-              }
-            )
-            .with(
-              {
-                event_version: 2,
-                type: "EServiceDescriptorSuspended",
-              },
-              {
-                event_version: 2,
-                type: "EServiceDescriptorArchived",
-              },
-              (msg) => {
-                const data = getDescriptorFromEvent(msg, decodedMsg.type);
-                return {
-                  state: "INACTIVE",
-                  descriptorId: data.descriptor.id,
-                  eserviceId: data.eserviceId,
-                  audience: data.descriptor.audience,
-                  voucherLifespan: data.descriptor.voucherLifespan,
-                  eventType: decodedMsg.type,
-                };
-              }
-            )
-            .otherwise(() => undefined);
+          const updater = sendCatalogAuthUpdate.bind(
+            null,
+            decodedMessage,
+            authService
+          );
 
-          if (updateSeed) {
-            await executeUpdate(updateSeed.eventType, messagePayload, () =>
-              authService.updateEServiceState(
-                ApiClientComponent.parse(updateSeed.state),
-                updateSeed.descriptorId,
-                updateSeed.eserviceId,
-                updateSeed.audience,
-                updateSeed.voucherLifespan
-              )
-            );
-          }
-        }
+          return { decodedMessage, updater };
+        })
+        .with(agreementTopicConfig.agreementTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            AgreementEventV2
+          );
+
+          const updater = sendAgreementAuthUpdate.bind(
+            null,
+            decodedMessage,
+            readModelService,
+            authService
+          );
+
+          return { decodedMessage, updater };
+        })
+        .with(purposeTopicConfig.purposeTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            PurposeEventV2
+          );
+
+          const updater = sendPurposeAuthUpdate.bind(
+            null,
+            decodedMessage,
+            readModelService,
+            authService
+          );
+
+          return { decodedMessage, updater };
+        })
+        .with(authorizationTopicConfig.authorizationTopic, () => {
+          const decodedMessage = decodeKafkaMessage(
+            messagePayload.message,
+            AuthorizationEventV2
+          );
+
+          const updater = sendAuthorizationAuthUpdate.bind(
+            null,
+            decodedMessage,
+            authService,
+            readModelService
+          );
+
+          return { decodedMessage, updater };
+        })
+        .otherwise(() => {
+          throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
+        });
+
+      const correlationId = decodedMessage.correlation_id || uuidv4();
+
+      const loggerInstance = logger({
+        serviceName: "authorization-updater",
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
+        correlationId,
+      });
+
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
       );
+
+      await updater(loggerInstance, correlationId);
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
@@ -160,14 +536,46 @@ function processMessage(
 }
 
 try {
-  const authService = await authorizationServiceBuilder();
-  const config = kafkaConsumerConfig();
-  const topicConfig: CatalogTopicConfig = catalogTopicConfig();
+  const authMgmtClient = authorizationManagementClientBuilder(
+    config.authorizationManagementUrl
+  );
+  const tokenGenerator = new InteropTokenGenerator(config);
+  const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+  await refreshableToken.init();
+
+  const authService = authorizationServiceBuilder(
+    authMgmtClient,
+    refreshableToken
+  );
+
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
   await runConsumer(
     config,
-    [topicConfig.catalogTopic],
-    processMessage(topicConfig, authService)
+    [
+      config.catalogTopic,
+      config.agreementTopic,
+      config.purposeTopic,
+      config.authorizationTopic,
+    ],
+    processMessage(
+      {
+        catalogTopic: config.catalogTopic,
+      },
+      {
+        agreementTopic: config.agreementTopic,
+      },
+      {
+        purposeTopic: config.purposeTopic,
+      },
+      {
+        authorizationTopic: config.authorizationTopic,
+      },
+      readModelService,
+      authService
+    )
   );
 } catch (e) {
-  logger.error(`An error occurred during initialization:\n${e}`);
+  genericLogger.error(`An error occurred during initialization:\n${e}`);
 }
