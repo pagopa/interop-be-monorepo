@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import {
   getMockClient,
   getMockKey,
@@ -12,27 +13,45 @@ import {
   generateId,
   AuthorizationEventEnvelopeV1,
   KeyDeletedV1,
-  unsafeBrandId,
-  KeyRelationshipToUserMigratedV1,
-  UserId,
   ClientId,
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
+import { fromKeyToReadModelJWKKey } from "./../../commons/src/auth/converters.js";
 import { keys } from "./utils.js";
 
 describe("Events V1", async () => {
-  it("KeysAdded", async () => {
-    const mockKey = getMockKey();
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
 
+  const pemKey = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  const key2 = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const pemKey2 = Buffer.from(
+    key2.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  it("KeysAdded", async () => {
+    const mockKey = { ...getMockKey(), encodedPem: pemKey };
+    const jwkKey = fromKeyToReadModelJWKKey(toReadModelKey(mockKey));
     const mockClient: Client = {
       ...getMockClient(),
       keys: [],
     };
-    await writeInReadmodel(toReadModelKey(mockKey), keys);
+    await writeInReadmodel(jwkKey, keys);
 
-    const addedKey: Key = { ...getMockKey(), clientId: mockClient.id };
+    const addedKey: Key = {
+      ...getMockKey(),
+      clientId: mockClient.id,
+      encodedPem: pemKey2,
+    };
 
     const payload: KeysAddedV1 = {
       clientId: mockClient.id,
@@ -60,20 +79,24 @@ describe("Events V1", async () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(toReadModelKey(addedKey));
+    expect(retrievedKey?.data).toEqual(
+      fromKeyToReadModelJWKKey(toReadModelKey(addedKey))
+    );
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
   });
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), clientId };
+    const mockKey = { ...getMockKey(), clientId, encodedPem: pemKey };
+    const jwkKey = fromKeyToReadModelJWKKey(toReadModelKey(mockKey));
+
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
       keys: [mockKey],
     };
-    await writeInReadmodel(toReadModelKey(mockKey), keys);
+    await writeInReadmodel(jwkKey, keys);
 
     const payload: KeyDeletedV1 = {
       clientId: mockClient.id,
@@ -99,58 +122,21 @@ describe("Events V1", async () => {
 
     expect(retrievedKey).toBeNull();
   });
-  it("KeyRelationshipToUserMigrated", async () => {
-    const clientId: ClientId = generateId();
-    const mockKey: Key = {
-      ...getMockKey(),
-      userId: unsafeBrandId(""),
-      clientId,
-    };
-    const mockClient: Client = {
-      ...getMockClient(),
-      id: clientId,
-      keys: [mockKey],
-    };
-    await writeInReadmodel(toReadModelKey(mockKey), keys);
-
-    const userId: UserId = generateId();
-
-    const payload: KeyRelationshipToUserMigratedV1 = {
-      clientId: mockClient.id,
-      keyId: mockKey.kid,
-      userId,
-    };
-
-    const message: AuthorizationEventEnvelopeV1 = {
-      sequence_num: 1,
-      stream_id: mockClient.id,
-      version: 1,
-      type: "KeyRelationshipToUserMigrated",
-      event_version: 1,
-      data: payload,
-      log_date: new Date(),
-    };
-
-    await handleMessageV1(message, keys);
-
-    const retrievedKey = await keys.findOne({
-      "data.kid": mockKey.kid,
-    });
-
-    expect(retrievedKey?.data).toEqual(toReadModelKey({ ...mockKey, userId }));
-  });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: Key = { ...getMockKey(), clientId };
-    const mockKey2: Key = { ...getMockKey(), clientId };
+    const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
+    const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
+    const jwkKey1 = fromKeyToReadModelJWKKey(toReadModelKey(mockKey1));
+    const jwkKey2 = fromKeyToReadModelJWKKey(toReadModelKey(mockKey2));
+
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
       keys: [mockKey1, mockKey2],
     };
 
-    await writeInReadmodel(toReadModelKey(mockKey1), keys);
-    await writeInReadmodel(toReadModelKey(mockKey2), keys);
+    await writeInReadmodel(jwkKey1, keys);
+    await writeInReadmodel(jwkKey2, keys);
 
     const payload: ClientDeletedV1 = {
       clientId: mockClient.id,

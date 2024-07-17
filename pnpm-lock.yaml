@@ -611,6 +611,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-selfcare-v2-client:
+        specifier: workspace:*
+        version: link:../selfcare-v2-client
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -1537,6 +1540,9 @@ importers:
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
