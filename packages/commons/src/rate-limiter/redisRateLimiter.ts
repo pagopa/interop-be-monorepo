@@ -1,4 +1,7 @@
-import { Redis } from "ioredis";
+import {
+  ConnectionTimeoutError,
+  createClient as createRedisClient,
+} from "redis";
 import { TenantId } from "pagopa-interop-models";
 import {
   BurstyRateLimiter,
@@ -13,7 +16,7 @@ import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 
 const burstKeyPrefix = "BURST_";
 
-export function initRedisRateLimiter(config: {
+export async function initRedisRateLimiter(config: {
   limiterGroup: string;
   maxRequests: number;
   rateInterval: number;
@@ -21,18 +24,17 @@ export function initRedisRateLimiter(config: {
   redisHost: string;
   redisPort: number;
   timeout: number;
-}): RateLimiter {
-  const redisClient = new Redis({
-    host: config.redisHost,
-    port: config.redisPort,
-    commandTimeout: config.timeout,
-    // ^ If a command does not return a reply within a set number of milliseconds,
-    // a "Command timed out" error will be thrown.
-    reconnectOnError: (error): boolean => {
-      genericLogger.warn(`Reconnecting on Redis error: ${error}`);
-      return true;
+}): Promise<RateLimiter> {
+  const redisClient = await createRedisClient({
+    socket: {
+      host: config.redisHost,
+      port: config.redisPort,
+      connectTimeout: config.timeout,
     },
-  });
+    disableOfflineQueue: true,
+  })
+    .on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`))
+    .connect();
 
   const options: IRateLimiterRedisOptions = {
     storeClient: redisClient,
@@ -80,20 +82,17 @@ export function initRedisRateLimiter(config: {
             rateInterval: config.rateInterval,
           };
         })
-        .with(
-          P.intersection(P.instanceOf(Error), { message: "Command timed out" }),
-          () => {
-            logger.warn(
-              `Redis command timed out, making request pass for organization ${organizationId}`
-            );
-            return {
-              limitReached: false,
-              maxRequests: config.maxRequests,
-              remainingRequests: config.maxRequests,
-              rateInterval: config.rateInterval,
-            };
-          }
-        )
+        .with(P.intersection(P.instanceOf(ConnectionTimeoutError)), () => {
+          logger.warn(
+            `Redis command timed out, making request pass for organization ${organizationId}`
+          );
+          return {
+            limitReached: false,
+            maxRequests: config.maxRequests,
+            remainingRequests: config.maxRequests,
+            rateInterval: config.rateInterval,
+          };
+        })
         .otherwise((error) => {
           logger.warn(
             `Unexpected error during rate limiting for organization ${organizationId} - ${error}`
