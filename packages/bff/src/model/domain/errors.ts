@@ -9,16 +9,40 @@ import {
 
 export const errorCodes = {
   purposeNotFound: "0001",
-  eServiceNotFound: "0002",
-  tenantNotFound: "0003",
-  agreementNotFound: "0004",
-  eServiceDescriptorNotFound: "0005",
-  purposeDraftVersionNotFound: "0006",
+  userNotFound: "0002",
+  selfcareEntityNotFilled: "0003",
+  eServiceNotFound: "0003",
+  tenantNotFound: "0004",
+  agreementNotFound: "0006",
+  eServiceDescriptorNotFound: "0007",
+  purposeDraftVersionNotFound: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function selfcareEntityNotFilled(
+  className: string,
+  field: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Selfcare entity ${className} with field ${field} not filled`,
+    code: "selfcareEntityNotFilled",
+    title: "Selfcare Entity not filled",
+  });
+}
+
+export function userNotFound(
+  userId: string,
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for institution ${selfcareId}`,
+    code: "userNotFound",
+    title: "User not found",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
