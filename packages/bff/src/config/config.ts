@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
 import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
@@ -72,6 +73,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(PurposeProcessServerConfig)
+  .and(SelfCareConfig)
   .and(AuthorizationProcessServerConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;

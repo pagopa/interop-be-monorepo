@@ -90,6 +90,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceAdded" }, // CatalogItemV1AddedV1
       { type: "EServiceCloned" }, // ClonedCatalogItemV1AddedV1
       { type: "DraftEServiceUpdated" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceDescriptionUpdated" }, // CatalogItemV1UpdatedV1
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
