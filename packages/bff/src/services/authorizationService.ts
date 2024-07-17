@@ -10,7 +10,6 @@ import {
   ORGANIZATION_ID_CLAIM,
   SELFCARE_ID_CLAIM,
   SessionClaims,
-  SessionTokenGenerator,
   USER_ROLES,
   decodeJwtToken,
   verifyJwtToken,
@@ -27,7 +26,6 @@ import { config } from "../config/config.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   interopTokenGenerator: InteropTokenGenerator,
-  sessionTokenGenerator: SessionTokenGenerator,
   tenantProcessClient: PagoPAInteropBeClients["tenantProcessClient"],
   allowList: string[]
 ) {
@@ -137,12 +135,11 @@ export function authorizationServiceBuilder(
         tenant.externalId.value
       );
 
-      const { serialized: sessionToken } = await sessionTokenGenerator.generate(
-        {
+      const { serialized: sessionToken } =
+        await interopTokenGenerator.generateSessionToken({
           ...sessionClaims,
           ...customClaims,
-        }
-      );
+        });
       return sessionToken;
     },
   };
