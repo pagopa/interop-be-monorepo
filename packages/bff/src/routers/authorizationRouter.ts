@@ -4,7 +4,6 @@ import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   InteropTokenGenerator,
-  SessionTokenGenerator,
   ZodiosContext,
   fromAppContext,
   zodiosValidationErrorToApiProblem,
@@ -25,10 +24,8 @@ const authorizationRouter = (
   });
 
   const interopTokenGenerator = new InteropTokenGenerator(config);
-  const sessionTokenGenerator = new SessionTokenGenerator(config);
   const authorizationService = authorizationServiceBuilder(
     interopTokenGenerator,
-    sessionTokenGenerator,
     tenantProcessClient,
     allowList
   );
