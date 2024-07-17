@@ -6,9 +6,9 @@ import {
 
 export const errorCodes = {
   purposeNotFound: "0001",
-  missingClaim: "9990",
-  tenantLoginNotAllowed: "0011",
-  tokenVerificationFailed: "0002",
+  missingClaim: "0002",
+  tenantLoginNotAllowed: "0003",
+  tokenVerificationFailed: "0004",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
