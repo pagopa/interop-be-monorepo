@@ -1,0 +1,38 @@
+
+Keys:
+  Asymmetric:
+    Rsa:
+      - Metadata:
+          KeyId: ffcc9b5b-4612-49b1-9374-9d203a3834f2
+          KeyUsage: SIGN_VERIFY # or ENCRYPT_DECRYPT
+          Description: RSA key with 2048 bits
+        PrivateKeyPem: |
+          -----BEGIN PRIVATE KEY-----
+          MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCTknFMga17eY18
+          fmXs+4kLNnerZGLte4yinxIpCoUTv7FuuOZ0zmkUr2DOetuwdavYUH7D0L+hIYEO
+          fi/Ioaac9ZHaVPMEP2WawSkRQo6zdmUxJumRYk4cIQuhyCriREAbGJ9Oh2p+Pi5q
+          QZYcEXMhD7v1BVjNnQH/d2xpRT0A45rtOCJX1tvKGRZVYbNPy4aGL4XzgzVXBWew
+          bwjc0j1iHA6z8lG5+6H5m8WdFw+5ZNUCBwNihlb3iale+XQrDyXZijJOuX3Gq8M4
+          5sD9rG7URam0k4P7rkFAMMb5gsy9/FX1+ciVfn2jqRtzYjqoW2u29kIYsM+z+MT6
+          Tz/qF8AnAgMBAAECggEAE9mletyQqOTDVuUrsbJuDz+O3lOdCQPO+Yr7JuEe4Hav
+          F80wVrLzKJCkrXGSPoy9hlXhj1ZziGmY0gnARLUV09Qmf99gZwheEvB7pTI2Psak
+          uvVYgrFd/2OkjGj/97qlgt+PgkEt3nhfxvQ2jGT+fwp+RmmnNdUyURpPz2M8XvOK
+          cwQYDbUD82CECMdMrB5ArwFBEjkQA4wu9LxOape4o/nFnQpYEuCf6r0ApH/W4sFY
+          fM2UVBw3gw3RdY4eOPN9zE8iSVIh67g6MrR4SIDgu04WDeD8h8omUt8AMNOE+8/z
+          9ie4jQal+gNksOdAMJPv2+lyMotZ9AR6tgFt1y0TXQKBgQDHklco/ZNnzhvDv3hE
+          syRmbl27Ij95ZLqrgYgOtSVex/SP0zL57hmfl9ouDJuKHv9KIxEYoPLSiZYaGxb3
+          knfyheRhhkwrm4ZAvzwJeCfYSQhN/6dkdcKDglxA33/HU1JtIHj/PH3Cv4gSrVh+
+          Ev2hRmiLWX/zXmENWj8t1CW21QKBgQC9TDKs5Yz6JrGICgvyf5YR/Jxt8u6reks+
+          QTCPO8gD006cDcZaTUrzUG+0ER1ZapcqE70J8HlgwsRXMW198cP4+iYu28jNwGRe
+          XcTwrC3/yw9R3P78sknTowvMmcQgZkQaSRrlADj3KJCkhQx6a91oZ+QPdq1arPXx
+          1fxMjeHRCwKBgQCIVR4ZsHBcP16UMF6Wf9Jj7w0040Z9RSSIOOqbMYAf6XTWM67l
+          MZRrg67WOmKezmITYTUyn/CBht/1YYAlC/fIw1KqlLXALHRgEsOOrHh7thhoQDc3
+          14JTmGAxKPz/S5pJVh+SLN60hWcNa0HCjnKZE6IjX7aaqGSgXIBAbGZ/KQKBgDxC
+          C0eacvwWYSELAa6aCq2DGlCtqmgPr/ALVGfkAdGl7Dok8GVCgX9etZA+endCRQhx
+          7BVD5X91wIZ5B3+1/Eo/ZvQ3pn5Ipiqb8tsiFCp++0t16/2Iy5OBLXpd4F7n7vnn
+          F5aaMYgL869LYyN9PqfDmoeJoblhoZDwKzY7XAztAoGADFYNznI/tIKivy+RirDa
+          PP7zEqMwiFmsDxOt4EuzrIi7ojWVrLeqjiP52eKk6EiOIOJ/7JXYEcEnVaZLwetq
+          4y6N91WUp/s++a97MUfWEdZ52ZJq1E3IhtsXvUM5kp4QsllPVMCpWRERhvn5wUkh
+          3IsB3ifrZ0jMf8rRv68Xeyo=
+          -----END PRIVATE KEY-----
+
