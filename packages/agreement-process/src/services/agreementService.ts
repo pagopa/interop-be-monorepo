@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -9,6 +10,7 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -31,9 +33,13 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  CompactTenant,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import {
+  declaredAttributesSatisfied,
+  verifiedAttributesSatisfied,
+} from "pagopa-interop-agreement-lifecycle";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -52,7 +58,6 @@ import {
 import {
   CompactEService,
   CompactOrganization,
-  CompactTenant,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -84,7 +89,6 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertSubmittableState,
-  declaredAttributesSatisfied,
   failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -94,18 +98,11 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
-  verifiedAttributesSatisfied,
   verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
-} from "../model/domain/validators.js";
-import {
-  ApiAgreementDocumentSeed,
-  ApiAgreementPayload,
-  ApiAgreementSubmissionPayload,
-  ApiAgreementUpdatePayload,
-} from "../model/types.js";
-import { config } from "../utilities/config.js";
+} from "../model/domain/agreement-validators.js";
+import { config } from "../config/config.js";
 import {
   archiveRelatedToAgreements,
   createActivationEvent,
@@ -229,7 +226,7 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: ApiAgreementPayload,
+      agreementPayload: agreementApi.AgreementPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
@@ -305,7 +302,7 @@ export function agreementServiceBuilder(
     },
     async updateAgreement(
       agreementId: AgreementId,
-      agreement: ApiAgreementUpdatePayload,
+      agreement: agreementApi.AgreementUpdatePayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
@@ -366,7 +363,7 @@ export function agreementServiceBuilder(
     },
     async submitAgreement(
       agreementId: AgreementId,
-      payload: ApiAgreementSubmissionPayload,
+      payload: agreementApi.AgreementSubmissionPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
@@ -487,7 +484,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updateSeed,
         updatedAgreement,
         authData
       );
@@ -586,7 +582,12 @@ export function agreementServiceBuilder(
       }
 
       const consumer = await retrieveTenant(
-        authData.organizationId,
+        agreementToBeUpgraded.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreementToBeUpgraded.data.producerId,
         readModelService
       );
 
@@ -608,15 +609,26 @@ export function agreementServiceBuilder(
         consumer
       );
 
+      const contractBuilderInstance = contractBuilder(
+        readModelService,
+        pdfGenerator,
+        fileManager,
+        selfcareV2Client,
+        config,
+        logger
+      );
+
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         newDescriptor,
         eservice,
         consumer,
+        producer,
         readModelService,
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
-        userId: authData.userId,
+        authData,
+        contractBuilder: contractBuilderInstance,
         correlationId,
         logger,
       });
@@ -699,7 +711,7 @@ export function agreementServiceBuilder(
     },
     async addConsumerDocument(
       agreementId: AgreementId,
-      documentSeed: ApiAgreementDocumentSeed,
+      documentSeed: agreementApi.DocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
@@ -1033,7 +1045,6 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementSeed,
         updatedAgreementWithoutContract,
         authData
       );
@@ -1216,7 +1227,6 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  updateSeed: UpdateAgreementSeed,
   agreement: Agreement,
   authData: AuthData
 ): Promise<Agreement> {
@@ -1226,8 +1236,7 @@ async function addContractOnFirstActivation(
       agreement,
       eservice,
       consumer,
-      producer,
-      updateSeed
+      producer
     );
 
     return {

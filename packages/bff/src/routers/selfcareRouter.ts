@@ -1,32 +1,32 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
-  ExpressContext,
   ZodiosContext,
+  ExpressContext,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
 import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
-import { api } from "../model/generated/api.js";
 import {
-  toBffApiSelfcareInstitution,
-  toBffApiSelfcareProduct,
-  toBffApiSelfcareUser,
+  toApiSelfcareUser,
+  toApiSelfcareProduct,
+  toApiSelfcareInstitution,
 } from "../model/domain/apiConverter.js";
-import { selfcareServiceBuilder } from "../services/selfcareService.js";
-import { config } from "../utilities/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
 } from "../utilities/errorMappers.js";
+import { selfcareServiceBuilder } from "../services/selfcareService.js";
+import { config } from "../config/config.js";
 
 const selfcareService = selfcareServiceBuilder(selfcareV2ClientBuilder(config));
 
 const selfcareRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const selfcareRouter = ctx.router(api.api, {
+  const selfcareRouter = ctx.router(bffApi.selfcareApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
@@ -43,7 +43,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(toBffApiSelfcareUser(user, ctx.authData.organizationId))
+          .json(toApiSelfcareUser(user, ctx.authData.organizationId))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -64,10 +64,7 @@ const selfcareRouter = (
           ctx.authData.selfcareId
         );
 
-        return res
-          .status(200)
-          .json(products.map(toBffApiSelfcareProduct))
-          .end();
+        return res.status(200).json(products.map(toApiSelfcareProduct)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -88,7 +85,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(institutions.map(toBffApiSelfcareInstitution))
+          .json(institutions.map(toApiSelfcareInstitution))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(

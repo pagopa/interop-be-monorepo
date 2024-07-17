@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { FileManager, Logger } from "pagopa-interop-commons";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   privacyNoticeNotFoundInConfiguration,
   privacyNoticeNotFound,
   privacyNoticeVersionIsNotTheLatest,
 } from "../model/domain/errors.js";
 import { PrivacyNoticeKind, UserPrivacyNotice } from "../model/domain/types.js";
-import {
-  BffApiPrivacyNotice,
-  BffApiPrivacyNoticeSeed,
-} from "../model/api/bffTypes.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
 
 export function privacyNoticeServiceBuilder(
@@ -24,7 +21,7 @@ export function privacyNoticeServiceBuilder(
       consentType: PrivacyNoticeKind,
       userId: string,
       logger: Logger
-    ): Promise<BffApiPrivacyNotice> {
+    ): Promise<bffApi.PrivacyNotice> {
       logger.info(`Retrieving privacy notice for consentType ${consentType}`);
 
       const privacyNoticeId = consentTypeMap.get(consentType);
@@ -70,7 +67,7 @@ export function privacyNoticeServiceBuilder(
     async acceptPrivacyNotice(
       consentType: PrivacyNoticeKind,
       userId: string,
-      seed: BffApiPrivacyNoticeSeed,
+      seed: bffApi.PrivacyNoticeSeed,
       logger: Logger
     ): Promise<void> {
       logger.info(`Accept privacy notices for consentType ${consentType}`);
@@ -144,7 +141,7 @@ export function privacyNoticeServiceBuilder(
         path,
         logger
       );
-      return new Buffer(bytes);
+      return Buffer.from(bytes);
     },
   };
 }

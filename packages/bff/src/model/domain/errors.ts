@@ -7,21 +7,24 @@ import {
 
 export const errorCodes = {
   purposeNotFound: "0001",
-  userNotFound: "0001",
-  privacyNoticeNotFoundInConfiguration: "0025",
-  privacyNoticeNotFound: "0026",
-  privacyNoticeVersionIsNotTheLatest: "0027",
-  dynamoReadingError: "0028",
-  selfcareEntityNotFilled: "0032",
+  userNotFound: "0002",
+  selfcareEntityNotFilled: "0003",
+  privacyNoticeNotFoundInConfiguration: "0004",
+  privacyNoticeNotFound: "0005",
+  privacyNoticeVersionIsNotTheLatest: "0006",
+  dynamoReadingError: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function selfcareEntityNotFilled(entity: string): ApiError<ErrorCodes> {
+export function selfcareEntityNotFilled(
+  className: string,
+  field: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Selfcare entity not filled for ${entity}`,
+    detail: `Selfcare entity ${className} with field ${field} not filled`,
     code: "selfcareEntityNotFilled",
     title: "Selfcare Entity not filled",
   });

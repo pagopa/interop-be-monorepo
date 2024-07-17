@@ -1,8 +1,10 @@
 import { ZodiosInstance } from "@zodios/core";
-import { api, createApiClient } from "../model/generated/api.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
-export type CatalogProcessClient = ZodiosInstance<typeof api.api>;
+export type CatalogProcessClient = ZodiosInstance<
+  typeof catalogApi.processApi.api
+>;
 
 export const catalogProcessClientBuilder = (
   url: string
-): CatalogProcessClient => createApiClient(url);
+): CatalogProcessClient => catalogApi.createProcessApiClient(url);
