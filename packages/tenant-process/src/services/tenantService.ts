@@ -4,6 +4,7 @@ import {
   Logger,
   WithLogger,
   AppContext,
+  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -12,6 +13,7 @@ import {
   ListResult,
   Tenant,
   TenantAttribute,
+  TenantEvent,
   TenantId,
   WithMetadata,
   attributeKind,
@@ -330,28 +332,39 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant = await assignCertifiedAttribute({
+      const tenantWithNewAttribute = await assignCertifiedAttribute({
         targetTenant: targetTenant.data,
         attribute,
       });
 
-      updatedTenant = await revaluateTenantKind({
-        tenant: updatedTenant,
+      const [updatedTenant, event] = await revaluateTenantKind({
+        tenant: tenantWithNewAttribute,
         version: targetTenant.metadata.version,
         readModelService,
-        dbInstance,
         correlationId,
       });
 
-      await repository.createEvent(
+      const tenantCertifiedAttributeAssignedEvent =
         toCreateEventTenantCertifiedAttributeAssigned(
-          targetTenant.metadata.version + 1,
+          targetTenant.metadata.version,
           updatedTenant,
           attribute.id,
           correlationId
-        )
-      );
+        );
+
+      if (event) {
+        const tenantKindUpdatedEvent: CreateEvent<TenantEvent> = {
+          ...event,
+          version: targetTenant.metadata.version + 1,
+        };
+
+        await repository.createEvents([
+          tenantCertifiedAttributeAssignedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+      }
 
       return updatedTenant;
     },
@@ -517,15 +530,13 @@ async function revaluateTenantKind({
   tenant,
   version,
   readModelService,
-  dbInstance,
   correlationId,
 }: {
   tenant: Tenant;
   version: number;
   readModelService: ReadModelService;
-  dbInstance: DB;
   correlationId: string;
-}): Promise<Tenant> {
+}): Promise<[Tenant, CreateEvent<TenantEvent>?]> {
   const tenantKind = await getTenantKindLoadingCertifiedAttributes(
     readModelService,
     tenant.attributes,
@@ -539,16 +550,17 @@ async function revaluateTenantKind({
       ...tenant,
       kind: tenantKind,
     };
-  }
-  await eventRepository(dbInstance, tenantEventToBinaryData).createEvent(
-    toCreateEventTenantKindUpdated(
+
+    const event = toCreateEventTenantKindUpdated(
       version,
       tenantKind,
       updatedTenant,
       correlationId
-    )
-  );
-  return updatedTenant;
+    );
+
+    return [updatedTenant, event];
+  }
+  return [updatedTenant];
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

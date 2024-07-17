@@ -5,6 +5,7 @@ import {
   AttributeId,
   toTenantV2,
   TenantKind,
+  toTenantKindV2,
 } from "pagopa-interop-models";
 export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
@@ -109,7 +110,7 @@ export const toCreateEventTenantKindUpdated = (
     type: "TenantKindUpdated",
     event_version: 2,
     data: {
-      oldKind,
+      oldKind: toTenantKindV2(oldKind),
       tenant: toTenantV2(updatedTenant),
     },
   },
