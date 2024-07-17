@@ -12,6 +12,7 @@ import {
   generateId,
   tenantKind,
   toReadModelEService,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger, getFormRulesByVersion } from "pagopa-interop-commons";
@@ -32,7 +33,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       kind,
     };
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     const riskAnalysisVersion = "1.0";
 
@@ -54,7 +55,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       kind,
     };
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     const riskAnalysisVersion = "1.0";
 
@@ -71,7 +72,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
     const mockTenant = getMockTenant();
     const randomId = generateId<EServiceId>();
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
@@ -103,7 +104,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       kind: undefined,
     };
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
@@ -121,7 +122,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       kind: tenantKind.PA,
     };
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     const wrongRiskAnalysisVersion = "0.0";
 
