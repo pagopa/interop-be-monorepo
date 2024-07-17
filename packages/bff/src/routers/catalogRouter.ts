@@ -7,13 +7,13 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { unsafeBrandId } from "pagopa-interop-models";
 
 const catalogRouter = (
   ctx: ZodiosContext,
