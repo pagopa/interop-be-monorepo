@@ -738,6 +738,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+
+  /tenants/{tenantId}/attributes/certified:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      operationId: addCertifiedAttribute
+      description: Add a certified attribute to a Tenant by the requester Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifiedTenantAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -796,6 +837,14 @@ components:
           maxLength: 64
       required:
         - code
+    CertifiedTenantAttributeSeed:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     Tenant:
       description: Tenant model
       type: object
