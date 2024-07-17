@@ -132,10 +132,17 @@ const authorizationRouter = (
         try {
           const { name, userIds, consumerId, purposeId, kind, offset, limit } =
             req.query;
+
+          const parsedUserIds = (
+            req.ctx.authData.userRoles.includes(userRoles.SECURITY_ROLE)
+              ? [req.ctx.authData.userId]
+              : userIds
+          ).map(unsafeBrandId<UserId>);
+
           const clients = await authorizationService.getClients({
             filters: {
               name,
-              userIds: userIds?.map(unsafeBrandId<UserId>),
+              userIds: parsedUserIds,
               consumerId: unsafeBrandId(consumerId),
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
