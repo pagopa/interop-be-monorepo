@@ -37,6 +37,7 @@ import {
   createKeysErrorMapper,
   getClientKeyWithClientErrorMapper,
 } from "../utilities/errorMappers.js";
+import { ApiClient, ApiJWKKey } from "../model/domain/models.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -401,7 +402,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { JWKKey, client } =
+          const { key, client } =
             await authorizationService.getKeyWithClientByKeyId({
               clientId: unsafeBrandId(req.params.clientId),
               kid: req.params.keyId,
@@ -410,8 +411,8 @@ const authorizationRouter = (
           return res
             .status(200)
             .json({
-              key: JWKKey,
-              client: clientToApiClient({ client, showUsers: false }),
+              key: key satisfies ApiJWKKey,
+              client: client satisfies ApiClient,
             })
             .end();
         } catch (error) {
