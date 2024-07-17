@@ -9,7 +9,7 @@ export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0004",
+  eserviceDescriptorNotFound: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
   missingClaim: "0007",
@@ -63,13 +63,13 @@ export function invalidEServiceRequester(
 }
 
 export function eserviceDescriptorNotFound(
-  eServiceId: string,
+  eserviceId: string,
   descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
-    code: "descriptorNotFound",
-    title: `Descriptor not found`,
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "EService descriptor not found",
   });
 }
 

@@ -681,6 +681,9 @@ importers:
       express:
         specifier: 4.19.2
         version: 4.19.2
+      fast-xml-parser:
+        specifier: ^4.4.0
+        version: 4.4.0
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -702,6 +705,9 @@ importers:
       uuid:
         specifier: 10.0.0
         version: 10.0.0
+      yaml:
+        specifier: 2.4.5
+        version: 2.4.5
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -6562,6 +6568,13 @@ packages:
 
   /fast-xml-parser@4.2.5:
     resolution: {integrity: sha512-B9/wizE4WngqQftFPmdaMYlXoJlJOYxGQOanC77fq9k8+Z0v5dDSVh+3glErdIROP//s/jgb7ZuxKfB8nVyo0g==}
+    hasBin: true
+    dependencies:
+      strnum: 1.0.5
+    dev: false
+
+  /fast-xml-parser@4.4.0:
+    resolution: {integrity: sha512-kLY3jFlwIYwBNDojclKsNAC12sfD6NwW74QB2CoNGPvtVxjliYehVunB3HYyNi+n4Tt1dAcgwYvmKF/Z18flqg==}
     hasBin: true
     dependencies:
       strnum: 1.0.5
