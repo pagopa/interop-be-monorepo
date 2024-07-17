@@ -3,6 +3,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
+  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -24,7 +25,8 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
-  }: PagoPAInteropBeClients
+  }: PagoPAInteropBeClients,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -33,7 +35,8 @@ const catalogRouter = (
   const catalogService = catalogServiceBuilder(
     catalogProcessClient,
     tenantProcessClient,
-    agreementProcessClient
+    agreementProcessClient,
+    fileManager
   );
 
   catalogRouter
@@ -98,7 +101,21 @@ const catalogRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { id } = await catalogService.createEServiceDocument(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.body,
+            headers
+          );
+          return res.status(200).json().send({ id });
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",

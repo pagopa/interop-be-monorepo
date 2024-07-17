@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  initFileManager,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -13,8 +14,10 @@ import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
+import { config } from "./config/config.js";
 
 const serviceName = "bff-process";
+const fileManager = initFileManager(config);
 
 const clients = getInteropBeClients();
 
@@ -29,7 +32,7 @@ app.use(healthRouter);
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
-app.use(catalogRouter(zodiosCtx, clients));
+app.use(catalogRouter(zodiosCtx, clients, fileManager));
 app.use(attributeRouter(zodiosCtx));
 app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));

@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
 import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  FileManagerConfig,
+  S3Config,
+} from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -27,9 +33,11 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -62,7 +70,11 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(PurposeProcessServerConfig)
-  .and(SelfCareConfig);
+  .and(SelfCareConfig)
+  .and(FileManagerConfig)
+  .and(S3Config)
+  .and(PurposeProcessServerConfig);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
