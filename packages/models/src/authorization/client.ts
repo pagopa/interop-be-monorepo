@@ -34,7 +34,7 @@ export const ClientKind = z.enum([
 ]);
 export type ClientKind = z.infer<typeof ClientKind>;
 
-export const JWKKeyInReadModel = z.object({
+export const JWKKey = z.object({
   alg: z.string(),
   clientId: z.string(),
   e: z.string(),
@@ -44,7 +44,7 @@ export const JWKKeyInReadModel = z.object({
   use: z.string(),
 });
 
-export type JWKKeyInReadModel = z.infer<typeof JWKKeyInReadModel>;
+export type JWKKey = z.infer<typeof JWKKey>;
 
 export const Client = z.object({
   id: ClientId,

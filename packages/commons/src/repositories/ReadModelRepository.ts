@@ -3,7 +3,7 @@ import {
   AttributeReadmodel,
   ClientReadModel,
   EServiceReadModel,
-  JWKKeyInReadModel,
+  JWKKey,
   PurposeReadModel,
   Tenant,
   genericInternalError,
@@ -37,7 +37,7 @@ export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
 export type ClientCollection = GenericCollection<ClientReadModel>;
-export type KeyCollection = GenericCollection<JWKKeyInReadModel>;
+export type KeyCollection = GenericCollection<JWKKey>;
 
 export type Collections =
   | EServiceCollection
