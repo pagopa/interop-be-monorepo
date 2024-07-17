@@ -16,16 +16,14 @@ import {
   tenantEventToBinaryData,
   ExternalId,
 } from "pagopa-interop-models";
-import {
-  toCreateEventTenantAdded,
-  toCreateEventTenantUpdated,
-} from "../model/domain/toEvent.js";
-import {
-  CertifiedAttributeQueryResult,
-  UpdateVerifiedTenantAttributeSeed,
-} from "../model/domain/models.js";
-import { ApiSelfcareTenantSeed } from "../model/types.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { tenantNotFound } from "../model/domain/errors.js";
+import {
+  toCreateEventTenantVerifiedAttributeExpirationUpdated,
+  toCreateEventTenantVerifiedAttributeExtensionUpdated,
+  toCreateEventTenantOnboardDetailsUpdated,
+  toCreateEventTenantOnboarded,
+} from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -124,10 +122,11 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = toCreateEventTenantUpdated(
+      const event = toCreateEventTenantVerifiedAttributeExtensionUpdated(
         tenant.data.id,
         tenant.metadata.version,
         updatedTenant,
+        attributeId,
         correlationId
       );
       await repository.createEvent(event);
@@ -144,7 +143,7 @@ export function tenantServiceBuilder(
         verifierId: string;
         tenantId: TenantId;
         attributeId: AttributeId;
-        updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+        updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed;
       },
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
@@ -184,10 +183,11 @@ export function tenantServiceBuilder(
         ],
         updatedAt: new Date(),
       };
-      const event = toCreateEventTenantUpdated(
+      const event = toCreateEventTenantVerifiedAttributeExpirationUpdated(
         tenant.data.id,
         tenant.metadata.version,
         updatedTenant,
+        attributeId,
         correlationId
       );
       await repository.createEvent(event);
@@ -195,7 +195,7 @@ export function tenantServiceBuilder(
     },
 
     async selfcareUpsertTenant(
-      tenantSeed: ApiSelfcareTenantSeed,
+      tenantSeed: tenantApi.SelfcareTenantSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(
@@ -232,7 +232,7 @@ export function tenantServiceBuilder(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
         return await repository.createEvent(
-          toCreateEventTenantUpdated(
+          toCreateEventTenantOnboardDetailsUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
             updatedTenant,
@@ -252,10 +252,11 @@ export function tenantServiceBuilder(
           mails: [],
           selfcareId: tenantSeed.selfcareId,
           kind: getTenantKind([], tenantSeed.externalId),
+          onboardedAt: new Date(),
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant, correlationId)
+          toCreateEventTenantOnboarded(newTenant, correlationId)
         );
       }
     },
@@ -268,7 +269,7 @@ export function tenantServiceBuilder(
       organizationId: TenantId;
       offset: number;
       limit: number;
-    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
+    }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const tenant = await readModelService.getTenantById(organizationId);
       assertTenantExists(organizationId, tenant);
 

@@ -6,16 +6,11 @@ import {
   bffApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import {
-  DescriptorId,
-  EServiceId,
-  TenantId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { DescriptorId, EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   toBffCatalogApiDescriptorAttribute,
-  toBffCatalogApiDescriptorInterface,
+  toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
@@ -51,7 +46,7 @@ const enhanceCatalogEService =
     requesterId: string
   ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
   async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-    const producerTenant = await tenantProcessClient.getTenant({
+    const producerTenant = await tenantProcessClient.tenant.getTenant({
       headers,
       params: {
         id: eservice.producerId,
@@ -60,7 +55,7 @@ const enhanceCatalogEService =
 
     const requesterTenant: tenantApi.Tenant =
       requesterId !== eservice.producerId
-        ? await tenantProcessClient.getTenant({
+        ? await tenantProcessClient.tenant.getTenant({
             headers,
             params: {
               id: requesterId,
@@ -132,15 +127,45 @@ const getBulkAttributes = async (
 
 const assertRequesterIsProducer = (
   eservice: catalogApi.EService,
-  requesterId: string
+  requesterId: TenantId
 ) => {
   if (eservice.producerId !== requesterId) {
     throw invalidEServiceRequester(
       unsafeBrandId<EServiceId>(eservice.id),
-      unsafeBrandId<TenantId>(requesterId)
+      requesterId
     );
   }
 };
+
+const getEserviceDesciptor = (
+  eservice: catalogApi.EService,
+  descriptorId: DescriptorId
+): catalogApi.EServiceDescriptor => {
+  const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+
+  if (!descriptor) {
+    throw eserviceDescriptorNotFound(
+      unsafeBrandId<EServiceId>(eservice.id), // catalogApi.EService type is missing branded types
+      descriptorId
+    );
+  }
+
+  return descriptor;
+};
+
+const getAttributeIds = (
+  descriptor: catalogApi.EServiceDescriptor
+): string[] => [
+  ...descriptor.attributes.certified.flatMap((atts) =>
+    atts.map((att) => att.id)
+  ),
+  ...descriptor.attributes.declared.flatMap((atts) =>
+    atts.map((att) => att.id)
+  ),
+  ...descriptor.attributes.verified.flatMap((atts) =>
+    atts.map((att) => att.id)
+  ),
+];
 
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
@@ -189,8 +214,8 @@ export function catalogServiceBuilder(
       return response;
     },
     getProducerEServiceDescriptor: async (
-      eServiceId: string,
-      descriptorId: string,
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
       context: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
       const requesterId = context.authData.organizationId;
@@ -199,35 +224,16 @@ export function catalogServiceBuilder(
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
           params: {
-            eServiceId,
+            eServiceId: eserviceId,
           },
           headers,
         });
 
       assertRequesterIsProducer(eservice, requesterId);
 
-      const descriptor = eservice.descriptors.find(
-        (e) => e.id === descriptorId
-      );
+      const descriptor = getEserviceDesciptor(eservice, descriptorId);
 
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(
-          unsafeBrandId<EServiceId>(eServiceId),
-          unsafeBrandId<DescriptorId>(descriptorId)
-        );
-      }
-
-      const descriptorAttributeIds: string[] = [
-        ...descriptor.attributes.certified.flatMap((atts) =>
-          atts.map((att) => att.id)
-        ),
-        ...descriptor.attributes.declared.flatMap((atts) =>
-          atts.map((att) => att.id)
-        ),
-        ...descriptor.attributes.verified.flatMap((atts) =>
-          atts.map((att) => att.id)
-        ),
-      ];
+      const descriptorAttributeIds = getAttributeIds(descriptor);
 
       const attributes = await getBulkAttributes(
         attributeProcessClient,
@@ -256,7 +262,7 @@ export function catalogServiceBuilder(
         ],
       };
 
-      const requesterTenant = await tenantProcessClient.getTenant({
+      const requesterTenant = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
           id: requesterId,
@@ -269,8 +275,8 @@ export function catalogServiceBuilder(
         description: descriptor.description,
         interface:
           descriptor.interface &&
-          toBffCatalogApiDescriptorInterface(descriptor.interface),
-        docs: descriptor.docs.map(toBffCatalogApiDescriptorInterface),
+          toBffCatalogApiDescriptorDoc(descriptor.interface),
+        docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
         state: descriptor.state,
         audience: descriptor.audience,
         voucherLifespan: descriptor.voucherLifespan,
