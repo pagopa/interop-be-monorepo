@@ -228,7 +228,7 @@ export function catalogServiceBuilder(
       return response;
     },
     getProducerEServiceDescriptor: async (
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { authData, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
@@ -237,7 +237,7 @@ export function catalogServiceBuilder(
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
           params: {
-            eServiceId,
+            eServiceId: eserviceId,
           },
           headers,
         });
