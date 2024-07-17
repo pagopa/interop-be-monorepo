@@ -751,7 +751,7 @@ paths:
           format: uuid
     post:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: addCertifiedAttribute
       description: Add a certified attribute to a Tenant by the requester Tenant
       requestBody:
