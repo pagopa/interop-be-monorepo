@@ -6,7 +6,12 @@ import {
   bffApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   toBffCatalogApiDescriptorAttribute,
