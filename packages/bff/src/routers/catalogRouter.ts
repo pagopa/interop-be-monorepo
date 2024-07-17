@@ -7,6 +7,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
@@ -76,8 +77,8 @@ const catalogRouter = (
 
         try {
           const response = await catalogService.getProducerEServiceDescriptor(
-            req.params.eserviceId,
-            req.params.descriptorId,
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(200).json(response).send();

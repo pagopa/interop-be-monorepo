@@ -109,7 +109,7 @@ export function toBffCatalogApiDescriptorAttribute(
   });
 }
 
-export function toBffCatalogApiDescriptorInterface(
+export function toBffCatalogApiDescriptorDoc(
   document: catalogApi.EServiceDoc
 ): bffApi.EServiceDoc {
   return {
@@ -123,24 +123,27 @@ export function toBffCatalogApiDescriptorInterface(
 export function toBffCatalogApiEserviceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis
 ): bffApi.EServiceRiskAnalysis {
-  const answers: { [key: string]: string[] } = {};
+  const answers: { [key: string]: string[] } =
+    riskAnalysis.riskAnalysisForm.singleAnswers
+      .concat(
+        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
+          multiAnswer.values.map((answerValue) => ({
+            id: multiAnswer.id,
+            value: answerValue,
+            key: multiAnswer.key,
+          }))
+        )
+      )
+      .reduce((answers: { [key: string]: string[] }, answer) => {
+        const key = `${answer.key}`;
+        if (answers[key] && answer.value) {
+          answers[key] = [...answers[key], answer.value];
+        } else {
+          answers[key] = [];
+        }
 
-  riskAnalysis.riskAnalysisForm.singleAnswers
-    .concat(riskAnalysis.riskAnalysisForm.multiAnswers)
-    .map((answer) => ({
-      questionId: answer.questionId,
-      answer: answer.value,
-    }))
-    .forEach((QA) => {
-      if (answers[`${QA.questionId}`] && QA.answer) {
-        answers[`${QA.questionId}`] = [
-          ...answers[`${QA.questionId}`],
-          QA.answer,
-        ];
-      } else {
-        answers[`${QA.questionId}`] = [];
-      }
-    });
+        return answers;
+      }, {});
 
   const riskAnalysisForm: bffApi.RiskAnalysisForm = {
     riskAnalysisId: riskAnalysis.id,
@@ -164,7 +167,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     (m) => m.kind === tenantMailKind.ContactEmail
   );
 
-  const notDraftDecriptor: bffApi.CompactDescriptor[] =
+  const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
 
   const draftDescriptor: bffApi.CompactDescriptor | undefined =
@@ -184,7 +187,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
     ),
-    descriptors: notDraftDecriptor,
+    descriptors: notDraftDecriptors,
   };
 }
 
