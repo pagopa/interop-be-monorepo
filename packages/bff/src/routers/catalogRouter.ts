@@ -13,6 +13,7 @@ import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/cat
 import { makeApiProblem } from "../model/domain/errors.js";
 import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { unsafeBrandId } from "pagopa-interop-models";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -62,8 +63,8 @@ const catalogRouter = (
 
         try {
           const response = await catalogService.getProducerEServiceDescriptor(
-            req.params.eserviceId,
-            req.params.descriptorId,
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(200).json(response).send();

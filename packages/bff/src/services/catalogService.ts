@@ -6,12 +6,7 @@ import {
   bffApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import {
-  DescriptorId,
-  EServiceId,
-  TenantId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import { descriptorApiState } from "../model/api/catalogTypes.js";
 import {
   toBffCatalogApiDescriptorAttribute,
@@ -131,14 +126,14 @@ const getBulkAttributes = async (
 
 const getEserviceDesciptor = (
   eservice: catalogApi.EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): catalogApi.EServiceDescriptor => {
   const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
 
   if (!descriptor) {
     throw eserviceDescriptorNotFound(
-      unsafeBrandId<EServiceId>(eservice.id),
-      unsafeBrandId<DescriptorId>(descriptorId)
+      unsafeBrandId<EServiceId>(eservice.id), // catalogApi.EService type is missing branded types
+      descriptorId
     );
   }
 
@@ -206,8 +201,8 @@ export function catalogServiceBuilder(
       return response;
     },
     getProducerEServiceDescriptor: async (
-      eServiceId: string,
-      descriptorId: string,
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
       context: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
       const requesterId = context.authData.organizationId;
@@ -222,10 +217,7 @@ export function catalogServiceBuilder(
         });
 
       if (eservice.producerId !== requesterId) {
-        throw invalidEServiceRequester(
-          unsafeBrandId<EServiceId>(eServiceId),
-          unsafeBrandId<TenantId>(requesterId)
-        );
+        throw invalidEServiceRequester(eServiceId, requesterId);
       }
 
       const descriptor = getEserviceDesciptor(eservice, descriptorId);
