@@ -13,8 +13,6 @@ export type RateLimiter = {
     organizationId: TenantId,
     logger: Logger
   ) => Promise<RateLimiterStatus>;
-  getCountByOrganization: (organizationId: TenantId) => Promise<string | null>;
-  getBurstCountByOrganization: (
-    organizationId: TenantId
-  ) => Promise<string | null>;
+  getCountByOrganization: (organizationId: TenantId) => Promise<number>;
+  getBurstCountByOrganization: (organizationId: TenantId) => Promise<number>;
 };
