@@ -3,12 +3,9 @@ import {
   AttributeReadmodel,
   ClientReadModel,
   EServiceReadModel,
-  Purpose,
   TenantReadModel,
-  genericError,
   JWKKeyInReadModel,
   PurposeReadModel,
-  Tenant,
   genericInternalError,
 } from "pagopa-interop-models";
 import {
