@@ -17,9 +17,9 @@ import {
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { fromKeyToReadModelJWKKey } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
 import { keys } from "./utils.js";
-import { fromKeyToReadModelJWKKey } from "pagopa-interop-commons";
 
 describe("Events V1", async () => {
   const key = crypto.generateKeyPairSync("rsa", {
