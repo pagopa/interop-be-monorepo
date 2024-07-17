@@ -201,7 +201,7 @@ export function catalogServiceBuilder(
       return response;
     },
     getProducerEServiceDescriptor: async (
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       descriptorId: DescriptorId,
       context: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
@@ -211,13 +211,13 @@ export function catalogServiceBuilder(
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
           params: {
-            eServiceId,
+            eServiceId: eserviceId,
           },
           headers,
         });
 
       if (eservice.producerId !== requesterId) {
-        throw invalidEServiceRequester(eServiceId, requesterId);
+        throw invalidEServiceRequester(eserviceId, requesterId);
       }
 
       const descriptor = getEserviceDesciptor(eservice, descriptorId);
