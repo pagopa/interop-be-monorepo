@@ -19,6 +19,7 @@ import {
   toReadModelAgreement,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
 import {
   writeInReadmodel,
@@ -42,7 +43,6 @@ import {
   agreementNotFound,
   duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
-import { ApiPurposeSeed } from "../src/model/domain/models.js";
 import {
   addOnePurpose,
   agreements,
@@ -80,7 +80,7 @@ describe("createPurpose", () => {
 
   const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
 
-  const purposeSeed: ApiPurposeSeed = {
+  const purposeSeed: purposeApi.PurposeSeed = {
     eserviceId: eService1.id,
     consumerId: agreementEservice1.consumerId,
     title: "test",
@@ -167,7 +167,7 @@ describe("createPurpose", () => {
     vi.useRealTimers();
   });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       freeOfChargeReason: undefined,
     };
@@ -197,7 +197,7 @@ describe("createPurpose", () => {
       tenantWithoutKind.id
     );
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       eserviceId: eService.id,
       consumerId: agreementEservice.consumerId,
@@ -249,7 +249,7 @@ describe("createPurpose", () => {
       state: agreementState.draft,
     };
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       eserviceId: eService.id,
       consumerId: agreement.consumerId,
@@ -276,7 +276,7 @@ describe("createPurpose", () => {
     );
     await writeInReadmodel(toReadModelEService(getMockEService()), eservices);
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       consumerId: generateId(),
     };
@@ -305,7 +305,7 @@ describe("createPurpose", () => {
       version: "0",
     };
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       riskAnalysisForm: buildRiskAnalysisFormSeed(mockInvalidRiskAnalysisForm),
     };

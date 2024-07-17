@@ -8,19 +8,19 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { api } from "../model/generated/api.js";
+import { bffApi } from "pagopa-interop-api-clients";
 import { fromApiConsentType } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { privacyNoticeServiceBuilder } from "../services/privacyNoticeService.js";
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
 import { PrivacyNoticeKind } from "../model/domain/types.js";
-import { config } from "../utilities/config.js";
 import { privacyNoticeStorageServiceBuilder } from "../services/privacyNoticeStorage.js";
+import { config } from "../config/config.js";
 
 const privacyNoticeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const privacyNoticeRouter = ctx.router(api.api, {
+  const privacyNoticeRouter = ctx.router(bffApi.privacyNoticesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 

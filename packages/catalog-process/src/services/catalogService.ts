@@ -36,24 +36,19 @@ import {
   RiskAnalysisId,
   eserviceMode,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
-import {
-  Consumer,
-  EServiceDescriptorSeed,
-  UpdateEServiceDescriptorSeed,
-  UpdateEServiceDescriptorQuotasSeed,
-  EServiceAttributesSeed,
-  EServiceRiskAnalysisSeed,
-} from "../model/domain/models.js";
+import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
@@ -73,13 +68,7 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import {
-  ApiEServiceDescriptorDocumentSeed,
-  ApiEServiceDescriptorDocumentUpdateSeed,
-  ApiEServiceSeed,
-  ApiGetEServicesFilters,
-} from "../model/types.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   eServiceDescriptorNotFound,
@@ -94,6 +83,9 @@ import {
   originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
+  prettyNameDuplicate,
+  riskAnalysisDuplicated,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -273,7 +265,7 @@ const replaceRiskAnalysis = (
 };
 
 async function parseAndCheckAttributes(
-  attributesSeed: EServiceAttributesSeed,
+  attributesSeed: catalogApi.AttributesSeed,
   readModelService: ReadModelService
 ): Promise<EserviceAttributes> {
   const certifiedAttributes = attributesSeed.certified;
@@ -413,7 +405,7 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
+      apiEServicesSeed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -454,7 +446,7 @@ export function catalogServiceBuilder(
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: ApiEServiceSeed,
+      eserviceSeed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
@@ -551,7 +543,7 @@ export function catalogServiceBuilder(
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      document: ApiEServiceDescriptorDocumentSeed,
+      document: catalogApi.CreateEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -578,6 +570,13 @@ export function catalogServiceBuilder(
 
       if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
         throw interfaceAlreadyExists(descriptor.id);
+      }
+
+      if (
+        document.kind === "DOCUMENT" &&
+        descriptor.docs.some((d) => d.prettyName === document.prettyName)
+      ) {
+        throw prettyNameDuplicate(document.prettyName, descriptor.id);
       }
 
       const isInterface = document.kind === "INTERFACE";
@@ -707,7 +706,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
+      apiEServiceDescriptorDocumentUpdateSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Document> {
       logger.info(
@@ -729,6 +728,19 @@ export function catalogServiceBuilder(
       }
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
+
+      if (
+        descriptor.docs.some(
+          (d) =>
+            d.id !== apiEServiceDescriptorDocumentUpdateSeed.id &&
+            d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
+        )
+      ) {
+        throw prettyNameDuplicate(
+          apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+          descriptor.id
+        );
+      }
 
       const updatedDocument = {
         ...document,
@@ -779,7 +791,7 @@ export function catalogServiceBuilder(
 
     async createDescriptor(
       eserviceId: EServiceId,
-      eserviceDescriptorSeed: EServiceDescriptorSeed,
+      eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
@@ -899,7 +911,7 @@ export function catalogServiceBuilder(
     async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorSeed,
+      seed: catalogApi.UpdateEServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1306,7 +1318,7 @@ export function catalogServiceBuilder(
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorQuotasSeed,
+      seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1355,7 +1367,7 @@ export function catalogServiceBuilder(
     },
     async createRiskAnalysis(
       eserviceId: EServiceId,
-      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
@@ -1371,6 +1383,18 @@ export function catalogServiceBuilder(
         readModelService
       );
       assertTenantKindExists(tenant);
+
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
+
+      if (isDuplicateRiskAnalysis) {
+        throw riskAnalysisDuplicated(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
@@ -1401,7 +1425,7 @@ export function catalogServiceBuilder(
     async updateRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
-      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
@@ -1424,6 +1448,19 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
+
+      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
+        (ra: RiskAnalysis) =>
+          ra.id !== riskAnalysisId &&
+          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
+      );
+
+      if (isDuplicateRiskAnalysis) {
+        throw riskAnalysisDuplicated(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
@@ -1485,6 +1522,39 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceDescription(
+      eserviceId: EServiceId,
+      description: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} description`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
     },
   };
 }

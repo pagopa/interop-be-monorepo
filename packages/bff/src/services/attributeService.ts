@@ -1,43 +1,37 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { bffApi, attributeRegistryApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import {
-  AttributeProcessApiAttribute,
-  AttributeProcessApiAttributeKind,
-  AttributeProcessApiAttributes,
-} from "../model/api/attributeTypes.js";
-import { toProcessAttributeSeed } from "../model/domain/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
-import { BffApiAttributeSeed, BffApiAttribute } from "../model/api/bffTypes.js";
+import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
 
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
 ) {
   return {
     async createCertifiedAttribute(
-      seed: BffApiAttributeSeed,
+      seed: bffApi.AttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<BffApiAttribute> {
+    ): Promise<bffApi.Attribute> {
       logger.info(`Creating certified attribute with name ${seed.name}`);
 
       return attributeClient.createCertifiedAttribute(
-        toProcessAttributeSeed(seed),
+        toApiAttributeProcessSeed(seed),
         {
           headers,
-          withCredentials: true,
         }
       );
     },
 
     async createVerifiedAttribute(
-      seed: BffApiAttributeSeed,
+      seed: bffApi.AttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<BffApiAttribute> {
+    ): Promise<bffApi.Attribute> {
       logger.info(`Creating verified attribute with name ${seed.name}`);
 
       return attributeClient.createVerifiedAttribute(
-        toProcessAttributeSeed(seed),
+        toApiAttributeProcessSeed(seed),
         {
           headers,
         }
@@ -45,16 +39,15 @@ export function attributeServiceBuilder(
     },
 
     async createDeclaredAttribute(
-      seed: BffApiAttributeSeed,
+      seed: bffApi.AttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<BffApiAttribute> {
+    ): Promise<bffApi.Attribute> {
       logger.info(`Creating declared attribute with name ${seed.name}`);
 
       return attributeClient.createDeclaredAttribute(
-        toProcessAttributeSeed(seed),
+        toApiAttributeProcessSeed(seed),
         {
           headers,
-          withCredentials: true,
         }
       );
     },
@@ -62,7 +55,7 @@ export function attributeServiceBuilder(
     async getAttributeById(
       attributeId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<AttributeProcessApiAttribute> {
+    ): Promise<attributeRegistryApi.Attribute> {
       logger.info(`Retrieving attribute with id ${attributeId}`);
       return attributeClient.getAttributeById({
         params: { attributeId },
@@ -74,14 +67,13 @@ export function attributeServiceBuilder(
       origin: string,
       code: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<AttributeProcessApiAttribute> {
+    ): Promise<attributeRegistryApi.Attribute> {
       logger.info(
         `Retrieving attribute with origin ${origin} and code ${code}`
       );
       return attributeClient.getAttributeByOriginAndCode({
         params: { origin, code },
         headers,
-        withCredentials: true,
       });
     },
 
@@ -95,16 +87,15 @@ export function attributeServiceBuilder(
     }: {
       offset: number;
       limit: number;
-      kinds: AttributeProcessApiAttributeKind[];
+      kinds: attributeRegistryApi.AttributeKind[];
       ctx: WithLogger<BffAppContext>;
       name?: string;
       origin?: string;
-    }): Promise<AttributeProcessApiAttributes> {
+    }): Promise<attributeRegistryApi.Attributes> {
       ctx.logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds: kinds.join(","), name, origin },
         headers: ctx.headers,
-        withCredentials: true,
       });
     },
   };

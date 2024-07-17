@@ -1,40 +1,65 @@
-import { createApiClient as createApiClientTenantProcess } from "../model/generated/tenant-process/api.js";
-import { createApiClient as createApiClientAgreementProcess } from "../model/generated/agreement-process/api.js";
-import { createApiClient as createApiClientCatalogProcess } from "../model/generated/catalog-process/api.js";
-import { createApiClient as createApiClientAttributeProcess } from "../model/generated/attribute-process/api.js";
-import { createApiClient as createApiClientPurposeProcess } from "../model/generated/purpose-process/api.js";
-import { createApiClient as createApiAuthorizationProcess } from "../model/generated/authorization-process/api.js";
-import { createApiClient as createApiAuthorizationUpdater } from "../model/generated/authorization-updater/api.js";
-import { config } from "../utilities/config.js";
+import {
+  tenantApi,
+  attributeRegistryApi,
+  catalogApi,
+  agreementApi,
+  purposeApi,
+  authorizationApi,
+} from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
+
+export type TenantProcessClient = {
+  tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
+};
+
+export type AttributeProcessClient = ReturnType<
+  typeof attributeRegistryApi.createAttributeApiClient
+>;
+
+export type CatalogProcessClient = ReturnType<
+  typeof catalogApi.createProcessApiClient
+>;
+
+export type AgreementProcessClient = ReturnType<
+  typeof agreementApi.createAgreementApiClient
+>;
+
+export type PurposeProcessClient = ReturnType<
+  typeof purposeApi.createPurposeApiClient
+>;
+
+export type AuthorizationProcessClient = {
+  client: ReturnType<typeof authorizationApi.createClientApiClient>;
+  user: ReturnType<typeof authorizationApi.createUserApiClient>;
+};
 
 export type PagoPAInteropBeClients = {
-  tenantProcessClient: ReturnType<typeof createApiClientTenantProcess>;
-  attributeProcessClient: ReturnType<typeof createApiClientAttributeProcess>;
-  catalogProcessClient: ReturnType<typeof createApiClientCatalogProcess>;
-  agreementProcessClient: ReturnType<typeof createApiClientAgreementProcess>;
-  purposeProcessClient: ReturnType<typeof createApiClientPurposeProcess>;
-  authorizationProcessClient: ReturnType<typeof createApiAuthorizationProcess>;
-  authorizationUpdaterClient: ReturnType<typeof createApiAuthorizationUpdater>;
+  tenantProcessClient: TenantProcessClient;
+  attributeProcessClient: AttributeProcessClient;
+  catalogProcessClient: CatalogProcessClient;
+  agreementProcessClient: AgreementProcessClient;
+  purposeProcessClient: PurposeProcessClient;
+  authorizationProcessClient: AuthorizationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
-    tenantProcessClient: createApiClientTenantProcess(config.tenantProcessUrl),
-    agreementProcessClient: createApiClientAgreementProcess(
+    tenantProcessClient: {
+      tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
+    },
+    agreementProcessClient: agreementApi.createAgreementApiClient(
       config.agreementProcessUrl
     ),
-    catalogProcessClient: createApiClientCatalogProcess(
+    catalogProcessClient: catalogApi.createProcessApiClient(
       config.catalogProcessUrl
     ),
-    attributeProcessClient: createApiClientAttributeProcess(
+    attributeProcessClient: attributeRegistryApi.createAttributeApiClient(
       config.attributeRegistryUrl
     ),
-    purposeProcessClient: createApiClientPurposeProcess(config.purposeUrl),
-    authorizationProcessClient: createApiAuthorizationProcess(
-      config.authorizationUrl
-    ),
-    authorizationUpdaterClient: createApiAuthorizationUpdater(
-      config.authorizationManagementUrl
-    ),
+    purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
+    authorizationProcessClient: {
+      client: authorizationApi.createClientApiClient(config.authorizationUrl),
+      user: authorizationApi.createUserApiClient(config.authorizationUrl),
+    },
   };
 }
