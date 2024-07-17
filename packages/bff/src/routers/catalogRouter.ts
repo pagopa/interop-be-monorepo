@@ -130,8 +130,8 @@ const catalogRouter = (
 
         try {
           const response = await catalogService.getProducerEServiceDescriptor(
-            req.params.eserviceId,
-            req.params.descriptorId,
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(200).json(response).send();
