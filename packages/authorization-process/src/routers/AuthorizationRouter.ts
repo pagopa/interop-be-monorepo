@@ -120,8 +120,8 @@ const authorizationRouter = (
         try {
           const { name, userIds, consumerId, purposeId, kind, offset, limit } =
             req.query;
-          const clients = await authorizationService.getClients(
-            {
+          const clients = await authorizationService.getClients({
+            filters: {
               name,
               userIds: userIds?.map(unsafeBrandId<UserId>),
               consumerId: unsafeBrandId(consumerId),
@@ -130,10 +130,11 @@ const authorizationRouter = (
                 : undefined,
               kind,
             },
-            { offset, limit },
-            req.ctx.authData,
-            ctx.logger
-          );
+            authData: req.ctx.authData,
+            offset,
+            limit,
+            logger: ctx.logger,
+          });
           return res
             .status(200)
             .json({
