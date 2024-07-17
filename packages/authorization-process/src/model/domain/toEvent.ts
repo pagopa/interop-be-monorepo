@@ -107,3 +107,66 @@ export function toCreateEventClientPurposeRemoved(
     correlationId,
   };
 }
+
+export function toCreateEventClientUserAdded(
+  userId: UserId,
+  client: Client,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientUserAdded",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        userId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventClientPurposeAdded(
+  purposeId: PurposeId,
+  client: Client,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientPurposeAdded",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        purposeId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventKeyAdded(
+  kid: string,
+  client: Client,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientKeyAdded",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        kid,
+      },
+    },
+    correlationId,
+  };
+}
