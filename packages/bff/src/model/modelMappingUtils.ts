@@ -29,19 +29,19 @@ export function getLatestActiveDescriptor(
     .at(-1);
 }
 
-export function getTenantEmail(
-  tenant: tenantApi.Tenant
-): tenantApi.Mail | undefined {
-  return tenant.mails.find(
-    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-  );
-}
-
 export function getNotDraftDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor[] {
   return eservice.descriptors.filter(
     (d) => d.state !== catalogApiDescriptorState.DRAFT
+  );
+}
+
+export function getTenantEmail(
+  tenant: tenantApi.Tenant
+): tenantApi.Mail | undefined {
+  return tenant.mails.find(
+    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
   );
 }
 
