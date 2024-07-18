@@ -11,8 +11,8 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import { api } from "../model/generated/api.js";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
@@ -60,13 +60,12 @@ const authorizationService = authorizationServiceBuilder(
 
 const authorizationRouter = (
   ctx: ZodiosContext
-): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
-  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
-
-  const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const authorizationRouter = ctx.router(api.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-  authorizationClientRouter
+  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
+  authorizationRouter
     .post(
       "/clientsConsumer",
       authorizationMiddleware([ADMIN_ROLE]),
@@ -508,6 +507,11 @@ const authorizationRouter = (
         }
       }
     )
+    .get(
+      "/clients/:clientId/users/:userId/keys",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
     .post(
       "/clients/:clientId/purposes",
       authorizationMiddleware([ADMIN_ROLE]),
@@ -575,63 +579,6 @@ const authorizationRouter = (
       }
     );
 
-  const authorizationUserRouter = ctx.router(authorizationApi.userApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
-  });
-  authorizationUserRouter.get(
-    "/clients/:clientId/users/:userId/keys",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (_req, res) => res.status(501).send()
-  );
-
-  const tokenGenerationRouter = ctx.router(
-    authorizationApi.tokenGenerationApi.api,
-    {
-      validationErrorHandler: zodiosValidationErrorToApiProblem,
-    }
-  );
-
-  tokenGenerationRouter.get(
-    "/clients/:clientId/keys/:keyId/bundle",
-    authorizationMiddleware([
-      ADMIN_ROLE,
-      SECURITY_ROLE,
-      M2M_ROLE,
-      SUPPORT_ROLE,
-    ]),
-    async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      try {
-        const { JWKKey, client } =
-          await authorizationService.getKeyWithClientByKeyId({
-            clientId: unsafeBrandId(req.params.clientId),
-            kid: req.params.keyId,
-            logger: ctx.logger,
-          });
-        return res
-          .status(200)
-          .json({
-            key: JWKKey,
-            client: clientToApiClient(client, {
-              includeKeys: false,
-              showUsers: false,
-            }),
-          })
-          .end();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getClientKeyWithClientErrorMapper,
-          ctx.logger
-        );
-        return res.status(errorRes.status).json(errorRes).end();
-      }
-    }
-  );
-  return [
-    authorizationClientRouter,
-    authorizationUserRouter,
-    tokenGenerationRouter,
-  ];
+  return authorizationRouter;
 };
 export default authorizationRouter;

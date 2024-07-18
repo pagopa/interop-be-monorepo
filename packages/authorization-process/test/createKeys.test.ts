@@ -19,10 +19,8 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
-import {
-  authorizationApi,
-  selfcareV2ClientApi,
-} from "pagopa-interop-api-clients";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
 import {
   clientNotFound,
   keyAlreadyExists,
@@ -64,14 +62,14 @@ describe("createKeys", () => {
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
-  const keySeed: authorizationApi.KeySeed = {
+  const keySeed: ApiKeySeed = {
     name: "key seed",
     use: "ENC",
     key: pemKey,
     alg: "",
   };
 
-  const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+  const keysSeeds: ApiKeysSeed = [keySeed];
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
@@ -270,14 +268,14 @@ describe("createKeys", () => {
       privateKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const keySeedByPrivateKey: authorizationApi.KeySeed = {
+    const keySeedByPrivateKey: ApiKeySeed = {
       name: "key seed",
       use: "ENC",
       key: privatePemKey,
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeedByPrivateKey];
+    const keysSeeds: ApiKeysSeed = [keySeedByPrivateKey];
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);

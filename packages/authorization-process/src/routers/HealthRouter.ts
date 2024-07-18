@@ -1,7 +1,7 @@
 import { zodiosRouter } from "@zodios/express";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { api } from "../model/generated/api.js";
 
-const healthRouter = zodiosRouter(authorizationApi.healthApi.api);
+const healthRouter = zodiosRouter(api.api);
 
 healthRouter.get("/status", async (_, res) => res.status(200).end());
 
