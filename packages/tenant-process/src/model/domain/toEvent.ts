@@ -5,7 +5,6 @@ import {
   AttributeId,
   toTenantV2,
 } from "pagopa-interop-models";
-
 export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
   correlationId: string
