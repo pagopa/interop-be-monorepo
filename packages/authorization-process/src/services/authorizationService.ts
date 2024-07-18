@@ -680,7 +680,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       kid: string;
       logger: Logger;
-    }): Promise<authorizationApi.ApiKeyWithClient> {
+    }): Promise<authorizationApi.ClientWithKeys> {
       logger.info(`Getting client ${clientId} and key ${kid}`);
       const client = await retrieveClient(clientId, readModelService);
       const key = client.data.keys.find((key) => key.kid === kid);
