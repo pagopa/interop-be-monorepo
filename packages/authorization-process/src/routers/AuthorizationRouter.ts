@@ -36,6 +36,7 @@ import {
   removeUserErrorMapper,
   createKeysErrorMapper,
   getClientKeyWithClientErrorMapper,
+  getClientsWithKeysErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -79,7 +80,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -106,12 +107,69 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createApiClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/clientsWithKeys",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { name, userIds, consumerId, purposeId, kind, offset, limit } =
+            req.query;
+
+          const parsedUserIds = (
+            req.ctx.authData.userRoles.includes(userRoles.SECURITY_ROLE)
+              ? [req.ctx.authData.userId]
+              : userIds
+          ).map(unsafeBrandId<UserId>);
+
+          const clients = await authorizationService.getClients({
+            filters: {
+              name,
+              userIds: parsedUserIds,
+              consumerId: unsafeBrandId(consumerId),
+              purposeId: purposeId
+                ? unsafeBrandId<PurposeId>(purposeId)
+                : undefined,
+              kind,
+            },
+            authData: req.ctx.authData,
+            offset,
+            limit,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json({
+              results: clients.results.map((client) =>
+                clientToApiClient(client, {
+                  includeKeys: true,
+                  showUsers: ctx.authData.organizationId === client.consumerId,
+                })
+              ),
+              totalCount: clients.totalCount,
+            })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientsWithKeysErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -150,8 +208,8 @@ const authorizationRouter = (
             .status(200)
             .json({
               results: clients.results.map((client) =>
-                clientToApiClient({
-                  client,
+                clientToApiClient(client, {
+                  includeKeys: false,
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -187,7 +245,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -290,7 +348,7 @@ const authorizationRouter = (
           );
           return res
             .status(200)
-            .json(clientToApiClient({ client, showUsers }))
+            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -411,7 +469,10 @@ const authorizationRouter = (
             .status(200)
             .json({
               key: JWKKey,
-              client: clientToApiClient({ client, showUsers: false }),
+              client: clientToApiClient(client, {
+                includeKeys: false,
+                showUsers: false,
+              }),
             })
             .end();
         } catch (error) {
