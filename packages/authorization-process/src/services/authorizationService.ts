@@ -704,7 +704,10 @@ export function authorizationServiceBuilder(
 
       return {
         key: jwkKey,
-        client: clientToApiClient({ client: client.data, showUsers: false }),
+        client: clientToApiClient(client.data, {
+          includeKeys: false,
+          showUsers: false,
+        }),
       };
     },
   };
