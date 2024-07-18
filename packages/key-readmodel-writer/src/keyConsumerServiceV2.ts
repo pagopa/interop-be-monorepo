@@ -1,4 +1,7 @@
-import { KeyCollection } from "pagopa-interop-commons";
+import {
+  KeyCollection,
+  fromKeyToReadModelJWKKey,
+} from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
@@ -15,9 +18,10 @@ export async function handleMessageV2(
       const client = message.data.client
         ? toReadModelClient(fromClientV2(message.data.client))
         : undefined;
-
       const key = client?.keys.find((key) => key.kid === message.data.kid);
-
+      if (!key) {
+        throw Error(`Key not found in client: ${client?.id}`);
+      }
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
@@ -25,7 +29,7 @@ export async function handleMessageV2(
         },
         {
           $set: {
-            data: key,
+            data: fromKeyToReadModelJWKKey(key),
             metadata: {
               version: message.version,
             },
