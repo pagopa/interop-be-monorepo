@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { WithLogger } from "pagopa-interop-commons";
 import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceId,

@@ -3,10 +3,10 @@
 import { DescriptorWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  attributeRegistryApi,
   bffApi,
   catalogApi,
   tenantApi,
-  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
