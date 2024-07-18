@@ -9,6 +9,7 @@ import {
   toEServiceV2,
   operationForbidden,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
@@ -16,7 +17,6 @@ import {
   notValidDescriptor,
   inconsistentDailyCalls,
 } from "../src/model/domain/errors.js";
-import { UpdateEServiceDescriptorQuotasSeed } from "../src/model/domain/models.js";
 import {
   addOneEService,
   catalogService,
@@ -44,11 +44,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
 
     const updatedEService: EService = {
       ...eservice,
@@ -101,11 +102,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
 
     const updatedEService: EService = {
       ...eservice,
@@ -158,11 +160,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
 
     const updatedEService: EService = {
       ...eservice,
@@ -202,11 +205,12 @@ describe("update descriptor", () => {
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
+      };
     expect(
       catalogService.updateDescriptor(
         mockEService.id,
@@ -229,11 +233,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
+      };
 
     expect(
       catalogService.updateDescriptor(
@@ -263,11 +268,12 @@ describe("update descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
 
     expect(
       catalogService.updateDescriptor(
@@ -299,11 +305,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
     expect(
       catalogService.updateDescriptor(
         eservice.id,
@@ -332,11 +339,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
     expect(
       catalogService.updateDescriptor(
         eservice.id,
@@ -365,11 +373,12 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed = {
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
-      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-    };
+    const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
     expect(
       catalogService.updateDescriptor(
         eservice.id,

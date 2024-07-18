@@ -12,23 +12,13 @@ import {
   badRequestError,
   CompactTenant,
 } from "pagopa-interop-models";
+import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
-
-import {
-  ApiAgreement,
-  ApiAgreementDocument,
-  ApiAgreementDocumentSeed,
-  ApiAgreementState,
-  ApiCompactTenant,
-  ApiTenantAttribute,
-  ApiTenantRevoker,
-  ApiTenantVerifier,
-} from "../types.js";
 
 export function agreementStateToApiAgreementState(
   input: AgreementState
-): ApiAgreementState {
-  return match<AgreementState, ApiAgreementState>(input)
+): agreementApi.AgreementState {
+  return match<AgreementState, agreementApi.AgreementState>(input)
     .with(agreementState.pending, () => "PENDING")
     .with(agreementState.rejected, () => "REJECTED")
     .with(agreementState.active, () => "ACTIVE")
@@ -43,9 +33,9 @@ export function agreementStateToApiAgreementState(
 }
 
 export function apiAgreementStateToAgreementState(
-  input: ApiAgreementState
+  input: agreementApi.AgreementState
 ): AgreementState {
-  return match<ApiAgreementState, AgreementState>(input)
+  return match<agreementApi.AgreementState, AgreementState>(input)
     .with("PENDING", () => agreementState.pending)
     .with("REJECTED", () => agreementState.rejected)
     .with("ACTIVE", () => agreementState.active)
@@ -61,7 +51,7 @@ export function apiAgreementStateToAgreementState(
 
 export const agreementDocumentToApiAgreementDocument = (
   input: AgreementDocument
-): ApiAgreementDocument => ({
+): agreementApi.Document => ({
   id: input.id,
   name: input.name,
   prettyName: input.prettyName,
@@ -72,7 +62,7 @@ export const agreementDocumentToApiAgreementDocument = (
 
 export const agreementToApiAgreement = (
   agreement: Agreement
-): ApiAgreement => ({
+): agreementApi.Agreement => ({
   id: agreement.id,
   eserviceId: agreement.eserviceId,
   descriptorId: agreement.descriptorId,
@@ -99,14 +89,16 @@ export const agreementToApiAgreement = (
 });
 
 export const apiAgreementDocumentToAgreementDocument = (
-  input: ApiAgreementDocumentSeed
+  input: agreementApi.DocumentSeed
 ): AgreementDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: new Date(),
 });
 
-function fromApiTenantVerifier(verifier: ApiTenantVerifier): TenantVerifier {
+function fromApiTenantVerifier(
+  verifier: agreementApi.TenantVerifier
+): TenantVerifier {
   return {
     id: verifier.id,
     verificationDate: new Date(verifier.verificationDate),
@@ -119,7 +111,9 @@ function fromApiTenantVerifier(verifier: ApiTenantVerifier): TenantVerifier {
   };
 }
 
-function fromApiTenantRevoker(revoker: ApiTenantRevoker): TenantRevoker {
+function fromApiTenantRevoker(
+  revoker: agreementApi.TenantRevoker
+): TenantRevoker {
   return {
     id: revoker.id,
     verificationDate: new Date(revoker.verificationDate),
@@ -134,7 +128,7 @@ function fromApiTenantRevoker(revoker: ApiTenantRevoker): TenantRevoker {
 }
 
 export const fromApiTenantAttribute = (
-  input: ApiTenantAttribute
+  input: agreementApi.TenantAttribute
 ): TenantAttribute =>
   match(input)
     .with(
@@ -188,7 +182,7 @@ export const fromApiTenantAttribute = (
     });
 
 export const fromApiCompactTenant = (
-  input: ApiCompactTenant
+  input: agreementApi.CompactTenant
 ): CompactTenant => ({
   id: unsafeBrandId(input.id),
   attributes: input.attributes.map(fromApiTenantAttribute),

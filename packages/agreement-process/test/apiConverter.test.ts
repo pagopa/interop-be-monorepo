@@ -5,9 +5,9 @@ import {
   badRequestError,
   CompactTenant,
 } from "pagopa-interop-models";
+import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
 import { fromApiCompactTenant } from "../src/model/domain/apiConverter.js";
-import { ApiCompactTenant } from "../src/model/types.js";
 import {
   getMockApiTenantCertifiedAttribute,
   getMockApiTenantDeclaredAttribute,
@@ -16,7 +16,7 @@ import {
 
 describe("fromApiCompactTenant API converter", () => {
   it("converts an ApiCompactTenant to a CompactTenant", () => {
-    const apiCompactTenant: ApiCompactTenant = {
+    const apiCompactTenant: agreementApi.CompactTenant = {
       id: generateId(),
       attributes: [
         getMockApiTenantCertifiedAttribute(),
@@ -117,7 +117,7 @@ describe("fromApiCompactTenant API converter", () => {
   });
 
   it("throws a badRequestError when the ApiCompactTenant cannot be converted to a CompactTenant", () => {
-    const apiCompactTenant: ApiCompactTenant = {
+    const apiCompactTenant: agreementApi.CompactTenant = {
       id: generateId(),
       attributes: [
         {
