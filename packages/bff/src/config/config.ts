@@ -6,6 +6,7 @@ import {
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -92,6 +93,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig);
+  .and(SelfCareConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

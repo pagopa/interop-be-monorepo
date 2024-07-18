@@ -12,6 +12,7 @@ import attributeRouter from "./routers/attributeRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
+import selfcareRouter from "./routers/selfcareRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import getAllowList from "./utilities/getAllowList.js";
@@ -39,6 +40,7 @@ app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx));
 app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));
+app.use(selfcareRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx));
 
 export default app;
