@@ -57,9 +57,7 @@ const Config = z
   }));
 export type Config = z.infer<typeof Config>;
 
-export const config: Config = {
-  ...Config.parse(process.env),
-};
+export const config: Config = Config.parse(process.env);
 
 export type DB = IDatabase<unknown>;
 
@@ -242,9 +240,13 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
-    (targetSchema) => targetSchema.includes("authorization"),
-    () => {
-      checkSchema(config.sourceDbSchema, "authorization");
+    (targetSchema) =>
+      targetSchema.includes("authorization") || targetSchema.includes("authz"),
+    (targetSchema) => {
+      const schemaTemplate = targetSchema.includes("authz")
+        ? "authz"
+        : "authorization";
+      checkSchema(config.sourceDbSchema, schemaTemplate);
 
       const parseEventType = (event_ser_manifest: any) =>
         event_ser_manifest

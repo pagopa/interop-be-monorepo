@@ -41,6 +41,7 @@ import {
   RiskAnalysisId,
   RiskAnalysis,
 } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 import {
   agreementNotFound,
@@ -62,6 +63,7 @@ import {
   riskAnalysisConfigVersionNotFound,
   riskAnalysisConfigLatestVersionNotFound,
   tenantKindNotFound,
+  unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -83,15 +85,7 @@ import {
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
-import {
-  ApiPurposeUpdateContent,
-  ApiReversePurposeUpdateContent,
-  ApiPurposeSeed,
-  ApiPurposeVersionSeed,
-  ApiReversePurposeSeed,
-  ApiPurposeCloneSeed,
-} from "../model/domain/models.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
@@ -107,7 +101,6 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
-  assertDailyCallsIsDifferentThanBefore,
   validateRiskAnalysisOrThrow,
   assertPurposeTitleIsNotDuplicated,
   isOverQuota,
@@ -385,7 +378,7 @@ export function purposeServiceBuilder(
       logger,
     }: {
       purposeId: PurposeId;
-      purposeUpdateContent: ApiPurposeUpdateContent;
+      purposeUpdateContent: purposeApi.PurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -411,7 +404,7 @@ export function purposeServiceBuilder(
       logger,
     }: {
       purposeId: PurposeId;
-      reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
+      reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -643,7 +636,7 @@ export function purposeServiceBuilder(
       logger,
     }: {
       purposeId: PurposeId;
-      seed: ApiPurposeVersionSeed;
+      seed: purposeApi.PurposeVersionSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -653,7 +646,20 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
-      assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
+
+      const previousDailyCalls =
+        [
+          ...purpose.data.versions.filter(
+            (v) =>
+              v.state === purposeVersionState.active ||
+              v.state === purposeVersionState.suspended
+          ),
+        ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+          ?.dailyCalls || 0;
+
+      if (previousDailyCalls === seed.dailyCalls) {
+        throw unchangedDailyCalls(purpose.data.id);
+      }
 
       const conflictVersion = purpose.data.versions.find(
         (v) =>
@@ -682,7 +688,7 @@ export function purposeServiceBuilder(
         await isOverQuota(
           eservice,
           purpose.data,
-          seed.dailyCalls,
+          seed.dailyCalls - previousDailyCalls,
           readModelService
         )
       ) {
@@ -980,7 +986,7 @@ export function purposeServiceBuilder(
     },
 
     async createPurpose(
-      purposeSeed: ApiPurposeSeed,
+      purposeSeed: purposeApi.PurposeSeed,
       organizationId: TenantId,
       correlationId: string,
       logger: Logger
@@ -1039,7 +1045,7 @@ export function purposeServiceBuilder(
     },
     async createReversePurpose(
       organizationId: TenantId,
-      seed: ApiReversePurposeSeed,
+      seed: purposeApi.EServicePurposeSeed,
       correlationId: string,
       logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
@@ -1122,7 +1128,7 @@ export function purposeServiceBuilder(
     }: {
       purposeId: PurposeId;
       organizationId: TenantId;
-      seed: ApiPurposeCloneSeed;
+      seed: purposeApi.PurposeCloneSeed;
       correlationId: string;
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
@@ -1384,8 +1390,11 @@ const performUpdatePurpose = async (
     mode,
     updateContent,
   }:
-    | { mode: "Deliver"; updateContent: ApiPurposeUpdateContent }
-    | { mode: "Receive"; updateContent: ApiReversePurposeUpdateContent },
+    | { mode: "Deliver"; updateContent: purposeApi.PurposeUpdateContent }
+    | {
+        mode: "Receive";
+        updateContent: purposeApi.ReversePurposeUpdateContent;
+      },
   organizationId: TenantId,
   readModelService: ReadModelService,
   correlationId: string,

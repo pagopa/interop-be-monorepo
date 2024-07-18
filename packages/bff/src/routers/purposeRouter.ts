@@ -6,7 +6,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -17,7 +17,7 @@ const purposeRouter = (
   ctx: ZodiosContext,
   { purposeProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const purposeRouter = ctx.router(api.api, {
+  const purposeRouter = ctx.router(bffApi.purposesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
