@@ -1,4 +1,7 @@
-import { KeyCollection } from "pagopa-interop-commons";
+import {
+  KeyCollection,
+  fromKeyToReadModelJWKKey,
+} from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   fromKeyV1,
@@ -24,8 +27,10 @@ export async function handleMessageV1(
             },
             {
               $set: {
-                data: toReadModelKey(
-                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                data: fromKeyToReadModelJWKKey(
+                  toReadModelKey(
+                    fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                  )
                 ),
                 metadata: {
                   version: message.version,
@@ -43,18 +48,6 @@ export async function handleMessageV1(
         "metadata.version": { $lte: message.version },
       });
     })
-    .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
-      const kid = message.data.keyId;
-      const userId = message.data.userId;
-      await keys.updateOne(
-        {
-          "data.kid": kid,
-          "metadata.version": { $lte: message.version },
-        },
-        { $set: { "data.userId": userId } },
-        { upsert: true }
-      );
-    })
     .with({ type: "ClientDeleted" }, async (message) => {
       await keys.deleteMany({
         "data.clientId": message.data.clientId,
@@ -69,6 +62,7 @@ export async function handleMessageV1(
       { type: "UserRemoved" },
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
+      { type: "KeyRelationshipToUserMigrated" },
       () => Promise.resolve
     )
     .exhaustive();
