@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   FileManager,
@@ -17,7 +18,12 @@ import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
+import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
