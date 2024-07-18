@@ -35,8 +35,6 @@ const authorizationRouter = (
       const { identity_token: identityToken } = req.body;
       const { correlationId, logger } = fromAppContext(req.ctx);
 
-      logger.info("Received session token exchange request");
-
       try {
         const session_token = await authorizationService.getSessionToken(
           correlationId,
