@@ -1,9 +1,5 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
-import {
-  agreementApi,
-  catalogApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+import { catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
 import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
