@@ -7,12 +7,8 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
-  DescriptorId,
-  EServiceId,
-} from "pagopa-interop-models";
-import {
-  hasCertifiedAttributes,
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
@@ -22,10 +18,11 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import { getLatestAcriveDescriptor } from "../model/mappers.js";
 import {
-  assertRequesterIsProducer,
-} from "../model/validators.js";
+  hasCertifiedAttributes,
+  getLatestAcriveDescriptor,
+} from "../model/mappers.js";
+import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -35,7 +32,6 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
-
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
