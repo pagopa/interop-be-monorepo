@@ -48,9 +48,7 @@ describe("getKeyWithClientByKeyId", async () => {
         logger: genericLogger,
       });
     expect(jwkKey).toEqual(expectedJwkKey);
-    expect(client).toEqual(
-      clientToApiClient(mockClient, { includeKeys: false, showUsers: false })
-    );
+    expect(client).toEqual(clientToApiClient(mockClient, { showUsers: false }));
   });
 
   it("should throw clientNotFound if the client doesn't exist", async () => {
