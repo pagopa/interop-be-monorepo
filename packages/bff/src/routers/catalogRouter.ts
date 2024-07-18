@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/domain/errors.js";
-import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -82,7 +83,7 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.activateDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.params.descriptorId,
             ctx
           );
@@ -99,7 +100,7 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const { id } = await catalogService.updateDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.params.descriptorId,
             req.body,
             ctx
@@ -117,7 +118,7 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.publishDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.params.descriptorId,
             ctx
           );
@@ -134,7 +135,7 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.suspendDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.params.descriptorId,
             ctx
           );
