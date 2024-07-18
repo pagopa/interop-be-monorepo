@@ -566,7 +566,7 @@ const authorizationRouter = (
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        const { JWKKey, client } =
+        const { key: jwkKey, client } =
           await authorizationService.getKeyWithClientByKeyId({
             clientId: unsafeBrandId(req.params.clientId),
             kid: req.params.keyId,
@@ -575,10 +575,8 @@ const authorizationRouter = (
         return res
           .status(200)
           .json({
-            key: JWKKey,
-            client: clientToApiClient(client, {
-              showUsers: false,
-            }),
+            key: jwkKey,
+            client,
           })
           .end();
       } catch (error) {
