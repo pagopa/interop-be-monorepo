@@ -446,16 +446,13 @@ function processRestInterface(fileType: "json" | "yaml", file: string) {
     });
 }
 
-function processSoapInterface(fileType: "xml" | "wsdl", file: string) {
+function processSoapInterface(_fileType: "xml" | "wsdl", file: string) {
   const xml = new XMLParser({
     ignoreDeclaration: true,
     removeNSPrefix: true,
     ignoreAttributes: false,
     attributeNamePrefix: "",
-    isArray: (name) =>
-      [
-        "operation",
-      ].indexOf(name) !== -1,
+    isArray: (name: string) => ["operation"].indexOf(name) !== -1,
   }).parse(file);
 
   const address = xml.definitions?.service?.port?.address?.location;
@@ -463,7 +460,10 @@ function processSoapInterface(fileType: "xml" | "wsdl", file: string) {
     throw new Error("Invalid WSDL"); // TODO handle error
   }
 
-  const endpoints = xml.definitions?.binding?.operation?.map(
+  const endpoints = xml.definitions?.binding?.operation;
+  if (endpoints.length === 0) {
+    throw new Error("Invalid WSDL"); // TODO handle error
+  }
 
   return [address];
 }
@@ -490,7 +490,7 @@ async function processFile(
       {
         kind: "INTERFACE",
         technology: "SOAP",
-        fileType: P.union("xml", "wsdl"), // TODO handle wsdl
+        fileType: P.union("xml", "wsdl"),
       },
       (f) => processSoapInterface(f.fileType, file)
     )
