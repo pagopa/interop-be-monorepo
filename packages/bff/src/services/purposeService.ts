@@ -170,9 +170,16 @@ async function getPurposes(
     const waitingForApprovalVersion = purpose.versions.find(
       (v) => v.state === "WAITING_FOR_APPROVAL"
     );
-    const rejectedVersion = purpose.versions.find(
-      (v) => v.state === "REJECTED"
-    );
+    // eslint-disable-next-line functional/immutable-data
+    const latestVersion = purpose.versions
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      .pop();
+
+    const rejectedVersion =
+      latestVersion?.state === "REJECTED" ? latestVersion : undefined;
 
     const isUpgradable = (
       descriptor: catalogApi.EServiceDescriptor,
