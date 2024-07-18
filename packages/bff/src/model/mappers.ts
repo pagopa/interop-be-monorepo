@@ -37,7 +37,6 @@ export function getNotDraftDescriptor(
   );
 }
 
-
 export function getTenantEmail(
   tenant: tenantApi.Tenant
 ): tenantApi.Mail | undefined {
