@@ -23,13 +23,18 @@ export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
-export function clientToApiClient({
-  client,
-  showUsers,
-}: {
-  client: Client;
-  showUsers: boolean;
-}): authorizationApi.Client {
+export function clientToApiClient(
+  client: Client,
+  { includeKeys, showUsers }: { includeKeys: true; showUsers: boolean }
+): authorizationApi.ClientWithKeys;
+export function clientToApiClient(
+  client: Client,
+  { includeKeys, showUsers }: { includeKeys: false; showUsers: boolean }
+): authorizationApi.Client;
+export function clientToApiClient(
+  client: Client,
+  { includeKeys, showUsers }: { includeKeys: boolean; showUsers: boolean }
+): authorizationApi.ClientWithKeys | authorizationApi.Client {
   return {
     id: client.id,
     name: client.name,
@@ -39,6 +44,7 @@ export function clientToApiClient({
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
     description: client.description,
+    ...(includeKeys ? { keys: client.keys } : {}),
   };
 }
 
