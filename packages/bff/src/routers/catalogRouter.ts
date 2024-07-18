@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/domain/errors.js";
-import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -127,7 +128,10 @@ const catalogRouter = (
     .delete("/eservices/:eServiceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogService.deleteEService(req.params.eServiceId, ctx);
+        await catalogService.deleteEService(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
@@ -138,7 +142,7 @@ const catalogRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const createdResource = await catalogService.updateEServiceById(
-          req.params.eServiceId,
+          unsafeBrandId(req.params.eServiceId),
           req.body,
           ctx
         );

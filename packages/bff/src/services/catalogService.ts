@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { EServiceId } from "pagopa-interop-models";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { descriptorApiState } from "../model/api/catalogTypes.js";
@@ -131,7 +132,7 @@ export function catalogServiceBuilder(
         headers,
       }),
     updateEServiceById: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> =>
@@ -142,7 +143,7 @@ export function catalogServiceBuilder(
         },
       }),
     deleteEService: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.deleteEService(undefined, {
