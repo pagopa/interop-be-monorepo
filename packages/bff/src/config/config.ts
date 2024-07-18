@@ -70,7 +70,7 @@ export const AuthorizationProcessServerConfig = z
     PAGOPA_TENANT_ID: z.string(),
     SAML2_CALLBACK_URL: z.string().url(),
     SAML2_CALLBACK_ERROR_URL: z.string().url(),
-    SUPPORT_LANDING_JWT_DURATION: z.number(),
+    SUPPORT_LANDING_JWT_DURATION: z.coerce.number(),
   })
   .transform((c) => ({
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
