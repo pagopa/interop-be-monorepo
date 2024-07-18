@@ -7,7 +7,6 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { z } from "zod";
-import mime from "mime";
 import { config } from "../config/config.js";
 import { CatalogProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -22,7 +21,7 @@ export async function verifyAndCreateEServiceDocument(
   documentId: string,
   ctx: WithLogger<BffAppContext>
 ): Promise<void> {
-  const contentType = mime.getType(doc.doc.name);
+  const contentType = doc.doc.type;
   if (!contentType) {
     throw new Error("Invalid content type"); // TODO handle error
   }
@@ -114,12 +113,11 @@ function handleOpenApiV3(openApi: Record<string, unknown>) {
 
 function processRestInterface(fileType: "json" | "yaml", file: string) {
   const openApi = parseOpenApi(fileType, file);
-  const { data: version, error } = z.string().safeParse(openApi.version);
+  const { data: version, error } = z.string().safeParse(openApi.openapi);
 
   if (error) {
     throw new Error("Invalid OpenAPI version"); // TODO handle error
   }
-
   return match(version)
     .with("2.0", () => handleOpenApiV2(openApi))
     .with(P.string.startsWith("3."), () => handleOpenApiV3(openApi))
@@ -155,7 +153,6 @@ async function processFile(
   technology: "REST" | "SOAP"
 ) {
   const file = await doc.doc.text();
-
   return match({
     fileType: getFileType(doc.doc.name),
     technology,

@@ -20,6 +20,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
+    "@types/multer": "1.4.11",
     "@types/node": "20.14.6",
     "@types/qs": "6.9.15",
     "@types/uuid": "9.0.8",
@@ -39,6 +40,7 @@
     "express": "4.19.2",
     "fast-xml-parser": "^4.4.0",
     "mime": "4.0.4",
+    "multer": "1.4.5-lts.1",
     "pagopa-interop-agreement-lifecycle": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
