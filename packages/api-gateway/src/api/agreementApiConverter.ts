@@ -15,3 +15,19 @@ export function toApiGatewayAgreementIfNotDraft(
     state: agreement.state,
   };
 }
+
+export function toAgreementProcessGetAgreementsQueryParams(
+  queryParams: apiGatewayApi.GetAgreementsQueryParams
+): Omit<agreementApi.GetAgreementsQueryParams, "offset" | "limit"> {
+  const { producerId, consumerId, eserviceId, descriptorId, states } =
+    queryParams;
+
+  return {
+    producersIds: producerId ? [producerId] : [],
+    consumersIds: consumerId ? [consumerId] : [],
+    eservicesIds: eserviceId ? [eserviceId] : [],
+    descriptorsIds: descriptorId ? [descriptorId] : [],
+    states,
+    showOnlyUpgradeable: false,
+  };
+}
