@@ -102,17 +102,17 @@ const catalogRouter = (
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       async (req, res) => {
-        const { headers, logger } = fromBffAppContext(req.ctx, req.headers);
+        const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const { id } = await catalogService.createEServiceDocument(
             req.params.eServiceId,
             req.params.descriptorId,
             req.body,
-            headers
+            ctx
           );
           return res.status(200).json().send({ id });
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, logger);
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger); // TODO Add empty error mapper
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
