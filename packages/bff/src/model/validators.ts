@@ -5,13 +5,10 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
-import {
-  agreementApiState,
-  catalogApiDescriptorState,
-} from "./api/apiTypes.js";
 import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
 import { invalidEServiceRequester } from "./domain/errors.js";
+import { agreementApiState, catalogApiDescriptorState } from "./api/apiTypes.js";
 
 const subscribedAgreementStates: agreementApi.AgreementState[] = [
   agreementApiState.PENDING,

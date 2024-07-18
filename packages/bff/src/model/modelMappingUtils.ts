@@ -7,6 +7,7 @@ import {
   agreementApiState,
   catalogApiDescriptorState,
 } from "./api/apiTypes.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "./validators.js";
 
 /* 
   This file contains commons utility functions 
@@ -36,6 +37,14 @@ export function getTenantEmail(
   );
 }
 
+export function getNotDraftDescriptor(
+  eservice: catalogApi.EService
+): catalogApi.EServiceDescriptor[] {
+  return eservice.descriptors.filter(
+    (d) => d.state !== catalogApiDescriptorState.DRAFT
+  );
+}
+
 export function isUpgradable(
   eservice: catalogApi.EService,
   agreement: agreementApi.Agreement
@@ -55,5 +64,30 @@ export function isUpgradable(
           (agreement.state === agreementApiState.ACTIVE ||
             agreement.state === agreementApiState.SUSPENDED)
       ) !== undefined
+  );
+}
+
+const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
+  agreementApiState.PENDING,
+  agreementApiState.ACTIVE,
+  agreementApiState.SUSPENDED,
+];
+
+export function isAgreementSubscribed(
+  agreement: agreementApi.Agreement | undefined
+): boolean {
+  return !!agreement && SUBSCRIBED_AGREEMENT_STATES.includes(agreement.state);
+}
+
+export function hasCertifiedAttributes(
+  descriptor: catalogApi.EServiceDescriptor | undefined,
+  requesterTenant: tenantApi.Tenant
+): boolean {
+  return (
+    descriptor !== undefined &&
+    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+      descriptor,
+      requesterTenant
+    )
   );
 }
