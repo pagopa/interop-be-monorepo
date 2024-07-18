@@ -9,11 +9,35 @@ export const errorCodes = {
   missingClaim: "0002",
   tenantLoginNotAllowed: "0003",
   tokenVerificationFailed: "0004",
+  userNotFound: "0005",
+  selfcareEntityNotFilled: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function selfcareEntityNotFilled(
+  className: string,
+  field: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Selfcare entity ${className} with field ${field} not filled`,
+    code: "selfcareEntityNotFilled",
+    title: "Selfcare Entity not filled",
+  });
+}
+
+export function userNotFound(
+  userId: string,
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for institution ${selfcareId}`,
+    code: "userNotFound",
+    title: "User not found",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
