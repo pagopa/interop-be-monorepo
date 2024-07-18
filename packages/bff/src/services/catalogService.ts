@@ -572,58 +572,53 @@ export function catalogServiceBuilder(
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
     },
     activateDescriptor: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       descriptorId: string,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<void> =>
       await catalogProcessClient.activateDescriptor(undefined, {
         headers,
         params: {
           eServiceId,
           descriptorId,
         },
-      });
-    },
+      }),
     updateDescriptor: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       descriptorId: string,
       seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
-      const { id } = await catalogProcessClient.updateDescriptor(seed, {
+    ): Promise<CreatedResource> =>
+      await catalogProcessClient.updateDescriptor(seed, {
         headers,
         params: {
           eServiceId,
           descriptorId,
         },
-      });
-      return { id };
-    },
+      }),
     publishDescriptor: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       descriptorId: string,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<void> =>
       await catalogProcessClient.publishDescriptor(undefined, {
         headers,
         params: {
           eServiceId,
           descriptorId,
         },
-      });
-    },
+      }),
     suspendDescriptor: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       descriptorId: string,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<void> =>
       await catalogProcessClient.suspendDescriptor(undefined, {
         headers,
         params: {
           eServiceId,
           descriptorId,
         },
-      });
-    },
+      }),
   };
 }
