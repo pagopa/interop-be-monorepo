@@ -24,7 +24,6 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { attributeNotExists } from "../../domain/errors.js";
-<<<<<<< HEAD
 import {
   getLatestActiveDescriptor,
   getNotDraftDescriptor,
@@ -38,74 +37,6 @@ import {
   hasCertifiedAttributes,
 } from "../../validators.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
-=======
-import { getLatestActiveDescriptor, getTenantEmail } from "../../modelMappingUtils.js";
-import { agreementApiState, catalogApiDescriptorState } from "../apiTypes.js";
-import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
-import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../../validators.js";
-
-const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
-  agreementApiState.PENDING,
-  agreementApiState.ACTIVE,
-  agreementApiState.SUSPENDED,
-];
-
-export function isAgreementSubscribled(
-  agreement: agreementApi.Agreement | undefined
-): boolean {
-  return !!agreement && SUBSCRIBED_AGREEMENT_STATES.includes(agreement.state);
-}
-
-export function isAgreementUpgradable(
-  eservice: catalogApi.EService,
-  agreement: agreementApi.Agreement
-): boolean {
-  const eserviceDescriptor = eservice.descriptors.find(
-    (e) => e.id === agreement.descriptorId
-  );
-
-  return (
-    eserviceDescriptor !== undefined &&
-    eservice.descriptors
-      .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
-      .find(
-        (d) =>
-          (d.state === catalogApiDescriptorState.PUBLISHED ||
-            d.state === catalogApiDescriptorState.SUSPENDED) &&
-          (agreement.state === agreementApiState.ACTIVE ||
-            agreement.state === agreementApiState.SUSPENDED)
-      ) !== undefined
-  );
-}
-
-export function isRequesterEserviceProducer(
-  requesterId: string,
-  eservice: catalogApi.EService
-): boolean {
-  return requesterId === eservice.producerId;
-}
-
-export function getNotDraftDescriptor(
-  eservice: catalogApi.EService
-): catalogApi.EServiceDescriptor[] {
-  return eservice.descriptors.filter(
-    (d) => d.state !== catalogApiDescriptorState.DRAFT
-  );
-}
-
-export function hasCertifiedAttributes(
-  descriptor: catalogApi.EServiceDescriptor | undefined,
-  requesterTenant: tenantApi.Tenant
-): boolean {
-  return (
-    descriptor !== undefined &&
-    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-      descriptor,
-      requesterTenant
-    )
-  );
-}
->>>>>>> fdc8c3a3e (Implement getCatalogEServiceDescriptor)
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -166,11 +97,7 @@ export function toBffCatalogApiEService(
 
 export function toBffCompactOrganization(
   tenant: tenantApi.Tenant
-<<<<<<< HEAD
 ): bffApi.CompactOrganization {
-=======
-): CompactOrganization {
->>>>>>> fdc8c3a3e (Implement getCatalogEServiceDescriptor)
   return {
     id: tenant.id,
     name: tenant.name,
@@ -205,17 +132,12 @@ export function toBffCatalogDescriptorEService(
     descriptors: getNotDraftDescriptor(eservice),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
-<<<<<<< HEAD
     hasCertifiedAttributes:
       catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
         descriptor,
         requesterTenant
       ),
     isSubscribed: isAgreementSubscribed(agreement),
-=======
-    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
-    isSubscribed: isAgreementSubscribled(agreement),
->>>>>>> fdc8c3a3e (Implement getCatalogEServiceDescriptor)
     activeDescriptor: getLatestActiveDescriptor(eservice),
     mail: getTenantEmail(producerTenant),
     mode: eservice.mode,
