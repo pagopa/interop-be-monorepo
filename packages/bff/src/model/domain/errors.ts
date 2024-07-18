@@ -1,7 +1,6 @@
 import { constants } from "http2";
 import {
   ApiError,
-  PurposeId,
   makeApiProblemBuilder,
   AttributeId,
 } from "pagopa-interop-models";
@@ -107,6 +106,16 @@ export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
     title: "Agreement not found",
   });
 }
+export function invalidEServiceRequester(
+  eserviceId: string,
+  requesterId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
+    code: "invalidEserviceRequester",
+    title: `Invalid eservice requester`,
+  });
+}
 
 export function eserviceDescriptorNotFound(
   eserviceId: string,
@@ -126,17 +135,6 @@ export function purposeDraftVersionNotFound(
     detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
     code: "purposeDraftVersionNotFound",
     title: "Purpose draft version not found",
-  });
-}
-
-export function invalidEServiceRequester(
-  eserviceId: string,
-  requesterId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
-    code: "invalidEserviceRequester",
-    title: `Invalid eservice requester`,
   });
 }
 

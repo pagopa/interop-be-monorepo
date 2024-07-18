@@ -34,6 +34,7 @@ import {
   isRequesterEserviceProducer,
   isAgreementSubscribed,
   isAgreementUpgradable,
+  hasCertifiedAttributes,
 } from "../../validators.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
 
@@ -132,11 +133,7 @@ export function toBffCatalogDescriptorEService(
     descriptors: getNotDraftDescriptor(eservice),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
-    hasCertifiedAttributes:
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        descriptor,
-        requesterTenant
-      ),
+    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
     isSubscribed: isAgreementSubscribed(agreement),
     activeDescriptor: getLatestActiveDescriptor(eservice),
     mail: getTenantEmail(producerTenant),
