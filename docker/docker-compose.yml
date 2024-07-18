@@ -163,6 +163,7 @@ services:
     volumes:
       - ./local-kms-seed/seed.yaml:/init/seed.yaml
   
+  # HTTP server to simulate well-known JWKS endpoint
   jwks:
     image: nginx:1.27.0
     ports:

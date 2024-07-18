@@ -100,6 +100,8 @@ export function authorizationServiceBuilder(
       identityToken: string,
       logger: Logger
     ): Promise<string> => {
+      logger.info("Received session token exchange request");
+
       const { sessionClaims, roles, selfcareId } = await readJwt(
         identityToken,
         logger
