@@ -189,7 +189,7 @@ const purposeRouter = (
             ctx
           );
 
-          return res.status(200).json(result).end();
+          return res.status(200).json(Buffer.from(result)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
