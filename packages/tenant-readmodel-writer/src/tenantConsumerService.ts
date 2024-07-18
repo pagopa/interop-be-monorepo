@@ -61,20 +61,7 @@ export async function handleMessage(
         }
       );
     })
-    .with({ type: "SelfcareMappingDeleted" }, async (msg) => {
-      await tenants.updateOne(
-        {
-          "data.id": msg.stream_id,
-          "metadata.version": { $lte: msg.version },
-        },
-        {
-          $unset: { "data.selfcareId": "" },
-          $set: {
-            "metadata.version": msg.version,
-          },
-        }
-      );
-    })
+    .with({ type: "SelfcareMappingDeleted" }, async () => Promise.resolve())
     .with({ type: "TenantMailAdded" }, async (msg) => {
       await tenants.updateOne(
         {

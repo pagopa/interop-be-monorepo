@@ -6,7 +6,6 @@ import { describe, it, expect } from "vitest";
 import { getMockTenant, writeInReadmodel } from "pagopa-interop-commons-test";
 import {
   SelfcareMappingCreatedV1,
-  SelfcareMappingDeletedV1,
   Tenant,
   TenantCreatedV1,
   TenantDeletedV1,
@@ -122,43 +121,6 @@ describe("Integration tests", async () => {
         stream_id: mockTenant.id,
         version: 2,
         type: "SelfcareMappingCreated",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessage(message, tenants);
-
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
-
-      expect(retrievedTenant).toMatchObject({
-        data: updatedTenant,
-        metadata: { version: 2 },
-      });
-    });
-
-    it("SelfcareMappingDeleted", async () => {
-      const selfcareId = generateId();
-
-      const tenant: Tenant = {
-        ...mockTenant,
-        selfcareId,
-      };
-      await writeInReadmodel<Tenant>(tenant, tenants);
-
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-      };
-
-      const payload: SelfcareMappingDeletedV1 = {
-        selfcareId,
-      };
-      const message: TenantEventEnvelope = {
-        sequence_num: 1,
-        stream_id: mockTenant.id,
-        version: 2,
-        type: "SelfcareMappingDeleted",
         event_version: 1,
         data: payload,
         log_date: new Date(),
