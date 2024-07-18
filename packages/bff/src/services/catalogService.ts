@@ -6,6 +6,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   getAllFromPaginated,
   WithLogger,
