@@ -297,38 +297,30 @@ export function catalogServiceBuilder(
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> => {
-      const { id } = await catalogProcessClient.createEService(eServiceSeed, {
+    ): Promise<bffApi.CreatedResource> =>
+      await catalogProcessClient.createEService(eServiceSeed, {
         headers,
-      });
-      return { id };
-    },
+      }),
     updateEServiceById: async (
       eServiceId: string,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> => {
-      const { id } = await catalogProcessClient.updateEServiceById(
-        updateEServiceSeed,
-        {
-          headers,
-          params: {
-            eServiceId,
-          },
-        }
-      );
-      return { id };
-    },
+    ): Promise<bffApi.CreatedResource> =>
+      await catalogProcessClient.updateEServiceById(updateEServiceSeed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      }),
     deleteEService: async (
       eServiceId: string,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<void> =>
       await catalogProcessClient.deleteEService(undefined, {
         headers,
         params: {
           eServiceId,
         },
-      });
-    },
+      }),
   };
 }
