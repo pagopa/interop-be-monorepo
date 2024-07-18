@@ -31,7 +31,9 @@ import {
   decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+
 import {
   clientNotFound,
   descriptorNotFound,
@@ -48,13 +50,6 @@ import {
   userNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
-import {
-  ApiClientSeed,
-  ApiKeysSeed,
-  ApiPurposeAdditionSeed,
-  ApiJWKKey,
-  ApiKeyWithClient,
-} from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
@@ -160,7 +155,7 @@ export function authorizationServiceBuilder(
       correlationId,
       logger,
     }: {
-      clientSeed: ApiClientSeed;
+      clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -195,7 +190,7 @@ export function authorizationServiceBuilder(
       correlationId,
       logger,
     }: {
-      clientSeed: ApiClientSeed;
+      clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -520,7 +515,7 @@ export function authorizationServiceBuilder(
       logger,
     }: {
       clientId: ClientId;
-      seed: ApiPurposeAdditionSeed;
+      seed: authorizationApi.PurposeAdditionDetails;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -592,7 +587,7 @@ export function authorizationServiceBuilder(
     }: {
       clientId: ClientId;
       authData: AuthData;
-      keysSeeds: ApiKeysSeed;
+      keysSeeds: authorizationApi.KeysSeed;
       correlationId: string;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
@@ -685,7 +680,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       kid: string;
       logger: Logger;
-    }): Promise<ApiKeyWithClient> {
+    }): Promise<authorizationApi.ApiKeyWithClient> {
       logger.info(`Getting client ${clientId} and key ${kid}`);
       const client = await retrieveClient(clientId, readModelService);
       const key = client.data.keys.find((key) => key.kid === kid);
@@ -696,7 +691,7 @@ export function authorizationServiceBuilder(
 
       const pemKey = decodeBase64ToPem(key.encodedPem);
       const jwk: JsonWebKey = createJWK(pemKey);
-      const jwkKey = ApiJWKKey.parse({
+      const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
         use: "sig",
