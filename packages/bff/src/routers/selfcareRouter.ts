@@ -6,7 +6,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   toApiSelfcareInstitution,
@@ -21,9 +21,7 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 
-const selfcareService = selfcareServiceBuilder(
-  selfcareV2InstitutionClientBuilder(config)
-);
+const selfcareService = selfcareServiceBuilder(selfcareV2ClientBuilder(config));
 
 const selfcareRouter = (
   ctx: ZodiosContext

@@ -1,4 +1,3 @@
-import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   EServiceV2,
   EServiceId,
@@ -29,6 +28,12 @@ import {
   AgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  ApiClientComponentState,
+  ApiClientComponent,
+  ApiKeyUse,
+  ApiClientKind,
+} from "./model/models.js";
 
 export const getDescriptorFromEvent = (
   msg: {
@@ -75,15 +80,10 @@ export const getAgreementFromEvent = (
 
 export const agreementStateToClientState = (
   state: AgreementState
-): authorizationManagementApi.ClientComponentState =>
+): ApiClientComponentState =>
   match(state)
-    .with(
-      agreementState.active,
-      () => authorizationManagementApi.ClientComponentState.Values.ACTIVE
-    )
-    .otherwise(
-      () => authorizationManagementApi.ClientComponentState.Values.INACTIVE
-    );
+    .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
+    .otherwise(() => ApiClientComponent.Values.INACTIVE);
 
 export const getPurposeFromEvent = (
   msg: {
@@ -136,32 +136,28 @@ export const getClientFromEvent = (
   return fromClientV2(msg.data.client);
 };
 
-export const clientKindToApiClientKind = (
-  kid: ClientKind
-): authorizationManagementApi.ClientKind =>
-  match<ClientKind, authorizationManagementApi.ClientKind>(kid)
+export const clientKindToApiClientKind = (kid: ClientKind): ApiClientKind =>
+  match<ClientKind, ApiClientKind>(kid)
     .with(clientKind.consumer, () => "CONSUMER")
     .with(clientKind.api, () => "API")
     .exhaustive();
 
-export const keyUseToApiKeyUse = (
-  kid: KeyUse
-): authorizationManagementApi.KeyUse =>
-  match<KeyUse, authorizationManagementApi.KeyUse>(kid)
+export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
+  match<KeyUse, ApiKeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
 export const descriptorStateToClientState = (
   state: DescriptorState
-): authorizationManagementApi.ClientComponentState =>
+): ApiClientComponentState =>
   state === descriptorState.published || state === descriptorState.deprecated
-    ? authorizationManagementApi.ClientComponentState.Values.ACTIVE
-    : authorizationManagementApi.ClientComponentState.Values.INACTIVE;
+    ? ApiClientComponent.Values.ACTIVE
+    : ApiClientComponent.Values.INACTIVE;
 
 export const purposeStateToClientState = (
   state: PurposeVersionState
-): authorizationManagementApi.ClientComponentState =>
+): ApiClientComponentState =>
   state === purposeVersionState.active
-    ? authorizationManagementApi.ClientComponentState.Values.ACTIVE
-    : authorizationManagementApi.ClientComponentState.Values.INACTIVE;
+    ? ApiClientComponent.Values.ACTIVE
+    : ApiClientComponent.Values.INACTIVE;

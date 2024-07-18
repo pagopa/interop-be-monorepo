@@ -34,7 +34,7 @@ import {
   initPDFGenerator,
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
-import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -68,8 +68,7 @@ export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const selfcareV2ClientMock: SelfcareV2UsersClient =
-  {} as SelfcareV2UsersClient;
+export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(

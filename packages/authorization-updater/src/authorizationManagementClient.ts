@@ -1,35 +1,8 @@
-import { authorizationManagementApi } from "pagopa-interop-api-clients";
+import { ZodiosInstance } from "@zodios/core";
+import { api, createApiClient } from "./model/generated/api.js";
 
-export type AuthorizationManagementPurposeApiClient = ReturnType<
-  typeof authorizationManagementApi.createPurposeApiClient
->;
+export type AuthorizationManagementClient = ZodiosInstance<typeof api.api>;
 
-export type AuthorizationManagementKeyApiClient = ReturnType<
-  typeof authorizationManagementApi.createKeyApiClient
->;
-
-export type AuthorizationManagementClientApiClient = ReturnType<
-  typeof authorizationManagementApi.createClientApiClient
->;
-
-export type AuthorizationManagementClients = {
-  purposeApiClient: AuthorizationManagementPurposeApiClient;
-  keyApiClient: AuthorizationManagementKeyApiClient;
-  clientApiClient: AuthorizationManagementClientApiClient;
-};
-
-export function buildAuthorizationManagementClients(
-  authorizationManagementUrl: string
-): AuthorizationManagementClients {
-  return {
-    purposeApiClient: authorizationManagementApi.createPurposeApiClient(
-      authorizationManagementUrl
-    ),
-    keyApiClient: authorizationManagementApi.createKeyApiClient(
-      authorizationManagementUrl
-    ),
-    clientApiClient: authorizationManagementApi.createClientApiClient(
-      authorizationManagementUrl
-    ),
-  };
-}
+export const authorizationManagementClientBuilder = (
+  url: string
+): AuthorizationManagementClient => createApiClient(url);

@@ -1,9 +1,14 @@
+import {
+  InstitutionResource,
+  ProductResource,
+  UserResource,
+} from "pagopa-interop-selfcare-v2-client";
 import { P, match } from "ts-pattern";
-import { bffApi, selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
-  input: selfcareV2ClientApi.InstitutionResource
+  input: InstitutionResource
 ): bffApi.SelfcareInstitution =>
   match(input)
     .with(
@@ -32,7 +37,7 @@ export const toApiSelfcareInstitution = (
     });
 
 export const toApiSelfcareProduct = (
-  input: selfcareV2ClientApi.ProductResource
+  input: ProductResource
 ): bffApi.SelfcareProduct =>
   match(input)
     .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
@@ -50,7 +55,7 @@ export const toApiSelfcareProduct = (
     });
 
 export const toApiSelfcareUser = (
-  input: selfcareV2ClientApi.UserResource,
+  input: UserResource,
   tenantId: string
 ): bffApi.User =>
   match(input)

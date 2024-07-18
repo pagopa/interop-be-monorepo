@@ -19,7 +19,7 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { UserResource } from "pagopa-interop-selfcare-v2-client";
 import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
 import {
   clientNotFound,
@@ -81,7 +81,7 @@ describe("createKeys", () => {
     );
   }
 
-  const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
+  const mockSelfCareUsers: UserResource = {
     id: generateId(),
     name: "test",
     roles: [],
