@@ -127,38 +127,32 @@ export function catalogServiceBuilder(
       eServiceId: string,
       eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
-      const { id } = await catalogProcessClient.createDescriptor(
-        eServiceDescriptorSeed,
-        {
-          headers,
-          params: {
-            eServiceId,
-          },
-        }
-      );
-      return { id };
-    },
+    ): Promise<CreatedResource> =>
+      await catalogProcessClient.createDescriptor(eServiceDescriptorSeed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      }),
     deleteDraft: async (
       eServiceId: string,
       descriptorId: string,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<void> =>
       await catalogProcessClient.deleteDraft(undefined, {
         headers,
         params: {
           descriptorId,
           eServiceId,
         },
-      });
-    },
+      }),
     updateDraftDescriptor: async (
       eServiceId: string,
       descriptorId: string,
       updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
-      const { id } = await catalogProcessClient.updateDraftDescriptor(
+    ): Promise<CreatedResource> =>
+      await catalogProcessClient.updateDraftDescriptor(
         updateEServiceDescriptorSeed,
         {
           headers,
@@ -167,8 +161,6 @@ export function catalogServiceBuilder(
             eServiceId,
           },
         }
-      );
-      return { id };
-    },
+      ),
   };
 }
