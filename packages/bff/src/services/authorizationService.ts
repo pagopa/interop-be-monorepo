@@ -6,11 +6,11 @@ export const getAllClients = async (
   consumerId: string,
   purposeId: string,
   headers: { "X-Correlation-Id": string }
-): Promise<authorizationApi.Client[]> => {
+): Promise<authorizationApi.ClientWithKeys[]> => {
   const getClientsFrom = async (
     start: number
-  ): Promise<authorizationApi.Clients> =>
-    await authorizationProcessClient.client.getClients({
+  ): Promise<authorizationApi.ClientsWithKeys> =>
+    await authorizationProcessClient.client.getClientsWithKeys({
       headers,
       queries: {
         userIds: "",
@@ -24,7 +24,7 @@ export const getAllClients = async (
   // Fetched all agreements in a recursive way
   const getClients = async (
     start: number
-  ): Promise<authorizationApi.Client[]> => {
+  ): Promise<authorizationApi.ClientWithKeys[]> => {
     const clients = (await getClientsFrom(start)).results;
 
     if (clients.length >= 50) {
