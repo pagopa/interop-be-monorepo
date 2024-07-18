@@ -1,4 +1,3 @@
-import { XMLParser } from "fast-xml-parser";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   AuthToken,
@@ -23,13 +22,10 @@ import {
   tenantLoginNotAllowed,
   tokenVerificationFailed,
   missingSelfcareId,
-  samlNotValid,
 } from "../model/domain/errors.js";
-import { SAMLResponse } from "../model/types.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { validateSamlResponse } from "../utilities/samlValidator.js";
 
-const SUPPORT_LEVELS = ["L2", "L3"];
-const SUPPORT_LEVEL_NAME = "supportLevel";
 const SUPPORT_ROLE = "support";
 const UID = "uid";
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
@@ -104,139 +100,6 @@ export function authorizationServiceBuilder(
       [ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM]: tenantExternalId,
     },
   });
-
-  const validateSignature = (saml: SAMLResponse): void => {
-    const response = saml.Response;
-    const reference = response?.Signature?.SignedInfo?.Reference;
-    if (!reference) {
-      throw samlNotValid("Missing Signature Reference");
-    }
-    if (reference.URI !== response?.ID) {
-      throw samlNotValid("Reference URI is not compliant");
-    }
-    const transforms = reference.Transforms?.Transform;
-    if (!transforms) {
-      throw samlNotValid("Missing Transforms");
-    }
-    if (transforms.length > 2) {
-      throw samlNotValid("Transforms are not compliant");
-    }
-    const atLeastOneEnvelopedSignature = !transforms.some(
-      (t) =>
-        t.Algorithm === "http://www.w3.org/2000/09/xmldsig#enveloped-signature"
-    );
-    const allAlgorithmsAreValid = transforms.every(
-      (t) =>
-        t.Algorithm &&
-        [
-          "http://www.w3.org/2000/09/xmldsig#enveloped-signature",
-          "http://www.w3.org/2001/10/xml-exc-c14n#",
-          "http://www.w3.org/2001/10/xml-exc-c14n#WithComments",
-        ].includes(t.Algorithm)
-    );
-    if (!atLeastOneEnvelopedSignature || !allAlgorithmsAreValid) {
-      throw samlNotValid("Transforms are not compliant");
-    }
-  };
-
-  const validateSamlResponse = (samlResponse: string): SAMLResponse => {
-    const xml = new XMLParser({
-      ignoreDeclaration: true,
-      removeNSPrefix: true,
-      ignoreAttributes: false,
-      attributeNamePrefix: "",
-      isArray: (name) =>
-        [
-          "Assertion",
-          "AudienceRestriction",
-          "Audience",
-          "AttributeValue",
-        ].indexOf(name) !== -1,
-    }).parse(samlResponse);
-
-    const { success, data: saml, error } = SAMLResponse.safeParse(xml);
-
-    if (!success) {
-      throw samlNotValid(error.message);
-    }
-
-    if (!saml.Response) {
-      throw samlNotValid("Response not found");
-    }
-    const response = saml.Response;
-    if (!response.Signature) {
-      throw samlNotValid("Missing Signature");
-    }
-    if (!response.Assertion || response.Assertion.length === 0) {
-      throw samlNotValid("Missing Assertions");
-    }
-    const assertions = response.Assertion;
-    const conditions = assertions
-      .flatMap((a) => a.Conditions)
-      .filter(filterUndefined);
-    const audienceRestrictions = conditions
-      .flatMap((c) => c.AudienceRestriction)
-      .filter(filterUndefined);
-    if (audienceRestrictions.length === 0) {
-      throw samlNotValid("Missing Audience Restriction");
-    }
-    const notBeforeConditions = conditions
-      .map((c) => c.NotBefore)
-      .filter(filterUndefined);
-    if (notBeforeConditions.length === 0) {
-      throw samlNotValid("Missing Not Before Restrictions");
-    }
-    const notOnOrAfterConditions = conditions
-      .map((c) => c.NotOnOrAfter)
-      .filter(filterUndefined);
-    if (notOnOrAfterConditions.length === 0) {
-      throw samlNotValid("Missing Not On Or After Restrictions");
-    }
-    const attributeStatements = assertions
-      .flatMap((a) => a.AttributeStatement)
-      .filter(filterUndefined);
-    if (attributeStatements.length === 0) {
-      throw samlNotValid("Missing Attribute Statement");
-    }
-    const attributes = attributeStatements
-      .flatMap((a) => a.Attribute)
-      .filter(filterUndefined);
-    if (attributes.length === 0) {
-      throw samlNotValid("Missing Attributes");
-    }
-    const now = +Date();
-
-    validateSignature(saml);
-
-    if (notBeforeConditions.every((nb) => now > +new Date(nb))) {
-      throw samlNotValid("Conditions notbefore are not compliant");
-    }
-    if (notOnOrAfterConditions.every((noa) => now < +new Date(noa))) {
-      throw samlNotValid("Conditions NotOnOrAfter are not compliant");
-    }
-
-    if (
-      !attributes.find(
-        (a) =>
-          a.Name === SUPPORT_LEVEL_NAME &&
-          a.AttributeValue &&
-          a.AttributeValue.some(
-            (av) => av["#text"] && SUPPORT_LEVELS.includes(av["#text"])
-          )
-      )
-    ) {
-      throw samlNotValid("Support level is not compliant");
-    }
-    if (
-      !audienceRestrictions
-        .flatMap((ar) => ar.Audience)
-        .some((aud) => aud === config.samlAudience)
-    ) {
-      throw samlNotValid("Conditions Audience is not compliant");
-    }
-
-    return saml;
-  };
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const buildSupportClaims = (selfcareId: string, tenant: tenantApi.Tenant) => {
@@ -355,5 +218,3 @@ export function authorizationServiceBuilder(
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const filterUndefined = <T>(x: T | undefined): x is T => x !== undefined;
