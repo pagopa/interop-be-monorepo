@@ -65,11 +65,10 @@ export function toBffCatalogApiEService(
       name: producerTenant.name,
     },
     isMine: isRequesterEqProducer,
-    hasCertifiedAttributes:
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        activeDescriptor,
-        requesterTenant
-      ),
+    hasCertifiedAttributes: hasCertifiedAttributes(
+      activeDescriptor,
+      requesterTenant
+    ),
   };
 
   return {
@@ -133,7 +132,11 @@ export function toBffCatalogDescriptorEService(
     descriptors: getNotDraftDescriptor(eservice),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
-    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
+    hasCertifiedAttributes:
+      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+        descriptor,
+        requesterTenant
+      ),
     isSubscribed: isAgreementSubscribed(agreement),
     activeDescriptor: getLatestActiveDescriptor(eservice),
     mail: getTenantEmail(producerTenant),
