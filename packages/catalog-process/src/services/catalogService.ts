@@ -48,6 +48,7 @@ import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
@@ -84,6 +85,7 @@ import {
   eServiceRiskAnalysisNotFound,
   prettyNameDuplicate,
   riskAnalysisDuplicated,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -1608,6 +1610,39 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceDescription(
+      eserviceId: EServiceId,
+      description: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} description`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
     },
   };
 }

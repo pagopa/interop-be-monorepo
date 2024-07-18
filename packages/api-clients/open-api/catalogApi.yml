@@ -1019,6 +1019,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update an e-service description
+      operationId: updateEServiceDescription
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptionSeed"
+      responses:
+        "200":
+          description: EService description updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1529,6 +1579,15 @@ components:
           type: string
         path:
           type: string
+    EServiceDescriptionSeed:
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - description
     EServiceDescriptor:
       type: object
       required:
