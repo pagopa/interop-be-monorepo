@@ -92,7 +92,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
-  .and(AllowedListConfig);
+  .and(AllowedListConfig)
   .and(SelfCareConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
