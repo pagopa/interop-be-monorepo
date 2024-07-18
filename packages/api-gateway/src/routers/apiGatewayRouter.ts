@@ -13,8 +13,8 @@ import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
-  emptyErrorMapper,
   getAgreementErrorMapper,
+  getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const apiGatewayRouter = (
@@ -45,7 +45,7 @@ const apiGatewayRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper, // TODO: Implement getAgreementsErrorMapper
+            getAgreementsErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
