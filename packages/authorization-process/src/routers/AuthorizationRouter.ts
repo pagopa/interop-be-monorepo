@@ -11,7 +11,7 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { api } from "../model/generated/api.js";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -54,7 +54,7 @@ const authorizationService = authorizationServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelService,
-  selfcareV2ClientBuilder(config)
+  selfcareV2InstitutionClientBuilder(config)
 );
 
 const authorizationRouter = (
