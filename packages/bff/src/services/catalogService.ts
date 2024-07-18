@@ -302,7 +302,7 @@ export function catalogServiceBuilder(
         headers,
       }),
     updateEServiceById: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> =>
@@ -313,7 +313,7 @@ export function catalogServiceBuilder(
         },
       }),
     deleteEService: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.deleteEService(undefined, {
