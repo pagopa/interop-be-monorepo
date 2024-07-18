@@ -12,7 +12,9 @@
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json"
+    "check": "tsc --project tsconfig.check.json",
+    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/authorization-service-spec.yml' -o './src/model/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
+    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
   "keywords": [],
   "author": "",
@@ -38,7 +40,6 @@
     "express": "4.19.2",
     "mongodb": "6.7.0",
     "openapi-zod-client": "1.18.1",
-    "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-selfcare-v2-client": "workspace:*",
