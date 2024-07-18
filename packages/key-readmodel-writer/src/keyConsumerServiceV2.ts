@@ -3,7 +3,6 @@ import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
   fromKeyV2,
-  toReadModelClient,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -14,7 +13,7 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "ClientKeyAdded" }, async (message) => {
       const client = message.data.client
-        ? toReadModelClient(fromClientV2(message.data.client))
+        ? fromClientV2(message.data.client)
         : undefined;
       const key = message.data.client?.keys.find(
         (key) => key.kid === message.data.kid
