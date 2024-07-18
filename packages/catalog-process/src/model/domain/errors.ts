@@ -257,6 +257,6 @@ export function audienceCannotBeEmpty(
   return new ApiError({
     detail: `Descriptor ${descriptorId} can't be published with empty audience`,
     code: "audienceCannotBeEmpty",
-    title: "Audience cannot be empty prettyName",
+    title: "Audience cannot be empty",
   });
 }
