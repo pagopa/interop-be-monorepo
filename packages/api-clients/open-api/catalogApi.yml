@@ -1111,7 +1111,7 @@ components:
           type: array
           items:
             type: string
-            minLength: 1
+            minLength: 0
             maxLength: 250
         voucherLifespan:
           type: integer
@@ -1149,7 +1149,7 @@ components:
           type: array
           items:
             type: string
-            minLength: 1
+            minLength: 0
             maxLength: 250
         voucherLifespan:
           type: integer
