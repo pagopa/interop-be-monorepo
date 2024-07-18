@@ -9,19 +9,18 @@ import {
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
+  hasCertifiedAttributes,
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
+  toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
-import {
-  assertRequesterIsProducer,
-  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
-} from "../model/validators.js";
+import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -69,17 +68,11 @@ const enhanceCatalogEService =
     );
 
     const isRequesterEqProducer = requesterId === eservice.producerId;
-    const hasCertifiedAttributes =
-      latestActiveDescriptor !== undefined &&
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        latestActiveDescriptor,
-        requesterTenant
-      );
 
     return toBffCatalogApiEService(
       eservice,
       producerTenant,
-      hasCertifiedAttributes,
+      hasCertifiedAttributes(latestActiveDescriptor, requesterTenant),
       isRequesterEqProducer,
       latestActiveDescriptor,
       latestAgreement
@@ -378,6 +371,80 @@ export function catalogServiceBuilder(
           limit,
           totalCount: res.totalCount,
         },
+      };
+    },
+    getCatalogEServiceDescriptor: async (
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogEServiceDescriptor> => {
+      const requesterId = context.authData.organizationId;
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers: context.headers,
+      });
+
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+      const attributeIds = getAttributeIds(descriptor);
+      const attributes = await getBulkAttributes(
+        attributeProcessClient,
+        context.headers,
+        attributeIds
+      );
+
+      const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
+        attributes,
+        descriptor
+      );
+
+      const requesterTenant = await tenantProcessClient.tenant.getTenant({
+        headers: context.headers,
+        params: {
+          id: requesterId,
+        },
+      });
+      const producerTenant = await tenantProcessClient.tenant.getTenant({
+        headers: context.headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+      const agreement = await getLatestAgreement(
+        agreementProcessClient,
+        requesterId,
+        eservice,
+        context.headers
+      );
+
+      return {
+        id: descriptor.id,
+        version: descriptor.version,
+        description: descriptor.description,
+        state: descriptor.state,
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+        attributes: descriptorAttributes,
+        publishedAt: descriptor.publishedAt,
+        suspendedAt: descriptor.suspendedAt,
+        deprecatedAt: descriptor.deprecatedAt,
+        archivedAt: descriptor.archivedAt,
+        interface:
+          descriptor.interface &&
+          toBffCatalogApiDescriptorDoc(descriptor.interface),
+        docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
+        eservice: toBffCatalogDescriptorEService(
+          eservice,
+          descriptor,
+          producerTenant,
+          agreement,
+          requesterTenant
+        ),
       };
     },
   };
