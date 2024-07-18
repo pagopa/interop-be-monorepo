@@ -2,9 +2,9 @@
 /* eslint-disable functional/immutable-data */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  getAllFromPaginated,
   WithLogger,
   formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -20,16 +20,14 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
-import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
-import { descriptorApiState } from "../model/api/catalogTypes.js";
-import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -37,7 +35,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -578,33 +575,32 @@ export function catalogServiceBuilder(
       eServiceId: string,
       eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
-      const { id } = await catalogProcessClient.createDescriptor(
-        eServiceDescriptorSeed,
-        {}
-      );
-      return { id };
-    },
+    ): Promise<CreatedResource> =>
+      await catalogProcessClient.createDescriptor(eServiceDescriptorSeed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      }),
     deleteDraft: async (
       eServiceId: string,
       descriptorId: string,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<void> =>
       await catalogProcessClient.deleteDraft(undefined, {
         headers,
         params: {
           descriptorId,
           eServiceId,
         },
-      });
-    },
+      }),
     updateDraftDescriptor: async (
       eServiceId: string,
       descriptorId: string,
       updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
-      const { id } = await catalogProcessClient.updateDraftDescriptor(
+    ): Promise<CreatedResource> =>
+      await catalogProcessClient.updateDraftDescriptor(
         updateEServiceDescriptorSeed,
         {
           headers,
@@ -613,8 +609,6 @@ export function catalogServiceBuilder(
             eServiceId,
           },
         }
-      );
-      return { id };
-    },
+      ),
   };
 }
