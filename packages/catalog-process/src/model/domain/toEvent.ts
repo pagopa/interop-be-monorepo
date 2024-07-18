@@ -463,3 +463,20 @@ export const toCreateEventEServiceRiskAnalysisDeleted = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptionUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptionUpdated",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
