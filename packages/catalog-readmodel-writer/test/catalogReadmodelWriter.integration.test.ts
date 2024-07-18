@@ -1,6 +1,3 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-
 import { describe, expect, it } from "vitest";
 import {
   getMockValidRiskAnalysis,
