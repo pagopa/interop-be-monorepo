@@ -75,8 +75,6 @@ export * from "./gen/v1/agreement/events.js";
 export * from "./gen/v1/agreement/state.js";
 export * from "./gen/v1/tenant/tenant.js";
 export * from "./gen/v1/tenant/events.js";
-export * from "./gen/v2/tenant/tenant.js";
-export * from "./gen/v2/tenant/events.js";
 export * from "./gen/v1/attribute/attribute.js";
 export * from "./gen/v1/attribute/events.js";
 export * from "./gen/v1/eservice/eservice.js";
