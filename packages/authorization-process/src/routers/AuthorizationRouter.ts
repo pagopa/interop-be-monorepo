@@ -38,7 +38,6 @@ import {
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
 } from "../utilities/errorMappers.js";
-import { ApiClient, ApiJWKKey } from "../model/domain/models.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
