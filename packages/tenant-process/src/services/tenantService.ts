@@ -486,16 +486,10 @@ async function assignCertifiedAttribute({
       attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
   );
 
-  // eslint-disable-next-line functional/no-let
-  let updatedTenant: Tenant = {
-    ...targetTenant,
-    updatedAt: new Date(),
-  };
-
   if (!certifiedTenantAttribute) {
     // assigning attribute for the first time
-    updatedTenant = {
-      ...updatedTenant,
+    return {
+      ...targetTenant,
       attributes: [
         ...targetTenant.attributes,
         {
@@ -505,13 +499,14 @@ async function assignCertifiedAttribute({
           revocationTimestamp: undefined,
         },
       ],
+      updatedAt: new Date(),
     };
   } else if (!certifiedTenantAttribute.revocationTimestamp) {
     throw certifiedAttributeAlreadyAssigned(attribute.id, targetTenant.id);
   } else {
     // re-assigning attribute if it was revoked
-    updatedTenant = {
-      ...updatedTenant,
+    return {
+      ...targetTenant,
       attributes: targetTenant.attributes.map((a) =>
         a.id === attribute.id
           ? {
@@ -521,9 +516,9 @@ async function assignCertifiedAttribute({
             }
           : a
       ),
+      updatedAt: new Date(),
     };
   }
-  return updatedTenant;
 }
 
 async function revaluateTenantKind({
