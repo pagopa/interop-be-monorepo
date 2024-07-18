@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import {
   ApiError,
   PurposeId,
@@ -12,7 +13,9 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export const emptyErrorMapper = (): number => 500;
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
+
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
