@@ -52,4 +52,4 @@ docker/minio-data
 .turbo
 
 ## Ignore pnpm-lock.yaml files in packages, to prevent committing them
-**/pnpm-lock.yaml
+packages/**/pnpm-lock.yaml
