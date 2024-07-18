@@ -18,10 +18,7 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import {
-  getLatestActiveDescriptor,
-  hasCertifiedAttributes,
-} from "../model/modelMappingUtils.js";
+import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
@@ -74,7 +71,7 @@ const enhanceCatalogEService =
     return toBffCatalogApiEService(
       eservice,
       producerTenant,
-      hasCertifiedAttributes(latestActiveDescriptor, requesterTenant),
+      requesterTenant,
       isRequesterEqProducer,
       latestActiveDescriptor,
       latestAgreement
