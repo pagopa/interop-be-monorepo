@@ -6,10 +6,10 @@ import {
 } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  attributeRegistryApi,
   bffApi,
   catalogApi,
   tenantApi,
-  attributeRegistryApi,
   authorizationApi,
   selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
