@@ -449,40 +449,6 @@ const authorizationRouter = (
         }
       }
     )
-    .get(
-      "/clients/:clientId/keys/:keyId/bundle",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { key, client } =
-            await authorizationService.getKeyWithClientByKeyId({
-              clientId: unsafeBrandId(req.params.clientId),
-              kid: req.params.keyId,
-              logger: ctx.logger,
-            });
-          return res
-            .status(200)
-            .json({
-              key: key satisfies ApiJWKKey,
-              client: client satisfies ApiClient,
-            })
-            .end();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getClientKeyWithClientErrorMapper,
-            ctx.logger
-          );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
-    )
     .delete(
       "/clients/:clientId/keys/:keyId",
       authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
