@@ -7,6 +7,7 @@ import {
   agreementApiState,
   catalogApiDescriptorState,
 } from "./api/apiTypes.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "./validators.js";
 
 /* 
   This file contains commons utility functions 
@@ -27,6 +28,15 @@ export function getLatestAcriveDescriptor(
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 }
+
+export function getNotDraftDescriptor(
+  eservice: catalogApi.EService
+): catalogApi.EServiceDescriptor[] {
+  return eservice.descriptors.filter(
+    (d) => d.state !== catalogApiDescriptorState.DRAFT
+  );
+}
+
 
 export function getTenantEmail(
   tenant: tenantApi.Tenant
@@ -55,5 +65,52 @@ export function isUpgradable(
           (agreement.state === agreementApiState.ACTIVE ||
             agreement.state === agreementApiState.SUSPENDED)
       ) !== undefined
+  );
+}
+
+export function isAgreementUpgradable(
+  eservice: catalogApi.EService,
+  agreement: agreementApi.Agreement
+): boolean {
+  const eserviceDescriptor = eservice.descriptors.find(
+    (e) => e.id === agreement.descriptorId
+  );
+
+  return (
+    eserviceDescriptor !== undefined &&
+    eservice.descriptors
+      .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
+      .find(
+        (d) =>
+          (d.state === catalogApiDescriptorState.PUBLISHED ||
+            d.state === catalogApiDescriptorState.SUSPENDED) &&
+          (agreement.state === agreementApiState.ACTIVE ||
+            agreement.state === agreementApiState.SUSPENDED)
+      ) !== undefined
+  );
+}
+
+const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
+  agreementApiState.PENDING,
+  agreementApiState.ACTIVE,
+  agreementApiState.SUSPENDED,
+];
+
+export function isAgreementSubscribed(
+  agreement: agreementApi.Agreement | undefined
+): boolean {
+  return !!agreement && SUBSCRIBED_AGREEMENT_STATES.includes(agreement.state);
+}
+
+export function hasCertifiedAttributes(
+  descriptor: catalogApi.EServiceDescriptor | undefined,
+  requesterTenant: tenantApi.Tenant
+): boolean {
+  return (
+    descriptor !== undefined &&
+    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+      descriptor,
+      requesterTenant
+    )
   );
 }
