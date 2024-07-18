@@ -52,22 +52,22 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
 }
 
 export function invalidEServiceRequester(
-  eServiceId: string,
+  eserviceId: string,
   requesterId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
+    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
     code: "invalidEserviceRequester",
     title: `Invalid eservice requester`,
   });
 }
 
 export function eserviceDescriptorNotFound(
-  eServiceId: string,
+  eserviceId: string,
   descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
     code: "descriptorNotFound",
     title: `Descriptor not found`,
   });

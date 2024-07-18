@@ -119,7 +119,25 @@ const catalogRouter = (
     )
     .get(
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const response = await catalogService.getCatalogEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.status(200).json(response).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post("/eservices", async (_req, res) => res.status(501).send())
     .get("/eservices/:eServiceId/consumers", async (_req, res) =>
