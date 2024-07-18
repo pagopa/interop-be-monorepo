@@ -12,7 +12,6 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
   formatDateddMMyyyyHHmmss,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -36,7 +35,6 @@ import {
   RiskAnalysis,
   RiskAnalysisId,
   eserviceMode,
-  EServiceEvent,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -899,12 +897,8 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      type AccumulatorType = {
-        events: Array<CreateEvent<EServiceEvent>>;
-        descriptorWithDocs: Descriptor;
-      };
       const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
-        (acc: AccumulatorType, document, index) => {
+        (acc, document, index) => {
           const newDocument: Document = {
             id: unsafeBrandId(document.documentId),
             name: document.fileName,
@@ -936,7 +930,7 @@ export function catalogServiceBuilder(
           return {
             events: [...acc.events, documentEvent],
             descriptorWithDocs,
-          } as AccumulatorType;
+          };
         },
         {
           events: [descriptorCreationEvent],
