@@ -738,7 +738,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-
   /tenants/{tenantId}/attributes/certified:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
