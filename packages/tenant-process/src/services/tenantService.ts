@@ -543,14 +543,12 @@ async function revaluateTenantKind({
     tenant.externalId
   );
 
-  // eslint-disable-next-line functional/no-let
-  let updatedTenant: Tenant = { ...tenant };
-  if (tenant.kind !== tenantKind) {
-    updatedTenant = {
-      ...tenant,
-      kind: tenantKind,
-    };
+  const updatedTenant = {
+    ...tenant,
+    kind: tenantKind,
+  };
 
+  if (tenant.kind !== tenantKind) {
     const event = toCreateEventTenantKindUpdated(
       version,
       tenantKind,
