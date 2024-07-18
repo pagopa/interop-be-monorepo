@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable max-params */
 import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
 import { AgreementProcessClient } from "../providers/clientProvider.js";
 import { Headers } from "../utilities/context.js";
