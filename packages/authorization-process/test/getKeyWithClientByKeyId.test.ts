@@ -9,8 +9,8 @@ import {
 import { Client } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { clientNotFound, keyNotFound } from "../src/model/domain/errors.js";
-import { ApiJWKKey } from "../src/model/domain/models.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getKeyWithClientByKeyId", async () => {
@@ -32,7 +32,7 @@ describe("getKeyWithClientByKeyId", async () => {
       ...getMockClient(),
       keys: [mockKey1, mockKey2],
     };
-    const expectedJwkKey: ApiJWKKey = {
+    const expectedJwkKey: authorizationApi.JWKKey = {
       ...jwk,
       kty: jwk.kty!,
       kid: mockKey1.kid,
