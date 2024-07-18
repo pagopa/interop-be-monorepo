@@ -1,4 +1,7 @@
-import { KeyCollection } from "pagopa-interop-commons";
+import {
+  KeyCollection,
+  fromKeyToReadModelJWKKey,
+} from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
@@ -15,17 +18,18 @@ export async function handleMessageV2(
       const client = message.data.client
         ? toReadModelClient(fromClientV2(message.data.client))
         : undefined;
-
       const key = client?.keys.find((key) => key.kid === message.data.kid);
-
+      if (!key) {
+        throw Error(`Key not found in client: ${client?.id}`);
+      }
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
-          "metadata.version": { $lt: message.version },
+          "metadata.version": { $lte: message.version },
         },
         {
           $set: {
-            data: key,
+            data: fromKeyToReadModelJWKKey(key),
             metadata: {
               version: message.version,
             },
@@ -37,13 +41,13 @@ export async function handleMessageV2(
     .with({ type: "ClientKeyDeleted" }, async (message) => {
       await keys.deleteOne({
         "data.kid": message.data.kid,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with({ type: "ClientDeleted" }, async (message) => {
-      const keysToRemove = message.data.client?.keys;
       await keys.deleteMany({
-        "data.kid": { $in: keysToRemove?.map((key) => key.kid) },
+        "data.clientId": message.data.clientId,
+        "metadata.version": { $lte: message.version },
       });
     })
     .with(
