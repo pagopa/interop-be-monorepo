@@ -10,8 +10,72 @@ import {
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
-import { getTenantEmail, isUpgradable } from "../../mappers.js";
-import { catalogApiDescriptorState } from "../apiTypes.js";
+import { getLatestAcriveDescriptor, getTenantEmail } from "../../mappers.js";
+import { agreementApiState, catalogApiDescriptorState } from "../apiTypes.js";
+import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../../validators.js";
+
+const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
+  agreementApiState.PENDING,
+  agreementApiState.ACTIVE,
+  agreementApiState.SUSPENDED,
+];
+
+export function isAgreementSubscribled(
+  agreement: agreementApi.Agreement | undefined
+): boolean {
+  return !!agreement && SUBSCRIBED_AGREEMENT_STATES.includes(agreement.state);
+}
+
+export function isAgreementUpgradable(
+  eservice: catalogApi.EService,
+  agreement: agreementApi.Agreement
+): boolean {
+  const eserviceDescriptor = eservice.descriptors.find(
+    (e) => e.id === agreement.descriptorId
+  );
+
+  return (
+    eserviceDescriptor !== undefined &&
+    eservice.descriptors
+      .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
+      .find(
+        (d) =>
+          (d.state === catalogApiDescriptorState.PUBLISHED ||
+            d.state === catalogApiDescriptorState.SUSPENDED) &&
+          (agreement.state === agreementApiState.ACTIVE ||
+            agreement.state === agreementApiState.SUSPENDED)
+      ) !== undefined
+  );
+}
+
+export function isRequesterEserviceProducer(
+  requesterId: string,
+  eservice: catalogApi.EService
+): boolean {
+  return requesterId === eservice.producerId;
+}
+
+export function getNotDraftDescriptor(
+  eservice: catalogApi.EService
+): catalogApi.EServiceDescriptor[] {
+  return eservice.descriptors.filter(
+    (d) => d.state !== catalogApiDescriptorState.DRAFT
+  );
+}
+
+export function hasCertifiedAttributes(
+  descriptor: catalogApi.EServiceDescriptor | undefined,
+  requesterTenant: tenantApi.Tenant
+): boolean {
+  return (
+    descriptor !== undefined &&
+    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+      descriptor,
+      requesterTenant
+    )
+  );
+}
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -60,10 +124,58 @@ export function toBffCatalogApiEService(
           agreement: {
             id: agreement.id,
             state: agreement.state,
-            canBeUpgraded: isUpgradable(eservice, agreement),
+            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
           },
         }
       : {}),
+  };
+}
+
+export function toBffCompactOrganization(
+  tenant: tenantApi.Tenant
+): CompactOrganization {
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    kind: tenant.kind,
+  };
+}
+
+export function toBffCompactAgreement(
+  agreement: agreementApi.Agreement,
+  eservice: catalogApi.EService
+): bffApi.CompactAgreement {
+  return {
+    id: agreement.id,
+    state: agreement.state,
+    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+  };
+}
+
+export function toBffCatalogDescriptorEService(
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor,
+  producerTenant: tenantApi.Tenant,
+  agreement: agreementApi.Agreement | undefined,
+  requesterTenant: tenantApi.Tenant
+): bffApi.CatalogDescriptorEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: toBffCompactOrganization(producerTenant),
+    description: eservice.description,
+    technology: eservice.technology,
+    descriptors: getNotDraftDescriptor(eservice),
+    agreement: agreement && toBffCompactAgreement(agreement, eservice),
+    isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
+    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
+    isSubscribed: isAgreementSubscribled(agreement),
+    activeDescriptor: getLatestAcriveDescriptor(eservice),
+    mail: getTenantEmail(producerTenant),
+    mode: eservice.mode,
+    riskAnalysis: eservice.riskAnalysis.map(
+      toBffCatalogApiEserviceRiskAnalysis
+    ),
   };
 }
 
