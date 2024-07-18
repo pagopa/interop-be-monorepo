@@ -4,7 +4,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   generateId,
@@ -45,7 +45,6 @@ describe("create descriptor", async () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-  // To do: remove this use case also from tests?
   it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
     const mockDescriptor = {
       ...getMockDescriptor(),
@@ -132,7 +131,6 @@ describe("create descriptor", async () => {
     });
   });
 
-  // To do: this is the only use case that will remain active
   it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
     const mockDocument = getMockDocument();
     const existingDescriptor: Descriptor = {
