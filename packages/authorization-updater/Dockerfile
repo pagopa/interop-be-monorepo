@@ -11,6 +11,7 @@ COPY ./packages/authorization-updater/package.json /app/packages/authorization-u
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
+COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -21,6 +22,7 @@ COPY ./packages/authorization-updater /app/packages/authorization-updater
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
+COPY ./packages/api-clients /app/packages/api-clients
 
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
@@ -32,6 +34,7 @@ RUN pnpm build && \
     packages/commons \
     packages/models \
     packages/kafka-iam-auth \
+    packages/api-clients \
     packages/authorization-updater/dist && \
   find /out -exec touch -h --date=@0 {} \;  
 
