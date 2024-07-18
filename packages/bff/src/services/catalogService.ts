@@ -9,7 +9,6 @@ import {
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
-  hasCertifiedAttributes,
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
@@ -19,7 +18,10 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
+import {
+  getLatestActiveDescriptor,
+  hasCertifiedAttributes,
+} from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
