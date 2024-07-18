@@ -14,13 +14,15 @@ import {
   getLatestAcriveDescriptor,
   getNotDraftDescriptor,
   getTenantEmail,
-  hasCertifiedAttributes,
   isAgreementSubscribed,
   isAgreementUpgradable,
 } from "../../mappers.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
 import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
-import { isRequesterEserviceProducer } from "../../validators.js";
+import {
+  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
+  isRequesterEserviceProducer,
+} from "../../validators.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -113,7 +115,11 @@ export function toBffCatalogDescriptorEService(
     descriptors: getNotDraftDescriptor(eservice),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
-    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
+    hasCertifiedAttributes:
+      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+        descriptor,
+        requesterTenant
+      ),
     isSubscribed: isAgreementSubscribed(agreement),
     activeDescriptor: getLatestAcriveDescriptor(eservice),
     mail: getTenantEmail(producerTenant),
