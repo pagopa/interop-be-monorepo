@@ -2,12 +2,10 @@
 
 import { UserId } from "pagopa-interop-models";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { userNotFound } from "../model/domain/errors.js";
 
-export function selfcareServiceBuilder(
-  selfcareV2Client: SelfcareV2InstitutionClient
-) {
+export function selfcareServiceBuilder(selfcareV2Client: SelfcareV2Client) {
   return {
     async getSelfcareUser(
       userId: UserId,

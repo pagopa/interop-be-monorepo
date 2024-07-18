@@ -465,9 +465,6 @@ importers:
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
-      pagopa-interop-api-clients:
-        specifier: workspace:*
-        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -541,9 +538,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      pagopa-interop-api-clients:
-        specifier: workspace:*
-        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1500,9 +1494,6 @@ importers:
       axios:
         specifier: 1.7.2
         version: 1.7.2
-      pagopa-interop-api-clients:
-        specifier: workspace:*
-        version: link:../api-clients
       zod:
         specifier: 3.23.8
         version: 3.23.8

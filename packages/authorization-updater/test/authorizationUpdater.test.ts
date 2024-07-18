@@ -51,10 +51,9 @@ import {
   it,
   vi,
 } from "vitest";
-import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
-  AuthorizationManagementClients,
-  buildAuthorizationManagementClients,
+  AuthorizationManagementClient,
+  authorizationManagementClientBuilder,
 } from "../src/authorizationManagementClient.js";
 import {
   AuthorizationService,
@@ -66,6 +65,7 @@ import {
   sendCatalogAuthUpdate,
   sendPurposeAuthUpdate,
 } from "../src/index.js";
+import { ApiClientComponent } from "../src/model/models.js";
 import {
   agreementStateToClientState,
   clientKindToApiClientKind,
@@ -88,7 +88,7 @@ describe("Authorization Updater processMessage", () => {
     Authorization: `Bearer ${testToken}`,
   };
 
-  let authorizationManagementClients: AuthorizationManagementClients;
+  let authorizationManagementClient: AuthorizationManagementClient;
   let mockRefreshableToken: RefreshableInteropToken;
   let authorizationService: AuthorizationService;
 
@@ -97,32 +97,27 @@ describe("Authorization Updater processMessage", () => {
       get: () => Promise.resolve({ serialized: testToken }),
     } as RefreshableInteropToken;
 
-    authorizationManagementClients =
-      buildAuthorizationManagementClients("mockUrl");
+    authorizationManagementClient =
+      authorizationManagementClientBuilder("mockUrl");
     authorizationService = authorizationServiceBuilder(
-      authorizationManagementClients,
+      authorizationManagementClient,
       mockRefreshableToken
     );
   });
 
   beforeEach(async () => {
-    authorizationManagementClients.purposeApiClient.updateEServiceState =
-      vi.fn();
-    authorizationManagementClients.purposeApiClient.updateAgreementState =
-      vi.fn();
-    authorizationManagementClients.purposeApiClient.updateAgreementAndEServiceStates =
-      vi.fn();
-    authorizationManagementClients.purposeApiClient.updatePurposeState =
-      vi.fn();
-    authorizationManagementClients.purposeApiClient.removeClientPurpose =
-      vi.fn();
-    authorizationManagementClients.clientApiClient.createClient = vi.fn();
-    authorizationManagementClients.clientApiClient.deleteClient = vi.fn();
-    authorizationManagementClients.keyApiClient.createKeys = vi.fn();
-    authorizationManagementClients.keyApiClient.deleteClientKeyById = vi.fn();
-    authorizationManagementClients.clientApiClient.addUser = vi.fn();
-    authorizationManagementClients.clientApiClient.removeClientUser = vi.fn();
-    authorizationManagementClients.purposeApiClient.addClientPurpose = vi.fn();
+    authorizationManagementClient.updateEServiceState = vi.fn();
+    authorizationManagementClient.updateAgreementState = vi.fn();
+    authorizationManagementClient.updateAgreementAndEServiceStates = vi.fn();
+    authorizationManagementClient.updatePurposeState = vi.fn();
+    authorizationManagementClient.removeClientPurpose = vi.fn();
+    authorizationManagementClient.createClient = vi.fn();
+    authorizationManagementClient.deleteClient = vi.fn();
+    authorizationManagementClient.createKeys = vi.fn();
+    authorizationManagementClient.deleteClientKeyById = vi.fn();
+    authorizationManagementClient.addUser = vi.fn();
+    authorizationManagementClient.removeClientUser = vi.fn();
+    authorizationManagementClient.addClientPurpose = vi.fn();
   });
 
   afterEach(async () => {
@@ -170,22 +165,19 @@ describe("Authorization Updater processMessage", () => {
           .with(
             { type: "EServiceDescriptorPublished" },
             { type: "EServiceDescriptorActivated" },
-            () => authorizationManagementApi.ClientComponentState.Values.ACTIVE
+            () => ApiClientComponent.Values.ACTIVE
           )
-          .otherwise(
-            () =>
-              authorizationManagementApi.ClientComponentState.Values.INACTIVE
-          ),
+          .otherwise(() => ApiClientComponent.Values.INACTIVE),
         descriptorId: descriptor.id,
         audience: descriptor.audience,
         voucherLifespan: descriptor.voucherLifespan,
       };
 
       expect(
-        authorizationManagementClients.purposeApiClient.updateEServiceState
+        authorizationManagementClient.updateEServiceState
       ).toHaveBeenCalledTimes(1);
       expect(
-        authorizationManagementClients.purposeApiClient.updateEServiceState
+        authorizationManagementClient.updateEServiceState
       ).toHaveBeenCalledWith(expectedUpdateEServiceStatePayload, {
         params: { eserviceId: eservice.id },
         withCredentials: true,
@@ -193,11 +185,10 @@ describe("Authorization Updater processMessage", () => {
       });
 
       expect(
-        authorizationManagementClients.purposeApiClient.updateAgreementState
+        authorizationManagementClient.updateAgreementState
       ).not.toHaveBeenCalled();
       expect(
-        authorizationManagementClients.purposeApiClient
-          .updateAgreementAndEServiceStates
+        authorizationManagementClient.updateAgreementAndEServiceStates
       ).not.toHaveBeenCalled();
     }
   );
@@ -244,10 +235,10 @@ describe("Authorization Updater processMessage", () => {
       };
 
       expect(
-        authorizationManagementClients.purposeApiClient.updateAgreementState
+        authorizationManagementClient.updateAgreementState
       ).toHaveBeenCalledTimes(1);
       expect(
-        authorizationManagementClients.purposeApiClient.updateAgreementState
+        authorizationManagementClient.updateAgreementState
       ).toHaveBeenCalledWith(expectedUpdateAgreementStatePayload, {
         params: {
           eserviceId: agreement.eserviceId,
@@ -258,11 +249,10 @@ describe("Authorization Updater processMessage", () => {
       });
 
       expect(
-        authorizationManagementClients.purposeApiClient.updateEServiceState
+        authorizationManagementClient.updateEServiceState
       ).not.toHaveBeenCalled();
       expect(
-        authorizationManagementClients.purposeApiClient
-          .updateAgreementAndEServiceStates
+        authorizationManagementClient.updateAgreementAndEServiceStates
       ).not.toHaveBeenCalled();
     }
   );
@@ -313,22 +303,18 @@ describe("Authorization Updater processMessage", () => {
         .with(
           descriptorState.published,
           descriptorState.deprecated,
-          () => authorizationManagementApi.ClientComponentState.Values.ACTIVE
+          () => ApiClientComponent.Values.ACTIVE
         )
-        .otherwise(
-          () => authorizationManagementApi.ClientComponentState.Values.INACTIVE
-        ),
+        .otherwise(() => ApiClientComponent.Values.INACTIVE),
       audience: descriptor.audience,
       voucherLifespan: descriptor.voucherLifespan,
     };
 
     expect(
-      authorizationManagementClients.purposeApiClient
-        .updateAgreementAndEServiceStates
+      authorizationManagementClient.updateAgreementAndEServiceStates
     ).toHaveBeenCalledTimes(1);
     expect(
-      authorizationManagementClients.purposeApiClient
-        .updateAgreementAndEServiceStates
+      authorizationManagementClient.updateAgreementAndEServiceStates
     ).toHaveBeenCalledWith(expectedUpdateAgreementAndEServiceStatesPayload, {
       params: {
         eserviceId: agreement.eserviceId,
@@ -339,10 +325,10 @@ describe("Authorization Updater processMessage", () => {
     });
 
     expect(
-      authorizationManagementClients.purposeApiClient.updateAgreementState
+      authorizationManagementClient.updateAgreementState
     ).not.toHaveBeenCalled();
     expect(
-      authorizationManagementClients.purposeApiClient.updateEServiceState
+      authorizationManagementClient.updateEServiceState
     ).not.toHaveBeenCalled();
   });
 
@@ -375,14 +361,13 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient
-        .updateAgreementAndEServiceStates
+      authorizationManagementClient.updateAgreementAndEServiceStates
     ).not.toHaveBeenCalled();
     expect(
-      authorizationManagementClients.purposeApiClient.updateAgreementState
+      authorizationManagementClient.updateAgreementState
     ).not.toHaveBeenCalled();
     expect(
-      authorizationManagementClients.purposeApiClient.updateEServiceState
+      authorizationManagementClient.updateEServiceState
     ).not.toHaveBeenCalled();
   });
 
@@ -421,14 +406,13 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient
-        .updateAgreementAndEServiceStates
+      authorizationManagementClient.updateAgreementAndEServiceStates
     ).not.toHaveBeenCalled();
     expect(
-      authorizationManagementClients.purposeApiClient.updateAgreementState
+      authorizationManagementClient.updateAgreementState
     ).not.toHaveBeenCalled();
     expect(
-      authorizationManagementClients.purposeApiClient.updateEServiceState
+      authorizationManagementClient.updateEServiceState
     ).not.toHaveBeenCalled();
   });
 
@@ -477,11 +461,11 @@ describe("Authorization Updater processMessage", () => {
       );
 
       expect(
-        authorizationManagementClients.purposeApiClient.removeClientPurpose
+        authorizationManagementClient.removeClientPurpose
       ).toHaveBeenCalledTimes(2);
 
       expect(
-        authorizationManagementClients.purposeApiClient.removeClientPurpose
+        authorizationManagementClient.removeClientPurpose
       ).toHaveBeenCalledWith(undefined, {
         params: { purposeId: purpose.id, clientId: client1.id },
         withCredentials: true,
@@ -489,7 +473,7 @@ describe("Authorization Updater processMessage", () => {
       });
 
       expect(
-        authorizationManagementClients.purposeApiClient.removeClientPurpose
+        authorizationManagementClient.removeClientPurpose
       ).toHaveBeenCalledWith(undefined, {
         params: { purposeId: purpose.id, clientId: client2.id },
         withCredentials: true,
@@ -497,7 +481,7 @@ describe("Authorization Updater processMessage", () => {
       });
 
       expect(
-        authorizationManagementClients.purposeApiClient.updatePurposeState
+        authorizationManagementClient.updatePurposeState
       ).not.toHaveBeenCalled();
     }
   );
@@ -545,11 +529,11 @@ describe("Authorization Updater processMessage", () => {
       );
 
       expect(
-        authorizationManagementClients.purposeApiClient.updatePurposeState
+        authorizationManagementClient.updatePurposeState
       ).toHaveBeenCalledTimes(1);
 
       expect(
-        authorizationManagementClients.purposeApiClient.updatePurposeState
+        authorizationManagementClient.updatePurposeState
       ).toHaveBeenCalledWith(
         { versionId: purposeVersion.id, state: "ACTIVE" },
         {
@@ -560,7 +544,7 @@ describe("Authorization Updater processMessage", () => {
       );
 
       expect(
-        authorizationManagementClients.purposeApiClient.removeClientPurpose
+        authorizationManagementClient.removeClientPurpose
       ).not.toHaveBeenCalled();
     }
   );
@@ -608,11 +592,11 @@ describe("Authorization Updater processMessage", () => {
       );
 
       expect(
-        authorizationManagementClients.purposeApiClient.updatePurposeState
+        authorizationManagementClient.updatePurposeState
       ).toHaveBeenCalledTimes(1);
 
       expect(
-        authorizationManagementClients.purposeApiClient.updatePurposeState
+        authorizationManagementClient.updatePurposeState
       ).toHaveBeenCalledWith(
         { versionId: purposeVersion.id, state: "INACTIVE" },
         {
@@ -623,7 +607,7 @@ describe("Authorization Updater processMessage", () => {
       );
 
       expect(
-        authorizationManagementClients.purposeApiClient.removeClientPurpose
+        authorizationManagementClient.removeClientPurpose
       ).not.toHaveBeenCalled();
     }
   );
@@ -659,11 +643,11 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient.updatePurposeState
+      authorizationManagementClient.updatePurposeState
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      authorizationManagementClients.purposeApiClient.updatePurposeState
+      authorizationManagementClient.updatePurposeState
     ).toHaveBeenCalledWith(
       { versionId: purposeVersion.id, state: "ACTIVE" },
       {
@@ -674,7 +658,7 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient.removeClientPurpose
+      authorizationManagementClient.removeClientPurpose
     ).not.toHaveBeenCalled();
   });
 
@@ -709,11 +693,11 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient.updatePurposeState
+      authorizationManagementClient.updatePurposeState
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      authorizationManagementClients.purposeApiClient.updatePurposeState
+      authorizationManagementClient.updatePurposeState
     ).toHaveBeenCalledWith(
       { versionId: purposeVersion.id, state: "INACTIVE" },
       {
@@ -724,7 +708,7 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient.removeClientPurpose
+      authorizationManagementClient.removeClientPurpose
     ).not.toHaveBeenCalled();
   });
   it("should correctly process an authorization message of type ClientAdded", async () => {
@@ -749,13 +733,9 @@ describe("Authorization Updater processMessage", () => {
       testCorrelationId
     );
 
-    expect(
-      authorizationManagementClients.clientApiClient.createClient
-    ).toHaveBeenCalledTimes(1);
+    expect(authorizationManagementClient.createClient).toHaveBeenCalledTimes(1);
 
-    expect(
-      authorizationManagementClients.clientApiClient.createClient
-    ).toHaveBeenCalledWith(
+    expect(authorizationManagementClient.createClient).toHaveBeenCalledWith(
       {
         id: client.id,
         name: client.name,
@@ -793,17 +773,16 @@ describe("Authorization Updater processMessage", () => {
       testCorrelationId
     );
 
-    expect(
-      authorizationManagementClients.clientApiClient.deleteClient
-    ).toHaveBeenCalledTimes(1);
+    expect(authorizationManagementClient.deleteClient).toHaveBeenCalledTimes(1);
 
-    expect(
-      authorizationManagementClients.clientApiClient.deleteClient
-    ).toHaveBeenCalledWith(undefined, {
-      params: { clientId },
-      withCredentials: true,
-      headers: testHeaders,
-    });
+    expect(authorizationManagementClient.deleteClient).toHaveBeenCalledWith(
+      undefined,
+      {
+        params: { clientId },
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
   });
   it("should correctly process an authorization message of type ClientKeyAdded", async () => {
     const mockKey = getMockKey();
@@ -829,13 +808,9 @@ describe("Authorization Updater processMessage", () => {
       testCorrelationId
     );
 
-    expect(
-      authorizationManagementClients.keyApiClient.createKeys
-    ).toHaveBeenCalledTimes(1);
+    expect(authorizationManagementClient.createKeys).toHaveBeenCalledTimes(1);
 
-    expect(
-      authorizationManagementClients.keyApiClient.createKeys
-    ).toHaveBeenCalledWith(
+    expect(authorizationManagementClient.createKeys).toHaveBeenCalledWith(
       [
         {
           name: mockKey.name,
@@ -878,11 +853,11 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.keyApiClient.deleteClientKeyById
+      authorizationManagementClient.deleteClientKeyById
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      authorizationManagementClients.keyApiClient.deleteClientKeyById
+      authorizationManagementClient.deleteClientKeyById
     ).toHaveBeenCalledWith(undefined, {
       params: { clientId: mockClient.id, keyId: mockKey.kid },
       withCredentials: true,
@@ -913,13 +888,9 @@ describe("Authorization Updater processMessage", () => {
       testCorrelationId
     );
 
-    expect(
-      authorizationManagementClients.clientApiClient.addUser
-    ).toHaveBeenCalledTimes(1);
+    expect(authorizationManagementClient.addUser).toHaveBeenCalledTimes(1);
 
-    expect(
-      authorizationManagementClients.clientApiClient.addUser
-    ).toHaveBeenCalledWith(
+    expect(authorizationManagementClient.addUser).toHaveBeenCalledWith(
       { userId },
       {
         params: { clientId: mockClient.id },
@@ -953,16 +924,17 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.clientApiClient.removeClientUser
+      authorizationManagementClient.removeClientUser
     ).toHaveBeenCalledTimes(1);
 
-    expect(
-      authorizationManagementClients.clientApiClient.removeClientUser
-    ).toHaveBeenCalledWith(undefined, {
-      params: { clientId: mockClient.id, userId },
-      withCredentials: true,
-      headers: testHeaders,
-    });
+    expect(authorizationManagementClient.removeClientUser).toHaveBeenCalledWith(
+      undefined,
+      {
+        params: { clientId: mockClient.id, userId },
+        withCredentials: true,
+        headers: testHeaders,
+      }
+    );
   });
   it("should correctly process an authorization message of type ClientPurposeAdded", async () => {
     const mockConsumerId: TenantId = generateId();
@@ -1018,17 +990,14 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient.addClientPurpose
+      authorizationManagementClient.addClientPurpose
     ).toHaveBeenCalledTimes(1);
 
-    expect(
-      authorizationManagementClients.purposeApiClient.addClientPurpose
-    ).toHaveBeenCalledWith(
+    expect(authorizationManagementClient.addClientPurpose).toHaveBeenCalledWith(
       {
         states: {
           eservice: {
-            state:
-              authorizationManagementApi.ClientComponentState.Values.ACTIVE,
+            state: ApiClientComponent.Values.ACTIVE,
             eserviceId: mockEservice.id,
             descriptorId: mockDescriptor.id,
             audience: mockDescriptor.audience,
@@ -1036,14 +1005,12 @@ describe("Authorization Updater processMessage", () => {
           },
           agreement: {
             agreementId: mockAgreement.id,
-            state:
-              authorizationManagementApi.ClientComponentState.Values.ACTIVE,
+            state: ApiClientComponent.Values.ACTIVE,
             eserviceId: mockEservice.id,
             consumerId: mockConsumerId,
           },
           purpose: {
-            state:
-              authorizationManagementApi.ClientComponentState.Values.ACTIVE,
+            state: ApiClientComponent.Values.ACTIVE,
             versionId: mockPurposeVersion.id,
             purposeId: mockPurpose.id,
           },
@@ -1081,11 +1048,11 @@ describe("Authorization Updater processMessage", () => {
     );
 
     expect(
-      authorizationManagementClients.purposeApiClient.removeClientPurpose
+      authorizationManagementClient.removeClientPurpose
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      authorizationManagementClients.purposeApiClient.removeClientPurpose
+      authorizationManagementClient.removeClientPurpose
     ).toHaveBeenCalledWith(undefined, {
       params: { clientId: mockClient.id, purposeId },
       withCredentials: true,

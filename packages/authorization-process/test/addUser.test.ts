@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { UserResource } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -39,7 +39,7 @@ function mockSelfcareV2ClientCall(
   );
 }
 
-const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
+const mockSelfCareUsers: UserResource = {
   id: generateId(),
   name: "test",
   roles: [],

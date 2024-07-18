@@ -31,7 +31,7 @@ import {
   decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   clientNotFound,
   descriptorNotFound,
@@ -129,7 +129,7 @@ const retrieveDescriptor = (
 export function authorizationServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
+  selfcareV2Client: SelfcareV2Client
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -466,7 +466,7 @@ export function authorizationServiceBuilder(
         selfcareId: authData.selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
-        selfcareV2InstitutionClient,
+        selfcareV2Client,
         userIdToCheck: userId,
       });
       if (client.data.users.includes(userId)) {
@@ -614,7 +614,7 @@ export function authorizationServiceBuilder(
         selfcareId: authData.selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
-        selfcareV2InstitutionClient,
+        selfcareV2Client,
         userIdToCheck: authData.userId,
       });
 

@@ -54,7 +54,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { UserResponse } from "pagopa-interop-selfcare-v2-client";
 import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -94,7 +94,7 @@ describe("upgrade Agreement", () => {
     vi.useRealTimers();
   });
 
-  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
+  const mockSelfcareUserResponse: UserResponse = {
     email: "test@test.com",
     name: "Test Name",
     surname: "Test Surname",
