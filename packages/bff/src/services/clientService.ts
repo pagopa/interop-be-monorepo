@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
 import { WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
@@ -10,7 +10,7 @@ import { BffAppContext } from "../utilities/context.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
-  selfcareV2Client: SelfcareV2Client
+  selfcareUsersClient: SelfcareV2UsersClient
 ) {
   const { authorizationProcessClient } = apiClients;
 
@@ -31,10 +31,10 @@ export function clientServiceBuilder(
       ctx: WithLogger<BffAppContext>;
       name?: string;
       kind?: bffApi.ClientKind;
-    }): Promise<authorizationApi.Clients> {
+    }): Promise<authorizationApi.ClientsWithKeys> {
       ctx.logger.info(`Retrieving clients`);
 
-      return authorizationProcessClient.client.getClients({
+      return authorizationProcessClient.client.getClientsWithKeys({
         queries: {
           offset,
           limit,
@@ -161,7 +161,7 @@ export function clientServiceBuilder(
       });
 
       return Promise.all(
-        keys.map((k) => decorateKey(selfcareV2Client, k, clientId))
+        keys.map((k) => decorateKey(selfcareUsersClient, k, clientId))
       );
     },
 
@@ -193,7 +193,7 @@ export function clientServiceBuilder(
 
       const users = clientUsers.map(async (id) =>
         toBffApiCompactUser(
-          await getSelfcareUserById(selfcareV2Client, id, selfcareId),
+          await getSelfcareUserById(selfcareUsersClient, id, selfcareId),
           id
         )
       );
@@ -212,7 +212,7 @@ export function clientServiceBuilder(
         params: { clientId, keyId },
         headers,
       });
-      return decorateKey(selfcareV2Client, key, selfcareId);
+      return decorateKey(selfcareUsersClient, key, selfcareId);
     },
 
     async getEncodedClientKeyById(
@@ -323,7 +323,7 @@ async function enhancePurpose(
 }
 
 async function getSelfcareUserById(
-  selfcareClient: SelfcareV2Client,
+  selfcareClient: SelfcareV2UsersClient,
   userId: string,
   selfcareId: string
 ) {
@@ -338,7 +338,7 @@ async function getSelfcareUserById(
 }
 
 async function decorateKey(
-  selfcareClient: SelfcareV2Client,
+  selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string
 ): Promise<bffApi.PublicKey> {
