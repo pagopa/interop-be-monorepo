@@ -84,7 +84,7 @@ jobs:
           echo "dockerfiles=$DOCKERFILES" >> $GITHUB_OUTPUT
 
   docker_build:
-    name: Build Docker images
+    name: Docker build
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     strategy:
