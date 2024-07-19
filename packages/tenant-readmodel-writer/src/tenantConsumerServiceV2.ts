@@ -1,5 +1,9 @@
 import { TenantCollection } from "pagopa-interop-commons";
-import { TenantEventEnvelopeV2, fromTenantV2 } from "pagopa-interop-models";
+import {
+  TenantEventEnvelopeV2,
+  fromTenantV2,
+  toReadModelTenant,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export async function handleMessageV2(
@@ -35,7 +39,9 @@ export async function handleMessageV2(
           },
           {
             $set: {
-              data: tenant ? fromTenantV2(tenant) : undefined,
+              data: tenant
+                ? toReadModelTenant(fromTenantV2(tenant))
+                : undefined,
               metadata: {
                 version: message.version,
               },
