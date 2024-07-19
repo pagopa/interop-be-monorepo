@@ -8,7 +8,6 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
@@ -18,12 +17,7 @@ import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toEserviceCatalogProcessQueryParams } from "../model/api/apiConverter.js";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
