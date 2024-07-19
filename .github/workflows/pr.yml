@@ -57,15 +57,42 @@ jobs:
           run_install: true
       - run: pnpm test
 
-  build:
-    name: Build
+  # build:
+  #   name: Build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+  #     - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+  #       with:
+  #         node-version-file: ./package.json
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         run_install: true
+  #     - run: pnpm build
+
+  find_dockerfiles:
+    name: Find Dockerfiles
     runs-on: ubuntu-latest
+    outputs:
+      dockerfiles: ${{ steps.set_dockerfiles_output.outputs.dockerfiles }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - name: Find Dockerfiles
+        id: set_dockerfiles_output
+        run: |
+          DOCKERFILES=$(find packages/ -type f -path "*/Dockerfile" | jq -R -s -c 'split("\n")[:-1]')
+          echo "dockerfiles=$DOCKERFILES" >> $GITHUB_OUTPUT
+
+  docker_build:
+    name: Build Docker images
+    needs: [find_dockerfiles]
+    runs-on: ubuntu-latest
+    matrix:
+      dockerfile_path: ${{ fromJson(needs.find_dockerfiles.outputs.dockerfiles) }}
+    steps:
+      - name: Build Docker image
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-      - run: pnpm build
+          context: .
+          file: ${{ matrix.dockerfile_path }}
+          push: false
+
