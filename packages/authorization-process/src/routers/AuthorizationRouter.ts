@@ -10,7 +10,13 @@ import {
   initDB,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  ClientKindV2,
+  PurposeId,
+  UserId,
+  fromClientKindV2,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { config } from "../config/config.js";
@@ -149,7 +155,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && fromClientKindV2(ClientKindV2[kind]),
             },
             authData: req.ctx.authData,
             offset,
@@ -198,7 +204,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && fromClientKindV2(ClientKindV2[kind]),
             },
             authData: req.ctx.authData,
             offset,
