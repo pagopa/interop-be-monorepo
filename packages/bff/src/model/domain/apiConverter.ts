@@ -4,7 +4,7 @@ import {
   attributeRegistryApi,
   selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
-import { match, P } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (

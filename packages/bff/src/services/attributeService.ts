@@ -94,7 +94,7 @@ export function attributeServiceBuilder(
     }): Promise<attributeRegistryApi.Attributes> {
       ctx.logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
-        queries: { offset, limit, kinds: kinds.join(","), name, origin },
+        queries: { offset, limit, kinds, name, origin },
         headers: ctx.headers,
       });
     },
