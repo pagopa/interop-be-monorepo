@@ -50,3 +50,6 @@ docker/minio-data
 ### Turbo ###
 # Turborepo task cache
 .turbo
+
+# General
+.DS_Store
