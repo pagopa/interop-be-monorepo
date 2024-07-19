@@ -14,6 +14,7 @@ import {
   AttributeId,
   TenantId,
   AttributeReadmodel,
+  TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
 
@@ -49,7 +50,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
