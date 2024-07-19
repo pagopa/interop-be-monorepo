@@ -22,11 +22,11 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  config,
   emailManager,
   getLatestMail,
   getMails,
@@ -116,8 +116,11 @@ describe("sendAgreementActivationEmail", () => {
 
     const { data: latestMail } = await getLatestMail();
 
-    const html = latestMail.HTML.replace(/\r\n/g, "\n");
-    expect(html).toEqual(expectedBody);
+    const decodedHTML = latestMail.HTML.replace(/\r\n/g, "\n").replace(
+      /&#x([0-9a-f]+);/gi,
+      (_, code) => String.fromCharCode(parseInt(code, 16))
+    );
+    expect(decodedHTML).toEqual(expectedBody);
     expect(latestMail.From.Address).toBe(config.senderMail);
     expect(latestMail.To[0].Address).toBe(producer.mails[0].address);
     expect(latestMail.To[1].Address).toBe(consumer.mails[0].address);

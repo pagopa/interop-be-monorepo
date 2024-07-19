@@ -27,18 +27,18 @@ import {
   toReadModelAttribute,
   TenantId,
 } from "pagopa-interop-models";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
   initPDFGenerator,
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { config } from "../src/utilities/config.js";
-import { ApiTenantAttribute } from "../src/model/types.js";
+import { config } from "../src/config/config.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   setupTestContainersVitest(
@@ -68,7 +68,8 @@ export const attributes = readModelRepository.attributes;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const selfcareV2ClientMock: SelfcareV2Client = {} as SelfcareV2Client;
+export const selfcareV2ClientMock: SelfcareV2UsersClient =
+  {} as SelfcareV2UsersClient;
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementService = agreementServiceBuilder(
@@ -184,7 +185,7 @@ export function getMockContract(
   };
 }
 
-export function getMockApiTenantCertifiedAttribute(): ApiTenantAttribute {
+export function getMockApiTenantCertifiedAttribute(): agreementApi.TenantAttribute {
   return {
     certified: {
       id: generateId(),
@@ -197,7 +198,7 @@ export function getMockApiTenantCertifiedAttribute(): ApiTenantAttribute {
   };
 }
 
-export function getMockApiTenantDeclaredAttribute(): ApiTenantAttribute {
+export function getMockApiTenantDeclaredAttribute(): agreementApi.TenantAttribute {
   return {
     declared: {
       id: generateId(),
@@ -210,7 +211,7 @@ export function getMockApiTenantDeclaredAttribute(): ApiTenantAttribute {
   };
 }
 
-export function getMockApiTenantVerifiedAttribute(): ApiTenantAttribute {
+export function getMockApiTenantVerifiedAttribute(): agreementApi.TenantAttribute {
   return {
     verified: {
       id: generateId(),
