@@ -76,6 +76,7 @@ jobs:
     outputs:
       dockerfiles: ${{ steps.set_dockerfiles_output.outputs.dockerfiles }}
     steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Find Dockerfiles
         id: set_dockerfiles_output
         run: |
@@ -89,6 +90,7 @@ jobs:
     matrix:
       dockerfile_path: ${{ fromJson(needs.find_dockerfiles.outputs.dockerfiles) }}
     steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Build Docker image
         uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
