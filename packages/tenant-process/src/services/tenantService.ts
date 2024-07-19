@@ -559,20 +559,39 @@ export function tenantServiceBuilder(
         throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
       }
 
-      const updatedTenant = await assignCertifiedAttribute({
+      const tenantWithNewAttribute = await assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
         attribute: attributeToAssign,
-        readModelService,
       });
 
-      await repository.createEvent(
+      const [updatedTenant, event] = await revaluateTenantKind({
+        tenant: tenantWithNewAttribute,
+        version: tenantToModify.metadata.version,
+        readModelService,
+        correlationId,
+      });
+
+      const tenantCertifiedAttributeAssignedEvent =
         toCreateEventTenantCertifiedAttributeAssigned(
           tenantToModify.metadata.version,
           updatedTenant,
           attributeToAssign.id,
           correlationId
-        )
-      );
+        );
+
+      if (event) {
+        const tenantKindUpdatedEvent: CreateEvent<TenantEvent> = {
+          ...event,
+          version: tenantToModify.metadata.version + 1,
+        };
+
+        await repository.createEvents([
+          tenantCertifiedAttributeAssignedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+      }
     },
 
     async getCertifiedAttributes({
