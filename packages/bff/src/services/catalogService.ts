@@ -17,7 +17,6 @@ import {
     CatalogProcessClient,
     TenantProcessClient, iders
 } from /clientProvider.js";/;
-import { getLatestAgreement } from "./agreementService.js";
 
 function activeDescriptorStateFilter(
   descriptor: catalogApi.EServiceDescriptor

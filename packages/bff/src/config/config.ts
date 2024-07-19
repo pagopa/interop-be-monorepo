@@ -1,12 +1,11 @@
-import { z } from "zod";
-import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
 import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
   S3Config,
 } from "pagopa-interop-commons";
+import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
+import { z } from "zod";
 
 export const TenantProcessServerConfig = z
   .object({

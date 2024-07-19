@@ -6,15 +6,6 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import healthRouter from "./routers/HealthRouter.js";
-import genericRouter from "./routers/genericRouter.js";
-import catalogRouter from "./routers/catalogRouter.js";
-import attributeRouter from "./routers/attributeRouter.js";
-import purposeRouter from "./routers/purposeRouter.js";
-import agreementRouter from "./routers/agreementRouter.js";
-import tenantRouter from "./routers/tenantRouter.js";
-import selfcareRouter from "./routers/selfcareRouter.js";
-import { getInteropBeClients } from "./providers/clientProvider.js";
 import { config } from "./config/config.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
@@ -23,6 +14,7 @@ import attributeRouter from "./routers/attributeRouter.js";
 import catalogRouter from "./routers/catalogRouter.js";
 import genericRouter from "./routers/genericRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
+import selfcareRouter from "./routers/selfcareRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 
 const serviceName = "bff-process";
