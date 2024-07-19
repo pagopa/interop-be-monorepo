@@ -36,9 +36,24 @@ export async function verifyAndCreateEServiceDocument(
     ctx.logger
   );
 
-  const checksum = Readable.from(doc.doc.stream()).pipe(
-    crypto.createHash("sha256")
-  );
+  const calculateChecksum = async (stream: Readable): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const hash = crypto.createHash("sha256");
+
+      stream.on("data", (data) => {
+        hash.update(data);
+      });
+
+      stream.on("end", () => {
+        resolve(hash.digest("hex"));
+      });
+
+      stream.on("error", (err) => {
+        reject(err);
+      });
+    });
+
+  const checksum = await calculateChecksum(Readable.from(doc.doc.stream()));
   try {
     await catalogProcessClient.createEServiceDocument(
       {
@@ -48,7 +63,7 @@ export async function verifyAndCreateEServiceDocument(
         filePath,
         kind: doc.kind,
         contentType,
-        checksum: checksum.digest("hex"),
+        checksum,
         serverUrls,
       },
       {
