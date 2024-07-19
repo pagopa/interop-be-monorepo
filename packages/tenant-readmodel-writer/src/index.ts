@@ -1,20 +1,16 @@
-/* eslint-disable functional/immutable-data */
+import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  readModelWriterConfig,
-  tenantTopicConfig,
   decodeKafkaMessage,
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEvent } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
+import { config } from "./config/config.js";
 import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
+import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
 
-const config = readModelWriterConfig();
-const { tenantTopic } = tenantTopicConfig();
 const { tenants } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -32,7 +28,7 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg))
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, tenants))
     .with({ event_version: 2 }, (msg) => handleMessageV2(msg, tenants))
     .exhaustive();
   loggerInstance.info(
@@ -40,4 +36,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [tenantTopic], processMessage);
+await runConsumer(config, [config.tenantTopic], processMessage);

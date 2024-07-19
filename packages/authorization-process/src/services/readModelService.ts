@@ -13,6 +13,7 @@ import {
   Purpose,
   Agreement,
   agreementState,
+  Key,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -238,6 +239,26 @@ export function readModelServiceBuilder(
           );
         }
         return result.data;
+      }
+      return undefined;
+    },
+    async getKeyByKid(kid: string): Promise<Key | undefined> {
+      const data = await clients.findOne(
+        { "data.keys.kid": { $eq: kid } },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = Client.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse client item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data.keys.find((k) => k.kid === kid);
       }
       return undefined;
     },
