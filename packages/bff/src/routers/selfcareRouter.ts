@@ -1,13 +1,13 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { bffApi } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   toApiSelfcareUser,
   toApiSelfcareProduct,
@@ -21,7 +21,9 @@ import {
 import { selfcareServiceBuilder } from "../services/selfcareService.js";
 import { config } from "../config/config.js";
 
-const selfcareService = selfcareServiceBuilder(selfcareV2ClientBuilder(config));
+const selfcareService = selfcareServiceBuilder(
+  selfcareV2InstitutionClientBuilder(config)
+);
 
 const selfcareRouter = (
   ctx: ZodiosContext
