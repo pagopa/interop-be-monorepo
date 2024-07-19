@@ -14,6 +14,7 @@ import {
   Agreement,
   agreementState,
   Key,
+  ClientKind,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -22,7 +23,7 @@ export type GetClientsFilters = {
   userIds: UserId[];
   consumerId: TenantId;
   purposeId: PurposeId | undefined;
-  kind?: string;
+  kind?: ClientKind;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

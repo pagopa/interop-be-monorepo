@@ -17,6 +17,7 @@ import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import {
+  apiClientKindToClientKind,
   clientToApiClient,
   clientToApiClientWithKeys,
   keyToApiKey,
@@ -149,7 +150,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && apiClientKindToClientKind(kind),
             },
             authData: req.ctx.authData,
             offset,
@@ -198,7 +199,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && apiClientKindToClientKind(kind),
             },
             authData: req.ctx.authData,
             offset,
