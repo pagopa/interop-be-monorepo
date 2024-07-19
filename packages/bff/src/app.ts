@@ -36,6 +36,8 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+// If form-data is used, the files are stored in memory and inserted in the body to make zodios work
+// Please notice this replace all data in req.body
 app.use(multer({ storage: multer.memoryStorage() }).any());
 app.use(function (req, _res, next) {
   if (Array.isArray(req.files)) {
@@ -49,6 +51,7 @@ app.use(function (req, _res, next) {
 
   next();
 });
+
 app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
