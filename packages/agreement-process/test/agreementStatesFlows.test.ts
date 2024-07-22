@@ -27,6 +27,7 @@ import {
   generateId,
   toReadModelAgreement,
   toReadModelEService,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -323,7 +324,7 @@ describe("Agreeement states flows", () => {
       },
       {
         $set: {
-          data: updatedConsumer,
+          data: toReadModelTenant(updatedConsumer),
           metadata: {
             version: 1,
           },
@@ -582,7 +583,7 @@ describe("Agreeement states flows", () => {
       },
       {
         $set: {
-          data: updatedConsumer,
+          data: toReadModelTenant(updatedConsumer),
           metadata: {
             version: 1,
           },
