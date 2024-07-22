@@ -14,12 +14,8 @@ import {
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import {
-  toApiDeclaredTenantAttribute,
-  toApiCertifiedTenantAttribute,
-  toApiVerifiedTenantAttribute,
-} from "../model/api/apiConverter.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
+import { enhanceTenantAttributes } from "../utilities/tenantHelper.js";
 
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   const { agreementProcessClient } = clients;
@@ -175,12 +171,7 @@ async function enrichAgreement(
     ctx
   );
 
-  const currentDescriptior = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-  if (!currentDescriptior) {
-    throw agreementDescriptorNotFound(agreement.id);
-  }
+  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
 
   return {
     id: agreement.id,
@@ -190,20 +181,8 @@ async function enrichAgreement(
       name: consumer.name,
       kind: consumer.kind,
     },
-    eservice: {
-      id: eservice.id,
-      name: eservice.name,
-      producer: {
-        id: producer.id,
-        name: producer.name,
-      },
-    },
-    descriptor: {
-      id: currentDescriptior.id,
-      audience: currentDescriptior.audience,
-      state: currentDescriptior.state,
-      version: currentDescriptior.version,
-    },
+    eservice: getCompactEservice(eservice, producer),
+    descriptor: getCompactDescriptor(currentDescriptior),
     canBeUpgraded: isUpgradable(
       currentDescriptior,
       agreement,
@@ -226,12 +205,7 @@ export async function enhanceAgreement(
     ctx
   );
 
-  const currentDescriptior = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-  if (!currentDescriptior) {
-    throw agreementDescriptorNotFound(agreement.id);
-  }
+  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
 
   const activeDescriptor = eservice.descriptors
     .toSorted((a, b) => parseInt(a.version, 10) - parseInt(b.version, 10))
@@ -399,29 +373,42 @@ function filterAttributes(
   return attributes.filter((attr) => filterIds.includes(attr.id));
 }
 
-function enhanceTenantAttributes(
-  tenantAttributes: tenantApi.TenantAttribute[],
-  registryAttributes: attributeRegistryApi.Attribute[]
-): bffApi.TenantAttributes {
-  const registryAttributesMap: Map<string, bffApi.Attribute> = new Map(
-    registryAttributes.map((attribute) => [attribute.id, attribute])
+export function getCompactEservice(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.CompactEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: {
+      id: producer.id,
+      name: producer.name,
+      kind: producer.kind,
+    },
+  };
+}
+
+export function getCompactDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.CompactDescriptor {
+  return {
+    id: descriptor.id,
+    audience: descriptor.audience,
+    state: descriptor.state,
+    version: descriptor.version,
+  };
+}
+
+export function getCurrentDescriptor(
+  eservice: catalogApi.EService,
+  agreement: agreementApi.Agreement
+): catalogApi.EServiceDescriptor {
+  const descriptor = eservice.descriptors.find(
+    (descriptor) => descriptor.id === agreement.descriptorId
   );
 
-  const declared = tenantAttributes
-    .map((attr) => toApiDeclaredTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.DeclaredTenantAttribute => x !== null);
-
-  const certified = tenantAttributes
-    .map((attr) => toApiCertifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.CertifiedTenantAttribute => x !== null);
-
-  const verified = tenantAttributes
-    .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.VerifiedTenantAttribute => x !== null);
-
-  return {
-    certified,
-    declared,
-    verified,
-  };
+  if (!descriptor) {
+    throw agreementDescriptorNotFound(agreement.id);
+  }
+  return descriptor;
 }
