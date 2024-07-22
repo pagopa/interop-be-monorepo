@@ -12,7 +12,6 @@ import {
   attributeRegistryApi,
   authorizationApi,
   selfcareV2ClientApi,
-  descriptorApiState,
 } from "pagopa-interop-api-clients";
 import {
   EServiceAttribute,
@@ -37,6 +36,7 @@ import {
   isAgreementSubscribed,
   isAgreementUpgradable,
 } from "../../validators.js";
+import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -222,10 +222,14 @@ export function toBffCatalogApiProducerDescriptorEService(
   );
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
-    eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
+    eservice.descriptors.filter(
+      (d) => d.state !== catalogApiDescriptorState.DRAFT
+    );
 
   const draftDescriptor: bffApi.CompactDescriptor | undefined =
-    eservice.descriptors.find((d) => d.state === descriptorApiState.DRAFT);
+    eservice.descriptors.find(
+      (d) => d.state === catalogApiDescriptorState.DRAFT
+    );
 
   return {
     id: eservice.id,

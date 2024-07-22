@@ -1,8 +1,9 @@
 import { constants } from "http2";
 import {
   ApiError,
-  AttributeId,
+  PurposeId,
   makeApiProblemBuilder,
+  AttributeId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
