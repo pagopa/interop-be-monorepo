@@ -305,10 +305,8 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const agreementFilter = getAgreementsFilters(filters);
-
       const agreementsData = await agreements
-        .aggregate([agreementFilter])
+        .aggregate([getAgreementsFilters(filters)])
         .toArray();
 
       const eserviceIds = agreementsData.map(
