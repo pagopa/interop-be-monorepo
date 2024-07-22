@@ -11885,6 +11885,7 @@ components:
     CreatedResource:
       type: object
       description: contains the id of the created resource
+      additionalProperties: false
       properties:
         id:
           type: string
