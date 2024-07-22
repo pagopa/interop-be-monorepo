@@ -26,6 +26,7 @@ import {
   updateVerifiedAttributeExtensionDateErrorMapper,
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
+  addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -460,6 +461,43 @@ const tenantsRouter = (
       async (_req, res) => res.status(501).send()
     );
 
-  return [tenantsRouter, m2mRouter, selfcareRouter, internalRouter];
+  const tenantsAttributeRouter = ctx.router(tenantApi.tenantAttributeApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+  tenantsAttributeRouter.post(
+    "/tenants/:tenantId/attributes/certified",
+    authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
+    async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        const { tenantId } = req.params;
+        const tenant = await tenantService.addCertifiedAttribute(
+          {
+            tenantId: unsafeBrandId(tenantId),
+            tenantAttributeSeed: req.body,
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          },
+          ctx.logger
+        );
+        return res.status(200).json(toApiTenant(tenant)).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          addCertifiedAttributeErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
+
+  return [
+    tenantsRouter,
+    tenantsAttributeRouter,
+    m2mRouter,
+    selfcareRouter,
+    internalRouter,
+  ];
 };
 export default tenantsRouter;
