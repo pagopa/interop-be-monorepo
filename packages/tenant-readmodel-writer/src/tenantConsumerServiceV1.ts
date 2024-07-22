@@ -1,6 +1,10 @@
 import { match } from "ts-pattern";
 import { TenantCollection } from "pagopa-interop-commons";
-import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
+import {
+  TenantEventEnvelopeV1,
+  fromTenantV1,
+  toReadModelTenant,
+} from "pagopa-interop-models";
 
 export async function handleMessageV1(
   message: TenantEventEnvelopeV1,
@@ -14,7 +18,9 @@ export async function handleMessageV1(
         },
         {
           $setOnInsert: {
-            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            data: msg.data.tenant
+              ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+              : undefined,
             metadata: {
               version: msg.version,
             },
@@ -39,7 +45,9 @@ export async function handleMessageV1(
           },
           {
             $set: {
-              data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+              data: msg.data.tenant
+                ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+                : undefined,
               metadata: {
                 version: msg.version,
               },
@@ -83,7 +91,9 @@ export async function handleMessageV1(
         },
         {
           $set: {
-            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            data: msg.data.tenant
+              ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+              : undefined,
             metadata: {
               version: msg.version,
             },
