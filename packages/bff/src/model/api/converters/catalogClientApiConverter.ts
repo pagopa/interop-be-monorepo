@@ -14,8 +14,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
-import { agreementApiState } from "../agreementTypes.js";
 import { descriptorApiState } from "../catalogTypes.js";
+import { isUpgradable } from "../../mappers.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -35,25 +35,6 @@ export function toBffCatalogApiEService(
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
 ): bffApi.CatalogEService {
-  const isUpgradable = (agreement: agreementApi.Agreement): boolean => {
-    const eserviceDescriptor = eservice.descriptors.find(
-      (e) => e.id === agreement.descriptorId
-    );
-
-    return (
-      eserviceDescriptor !== undefined &&
-      eservice.descriptors
-        .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
-        .find(
-          (d) =>
-            (d.state === descriptorApiState.PUBLISHED ||
-              d.state === descriptorApiState.SUSPENDED) &&
-            (agreement.state === agreementApiState.ACTIVE ||
-              agreement.state === agreementApiState.SUSPENDED)
-        ) !== undefined
-    );
-  };
-
   const partialEnhancedEservice = {
     id: eservice.id,
     name: eservice.name,
@@ -83,7 +64,7 @@ export function toBffCatalogApiEService(
           agreement: {
             id: agreement.id,
             state: agreement.state,
-            canBeUpgraded: isUpgradable(agreement),
+            canBeUpgraded: isUpgradable(eservice, agreement),
           },
         }
       : {}),
