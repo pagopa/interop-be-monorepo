@@ -622,7 +622,6 @@ export function authorizationServiceBuilder(
       if (jwk.kty !== "RSA") {
         throw invalidKey();
       }
-      console.log(jwk.kty);
       const newKey: Key = {
         clientId,
         name: keySeed.name,
