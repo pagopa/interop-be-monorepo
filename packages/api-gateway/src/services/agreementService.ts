@@ -6,7 +6,7 @@ import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 
-const safeAgreementStates: agreementApi.AgreementState[] = [
+const safeAgreementStates: apiGatewayApi.AgreementState[] = [
   agreementApi.AgreementState.Values.PENDING,
   agreementApi.AgreementState.Values.ACTIVE,
   agreementApi.AgreementState.Values.SUSPENDED,
@@ -67,9 +67,7 @@ export function agreementServiceBuilder(
       };
 
       const agreements = await getAllAgreementsFrom(0);
-      return agreements
-        .filter((a) => a.state !== agreementApi.AgreementState.Values.DRAFT)
-        .map(toApiGatewayAgreementIfNotDraft);
+      return agreements.map(toApiGatewayAgreementIfNotDraft);
     },
 
     getAgreementById: async (
