@@ -176,7 +176,7 @@ export function toBffCatalogApiDescriptorDoc(
 export function toBffCatalogApiEserviceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis
 ): bffApi.EServiceRiskAnalysis {
-  const answers: { [key: string]: string[] } =
+  const answers: bffApi.RiskAnalysisForm["answers"] =
     riskAnalysis.riskAnalysisForm.singleAnswers
       .concat(
         riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
@@ -187,7 +187,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
           }))
         )
       )
-      .reduce((answers: { [key: string]: string[] }, answer) => {
+      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
         const key = `${answer.key}`;
         if (answers[key] && answer.value) {
           answers[key] = [...answers[key], answer.value];
