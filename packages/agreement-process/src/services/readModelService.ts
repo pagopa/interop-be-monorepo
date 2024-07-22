@@ -374,7 +374,7 @@ export function readModelServiceBuilder(
       }
       return {
         results: result.data,
-        totalCount: combinedData.length,
+        totalCount: filteredData.length,
       };
     },
     async getAgreementById(
