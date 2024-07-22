@@ -106,6 +106,7 @@ jobs:
     name: Build Result
     needs: [docker_build]
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
       - name: Check build result
         run: |
