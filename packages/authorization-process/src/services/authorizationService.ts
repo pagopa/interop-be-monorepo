@@ -7,7 +7,6 @@ import {
   EService,
   EServiceId,
   Key,
-  KeyWithClient,
   ListResult,
   Purpose,
   PurposeId,
@@ -32,7 +31,9 @@ import {
   decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+
 import {
   clientNotFound,
   descriptorNotFound,
@@ -50,12 +51,6 @@ import {
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import {
-  ApiClientSeed,
-  ApiKeysSeed,
-  ApiPurposeAdditionSeed,
-  ApiJWKKey,
-} from "../model/domain/models.js";
-import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
@@ -66,7 +61,10 @@ import {
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
-import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
+import {
+  ApiKeyUseToKeyUse,
+  clientToApiClient,
+} from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
@@ -126,7 +124,7 @@ const retrieveDescriptor = (
 export function authorizationServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -157,7 +155,7 @@ export function authorizationServiceBuilder(
       correlationId,
       logger,
     }: {
-      clientSeed: ApiClientSeed;
+      clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -192,7 +190,7 @@ export function authorizationServiceBuilder(
       correlationId,
       logger,
     }: {
-      clientSeed: ApiClientSeed;
+      clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -463,7 +461,7 @@ export function authorizationServiceBuilder(
         selfcareId: authData.selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
-        selfcareV2Client,
+        selfcareV2InstitutionClient,
         userIdToCheck: userId,
       });
       if (client.data.users.includes(userId)) {
@@ -517,7 +515,7 @@ export function authorizationServiceBuilder(
       logger,
     }: {
       clientId: ClientId;
-      seed: ApiPurposeAdditionSeed;
+      seed: authorizationApi.PurposeAdditionDetails;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -589,7 +587,7 @@ export function authorizationServiceBuilder(
     }: {
       clientId: ClientId;
       authData: AuthData;
-      keysSeeds: ApiKeysSeed;
+      keysSeeds: authorizationApi.KeysSeed;
       correlationId: string;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
@@ -611,7 +609,7 @@ export function authorizationServiceBuilder(
         selfcareId: authData.selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
-        selfcareV2Client,
+        selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
       });
 
@@ -682,7 +680,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       kid: string;
       logger: Logger;
-    }): Promise<KeyWithClient> {
+    }): Promise<authorizationApi.KeyWithClient> {
       logger.info(`Getting client ${clientId} and key ${kid}`);
       const client = await retrieveClient(clientId, readModelService);
       const key = client.data.keys.find((key) => key.kid === kid);
@@ -693,15 +691,17 @@ export function authorizationServiceBuilder(
 
       const pemKey = decodeBase64ToPem(key.encodedPem);
       const jwk: JsonWebKey = createJWK(pemKey);
-      const jwkKey = ApiJWKKey.parse({
+      const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
         use: "sig",
       });
 
       return {
-        JWKKey: jwkKey,
-        client: client.data,
+        key: jwkKey,
+        client: clientToApiClient(client.data, {
+          showUsers: false,
+        }),
       };
     },
   };

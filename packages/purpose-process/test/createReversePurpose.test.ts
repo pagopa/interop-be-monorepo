@@ -30,6 +30,7 @@ import {
   toReadModelEService,
   toReadModelPurpose,
   unsafeBrandId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import {
   genericLogger,
@@ -99,8 +100,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } =
@@ -191,8 +192,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -243,8 +244,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -297,8 +298,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -351,8 +352,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -403,8 +404,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -448,8 +449,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
 
     expect(
       purposeService.createReversePurpose(
@@ -508,8 +509,8 @@ describe("createReversePurpose", () => {
 
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -568,8 +569,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
