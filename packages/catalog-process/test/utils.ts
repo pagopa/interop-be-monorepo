@@ -24,6 +24,7 @@ import {
   toEServiceV2,
   toReadModelAttribute,
   toReadModelEService,
+  toReadModelTenant,
   toReadModelAgreement,
   DescriptorState,
 } from "pagopa-interop-models";
@@ -288,7 +289,7 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
