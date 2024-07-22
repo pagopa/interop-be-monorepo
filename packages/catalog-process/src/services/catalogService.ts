@@ -446,7 +446,7 @@ export function catalogServiceBuilder(
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: catalogApi.EServiceSeed,
+      eserviceSeed: catalogApi.UpdateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
