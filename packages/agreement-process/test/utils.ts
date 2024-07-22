@@ -19,6 +19,7 @@ import {
   Tenant,
   toAgreementV2,
   toReadModelEService,
+  toReadModelTenant,
   toReadModelAgreement,
   AgreementDocumentId,
   generateId,
@@ -107,7 +108,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {

@@ -17,7 +17,9 @@ import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import {
+  apiClientKindToClientKind,
   clientToApiClient,
+  clientToApiClientWithKeys,
   keyToApiKey,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -81,7 +83,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -108,7 +110,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -148,7 +150,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && apiClientKindToClientKind(kind),
             },
             authData: req.ctx.authData,
             offset,
@@ -159,8 +161,7 @@ const authorizationRouter = (
             .status(200)
             .json({
               results: clients.results.map((client) =>
-                clientToApiClient(client, {
-                  includeKeys: true,
+                clientToApiClientWithKeys(client, {
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -198,7 +199,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && apiClientKindToClientKind(kind),
             },
             authData: req.ctx.authData,
             offset,
@@ -210,7 +211,6 @@ const authorizationRouter = (
             .json({
               results: clients.results.map((client) =>
                 clientToApiClient(client, {
-                  includeKeys: false,
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -246,7 +246,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -349,7 +349,7 @@ const authorizationRouter = (
           );
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -567,7 +567,7 @@ const authorizationRouter = (
     async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        const { JWKKey, client } =
+        const { key: jwkKey, client } =
           await authorizationService.getKeyWithClientByKeyId({
             clientId: unsafeBrandId(req.params.clientId),
             kid: req.params.keyId,
@@ -576,11 +576,8 @@ const authorizationRouter = (
         return res
           .status(200)
           .json({
-            key: JWKKey,
-            client: clientToApiClient(client, {
-              includeKeys: false,
-              showUsers: false,
-            }),
+            key: jwkKey,
+            client,
           })
           .end();
       } catch (error) {
