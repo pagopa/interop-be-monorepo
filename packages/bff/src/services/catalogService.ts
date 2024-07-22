@@ -2,7 +2,6 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { EServiceId } from "pagopa-interop-models";
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { descriptorApiState } from "../model/api/catalogTypes.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
@@ -127,7 +126,7 @@ export function catalogServiceBuilder(
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
+    ): Promise<bffApi.CreatedResource> =>
       await catalogProcessClient.createEService(eServiceSeed, {
         headers,
       }),
@@ -135,7 +134,7 @@ export function catalogServiceBuilder(
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
+    ): Promise<bffApi.CreatedResource> =>
       await catalogProcessClient.updateEServiceById(updateEServiceSeed, {
         headers,
         params: {
