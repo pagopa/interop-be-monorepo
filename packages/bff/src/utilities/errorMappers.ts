@@ -34,8 +34,6 @@ export const getSelfcareUserErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
-
 export const getClientUsersErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -61,3 +59,7 @@ export const acceptPrivacyNoticeErrorMapper = (
     .with("privacyNoticeVersionIsNotTheLatest", () => HTTP_STATUS_CONFLICT)
     .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const attributeEmptyErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
