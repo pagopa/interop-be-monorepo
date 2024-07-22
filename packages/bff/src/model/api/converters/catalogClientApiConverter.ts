@@ -20,7 +20,6 @@ import {
   tenantAttributeType,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
-  tenantMailKind,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -217,9 +216,7 @@ export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.ProducerDescriptorEService {
-  const producerMail = producer.mails.find(
-    (m) => m.kind === tenantMailKind.ContactEmail
-  );
+  const producerMail = getTenantEmail(producer);
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter(

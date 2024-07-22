@@ -1,4 +1,8 @@
-import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  catalogApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { descriptorApiState } from "./api/catalogTypes.js";
 import { agreementApiState } from "./api/agreementTypes.js";
 
@@ -20,6 +24,14 @@ export function getLatestAcriveDescriptor(
     .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
+}
+
+export function getTenantEmail(
+  tenant: tenantApi.Tenant
+): tenantApi.Mail | undefined {
+  return tenant.mails.find(
+    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
+  );
 }
 
 export function isUpgradable(
