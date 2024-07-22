@@ -74,29 +74,29 @@ jobs:
     name: Find Dockerfiles
     runs-on: ubuntu-latest
     outputs:
-      dockerfiles: ${{ steps.set_dockerfiles_output.outputs.dockerfiles }}
+      packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - name: Find Dockerfiles
-        id: set_dockerfiles_output
+      - name: Find packages
+        id: set_packages_output
         run: |
-          DOCKERFILES=$(find packages/ -type f -path "*/Dockerfile" | jq -R -s -c 'split("\n")[:-1]')
-          echo "dockerfiles=$DOCKERFILES" >> $GITHUB_OUTPUT
+          packages=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          echo "packages=$DOCKERFILES" >> $GITHUB_OUTPUT
 
   docker_build:
-    name: Docker build
+    name: Docker Build
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        dockerfile_path: ${{ fromJson(needs.find_dockerfiles.outputs.dockerfiles) }}
+        package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Build Docker image
         uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
           context: .
-          file: ${{ matrix.dockerfile_path }}
+          file: packages/${{ matrix.package }}/Dockerfile
           push: false
 
