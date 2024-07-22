@@ -11,6 +11,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 function activeDescriptorStateFilter(
@@ -18,14 +19,14 @@ function activeDescriptorStateFilter(
 ): boolean {
   return match(descriptor.state)
     .with(
-      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
-      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
-      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApiDescriptorState.PUBLISHED,
+      catalogApiDescriptorState.SUSPENDED,
+      catalogApiDescriptorState.DEPRECATED,
       () => true
     )
     .with(
-      catalogApi.EServiceDescriptorState.Values.DRAFT,
-      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApiDescriptorState.DRAFT,
+      catalogApiDescriptorState.ARCHIVED,
       () => false
     )
     .exhaustive();
