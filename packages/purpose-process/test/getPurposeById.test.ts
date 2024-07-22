@@ -12,6 +12,7 @@ import {
   PurposeId,
   EServiceId,
   TenantId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -49,7 +50,7 @@ describe("getPurposeById", () => {
     await addOnePurpose(mockPurpose1);
     await addOnePurpose(mockPurpose2);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     const result = await purposeService.getPurposeById(
       mockPurpose1.id,
@@ -66,7 +67,7 @@ describe("getPurposeById", () => {
     const mockTenant = getMockTenant();
     const mockPurpose = getMockPurpose();
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
       purposeService.getPurposeById(notExistingId, mockTenant.id, genericLogger)
@@ -84,7 +85,7 @@ describe("getPurposeById", () => {
       eserviceId: notExistingId,
     };
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
       purposeService.getPurposeById(
@@ -123,7 +124,7 @@ describe("getPurposeById", () => {
     };
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
       purposeService.getPurposeById(
