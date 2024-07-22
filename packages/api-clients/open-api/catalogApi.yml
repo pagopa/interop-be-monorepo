@@ -1567,6 +1567,7 @@ components:
         - contentType
         - prettyName
         - path
+        - checksum
       properties:
         id:
           type: string
@@ -1578,6 +1579,8 @@ components:
         prettyName:
           type: string
         path:
+          type: string
+        checksum:
           type: string
     EServiceDescriptionSeed:
       type: object
