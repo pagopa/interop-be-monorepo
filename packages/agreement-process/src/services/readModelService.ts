@@ -322,29 +322,20 @@ export function readModelServiceBuilder(
       const eservicesMap = new Map(
         eservicesData.map((eservice) => [eservice.data.id, eservice.data])
       );
-
-      const combinedData: Array<{
+      interface CombinedData {
         agreement: AgreementReadModel;
         eservice: EServiceReadModel;
-      }> = agreementsData
-        .map((agreement) => {
-          const eservice = eservicesMap.get(agreement.data.eserviceId);
-          if (eservice) {
-            return {
-              agreement: agreement.data,
-              eservice,
-            };
-          }
-          return null;
-        })
-        .filter(
-          (
-            data
-          ): data is {
-            agreement: AgreementReadModel;
-            eservice: EServiceReadModel;
-          } => data !== null
-        );
+      }
+      const combinedData: CombinedData[] = agreementsData.reduce<
+        CombinedData[]
+      >((acc, agreement) => {
+        const eservice = eservicesMap.get(agreement.data.eserviceId);
+        if (eservice) {
+          // eslint-disable-next-line functional/immutable-data
+          acc.push({ agreement: agreement.data, eservice });
+        }
+        return acc;
+      }, []);
 
       const filteredData = filters.showOnlyUpgradeable
         ? combinedData.filter((cb) => {
@@ -390,7 +381,11 @@ export function readModelServiceBuilder(
 
       return {
         results: result.data,
-        totalCount: sortedData.length,
+        totalCount: await ReadModelRepository.getTotalCount(
+          agreements,
+          [agreementFilter],
+          false
+        ),
       };
     },
     async getAgreementById(
