@@ -55,7 +55,7 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const updatedDescriptorSeed: catalogApi.EServiceDescriptorSeed = {
+    const updatedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
