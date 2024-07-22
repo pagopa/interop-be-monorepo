@@ -1,10 +1,7 @@
 import {
   ApiError,
   PurposeId,
-  TenantId,
-  EServiceId,
   makeApiProblemBuilder,
-  DescriptorId,
   AttributeId,
 } from "pagopa-interop-models";
 
@@ -52,8 +49,8 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
 }
 
 export function invalidEServiceRequester(
-  eServiceId: EServiceId,
-  requesterId: TenantId
+  eServiceId: string,
+  requesterId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
@@ -63,8 +60,8 @@ export function invalidEServiceRequester(
 }
 
 export function eserviceDescriptorNotFound(
-  eServiceId: EServiceId,
-  descriptorId: DescriptorId
+  eServiceId: string,
+  descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,

@@ -212,3 +212,29 @@ export function toDescriptorWithOnlyAttributes(
     },
   };
 }
+
+export function toBffCatalogApiDescriptorAttributes(
+  attributes: attributeRegistryApi.Attribute[],
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.DescriptorAttributes {
+  return {
+    certified: [
+      toBffCatalogApiDescriptorAttribute(
+        attributes,
+        descriptor.attributes.certified.flat()
+      ),
+    ],
+    declared: [
+      toBffCatalogApiDescriptorAttribute(
+        attributes,
+        descriptor.attributes.declared.flat()
+      ),
+    ],
+    verified: [
+      toBffCatalogApiDescriptorAttribute(
+        attributes,
+        descriptor.attributes.verified.flat()
+      ),
+    ],
+  };
+}
