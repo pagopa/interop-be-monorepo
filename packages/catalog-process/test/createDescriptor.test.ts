@@ -12,8 +12,8 @@ import {
   descriptorState,
   operationForbidden,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,

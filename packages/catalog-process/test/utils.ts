@@ -74,6 +74,17 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
+export const buildDescriptorSeedForEserviceCreation = (
+  descriptor: Descriptor
+): catalogApi.DescriptorSeedForEServiceCreation => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
+});
+
 export const buildCreateDescriptorSeed = (
   descriptor: Descriptor
 ): catalogApi.EServiceDescriptorSeed => ({
