@@ -8,14 +8,10 @@ import {
   tenantApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import {
-  EServiceAttribute,
-  tenantMailKind,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
 import { descriptorApiState } from "../catalogTypes.js";
-import { isUpgradable } from "../../mappers.js";
+import { getTenantEmail, isUpgradable } from "../../mappers.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -144,9 +140,7 @@ export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.ProducerDescriptorEService {
-  const producerMail = producer.mails.find(
-    (m) => m.kind === tenantMailKind.ContactEmail
-  );
+  const producerMail = getTenantEmail(producer);
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
