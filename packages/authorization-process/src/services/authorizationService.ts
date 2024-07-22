@@ -7,7 +7,6 @@ import {
   EService,
   EServiceId,
   Key,
-  KeyWithClient,
   ListResult,
   Purpose,
   PurposeId,
@@ -62,7 +61,10 @@ import {
   toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
-import { ApiKeyUseToKeyUse } from "../model/domain/apiConverter.js";
+import {
+  ApiKeyUseToKeyUse,
+  clientToApiClient,
+} from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
@@ -678,7 +680,7 @@ export function authorizationServiceBuilder(
       clientId: ClientId;
       kid: string;
       logger: Logger;
-    }): Promise<KeyWithClient> {
+    }): Promise<authorizationApi.KeyWithClient> {
       logger.info(`Getting client ${clientId} and key ${kid}`);
       const client = await retrieveClient(clientId, readModelService);
       const key = client.data.keys.find((key) => key.kid === kid);
@@ -696,8 +698,10 @@ export function authorizationServiceBuilder(
       });
 
       return {
-        JWKKey: jwkKey,
-        client: client.data,
+        key: jwkKey,
+        client: clientToApiClient(client.data, {
+          showUsers: false,
+        }),
       };
     },
   };
