@@ -7,11 +7,11 @@ import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 
 const safeAgreementStates: apiGatewayApi.AgreementState[] = [
-  agreementApi.AgreementState.Values.PENDING,
-  agreementApi.AgreementState.Values.ACTIVE,
-  agreementApi.AgreementState.Values.SUSPENDED,
-  agreementApi.AgreementState.Values.ARCHIVED,
-  agreementApi.AgreementState.Values.MISSING_CERTIFIED_ATTRIBUTES,
+  apiGatewayApi.AgreementState.Values.PENDING,
+  apiGatewayApi.AgreementState.Values.ACTIVE,
+  apiGatewayApi.AgreementState.Values.SUSPENDED,
+  apiGatewayApi.AgreementState.Values.ARCHIVED,
+  apiGatewayApi.AgreementState.Values.MISSING_CERTIFIED_ATTRIBUTES,
 ];
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -42,7 +42,7 @@ export function agreementServiceBuilder(
         consumerId,
         eserviceId,
         descriptorId,
-        states: states ?? safeAgreementStates,
+        states: states && states.length > 0 ? states : safeAgreementStates,
       };
 
       const agreementApiQueryParams =
