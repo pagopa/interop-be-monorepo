@@ -308,7 +308,7 @@ export function readModelServiceBuilder(
       const agreementFilter = getAgreementsFilters(filters);
 
       const agreementsData = await agreements
-        .aggregate([agreementFilter, { $skip: offset }, { $limit: limit }])
+        .aggregate([agreementFilter])
         .toArray();
 
       const eserviceIds = agreementsData.map(
@@ -322,20 +322,14 @@ export function readModelServiceBuilder(
       const eservicesMap = new Map(
         eservicesData.map((eservice) => [eservice.data.id, eservice.data])
       );
-      interface CombinedData {
+
+      const combinedData: Array<{
         agreement: AgreementReadModel;
         eservice: EServiceReadModel;
-      }
-      const combinedData: CombinedData[] = agreementsData.reduce<
-        CombinedData[]
-      >((acc, agreement) => {
+      }> = agreementsData.flatMap((agreement) => {
         const eservice = eservicesMap.get(agreement.data.eserviceId);
-        if (eservice) {
-          // eslint-disable-next-line functional/immutable-data
-          acc.push({ agreement: agreement.data, eservice });
-        }
-        return acc;
-      }, []);
+        return eservice ? [{ agreement: agreement.data, eservice }] : [];
+      });
 
       const filteredData = filters.showOnlyUpgradeable
         ? combinedData.filter((cb) => {
@@ -361,7 +355,7 @@ export function readModelServiceBuilder(
         : combinedData;
 
       const sortedData = filteredData
-        .slice()
+        .slice(offset, offset + limit)
         .sort((a, b) =>
           a.eservice.name
             .toLowerCase()
@@ -378,14 +372,9 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(sortedData)} `
         );
       }
-
       return {
         results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          [agreementFilter],
-          false
-        ),
+        totalCount: combinedData.length,
       };
     },
     async getAgreementById(
