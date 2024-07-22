@@ -80,8 +80,8 @@ jobs:
       - name: Find packages
         id: set_packages_output
         run: |
-          packages=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
-          echo "packages=$DOCKERFILES" >> $GITHUB_OUTPUT
+          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
   docker_build:
     name: Docker Build
