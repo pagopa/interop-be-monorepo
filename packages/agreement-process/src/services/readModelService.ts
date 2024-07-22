@@ -352,7 +352,7 @@ export function readModelServiceBuilder(
           })
         : combinedData;
 
-      const sortedData = filteredData
+      const data = filteredData
         .slice(offset, offset + limit)
         .sort((a, b) =>
           a.eservice.name
@@ -360,14 +360,12 @@ export function readModelServiceBuilder(
             .localeCompare(b.eservice.name.toLowerCase())
         );
 
-      const result = z
-        .array(Agreement)
-        .safeParse(sortedData.map((d) => d.agreement));
+      const result = z.array(Agreement).safeParse(data.map((d) => d.agreement));
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
             result
-          )} - data ${JSON.stringify(sortedData)} `
+          )} - data ${JSON.stringify(data)} `
         );
       }
       return {
