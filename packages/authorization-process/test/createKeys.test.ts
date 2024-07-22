@@ -346,7 +346,7 @@ describe("createKeys", () => {
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
-  it.only("should throw invalidKey if the key is not an RSA key", async () => {
+  it("should throw invalidKey if the key is not an RSA key", async () => {
     const notRSAKey = crypto.generateKeyPairSync("ed25519", {
       modulusLength: 2048,
     }).publicKey;
