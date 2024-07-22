@@ -25,6 +25,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
+  invalidKey,
   keyAlreadyExists,
   organizationNotAllowedOnClient,
   tooManyKeysPerClient,
@@ -344,5 +345,35 @@ describe("createKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it.only("should throw invalidKey if the key is not an RSA key", async () => {
+    const notRSAKey = crypto.generateKeyPairSync("ed25519", {
+      modulusLength: 2048,
+    }).publicKey;
+
+    const notRSAPemKey = Buffer.from(
+      notRSAKey.export({ type: "spki", format: "pem" })
+    ).toString("base64url");
+
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: notRSAPemKey,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
+    await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(invalidKey());
   });
 });
