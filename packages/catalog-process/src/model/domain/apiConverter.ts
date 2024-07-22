@@ -142,6 +142,7 @@ export const documentToApiDocument = (
   prettyName: document.prettyName,
   path: document.path,
   uploadDate: document.uploadDate,
+  checksum: document.checksum,
 });
 
 export const descriptorToApiDescriptor = (
