@@ -4,6 +4,8 @@ import {
   TenantEvent,
   AttributeId,
   toTenantV2,
+  TenantKind,
+  toTenantKindV2,
 } from "pagopa-interop-models";
 export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
@@ -71,6 +73,44 @@ export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
     type: "TenantVerifiedAttributeExpirationUpdated",
     data: {
       attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedAttributeAssigned = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedAttributeAssigned",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantKindUpdated = (
+  version: number,
+  oldKind: TenantKind,
+  updatedTenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantKindUpdated",
+    event_version: 2,
+    data: {
+      oldKind: toTenantKindV2(oldKind),
       tenant: toTenantV2(updatedTenant),
     },
   },
