@@ -505,7 +505,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: addDeclaredAttribute
       description: Adds a Declared attribute to the requesting Tenant
       requestBody:
