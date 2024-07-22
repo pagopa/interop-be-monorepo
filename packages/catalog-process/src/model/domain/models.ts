@@ -12,7 +12,6 @@ import {
   AttributeId,
   TenantId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
@@ -48,46 +47,3 @@ export const consumer = z.object({
 });
 
 export type Consumer = z.infer<typeof consumer>;
-
-export const convertToDocumentEServiceEventData = (
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  apiEServiceDescriptorDocumentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
-): EServiceDocument => ({
-  eserviceId,
-  descriptorId,
-  document: {
-    name: apiEServiceDescriptorDocumentSeed.fileName,
-    contentType: apiEServiceDescriptorDocumentSeed.contentType,
-    prettyName: apiEServiceDescriptorDocumentSeed.prettyName,
-    path: apiEServiceDescriptorDocumentSeed.filePath,
-    checksum: apiEServiceDescriptorDocumentSeed.checksum,
-    uploadDate: Date.now(),
-  },
-  isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
-  serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
-});
-
-export const convertToDescriptorEServiceEventData = (
-  eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
-  descriptorId: DescriptorId,
-  version: string
-): catalogApi.EServiceDescriptor => ({
-  id: descriptorId,
-  description: eserviceDescriptorSeed.description,
-  version,
-  interface: undefined,
-  docs: [],
-  state: "DRAFT",
-  voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
-  audience: eserviceDescriptorSeed.audience,
-  dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
-  dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
-  agreementApprovalPolicy: eserviceDescriptorSeed.agreementApprovalPolicy,
-  serverUrls: [],
-  publishedAt: undefined,
-  suspendedAt: undefined,
-  deprecatedAt: undefined,
-  archivedAt: undefined,
-  attributes: eserviceDescriptorSeed.attributes,
-});
