@@ -20,14 +20,17 @@ import {
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
-  { agreementProcessClient }: PagoPAInteropBeClients
+  { agreementProcessClient, tenantProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const agreementService = agreementServiceBuilder(agreementProcessClient);
+  const agreementService = agreementServiceBuilder(
+    agreementProcessClient,
+    tenantProcessClient
+  );
 
   apiGatewayRouter
     .get(
@@ -83,7 +86,10 @@ const apiGatewayRouter = (
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
         try {
-          const attributes = await agreementService.getAgreementAttributes();
+          const attributes = await agreementService.getAgreementAttributes(
+            ctx,
+            req.params.agreementId
+          );
 
           return res.status(200).json(attributes).send();
         } catch (error) {
