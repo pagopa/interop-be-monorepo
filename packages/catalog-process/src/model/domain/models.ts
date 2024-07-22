@@ -12,7 +12,6 @@ import {
   AttributeId,
   TenantId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
@@ -48,22 +47,3 @@ export const consumer = z.object({
 });
 
 export type Consumer = z.infer<typeof consumer>;
-
-export const convertToDocumentEServiceEventData = (
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  apiEServiceDescriptorDocumentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
-): EServiceDocument => ({
-  eserviceId,
-  descriptorId,
-  document: {
-    name: apiEServiceDescriptorDocumentSeed.fileName,
-    contentType: apiEServiceDescriptorDocumentSeed.contentType,
-    prettyName: apiEServiceDescriptorDocumentSeed.prettyName,
-    path: apiEServiceDescriptorDocumentSeed.filePath,
-    checksum: apiEServiceDescriptorDocumentSeed.checksum,
-    uploadDate: Date.now(),
-  },
-  isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
-  serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
-});
