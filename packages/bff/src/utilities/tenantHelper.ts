@@ -14,15 +14,15 @@ export function enhanceTenantAttributes(
 
   const declared = tenantAttributes
     .map((attr) => toApiDeclaredTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.DeclaredTenantAttribute => x !== null);
+    .filter((x): x is bffApi.DeclaredTenantAttribute => x !== undefined);
 
   const certified = tenantAttributes
     .map((attr) => toApiCertifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.CertifiedTenantAttribute => x !== null);
+    .filter((x): x is bffApi.CertifiedTenantAttribute => x !== undefined);
 
   const verified = tenantAttributes
     .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.VerifiedTenantAttribute => x !== null);
+    .filter((x): x is bffApi.VerifiedTenantAttribute => x !== undefined);
 
   return {
     certified,
@@ -34,13 +34,13 @@ export function enhanceTenantAttributes(
 export function toApiDeclaredTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
-): bffApi.DeclaredTenantAttribute | null {
+): bffApi.DeclaredTenantAttribute | undefined {
   if (!attribute.declared) {
-    return null;
+    return undefined;
   }
   const registryAttribute = registryAttributeMap.get(attribute.declared.id);
   if (!registryAttribute) {
-    return null;
+    return undefined;
   }
 
   return {
@@ -55,13 +55,13 @@ export function toApiDeclaredTenantAttribute(
 export function toApiCertifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
-): bffApi.CertifiedTenantAttribute | null {
+): bffApi.CertifiedTenantAttribute | undefined {
   if (!attribute.certified) {
-    return null;
+    return undefined;
   }
   const registryAttribute = registryAttributeMap.get(attribute.certified.id);
   if (!registryAttribute) {
-    return null;
+    return undefined;
   }
 
   return {
@@ -76,13 +76,13 @@ export function toApiCertifiedTenantAttribute(
 export function toApiVerifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
-): bffApi.VerifiedTenantAttribute | null {
+): bffApi.VerifiedTenantAttribute | undefined {
   if (!attribute.verified) {
-    return null;
+    return undefined;
   }
   const registryAttribute = registryAttributeMap.get(attribute.verified.id);
   if (!registryAttribute) {
-    return null;
+    return undefined;
   }
 
   return {
