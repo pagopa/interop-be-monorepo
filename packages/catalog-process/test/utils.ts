@@ -99,6 +99,14 @@ export const buildCreateDescriptorSeed = (
     declared: [],
     verified: [],
   },
+  docs: descriptor.docs.map((d) => ({
+    ...d,
+    kind: "DOCUMENT",
+    serverUrls: [],
+    documentId: d.id,
+    filePath: d.path,
+    fileName: d.name,
+  })),
 });
 
 export const buildUpdateDescriptorSeed = (

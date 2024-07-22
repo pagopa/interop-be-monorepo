@@ -665,7 +665,6 @@ export function catalogServiceBuilder(
               correlationId
             )
           : toCreateEventEServiceDocumentAdded(
-              eserviceId,
               eservice.metadata.version,
               {
                 descriptorId,
@@ -864,6 +863,7 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
+      const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
@@ -893,15 +893,56 @@ export function catalogServiceBuilder(
         descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
-      const event = toCreateEventEServiceDescriptorAdded(
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         newEservice,
-        eservice.metadata.version,
+        eserviceVersion,
         descriptorId,
         correlationId
       );
-      await repository.createEvent(event);
 
-      return newDescriptor;
+      const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
+        (acc, document, index) => {
+          const newDocument: Document = {
+            id: unsafeBrandId(document.documentId),
+            name: document.fileName,
+            contentType: document.contentType,
+            prettyName: document.prettyName,
+            path: document.filePath,
+            checksum: document.checksum,
+            uploadDate: new Date(),
+          };
+
+          const descriptorWithDocs: Descriptor = {
+            ...acc.descriptorWithDocs,
+            docs: [...acc.descriptorWithDocs.docs, newDocument],
+          };
+          const updatedEService = replaceDescriptor(
+            newEservice,
+            descriptorWithDocs
+          );
+          const version = eserviceVersion + index + 1;
+          const documentEvent = toCreateEventEServiceDocumentAdded(
+            version,
+            {
+              descriptorId,
+              documentId: unsafeBrandId(document.documentId),
+              eservice: updatedEService,
+            },
+            correlationId
+          );
+          return {
+            events: [...acc.events, documentEvent],
+            descriptorWithDocs,
+          };
+        },
+        {
+          events: [descriptorCreationEvent],
+          descriptorWithDocs: newDescriptor,
+        }
+      );
+
+      await repository.createEvents(events);
+      return descriptorWithDocs;
     },
 
     async deleteDraftDescriptor(
