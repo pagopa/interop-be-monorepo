@@ -305,32 +305,24 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      // Costruisci il filtro per gli accordi
       const agreementFilter = getAgreementsFilters(filters);
 
-      // Ottieni gli accordi con il filtro, paginazione inclusa
       const agreementsData = await agreements
-        .find(agreementFilter)
-        .skip(offset)
-        .limit(limit)
+        .aggregate([agreementFilter, { $skip: offset }, { $limit: limit }])
         .toArray();
 
-      // Ottieni gli eserviceId dagli accordi
       const eserviceIds = agreementsData.map(
         (agreement) => agreement.data.eserviceId
       );
 
-      // Ottieni gli eservices corrispondenti agli eserviceIds
       const eservicesData = await eservices
         .find({ "data.id": { $in: eserviceIds } })
         .toArray();
 
-      // Crea una mappa per accedere rapidamente agli eservices
       const eservicesMap = new Map(
         eservicesData.map((eservice) => [eservice.data.id, eservice.data])
       );
 
-      // Aggiungi gli eservices agli accordi
       const combinedData: Array<{
         agreement: AgreementReadModel;
         eservice: EServiceReadModel;
@@ -354,7 +346,6 @@ export function readModelServiceBuilder(
           } => data !== null
         );
 
-      // Filtro e trasformazioni se showOnlyUpgradeable è attivo
       const filteredData = filters.showOnlyUpgradeable
         ? combinedData.filter((cb) => {
             const currentDescriptor = cb.eservice.descriptors.find(
@@ -378,13 +369,6 @@ export function readModelServiceBuilder(
           })
         : combinedData;
 
-      // // Ordinamento e trasformazione finale
-      // const sortedData = filteredData.sort((a, b) =>
-      //   a.eservices[0].data.name
-      //     .toLowerCase()
-      //     .localeCompare(b.eservices[0].data.name.toLowerCase())
-      // );
-
       const sortedData = filteredData
         .slice()
         .sort((a, b) =>
@@ -393,7 +377,6 @@ export function readModelServiceBuilder(
             .localeCompare(b.eservice.name.toLowerCase())
         );
 
-      // Validazione dei risultati
       const result = z
         .array(Agreement)
         .safeParse(sortedData.map((d) => d.agreement));
@@ -405,12 +388,9 @@ export function readModelServiceBuilder(
         );
       }
 
-      // Conteggio totale degli accordi (senza limit e offset)
-      const totalCount = await agreements.countDocuments(agreementFilter);
-
       return {
         results: result.data,
-        totalCount,
+        totalCount: sortedData.length,
       };
     },
     async getAgreementById(
