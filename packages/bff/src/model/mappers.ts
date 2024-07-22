@@ -1,5 +1,6 @@
-import { catalogApi } from "pagopa-interop-api-clients";
+import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
 import { descriptorApiState } from "./api/catalogTypes.js";
+import { agreementApiState } from "./api/agreementTypes.js";
 
 /* 
   This file contains commons utility functions 
@@ -12,7 +13,6 @@ const ACTIVE_DESCRIPTOR_STATES_FILTER = [
   descriptorApiState.DEPRECATED,
 ];
 
-
 export function getLatestAcriveDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor | undefined {
@@ -20,4 +20,26 @@ export function getLatestAcriveDescriptor(
     .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
+}
+
+export function isUpgradable(
+  eservice: catalogApi.EService,
+  agreement: agreementApi.Agreement
+): boolean {
+  const eserviceDescriptor = eservice.descriptors.find(
+    (e) => e.id === agreement.descriptorId
+  );
+
+  return (
+    eserviceDescriptor !== undefined &&
+    eservice.descriptors
+      .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
+      .find(
+        (d) =>
+          (d.state === descriptorApiState.PUBLISHED ||
+            d.state === descriptorApiState.SUSPENDED) &&
+          (agreement.state === agreementApiState.ACTIVE ||
+            agreement.state === agreementApiState.SUSPENDED)
+      ) !== undefined
+  );
 }
