@@ -27,7 +27,7 @@ export function toAgreementProcessGetAgreementsQueryParams(
     consumersIds: consumerId ? [consumerId] : [],
     eservicesIds: eserviceId ? [eserviceId] : [],
     descriptorsIds: descriptorId ? [descriptorId] : [],
-    states,
     showOnlyUpgradeable: false,
+    states,
   };
 }
