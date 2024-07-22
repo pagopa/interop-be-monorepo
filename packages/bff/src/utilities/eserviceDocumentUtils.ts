@@ -4,10 +4,18 @@ import crypto from "crypto";
 import { XMLParser } from "fast-xml-parser";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
+import { ApiError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { z } from "zod";
 import { config } from "../config/config.js";
+import {
+  ErrorCodes,
+  interfaceExtractingInfoError,
+  invalidInterfaceContentTypeDetected,
+  invalidInterfaceFileDetected,
+  openapiVersionNotRecognized,
+} from "../model/domain/errors.js";
 import { CatalogProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 
@@ -23,10 +31,14 @@ export async function verifyAndCreateEServiceDocument(
 ): Promise<void> {
   const contentType = doc.doc.type;
   if (!contentType) {
-    throw new Error("Invalid content type"); // TODO handle error
+    throw invalidInterfaceContentTypeDetected(
+      eService.id,
+      "invalid",
+      eService.technology
+    );
   }
 
-  const serverUrls = await processFile(doc, eService.technology);
+  const serverUrls = await processFile(doc, eService.technology, eService.id);
   const filePath = await fileManager.storeBytes(
     config.s3Bucket,
     config.eserviceDocumentsPath,
@@ -80,7 +92,9 @@ export async function verifyAndCreateEServiceDocument(
   }
 }
 
-const getFileType = (name: string): "json" | "yaml" | "wsdl" | "xml" =>
+const getFileType = (
+  name: string
+): "json" | "yaml" | "wsdl" | "xml" | undefined =>
   match(name)
     .with(P.string.endsWith("json"), () => "json" as const)
     .with(
@@ -90,26 +104,32 @@ const getFileType = (name: string): "json" | "yaml" | "wsdl" | "xml" =>
     )
     .with(P.string.endsWith("wsdl"), () => "wsdl" as const)
     .with(P.string.endsWith("xml"), () => "xml" as const)
-    .otherwise(() => {
-      throw new Error("Invalid file type"); // TODO handle error
-    });
+    .otherwise(() => undefined);
 
-function parseOpenApi(fileType: "json" | "yaml", file: string) {
-  return match(fileType)
-    .with("json", () => JSON.parse(file)) // TODO handle error
-    .with("yaml", () => YAML.parse(file)) // TODO handle error
-    .exhaustive();
+function parseOpenApi(
+  fileType: "json" | "yaml",
+  file: string,
+  eServiceId: string
+) {
+  try {
+    return match(fileType)
+      .with("json", () => JSON.parse(file))
+      .with("yaml", () => YAML.parse(file))
+      .exhaustive();
+  } catch (error) {
+    throw invalidInterfaceFileDetected(eServiceId);
+  }
 }
 
 function handleOpenApiV2(openApi: Record<string, unknown>) {
   const { data: host, error: hostError } = z.string().safeParse(openApi.host);
-  const { error: pathsError } = z.array(z.object({})).safeParse(openApi.paths); // TODO not sure
+  const { error: pathsError } = z.array(z.object({})).safeParse(openApi.paths);
 
   if (hostError) {
-    throw new Error("Invalid OpenAPI host"); // TODO handle error
+    throw new Error();
   }
   if (pathsError) {
-    throw new Error("Invalid OpenAPI paths"); // TODO handle error
+    throw new Error();
   }
 
   return [host];
@@ -120,28 +140,32 @@ function handleOpenApiV3(openApi: Record<string, unknown>) {
     .array(z.object({ url: z.string() }))
     .safeParse(openApi.servers);
   if (error) {
-    throw new Error("Invalid OpenAPI servers"); // TODO handle error
+    throw new Error();
   }
 
   return servers.flatMap((s) => s.url);
 }
 
-function processRestInterface(fileType: "json" | "yaml", file: string) {
-  const openApi = parseOpenApi(fileType, file);
+function processRestInterface(
+  fileType: "json" | "yaml",
+  file: string,
+  eServiceId: string
+) {
+  const openApi = parseOpenApi(fileType, file, eServiceId);
   const { data: version, error } = z.string().safeParse(openApi.openapi);
 
   if (error) {
-    throw new Error("Invalid OpenAPI version"); // TODO handle error
+    throw openapiVersionNotRecognized("nd");
   }
   return match(version)
     .with("2.0", () => handleOpenApiV2(openApi))
     .with(P.string.startsWith("3."), () => handleOpenApiV3(openApi))
     .otherwise(() => {
-      throw new Error("Invalid OpenAPI version"); // TODO handle error
+      throw openapiVersionNotRecognized(version);
     });
 }
 
-function processSoapInterface(_fileType: "xml" | "wsdl", file: string) {
+function processSoapInterface(file: string) {
   const xml = new XMLParser({
     ignoreDeclaration: true,
     removeNSPrefix: true,
@@ -152,12 +176,12 @@ function processSoapInterface(_fileType: "xml" | "wsdl", file: string) {
 
   const address = xml.definitions?.service?.port?.address?.location;
   if (!address) {
-    throw new Error("Invalid WSDL"); // TODO handle error
+    throw interfaceExtractingInfoError();
   }
 
   const endpoints = xml.definitions?.binding?.operation;
   if (endpoints.length === 0) {
-    throw new Error("Invalid WSDL"); // TODO handle error
+    throw interfaceExtractingInfoError();
   }
 
   return [address];
@@ -165,37 +189,44 @@ function processSoapInterface(_fileType: "xml" | "wsdl", file: string) {
 
 async function processFile(
   doc: bffApi.createEServiceDocument_Body,
-  technology: "REST" | "SOAP"
+  technology: "REST" | "SOAP",
+  eServiceId: string
 ) {
   const file = await doc.doc.text();
-  return match({
-    fileType: getFileType(doc.doc.name),
-    technology,
-    kind: doc.kind,
-  })
-    .with(
-      {
-        kind: "INTERFACE",
-        technology: "REST",
-        fileType: P.union("json", "yaml"),
-      },
-      (f) => processRestInterface(f.fileType, file)
-    )
-    .with(
-      {
-        kind: "INTERFACE",
-        technology: "SOAP",
-        fileType: P.union("xml", "wsdl"),
-      },
-      (f) => processSoapInterface(f.fileType, file)
-    )
-    .with(
-      {
-        kind: "DOCUMENT",
-      },
-      () => []
-    )
-    .otherwise(() => {
-      throw new Error("Invalid file type for technology");
-    });
+  try {
+    return match({
+      fileType: getFileType(doc.doc.name),
+      technology,
+      kind: doc.kind,
+    })
+      .with(
+        {
+          kind: "INTERFACE",
+          technology: "REST",
+          fileType: P.union("json", "yaml"),
+        },
+        (f) => processRestInterface(f.fileType, file, eServiceId)
+      )
+      .with(
+        {
+          kind: "INTERFACE",
+          technology: "SOAP",
+          fileType: P.union("xml", "wsdl"),
+        },
+        () => processSoapInterface(file)
+      )
+      .with(
+        {
+          kind: "DOCUMENT",
+        },
+        () => []
+      )
+      .otherwise(() => {
+        throw new Error();
+      });
+  } catch (error) {
+    throw match(error)
+      .with(P.instanceOf(ApiError<ErrorCodes>), () => error)
+      .otherwise(() => invalidInterfaceFileDetected(eServiceId));
+  }
 }

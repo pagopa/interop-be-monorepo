@@ -148,7 +148,7 @@ const catalogRouter = (
           );
           return res.status(200).json(resp).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500, ctx.logger); // TODO Add empty error mapper
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
