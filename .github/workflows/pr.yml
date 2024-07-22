@@ -1,8 +1,8 @@
-name: CI
+name: PR validation
 on:
-  push:
-    branches: main
   pull_request:
+    branches: 
+      - 'main'
 
 jobs:
   formatting:
@@ -56,19 +56,6 @@ jobs:
         with:
           run_install: true
       - run: pnpm test
-
-  # build:
-  #   name: Build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-  #     - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
-  #       with:
-  #         node-version-file: ./package.json
-  #     - uses: pnpm/action-setup@v4
-  #       with:
-  #         run_install: true
-  #     - run: pnpm build
 
   find_dockerfiles:
     name: Find Dockerfiles
