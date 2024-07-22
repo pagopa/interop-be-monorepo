@@ -19,6 +19,7 @@ import {
   technology,
   tenantAttributeType,
   toReadModelEService,
+  toReadModelTenant,
   toReadModelAgreement,
   toTenantV2,
 } from "pagopa-interop-models";
@@ -200,7 +201,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeTenantInEventstore(tenant, postgresDB);
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastTenantEvent = async (
