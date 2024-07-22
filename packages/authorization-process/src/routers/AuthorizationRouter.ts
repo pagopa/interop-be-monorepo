@@ -11,13 +11,15 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
-import { api } from "../model/generated/api.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import {
+  apiClientKindToClientKind,
   clientToApiClient,
+  clientToApiClientWithKeys,
   keyToApiKey,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -54,17 +56,18 @@ const authorizationService = authorizationServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelService,
-  selfcareV2ClientBuilder(config)
+  selfcareV2InstitutionClientBuilder(config)
 );
 
 const authorizationRouter = (
   ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const authorizationRouter = ctx.router(api.api, {
+): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
+  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
+
+  const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
-  authorizationRouter
+  authorizationClientRouter
     .post(
       "/clientsConsumer",
       authorizationMiddleware([ADMIN_ROLE]),
@@ -80,7 +83,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -107,7 +110,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -147,7 +150,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && apiClientKindToClientKind(kind),
             },
             authData: req.ctx.authData,
             offset,
@@ -158,8 +161,7 @@ const authorizationRouter = (
             .status(200)
             .json({
               results: clients.results.map((client) =>
-                clientToApiClient(client, {
-                  includeKeys: true,
+                clientToApiClientWithKeys(client, {
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -197,7 +199,7 @@ const authorizationRouter = (
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
-              kind,
+              kind: kind && apiClientKindToClientKind(kind),
             },
             authData: req.ctx.authData,
             offset,
@@ -209,7 +211,6 @@ const authorizationRouter = (
             .json({
               results: clients.results.map((client) =>
                 clientToApiClient(client, {
-                  includeKeys: false,
                   showUsers: ctx.authData.organizationId === client.consumerId,
                 })
               ),
@@ -245,7 +246,7 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -348,7 +349,7 @@ const authorizationRouter = (
           );
           return res
             .status(200)
-            .json(clientToApiClient(client, { includeKeys: false, showUsers }))
+            .json(clientToApiClient(client, { showUsers }))
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -448,43 +449,6 @@ const authorizationRouter = (
         }
       }
     )
-    .get(
-      "/clients/:clientId/keys/:keyId/bundle",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { JWKKey, client } =
-            await authorizationService.getKeyWithClientByKeyId({
-              clientId: unsafeBrandId(req.params.clientId),
-              kid: req.params.keyId,
-              logger: ctx.logger,
-            });
-          return res
-            .status(200)
-            .json({
-              key: JWKKey,
-              client: clientToApiClient(client, {
-                includeKeys: false,
-                showUsers: false,
-              }),
-            })
-            .end();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getClientKeyWithClientErrorMapper,
-            ctx.logger
-          );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
-    )
     .delete(
       "/clients/:clientId/keys/:keyId",
       authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
@@ -508,11 +472,6 @@ const authorizationRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
-    )
-    .get(
-      "/clients/:clientId/users/:userId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
     )
     .post(
       "/clients/:clientId/purposes",
@@ -581,6 +540,60 @@ const authorizationRouter = (
       }
     );
 
-  return authorizationRouter;
+  const authorizationUserRouter = ctx.router(authorizationApi.userApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+  authorizationUserRouter.get(
+    "/clients/:clientId/users/:userId/keys",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (_req, res) => res.status(501).send()
+  );
+
+  const tokenGenerationRouter = ctx.router(
+    authorizationApi.tokenGenerationApi.api,
+    {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    }
+  );
+
+  tokenGenerationRouter.get(
+    "/clients/:clientId/keys/:keyId/bundle",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      SECURITY_ROLE,
+      M2M_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        const { key: jwkKey, client } =
+          await authorizationService.getKeyWithClientByKeyId({
+            clientId: unsafeBrandId(req.params.clientId),
+            kid: req.params.keyId,
+            logger: ctx.logger,
+          });
+        return res
+          .status(200)
+          .json({
+            key: jwkKey,
+            client,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getClientKeyWithClientErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
+  return [
+    authorizationClientRouter,
+    authorizationUserRouter,
+    tokenGenerationRouter,
+  ];
 };
 export default authorizationRouter;

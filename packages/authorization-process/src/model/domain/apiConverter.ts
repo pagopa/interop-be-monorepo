@@ -1,3 +1,4 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   Client,
   ClientKind,
@@ -7,38 +8,52 @@ import {
   keyUse,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  ApiClient,
-  ApiClientWithKeys,
-  ApiClientKind,
-  ApiKey,
-  ApiKeyUse,
-} from "./models.js";
 
-export const clientKindToApiClientKind = (kind: ClientKind): ApiClientKind =>
-  match<ClientKind, ApiClientKind>(kind)
+export const clientKindToApiClientKind = (
+  kind: ClientKind
+): authorizationApi.ClientKind =>
+  match<ClientKind, authorizationApi.ClientKind>(kind)
     .with(clientKind.consumer, () => "CONSUMER")
     .with(clientKind.api, () => "API")
     .exhaustive();
 
-export const keyUseToApiKeyUse = (kid: KeyUse): ApiKeyUse =>
-  match<KeyUse, ApiKeyUse>(kid)
+export const apiClientKindToClientKind = (
+  kind: authorizationApi.ClientKind
+): ClientKind =>
+  match<authorizationApi.ClientKind, ClientKind>(kind)
+    .with("CONSUMER", () => clientKind.consumer)
+    .with("API", () => clientKind.api)
+    .exhaustive();
+
+export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
+  match<KeyUse, authorizationApi.KeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
     .exhaustive();
 
+export function clientToApiClientWithKeys(
+  client: Client,
+  { showUsers }: { showUsers: boolean }
+): authorizationApi.ClientWithKeys {
+  return {
+    client: {
+      id: client.id,
+      name: client.name,
+      consumerId: client.consumerId,
+      users: showUsers ? client.users : [],
+      createdAt: client.createdAt.toJSON(),
+      purposes: client.purposes,
+      kind: clientKindToApiClientKind(client.kind),
+      description: client.description,
+    },
+    keys: client.keys.map(keyToApiKey),
+  };
+}
+
 export function clientToApiClient(
   client: Client,
-  { includeKeys, showUsers }: { includeKeys: true; showUsers: boolean }
-): ApiClientWithKeys;
-export function clientToApiClient(
-  client: Client,
-  { includeKeys, showUsers }: { includeKeys: false; showUsers: boolean }
-): ApiClient;
-export function clientToApiClient(
-  client: Client,
-  { includeKeys, showUsers }: { includeKeys: boolean; showUsers: boolean }
-): ApiClientWithKeys | ApiClient {
+  { showUsers }: { showUsers: boolean }
+): authorizationApi.Client {
   return {
     id: client.id,
     name: client.name,
@@ -48,11 +63,10 @@ export function clientToApiClient(
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
     description: client.description,
-    ...(includeKeys ? { keys: client.keys } : {}),
   };
 }
 
-export const keyToApiKey = (key: Key): ApiKey => ({
+export const keyToApiKey = (key: Key): authorizationApi.Key => ({
   name: key.name,
   createdAt: key.createdAt.toJSON(),
   kid: key.kid,
@@ -62,8 +76,8 @@ export const keyToApiKey = (key: Key): ApiKey => ({
   userId: key.userId,
 });
 
-export const ApiKeyUseToKeyUse = (kid: ApiKeyUse): KeyUse =>
-  match<ApiKeyUse, KeyUse>(kid)
+export const ApiKeyUseToKeyUse = (kid: authorizationApi.KeyUse): KeyUse =>
+  match<authorizationApi.KeyUse, KeyUse>(kid)
     .with("ENC", () => keyUse.enc)
     .with("SIG", () => keyUse.sig)
     .exhaustive();
