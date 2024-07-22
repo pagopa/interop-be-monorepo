@@ -28,7 +28,7 @@ import {
   toReadModelAgreement,
   toReadModelEService,
 } from "pagopa-interop-models";
-import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addOneAttribute,
@@ -42,7 +42,7 @@ import {
 } from "./utils.js";
 
 describe("Agreeement states flows", () => {
-  const mockSelfcareUserResponse: UserResponse = {
+  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
     email: "test@test.com",
     name: "Test Name",
     surname: "Test Surname",
