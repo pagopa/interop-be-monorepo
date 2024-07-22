@@ -57,5 +57,10 @@ export function agreementServiceBuilder(
 
       return toApiGatewayAgreementIfNotDraft(agreement);
     },
+
+    getAgreementAttributes: async (): Promise<apiGatewayApi.Attributes> => {
+      // TODO implement
+      throw new Error("Not implemented");
+    },
   };
 }
