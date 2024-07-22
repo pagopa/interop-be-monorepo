@@ -22,6 +22,7 @@ import {
   Agreement,
   agreementState,
   PurposeVersionState,
+  TenantReadModel,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -86,7 +87,7 @@ async function getEService(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true },
