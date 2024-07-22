@@ -102,3 +102,12 @@ jobs:
           file: packages/${{ matrix.package }}/Dockerfile
           push: false
 
+  check_build_result:
+    name: Build Result
+    needs: [docker_build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check build result
+        run: |
+          [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
+          exit 0
