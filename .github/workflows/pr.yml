@@ -91,7 +91,7 @@ jobs:
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
-    environment:
+    env:
         DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
