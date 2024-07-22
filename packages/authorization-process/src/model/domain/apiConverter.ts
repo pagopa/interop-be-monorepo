@@ -17,6 +17,14 @@ export const clientKindToApiClientKind = (
     .with(clientKind.api, () => "API")
     .exhaustive();
 
+export const apiClientKindToClientKind = (
+  kind: authorizationApi.ClientKind
+): ClientKind =>
+  match<authorizationApi.ClientKind, ClientKind>(kind)
+    .with("CONSUMER", () => clientKind.consumer)
+    .with("API", () => clientKind.api)
+    .exhaustive();
+
 export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
   match<KeyUse, authorizationApi.KeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
