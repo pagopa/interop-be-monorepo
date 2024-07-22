@@ -99,7 +99,7 @@ async function getAttribute(
   if (!data) {
     return undefined;
   } else {
-    const result = Attribute.safeParse(data);
+    const result = Attribute.safeParse(data.data);
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
@@ -118,7 +118,6 @@ async function getTenant(
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
   });
-
   if (!data) {
     return undefined;
   } else {
@@ -128,7 +127,6 @@ async function getTenant(
         data: Tenant,
       })
       .safeParse(data);
-
     if (!result.success) {
       throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
@@ -320,6 +318,12 @@ export function readModelServiceBuilder(
 
       const attributePromises = attributeIds.map(fetchAttributeById);
       return Promise.all(attributePromises);
+    },
+
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<Attribute | undefined> {
+      return getAttribute(attributes, { "data.id": attributeId });
     },
 
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
