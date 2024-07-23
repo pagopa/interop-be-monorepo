@@ -263,8 +263,7 @@ export function purposeServiceBuilder(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
       );
       return await purposeClient.createPurpose(createSeed, {
-        headers: { ...headers },
-        withCredentials: true,
+        headers,
       });
     },
     async createPurposeFromEService(
@@ -286,7 +285,6 @@ export function purposeServiceBuilder(
         updateSeed,
         {
           headers,
-          withCredentials: true,
           params: {
             id,
           },
