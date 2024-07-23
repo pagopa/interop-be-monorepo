@@ -1052,6 +1052,7 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
       );
+      const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
@@ -1059,10 +1060,7 @@ export function purposeServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
-      const riskAnalysis = retrieveRiskAnalysis(
-        unsafeBrandId(seed.riskAnalysisId),
-        eservice
-      );
+      const riskAnalysis = retrieveRiskAnalysis(riskAnalysisId, eservice);
 
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,
@@ -1108,7 +1106,10 @@ export function purposeServiceBuilder(
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
         freeOfChargeReason: seed.freeOfChargeReason,
-        riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+        riskAnalysisForm: {
+          ...riskAnalysis.riskAnalysisForm,
+          riskAnalysisId,
+        },
       };
 
       await repository.createEvent(
