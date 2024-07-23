@@ -138,9 +138,30 @@ const catalogRouter = (
       }
     )
     .post("/eservices", async (_req, res) => res.status(501).send())
-    .get("/eservices/:eServiceId/consumers", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/eservices/:eServiceId/consumers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getEServiceConsumers(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+
+        return res
+          .header(
+            "Content-Disposition",
+            `attachment; filename=${response.filename}`
+          )
+          .header("Content-Type", "application/octet-stream")
+          .send(response.file);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
       async (_req, res) => res.status(501).send()
