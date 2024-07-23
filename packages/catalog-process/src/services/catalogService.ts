@@ -36,24 +36,19 @@ import {
   RiskAnalysisId,
   eserviceMode,
 } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
-import {
-  Consumer,
-  EServiceDescriptorSeed,
-  UpdateEServiceDescriptorSeed,
-  UpdateEServiceDescriptorQuotasSeed,
-  EServiceAttributesSeed,
-  EServiceRiskAnalysisSeed,
-} from "../model/domain/models.js";
+import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
@@ -73,12 +68,6 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import {
-  ApiEServiceDescriptorDocumentSeed,
-  ApiEServiceDescriptorDocumentUpdateSeed,
-  ApiEServiceSeed,
-  ApiGetEServicesFilters,
-} from "../model/types.js";
 import { config } from "../config/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
@@ -96,6 +85,8 @@ import {
   eServiceRiskAnalysisNotFound,
   prettyNameDuplicate,
   riskAnalysisDuplicated,
+  eserviceWithoutValidDescriptors,
+  audienceCannotBeEmpty,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -275,7 +266,7 @@ const replaceRiskAnalysis = (
 };
 
 async function parseAndCheckAttributes(
-  attributesSeed: EServiceAttributesSeed,
+  attributesSeed: catalogApi.AttributesSeed,
   readModelService: ReadModelService
 ): Promise<EserviceAttributes> {
   const certifiedAttributes = attributesSeed.certified;
@@ -415,12 +406,10 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
+      seed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(
-        `Creating EService with service name ${apiEServicesSeed.name}`
-      );
+      logger.info(`Creating EService with name ${seed.name}`);
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
@@ -428,35 +417,85 @@ export function catalogServiceBuilder(
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
-          name: apiEServicesSeed.name,
+          name: seed.name,
           producerId: authData.organizationId,
         });
       if (eserviceWithSameName) {
-        throw eServiceDuplicate(apiEServicesSeed.name);
+        throw eServiceDuplicate(seed.name);
       }
 
+      const creationDate = new Date();
       const newEService: EService = {
         id: generateId(),
         producerId: authData.organizationId,
-        name: apiEServicesSeed.name,
-        description: apiEServicesSeed.description,
-        technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
-        mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
+        name: seed.name,
+        description: seed.description,
+        technology: apiTechnologyToTechnology(seed.technology),
+        mode: apiEServiceModeToEServiceMode(seed.mode),
         attributes: undefined,
         descriptors: [],
-        createdAt: new Date(),
+        createdAt: creationDate,
         riskAnalysis: [],
       };
 
-      const event = toCreateEventEServiceAdded(newEService, correlationId);
-      await repository.createEvent(event);
+      const eserviceCreationEvent = toCreateEventEServiceAdded(
+        newEService,
+        correlationId
+      );
 
-      return newEService;
+      if (
+        seed.descriptor.dailyCallsPerConsumer > seed.descriptor.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const draftDescriptor: Descriptor = {
+        id: generateId(),
+        description: seed.descriptor.description,
+        version: "1",
+        interface: undefined,
+        docs: [],
+        state: descriptorState.draft,
+        voucherLifespan: seed.descriptor.voucherLifespan,
+        audience: seed.descriptor.audience,
+        dailyCallsPerConsumer: seed.descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.descriptor.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.descriptor.agreementApprovalPolicy
+          ),
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: creationDate,
+        attributes: { certified: [], declared: [], verified: [] },
+      };
+
+      const eserviceWithDescriptor: EService = {
+        ...newEService,
+        descriptors: [draftDescriptor],
+      };
+
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
+        eserviceWithDescriptor,
+        0,
+        draftDescriptor.id,
+        correlationId
+      );
+
+      await repository.createEvents([
+        eserviceCreationEvent,
+        descriptorCreationEvent,
+      ]);
+
+      return eserviceWithDescriptor;
     },
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: ApiEServiceSeed,
+      eserviceSeed: catalogApi.UpdateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
@@ -553,7 +592,7 @@ export function catalogServiceBuilder(
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      document: ApiEServiceDescriptorDocumentSeed,
+      document: catalogApi.CreateEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -627,7 +666,6 @@ export function catalogServiceBuilder(
               correlationId
             )
           : toCreateEventEServiceDocumentAdded(
-              eserviceId,
               eservice.metadata.version,
               {
                 descriptorId,
@@ -716,7 +754,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
+      apiEServiceDescriptorDocumentUpdateSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Document> {
       logger.info(
@@ -801,7 +839,7 @@ export function catalogServiceBuilder(
 
     async createDescriptor(
       eserviceId: EServiceId,
-      eserviceDescriptorSeed: EServiceDescriptorSeed,
+      eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
@@ -826,6 +864,7 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
+      const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
@@ -855,16 +894,56 @@ export function catalogServiceBuilder(
         descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
-      const event = toCreateEventEServiceDescriptorAdded(
-        eservice.data.id,
-        eservice.metadata.version,
-        descriptorId,
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         newEservice,
+        eserviceVersion,
+        descriptorId,
         correlationId
       );
-      await repository.createEvent(event);
 
-      return newDescriptor;
+      const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
+        (acc, document, index) => {
+          const newDocument: Document = {
+            id: unsafeBrandId(document.documentId),
+            name: document.fileName,
+            contentType: document.contentType,
+            prettyName: document.prettyName,
+            path: document.filePath,
+            checksum: document.checksum,
+            uploadDate: new Date(),
+          };
+
+          const descriptorWithDocs: Descriptor = {
+            ...acc.descriptorWithDocs,
+            docs: [...acc.descriptorWithDocs.docs, newDocument],
+          };
+          const updatedEService = replaceDescriptor(
+            newEservice,
+            descriptorWithDocs
+          );
+          const version = eserviceVersion + index + 1;
+          const documentEvent = toCreateEventEServiceDocumentAdded(
+            version,
+            {
+              descriptorId,
+              documentId: unsafeBrandId(document.documentId),
+              eservice: updatedEService,
+            },
+            correlationId
+          );
+          return {
+            events: [...acc.events, documentEvent],
+            descriptorWithDocs,
+          };
+        },
+        {
+          events: [descriptorCreationEvent],
+          descriptorWithDocs: newDescriptor,
+        }
+      );
+
+      await repository.createEvents(events);
+      return descriptorWithDocs;
     },
 
     async deleteDraftDescriptor(
@@ -921,7 +1000,7 @@ export function catalogServiceBuilder(
     async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorSeed,
+      seed: catalogApi.UpdateEServiceDescriptorSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1006,6 +1085,10 @@ export function catalogServiceBuilder(
         );
         assertTenantKindExists(tenant);
         assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
+      }
+
+      if (descriptor.audience.length === 0) {
+        throw audienceCannotBeEmpty(descriptor.id);
       }
 
       const currentActiveDescriptor = eservice.data.descriptors.find(
@@ -1328,7 +1411,7 @@ export function catalogServiceBuilder(
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorQuotasSeed,
+      seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1377,7 +1460,7 @@ export function catalogServiceBuilder(
     },
     async createRiskAnalysis(
       eserviceId: EServiceId,
-      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
@@ -1435,7 +1518,7 @@ export function catalogServiceBuilder(
     async updateRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
-      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
@@ -1532,6 +1615,39 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceDescription(
+      eserviceId: EServiceId,
+      description: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} description`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
     },
   };
 }

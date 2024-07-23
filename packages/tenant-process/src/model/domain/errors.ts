@@ -19,7 +19,9 @@ export const errorCodes = {
   expirationDateCannotBeInThePast: "0010",
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
-  tenantIsNotCertifier: "0013",
+  tenantIsNotACertifier: "0013",
+  attributeDoesNotBelongToCertifier: "0014",
+  certifiedAttributeAlreadyAssigned: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -147,10 +149,35 @@ export function selfcareIdConflict({
   });
 }
 
-export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
+export function tenantIsNotACertifier(
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${tenantId} not a certifier`,
-    code: "tenantIsNotCertifier",
-    title: "Tenant is not a certifier",
+    detail: `Organization ${organizationId} not allowed to assign attributes`,
+    code: "tenantIsNotACertifier",
+    title: "Tenant Is Not A Certifier",
+  });
+}
+
+export function attributeDoesNotBelongToCertifier(
+  attributeId: AttributeId,
+  organizationId: TenantId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
+    code: "attributeDoesNotBelongToCertifier",
+    title: "Attribute does not belong to Certifier",
+  });
+}
+
+export function certifiedAttributeAlreadyAssigned(
+  attributeId: AttributeId,
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
+    code: "certifiedAttributeAlreadyAssigned",
+    title: "certified Attribute Already Assigned",
   });
 }
