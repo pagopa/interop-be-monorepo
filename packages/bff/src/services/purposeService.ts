@@ -273,8 +273,7 @@ export function purposeServiceBuilder(
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
       logger.info("Creating purpose from e-service");
       return await purposeClient.createPurposeFromEService(createSeed, {
-        headers: { ...headers },
-        withCredentials: true,
+        headers,
       });
     },
     async reversePurposeUpdate(
