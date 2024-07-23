@@ -258,6 +258,9 @@ importers:
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -277,6 +280,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
       handlebars:
         specifier: 4.7.7
         version: 4.7.7
@@ -465,6 +471,9 @@ importers:
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -538,6 +547,9 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -614,6 +626,9 @@ importers:
       pagopa-interop-selfcare-v2-client:
         specifier: workspace:*
         version: link:../selfcare-v2-client
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -633,6 +648,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -1500,6 +1518,9 @@ importers:
       axios:
         specifier: 1.7.2
         version: 1.7.2
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -8130,6 +8151,13 @@ packages:
 
   /qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
+    engines: {node: '>=0.6'}
+    dependencies:
+      side-channel: 1.0.6
+    dev: false
+
+  /qs@6.12.3:
+    resolution: {integrity: sha512-AWJm14H1vVaO/iNZ4/hO+HyaTehuy9nRqVdkTqlJt0HWvBiBIEXFmb4C0DGeYo3Xes9rrEW+TxHsaigCbN5ICQ==}
     engines: {node: '>=0.6'}
     dependencies:
       side-channel: 1.0.6

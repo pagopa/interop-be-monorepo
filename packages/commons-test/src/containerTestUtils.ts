@@ -17,7 +17,7 @@ export const TEST_MINIO_IMAGE =
 
 export const TEST_MAILPIT_HTTP_PORT = 8025;
 export const TEST_MAILPIT_SMTP_PORT = 465;
-export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
+export const TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.19";
 
 export const TEST_REDIS_IMAGE = "redis:7.2.5-alpine3.20";
 export const TEST_REDIS_PORT = 6379;
