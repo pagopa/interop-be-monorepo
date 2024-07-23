@@ -10,7 +10,9 @@ COPY pnpm-workspace.yaml /app/
 COPY ./packages/bff/package.json /app/packages/bff/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/selfcare-v2-client/package.json /app/packages/selfcare-v2-client/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
+COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -19,7 +21,9 @@ COPY turbo.json /app/
 COPY ./packages/bff /app/packages/bff
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/selfcare-v2-client /app/packages/selfcare-v2-client
 COPY ./packages/api-clients /app/packages/api-clients
+COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -30,7 +34,9 @@ RUN pnpm build && \
       package*.json packages/bff/package*.json \
       packages/commons \
       packages/models \
-      packages/api-clients \
+      packages/selfcare-v2-client \
+      packages/api-clients  \
+      packages/agreement-lifecycle \
       packages/bff/dist && \
     find /out -exec touch -h --date=@0 {} \;
 

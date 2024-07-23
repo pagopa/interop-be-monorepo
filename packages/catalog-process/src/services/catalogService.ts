@@ -86,6 +86,7 @@ import {
   prettyNameDuplicate,
   riskAnalysisDuplicated,
   eserviceWithoutValidDescriptors,
+  audienceCannotBeEmpty,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -1084,6 +1085,10 @@ export function catalogServiceBuilder(
         );
         assertTenantKindExists(tenant);
         assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
+      }
+
+      if (descriptor.audience.length === 0) {
+        throw audienceCannotBeEmpty(descriptor.id);
       }
 
       const currentActiveDescriptor = eservice.data.descriptors.find(
