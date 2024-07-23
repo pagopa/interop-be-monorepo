@@ -1,7 +1,5 @@
-name: CI
+name: PR validation
 on:
-  push:
-    branches: main
   pull_request:
 
 jobs:
@@ -57,15 +55,45 @@ jobs:
           run_install: true
       - run: pnpm test
 
-  build:
-    name: Build
+  find_dockerfiles:
+    name: Find Dockerfiles
     runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - name: Find packages
+        id: set_packages_output
+        run: |
+          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+  docker_build:
+    name: Build
+    needs: [find_dockerfiles]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
+    env:
+        DOCKER_BUILD_SUMMARY: "false"
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Build Docker image
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-      - run: pnpm build
+          context: .
+          file: packages/${{ matrix.package }}/Dockerfile
+          push: false
+
+  check_build_result:
+    name: Build Result
+    needs: [docker_build]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Check build result
+        run: |
+          [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
+          exit 0
