@@ -18,6 +18,7 @@ import {
   AttributeReadmodel,
   Agreement,
   AgreementState,
+  TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -27,7 +28,7 @@ import { attributeNotFound } from "../model/domain/errors.js";
 
 function listTenantsFilters(
   name: string | undefined
-): Filter<{ data: Tenant }> {
+): Filter<{ data: TenantReadModel }> {
   const nameFilter = name
     ? {
         "data.name": {
@@ -57,7 +58,7 @@ export const getTenants = async ({
   allowDiskUse = false,
 }: {
   tenants: TenantCollection;
-  aggregationPipeline: Array<Filter<Tenant>>;
+  aggregationPipeline: Array<Filter<TenantReadModel>>;
   offset: number;
   limit: number;
   allowDiskUse?: boolean;
@@ -114,7 +115,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
