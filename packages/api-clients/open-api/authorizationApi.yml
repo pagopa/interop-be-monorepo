@@ -89,6 +89,89 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /clientsWithKeys:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - client
+      summary: List clients with keys
+      description: List clients with keys
+      operationId: getClientsWithKeys
+      parameters:
+        - in: query
+          name: name
+          description: Filter for the client name
+          schema:
+            type: string
+        - in: query
+          name: userIds
+          description: comma separated sequence of user IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - name: consumerId
+          in: query
+          description: ID of Consumer that MUST be related to the Client
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: purposeId
+          in: query
+          description: ID of Purpose that MUST be related to the Client
+          schema:
+            type: string
+            format: uuid
+        - name: kind
+          in: query
+          description: type of Client to be retrieved
+          schema:
+            $ref: "#/components/schemas/ClientKind"
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Clients found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientsWithKeys"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /clients:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -569,6 +652,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/keys/{keyId}/bundle":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security: []
+      tags:
+        - tokenGeneration
+      summary: Returns a key and its client by client and key identifier (kid).
+      description: "Given a client and key identifiers it returns the corresponding key and client, if any"
+      operationId: getKeyWithClientByKeyId
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of the client to look up
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: keyId
+          in: path
+          description: the unique identifier of the key (kid) to lookup
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the corresponding key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyWithClient"
+        "404":
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users/{userId}/keys":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -828,6 +948,31 @@ components:
       enum:
         - CONSUMER
         - API
+    ClientWithKeys:
+      type: object
+      properties:
+        client:
+          $ref: "#/components/schemas/Client"
+        keys:
+          type: array
+          items:
+            $ref: "#/components/schemas/Key"
+      required:
+        - client
+        - keys
+    ClientsWithKeys:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientWithKeys"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Clients:
       type: object
       properties:
@@ -884,6 +1029,76 @@ components:
             $ref: "#/components/schemas/Key"
       required:
         - keys
+    KeyWithClient:
+      type: object
+      properties:
+        key:
+          $ref: "#/components/schemas/JWKKey"
+        client:
+          $ref: "#/components/schemas/Client"
+      required:
+        - key
+        - client
+    JWKKey:
+      description: "Models a JWK"
+      type: object
+      properties:
+        kty:
+          type: string
+        key_ops:
+          type: array
+          items:
+            type: string
+        use:
+          type: string
+        alg:
+          type: string
+        kid:
+          type: string
+        x5u:
+          type: string
+          minLength: 1
+        x5t:
+          type: string
+        "x5t#S256":
+          type: string
+        x5c:
+          type: array
+          items:
+            type: string
+        crv:
+          type: string
+        x:
+          type: string
+        "y":
+          type: string
+        d:
+          type: string
+        k:
+          type: string
+        "n":
+          type: string
+        e:
+          type: string
+        p:
+          type: string
+        q:
+          type: string
+        dp:
+          type: string
+        dq:
+          type: string
+        qi:
+          type: string
+        oth:
+          uniqueItems: false
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/OtherPrimeInfo"
+      required:
+        - kty
+        - kid
     OtherPrimeInfo:
       title: OtherPrimeInfo
       type: object
