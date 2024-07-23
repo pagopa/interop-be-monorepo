@@ -93,11 +93,7 @@ const apiGatewayRouter = (
 
           return res.status(200).json(attributes).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper, // TODO map errors
-            ctx.logger
-          );
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

@@ -70,7 +70,8 @@ export function agreementServiceBuilder(
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
       // TODO Doubt: is it correct that in this case we succeed even if the agreement is in draft state?
-      // In the other two cases we never return info about draft agreements.
+      // In the two previous methods, we throw an error if the agreement is in draft state.
+      // If we do the same here, we should remember to update the error mapper in the router.
       const agreement = await agreementProcessClient.getAgreementById({
         headers,
         params: {
