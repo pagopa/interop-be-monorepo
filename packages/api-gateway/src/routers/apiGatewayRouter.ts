@@ -38,12 +38,12 @@ const apiGatewayRouter = (
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
         try {
-          const response = await agreementService.getAgreementById(
+          const agreement = await agreementService.getAgreementById(
             ctx,
             req.params.agreementId
           );
 
-          return res.status(200).json(response).send();
+          return res.status(200).json(agreement).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
