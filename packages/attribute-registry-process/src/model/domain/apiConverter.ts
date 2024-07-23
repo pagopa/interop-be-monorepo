@@ -1,18 +1,20 @@
 import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
-import { z } from "zod";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import * as api from "../generated/api.js";
-import { ApiAttributeKind } from "./models.js";
 
-export const toApiAttributeKind = (input: AttributeKind): ApiAttributeKind =>
-  match<AttributeKind, ApiAttributeKind>(input)
+export const toApiAttributeKind = (
+  input: AttributeKind
+): attributeRegistryApi.AttributeKind =>
+  match<AttributeKind, attributeRegistryApi.AttributeKind>(input)
     .with(attributeKind.certified, () => "CERTIFIED")
     .with(attributeKind.verified, () => "VERIFIED")
     .with(attributeKind.declared, () => "DECLARED")
     .exhaustive();
 
-export const toAttributeKind = (input: ApiAttributeKind): AttributeKind =>
-  match<ApiAttributeKind, AttributeKind>(input)
+export const toAttributeKind = (
+  input: attributeRegistryApi.AttributeKind
+): AttributeKind =>
+  match<attributeRegistryApi.AttributeKind, AttributeKind>(input)
     .with("CERTIFIED", () => attributeKind.certified)
     .with("VERIFIED", () => attributeKind.verified)
     .with("DECLARED", () => attributeKind.declared)
@@ -20,7 +22,7 @@ export const toAttributeKind = (input: ApiAttributeKind): AttributeKind =>
 
 export const toApiAttribute = (
   attribute: Attribute
-): z.infer<typeof api.schemas.Attribute> => ({
+): attributeRegistryApi.Attribute => ({
   id: attribute.id,
   name: attribute.name,
   kind: toApiAttributeKind(attribute.kind),

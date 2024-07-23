@@ -14,7 +14,7 @@ import {
   toClientV2,
   toReadModelClient,
 } from "pagopa-interop-models";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 export const { cleanup, readModelRepository, postgresDB } =
@@ -29,7 +29,8 @@ export const { agreements, clients, eservices, keys, purposes, tenants } =
   readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
-export const selfcareV2Client: SelfcareV2Client = {} as SelfcareV2Client;
+export const selfcareV2Client: SelfcareV2InstitutionClient =
+  {} as SelfcareV2InstitutionClient;
 
 export const authorizationService = authorizationServiceBuilder(
   postgresDB,
