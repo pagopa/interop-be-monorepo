@@ -61,3 +61,17 @@ message TenantMailAddedV2 {
   string mailId = 1;
   TenantV2 tenant = 2;
 }
+
+message TenantKindUpdatedV2 {
+  TenantKindV2 oldKind = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantMailDeletedV2 {
+  string mailId = 1;
+  TenantV2 tenant = 2;
+}
+
+message MaintenanceTenantPromotedToCertifierV2{
+   TenantV2 tenant = 1;
+}

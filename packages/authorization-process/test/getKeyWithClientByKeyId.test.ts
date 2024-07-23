@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto, { JsonWebKey } from "crypto";
-import {
-  createJWK,
-  decodeBase64ToPem,
-  genericLogger,
-} from "pagopa-interop-commons";
+import { createJWK, genericLogger } from "pagopa-interop-commons";
 import { Client } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { clientNotFound, keyNotFound } from "../src/model/domain/errors.js";
-import { ApiJWKKey } from "../src/model/domain/models.js";
+import { clientToApiClient } from "../src/model/domain/apiConverter.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getKeyWithClientByKeyId", async () => {
@@ -19,20 +16,20 @@ describe("getKeyWithClientByKeyId", async () => {
       modulusLength: 2048,
     }).publicKey;
 
-    const pemKey = Buffer.from(
+    const base64Key = Buffer.from(
       key.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const mockKey1 = { ...getMockKey(), encodedPem: pemKey };
+    const mockKey1 = { ...getMockKey(), encodedPem: base64Key };
 
-    const jwk: JsonWebKey = createJWK(decodeBase64ToPem(pemKey));
+    const jwk: JsonWebKey = createJWK(base64Key);
 
     const mockKey2 = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
       keys: [mockKey1, mockKey2],
     };
-    const expectedJwkKey: ApiJWKKey = {
+    const expectedJwkKey: authorizationApi.JWKKey = {
       ...jwk,
       kty: jwk.kty!,
       kid: mockKey1.kid,
@@ -40,14 +37,14 @@ describe("getKeyWithClientByKeyId", async () => {
     };
     await addOneClient(mockClient);
 
-    const { JWKKey, client } =
+    const { key: jwkKey, client } =
       await authorizationService.getKeyWithClientByKeyId({
         clientId: mockClient.id,
         kid: mockKey1.kid,
         logger: genericLogger,
       });
-    expect(JWKKey).toEqual(expectedJwkKey);
-    expect(client).toEqual(mockClient);
+    expect(jwkKey).toEqual(expectedJwkKey);
+    expect(client).toEqual(clientToApiClient(mockClient, { showUsers: false }));
   });
 
   it("should throw clientNotFound if the client doesn't exist", async () => {

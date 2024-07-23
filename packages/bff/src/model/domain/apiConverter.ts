@@ -1,14 +1,15 @@
+import { createHash } from "crypto";
 import {
-  InstitutionResource,
-  ProductResource,
-  UserResource,
-} from "pagopa-interop-selfcare-v2-client";
+  bffApi,
+  attributeRegistryApi,
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
-import { bffApi } from "pagopa-interop-api-clients";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
-  input: InstitutionResource
+  input: selfcareV2ClientApi.InstitutionResource
 ): bffApi.SelfcareInstitution =>
   match(input)
     .with(
@@ -37,7 +38,7 @@ export const toApiSelfcareInstitution = (
     });
 
 export const toApiSelfcareProduct = (
-  input: ProductResource
+  input: selfcareV2ClientApi.ProductResource
 ): bffApi.SelfcareProduct =>
   match(input)
     .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
@@ -55,7 +56,7 @@ export const toApiSelfcareProduct = (
     });
 
 export const toApiSelfcareUser = (
-  input: UserResource,
+  input: selfcareV2ClientApi.UserResource,
   tenantId: string
 ): bffApi.User =>
   match(input)
@@ -89,3 +90,18 @@ export const toApiSelfcareUser = (
     .otherwise(() => {
       throw selfcareEntityNotFilled("UserResource", "unknown");
     });
+
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
+
+export const toApiAttributeProcessSeed = (
+  seed: bffApi.AttributeSeed
+): attributeRegistryApi.CertifiedAttributeSeed => ({
+  ...seed,
+  code: createHash("sha256").update(seed.name).digest("hex"),
+});

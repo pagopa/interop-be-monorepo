@@ -65,6 +65,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already assigned to Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       requestBody:
         content:
           application/json:
@@ -505,7 +517,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: addDeclaredAttribute
       description: Adds a Declared attribute to the requesting Tenant
       requestBody:
@@ -539,7 +551,7 @@ paths:
           format: uuid
     delete:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: revokeDeclaredAttribute
       description: Revokes a Declared attribute to the requesting Tenant
       responses:
@@ -573,7 +585,7 @@ paths:
           format: uuid
     post:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: verifyVerifiedAttribute
       description: Verify or de-revoke a Verified attribute to a Tenant by the requester Tenant
       requestBody:
@@ -620,7 +632,7 @@ paths:
           format: uuid
     delete:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
       responses:
@@ -738,6 +750,230 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/certified:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenantAttribute
+      operationId: addCertifiedAttribute
+      description: Add a certified attribute to a Tenant by the requester Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifiedTenantAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/certified/{attributeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: attributeId
+        in: path
+        description: Attribute id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - tenantAttribute
+      operationId: revokeCertifiedAttributeById
+      description: Revoke a certified attribute to a Tenant by the requester Tenant
+      responses:
+        "204":
+          description: Certified Attribute revoked
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /maintenance/tenants/{tenantId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - tenant
+      summary: Deletes a tenant
+      operationId: maintenanceTenantDelete
+      responses:
+        "204":
+          description: Tenant Deleted
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentVersion:
+                  type: number
+              required:
+                - currentVersion
+        required: true
+  /maintenance/tenants/{tenantId}/certifier:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      operationId: addCerifierId
+      description: Add a certifierId to Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifierPromotionPayload"
+        required: true
+      responses:
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/mails/{mailId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: mailId
+        in: path
+        description: the mail id
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - tenant
+      summary: Delete a tenant mail
+      operationId: deleteTenantMail
+      responses:
+        "204":
+          description: Tenant Mail Deleted
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/mails:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      summary: Add a tenant mail
+      operationId: addTenantMail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MailSeed"
+      responses:
+        "204":
+          description: Tenant Mail Added
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -796,6 +1032,14 @@ components:
           maxLength: 64
       required:
         - code
+    CertifiedTenantAttributeSeed:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     Tenant:
       description: Tenant model
       type: object
@@ -888,7 +1132,6 @@ components:
         - name
         - attributeId
         - attributeName
-
     CertifiedAttributes:
       type: object
       properties:
@@ -1115,6 +1358,31 @@ components:
         id:
           type: string
           format: uuid
+    MailSeed:
+      description: A specific kind of mail
+      type: object
+      properties:
+        kind:
+          $ref: "#/components/schemas/MailKind"
+        address:
+          type: string
+          minLength: 5
+          maxLength: 320
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - kind
+        - address
+    CertifierPromotionPayload:
+      description: Certifier promotion payload
+      type: object
+      properties:
+        certifierId:
+          type: string
+      required:
+        - certifierId
     Problem:
       properties:
         type:

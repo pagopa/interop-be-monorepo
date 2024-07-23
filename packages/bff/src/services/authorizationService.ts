@@ -1,3 +1,4 @@
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   AuthToken,
   CustomClaims,
@@ -11,17 +12,23 @@ import {
   SELFCARE_ID_CLAIM,
   SessionClaims,
   USER_ROLES,
+  UID,
   decodeJwtToken,
+  userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
+import { config } from "../config/config.js";
 import {
   missingClaim,
   tenantLoginNotAllowed,
   tokenVerificationFailed,
+  missingSelfcareId,
 } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { config } from "../config/config.js";
+import { validateSamlResponse } from "../utilities/samlValidator.js";
+
+const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
@@ -94,6 +101,35 @@ export function authorizationServiceBuilder(
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const buildSupportClaims = (selfcareId: string, tenant: tenantApi.Tenant) => {
+    const organization = {
+      id: selfcareId,
+      name: tenant.name,
+      roles: [
+        {
+          role: userRoles.SUPPORT_ROLE,
+        },
+      ],
+    };
+
+    const selfcareClaims = {
+      [ORGANIZATION]: organization,
+      [UID]: SUPPORT_USER_ID,
+    };
+
+    return {
+      ...buildJwtCustomClaims(
+        userRoles.SUPPORT_ROLE,
+        tenant.id,
+        selfcareId,
+        tenant.externalId.origin,
+        tenant.externalId.value
+      ),
+      ...selfcareClaims,
+    };
+  };
+
   return {
     getSessionToken: async (
       correlationId: string,
@@ -142,6 +178,40 @@ export function authorizationServiceBuilder(
           ...sessionClaims,
           ...customClaims,
         });
+      return sessionToken;
+    },
+    samlLoginCallback: async (
+      correlationId: string,
+      samlResponse: string
+    ): Promise<string> => {
+      validateSamlResponse(samlResponse);
+
+      const { serialized } =
+        await interopTokenGenerator.generateInternalToken();
+
+      const headers = {
+        "X-Correlation-Id": correlationId,
+        Authorization: `Bearer ${serialized}`,
+      };
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: config.pagoPaTenantId },
+        headers,
+      });
+
+      const selfcareId = tenant.selfcareId;
+      if (!selfcareId) {
+        throw missingSelfcareId(config.pagoPaTenantId);
+      }
+
+      const claims = buildSupportClaims(selfcareId, tenant);
+
+      const { serialized: sessionToken } =
+        await interopTokenGenerator.generateSessionToken(
+          claims,
+          config.supportLandingJwtDuration
+        );
+
       return sessionToken;
     },
   };

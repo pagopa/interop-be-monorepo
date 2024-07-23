@@ -1,9 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
-/* eslint-disable functional/immutable-data */
 import {
   FileManagerError,
   formatDateyyyyMMddHHmmss,
@@ -54,7 +52,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -94,7 +92,7 @@ describe("upgrade Agreement", () => {
     vi.useRealTimers();
   });
 
-  const mockSelfcareUserResponse: UserResponse = {
+  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
     email: "test@test.com",
     name: "Test Name",
     surname: "Test Surname",
@@ -103,6 +101,7 @@ describe("upgrade Agreement", () => {
   };
 
   beforeEach(async () => {
+    // eslint-disable-next-line functional/immutable-data
     selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
       async () => mockSelfcareUserResponse
     );

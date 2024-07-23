@@ -1,12 +1,13 @@
-import { z } from "zod";
 import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  S3Config,
+  SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
-import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
+import { z } from "zod";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -33,9 +34,11 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -65,11 +68,26 @@ export type PurposeProcessServerConfig = z.infer<
 
 export const AuthorizationProcessServerConfig = z
   .object({
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
     TENANT_ALLOWED_ORIGINS: z.string(),
+    SAML_AUDIENCE: z.string(),
+    PAGOPA_TENANT_ID: z.string(),
+    SAML_CALLBACK_URL: z.string().url(),
+    SAML_CALLBACK_ERROR_URL: z.string().url(),
+    SUPPORT_LANDING_TOKEN_DURATION_SECONDS: z.coerce.number().default(300),
   })
   .transform((c) => ({
+    authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
+    samlAudience: c.SAML_AUDIENCE,
+    pagoPaTenantId: c.PAGOPA_TENANT_ID,
+    samlCallbackUrl: c.SAML_CALLBACK_URL,
+    samlCallbackErrorUrl: c.SAML_CALLBACK_ERROR_URL,
+    supportLandingJwtDuration: c.SUPPORT_LANDING_TOKEN_DURATION_SECONDS,
   }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
 
 export const AllowedListConfig = z
   .object({
@@ -83,6 +101,14 @@ export const AllowedListConfig = z
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
 
+export const S3RiskAnalysisConfig = z
+  .object({
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+  }));
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -93,7 +119,10 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig);
-export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
+  .and(SelfCareConfig)
+  .and(S3RiskAnalysisConfig)
+  .and(S3Config)
+  .and(PurposeProcessServerConfig);
 
+export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

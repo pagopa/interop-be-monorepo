@@ -1,4 +1,3 @@
-/* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -6,6 +5,7 @@ import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -36,6 +36,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  SelfcareId,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -47,7 +48,6 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { UserResponse } from "pagopa-interop-selfcare-v2-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agreementActivableStates,
@@ -83,7 +83,7 @@ import {
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  const mockSelfcareUserResponse: UserResponse = {
+  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
     email: "test@test.com",
     name: "Test Name",
     surname: "Test Surname",
@@ -91,7 +91,8 @@ describe("activate agreement", () => {
     id: generateId(),
   };
 
-  let mockSelfcareUserResponseWithMissingInfo: UserResponse =
+  // eslint-disable-next-line functional/no-let
+  let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
     mockSelfcareUserResponse;
   while (
     mockSelfcareUserResponseWithMissingInfo.name &&
@@ -1717,7 +1718,7 @@ describe("activate agreement", () => {
 
     it("should throw agreementSelfcareIdNotFound when the contract builder cannot find consumer selfcareId", async () => {
       const producer: Tenant = getMockTenant();
-      const consumer: Tenant = getMockTenant();
+      const consumer: Tenant = { ...getMockTenant(), selfcareId: undefined };
 
       const authData = getRandomAuthData(producer.id);
       const descriptor: Descriptor = {
@@ -1885,11 +1886,13 @@ describe("activate agreement", () => {
           id === submissionStampUserId ? mockSelfcareUserResponse : undefined
       );
 
-      const producer: Tenant = getMockTenant();
-      const consumer: Tenant = {
+      const mockProducerSelfcareId: SelfcareId = generateId();
+
+      const producer: Tenant = {
         ...getMockTenant(),
-        selfcareId: generateId(),
+        selfcareId: mockProducerSelfcareId,
       };
+      const consumer: Tenant = getMockTenant();
 
       const authData = getRandomAuthData(producer.id);
       const descriptor: Descriptor = {
@@ -1937,7 +1940,7 @@ describe("activate agreement", () => {
           logger: genericLogger,
         })
       ).rejects.toThrowError(
-        userNotFound(authData.selfcareId, authData.userId)
+        userNotFound(mockProducerSelfcareId, authData.userId)
       );
     });
 

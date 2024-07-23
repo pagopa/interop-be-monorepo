@@ -11,7 +11,10 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
+import {
+  emptyErrorMapper,
+  sessionTokenErrorMapper,
+} from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 
 const authorizationRouter = (
@@ -43,12 +46,35 @@ const authorizationRouter = (
         );
         return res.status(200).send({ session_token });
       } catch (error) {
-        const err = makeApiProblem(error, sessionTokenErrorMapper, logger);
+        const err = makeApiProblem(
+          error,
+          sessionTokenErrorMapper,
+          logger,
+          "Error creating a session token"
+        );
 
         return res.status(err.status).send();
       }
     })
-    .post("/support", async (_req, res) => res.status(501).send());
+    .post("/support", async (req, res) => {
+      const { correlationId, logger } = fromAppContext(req.ctx);
+
+      try {
+        const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
+        const jwt = await authorizationService.samlLoginCallback(
+          correlationId,
+          saml
+        );
+        return res.redirect(
+          302,
+          `${config.samlCallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
+        );
+      } catch (error) {
+        logger.error(`Error calling support SAML - ${error}`);
+        makeApiProblem(error, emptyErrorMapper, logger);
+        return res.redirect(302, config.samlCallbackErrorUrl);
+      }
+    });
 
   return authorizationRouter;
 };
