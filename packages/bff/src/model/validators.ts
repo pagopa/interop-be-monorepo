@@ -1,10 +1,17 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
-import { agreementApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  catalogApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { TenantId } from "pagopa-interop-models";
 import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
 import { invalidEServiceRequester } from "./domain/errors.js";
-import { TenantId } from "pagopa-interop-models";
-import { agreementApiState, catalogApiDescriptorState } from "./api/apiTypes.js";
+import {
+  agreementApiState,
+  catalogApiDescriptorState,
+} from "./api/apiTypes.js";
 
 const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
   agreementApiState.PENDING,
@@ -16,7 +23,8 @@ export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
   descriptor: catalogApi.EServiceDescriptor | undefined,
   tenant: tenantApi.Tenant
 ): boolean =>
-  descriptor !== undefined && certifiedAttributesSatisfied(
+  descriptor !== undefined &&
+  certifiedAttributesSatisfied(
     toDescriptorWithOnlyAttributes(descriptor),
     toTenantWithOnlyAttributes(tenant)
   );

@@ -143,10 +143,14 @@ export function toBffCatalogApiProducerDescriptorEService(
   const producerMail = getTenantEmail(producer);
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
-    eservice.descriptors.filter((d) => d.state !== catalogApiDescriptorState.DRAFT);
+    eservice.descriptors.filter(
+      (d) => d.state !== catalogApiDescriptorState.DRAFT
+    );
 
   const draftDescriptor: bffApi.CompactDescriptor | undefined =
-    eservice.descriptors.find((d) => d.state === catalogApiDescriptorState.DRAFT);
+    eservice.descriptors.find(
+      (d) => d.state === catalogApiDescriptorState.DRAFT
+    );
 
   return {
     id: eservice.id,
