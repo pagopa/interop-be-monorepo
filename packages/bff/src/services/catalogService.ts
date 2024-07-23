@@ -3,7 +3,10 @@ import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { EServiceId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
+import {
+  toBffCatalogApiEServiceResponse,
+  toCatalogEServiceSeed,
+} from "../model/api/apiConverter.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
@@ -140,9 +143,12 @@ export function catalogServiceBuilder(
       eServiceSeed: bffApi.EServiceSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> =>
-      await catalogProcessClient.createEService(eServiceSeed, {
-        headers,
-      }),
+      await catalogProcessClient.createEService(
+        toCatalogEServiceSeed(eServiceSeed),
+        {
+          headers,
+        }
+      ),
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
