@@ -92,9 +92,26 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/consumers/agreements/eservices", async (_req, res) =>
-      res.status(501).send()
-    )
+
+    .get("/consumers/agreements/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { limit, offset, q } = req.query;
+        const result = await agreementService.getAgreementsEserviceConsumers(
+          offset,
+          limit,
+          ctx.authData.organizationId,
+          ctx,
+          q
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/agreements/filter/producers", async (_req, res) =>
       res.status(501).send()
     )
