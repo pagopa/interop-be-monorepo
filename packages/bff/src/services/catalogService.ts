@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { WithLogger } from "pagopa-interop-commons";
 import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import { EServiceId } from "pagopa-interop-models";
-import { descriptorApiState } from "../model/api/catalogTypes.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
@@ -11,13 +11,26 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
-const ACTIVE_DESCRIPTOR_STATES_FILTER = [
-  descriptorApiState.PUBLISHED,
-  descriptorApiState.SUSPENDED,
-  descriptorApiState.DEPRECATED,
-];
+function activeDescriptorStateFilter(
+  descriptor: catalogApi.EServiceDescriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      catalogApiDescriptorState.PUBLISHED,
+      catalogApiDescriptorState.SUSPENDED,
+      catalogApiDescriptorState.DEPRECATED,
+      () => true
+    )
+    .with(
+      catalogApiDescriptorState.DRAFT,
+      catalogApiDescriptorState.ARCHIVED,
+      () => false
+    )
+    .exhaustive();
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -48,7 +61,7 @@ const enhanceCatalogEService =
 
     const latestActiveDescriptor: catalogApi.EServiceDescriptor | undefined =
       eservice.descriptors
-        .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
+        .filter(activeDescriptorStateFilter)
         .sort((a, b) => Number(a.version) - Number(b.version))
         .at(-1);
 
