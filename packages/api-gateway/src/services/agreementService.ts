@@ -4,6 +4,7 @@ import {
   apiGatewayApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import { ApiError } from "pagopa-interop-models";
 import {
   AgreementProcessClient,
   PurposeProcessClient,
@@ -11,7 +12,10 @@ import {
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
-import { producerAndConsumerParamMissing } from "../models/errors.js";
+import {
+  errorCodes,
+  producerAndConsumerParamMissing,
+} from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
 import {
@@ -122,7 +126,7 @@ export function agreementServiceBuilder(
         consumerId: agreement.consumerId,
       });
 
-      const purposes = await getAllFromPaginated<purposeApi.Purpose>(
+      const allPurposes = await getAllFromPaginated<purposeApi.Purpose>(
         async (offset, limit) =>
           await purposeProcessClient.getPurposes({
             headers,
@@ -134,7 +138,19 @@ export function agreementServiceBuilder(
           })
       );
 
-      return { purposes: purposes.map(toApiGatewayPurpose) };
+      try {
+        const purposes = allPurposes.map(toApiGatewayPurpose);
+        return { purposes };
+      } catch (e) {
+        if (
+          e instanceof ApiError &&
+          e.code === errorCodes.missingActivePurposeVersion
+        ) {
+          return { purposes: [] };
+        } else {
+          throw e;
+        }
+      }
     },
   };
 }
