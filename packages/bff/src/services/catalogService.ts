@@ -148,6 +148,53 @@ const getAttributeIds = (
   ),
 ];
 
+// Fetched all eservic consumers in a recursive way
+export const fetchAllEserviceConsumers = async (
+  catalogProcessClient: CatalogProcessClient,
+  headers: Headers,
+  eServiceId: EServiceId,
+  start: number = 0
+): Promise<catalogApi.EServiceConsumer[]> => {
+  const consumers = await getEserviceFrom(
+    catalogProcessClient,
+    eServiceId,
+    0,
+    headers
+  );
+
+  if (consumers.length >= 50) {
+    return consumers.concat(
+      await getEserviceFrom(
+        catalogProcessClient,
+        eServiceId,
+        start + 50,
+        headers
+      )
+    );
+  }
+
+  return consumers;
+};
+
+export const getEserviceFrom = async (
+  catalogProcessClient: CatalogProcessClient,
+  eserviceId: EServiceId,
+  offset: number,
+  headers: Headers
+): Promise<catalogApi.EServiceConsumer[]> =>
+  (
+    await catalogProcessClient.getEServiceConsumers({
+      headers,
+      params: {
+        eServiceId: eserviceId,
+      },
+      queries: {
+        offset,
+        limit: 50,
+      },
+    })
+  ).results;
+
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
@@ -444,6 +491,48 @@ export function catalogServiceBuilder(
           agreement,
           requesterTenant
         ),
+      };
+    },
+    getEServiceConsumers: async (
+      eserviceId: EServiceId,
+      context: WithLogger<BffAppContext>
+    ): Promise<{
+      filename: string;
+      file: Buffer;
+    }> => {
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers: context.headers,
+      });
+
+      const consumers = await fetchAllEserviceConsumers(
+        catalogProcessClient,
+        context.headers,
+        eserviceId
+      );
+
+      const currentDate = formatDateyyyyMMddThhmmss(new Date());
+      const filename = `${currentDate}-lista-fruitori-${eservice.name}.csv`;
+
+      const buildCsv = (consumers: catalogApi.EServiceConsumer[]): string =>
+        [
+          "versione,stato_versione,stato_richiesta_fruizione,fruitore,codice_ipa_fruitore",
+          ...consumers.map((c) =>
+            [
+              c.descriptorVersion,
+              c.descriptorState,
+              c.agreementState,
+              c.consumerName,
+              c.consumerExternalId,
+            ].join(",")
+          ),
+        ].join("\n");
+
+      return {
+        filename,
+        file: Buffer.from(buildCsv(consumers)),
       };
     },
   };
