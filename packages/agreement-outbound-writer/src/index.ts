@@ -7,7 +7,10 @@ import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
-const producer = await initProducer(config, "test");
+const producer = await initProducer(
+  config.producerConfig,
+  config.agreementOutboundTopic
+);
 
 async function processMessage({
   message,
@@ -37,4 +40,8 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.agreementTopic], processMessage);
+await runConsumer(
+  config.consumerConfig,
+  [config.agreementTopic],
+  processMessage
+);
