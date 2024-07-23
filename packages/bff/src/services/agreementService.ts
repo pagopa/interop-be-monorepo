@@ -16,6 +16,7 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
 import { enhanceTenantAttributes } from "../utilities/tenantHelper.js";
+import { getBulkAttributes } from "../utilities/attributesHelper.js";
 
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   const { agreementProcessClient } = clients;
@@ -334,36 +335,6 @@ async function parallelGet(
     producer,
     eservice,
   };
-}
-
-async function getBulkAttributes(
-  ids: string[],
-  attributeProcess: PagoPAInteropBeClients["attributeProcessClient"],
-  { headers }: WithLogger<BffAppContext>
-): Promise<attributeRegistryApi.Attribute[]> {
-  async function getAttributesFrom(
-    offset: number
-  ): Promise<attributeRegistryApi.Attribute[]> {
-    const response = await attributeProcess.getBulkedAttributes(ids, {
-      queries: { offset, limit: 50 },
-      headers,
-    });
-    return response.results;
-  }
-
-  async function aggregate(
-    start: number,
-    attributes: attributeRegistryApi.Attribute[]
-  ): Promise<attributeRegistryApi.Attribute[]> {
-    const attrs = await getAttributesFrom(start);
-    if (attrs.length < 50) {
-      return attributes.concat(attrs);
-    } else {
-      return aggregate(start + 50, attributes.concat(attrs));
-    }
-  }
-
-  return aggregate(0, []);
 }
 
 function filterAttributes(
