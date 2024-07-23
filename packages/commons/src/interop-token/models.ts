@@ -40,12 +40,21 @@ export type InteropToken = {
   serialized: string;
 };
 
+const Organization = z.union([
+  UIAuthToken.shape.organization.transform((o) => o.id),
+  z.object({
+    id: z.string(),
+    name: z.string(),
+    roles: z.array(z.object({ role: z.string() })),
+  }),
+]);
+
 export const SessionClaims = z.object({
   [UID]: z.string(),
-  [ORGANIZATION]: UIAuthToken.shape.organization.transform((o) => o.id),
-  [NAME]: z.string(),
-  [FAMILY_NAME]: z.string(),
-  [EMAIL]: z.string(),
+  [ORGANIZATION]: Organization,
+  [NAME]: z.string().optional(),
+  [FAMILY_NAME]: z.string().optional(),
+  [EMAIL]: z.string().optional(),
 });
 export type SessionClaims = z.infer<typeof SessionClaims>;
 

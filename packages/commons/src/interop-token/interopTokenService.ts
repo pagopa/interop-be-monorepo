@@ -63,7 +63,8 @@ export class InteropTokenGenerator {
   }
 
   public async generateSessionToken(
-    claims: SessionClaims & CustomClaims
+    claims: SessionClaims & CustomClaims,
+    jwtDuration?: number
   ): Promise<SessionToken> {
     if (
       !this.config.generatedKid ||
@@ -83,13 +84,15 @@ export class InteropTokenGenerator {
       kid: this.config.generatedKid,
     };
 
+    const duration = jwtDuration || this.config.generatedSecondsDuration;
+
     const payload: SessionJwtPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.generatedIssuer,
       aud: this.config.generatedAudience,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp: currentTimestamp + this.config.generatedSecondsDuration,
+      exp: currentTimestamp + duration,
       ...claims,
     };
 

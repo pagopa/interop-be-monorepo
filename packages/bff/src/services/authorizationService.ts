@@ -206,10 +206,11 @@ export function authorizationServiceBuilder(
 
       const claims = buildSupportClaims(selfcareId, tenant);
 
-      const { serialized: sessionToken } = await sessionTokenGenerator.generate(
-        claims,
-        config.supportLandingJwtDuration
-      );
+      const { serialized: sessionToken } =
+        await interopTokenGenerator.generateSessionToken(
+          claims,
+          config.supportLandingJwtDuration
+        );
 
       return sessionToken;
     },
