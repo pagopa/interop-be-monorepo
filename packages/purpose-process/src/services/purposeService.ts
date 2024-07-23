@@ -1052,6 +1052,7 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
       );
+      const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
@@ -1108,7 +1109,10 @@ export function purposeServiceBuilder(
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
         freeOfChargeReason: seed.freeOfChargeReason,
-        riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+        riskAnalysisForm: {
+          ...riskAnalysis.riskAnalysisForm,
+          riskAnalysisId,
+        },
       };
 
       await repository.createEvent(
