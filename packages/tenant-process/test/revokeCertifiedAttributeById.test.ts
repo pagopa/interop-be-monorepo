@@ -15,7 +15,6 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   writeInReadmodel,
   getMockAttribute,
-  readLastEventByStreamId,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
