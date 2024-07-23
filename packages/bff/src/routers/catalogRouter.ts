@@ -12,7 +12,10 @@ import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { bffGetCatalogErrorMapper } from "../utilities/errorMappers.js";
+import {
+  bffGetCatalogErrorMapper,
+  emptyErrorMapper,
+} from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const catalogRouter = (
@@ -154,6 +157,20 @@ const catalogRouter = (
     .post("/eservices/:eServiceId/riskAnalysis", async (_req, res) =>
       res.status(501).send()
     )
+    .post("/eservices/:eServiceId/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const id = await catalogService.updateEServiceDescription(
+          ctx.headers,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(200).json(id).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       async (_req, res) => res.status(501).send()

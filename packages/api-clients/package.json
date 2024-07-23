@@ -25,6 +25,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
+    "@types/qs": "6.9.15",
     "handlebars": "4.7.7",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
@@ -35,6 +36,7 @@
   },
   "dependencies": {
     "@zodios/core": "10.9.6",
+    "qs" : "6.12.3",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0"

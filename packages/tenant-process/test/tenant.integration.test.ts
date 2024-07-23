@@ -55,6 +55,7 @@ describe("Integration tests", () => {
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+  const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   describe("tenantService", () => {
@@ -323,7 +324,7 @@ describe("Integration tests", () => {
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         const updatedCertifiedTenant: Tenant = {
           ...mockTenant,
-          attributes: [{ ...getMockCertifiedTenantAttribute() }],
+          attributes: [{ ...mockCertifiedTenantAttribute }],
           updatedAt: currentDate,
           name: "A updatedCertifiedTenant",
         };
