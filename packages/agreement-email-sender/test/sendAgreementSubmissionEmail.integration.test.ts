@@ -17,11 +17,11 @@ import {
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import { senderAgreementSubmissionEmail } from "../src/services/agreementEmailSenderService.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  config,
   emailManager,
   getLatestMail,
   getMails,
