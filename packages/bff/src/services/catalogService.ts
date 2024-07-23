@@ -36,6 +36,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
+import { noDescriptorInEservice } from "../model/domain/errors.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -585,6 +586,27 @@ export function catalogServiceBuilder(
         },
         headers: ctx.headers,
       });
+    },
+    cloneEServiceByDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const eService = await catalogProcessClient.cloneEServiceByDescriptor(
+        undefined,
+        {
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+          headers: ctx.headers,
+        }
+      );
+      const eServiceDescriptorId = eService.descriptors.at(0)?.id;
+      if (!eServiceDescriptorId) {
+        throw noDescriptorInEservice(eService.id);
+      }
+      return { id: eService.id, descriptorId: eServiceDescriptorId };
     },
   };
 }
