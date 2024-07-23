@@ -144,7 +144,10 @@ describe("createReversePurpose", () => {
       description: reversePurposeSeed.description,
       isFreeOfCharge: reversePurposeSeed.isFreeOfCharge,
       freeOfChargeReason: reversePurposeSeed.freeOfChargeReason,
-      riskAnalysisForm: mockRiskAnalysis.riskAnalysisForm,
+      riskAnalysisForm: {
+        ...mockRiskAnalysis.riskAnalysisForm,
+        riskAnalysisId: mockRiskAnalysis.id,
+      },
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
