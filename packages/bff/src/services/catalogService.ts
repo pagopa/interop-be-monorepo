@@ -17,6 +17,7 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
+import { noDescriptorInEservice } from "../model/domain/errors.js";
 
 function activeDescriptorStateFilter(
   descriptor: catalogApi.EServiceDescriptor
@@ -171,6 +172,27 @@ export function catalogServiceBuilder(
         },
         headers: ctx.headers,
       });
+    },
+    cloneEServiceByDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const eService = await catalogProcessClient.cloneEServiceByDescriptor(
+        undefined,
+        {
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+          headers: ctx.headers,
+        }
+      );
+      const eServiceDescriptorId = eService.descriptors.at(0)?.id;
+      if (!eServiceDescriptorId) {
+        throw noDescriptorInEservice(eService.id);
+      }
+      return { id: eService.id, descriptorId: eServiceDescriptorId };
     },
   };
 }

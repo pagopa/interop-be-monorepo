@@ -8,6 +8,7 @@ export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
+  noDescriptorInEservice: "0004",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -41,5 +42,15 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function noDescriptorInEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No descriptor found in eservice ${eserviceId}`,
+    code: "noDescriptorInEservice",
+    title: "No descriptor in eservice",
   });
 }
