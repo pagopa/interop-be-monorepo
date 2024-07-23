@@ -3,7 +3,6 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   InteropTokenGenerator,
-  SessionTokenGenerator,
   ZodiosContext,
   fromAppContext,
   zodiosValidationErrorToApiProblem,
@@ -24,10 +23,8 @@ const supportRouter = (
   });
 
   const interopTokenGenerator = new InteropTokenGenerator(config);
-  const sessionTokenGenerator = new SessionTokenGenerator(config);
   const authorizationService = authorizationServiceBuilder(
     interopTokenGenerator,
-    sessionTokenGenerator,
     tenantProcessClient,
     config.tenantAllowedOrigins
   );

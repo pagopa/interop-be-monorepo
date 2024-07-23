@@ -1,3 +1,4 @@
+import { XMLParser } from "fast-xml-parser";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   AuthToken,
@@ -21,12 +22,13 @@ import { genericError } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import {
   missingClaim,
+  missingSelfcareId,
+  samlNotValid,
   tenantLoginNotAllowed,
   tokenVerificationFailed,
-  missingSelfcareId,
 } from "../model/domain/errors.js";
+import { SAMLResponse } from "../model/types.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
