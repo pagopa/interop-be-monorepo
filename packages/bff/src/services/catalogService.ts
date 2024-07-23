@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { WithLogger } from "pagopa-interop-commons";
 import {
+  attributeRegistryApi,
+  bffApi,
   catalogApi,
   tenantApi,
-  bffApi,
-  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -14,11 +14,12 @@ import {
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import {
-  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
-  validateRequesterId,
-} from "../model/validators.js";
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
+import { getLatestAcriveDescriptor } from "../model/mappers.js";
+import {
+  assertRequesterIsProducer,
+  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
+} from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -26,7 +27,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { getLatestAcriveDescriptor } from "../model/mappers.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -203,7 +203,7 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      validateRequesterId(requesterId, eservice);
+      assertRequesterIsProducer(requesterId, eservice);
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
