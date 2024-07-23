@@ -72,9 +72,26 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers/agreements/eservices", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/producers/agreements/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { limit, offset, states, q } = req.query;
+        const result = await agreementService.getAgreementsEserviceProducers({
+          ctx,
+          limit,
+          offset,
+          states,
+          eServiceName: q,
+          requesterId: ctx.authData.organizationId,
+        });
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/consumers/agreements/eservices", async (_req, res) =>
       res.status(501).send()
     )

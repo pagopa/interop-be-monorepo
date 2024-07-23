@@ -168,3 +168,12 @@ export function toTenantWithOnlyAttributes(
     attributes: tenant.attributes.map(toTenantAttribute).flat(),
   };
 }
+
+export function toCompactEserviceLight(
+  eservice: agreementApi.CompactEService
+): bffApi.CompactEServiceLight {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+  };
+}

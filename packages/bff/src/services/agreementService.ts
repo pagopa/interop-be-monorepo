@@ -17,6 +17,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
 import { enhanceTenantAttributes } from "../utilities/tenantHelper.js";
 import { getBulkAttributes } from "../utilities/attributesHelper.js";
+import { toCompactEserviceLight } from "../model/api/apiConverter.js";
 
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   const { agreementProcessClient } = clients;
@@ -88,6 +89,50 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return enhanceAgreement(agreement, clients, ctx);
+    },
+
+    async getAgreementsEserviceProducers({
+      ctx,
+      offset,
+      limit,
+      requesterId,
+      states,
+      eServiceName,
+    }: {
+      offset: number;
+      limit: number;
+      requesterId: string;
+      states: agreementApi.AgreementState[];
+      ctx: WithLogger<BffAppContext>;
+      eServiceName?: string;
+    }): Promise<bffApi.CompactEServicesLight> {
+      ctx.logger.info(
+        `Retrieving eServices agreement with name ${eServiceName}`
+      );
+
+      const eservices = await agreementProcessClient.getAgreementEServices({
+        queries: {
+          offset,
+          limit,
+          eServiceName,
+          producersIds: [requesterId],
+          states,
+        },
+        headers: ctx.headers,
+      });
+
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservices.totalCount,
+        },
+        results: eservices.results.map((e) => toCompactEserviceLight(e)),
+      };
     },
   };
 }
@@ -383,3 +428,12 @@ export function getCurrentDescriptor(
   }
   return descriptor;
 }
+
+const emptyPagination = (offset: number, limit: number) => ({
+  pagination: {
+    limit,
+    offset,
+    totalCount: 0,
+  },
+  results: [],
+});
