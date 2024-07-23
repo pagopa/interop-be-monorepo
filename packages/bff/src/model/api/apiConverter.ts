@@ -177,3 +177,12 @@ export function toCompactEserviceLight(
     name: eservice.name,
   };
 }
+
+export function toCompactOrganization(
+  organization: agreementApi.CompactOrganization
+): bffApi.CompactOrganization {
+  return {
+    id: organization.id,
+    name: organization.name,
+  };
+}
