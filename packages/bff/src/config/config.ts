@@ -72,17 +72,6 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
-export const AuthorizationUpdaterServerConfig = z
-  .object({
-    AUTHORIZATION_MANAGEMENT_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    authorizationManagementUrl: c.AUTHORIZATION_MANAGEMENT_URL,
-  }));
-export type AuthorizationUpdaterServerConfig = z.infer<
-  typeof AuthorizationUpdaterServerConfig
->;
-
 export const S3Config = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
@@ -117,7 +106,6 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
-  .and(AuthorizationUpdaterServerConfig)
   .and(PrivactNoticeConfig)
   .and(FileManagerConfig)
   .and(S3Config);
