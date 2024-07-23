@@ -107,7 +107,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       eServiceName?: string;
     }): Promise<bffApi.CompactEServicesLight> {
       ctx.logger.info(
-        `Retrieving eServices agreement with name ${eServiceName}`
+        `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
       const eservices = await agreementProcessClient.getAgreementEServices({
@@ -117,6 +117,41 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           eServiceName,
           producersIds: [requesterId],
           states,
+        },
+        headers: ctx.headers,
+      });
+
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservices.totalCount,
+        },
+        results: eservices.results.map((e) => toCompactEserviceLight(e)),
+      };
+    },
+
+    async getAgreementsEserviceConsumers(
+      offset: number,
+      limit: number,
+      requesterId: string,
+      ctx: WithLogger<BffAppContext>,
+      eServiceName?: string
+    ) {
+      ctx.logger.info(
+        `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+      );
+
+      const eservices = await agreementProcessClient.getAgreementEServices({
+        queries: {
+          offset,
+          limit,
+          eServiceName,
+          consumersIds: [requesterId],
         },
         headers: ctx.headers,
       });
