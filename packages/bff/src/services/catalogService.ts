@@ -2,7 +2,11 @@
 import { WithLogger } from "pagopa-interop-commons";
 import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { EServiceId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+} from "pagopa-interop-models";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
@@ -152,6 +156,21 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    deleteEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      await catalogProcessClient.deleteEServiceDocumentById(undefined, {
+        params: {
+          eServiceId,
+          descriptorId,
+          documentId,
+        },
+        headers: ctx.headers,
+      });
     },
   };
 }
