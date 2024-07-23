@@ -13,8 +13,7 @@ import {
   Key,
   genericInternalError,
 } from "pagopa-interop-models";
-import { AuthorizationManagementClient } from "./authorizationManagementClient.js";
-import { ApiClientComponentState } from "./model/models.js";
+import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   agreementStateToClientState,
   clientKindToApiClientKind,
@@ -23,10 +22,11 @@ import {
   purposeStateToClientState,
 } from "./utils.js";
 import { ReadModelService } from "./readModelService.js";
+import { AuthorizationManagementClients } from "./authorizationManagementClient.js";
 
 export type AuthorizationService = {
   updateEServiceState: (
-    state: ApiClientComponentState,
+    state: authorizationManagementApi.ClientComponentState,
     descriptorId: DescriptorId,
     eserviceId: EServiceId,
     audience: string[],
@@ -35,7 +35,7 @@ export type AuthorizationService = {
     correlationId: string
   ) => Promise<void>;
   updateAgreementState: (
-    state: ApiClientComponentState,
+    state: authorizationManagementApi.ClientComponentState,
     agreementId: string,
     eserviceId: EServiceId,
     consumerId: TenantId,
@@ -43,8 +43,8 @@ export type AuthorizationService = {
     correlationId: string
   ) => Promise<void>;
   updateAgreementAndEServiceStates: (
-    agreementState: ApiClientComponentState,
-    eserviceState: ApiClientComponentState,
+    agreementState: authorizationManagementApi.ClientComponentState,
+    eserviceState: authorizationManagementApi.ClientComponentState,
     agreementId: string,
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
@@ -63,7 +63,7 @@ export type AuthorizationService = {
   updatePurposeState: (
     purposeId: PurposeId,
     versionId: PurposeVersionId,
-    state: ApiClientComponentState,
+    state: authorizationManagementApi.ClientComponentState,
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
@@ -111,7 +111,7 @@ export type AuthorizationService = {
 };
 
 export const authorizationServiceBuilder = (
-  authMgmtClient: AuthorizationManagementClient,
+  authMgmtClients: AuthorizationManagementClients,
   refreshableToken: RefreshableInteropToken
 ): AuthorizationService => {
   const getHeaders = (correlationId: string, token: string) => ({
@@ -122,7 +122,7 @@ export const authorizationServiceBuilder = (
   return {
     // eslint-disable-next-line max-params
     async updateEServiceState(
-      state: ApiClientComponentState,
+      state: authorizationManagementApi.ClientComponentState,
       descriptorId: DescriptorId,
       eserviceId: EServiceId,
       audience: string[],
@@ -139,16 +139,19 @@ export const authorizationServiceBuilder = (
 
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
-        params: { eserviceId },
-        withCredentials: true,
-        headers,
-      });
+      await authMgmtClients.purposeApiClient.updateEServiceState(
+        clientEServiceDetailsUpdate,
+        {
+          params: { eserviceId },
+          withCredentials: true,
+          headers,
+        }
+      );
 
       logger.info(`Updating EService ${eserviceId} state for all clients`);
     },
     async updateAgreementState(
-      state: ApiClientComponentState,
+      state: authorizationManagementApi.ClientComponentState,
       agreementId: string,
       eserviceId: EServiceId,
       consumerId: TenantId,
@@ -158,7 +161,7 @@ export const authorizationServiceBuilder = (
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
 
-      await authMgmtClient.updateAgreementState(
+      await authMgmtClients.purposeApiClient.updateAgreementState(
         {
           agreementId,
           state,
@@ -176,8 +179,8 @@ export const authorizationServiceBuilder = (
       logger.info(`Updated Agreement ${agreementId} state for all clients`);
     },
     async updateAgreementAndEServiceStates(
-      agreementState: ApiClientComponentState,
-      eserviceState: ApiClientComponentState,
+      agreementState: authorizationManagementApi.ClientComponentState,
+      eserviceState: authorizationManagementApi.ClientComponentState,
       agreementId: string,
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -190,7 +193,7 @@ export const authorizationServiceBuilder = (
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
 
-      await authMgmtClient.updateAgreementAndEServiceStates(
+      await authMgmtClients.purposeApiClient.updateAgreementAndEServiceStates(
         {
           agreementId,
           agreementState,
@@ -221,7 +224,7 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.removeClientPurpose(undefined, {
+      await authMgmtClients.purposeApiClient.removeClientPurpose(undefined, {
         params: { purposeId, clientId },
         withCredentials: true,
         headers,
@@ -231,13 +234,13 @@ export const authorizationServiceBuilder = (
     async updatePurposeState(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
-      state: ApiClientComponentState,
+      state: authorizationManagementApi.ClientComponentState,
       logger: Logger,
       correlationId: string
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.updatePurposeState(
+      await authMgmtClients.purposeApiClient.updatePurposeState(
         { versionId, state },
         {
           params: { purposeId },
@@ -250,7 +253,7 @@ export const authorizationServiceBuilder = (
     async addClient(client: Client, logger: Logger, correlationId: string) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.createClient(
+      await authMgmtClients.clientApiClient.createClient(
         {
           id: client.id,
           name: client.name,
@@ -274,7 +277,7 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.deleteClient(undefined, {
+      await authMgmtClients.clientApiClient.deleteClient(undefined, {
         params: { clientId },
         withCredentials: true,
         headers,
@@ -289,7 +292,7 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.createKeys(
+      await authMgmtClients.keyApiClient.createKeys(
         [
           {
             name: key.name,
@@ -316,7 +319,7 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.deleteClientKeyById(undefined, {
+      await authMgmtClients.keyApiClient.deleteClientKeyById(undefined, {
         params: { clientId, keyId: kid },
         withCredentials: true,
         headers,
@@ -331,7 +334,7 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.addUser(
+      await authMgmtClients.clientApiClient.addUser(
         { userId },
         {
           params: { clientId },
@@ -349,7 +352,7 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClient.removeClientUser(undefined, {
+      await authMgmtClients.clientApiClient.removeClientUser(undefined, {
         params: { clientId, userId },
         withCredentials: true,
         headers,
@@ -395,7 +398,7 @@ export const authorizationServiceBuilder = (
 
       const purposeVersion = purpose.versions[purpose.versions.length - 1];
 
-      await authMgmtClient.addClientPurpose(
+      await authMgmtClients.purposeApiClient.addClientPurpose(
         {
           states: {
             eservice: {
