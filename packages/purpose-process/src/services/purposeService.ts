@@ -1060,10 +1060,7 @@ export function purposeServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
-      const riskAnalysis = retrieveRiskAnalysis(
-        unsafeBrandId(seed.riskAnalysisId),
-        eservice
-      );
+      const riskAnalysis = retrieveRiskAnalysis(riskAnalysisId, eservice);
 
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,

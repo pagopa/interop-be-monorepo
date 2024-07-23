@@ -9,7 +9,11 @@ export const eventV2TypeMapper = (
 ): string =>
   match(eventType)
     .with("EServiceAdded", () => "catalog_item_added")
-    .with("DraftEServiceUpdated", () => "catalog_item_updated")
+    .with(
+      "DraftEServiceUpdated",
+      "EServiceDescriptionUpdated",
+      () => "catalog_item_updated"
+    )
     .with(
       "EServiceDraftDescriptorDeleted",
       () => "catalog_item_with_descriptors_deleted"
