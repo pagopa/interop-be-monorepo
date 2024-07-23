@@ -16,7 +16,7 @@ export function toOutboundStampV1(
   stamp: StampV1
 ): Exact<OutboundStampV1, StampV1> {
   return {
-    ...stamp,
+    when: stamp.when,
     who: undefined,
   };
 }

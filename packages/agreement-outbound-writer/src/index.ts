@@ -1,11 +1,13 @@
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
+import { initProducer, runConsumer } from "kafka-iam-auth";
 import { AgreementEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
+
+const producer = await initProducer(config, "test");
 
 async function processMessage({
   message,
@@ -26,8 +28,9 @@ async function processMessage({
     .with({ event_version: 2 }, (msg) => handleMessageV2(msg))
     .exhaustive();
 
-  // TODO send outboundEvent to the outbound topic
-  console.log(outboundEvent);
+  await producer.send({
+    messages: [{ value: JSON.stringify(outboundEvent) }],
+  });
 
   loggerInstance.info(
     `Partition number: ${partition}. Offset: ${message.offset}`
