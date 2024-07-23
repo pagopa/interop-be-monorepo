@@ -344,31 +344,6 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
-    )
-    .delete(
-      "/tenants/attributes/declared/:attributeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const tenant = await tenantService.revokeDeclaredAttribute(
-            {
-              attributeId: unsafeBrandId(req.params.attributeId),
-              organizationId: req.ctx.authData.organizationId,
-              correlationId: req.ctx.correlationId,
-            },
-            ctx.logger
-          );
-          return res.status(200).json(toApiTenant(tenant)).end();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            revokeDeclaredAttributeErrorMapper,
-            ctx.logger
-          );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
     );
 
   const m2mRouter = ctx.router(tenantApi.m2mApi.api, {
@@ -528,6 +503,31 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             addDeclaredAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/attributes/declared/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.revokeDeclaredAttribute(
+            {
+              attributeId: unsafeBrandId(req.params.attributeId),
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDeclaredAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
