@@ -11,7 +11,10 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
+import {
+  emptyErrorMapper,
+  sessionTokenErrorMapper,
+} from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 
 const authorizationRouter = (
@@ -62,7 +65,8 @@ const authorizationRouter = (
           `${config.saml2CallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
         );
       } catch (error) {
-        makeApiProblem(error, (_) => 500, logger);
+        logger.error(`Error calling support SAML - ${error}`);
+        makeApiProblem(error, emptyErrorMapper, logger);
         return res.redirect(302, config.saml2CallbackErrorUrl);
       }
     });
