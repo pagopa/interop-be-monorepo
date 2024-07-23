@@ -11,20 +11,21 @@ import {
   generateId,
   notAllowedPrivateKeyException,
   toClientV2,
-  toReadModelKey,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockKey,
   readLastEventByStreamId,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
-import { UserResource } from "pagopa-interop-selfcare-v2-client";
-import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
+import {
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
 import {
   clientNotFound,
+  invalidKey,
   keyAlreadyExists,
   organizationNotAllowedOnClient,
   tooManyKeysPerClient,
@@ -39,7 +40,6 @@ import {
 import {
   addOneClient,
   authorizationService,
-  keys,
   postgresDB,
   selfcareV2Client,
 } from "./utils.js";
@@ -65,14 +65,14 @@ describe("createKeys", () => {
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
-  const keySeed: ApiKeySeed = {
+  const keySeed: authorizationApi.KeySeed = {
     name: "key seed",
     use: "ENC",
     key: pemKey,
     alg: "",
   };
 
-  const keysSeeds: ApiKeysSeed = [keySeed];
+  const keysSeeds: authorizationApi.KeysSeed = [keySeed];
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
@@ -84,7 +84,7 @@ describe("createKeys", () => {
     );
   }
 
-  const mockSelfCareUsers: UserResource = {
+  const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
     id: generateId(),
     name: "test",
     roles: [],
@@ -271,14 +271,14 @@ describe("createKeys", () => {
       privateKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const keySeedByPrivateKey: ApiKeySeed = {
+    const keySeedByPrivateKey: authorizationApi.KeySeed = {
       name: "key seed",
       use: "ENC",
       key: privatePemKey,
       alg: "",
     };
 
-    const keysSeeds: ApiKeysSeed = [keySeedByPrivateKey];
+    const keysSeeds: authorizationApi.KeysSeed = [keySeedByPrivateKey];
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
@@ -292,13 +292,79 @@ describe("createKeys", () => {
       })
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
-  it("should throw keyAlreadyExists if the kid already exist in  the client keys ", async () => {
+  it("should throw keyAlreadyExists if the kid already exists in the keys of that client ", async () => {
     const key: Key = {
       ...getMockKey(),
       kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };
+
+    const clientWithDuplicateKey: Client = {
+      ...mockClient,
+      keys: [key],
+    };
+    await addOneClient(clientWithDuplicateKey);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    expect(
+      authorizationService.createKeys({
+        clientId: clientWithDuplicateKey.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it("should throw keyAlreadyExists if the kid already exists in the keys of a different client ", async () => {
+    const key: Key = {
+      ...getMockKey(),
+      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
+    };
+
+    const client: Client = {
+      ...mockClient,
+      id: generateId(),
+    };
+
+    const clientWithDuplicateKey: Client = {
+      ...mockClient,
+      id: generateId(),
+      keys: [key],
+    };
+    await addOneClient(client);
+    await addOneClient(clientWithDuplicateKey);
+
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    expect(
+      authorizationService.createKeys({
+        clientId: client.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it("should throw invalidKey if the key is not an RSA key", async () => {
+    const notRSAKey = crypto.generateKeyPairSync("ed25519", {
+      modulusLength: 2048,
+    }).publicKey;
+
+    const notRSAPemKey = Buffer.from(
+      notRSAKey.export({ type: "spki", format: "pem" })
+    ).toString("base64url");
+
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: notRSAPemKey,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
     await addOneClient(mockClient);
-    await writeInReadmodel(toReadModelKey(key), keys);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
       authorizationService.createKeys({
@@ -308,6 +374,6 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(keyAlreadyExists(key.kid));
+    ).rejects.toThrowError(invalidKey());
   });
 });

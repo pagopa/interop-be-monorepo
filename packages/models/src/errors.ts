@@ -163,6 +163,7 @@ const errorCodes = {
   badRequestError: "9999",
   jwkDecodingError: "10000",
   notAllowedPrivateKeyException: "10001",
+  missingRequiredJWKClaim: "10002",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -349,5 +350,13 @@ export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
     detail: `The received key is a private key`,
     code: "notAllowedPrivateKeyException",
     title: "Not allowed private key exception",
+  });
+}
+
+export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `One or more required JWK claims are missing`,
+    code: "missingRequiredJWKClaim",
+    title: "Missing required JWK claims",
   });
 }

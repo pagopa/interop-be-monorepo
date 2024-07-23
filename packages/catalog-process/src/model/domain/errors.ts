@@ -31,6 +31,8 @@ export const errorCodes = {
   riskAnalysisNotValid: "0019",
   prettyNameDuplicate: "0020",
   riskAnalysisDuplicated: "0021",
+  eserviceWithoutValidDescriptors: "0022",
+  audienceCannotBeEmpty: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -247,5 +249,25 @@ export function prettyNameDuplicate(
     detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
     code: "prettyNameDuplicate",
     title: "Duplicated prettyName",
+  });
+}
+
+export function eserviceWithoutValidDescriptors(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have a valid descriptor`,
+    code: "eserviceWithoutValidDescriptors",
+    title: "EService without valid descriptors",
+  });
+}
+
+export function audienceCannotBeEmpty(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} can't be published with empty audience`,
+    code: "audienceCannotBeEmpty",
+    title: "Audience cannot be empty",
   });
 }

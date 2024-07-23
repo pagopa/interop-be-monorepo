@@ -25,6 +25,7 @@ import {
   TenantId,
   Tenant,
   EServiceReadModel,
+  TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -68,7 +69,7 @@ async function getEService(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
