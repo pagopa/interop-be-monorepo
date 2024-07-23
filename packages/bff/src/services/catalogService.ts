@@ -8,10 +8,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
+  EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
-import { EServiceDocumentId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -25,6 +25,7 @@ import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
+  noDescriptorInEservice,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -36,7 +37,6 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { getLatestAgreement } from "./agreementService.js";
-import { noDescriptorInEservice } from "../model/domain/errors.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
