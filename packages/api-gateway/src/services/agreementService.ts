@@ -1,7 +1,12 @@
-import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
+  agreementApi,
+  apiGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
+import {
   AgreementProcessClient,
+  PurposeProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
@@ -9,11 +14,16 @@ import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
+import {
+  toApiGatewayPurpose,
+  toPurposeProcessGetPurposesQueryParams,
+} from "../api/purposeApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
   agreementProcessClient: AgreementProcessClient,
-  tenantProcessClient: TenantProcessClient
+  tenantProcessClient: TenantProcessClient,
+  purposeProcessClient: PurposeProcessClient
 ) {
   return {
     getAgreements: async (
@@ -88,6 +98,43 @@ export function agreementServiceBuilder(
       });
 
       return toApiGatewayAgreementAttributes(agreement, tenant);
+    },
+
+    getAgreementPurposes: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      agreementId: agreementApi.Agreement["id"]
+    ): Promise<apiGatewayApi.Purposes> => {
+      logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
+
+      // TODO Doubt:
+      // in this case we succeed even if the agreement is in draft state - this is what Scala does as well.
+      // Is it correct? In getAgreement and getAgreements we don't allow draft agreements to be returned.
+      // If we decide do the same here, we should remember to update the error mapper in the router.
+      const agreement = await agreementProcessClient.getAgreementById({
+        headers,
+        params: {
+          agreementId,
+        },
+      });
+
+      const getPurposesQueryParams = toPurposeProcessGetPurposesQueryParams({
+        eserviceId: agreement.eserviceId,
+        consumerId: agreement.consumerId,
+      });
+
+      const purposes = await getAllFromPaginated<purposeApi.Purpose>(
+        async (offset, limit) =>
+          await purposeProcessClient.getPurposes({
+            headers,
+            queries: {
+              ...getPurposesQueryParams,
+              offset,
+              limit,
+            },
+          })
+      );
+
+      return { purposes: purposes.map(toApiGatewayPurpose) };
     },
   };
 }
