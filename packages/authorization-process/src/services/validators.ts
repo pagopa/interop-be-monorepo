@@ -1,6 +1,6 @@
 import { userRoles } from "pagopa-interop-commons";
 import { Client, Purpose, TenantId, UserId } from "pagopa-interop-models";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
 import {
   userWithoutSecurityPrivileges,
   organizationNotAllowedOnPurpose,
@@ -11,23 +11,24 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
   requesterUserId,
   consumerId,
-  selfcareV2Client,
+  selfcareV2InstitutionClient,
   userIdToCheck,
 }: {
   selfcareId: string;
   requesterUserId: UserId;
   consumerId: TenantId;
-  selfcareV2Client: SelfcareV2Client;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   userIdToCheck: UserId;
 }): Promise<void> => {
-  const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
-    params: { institutionId: selfcareId },
-    queries: {
-      userIdForAuth: requesterUserId,
-      userId: userIdToCheck,
-      productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
-    },
-  });
+  const users =
+    await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({
+      params: { institutionId: selfcareId },
+      queries: {
+        userIdForAuth: requesterUserId,
+        userId: userIdToCheck,
+        productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
+      },
+    });
   if (users.length === 0) {
     throw userWithoutSecurityPrivileges(consumerId, requesterUserId);
   }
