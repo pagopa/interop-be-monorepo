@@ -19,7 +19,9 @@ import {
   getMockAttribute,
   readLastEventByStreamId,
   getMockCertifiedTenantAttribute,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   certifiedAttributeAlreadyAssigned,
   tenantNotFound,
@@ -27,7 +29,6 @@ import {
   tenantIsNotACertifier,
   attributeDoesNotBelongToCertifier,
 } from "../src/model/domain/errors.js";
-import { ApiCertifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
   attributes,
   addOneTenant,
@@ -37,10 +38,10 @@ import {
 } from "./utils.js";
 
 describe("addCertifiedAttribute", async () => {
-  const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
+  const tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed = {
     id: generateId(),
   };
-  const targetTenant: Tenant = getMockTenant();
+  const targetTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
   const requesterTenant: Tenant = {
     ...getMockTenant(),
@@ -90,7 +91,7 @@ describe("addCertifiedAttribute", async () => {
 
     expect(writtenEvent).toMatchObject({
       stream_id: targetTenant.id,
-      version: "2",
+      version: "1",
       type: "TenantCertifiedAttributeAssigned",
       event_version: 2,
     });
@@ -112,6 +113,53 @@ describe("addCertifiedAttribute", async () => {
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     expect(returnedTenant).toEqual(updatedTenant);
+  });
+  it("Should store TenantCertifiedAttributeAssigned and tenantUpdatedKind events", async () => {
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneTenant(requesterTenant);
+    const tenantWithRevaluatedKind: Tenant = {
+      ...targetTenant,
+      kind: "PRIVATE",
+    };
+    await addOneTenant(tenantWithRevaluatedKind);
+
+    await tenantService.addCertifiedAttribute(
+      {
+        tenantId: tenantWithRevaluatedKind.id,
+        tenantAttributeSeed,
+        organizationId: requesterTenant.id,
+        correlationId: generateId(),
+      },
+      genericLogger
+    );
+    const writtenEventTenantCertifiedAttributeAssigned =
+      await readEventByStreamIdAndVersion(
+        tenantWithRevaluatedKind.id,
+        1,
+        "tenant",
+        postgresDB
+      );
+
+    const writtenEventTenantKindUpdated = await readEventByStreamIdAndVersion(
+      tenantWithRevaluatedKind.id,
+      2,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEventTenantCertifiedAttributeAssigned).toMatchObject({
+      stream_id: tenantWithRevaluatedKind.id,
+      version: "1",
+      type: "TenantCertifiedAttributeAssigned",
+      event_version: 2,
+    });
+
+    expect(writtenEventTenantKindUpdated).toMatchObject({
+      stream_id: tenantWithRevaluatedKind.id,
+      version: "2",
+      type: "TenantKindUpdated",
+      event_version: 2,
+    });
   });
   it("Should re-assign the certified attribute if it was revoked", async () => {
     const tenantWithCertifiedAttribute: Tenant = {
@@ -146,7 +194,7 @@ describe("addCertifiedAttribute", async () => {
 
     expect(writtenEvent).toMatchObject({
       stream_id: tenantWithCertifiedAttribute.id,
-      version: "2",
+      version: "1",
       type: "TenantCertifiedAttributeAssigned",
       event_version: 2,
     });
