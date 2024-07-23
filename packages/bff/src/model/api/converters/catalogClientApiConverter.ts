@@ -8,14 +8,10 @@ import {
   tenantApi,
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
-import {
-  EServiceAttribute,
-  tenantMailKind,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
-import { agreementApiState } from "../agreementTypes.js";
-import { descriptorApiState } from "../catalogTypes.js";
+import { getTenantEmail, isUpgradable } from "../../mappers.js";
+import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -35,25 +31,6 @@ export function toBffCatalogApiEService(
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
 ): bffApi.CatalogEService {
-  const isUpgradable = (agreement: agreementApi.Agreement): boolean => {
-    const eserviceDescriptor = eservice.descriptors.find(
-      (e) => e.id === agreement.descriptorId
-    );
-
-    return (
-      eserviceDescriptor !== undefined &&
-      eservice.descriptors
-        .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
-        .find(
-          (d) =>
-            (d.state === descriptorApiState.PUBLISHED ||
-              d.state === descriptorApiState.SUSPENDED) &&
-            (agreement.state === agreementApiState.ACTIVE ||
-              agreement.state === agreementApiState.SUSPENDED)
-        ) !== undefined
-    );
-  };
-
   const partialEnhancedEservice = {
     id: eservice.id,
     name: eservice.name,
@@ -83,7 +60,7 @@ export function toBffCatalogApiEService(
           agreement: {
             id: agreement.id,
             state: agreement.state,
-            canBeUpgraded: isUpgradable(agreement),
+            canBeUpgraded: isUpgradable(eservice, agreement),
           },
         }
       : {}),
@@ -123,7 +100,7 @@ export function toBffCatalogApiDescriptorDoc(
 export function toBffCatalogApiEserviceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis
 ): bffApi.EServiceRiskAnalysis {
-  const answers: { [key: string]: string[] } =
+  const answers: bffApi.RiskAnalysisForm["answers"] =
     riskAnalysis.riskAnalysisForm.singleAnswers
       .concat(
         riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
@@ -134,7 +111,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
           }))
         )
       )
-      .reduce((answers: { [key: string]: string[] }, answer) => {
+      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
         const key = `${answer.key}`;
         if (answers[key] && answer.value) {
           answers[key] = [...answers[key], answer.value];
@@ -163,15 +140,17 @@ export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.ProducerDescriptorEService {
-  const producerMail = producer.mails.find(
-    (m) => m.kind === tenantMailKind.ContactEmail
-  );
+  const producerMail = getTenantEmail(producer);
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
-    eservice.descriptors.filter((d) => d.state !== descriptorApiState.DRAFT);
+    eservice.descriptors.filter(
+      (d) => d.state !== catalogApiDescriptorState.DRAFT
+    );
 
   const draftDescriptor: bffApi.CompactDescriptor | undefined =
-    eservice.descriptors.find((d) => d.state === descriptorApiState.DRAFT);
+    eservice.descriptors.find(
+      (d) => d.state === catalogApiDescriptorState.DRAFT
+    );
 
   return {
     id: eservice.id,
@@ -210,5 +189,31 @@ export function toDescriptorWithOnlyAttributes(
       declared: descriptor.attributes.declared.map(toEserviceAttribute),
       verified: descriptor.attributes.verified.map(toEserviceAttribute),
     },
+  };
+}
+
+export function toBffCatalogApiDescriptorAttributes(
+  attributes: attributeRegistryApi.Attribute[],
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.DescriptorAttributes {
+  return {
+    certified: [
+      toBffCatalogApiDescriptorAttribute(
+        attributes,
+        descriptor.attributes.certified.flat()
+      ),
+    ],
+    declared: [
+      toBffCatalogApiDescriptorAttribute(
+        attributes,
+        descriptor.attributes.declared.flat()
+      ),
+    ],
+    verified: [
+      toBffCatalogApiDescriptorAttribute(
+        attributes,
+        descriptor.attributes.verified.flat()
+      ),
+    ],
   };
 }

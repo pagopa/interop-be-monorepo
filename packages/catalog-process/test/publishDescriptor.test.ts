@@ -29,6 +29,7 @@ import {
   tenantKindNotFound,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  audienceCannotBeEmpty,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -593,5 +594,30 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(riskAnalysisNotValid());
+  });
+
+  it("should throw audienceCannotBeEmpty if the descriptor audience is an empty array", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      audience: [],
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
   });
 });

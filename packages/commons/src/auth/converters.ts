@@ -1,13 +1,7 @@
-import {
-  KeyReadModel,
-  JWKKeyInReadModel,
-  missingRequiredJWKClaim,
-} from "pagopa-interop-models";
+import { JWKKey, missingRequiredJWKClaim, Key } from "pagopa-interop-models";
 import { createJWK, decodeBase64ToPem } from "./jwk.js";
 
-export const fromKeyToReadModelJWKKey = (
-  key: KeyReadModel
-): JWKKeyInReadModel => {
+export const keyToJWKKey = (key: Key): JWKKey => {
   const jwk = createJWK(decodeBase64ToPem(key.encodedPem));
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
