@@ -19,10 +19,13 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockClient } from "pagopa-interop-commons-test";
-import { UserResource } from "pagopa-interop-selfcare-v2-client";
-import { ApiKeySeed, ApiKeysSeed } from "../src/model/domain/models.js";
+import {
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
 import {
   clientNotFound,
+  invalidKey,
   keyAlreadyExists,
   organizationNotAllowedOnClient,
   tooManyKeysPerClient,
@@ -62,14 +65,14 @@ describe("createKeys", () => {
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
-  const keySeed: ApiKeySeed = {
+  const keySeed: authorizationApi.KeySeed = {
     name: "key seed",
     use: "ENC",
     key: pemKey,
     alg: "",
   };
 
-  const keysSeeds: ApiKeysSeed = [keySeed];
+  const keysSeeds: authorizationApi.KeysSeed = [keySeed];
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
@@ -81,7 +84,7 @@ describe("createKeys", () => {
     );
   }
 
-  const mockSelfCareUsers: UserResource = {
+  const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
     id: generateId(),
     name: "test",
     roles: [],
@@ -268,14 +271,14 @@ describe("createKeys", () => {
       privateKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const keySeedByPrivateKey: ApiKeySeed = {
+    const keySeedByPrivateKey: authorizationApi.KeySeed = {
       name: "key seed",
       use: "ENC",
       key: privatePemKey,
       alg: "",
     };
 
-    const keysSeeds: ApiKeysSeed = [keySeedByPrivateKey];
+    const keysSeeds: authorizationApi.KeysSeed = [keySeedByPrivateKey];
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
@@ -342,5 +345,35 @@ describe("createKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it("should throw invalidKey if the key is not an RSA key", async () => {
+    const notRSAKey = crypto.generateKeyPairSync("ed25519", {
+      modulusLength: 2048,
+    }).publicKey;
+
+    const notRSAPemKey = Buffer.from(
+      notRSAKey.export({ type: "spki", format: "pem" })
+    ).toString("base64url");
+
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: notRSAPemKey,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
+    await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(invalidKey());
   });
 });
