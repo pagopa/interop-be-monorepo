@@ -41,7 +41,7 @@ const apiGatewayRouter = (
             req.query
           );
 
-          return res.status(200).json({ agreements }).send();
+          return res.status(200).json(agreements).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
