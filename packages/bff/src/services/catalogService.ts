@@ -14,13 +14,13 @@ import {
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
   assertRequesterIsProducer,
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
 } from "../model/validators.js";
+import { toCatalogEServiceSeed } from "../model/api/apiConverter.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -298,9 +298,12 @@ export function catalogServiceBuilder(
       eServiceSeed: bffApi.EServiceSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> =>
-      await catalogProcessClient.createEService(eServiceSeed, {
-        headers,
-      }),
+      await catalogProcessClient.createEService(
+        toCatalogEServiceSeed(eServiceSeed),
+        {
+          headers,
+        }
+      ),
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
