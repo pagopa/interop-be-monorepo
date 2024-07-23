@@ -560,27 +560,22 @@ export function tenantServiceBuilder(
         attribute: attributeToAssign,
       });
 
-      const [updatedTenant, event] = await revaluateTenantKind({
-        tenant: tenantWithNewAttribute,
-        version: tenantToModify.metadata.version,
-        readModelService,
-        correlationId,
-      });
-
       const tenantCertifiedAttributeAssignedEvent =
         toCreateEventTenantCertifiedAttributeAssigned(
           tenantToModify.metadata.version,
-          updatedTenant,
+          tenantWithNewAttribute,
           attributeToAssign.id,
           correlationId
         );
 
-      if (event) {
-        const tenantKindUpdatedEvent: CreateEvent<TenantEvent> = {
-          ...event,
-          version: tenantToModify.metadata.version + 1,
-        };
+      const [, tenantKindUpdatedEvent] = await reevaluateTenantKind({
+        tenant: tenantWithNewAttribute,
+        version: tenantToModify.metadata.version + 1,
+        readModelService,
+        correlationId,
+      });
 
+      if (tenantKindUpdatedEvent) {
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
