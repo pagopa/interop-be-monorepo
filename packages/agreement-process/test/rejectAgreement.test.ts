@@ -2,18 +2,19 @@
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  getMockAgreement,
-  getRandomAuthData,
   decodeProtobufPayload,
-  randomArrayItem,
-  getMockEService,
-  getMockDescriptorPublished,
-  getMockTenant,
+  getMockAgreement,
   getMockCertifiedTenantAttribute,
-  getMockEServiceAttribute,
-  getMockVerifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getMockVerifiedTenantAttribute,
+  getRandomAuthData,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -31,8 +32,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
-import { agreementRejectableStates } from "../src/model/domain/validators.js";
+import { agreementRejectableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -42,9 +42,9 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
-  addOneTenant,
-  addOneEService,
   addOneAgreement,
+  addOneEService,
+  addOneTenant,
   agreementService,
   readLastAgreementEvent,
 } from "./utils.js";

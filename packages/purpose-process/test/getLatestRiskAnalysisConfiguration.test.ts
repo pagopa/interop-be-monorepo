@@ -8,6 +8,7 @@ import {
   TenantKind,
   generateId,
   tenantKind,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -29,7 +30,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
         ...getMockTenant(),
         kind,
       };
-      await writeInReadmodel(mockTenant, tenants);
+      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
       const result =
         await purposeService.retrieveLatestRiskAnalysisConfiguration({
@@ -57,7 +58,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
       ...getMockTenant(),
       kind: undefined,
     };
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
@@ -72,7 +73,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
     const kind = "unkown" as TenantKind;
 

@@ -42,6 +42,7 @@ node_modules/
 **/dist
 packages/models/src/gen
 packages/*/src/model/generated
+packages/*/src/generated
 
 # MinIO container data
 docker/minio-data
@@ -49,3 +50,9 @@ docker/minio-data
 ### Turbo ###
 # Turborepo task cache
 .turbo
+
+## Ignore pnpm-lock.yaml files in packages, to prevent committing them
+packages/**/pnpm-lock.yaml
+
+# General
+.DS_Store
