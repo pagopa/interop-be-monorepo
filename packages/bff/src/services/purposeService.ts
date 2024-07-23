@@ -65,10 +65,10 @@ async function getPurposes(
   requesterId: string,
   filters: {
     name?: string | undefined;
-    eservicesIds?: string | undefined;
-    consumersIds?: string | undefined;
-    producersIds?: string | undefined;
-    states?: string | undefined;
+    eservicesIds?: string[];
+    consumersIds?: string[];
+    producersIds?: string[];
+    states?: purposeApi.PurposeVersionState[];
     excludeDraft?: boolean | undefined;
   },
   offset: number,
@@ -302,10 +302,10 @@ export function purposeServiceBuilder(
     async getPurposeProducer(
       filters: {
         name?: string | undefined;
-        eservicesIds?: string | undefined;
-        consumersIds?: string | undefined;
-        producersIds?: string | undefined;
-        states?: string | undefined;
+        eservicesIds?: string[] | undefined;
+        consumersIds?: string[] | undefined;
+        producersIds?: string[] | undefined;
+        states?: purposeApi.PurposeVersionState[] | undefined;
       },
       offset: number,
       limit: number,
@@ -332,10 +332,10 @@ export function purposeServiceBuilder(
     async getPurposeConsumer(
       filters: {
         name?: string | undefined;
-        eservicesIds?: string | undefined;
-        consumersIds?: string | undefined;
-        producersIds?: string | undefined;
-        states?: string | undefined;
+        eservicesIds?: string[] | undefined;
+        consumersIds?: string[] | undefined;
+        producersIds?: string[] | undefined;
+        states?: purposeApi.PurposeVersionState[] | undefined;
       },
       offset: number,
       limit: number,

@@ -89,10 +89,10 @@ const purposeRouter = (
         const result = await purposeService.getPurposeProducer(
           {
             name: req.query.q,
-            eservicesIds: req.query.eservicesIds.join(","),
-            consumersIds: req.query.consumersIds.join(","),
-            producersIds: req.query.producersIds.join(","),
-            states: req.query.states.join(","),
+            eservicesIds: req.query.eservicesIds,
+            consumersIds: req.query.consumersIds,
+            producersIds: req.query.producersIds,
+            states: req.query.states,
           },
           req.query.offset,
           req.query.limit,
@@ -116,10 +116,10 @@ const purposeRouter = (
         const result = await purposeService.getPurposeConsumer(
           {
             name: req.query.q,
-            eservicesIds: req.query.eservicesIds.join(","),
-            consumersIds: req.query.consumersIds.join(","),
-            producersIds: req.query.producersIds.join(","),
-            states: req.query.states.join(","),
+            eservicesIds: req.query.eservicesIds,
+            consumersIds: req.query.consumersIds,
+            producersIds: req.query.producersIds,
+            states: req.query.states,
           },
           req.query.offset,
           req.query.limit,
