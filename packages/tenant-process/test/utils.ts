@@ -8,7 +8,6 @@ import {
   EServiceId,
   Tenant,
   TenantEvent,
-  TenantEventV2,
   TenantId,
   TenantRevoker,
   TenantVerifier,
@@ -19,10 +18,10 @@ import {
   technology,
   tenantAttributeType,
   toReadModelEService,
+  toReadModelTenant,
   toReadModelAgreement,
   toTenantV2,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
 import {
   ReadEvent,
   StoredEvent,
@@ -43,19 +42,17 @@ export const { cleanup, readModelRepository, postgresDB } =
 
 afterEach(cleanup);
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
+export const { agreements, clients, eservices, attributes, tenants } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
 export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 
 export const writeTenantInEventstore = async (
-  tenant: Tenant,
-  postgresDB: IDatabase<unknown>
+  tenant: Tenant
 ): Promise<void> => {
-  const tenantEvent: TenantEventV2 = {
+  const tenantEvent: TenantEvent = {
     type: "TenantOnboarded",
     event_version: 2,
     data: { tenant: toTenantV2(tenant) },
@@ -66,7 +63,6 @@ export const writeTenantInEventstore = async (
     version: 0,
     event: tenantEvent,
   };
-
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
 
@@ -111,7 +107,7 @@ export const getMockCertifiedTenantAttribute =
     assignmentTimestamp: currentDate,
     id: generateId(),
     type: tenantAttributeType.CERTIFIED,
-    revocationTimestamp: currentDate,
+    revocationTimestamp: undefined,
   });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
@@ -199,8 +195,8 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeTenantInEventstore(tenant, postgresDB);
-  await writeInReadmodel(tenant, tenants);
+  await writeTenantInEventstore(tenant);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastTenantEvent = async (

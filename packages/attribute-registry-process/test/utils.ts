@@ -9,6 +9,7 @@ import {
   generateId,
   toAttributeV1,
   toReadModelAttribute,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -63,7 +64,7 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastAttributeEvent = async (
