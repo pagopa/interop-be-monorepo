@@ -5,14 +5,7 @@ import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
-
-const safeAgreementStates: apiGatewayApi.AgreementState[] = [
-  apiGatewayApi.AgreementState.Values.PENDING,
-  apiGatewayApi.AgreementState.Values.ACTIVE,
-  apiGatewayApi.AgreementState.Values.SUSPENDED,
-  apiGatewayApi.AgreementState.Values.ARCHIVED,
-  apiGatewayApi.AgreementState.Values.MISSING_CERTIFIED_ATTRIBUTES,
-];
+import { getAllFromPaginated } from "../utilities/getAll.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
@@ -21,14 +14,11 @@ export function agreementServiceBuilder(
   return {
     getAgreements: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
-      {
-        producerId,
-        consumerId,
-        eserviceId,
-        descriptorId,
-        states,
-      }: apiGatewayApi.GetAgreementsQueryParams
-    ): Promise<apiGatewayApi.Agreement[]> => {
+      queryParams: apiGatewayApi.GetAgreementsQueryParams
+    ): Promise<apiGatewayApi.Agreements> => {
+      const { producerId, consumerId, eserviceId, descriptorId, states } =
+        queryParams;
+
       logger.info(
         `Retrieving agreements for producerId ${producerId} consumerId ${consumerId} eServiceId ${eserviceId} descriptorId ${descriptorId} states ${states}`
       );
@@ -37,37 +27,21 @@ export function agreementServiceBuilder(
         throw producerAndConsumerParamMissing();
       }
 
-      const safeParams = {
-        producerId,
-        consumerId,
-        eserviceId,
-        descriptorId,
-        states: states && states.length > 0 ? states : safeAgreementStates,
-      };
+      const getAgreementsQueryParams =
+        toAgreementProcessGetAgreementsQueryParams(queryParams);
 
-      const agreementApiQueryParams =
-        toAgreementProcessGetAgreementsQueryParams(safeParams);
-
-      const getAllAgreementsFrom = async (
-        offset: number
-      ): Promise<agreementApi.Agreement[]> => {
-        const limit = 50;
-        const { results: agreements } =
+      const agreements = await getAllFromPaginated<agreementApi.Agreement>(
+        async (offset, limit) =>
           await agreementProcessClient.getAgreements({
             headers,
             queries: {
-              ...agreementApiQueryParams,
+              ...getAgreementsQueryParams,
               offset,
               limit,
             },
-          });
-        return agreements.length < limit
-          ? agreements
-          : agreements.concat(await getAllAgreementsFrom(offset + limit));
-      };
-
-      const agreements = await getAllAgreementsFrom(0);
-      return agreements.map(toApiGatewayAgreementIfNotDraft);
+          })
+      );
+      return { agreements: agreements.map(toApiGatewayAgreementIfNotDraft) };
     },
 
     getAgreementById: async (

@@ -1,6 +1,14 @@
 import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { assertAgreementStateNotDraft } from "../services/validators.js";
 
+const allowedAgreementStates: apiGatewayApi.AgreementState[] = [
+  apiGatewayApi.AgreementState.Values.PENDING,
+  apiGatewayApi.AgreementState.Values.ACTIVE,
+  apiGatewayApi.AgreementState.Values.SUSPENDED,
+  apiGatewayApi.AgreementState.Values.ARCHIVED,
+  apiGatewayApi.AgreementState.Values.MISSING_CERTIFIED_ATTRIBUTES,
+];
+
 export function toApiGatewayAgreementIfNotDraft(
   agreement: agreementApi.Agreement
 ): apiGatewayApi.Agreement {
@@ -28,6 +36,6 @@ export function toAgreementProcessGetAgreementsQueryParams(
     eservicesIds: eserviceId ? [eserviceId] : [],
     descriptorsIds: descriptorId ? [descriptorId] : [],
     showOnlyUpgradeable: false,
-    states,
+    states: states && states.length > 0 ? states : allowedAgreementStates,
   };
 }
