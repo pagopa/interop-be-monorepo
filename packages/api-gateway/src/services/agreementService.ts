@@ -69,9 +69,10 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Attributes> => {
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
-      // TODO Doubt: is it correct that in this case we succeed even if the agreement is in draft state?
-      // In the two previous methods, we throw an error if the agreement is in draft state.
-      // If we do the same here, we should remember to update the error mapper in the router.
+      // TODO Doubt:
+      // in this case we succeed even if the agreement is in draft state - this is what Scala does as well.
+      // Is it correct? In getAgreement and getAgreements we don't allow draft agreements to be returned.
+      // If we decide do the same here, we should remember to update the error mapper in the router.
       const agreement = await agreementProcessClient.getAgreementById({
         headers,
         params: {
