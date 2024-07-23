@@ -10,6 +10,7 @@ import {
   Attribute,
   AttributeId,
   CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
   ListResult,
   Tenant,
   TenantAttribute,
@@ -26,6 +27,7 @@ import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   toCreateEventTenantCertifiedAttributeAssigned,
+  toCreateEventTenantDeclaredAttributeAssigned,
   toCreateEventTenantKindUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -365,6 +367,63 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
+    async addDeclaredAttribute(
+      {
+        tenantAttributeSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(
+        `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${organizationId}`
+      );
+      const targetTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const attribute = await retrieveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService
+      );
+
+      if (attribute.kind !== attributeKind.declared) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
+        (attr): attr is DeclaredTenantAttribute =>
+          attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
+      );
+
+      const updatedTenant: Tenant = {
+        ...targetTenant.data,
+        attributes: maybeDeclaredTenantAttribute
+          ? reassignDeclaredAttribute(
+              targetTenant.data.attributes,
+              attribute.id
+            )
+          : assignDeclaredAttribute(targetTenant.data.attributes, attribute.id),
+
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDeclaredAttributeAssigned(
+          targetTenant.metadata.version,
+          updatedTenant,
+          unsafeBrandId(tenantAttributeSeed.id),
+          correlationId
+        )
+      );
+      return updatedTenant;
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
@@ -550,6 +609,36 @@ async function reevaluateTenantKind({
     return [updatedTenant, tenantKindUpdatedEvent];
   }
   return [updatedTenant];
+}
+
+function assignDeclaredAttribute(
+  attributes: TenantAttribute[],
+  attributeId: AttributeId
+): TenantAttribute[] {
+  return [
+    ...attributes,
+    {
+      id: unsafeBrandId(attributeId),
+      type: tenantAttributeType.DECLARED,
+      assignmentTimestamp: new Date(),
+      revocationTimestamp: undefined,
+    },
+  ];
+}
+
+function reassignDeclaredAttribute(
+  attributes: TenantAttribute[],
+  attributeId: AttributeId
+): TenantAttribute[] {
+  return attributes.map((attr) =>
+    attr.id === attributeId
+      ? {
+          ...attr,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+        }
+      : attr
+  );
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
