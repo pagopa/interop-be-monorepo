@@ -26,8 +26,8 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { getLatestAgreement } from "./agreementService.js";
 import { getLatestAcriveDescriptor } from "../model/mappers.js";
+import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
