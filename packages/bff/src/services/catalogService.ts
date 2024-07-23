@@ -159,11 +159,11 @@ export function catalogServiceBuilder(
           headers: context.headers,
           queries: {
             ...queries,
-            eservicesIds: queries.eservicesIds.join(","),
-            producersIds: queries.producersIds.join(","),
-            states: queries.states.join(","),
-            attributesIds: queries.attributesIds.join(","),
-            agreementStates: queries.agreementStates.join(","),
+            eservicesIds: queries.eservicesIds,
+            producersIds: queries.producersIds,
+            states: queries.states,
+            attributesIds: queries.attributesIds,
+            agreementStates: queries.agreementStates,
           },
         });
 
@@ -246,6 +246,23 @@ export function catalogServiceBuilder(
           eservice,
           requesterTenant
         ),
+      };
+    },
+    updateEServiceDescription: async (
+      headers: Headers,
+      eServiceId: EServiceId,
+      updateSeed: bffApi.EServiceDescriptionSeed
+    ): Promise<bffApi.CreatedResource> => {
+      const updatedEservice =
+        await catalogProcessClient.updateEServiceDescription(updateSeed, {
+          headers,
+          params: {
+            eServiceId,
+          },
+        });
+
+      return {
+        id: updatedEservice.id,
       };
     },
   };
