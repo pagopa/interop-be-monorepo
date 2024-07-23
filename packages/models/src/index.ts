@@ -30,6 +30,7 @@ export * from "./risk-analysis/riskAnalysis.js";
 
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
+export * from "./tenant/tenantReadModelAdapter.js";
 export * from "./tenant/protobufConverterFromV1.js";
 export * from "./tenant/protobufConverterFromV2.js";
 export * from "./tenant/protobufConverterToV2.js";
@@ -58,6 +59,7 @@ export * from "./protobuf/protobuf.js";
 export * from "./read-models/agreementReadModel.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
+export * from "./read-models/tenantReadModel.js";
 export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
 export * from "./read-models/authorizationReadModel.js";
