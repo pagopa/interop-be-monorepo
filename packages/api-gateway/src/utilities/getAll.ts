@@ -5,11 +5,11 @@ export async function getAllFromPaginated<A>(
 ): Promise<A[]> {
   const getAllFromOffset = async (offset: number): Promise<A[]> => {
     const limit = 50;
-    const { results: agreements } = await getPaginatedCall(offset, limit);
+    const { results } = await getPaginatedCall(offset, limit);
 
-    return agreements.length < limit
-      ? agreements
-      : agreements.concat(await getAllFromOffset(offset + limit));
+    return results.length < limit
+      ? results
+      : results.concat(await getAllFromOffset(offset + limit));
   };
 
   return await getAllFromOffset(0);
