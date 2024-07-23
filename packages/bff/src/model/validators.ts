@@ -2,10 +2,9 @@ import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle
 import { agreementApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
-import { agreementApiState } from "./api/agreementTypes.js";
-import { descriptorApiState } from "./api/catalogTypes.js";
 import { invalidEServiceRequester } from "./domain/errors.js";
 import { TenantId } from "pagopa-interop-models";
+import { agreementApiState, catalogApiDescriptorState } from "./api/apiTypes.js";
 
 const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
   agreementApiState.PENDING,
@@ -42,8 +41,8 @@ export function isAgreementUpgradable(
       .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
       .find(
         (d) =>
-          (d.state === descriptorApiState.PUBLISHED ||
-            d.state === descriptorApiState.SUSPENDED) &&
+          (d.state === catalogApiDescriptorState.PUBLISHED ||
+            d.state === catalogApiDescriptorState.SUSPENDED) &&
           (agreement.state === agreementApiState.ACTIVE ||
             agreement.state === agreementApiState.SUSPENDED)
       ) !== undefined

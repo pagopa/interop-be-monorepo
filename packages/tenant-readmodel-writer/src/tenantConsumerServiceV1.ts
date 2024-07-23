@@ -1,8 +1,12 @@
 import { match } from "ts-pattern";
 import { TenantCollection } from "pagopa-interop-commons";
-import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
+import {
+  TenantEventEnvelopeV1,
+  fromTenantV1,
+  toReadModelTenant,
+} from "pagopa-interop-models";
 
-export async function handleMessage(
+export async function handleMessageV1(
   message: TenantEventEnvelopeV1,
   tenants: TenantCollection
 ): Promise<void> {
@@ -14,7 +18,9 @@ export async function handleMessage(
         },
         {
           $setOnInsert: {
-            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            data: msg.data.tenant
+              ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+              : undefined,
             metadata: {
               version: msg.version,
             },
@@ -26,7 +32,7 @@ export async function handleMessage(
     .with({ type: "TenantDeleted" }, async (msg) => {
       await tenants.deleteOne({
         "data.id": msg.stream_id,
-        "metadata.version": { $lt: msg.version },
+        "metadata.version": { $lte: msg.version },
       });
     })
     .with(
@@ -39,7 +45,9 @@ export async function handleMessage(
           },
           {
             $set: {
-              data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+              data: msg.data.tenant
+                ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+                : undefined,
               metadata: {
                 version: msg.version,
               },
@@ -51,7 +59,7 @@ export async function handleMessage(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -65,7 +73,7 @@ export async function handleMessage(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
@@ -79,11 +87,13 @@ export async function handleMessage(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $set: {
-            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            data: msg.data.tenant
+              ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+              : undefined,
             metadata: {
               version: msg.version,
             },
@@ -95,7 +105,7 @@ export async function handleMessage(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
-          "metadata.version": { $lt: msg.version },
+          "metadata.version": { $lte: msg.version },
         },
         {
           $pull: {
