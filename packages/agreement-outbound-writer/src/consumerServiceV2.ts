@@ -1,13 +1,11 @@
 import { match } from "ts-pattern";
 import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
-import { CreateEvent } from "pagopa-interop-commons";
 import { AgreementEvent as OutboundAgreementEvent } from "@pagopa/interop-outbound-models";
-import { createAgreementOutboundEvent } from "./utils.js";
 import { toOutboundAgreementV2 } from "./converters/outboundDataV2Converters.js";
 
 export function handleMessageV2(
   message: AgreementEventEnvelopeV2
-): CreateEvent<OutboundAgreementEvent> {
+): OutboundAgreementEvent {
   return match(message)
     .with(
       { type: "AgreementDeleted" },
@@ -27,31 +25,29 @@ export function handleMessageV2(
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-      (message) =>
-        createAgreementOutboundEvent({
-          eventVersion: 2,
-          message,
-          outboundData: {
-            agreement:
-              message.data.agreement &&
-              toOutboundAgreementV2(message.data.agreement),
-          },
-        })
+      (message) => ({
+        type: message.type,
+        event_version: message.event_version,
+        data: {
+          agreement:
+            message.data.agreement &&
+            toOutboundAgreementV2(message.data.agreement),
+        },
+      })
     )
     .with(
       { type: "AgreementConsumerDocumentAdded" },
       { type: "AgreementConsumerDocumentRemoved" },
-      (message) =>
-        createAgreementOutboundEvent({
-          eventVersion: 2,
-          message,
-          outboundData: {
-            documentId: message.data.documentId,
-            agreement:
-              message.data.agreement &&
-              toOutboundAgreementV2(message.data.agreement),
-          },
-        })
+      (message) => ({
+        type: message.type,
+        event_version: message.event_version,
+        data: {
+          documentId: message.data.documentId,
+          agreement:
+            message.data.agreement &&
+            toOutboundAgreementV2(message.data.agreement),
+        },
+      })
     )
     .exhaustive();
 }

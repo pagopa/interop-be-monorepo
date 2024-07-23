@@ -3,6 +3,7 @@ import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import { initProducer, runConsumer } from "kafka-iam-auth";
 import { AgreementEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { agreementEventToBinaryData } from "@pagopa/interop-outbound-models";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
@@ -32,7 +33,9 @@ async function processMessage({
     .exhaustive();
 
   await producer.send({
-    messages: [{ value: JSON.stringify(outboundEvent) }],
+    messages: [
+      { value: Buffer.from(agreementEventToBinaryData(outboundEvent)) },
+    ],
   });
 
   loggerInstance.info(
