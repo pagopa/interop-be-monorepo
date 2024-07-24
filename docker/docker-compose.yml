@@ -121,6 +121,20 @@ services:
       - ./minio-data:/data
     restart: always
 
+  minio-seed:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set minio http://minio:9000 test-aws-key test-aws-secret;
+        mc ready minio;
+        echo 'MinIO is ready. Seeding data...';
+        mc cp --recursive data/ minio/interop-local-bucket/;
+      "
+    volumes:
+      - ./minio-seed:/data
+
   # ElasticMQ is a local SQS-compatible queue system, to replace AWS SQS in local development
   elasticmq:
     image: softwaremill/elasticmq-native:1.5.7
@@ -138,4 +152,22 @@ services:
       - 8025:8025
       - 1025:1025
 
+  # local-kms is a local KMS-compatible key management service, to replace AWS KMS in local development
+  local-kms:
+    image: nsmithuk/local-kms:3.11.7
+    ports:
+      - 4566:4566
+    environment:
+      PORT: 4566
+      KMS_REGION: eu-central-1
+    volumes:
+      - ./local-kms-seed/seed.yaml:/init/seed.yaml
+  
+  # HTTP server to simulate well-known JWKS endpoint
+  jwks:
+    image: nginx:1.27.0
+    ports:
+      - 4500:80
+    volumes:
+      - ./local-kms-seed/jwks.json:/usr/share/nginx/html/jwks.json
 
