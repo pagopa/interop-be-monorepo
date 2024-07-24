@@ -8,7 +8,7 @@ export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  agreementDescriptionNotFound: "0004",
+  agreementDescriptorNotFound: "0004",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -50,7 +50,7 @@ export function agreementDescriptorNotFound(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor of agreement ${agreementId} not found`,
-    code: "agreementDescriptionNotFound",
-    title: "Agreement description not found",
+    code: "agreementDescriptorNotFound",
+    title: "Agreement descriptor not found",
   });
 }

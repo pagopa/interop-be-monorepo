@@ -168,3 +168,29 @@ export function toTenantWithOnlyAttributes(
     attributes: tenant.attributes.map(toTenantAttribute).flat(),
   };
 }
+
+export function toCompactEservice(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.CompactEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: {
+      id: producer.id,
+      name: producer.name,
+      kind: producer.kind,
+    },
+  };
+}
+
+export function toCompactDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.CompactDescriptor {
+  return {
+    id: descriptor.id,
+    audience: descriptor.audience,
+    state: descriptor.state,
+    version: descriptor.version,
+  };
+}
