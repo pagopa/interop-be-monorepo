@@ -3,6 +3,7 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  S3Config,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -92,6 +93,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
+  .and(S3Config)
   .and(AllowedListConfig)
   .and(SelfCareConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;

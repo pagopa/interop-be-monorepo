@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { WithLogger } from "pagopa-interop-commons";
-import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
+import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  WithLogger,
+  streamToBuffer,
+} from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
   AgreementProcessClient,
@@ -15,7 +21,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 function activeDescriptorStateFilter(
@@ -97,7 +102,8 @@ const enhanceCatalogEService =
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient
+  agreementProcessClient: AgreementProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -162,16 +168,20 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       ctx: WithLogger<BffAppContext>
-    ): Promise<Buffer> => {
-      await catalogProcessClient.getEServiceDocumentById({
-        headers: ctx.headers,
-        params: {
-          eServiceId,
-          descriptorId,
-          documentId,
-        },
-      });
-      return Buffer.from("");
+    ): Promise<{ contentType: string; document: Buffer }> => {
+      const { path, contentType } =
+        await catalogProcessClient.getEServiceDocumentById({
+          headers: ctx.headers,
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+        });
+
+      const stream = await fileManager.get(config.s3Bucket, path, ctx.logger);
+
+      return { contentType, document: await streamToBuffer(stream) };
     },
   };
 }
