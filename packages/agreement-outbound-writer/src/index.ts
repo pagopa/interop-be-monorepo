@@ -1,12 +1,15 @@
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import { initProducer, runConsumer } from "kafka-iam-auth";
-import { AgreementEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { agreementEventToBinaryData } from "@pagopa/interop-outbound-models";
-import { handleMessageV1 } from "./consumerServiceV1.js";
-import { handleMessageV2 } from "./consumerServiceV2.js";
+import {
+  encodeOutboundAgreementEvent,
+  AgreementEvent as AgreementOutboundEvent,
+} from "@pagopa/interop-outbound-models";
+import { AgreementEvent } from "pagopa-interop-models";
 import { config } from "./config/config.js";
+import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
+import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
 const producer = await initProducer(
   config.producerConfig,
@@ -27,19 +30,17 @@ async function processMessage({
     correlationId: msg.correlation_id,
   });
 
-  const outboundEvent = match(msg)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg))
+  const outboundEvent: AgreementOutboundEvent = match(msg)
+    .with({ event_version: 1 }, (msg) => toOutboundEventV1(msg))
+    .with({ event_version: 2 }, (msg) => toOutboundEventV2(msg))
     .exhaustive();
 
   await producer.send({
-    messages: [
-      { value: Buffer.from(agreementEventToBinaryData(outboundEvent)) },
-    ],
+    messages: [{ value: encodeOutboundAgreementEvent(outboundEvent) }],
   });
 
   loggerInstance.info(
-    `Partition number: ${partition}. Offset: ${message.offset}`
+    `Outbound event sent! Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
 
