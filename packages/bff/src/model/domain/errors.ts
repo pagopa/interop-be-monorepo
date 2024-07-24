@@ -16,6 +16,7 @@ export const errorCodes = {
   tenantLoginNotAllowed: "0008",
   tokenVerificationFailed: "0009",
   missingInterface: "0010",
+  eserviceRiskNotFound: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
