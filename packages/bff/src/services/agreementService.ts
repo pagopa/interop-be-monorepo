@@ -176,7 +176,7 @@ async function enrichAgreement(
     ctx
   );
 
-  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
+  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
   return {
     id: agreement.id,
@@ -187,9 +187,9 @@ async function enrichAgreement(
       kind: consumer.kind,
     },
     eservice: toCompactEservice(eservice, producer),
-    descriptor: toCompactDescriptor(currentDescriptior),
+    descriptor: toCompactDescriptor(currentDescriptor),
     canBeUpgraded: isUpgradable(
-      currentDescriptior,
+      currentDescriptor,
       agreement,
       eservice.descriptors
     ),
