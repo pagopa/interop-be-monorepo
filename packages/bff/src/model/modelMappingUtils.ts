@@ -19,7 +19,7 @@ const ACTIVE_DESCRIPTOR_STATES_FILTER: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.DEPRECATED,
 ];
 
-export function getLatestAcriveDescriptor(
+export function getLatestActiveDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor | undefined {
   return eservice.descriptors
