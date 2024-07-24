@@ -531,5 +531,22 @@ export function catalogServiceBuilder(
         file: Buffer.from(buildCsv(consumers)),
       };
     },
+    addRiskAnalysisToEService: async (
+      eserviceId: EServiceId,
+      riskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.createRiskAnalysis(
+        {
+          name: riskAnalysisSeed.name,
+          riskAnalysisForm: riskAnalysisSeed.riskAnalysisForm,
+        },
+        {
+          headers: context.headers,
+          params: {
+            eServiceId: eserviceId,
+          },
+        }
+      ),
   };
 }
