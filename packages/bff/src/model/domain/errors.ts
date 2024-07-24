@@ -21,6 +21,7 @@ export const errorCodes = {
   purposeDraftVersionNotFound: "0014",
   invalidRiskAnalysisContentType: "0015",
   missingInterface: "0016",
+  eserviceRiskNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

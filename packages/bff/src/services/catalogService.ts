@@ -11,7 +11,7 @@ import {
   WithLogger,
   formatDateyyyyMMddThhmmss,
 } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, RiskAnalysisId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -552,6 +552,18 @@ export function catalogServiceBuilder(
       context: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.updateRiskAnalysis(riskAnalysisSeed, {
+        headers: context.headers,
+        params: {
+          eServiceId: eserviceId,
+          riskAnalysisId,
+        },
+      }),
+    deleteEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.deleteRiskAnalysis(undefined, {
         headers: context.headers,
         params: {
           eServiceId: eserviceId,
