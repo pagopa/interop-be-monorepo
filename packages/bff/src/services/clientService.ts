@@ -38,10 +38,11 @@ export function clientServiceBuilder(
         queries: {
           offset,
           limit,
-          userIds: userIds.join(","),
+          userIds,
           consumerId: requesterId,
           name,
           kind,
+          purposeId: undefined,
         },
         headers: ctx.headers,
       });
@@ -115,13 +116,18 @@ export function clientServiceBuilder(
       userId: string,
       clientId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(`Add user ${userId} to client ${clientId}`);
 
-      await authorizationProcessClient.client.addUser(undefined, {
-        params: { clientId, userId },
-        headers,
-      });
+      const { id } = await authorizationProcessClient.client.addUser(
+        undefined,
+        {
+          params: { clientId, userId },
+          headers,
+        }
+      );
+
+      return { id };
     },
 
     async createKeys(
@@ -156,7 +162,7 @@ export function clientServiceBuilder(
 
       const { keys } = await authorizationProcessClient.client.getClientKeys({
         params: { clientId },
-        queries: { userIds: userIds.join(",") },
+        queries: { userIds },
         headers,
       });
 
@@ -232,7 +238,7 @@ export function clientServiceBuilder(
     async createConsumerClient(
       seed: authorizationApi.ClientSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ id: string }> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating consumer client with name ${seed.name}`);
 
       return authorizationProcessClient.client.createConsumerClient(seed, {
@@ -243,7 +249,7 @@ export function clientServiceBuilder(
     async createApiClient(
       seed: authorizationApi.ClientSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ id: string }> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating api client with name ${seed.name}`);
 
       return authorizationProcessClient.client.createApiClient(seed, {

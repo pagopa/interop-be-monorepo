@@ -144,13 +144,13 @@ const clientRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await clientService.addUserToClient(
+        const createdUser = await clientService.addUserToClient(
           req.params.userId,
           req.params.clientId,
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).json(createdUser);
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
