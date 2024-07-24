@@ -1,7 +1,7 @@
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { BffAppContext } from "./context.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export async function getBulkAttributes(
   ids: string[],
