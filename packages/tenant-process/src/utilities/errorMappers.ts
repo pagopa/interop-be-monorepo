@@ -107,7 +107,10 @@ export const revokeVerifiedAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("verifiedAttributeSelfRevocation", () => HTTP_STATUS_FORBIDDEN)
-    .with("attributeRevocationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "verifiedAttributeSelfRevocation",
+      "attributeRevocationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

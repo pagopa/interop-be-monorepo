@@ -3,14 +3,12 @@
 import {
   generateId,
   Tenant,
-  unsafeBrandId,
   protobufDecoder,
   toTenantV2,
   Descriptor,
   EService,
   descriptorState,
   tenantAttributeType,
-  AttributeId,
   TenantVerifiedAttributeRevokedV2,
   Agreement,
   toReadModelEService,
@@ -47,7 +45,7 @@ import {
 describe("revokeVerifiedAttribute", async () => {
   const targetTenant: Tenant = getMockTenant();
   const requesterTenant: Tenant = getMockTenant();
-  const attributeId: AttributeId = generateId();
+  const verifiedAttribute = getMockVerifiedTenantAttribute();
   const descriptor1: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
@@ -55,7 +53,7 @@ describe("revokeVerifiedAttribute", async () => {
       verified: [
         [
           {
-            id: attributeId,
+            id: verifiedAttribute.id,
             explicitAttributeVerification: false,
           },
         ],
@@ -91,8 +89,8 @@ describe("revokeVerifiedAttribute", async () => {
       ...targetTenant,
       attributes: [
         {
-          ...getMockVerifiedTenantAttribute(),
-          id: unsafeBrandId(attributeId),
+          ...verifiedAttribute,
+          assignmentTimestamp: new Date(),
           verifiedBy: [
             {
               ...mockVerifiedBy,
@@ -117,7 +115,7 @@ describe("revokeVerifiedAttribute", async () => {
     const returnedTenant = await tenantService.revokeVerifiedAttribute(
       {
         tenantId: tenantWithVerifiedAttribute.id,
-        attributeId,
+        attributeId: verifiedAttribute.id,
         organizationId: requesterTenant.id,
         correlationId: generateId(),
       },
@@ -145,7 +143,7 @@ describe("revokeVerifiedAttribute", async () => {
       ...tenantWithVerifiedAttribute,
       attributes: [
         {
-          id: unsafeBrandId(attributeId),
+          id: verifiedAttribute.id,
           type: tenantAttributeType.VERIFIED,
           assignmentTimestamp: new Date(),
           verifiedBy: [],
@@ -174,7 +172,7 @@ describe("revokeVerifiedAttribute", async () => {
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          attributeId,
+          attributeId: verifiedAttribute.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -187,7 +185,7 @@ describe("revokeVerifiedAttribute", async () => {
       ...targetTenant,
       attributes: [
         {
-          ...getMockVerifiedTenantAttribute(),
+          ...verifiedAttribute,
           id: generateId(),
           verifiedBy: [
             {
@@ -211,21 +209,20 @@ describe("revokeVerifiedAttribute", async () => {
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: tenantWithoutSameAttributeId.id,
-          attributeId,
+          attributeId: verifiedAttribute.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
         genericLogger
       )
-    ).rejects.toThrowError(attributeNotFound(attributeId));
+    ).rejects.toThrowError(attributeNotFound(verifiedAttribute.id));
   });
   it("Should throw attributeRevocationNotAllowed if the organization is not allowed to revoke the attribute", async () => {
     const tenantWithVerifiedAttribute: Tenant = {
       ...targetTenant,
       attributes: [
         {
-          ...getMockVerifiedTenantAttribute(),
-          id: unsafeBrandId(attributeId),
+          ...verifiedAttribute,
           verifiedBy: [
             {
               ...getMockVerifiedBy(),
@@ -249,14 +246,14 @@ describe("revokeVerifiedAttribute", async () => {
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: tenantWithVerifiedAttribute.id,
-          attributeId,
+          attributeId: verifiedAttribute.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
         genericLogger
       )
     ).rejects.toThrowError(
-      attributeRevocationNotAllowed(targetTenant.id, unsafeBrandId(attributeId))
+      attributeRevocationNotAllowed(targetTenant.id, verifiedAttribute.id)
     );
   });
   it("Should throw verifiedAttributeSelfRevocation if the organizations are not allowed to revoke own attributes", async () => {
@@ -272,7 +269,7 @@ describe("revokeVerifiedAttribute", async () => {
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: requesterTenant.id,
-          attributeId,
+          attributeId: verifiedAttribute.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -285,8 +282,7 @@ describe("revokeVerifiedAttribute", async () => {
       ...targetTenant,
       attributes: [
         {
-          ...getMockVerifiedTenantAttribute(),
-          id: unsafeBrandId(attributeId),
+          ...verifiedAttribute,
           verifiedBy: [
             {
               ...getMockVerifiedBy(),
@@ -310,7 +306,7 @@ describe("revokeVerifiedAttribute", async () => {
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: tenantWithVerifiedAttribute.id,
-          attributeId,
+          attributeId: verifiedAttribute.id,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
@@ -320,7 +316,7 @@ describe("revokeVerifiedAttribute", async () => {
       attributeAlreadyRevoked(
         targetTenant.id,
         requesterTenant.id,
-        unsafeBrandId(attributeId)
+        verifiedAttribute.id
       )
     );
   });
