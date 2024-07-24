@@ -2,7 +2,11 @@
 import { WithLogger } from "pagopa-interop-commons";
 import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { EServiceId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+} from "pagopa-interop-models";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
@@ -152,6 +156,22 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    getEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<Buffer> => {
+      await catalogProcessClient.getEServiceDocumentById({
+        headers: ctx.headers,
+        params: {
+          eServiceId,
+          descriptorId,
+          documentId,
+        },
+      });
+      return Buffer.from("");
     },
   };
 }
