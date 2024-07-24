@@ -403,12 +403,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
-    })
-
-    .get("/clients/:clientId/users/:userId/keys", async (_req, res) =>
-      res.status(501).send()
-    );
-
+    });
   return clientRouter;
 };
 
