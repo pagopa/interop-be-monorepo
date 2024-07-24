@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  authorizationApi,
   bffApi,
   catalogApi,
   tenantApi,
@@ -166,5 +167,19 @@ export function toTenantWithOnlyAttributes(
   return {
     ...tenant,
     attributes: tenant.attributes.map(toTenantAttribute).flat(),
+  };
+}
+
+export function toAuthorizationKeySeed(
+  seed: bffApi.KeySeed,
+  userId: string
+): authorizationApi.KeySeed {
+  return {
+    userId,
+    key: seed.key,
+    use: seed.use,
+    alg: seed.alg,
+    name: seed.name,
+    createdAt: new Date().toISOString(),
   };
 }
