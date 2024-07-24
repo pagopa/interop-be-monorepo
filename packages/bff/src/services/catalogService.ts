@@ -2,16 +2,20 @@
 /* eslint-disable functional/immutable-data */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
+  FileManager,
   WithLogger,
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
+  streamToBuffer,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
+  EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
-import { EServiceDocumentId } from "pagopa-interop-models";
+import { config } from "../config/config.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -20,13 +24,14 @@ import {
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
 } from "../model/domain/errors.js";
-import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestAgreement,
+} from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
@@ -35,7 +40,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -176,7 +180,8 @@ export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: AttributeProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -576,16 +581,20 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       ctx: WithLogger<BffAppContext>
-    ): Promise<Buffer> => {
-      await catalogProcessClient.getEServiceDocumentById({
-        headers: ctx.headers,
-        params: {
-          eServiceId,
-          descriptorId,
-          documentId,
-        },
-      });
-      return Buffer.from("");
+    ): Promise<{ contentType: string; document: Buffer }> => {
+      const { path, contentType } =
+        await catalogProcessClient.getEServiceDocumentById({
+          headers: ctx.headers,
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+        });
+
+      const stream = await fileManager.get(config.s3Bucket, path, ctx.logger);
+
+      return { contentType, document: await streamToBuffer(stream) };
     },
   };
 }

@@ -105,6 +105,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
+  .and(S3Config)
   .and(AllowedListConfig)
   .and(SelfCareConfig)
   .and(S3Config);

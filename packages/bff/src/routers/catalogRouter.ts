@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
+  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -25,7 +27,8 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
-  }: PagoPAInteropBeClients
+  }: PagoPAInteropBeClients,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -35,7 +38,8 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
-    attributeProcessClient
+    attributeProcessClient,
+    fileManager
   );
 
   catalogRouter
@@ -208,13 +212,17 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          await catalogService.getEServiceDocumentById(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
-          return res.status(204).json().send();
+          const { contentType, document } =
+            await catalogService.getEServiceDocumentById(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+          return res
+            .header(constants.HTTP2_HEADER_CONTENT_TYPE, contentType)
+            .status(200)
+            .end(document);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
