@@ -7,7 +7,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, formatDateyyyyMMddThhmmss } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, RiskAnalysisId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -17,7 +17,10 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  eserviceRiskNotFound,
+} from "../model/domain/errors.js";
 import { getLatestAcriveDescriptor } from "../model/mappers.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
@@ -132,6 +135,20 @@ const retrieveEserviceDescriptor = (
   }
 
   return descriptor;
+};
+
+const retrieveRiskAnalysis = (
+  eservice: catalogApi.EService,
+  riskAnalysisId: string
+): catalogApi.EServiceRiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra) => ra.id === riskAnalysisId
+  );
+
+  if (!riskAnalysis) {
+    throw eserviceRiskNotFound(eservice.id, riskAnalysisId);
+  }
+  return riskAnalysis;
 };
 
 const getAttributeIds = (
@@ -548,5 +565,22 @@ export function catalogServiceBuilder(
           },
         }
       ),
+    getEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceRiskAnalysis> => {
+      const eservice: catalogApi.EService =
+        await catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId: eserviceId,
+          },
+          headers: context.headers,
+        });
+
+      const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
+
+      return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+    },
   };
 }

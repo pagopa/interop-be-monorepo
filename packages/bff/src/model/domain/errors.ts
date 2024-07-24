@@ -12,6 +12,7 @@ export const errorCodes = {
   descriptorNotFound: "0006",
   attributeNotExists: "0008",
   invalidEserviceRequester: "0009",
+  eserviceRiskNotFound: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -75,5 +76,17 @@ export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
     detail: `Attribute ${id} does not exist in the attribute registry`,
     code: "attributeNotExists",
     title: "Attribute not exists",
+  });
+}
+
+
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
   });
 }
