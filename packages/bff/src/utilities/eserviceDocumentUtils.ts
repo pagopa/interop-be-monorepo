@@ -189,7 +189,7 @@ function processSoapInterface(file: string) {
 
 async function processFile(
   doc: bffApi.createEServiceDocument_Body,
-  technology: "REST" | "SOAP",
+  technology: catalogApi.EServiceTechnology,
   eServiceId: string
 ) {
   const file = await doc.doc.text();
