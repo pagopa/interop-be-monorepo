@@ -593,7 +593,7 @@ export function tenantServiceBuilder(
                     revocationDate: new Date(),
                   },
                 ],
-              } as VerifiedTenantAttribute)
+              } satisfies VerifiedTenantAttribute)
             : attr
         ),
       };
