@@ -198,19 +198,14 @@ const clientRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const requestHeaders = {
-          "X-Correlation-Id": ctx.correlationId,
-          Authorization: req.headers.authorization as string,
-        };
-
-        await clientService.addUserToClient(
+        const createdUser = await clientService.addUserToClient(
           req.params.userId,
           req.params.clientId,
           requestHeaders,
           ctx.logger
         );
 
-        return res.status(204).send();
+        return res.status(200).json(createdUser);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
