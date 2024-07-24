@@ -9,6 +9,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
+import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
 import { attributeNotExists } from "../../domain/errors.js";
 import {
   getLatestAcriveDescriptor,
@@ -17,12 +18,11 @@ import {
   isAgreementSubscribed,
   isAgreementUpgradable,
 } from "../../mappers.js";
-import { catalogApiDescriptorState } from "../apiTypes.js";
-import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
 import {
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
   isRequesterEserviceProducer,
 } from "../../validators.js";
+import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -180,10 +180,12 @@ export function toBffCatalogApiEserviceRiskAnalysis(
       )
       .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
         const key = `${answer.key}`;
-        if (answers[key] && answer.value) {
-          answers[key] = [...answers[key], answer.value];
-        } else {
+        if(!answers[key]) {
           answers[key] = [];
+        }
+
+        if (answer.value) {
+          answers[key] = [...answers[key], answer.value];
         }
 
         return answers;
