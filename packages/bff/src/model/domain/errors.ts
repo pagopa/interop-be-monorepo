@@ -12,10 +12,10 @@ export const errorCodes = {
   tokenVerificationFailed: "0004",
   userNotFound: "0005",
   selfcareEntityNotFilled: "0006",
-  unknownTenantOrigin: "0008",
-  invalidJwtClaim: "0009",
-  samlNotValid: "0010",
-  missingSelfcareId: "0011",
+  unknownTenantOrigin: "0007",
+  invalidJwtClaim: "0008",
+  samlNotValid: "0009",
+  missingSelfcareId: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
