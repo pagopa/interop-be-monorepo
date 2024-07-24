@@ -599,5 +599,17 @@ export function catalogServiceBuilder(
           riskAnalysisId,
         },
       }),
+    deleteEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.deleteRiskAnalysis(undefined, {
+        headers: context.headers,
+        params: {
+          eServiceId: eserviceId,
+          riskAnalysisId,
+        },
+      }),
   };
 }

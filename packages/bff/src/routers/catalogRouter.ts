@@ -292,7 +292,24 @@ const catalogRouter = (
     )
     .delete(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.deleteEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return catalogRouter;
