@@ -280,11 +280,14 @@ export async function enhanceAgreement(
     declaredAttributes: agreementDeclaredAttrs,
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
+    suspendedByPlatform: agreement.suspendedByPlatform,
     isContractPresent: agreement.contract !== undefined,
     consumerDocuments: agreement.consumerDocuments,
     createdAt: agreement.createdAt,
     updatedAt: agreement.updatedAt,
     suspendedAt: agreement.suspendedAt,
+    consumerNotes: agreement.consumerNotes,
+    rejectionReason: agreement.rejectionReason,
   };
 }
 
