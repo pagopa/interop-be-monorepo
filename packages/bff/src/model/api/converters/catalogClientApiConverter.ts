@@ -180,7 +180,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
       )
       .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
         const key = `${answer.key}`;
-        if(!answers[key]) {
+        if (!answers[key]) {
           answers[key] = [];
         }
 
