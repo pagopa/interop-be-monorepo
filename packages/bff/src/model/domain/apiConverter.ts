@@ -1,5 +1,9 @@
 import { P, match } from "ts-pattern";
-import { bffApi, selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  bffApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
@@ -84,3 +88,11 @@ export const toApiSelfcareUser = (
     .otherwise(() => {
       throw selfcareEntityNotFilled("UserResource", "unknown");
     });
+
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
