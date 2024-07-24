@@ -20,7 +20,6 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
@@ -575,13 +574,18 @@ export function catalogServiceBuilder(
       eServiceId: string,
       eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
-      await catalogProcessClient.createDescriptor(eServiceDescriptorSeed, {
-        headers,
-        params: {
-          eServiceId,
-        },
-      }),
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.createDescriptor(
+        { ...eServiceDescriptorSeed, audience: [], docs: [] },
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+      return { id };
+    },
     deleteDraft: async (
       eServiceId: string,
       descriptorId: string,
@@ -599,8 +603,8 @@ export function catalogServiceBuilder(
       descriptorId: string,
       updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
-      await catalogProcessClient.updateDraftDescriptor(
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.updateDraftDescriptor(
         updateEServiceDescriptorSeed,
         {
           headers,
@@ -609,6 +613,8 @@ export function catalogServiceBuilder(
             eServiceId,
           },
         }
-      ),
+      );
+      return { id };
+    },
   };
 }
