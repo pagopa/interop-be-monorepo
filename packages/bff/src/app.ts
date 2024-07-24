@@ -16,6 +16,10 @@ import genericRouter from "./routers/genericRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
+import {
+  fromFilesToBodyMiddleware,
+  multerMiddleware,
+} from "./utilities/middlewares.js";
 
 const serviceName = "bff-process";
 const fileManager = initFileManager(config);
@@ -28,22 +32,8 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-// If form-data is used, the files are stored in memory and inserted in the body to make zodios work
-// Please notice this replace all data in req.body
-app.use(multer({ storage: multer.memoryStorage() }).any());
-app.use(function (req, _res, next) {
-  if (Array.isArray(req.files)) {
-    req.files.forEach((file) => {
-      // eslint-disable-next-line functional/immutable-data
-      req.body[file.fieldname] = new File([file.buffer], file.originalname, {
-        type: file.mimetype,
-      });
-    });
-  }
-
-  next();
-});
-
+app.use(multerMiddleware);
+app.use(fromFilesToBodyMiddleware);
 app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authenticationMiddleware);
