@@ -12,6 +12,9 @@ export const errorCodes = {
   descriptorNotFound: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
+  missingClaim: "0007",
+  tenantLoginNotAllowed: "0008",
+  tokenVerificationFailed: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -75,5 +78,31 @@ export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
     detail: `Attribute ${id} does not exist in the attribute registry`,
     code: "attributeNotExists",
     title: "Attribute not exists",
+  });
+}
+
+export function missingClaim(claimName: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Claim ${claimName} has not been passed`,
+    code: "missingClaim",
+    title: "Claim not found",
+  });
+}
+
+export function tenantLoginNotAllowed(
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant origin is not allowed and SelfcareID ${selfcareId} does not belong to allow list`,
+    code: "tenantLoginNotAllowed",
+    title: "Tenant login not allowed",
+  });
+}
+
+export function tokenVerificationFailed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Token verification failed",
+    code: "tokenVerificationFailed",
+    title: "Token verification failed",
   });
 }
