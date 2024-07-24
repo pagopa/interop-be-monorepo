@@ -1,3 +1,4 @@
+import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   EServiceV2,
   EServiceId,
@@ -14,9 +15,20 @@ import {
   fromPurposeV2,
   PurposeId,
   PurposeVersion,
+  ClientV2,
+  Client,
+  fromClientV2,
+  KeyUse,
+  keyUse,
+  ClientKind,
+  clientKind,
+  DescriptorState,
+  descriptorState,
+  PurposeVersionState,
+  purposeVersionState,
+  AgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ApiClientComponentState, ApiClientComponent } from "./model/models.js";
 
 export const getDescriptorFromEvent = (
   msg: {
@@ -62,11 +74,16 @@ export const getAgreementFromEvent = (
 };
 
 export const agreementStateToClientState = (
-  agreement: Agreement
-): ApiClientComponentState =>
-  match(agreement.state)
-    .with(agreementState.active, () => ApiClientComponent.Values.ACTIVE)
-    .otherwise(() => ApiClientComponent.Values.INACTIVE);
+  state: AgreementState
+): authorizationManagementApi.ClientComponentState =>
+  match(state)
+    .with(
+      agreementState.active,
+      () => authorizationManagementApi.ClientComponentState.Values.ACTIVE
+    )
+    .otherwise(
+      () => authorizationManagementApi.ClientComponentState.Values.INACTIVE
+    );
 
 export const getPurposeFromEvent = (
   msg: {
@@ -103,3 +120,48 @@ export const getPurposeVersionFromEvent = (
 
   return { purposeId: purpose.id, purposeVersion };
 };
+
+export const getClientFromEvent = (
+  msg: {
+    data: {
+      client?: ClientV2;
+    };
+  },
+  eventType: string
+): Client => {
+  if (!msg.data.client) {
+    throw missingKafkaMessageDataError("client", eventType);
+  }
+
+  return fromClientV2(msg.data.client);
+};
+
+export const clientKindToApiClientKind = (
+  kid: ClientKind
+): authorizationManagementApi.ClientKind =>
+  match<ClientKind, authorizationManagementApi.ClientKind>(kid)
+    .with(clientKind.consumer, () => "CONSUMER")
+    .with(clientKind.api, () => "API")
+    .exhaustive();
+
+export const keyUseToApiKeyUse = (
+  kid: KeyUse
+): authorizationManagementApi.KeyUse =>
+  match<KeyUse, authorizationManagementApi.KeyUse>(kid)
+    .with(keyUse.enc, () => "ENC")
+    .with(keyUse.sig, () => "SIG")
+    .exhaustive();
+
+export const descriptorStateToClientState = (
+  state: DescriptorState
+): authorizationManagementApi.ClientComponentState =>
+  state === descriptorState.published || state === descriptorState.deprecated
+    ? authorizationManagementApi.ClientComponentState.Values.ACTIVE
+    : authorizationManagementApi.ClientComponentState.Values.INACTIVE;
+
+export const purposeStateToClientState = (
+  state: PurposeVersionState
+): authorizationManagementApi.ClientComponentState =>
+  state === purposeVersionState.active
+    ? authorizationManagementApi.ClientComponentState.Values.ACTIVE
+    : authorizationManagementApi.ClientComponentState.Values.INACTIVE;

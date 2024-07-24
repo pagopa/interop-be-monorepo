@@ -142,3 +142,9 @@ export const Tenant = z.object({
 });
 
 export type Tenant = z.infer<typeof Tenant>;
+
+export const CompactTenant = z.object({
+  id: TenantId,
+  attributes: z.array(TenantAttribute),
+});
+export type CompactTenant = z.infer<typeof CompactTenant>;

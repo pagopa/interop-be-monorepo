@@ -32,7 +32,7 @@ export async function handleMessage(
     .with({ type: "MaintenanceAttributeDeleted" }, async (msg) => {
       await attributes.deleteOne({
         "data.id": msg.stream_id,
-        "metadata.version": { $lt: msg.version },
+        "metadata.version": { $lte: msg.version },
       });
     })
     .exhaustive();
