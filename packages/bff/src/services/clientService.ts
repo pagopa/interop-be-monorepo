@@ -8,6 +8,7 @@ import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { userNotFound } from "../model/domain/errors.js";
 import { toBffApiCompactUser } from "../model/domain/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
+import { toAuthorizationKeySeed } from "../model/api/apiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -143,14 +144,9 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Create keys for client ${clientId}`);
 
-      const body: authorizationApi.KeysSeed = keySeed.map((seed) => ({
-        userId,
-        key: seed.key,
-        use: seed.use,
-        alg: seed.alg,
-        name: seed.name,
-        createdAt: new Date().toISOString(),
-      }));
+      const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
+        toAuthorizationKeySeed(seed, userId)
+      );
 
       await authorizationProcessClient.client.createKeys(body, {
         params: { clientId },
@@ -229,9 +225,8 @@ export function clientServiceBuilder(
     async getEncodedClientKeyById(
       clientId: string,
       keyId: string,
-      headers: Headers,
-      logger: Logger
-    ): Promise<{ key: string }> {
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EncodedClientKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
       const key = await authorizationProcessClient.client.getClientKeyById({
