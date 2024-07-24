@@ -13,4 +13,3 @@ export const EserviceConsumer = z.object({
   consumerName: z.string(),
   consumerExternalId: z.string(),
 });
-
