@@ -39,7 +39,7 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.createPurposeFromEService(
+        const result = await purposeService.createPurposeForReceiveEservice(
           req.body,
           ctx
         );
@@ -86,7 +86,7 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.getPurposeProducer(
+        const result = await purposeService.getProducerPurposes(
           {
             name: req.query.q,
             eservicesIds: req.query.eservicesIds,
@@ -113,7 +113,7 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.getPurposeConsumer(
+        const result = await purposeService.getConsumerPurposes(
           {
             name: req.query.q,
             eservicesIds: req.query.eservicesIds,
