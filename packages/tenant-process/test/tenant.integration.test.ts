@@ -1,4 +1,3 @@
-/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
@@ -22,7 +21,7 @@ import {
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
@@ -31,7 +30,6 @@ import {
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
 } from "../src/model/domain/errors.js";
-import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
@@ -76,7 +74,7 @@ describe("Integration tests", () => {
         await addOneTenant(mockTenant);
         const kind = tenantKind.PA;
         const selfcareId = mockTenant.selfcareId!;
-        const tenantSeed: ApiSelfcareTenantSeed = {
+        const tenantSeed: tenantApi.SelfcareTenantSeed = {
           externalId: {
             origin: mockTenant.externalId.origin,
             value: mockTenant.externalId.value,
@@ -206,7 +204,7 @@ describe("Integration tests", () => {
         currentDate.setDate(currentDate.getDate() + 1)
       );
 
-      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+      const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
         {
           expirationDate: expirationDate.toISOString(),
         };
@@ -298,7 +296,7 @@ describe("Integration tests", () => {
           currentDate.setDate(currentDate.getDate() - 3)
         );
 
-        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+        const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
           {
             expirationDate: expirationDateinPast.toISOString(),
           };
