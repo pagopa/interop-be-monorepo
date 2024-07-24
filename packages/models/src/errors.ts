@@ -86,7 +86,7 @@ export function makeApiProblemBuilder<T extends string>(errors: {
   [K in T]: string;
 }): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, logMessage) => {
+  return (error, httpMapper, logger, operationalMsg) => {
     const makeProblem = (
       httpStatus: number,
       { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>
@@ -129,8 +129,8 @@ export function makeApiProblemBuilder<T extends string>(errors: {
           },
           (e) => {
             const receivedProblem: Problem = e.response.data;
-            if (logMessage) {
-              logger.warn(logMessage);
+            if (operationalMsg) {
+              logger.warn(operationalMsg);
             }
             logger.warn(makeProblemLogString(receivedProblem, error));
             return e.response.data;
