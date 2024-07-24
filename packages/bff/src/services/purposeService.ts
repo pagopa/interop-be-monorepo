@@ -34,17 +34,16 @@ export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
 ): purposeApi.PurposeVersion | undefined => {
   const statesToExclude: purposeApi.PurposeVersionState[] = [
-    "WAITING_FOR_APPROVAL",
-    "REJECTED",
+    purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    purposeApi.PurposeVersionState.Values.REJECTED,
   ];
-  // eslint-disable-next-line functional/immutable-data
   return purposeVersions
     .filter((v) => !statesToExclude.includes(v.state))
     .sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )
-    .pop();
+    .at(-1);
 };
 
 // eslint-disable-next-line max-params
@@ -165,7 +164,8 @@ async function getPurposes(
 
     const currentVersion = getCurrentVersion(purpose.versions);
     const waitingForApprovalVersion = purpose.versions.find(
-      (v) => v.state === "WAITING_FOR_APPROVAL"
+      (v) =>
+        v.state === purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
     );
     // eslint-disable-next-line functional/immutable-data
     const latestVersion = purpose.versions
@@ -176,7 +176,9 @@ async function getPurposes(
       .pop();
 
     const rejectedVersion =
-      latestVersion?.state === "REJECTED" ? latestVersion : undefined;
+      latestVersion?.state === purposeApi.PurposeVersionState.Values.REJECTED
+        ? latestVersion
+        : undefined;
 
     const isUpgradable = (
       descriptor: catalogApi.EServiceDescriptor,
@@ -187,8 +189,11 @@ async function getPurposes(
         .filter((d) => Number(d.version) > Number(descriptor.version))
         .some(
           (d) =>
-            (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
-            (agreement.state === "ACTIVE" || agreement.state === "SUSPENDED")
+            (d.state === catalogApi.EServiceDescriptorState.Values.PUBLISHED ||
+              d.state ===
+                catalogApi.EServiceDescriptorState.Values.SUSPENDED) &&
+            (agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+              agreement.state === agreementApi.AgreementState.Values.SUSPENDED)
         );
 
     return {
@@ -263,11 +268,13 @@ export function purposeServiceBuilder(
         headers,
       });
     },
-    async createPurposeFromEService(
+    async createPurposeForReceiveEservice(
       createSeed: purposeApi.EServicePurposeSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
-      logger.info("Creating purpose from e-service");
+      logger.info(
+        `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
+      );
       return await purposeClient.createPurposeFromEService(createSeed, {
         headers,
       });
@@ -296,7 +303,7 @@ export function purposeServiceBuilder(
 
       return { purposeId: id, versionId: unsafeBrandId(versionId) };
     },
-    async getPurposeProducer(
+    async getProducerPurposes(
       filters: {
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
@@ -326,7 +333,7 @@ export function purposeServiceBuilder(
         headers
       );
     },
-    async getPurposeConsumer(
+    async getConsumerPurposes(
       filters: {
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
@@ -359,8 +366,10 @@ export function purposeServiceBuilder(
     async clonePurpose(
       purposeId: PurposeId,
       seed: purposeApi.PurposeCloneSeed,
-      { headers }: BffAppContext
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Cloning purpose ${purposeId}`);
+
       const cloned = await purposeClient.clonePurpose(seed, {
         params: {
           purposeId,
@@ -368,7 +377,9 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const draft = cloned.versions.find((v) => v.state === "DRAFT");
+      const draft = cloned.versions.find(
+        (v) => v.state === purposeApi.PurposeVersionState.Values.DRAFT
+      );
       if (!draft) {
         throw purposeDraftVersionNotFound(purposeId);
       }
