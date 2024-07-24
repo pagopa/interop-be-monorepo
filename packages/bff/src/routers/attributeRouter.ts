@@ -9,8 +9,8 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
+import { emptyErrorMapper } from "../utilities/errorMappers.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
