@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
 import { descriptorApiState } from "../model/api/catalogTypes.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
@@ -127,13 +126,18 @@ export function catalogServiceBuilder(
       eServiceId: string,
       eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
-      await catalogProcessClient.createDescriptor(eServiceDescriptorSeed, {
-        headers,
-        params: {
-          eServiceId,
-        },
-      }),
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.createDescriptor(
+        { ...eServiceDescriptorSeed, audience: [], docs: [] },
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+      return { id };
+    },
     deleteDraft: async (
       eServiceId: string,
       descriptorId: string,
@@ -151,8 +155,8 @@ export function catalogServiceBuilder(
       descriptorId: string,
       updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
-      await catalogProcessClient.updateDraftDescriptor(
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.updateDraftDescriptor(
         updateEServiceDescriptorSeed,
         {
           headers,
@@ -161,6 +165,8 @@ export function catalogServiceBuilder(
             eServiceId,
           },
         }
-      ),
+      );
+      return { id };
+    },
   };
 }
