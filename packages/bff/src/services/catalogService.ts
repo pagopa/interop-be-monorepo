@@ -142,24 +142,31 @@ export function catalogServiceBuilder(
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> =>
-      await catalogProcessClient.createEService(
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.createEService(
         toCatalogEServiceSeed(eServiceSeed),
         {
           headers,
         }
-      ),
+      );
+      return { id };
+    },
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> =>
-      await catalogProcessClient.updateEServiceById(updateEServiceSeed, {
-        headers,
-        params: {
-          eServiceId,
-        },
-      }),
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.updateEServiceById(
+        updateEServiceSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+      return { id };
+    },
     deleteEService: async (
       eServiceId: EServiceId,
       { headers }: WithLogger<BffAppContext>
@@ -175,17 +182,16 @@ export function catalogServiceBuilder(
       eServiceId: EServiceId,
       updateSeed: bffApi.EServiceDescriptionSeed
     ): Promise<bffApi.CreatedResource> => {
-      const updatedEservice =
-        await catalogProcessClient.updateEServiceDescription(updateSeed, {
+      const { id } = await catalogProcessClient.updateEServiceDescription(
+        updateSeed,
+        {
           headers,
           params: {
             eServiceId,
           },
-        });
-
-      return {
-        id: updatedEservice.id,
-      };
+        }
+      );
+      return { id };
     },
   };
 }
