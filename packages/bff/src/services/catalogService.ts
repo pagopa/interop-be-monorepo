@@ -2,15 +2,16 @@
 /* eslint-disable functional/immutable-data */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  getAllFromPaginated,
   WithLogger,
   formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
+import { EServiceDocumentId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -20,6 +21,7 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -33,7 +35,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -569,6 +570,22 @@ export function catalogServiceBuilder(
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+    },
+    getEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<Buffer> => {
+      await catalogProcessClient.getEServiceDocumentById({
+        headers: ctx.headers,
+        params: {
+          eServiceId,
+          descriptorId,
+          documentId,
+        },
+      });
+      return Buffer.from("");
     },
   };
 }
