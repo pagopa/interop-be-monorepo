@@ -1,11 +1,4 @@
-import {
-  ApiError,
-  DescriptorId,
-  EServiceId,
-  PurposeId,
-  TenantId,
-  makeApiProblemBuilder,
-} from "pagopa-interop-models";
+import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
   purposeNotFound: "0001",
@@ -44,7 +37,7 @@ export function userNotFound(
   });
 }
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
@@ -52,7 +45,7 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
+export function eServiceNotFound(eserviceId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
@@ -60,7 +53,7 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
@@ -68,7 +61,7 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
-export function agreementNotFound(consumerId: TenantId): ApiError<ErrorCodes> {
+export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement of consumer ${consumerId} not found`,
     code: "agreementNotFound",
@@ -77,8 +70,8 @@ export function agreementNotFound(consumerId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function eServiceDescriptorNotFound(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId
+  eserviceId: string,
+  descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
@@ -88,7 +81,7 @@ export function eServiceDescriptorNotFound(
 }
 
 export function purposeDraftVersionNotFound(
-  purposeId: PurposeId
+  purposeId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version in DRAFT state for Purpose ${purposeId} not found`,

@@ -1,4 +1,4 @@
-import { WithLogger } from "pagopa-interop-commons";
+import { WithLogger, toSetToArray } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -27,8 +27,10 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
-import { getAllClients } from "./authorizationService.js";
+import { getAllClients } from "./clientService.js";
+import { isUpgradable } from "../model/modelMappingUtils.js";
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -84,7 +86,7 @@ async function getPurposes(
   });
 
   const eservices = await Promise.all(
-    [...new Set(purposes.results.map((p) => p.eserviceId))].map((id) =>
+    toSetToArray(purposes.results.map((p) => p.eserviceId)).map((id) =>
       eserviceClient.getEServiceById({
         params: {
           eServiceId: id,
@@ -155,11 +157,7 @@ async function getPurposes(
               purpose.id,
               headers
             )
-          ).map((c) => ({
-            id: c.client.id,
-            name: c.client.name,
-            hasKeys: c.keys.length > 0,
-          }))
+          ).map(toBffApiCompactClient)
         : [];
 
     const currentVersion = getCurrentVersion(purpose.versions);
@@ -179,22 +177,6 @@ async function getPurposes(
       latestVersion?.state === purposeApi.PurposeVersionState.Values.REJECTED
         ? latestVersion
         : undefined;
-
-    const isUpgradable = (
-      descriptor: catalogApi.EServiceDescriptor,
-      agreement: agreementApi.Agreement,
-      descriptors: catalogApi.EServiceDescriptor[]
-    ): boolean =>
-      descriptors
-        .filter((d) => Number(d.version) > Number(descriptor.version))
-        .some(
-          (d) =>
-            (d.state === catalogApi.EServiceDescriptorState.Values.PUBLISHED ||
-              d.state ===
-                catalogApi.EServiceDescriptorState.Values.SUSPENDED) &&
-            (agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
-              agreement.state === agreementApi.AgreementState.Values.SUSPENDED)
-        );
 
     return {
       id: purpose.id,
