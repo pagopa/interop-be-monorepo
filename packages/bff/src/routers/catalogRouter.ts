@@ -213,9 +213,25 @@ const catalogRouter = (
       res.status(501).send()
     )
     .put("/eservices/:eServiceId", async (_req, res) => res.status(501).send())
-    .post("/eservices/:eServiceId/riskAnalysis", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.addRiskAnalysisToEService(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/eservices/:eServiceId/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
