@@ -9,9 +9,9 @@ export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0006",
-  attributeNotExists: "0008",
-  invalidEserviceRequester: "0009",
+  descriptorNotFound: "0004",
+  attributeNotExists: "0005",
+  invalidEserviceRequester: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

@@ -13,7 +13,7 @@ import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientAp
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
 import { invalidEServiceRequester } from "./domain/errors.js";
 
-const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
+const subscribedAgreementStates: agreementApi.AgreementState[] = [
   agreementApiState.PENDING,
   agreementApiState.ACTIVE,
   agreementApiState.SUSPENDED,
@@ -32,7 +32,7 @@ export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
 export function isAgreementSubscribed(
   agreement: agreementApi.Agreement | undefined
 ): boolean {
-  return !!agreement && SUBSCRIBED_AGREEMENT_STATES.includes(agreement.state);
+  return !!agreement && subscribedAgreementStates.includes(agreement.state);
 }
 
 export function isAgreementUpgradable(

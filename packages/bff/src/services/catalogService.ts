@@ -15,7 +15,7 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import { getLatestAcriveDescriptor } from "../model/mappers.js";
+import { getLatestAcriveDescriptor } from "../model/modelMappingUtils.js";
 import {
   assertRequesterIsProducer,
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
