@@ -337,36 +337,9 @@ const tenantsRouter = (
       }
     )
     .delete(
-      "/tenants/:tenantId/attributes/verified/:attributeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
       "/tenants/attributes/declared/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const tenant = await tenantService.revokeVerifiedAttribute(
-            {
-              tenantId: unsafeBrandId(req.params.tenantId),
-              attributeId: unsafeBrandId(req.params.attributeId),
-              organizationId: req.ctx.authData.organizationId,
-              correlationId: req.ctx.correlationId,
-            },
-            ctx.logger
-          );
-          return res.status(200).json(toApiTenant(tenant)).end();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            revokeVerifiedAttributeErrorMapper,
-            ctx.logger
-          );
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
+      async (_req, res) => res.status(501).send()
     );
 
   const m2mRouter = ctx.router(tenantApi.m2mApi.api, {
@@ -552,6 +525,32 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyVerifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/verified/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.revokeVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              attributeId: unsafeBrandId(req.params.attributeId),
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeVerifiedAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

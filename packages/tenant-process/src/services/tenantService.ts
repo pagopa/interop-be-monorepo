@@ -33,7 +33,7 @@ import {
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
   toCreateEventTenantKindUpdated,
-  toCreateEventTenantVerifiedAttributeRevoked
+  toCreateEventTenantVerifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
@@ -42,6 +42,8 @@ import {
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
   verifiedAttributeSelfVerification,
+  attributeAlreadyRevoked,
+  verifiedAttributeSelfRevocation,
 } from "../model/domain/errors.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
