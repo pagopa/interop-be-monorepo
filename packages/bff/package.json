@@ -37,7 +37,7 @@
     "axios": "1.7.2",
     "dotenv-flow": "4.1.0",
     "express": "4.19.2",
-    "fast-xml-parser": "^4.4.0",
+    "fast-xml-parser": "4.4.0",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -91,7 +91,7 @@ export function samlNotValid(message: string): ApiError<ErrorCodes> {
 
 export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `SelfcareId in Tenant ${tenantId.toString()} not found`,
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
     code: "missingSelfcareId",
     title: "SelfcareId not found",
   });
