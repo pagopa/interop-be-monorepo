@@ -81,7 +81,6 @@ async function getPurposes(
       limit,
       offset,
     },
-    withCredentials: true,
     headers,
   });
 
@@ -91,7 +90,6 @@ async function getPurposes(
         params: {
           eServiceId: id,
         },
-        withCredentials: true,
         headers,
       })
     )
@@ -102,7 +100,6 @@ async function getPurposes(
       params: {
         id,
       },
-      withCredentials: true,
       headers,
     });
   const consumers = await Promise.all(
