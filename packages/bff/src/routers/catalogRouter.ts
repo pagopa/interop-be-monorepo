@@ -134,7 +134,12 @@ const catalogRouter = (
         );
         return res.status(200).json(id).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error updating description of eservice with Id: ${req.params.eServiceId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
