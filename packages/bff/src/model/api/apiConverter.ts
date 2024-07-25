@@ -19,7 +19,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { isAgreementUpgradable } from "../mappers.js";
+import { isAgreementUpgradable } from "../modelMappingUtils.js";
 
 export function toDescriptorWithOnlyAttributes(
   descriptor: catalogApi.EServiceDescriptor
