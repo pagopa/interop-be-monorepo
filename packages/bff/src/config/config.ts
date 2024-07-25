@@ -1,6 +1,12 @@
 import { z } from "zod";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  FileManagerConfig,
+  SessionTokenGenerationConfig,
+  TokenGenerationConfig,
+} from "pagopa-interop-commons";
 import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -60,22 +66,39 @@ export type PurposeProcessServerConfig = z.infer<
 export const AuthorizationProcessServerConfig = z
   .object({
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
+    TENANT_ALLOWED_ORIGINS: z.string(),
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
+    tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
   }));
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
+
+export const AllowedListConfig = z
+  .object({
+    ALLOW_LIST_CONTAINER: z.string(),
+    ALLOW_LIST_PATH: z.string(),
+    ALLOW_LIST_FILE_NAME: z.string(),
+  })
+  .transform((c) => ({
+    allowListContainer: c.ALLOW_LIST_CONTAINER,
+    allowListPath: c.ALLOW_LIST_PATH,
+    allowListFileName: c.ALLOW_LIST_FILE_NAME,
+  }));
 
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(PurposeProcessServerConfig)
-  .and(SelfCareConfig)
-  .and(AuthorizationProcessServerConfig);
-
+  .and(AuthorizationProcessServerConfig)
+  .and(TokenGenerationConfig)
+  .and(SessionTokenGenerationConfig)
+  .and(FileManagerConfig)
+  .and(AllowedListConfig)
+  .and(SelfCareConfig);
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
