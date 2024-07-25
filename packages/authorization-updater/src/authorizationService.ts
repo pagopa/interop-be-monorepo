@@ -10,7 +10,7 @@ import {
   TenantId,
   UserId,
   Client,
-  Key,
+  ClientKey,
   genericInternalError,
 } from "pagopa-interop-models";
 import { authorizationManagementApi } from "pagopa-interop-api-clients";
@@ -79,7 +79,7 @@ export type AuthorizationService = {
   ) => Promise<void>;
   addClientKey: (
     client: ClientId,
-    key: Key,
+    key: ClientKey,
     logger: Logger,
     correlationId: string
   ) => Promise<void>;
@@ -286,7 +286,7 @@ export const authorizationServiceBuilder = (
     },
     async addClientKey(
       clientId: ClientId,
-      key: Key,
+      key: ClientKey,
       logger: Logger,
       correlationId: string
     ) {

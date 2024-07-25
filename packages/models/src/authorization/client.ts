@@ -1,28 +1,12 @@
 import { z } from "zod";
 import { ClientId, PurposeId, TenantId, UserId } from "../brandedIds.js";
+import { Key } from "./key.js";
 
-export const keyUse = {
-  sig: "Sig",
-  enc: "Enc",
-} as const;
-export const KeyUse = z.enum([
-  Object.values(keyUse)[0],
-  ...Object.values(keyUse).slice(1),
-]);
-export type KeyUse = z.infer<typeof KeyUse>;
-
-export const Key = z.object({
+export const ClientKey = Key.extend({
   clientId: ClientId,
-  userId: UserId,
-  kid: z.string(),
-  name: z.string(),
-  encodedPem: z.string(),
-  algorithm: z.string(),
-  use: KeyUse,
-  createdAt: z.coerce.date(),
 });
 
-export type Key = z.infer<typeof Key>;
+export type ClientKey = z.infer<typeof ClientKey>;
 
 export const clientKind = {
   consumer: "Consumer",
@@ -55,7 +39,7 @@ export const Client = z.object({
   users: z.array(UserId),
   kind: ClientKind,
   createdAt: z.coerce.date(),
-  keys: z.array(Key),
+  keys: z.array(ClientKey),
 });
 
 export type Client = z.infer<typeof Client>;
