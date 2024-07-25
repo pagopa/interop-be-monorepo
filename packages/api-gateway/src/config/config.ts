@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
 
+export const CatalogProcessServerConfig = z
+  .object({
+    CATALOG_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    catalogProcessUrl: c.CATALOG_PROCESS_URL,
+  }));
+export type CatalogProcessServerConfig = z.infer<
+  typeof CatalogProcessServerConfig
+>;
+
 export const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
@@ -31,9 +42,8 @@ export const PurposeProcessServerConfig = z
     purposeProcessUrl: c.PURPOSE_PROCESS_URL,
   }));
 
-const ApiGatewayConfig = CommonHTTPServiceConfig.and(
-  AgreementProcessServerConfig
-)
+const ApiGatewayConfig = CommonHTTPServiceConfig.and(CatalogProcessServerConfig)
+  .and(AgreementProcessServerConfig)
   .and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
