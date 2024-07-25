@@ -70,7 +70,9 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) => enrichAgreement(a, clients, ctx));
+      const agreements = results.map((a) =>
+        enhanceAgreementOverview(a, clients, ctx)
+      );
       return {
         pagination: {
           limit,
@@ -91,7 +93,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreement(agreement, clients, ctx);
+      return enhanceAgreementDetailed(agreement, clients, ctx);
     },
   };
 }
@@ -165,7 +167,7 @@ function isUpgradable(
     );
 }
 
-async function enrichAgreement(
+async function enhanceAgreementOverview(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
@@ -199,7 +201,7 @@ async function enrichAgreement(
   };
 }
 
-export async function enhanceAgreement(
+export async function enhanceAgreementDetailed(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
