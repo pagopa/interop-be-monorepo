@@ -34,7 +34,7 @@ import {
   missingRiskAnalysis,
   riskAnalysisConfigVersionNotFound,
 } from "../model/domain/errors.js";
-import { PurposeProcessConfig } from "../utilities/config.js";
+import { PurposeProcessConfig } from "../config/config.js";
 
 const YES = "Sì";
 const NO = "No";
