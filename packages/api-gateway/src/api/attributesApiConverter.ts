@@ -3,7 +3,7 @@ import {
   tenantApi,
   apiGatewayApi,
 } from "pagopa-interop-api-clients";
-import { isDefined, toSetToArray } from "../utilities/arrays.js";
+import { isDefined, toSetToArray } from "pagopa-interop-commons";
 import {
   verifiedAttributeToAttributeValidityState,
   certifiedAttributeToAttributeValidityState,
