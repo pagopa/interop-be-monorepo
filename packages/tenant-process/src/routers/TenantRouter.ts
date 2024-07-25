@@ -351,7 +351,7 @@ const tenantsRouter = (
           const tenant = await tenantService.addCertifierId(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
-              payload: req.body,
+              certifierId: req.body.certifierId,
               correlationId: req.ctx.correlationId,
             },
             ctx.logger

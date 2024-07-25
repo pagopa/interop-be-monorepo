@@ -11,9 +11,8 @@ import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   tenantNotFound,
-  tenatIsAlreadyACertifier,
+  tenantIsAlreadyACertifier,
 } from "../src/model/domain/errors.js";
-import { CertifierPromotionPayload } from "../src/model/domain/models.js";
 import {
   addOneTenant,
   getMockTenant,
@@ -22,9 +21,7 @@ import {
 } from "./utils.js";
 
 describe("addCertifierId", async () => {
-  const payload: CertifierPromotionPayload = {
-    certifierId: generateId(),
-  };
+  const certifierId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -41,7 +38,7 @@ describe("addCertifierId", async () => {
     const returnedTenant = await tenantService.addCertifierId(
       {
         tenantId: mockTenant.id,
-        payload,
+        certifierId,
         correlationId: generateId(),
       },
       genericLogger
@@ -69,7 +66,7 @@ describe("addCertifierId", async () => {
       features: [
         {
           type: "PersistentCertifier",
-          certifierId: payload.certifierId,
+          certifierId,
         },
       ],
       updatedAt: new Date(),
@@ -85,7 +82,7 @@ describe("addCertifierId", async () => {
       tenantService.addCertifierId(
         {
           tenantId: mockTenant.id,
-          payload,
+          certifierId,
           correlationId: generateId(),
         },
         genericLogger
@@ -93,11 +90,6 @@ describe("addCertifierId", async () => {
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
   it("Should throw tenantIsAlreadyACertifier if the organization is a certifier", async () => {
-    const certifierId = generateId();
-    const payload: CertifierPromotionPayload = {
-      certifierId,
-    };
-
     const certifierTenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -113,13 +105,13 @@ describe("addCertifierId", async () => {
       tenantService.addCertifierId(
         {
           tenantId: certifierTenant.id,
-          payload,
+          certifierId,
           correlationId: generateId(),
         },
         genericLogger
       )
     ).rejects.toThrowError(
-      tenatIsAlreadyACertifier(certifierTenant.id, payload.certifierId)
+      tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
     );
   });
 });

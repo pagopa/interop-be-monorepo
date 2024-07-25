@@ -816,7 +816,7 @@ paths:
       tags:
         - tenant
       operationId: addCerifierId
-      description: Add a certifierId to the requesting Tenant
+      description: Add a certifierId to Tenant
       requestBody:
         content:
           application/json:

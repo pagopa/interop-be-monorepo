@@ -165,7 +165,6 @@ export const toCreateEventMaintenanceTenantPromotedToCertifier = (
     event_version: 2,
     type: "MaintenanceTenantPromotedToCertifier",
     data: {
-      tenantId: tenant.id,
       tenant: toTenantV2(tenant),
     },
   },
