@@ -1,0 +1,94 @@
+import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
+import { z } from "zod";
+import qs from "qs";
+
+{{#each schemas}}
+export const {{@key}} = {{{this}}};
+export type {{@key}} = z.infer<typeof {{@key}}>;
+
+{{/each}}
+
+{{#each endpointsGroups}}
+export const {{@key}}Endpoints = makeApi([
+{{#each this.endpoints}}
+	{
+		method: "{{method}}",
+		path: "{{path}}",
+		{{#if @root.options.withAlias}}
+		{{#if alias}}
+		alias: "{{alias}}",
+		{{/if}}
+		{{/if}}
+		{{#if description}}
+		description: `{{description}}`,
+		{{/if}}
+		{{#if requestFormat}}
+		requestFormat: "{{requestFormat}}",
+		{{/if}}
+		{{#if parameters}}
+		parameters: [
+			{{#each parameters}}
+			{
+				name: "{{name}}",
+				{{#if description}}
+				description: `{{description}}`,
+				{{/if}}
+				{{#if type}}
+				type: "{{type}}",
+				{{/if}}
+				{{#if (and (eq type "Query") (eq schema "z.array(z.string()).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string()).optional().default([])), z.array(z.string()).optional().default([])]),
+				{{else if (and (eq type "Query") (eq schema "z.array(AttributeKind)"))}}
+						schema: z.union([z.string().transform(v => v.split(",")).pipe(z.array(AttributeKind)), z.array(AttributeKind)])
+				{{else if (and (eq type "Query") (eq schema "z.array(AgreementState).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(AgreementState).optional().default([])),z.array(AgreementState).optional().default([])])
+				{{else if (and (eq type "Query") (eq schema "z.array(EServiceDescriptorState).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(EServiceDescriptorState).optional().default([])), z.array(EServiceDescriptorState).optional().default([])])
+				{{else if (and (eq type "Query") (eq schema "z.array(PurposeVersionState).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(PurposeVersionState).optional().default([])), z.array(PurposeVersionState).optional().default([])])
+				{{else}}
+					schema: {{{schema}}},
+				{{/if}}
+			},
+			{{/each}}
+		],
+		{{/if}}
+		response: {{{response}}},
+		{{#if errors.length}}
+		errors: [
+			{{#each errors}}
+			{
+				{{#if (eq status "default") }}
+				status: "default",
+				{{else}}
+				status: {{status}},
+				{{/if}}
+				{{#if description}}
+				description: `{{description}}`,
+				{{/if}}
+				schema: {{{schema}}}
+			},
+			{{/each}}
+		]
+		{{/if}}
+	},
+{{/each}}
+]);
+
+export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}", {{/if}}{{@key}}Endpoints);
+
+export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions) {
+    return new Zodios(baseUrl, {{@key}}Endpoints, {
+			...options,
+			axiosConfig: {
+				...options?.axiosConfig,
+				// This configuration is used to serialize correctly array query parameters.
+				// The default serialization produces a query param name appending "[]" after the equals:
+				// eg: ids[]=1,2,3 instead of ids=1,2,3
+				paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+			},
+		});
+}
+
+{{/each}}
+
