@@ -5,7 +5,7 @@ import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {
   Client,
   ClientKeyAddedV2,
-  Key,
+  ClientKey,
   TenantId,
   UserId,
   generateId,
@@ -209,7 +209,7 @@ describe("createKeys", () => {
     );
   });
   it("should throw tooManyKeysPerClient if the keys number is greater than maxKeysPerClient ", async () => {
-    function get100Keys(): Key[] {
+    function get100Keys(): ClientKey[] {
       const arrayKeys = [];
       for (let index = 0; index < 101; index++) {
         arrayKeys.push(getMockKey());
@@ -293,7 +293,7 @@ describe("createKeys", () => {
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
   it("should throw keyAlreadyExists if the kid already exists in the keys of that client ", async () => {
-    const key: Key = {
+    const key: ClientKey = {
       ...getMockKey(),
       kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };
@@ -316,7 +316,7 @@ describe("createKeys", () => {
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different client ", async () => {
-    const key: Key = {
+    const key: ClientKey = {
       ...getMockKey(),
       kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
     };

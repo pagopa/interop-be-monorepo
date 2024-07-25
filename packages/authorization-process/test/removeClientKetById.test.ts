@@ -9,7 +9,7 @@ import {
 import {
   Client,
   ClientKeyDeletedV2,
-  Key,
+  ClientKey,
   UserId,
   generateId,
   toClientV2,
@@ -73,7 +73,7 @@ describe("remove client key", () => {
     const mockConsumer = getMockTenant();
     const mockUserId: UserId = generateId();
     const anotherUserId: UserId = generateId();
-    const keyToRemove: Key = { ...getMockKey(), userId: anotherUserId };
+    const keyToRemove: ClientKey = { ...getMockKey(), userId: anotherUserId };
     const mockClient: Client = {
       ...getMockClient(),
       consumerId: mockConsumer.id,
@@ -185,7 +185,7 @@ describe("remove client key", () => {
   it("should throw userNotAllowedOnClient if a security user tries to delete a key without being member of the client", async () => {
     const mockConsumer = getMockTenant();
     const mockUserId: UserId = generateId();
-    const keyToRemove: Key = { ...getMockKey(), userId: mockUserId };
+    const keyToRemove: ClientKey = { ...getMockKey(), userId: mockUserId };
     const mockClient: Client = {
       ...getMockClient(),
       consumerId: mockConsumer.id,
