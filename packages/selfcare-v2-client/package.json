@@ -14,14 +14,13 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/selfcare-v2-client-spec.yml' -o './src/model/generated/api.ts'",
-    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
+    "check": "tsc --project tsconfig.check.json"
   },
   "license": "Apache-2.0",
   "dependencies": {
     "@zodios/core": "10.9.6",
     "axios": "1.7.2",
+    "pagopa-interop-api-clients": "workspace:*",
     "zod": "3.23.8"
   },
   "devDependencies": {
