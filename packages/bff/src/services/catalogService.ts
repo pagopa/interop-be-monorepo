@@ -168,14 +168,12 @@ export const fetchAllEserviceConsumers = async (
 
   if (consumers.totalCount >= 50) {
     return consumers.results.concat(
-      (
-        await getEserviceFrom(
-          catalogProcessClient,
-          eServiceId,
-          offset + 50,
-          headers
-        )
-      ).results
+      await fetchAllEserviceConsumers(
+        catalogProcessClient,
+        headers,
+        eServiceId,
+        offset + 50
+      )
     );
   }
 
