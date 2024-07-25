@@ -59,7 +59,6 @@ import {
   getTenantCertifierId,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
-import { CertifierPromotionPayload } from "../model/domain/models.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
@@ -475,11 +474,11 @@ export function tenantServiceBuilder(
     async addCertifierId(
       {
         tenantId,
-        payload,
+        certifierId,
         correlationId,
       }: {
         tenantId: TenantId;
-        payload: CertifierPromotionPayload;
+        certifierId: string;
         correlationId: string;
       },
       logger: Logger
@@ -490,10 +489,10 @@ export function tenantServiceBuilder(
 
       if (
         tenant.data.features.some(
-          (feature) => feature.certifierId === payload.certifierId
+          (feature) => feature.certifierId === certifierId
         )
       ) {
-        throw tenantIsAlreadyACertifier(tenant.data.id, payload.certifierId);
+        throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
       }
 
       const updatedTenant: Tenant = {
@@ -502,7 +501,7 @@ export function tenantServiceBuilder(
           ...tenant.data.features,
           {
             type: "PersistentCertifier",
-            certifierId: payload.certifierId,
+            certifierId,
           },
         ],
         updatedAt: new Date(),
