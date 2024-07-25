@@ -1241,6 +1241,33 @@ components:
         id:
           type: string
           format: uuid
+    TenantDelta:
+      description: Tenant Delta model
+      type: object
+      properties:
+        mails:
+          type: array
+          items:
+            $ref: "#/components/schemas/MailSeed"
+      required:
+        - mails
+    MailSeed:
+      description: A specific kind of mail
+      type: object
+      properties:
+        kind:
+          $ref: "#/components/schemas/MailKind"
+        address:
+          type: string
+          minLength: 5
+          maxLength: 320
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - kind
+        - address
     Problem:
       properties:
         type:
