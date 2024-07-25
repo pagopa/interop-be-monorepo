@@ -4,13 +4,7 @@ import {
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  agreementApi,
-  bffApi,
-  catalogApi,
-  purposeApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+import { bffApi, purposeApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
   AuthorizationProcessClient,
@@ -28,9 +22,9 @@ import {
 } from "../model/domain/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
+import { isUpgradable } from "../model/modelMappingUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
-import { isUpgradable } from "../model/modelMappingUtils.js";
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -199,11 +193,7 @@ async function getPurposes(
       agreement: {
         id: latestAgreement.id,
         state: latestAgreement.state,
-        canBeUpgraded: isUpgradable(
-          currentDescriptor,
-          latestAgreement,
-          eservice.descriptors
-        ),
+        canBeUpgraded: isUpgradable(eservice, latestAgreement),
       },
       currentVersion,
       versions: purpose.versions,
