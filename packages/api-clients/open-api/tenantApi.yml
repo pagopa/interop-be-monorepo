@@ -798,7 +798,10 @@ paths:
           description: Tenant Deleted
         "404":
           description: Tenant not found
-
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
