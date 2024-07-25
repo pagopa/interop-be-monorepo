@@ -7,20 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 
-const authorizationRouter = (
-  ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const authorizationRouter = ctx.router(bffApi.authorizationApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
-  });
-
-  authorizationRouter
-    .post("/session/tokens", async (_req, res) => res.status(501).send())
-    .post("/support", async (_req, res) => res.status(501).send());
-
-  return authorizationRouter;
-};
-
 const toolsRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -51,5 +37,5 @@ const supportRouter = (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export default function genericRouter(ctx: ZodiosContext) {
-  return [authorizationRouter(ctx), toolsRouter(ctx), supportRouter(ctx)];
+  return [toolsRouter(ctx), supportRouter(ctx)];
 }
