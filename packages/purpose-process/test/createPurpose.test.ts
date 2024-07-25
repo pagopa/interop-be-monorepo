@@ -18,7 +18,9 @@ import {
   toReadModelEService,
   toReadModelAgreement,
   unsafeBrandId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
 import {
   writeInReadmodel,
@@ -42,7 +44,6 @@ import {
   agreementNotFound,
   duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
-import { ApiPurposeSeed } from "../src/model/domain/models.js";
 import {
   addOnePurpose,
   agreements,
@@ -80,7 +81,7 @@ describe("createPurpose", () => {
 
   const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
 
-  const purposeSeed: ApiPurposeSeed = {
+  const purposeSeed: purposeApi.PurposeSeed = {
     eserviceId: eService1.id,
     consumerId: agreementEservice1.consumerId,
     title: "test",
@@ -93,7 +94,7 @@ describe("createPurpose", () => {
   it("should write on event-store for the creation of a purpose", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-    await writeInReadmodel(tenant, tenants);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(
       toReadModelAgreement(agreementEservice1),
       agreements
@@ -167,7 +168,7 @@ describe("createPurpose", () => {
     vi.useRealTimers();
   });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       freeOfChargeReason: undefined,
     };
@@ -197,13 +198,13 @@ describe("createPurpose", () => {
       tenantWithoutKind.id
     );
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       eserviceId: eService.id,
       consumerId: agreementEservice.consumerId,
     };
 
-    await writeInReadmodel(tenantWithoutKind, tenants);
+    await writeInReadmodel(toReadModelTenant(tenantWithoutKind), tenants);
     await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
     await writeInReadmodel(toReadModelEService(eService), eservices);
 
@@ -249,13 +250,13 @@ describe("createPurpose", () => {
       state: agreementState.draft,
     };
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       eserviceId: eService.id,
       consumerId: agreement.consumerId,
     };
 
-    await writeInReadmodel(tenant, tenants);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(toReadModelAgreement(agreement), agreements);
     await writeInReadmodel(toReadModelEService(eService), eservices);
 
@@ -269,14 +270,14 @@ describe("createPurpose", () => {
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
   it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
-    await writeInReadmodel(tenant, tenants);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(
       toReadModelAgreement(agreementEservice1),
       agreements
     );
     await writeInReadmodel(toReadModelEService(getMockEService()), eservices);
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       consumerId: generateId(),
     };
@@ -293,7 +294,7 @@ describe("createPurpose", () => {
     );
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
-    await writeInReadmodel(tenant, tenants);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(
       toReadModelAgreement(agreementEservice1),
       agreements
@@ -305,7 +306,7 @@ describe("createPurpose", () => {
       version: "0",
     };
 
-    const seed: ApiPurposeSeed = {
+    const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
       riskAnalysisForm: buildRiskAnalysisFormSeed(mockInvalidRiskAnalysisForm),
     };
@@ -332,7 +333,7 @@ describe("createPurpose", () => {
     };
 
     await addOnePurpose(existingPurpose);
-    await writeInReadmodel(tenant, tenants);
+    await writeInReadmodel(toReadModelTenant(tenant), tenants);
     await writeInReadmodel(
       toReadModelAgreement(agreementEservice1),
       agreements

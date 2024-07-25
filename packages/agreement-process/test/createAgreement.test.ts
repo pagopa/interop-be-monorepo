@@ -1,55 +1,55 @@
 import { fail } from "assert";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   expectPastTimestamp,
-  getRandomAuthData,
-  getMockDescriptorPublished,
-  getMockEServiceAttribute,
-  getMockEService,
-  getMockTenant,
+  getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockAgreement,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  AgreementId,
-  EServiceId,
-  DescriptorId,
-  TenantId,
-  AgreementV2,
-  AgreementAddedV2,
-  toAgreementStateV2,
-  agreementState,
-  generateId,
-  AttributeId,
-  unsafeBrandId,
-  Tenant,
-  EServiceAttribute,
-  TenantAttribute,
-  Descriptor,
-  descriptorState,
   Agreement,
+  AgreementAddedV2,
+  AgreementId,
+  AgreementV2,
+  AttributeId,
+  Descriptor,
+  DescriptorId,
+  EServiceAttribute,
+  EServiceId,
+  Tenant,
+  TenantAttribute,
+  TenantId,
+  agreementState,
+  descriptorState,
+  generateId,
+  toAgreementStateV2,
   toAgreementV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { agreementCreationConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
-  eServiceNotFound,
-  notLatestEServiceDescriptor,
-  descriptorNotInExpectedState,
   agreementAlreadyExists,
-  tenantNotFound,
+  descriptorNotInExpectedState,
+  eServiceNotFound,
   missingCertifiedAttributesError,
+  notLatestEServiceDescriptor,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
-import { ApiAgreementPayload } from "../src/model/types.js";
 import {
-  readLastAgreementEvent,
+  addOneAgreement,
   addOneEService,
   addOneTenant,
   agreementService,
-  addOneAgreement,
+  readLastAgreementEvent,
 } from "./utils.js";
 
 /**
@@ -138,7 +138,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(tenant);
 
-    const agreementData: ApiAgreementPayload = {
+    const agreementData: agreementApi.AgreementPayload = {
       eserviceId,
       descriptorId,
     };
@@ -196,7 +196,7 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,
     };
@@ -233,7 +233,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,
     };
@@ -278,7 +278,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(tenant.id);
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: descriptor0.id,
     };
@@ -320,7 +320,7 @@ describe("create agreement", () => {
     await addOneAgreement(otherAgreement);
 
     const authData = getRandomAuthData(tenant.id);
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
     };
@@ -344,7 +344,7 @@ describe("create agreement", () => {
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
 
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId,
       descriptorId,
     };
@@ -369,7 +369,7 @@ describe("create agreement", () => {
 
     await addOneEService(eservice);
 
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId,
       descriptorId: generateId<DescriptorId>(),
     };
@@ -414,7 +414,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
 
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId,
       descriptorId: descriptor0.id,
     };
@@ -456,7 +456,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(getMockTenant(authData.organizationId));
 
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId,
       descriptorId: descriptor.id,
     };
@@ -494,7 +494,7 @@ describe("create agreement", () => {
     await addOneAgreement(conflictingAgreement);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
     };
@@ -522,7 +522,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
     };
@@ -571,7 +571,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,
     };
@@ -630,7 +630,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
 
     const authData = getRandomAuthData(consumer.id);
-    const apiAgreementPayload: ApiAgreementPayload = {
+    const apiAgreementPayload: agreementApi.AgreementPayload = {
       eserviceId: eservice.id,
       descriptorId: eservice.descriptors[0].id,
     };

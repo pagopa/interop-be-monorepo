@@ -1,20 +1,24 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
-import { randomUUID } from "crypto";
 import { fail } from "assert";
+import { randomUUID } from "crypto";
 import {
-  getRandomAuthData,
-  getMockTenant,
-  getMockAgreement,
-  randomArrayItem,
-  getMockEService,
-  getMockDescriptor,
-  getMockEServiceAttribute,
+  formatDateyyyyMMddHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
-  getMockVerifiedTenantAttribute,
+  getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDescriptor,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getMockVerifiedTenantAttribute,
+  getRandomAuthData,
+  randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
@@ -40,12 +44,9 @@ import {
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-} from "pagopa-interop-commons";
-import { UserResponse } from "pagopa-interop-selfcare-v2-client";
+import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementMissingUserInfo,
@@ -61,29 +62,30 @@ import {
   tenantNotFound,
   userNotFound,
 } from "../src/model/domain/errors.js";
-import { agreementSubmissionConflictingStates } from "../src/model/domain/validators.js";
-import { config } from "../src/utilities/config.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import { config } from "../src/config/config.js";
 import {
-  agreementService,
   addOneAgreement,
-  addOneTenant,
+  addOneAttribute,
   addOneEService,
-  selfcareV2ClientMock,
+  addOneTenant,
+  agreementService,
   fileManager,
   readLastAgreementEvent,
-  addOneAttribute,
+  selfcareV2ClientMock,
 } from "./utils.js";
 
 describe("submit agreement", () => {
-  const mockSelfCareResponse = (userResponse?: UserResponse): void => {
+  const mockSelfCareResponse = (
+    userResponse?: selfcareV2ClientApi.UserResponse
+  ): void => {
     if (userResponse) {
       selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
         async () => userResponse
       );
     } else {
       selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
-        async () => undefined as unknown as UserResponse // this should never happend
+        async () => undefined as unknown as selfcareV2ClientApi.UserResponse // this should never happend
       );
     }
   };
@@ -1026,7 +1028,7 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
 
     const authData = getRandomAuthData(consumer.id);
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",
@@ -1152,7 +1154,7 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",
@@ -1344,7 +1346,7 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",
@@ -1549,7 +1551,7 @@ describe("submit agreement", () => {
       nonArchivableRelatedAgreement,
     } = await addRelatedAgreements(agreement);
 
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",
@@ -1762,7 +1764,7 @@ describe("submit agreement", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",
@@ -1951,7 +1953,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",
@@ -2103,7 +2105,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const mockUserResponse: UserResponse = {
+    const mockUserResponse: selfcareV2ClientApi.UserResponse = {
       email: "selfcare.test.submitagreement@test.org",
       name: "Test Name",
       surname: "Test Surname",

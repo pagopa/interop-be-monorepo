@@ -9,16 +9,14 @@ import {
   Tenant,
   toReadModelAgreement,
   toReadModelEService,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import axios, { AxiosResponse } from "axios";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { agreementEmailSenderConfig } from "../src/utilities/config.js";
 
 export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
-
-export const config = agreementEmailSenderConfig();
 
 export const { cleanup, readModelRepository, emailManager } =
   setupTestContainersVitest(
@@ -33,7 +31,10 @@ export const templateService = buildHTMLTemplateService();
 export const agreements = readModelRepository.agreements;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(tenant, readModelRepository.tenants);
+  await writeInReadmodel(
+    toReadModelTenant(tenant),
+    readModelRepository.tenants
+  );
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
