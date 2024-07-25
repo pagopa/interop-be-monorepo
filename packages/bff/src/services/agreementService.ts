@@ -15,12 +15,16 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
-import { enhanceTenantAttributes } from "../utilities/tenantHelper.js";
-import { getBulkAttributes } from "../utilities/attributesHelper.js";
 import {
   toCompactEserviceLight,
   toCompactOrganization,
 } from "../model/api/apiConverter.js";
+import {
+  toCompactEservice,
+  toCompactDescriptor,
+} from "../model/api/apiConverter.js";
+import { getBulkAttributes } from "./attributeService.js";
+import { enhanceTenantAttributes } from "./tenantService.js";
 
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   const { agreementProcessClient } = clients;
@@ -296,7 +300,7 @@ function isUpgradable(
   descriptors: catalogApi.EServiceDescriptor[]
 ): boolean {
   return descriptors
-    .filter((d) => parseInt(d.version, 10) > parseInt(descriptor.version, 10))
+    .filter((d) => Number(d.version) > Number(descriptor.version))
     .some(
       (d) =>
         (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
@@ -309,13 +313,13 @@ async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.AgreementListEntry> {
-  const { consumer, producer, eservice } = await parallelGet(
+  const { consumer, producer, eservice } = await getConsumerProducerEservice(
     agreement,
     clients,
     ctx
   );
 
-  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
+  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
   return {
     id: agreement.id,
@@ -325,10 +329,10 @@ async function enrichAgreement(
       name: consumer.name,
       kind: consumer.kind,
     },
-    eservice: getCompactEservice(eservice, producer),
-    descriptor: getCompactDescriptor(currentDescriptior),
+    eservice: toCompactEservice(eservice, producer),
+    descriptor: toCompactDescriptor(currentDescriptor),
     canBeUpgraded: isUpgradable(
-      currentDescriptior,
+      currentDescriptor,
       agreement,
       eservice.descriptors
     ),
@@ -343,7 +347,7 @@ export async function enhanceAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  const { consumer, producer, eservice } = await parallelGet(
+  const { consumer, producer, eservice } = await getConsumerProducerEservice(
     agreement,
     clients,
     ctx
@@ -352,7 +356,7 @@ export async function enhanceAgreement(
   const currentDescriptior = getCurrentDescriptor(eservice, agreement);
 
   const activeDescriptor = eservice.descriptors
-    .toSorted((a, b) => parseInt(a.version, 10) - parseInt(b.version, 10))
+    .toSorted((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
@@ -390,7 +394,9 @@ export async function enhanceAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: producer.mails.find((m) => m.kind === "CONTACT_EMAIL"),
+      contactMail: producer.mails.find(
+        (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
+      ),
     },
     consumer: {
       id: agreement.consumerId,
@@ -400,7 +406,9 @@ export async function enhanceAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: consumer.mails.find((m) => m.kind === "CONTACT_EMAIL"),
+      contactMail: consumer.mails.find(
+        (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
+      ),
       features: consumer.features,
     },
     eservice: {
@@ -415,11 +423,14 @@ export async function enhanceAgreement(
     declaredAttributes: agreementDeclaredAttrs,
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
+    suspendedByPlatform: agreement.suspendedByPlatform,
     isContractPresent: agreement.contract !== undefined,
     consumerDocuments: agreement.consumerDocuments,
     createdAt: agreement.createdAt,
     updatedAt: agreement.updatedAt,
     suspendedAt: agreement.suspendedAt,
+    consumerNotes: agreement.consumerNotes,
+    rejectionReason: agreement.rejectionReason,
   };
 }
 
@@ -445,7 +456,7 @@ function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   );
 }
 
-async function parallelGet(
+async function getConsumerProducerEservice(
   agreement: agreementApi.Agreement,
   { tenantProcessClient, catalogProcessClient }: PagoPAInteropBeClients,
   { headers }: WithLogger<BffAppContext>
@@ -485,32 +496,6 @@ function filterAttributes(
   filterIds: string[]
 ): attributeRegistryApi.Attribute[] {
   return attributes.filter((attr) => filterIds.includes(attr.id));
-}
-
-export function getCompactEservice(
-  eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
-): bffApi.CompactEService {
-  return {
-    id: eservice.id,
-    name: eservice.name,
-    producer: {
-      id: producer.id,
-      name: producer.name,
-      kind: producer.kind,
-    },
-  };
-}
-
-export function getCompactDescriptor(
-  descriptor: catalogApi.EServiceDescriptor
-): bffApi.CompactDescriptor {
-  return {
-    id: descriptor.id,
-    audience: descriptor.audience,
-    state: descriptor.state,
-    version: descriptor.version,
-  };
 }
 
 export function getCurrentDescriptor(
