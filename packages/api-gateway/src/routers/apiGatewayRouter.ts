@@ -17,6 +17,7 @@ import {
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -36,6 +37,8 @@ const apiGatewayRouter = (
     tenantProcessClient,
     purposeProcessClient
   );
+
+  const purposeService = purposeServiceBuilder(purposeProcessClient);
 
   apiGatewayRouter
     .get(
@@ -176,9 +179,18 @@ const apiGatewayRouter = (
     .get("/keys/:kid", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
       res.status(501).send()
     )
-    .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        const purposes = await purposeService.getPurposes(ctx, req.query);
+
+        return res.status(200).json(purposes).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/purposes/:purposeId",
       authorizationMiddleware([M2M_ROLE]),
