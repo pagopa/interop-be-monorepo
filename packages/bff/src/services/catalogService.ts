@@ -5,12 +5,13 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
+  toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
@@ -245,6 +246,34 @@ export function catalogServiceBuilder(
         eservice: toBffCatalogApiProducerDescriptorEService(
           eservice,
           requesterTenant
+        ),
+      };
+    },
+    getProducerEServiceDetails: async (
+      eServiceId: string,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServiceDetails> => {
+      const requesterId = context.authData.organizationId;
+      const headers = context.headers;
+
+      const eservice: catalogApi.EService =
+        await catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId,
+          },
+          headers,
+        });
+
+      assertRequesterIsProducer(requesterId, eservice);
+
+      return {
+        id: eservice.id,
+        name: eservice.name,
+        description: eservice.description,
+        technology: eservice.technology,
+        mode: eservice.mode,
+        riskAnalysis: eservice.riskAnalysis.map(
+          toBffCatalogApiEserviceRiskAnalysis
         ),
       };
     },
