@@ -496,7 +496,7 @@ export function tenantServiceBuilder(
         correlationId,
       }: {
         tenantId: TenantId;
-        mailSeed: MailSeed;
+        mailSeed: tenantApi.MailSeed;
         organizationId: TenantId;
         correlationId: string;
       },
