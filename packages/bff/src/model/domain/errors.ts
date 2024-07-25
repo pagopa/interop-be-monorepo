@@ -1,17 +1,24 @@
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  AttributeId,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   purposeNotFound: "0001",
-  missingClaim: "0002",
-  tenantLoginNotAllowed: "0003",
-  tokenVerificationFailed: "0004",
-  userNotFound: "0005",
-  selfcareEntityNotFilled: "0006",
-  eServiceNotFound: "0007",
-  tenantNotFound: "0008",
-  agreementNotFound: "0009",
-  eServiceDescriptorNotFound: "0010",
-  purposeDraftVersionNotFound: "0011",
+  userNotFound: "0002",
+  selfcareEntityNotFilled: "0003",
+  descriptorNotFound: "0004",
+  attributeNotExists: "0005",
+  invalidEserviceRequester: "0006",
+  missingClaim: "0007",
+  tenantLoginNotAllowed: "0008",
+  tokenVerificationFailed: "0009",
+  eServiceNotFound: "0010",
+  tenantNotFound: "0011",
+  agreementNotFound: "0012",
+  eServiceDescriptorNotFound: "0013",
+  purposeDraftVersionNotFound: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -90,6 +97,36 @@ export function purposeDraftVersionNotFound(
     detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
     code: "purposeDraftVersionNotFound",
     title: "Purpose draft version not found",
+  });
+}
+
+export function invalidEServiceRequester(
+  eServiceId: string,
+  requesterId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
+    code: "invalidEserviceRequester",
+    title: `Invalid eservice requester`,
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eServiceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
+    code: "descriptorNotFound",
+    title: `Descriptor not found`,
+  });
+}
+
+export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${id} does not exist in the attribute registry`,
+    code: "attributeNotExists",
+    title: "Attribute not exists",
   });
 }
 
