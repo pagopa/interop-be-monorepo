@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  readEventByStreamIdAndVersion,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -10,6 +13,7 @@ import {
   operationForbidden,
   DescriptorId,
   generateId,
+  EServiceDeletedV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../src/config/config.js";
@@ -27,6 +31,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  postgresDB,
 } from "./utils.js";
 
 describe("delete draft descriptor", () => {
@@ -212,6 +217,74 @@ describe("delete draft descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(document2.path);
+  });
+
+  it.only("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {
+    const draftDescriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [draftDescriptor],
+    };
+    await addOneEService(eservice);
+
+    await catalogService.deleteDraftDescriptor(
+      eservice.id,
+      draftDescriptor.id,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
+      eservice.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
+
+    expect(descriptorDeletionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorDeleted",
+      event_version: 2,
+    });
+    expect(eserviceDeletionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "2",
+      type: "EServiceDeleted",
+      event_version: 2,
+    });
+
+    const descriptorDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorDeletedV2,
+      payload: descriptorDeletionEvent.data,
+    });
+    const eserviceDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDeletedV2,
+      payload: eserviceDeletionEvent.data,
+    });
+
+    const expectedEserviceBeforeDeletion: EService = {
+      ...eservice,
+      descriptors: [],
+    };
+
+    expect(descriptorDeletionPayload).toEqual({
+      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
+      descriptorId: draftDescriptor.id,
+    });
+    expect(eserviceDeletionPayload).toEqual({
+      eserviceId: eservice.id,
+      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
+    });
   });
 
   it("should fail if one of the file deletions fails", async () => {
