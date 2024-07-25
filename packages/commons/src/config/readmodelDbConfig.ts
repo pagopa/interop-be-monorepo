@@ -17,5 +17,3 @@ export const ReadModelDbConfig = z
   }));
 
 export type ReadModelDbConfig = z.infer<typeof ReadModelDbConfig>;
-export const readModelDbConfig: () => ReadModelDbConfig = () =>
-  ReadModelDbConfig.parse(process.env);

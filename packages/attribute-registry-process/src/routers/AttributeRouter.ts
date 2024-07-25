@@ -11,13 +11,13 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
-import { config } from "../utilities/config.js";
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 import {
@@ -48,7 +48,7 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
 const attributeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const attributeRouter = ctx.router(api.api, {
+  const attributeRouter = ctx.router(attributeRegistryApi.attributeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   const {

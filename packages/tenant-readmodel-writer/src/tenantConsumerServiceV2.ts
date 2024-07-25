@@ -1,5 +1,9 @@
 import { TenantCollection } from "pagopa-interop-commons";
-import { TenantEventEnvelopeV2, fromTenantV2 } from "pagopa-interop-models";
+import {
+  TenantEventEnvelopeV2,
+  fromTenantV2,
+  toReadModelTenant,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export async function handleMessageV2(
@@ -12,7 +16,7 @@ export async function handleMessageV2(
     .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
       await tenants.deleteOne({
         "data.id": message.stream_id,
-        "metadata.version": { $lt: message.version },
+        "metadata.version": { $lte: message.version },
       });
     })
     .with(
@@ -28,15 +32,18 @@ export async function handleMessageV2(
       { type: "TenantVerifiedAttributeExtensionUpdated" },
       { type: "TenantMailAdded" },
       { type: "TenantMailDeleted" },
+      { type: "TenantKindUpdated" },
       async (message) =>
         await tenants.updateOne(
           {
             "data.id": message.stream_id,
-            "metadata.version": { $lt: message.version },
+            "metadata.version": { $lte: message.version },
           },
           {
             $set: {
-              data: tenant ? fromTenantV2(tenant) : undefined,
+              data: tenant
+                ? toReadModelTenant(fromTenantV2(tenant))
+                : undefined,
               metadata: {
                 version: message.version,
               },
