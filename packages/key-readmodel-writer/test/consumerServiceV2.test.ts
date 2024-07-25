@@ -5,7 +5,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
-  Key,
+  ClientKey,
   Client,
   ClientKeyAddedV2,
   toClientV2,
@@ -49,7 +49,7 @@ describe("Events V2", () => {
     };
     await writeInReadmodel(jwkKey, keys);
 
-    const addedKey: Key = { ...getMockKey(), encodedPem: pemKey2 };
+    const addedKey: ClientKey = { ...getMockKey(), encodedPem: pemKey2 };
     const updatedClient: Client = {
       ...mockClient,
       keys: [mockKey, addedKey],
@@ -83,7 +83,11 @@ describe("Events V2", () => {
   });
   it("ClientKeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
+    const mockKey: ClientKey = {
+      ...getMockKey(),
+      clientId,
+      encodedPem: pemKey,
+    };
     const jwkKey = keyToJWKKey(mockKey);
     const mockClient: Client = {
       ...getMockClient(),
@@ -122,8 +126,16 @@ describe("Events V2", () => {
   });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
+    const mockKey1: ClientKey = {
+      ...getMockKey(),
+      clientId,
+      encodedPem: pemKey,
+    };
+    const mockKey2: ClientKey = {
+      ...getMockKey(),
+      clientId,
+      encodedPem: pemKey2,
+    };
     const jwkKey1 = keyToJWKKey(mockKey1);
     const jwkKey2 = keyToJWKKey(mockKey2);
     const mockClient: Client = {

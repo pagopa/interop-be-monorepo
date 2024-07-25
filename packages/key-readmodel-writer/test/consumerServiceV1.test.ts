@@ -5,7 +5,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
-  Key,
+  ClientKey,
   Client,
   KeysAddedV1,
   toKeyV1,
@@ -46,7 +46,7 @@ describe("Events V1", async () => {
     };
     await writeInReadmodel(jwkKey, keys);
 
-    const addedKey: Key = {
+    const addedKey: ClientKey = {
       ...getMockKey(),
       clientId: mockClient.id,
       encodedPem: pemKey2,
@@ -121,8 +121,16 @@ describe("Events V1", async () => {
   });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
+    const mockKey1: ClientKey = {
+      ...getMockKey(),
+      clientId,
+      encodedPem: pemKey,
+    };
+    const mockKey2: ClientKey = {
+      ...getMockKey(),
+      clientId,
+      encodedPem: pemKey2,
+    };
     const jwkKey1 = keyToJWKKey(mockKey1);
     const jwkKey2 = keyToJWKKey(mockKey2);
 
