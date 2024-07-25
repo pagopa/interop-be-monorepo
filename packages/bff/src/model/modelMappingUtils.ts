@@ -13,7 +13,7 @@ import {
   used to pick or transform data from model to another.
 */
 
-const ACTIVE_DESCRIPTOR_STATES_FILTER: catalogApi.EServiceDescriptorState[] = [
+const activeDescriptorStatesFilter: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.PUBLISHED,
   catalogApiDescriptorState.SUSPENDED,
   catalogApiDescriptorState.DEPRECATED,
@@ -23,7 +23,7 @@ export function getLatestActiveDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor | undefined {
   return eservice.descriptors
-    .filter((d) => ACTIVE_DESCRIPTOR_STATES_FILTER.includes(d.state))
+    .filter((d) => activeDescriptorStatesFilter.includes(d.state))
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 }
