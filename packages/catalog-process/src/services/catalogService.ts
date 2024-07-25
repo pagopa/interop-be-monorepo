@@ -986,15 +986,29 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceDraftDescriptorDeleted(
-        eservice.data.id,
-        eservice.metadata.version,
-        newEservice,
-        descriptorId,
-        correlationId
-      );
+      const descriptorDeletionEvent =
+        toCreateEventEServiceDraftDescriptorDeleted(
+          eservice.data.id,
+          eservice.metadata.version,
+          newEservice,
+          descriptorId,
+          correlationId
+        );
 
-      await repository.createEvent(event);
+      if (newEservice.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.data.id,
+          eservice.metadata.version + 1,
+          newEservice,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+      } else {
+        await repository.createEvent(descriptorDeletionEvent);
+      }
     },
 
     async updateDraftDescriptor(
