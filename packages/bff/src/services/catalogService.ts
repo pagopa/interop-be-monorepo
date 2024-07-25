@@ -148,32 +148,34 @@ const getAttributeIds = (
   ),
 ];
 
-// Fetched all eservic consumers in a recursive way
+// Fetched all eservice consumers in a recursive way
 export const fetchAllEserviceConsumers = async (
   catalogProcessClient: CatalogProcessClient,
   headers: Headers,
   eServiceId: EServiceId,
-  start: number = 0
+  offset: number = 0
 ): Promise<catalogApi.EServiceConsumer[]> => {
   const consumers = await getEserviceFrom(
     catalogProcessClient,
     eServiceId,
-    0,
+    offset,
     headers
   );
 
-  if (consumers.length >= 50) {
-    return consumers.concat(
-      await getEserviceFrom(
-        catalogProcessClient,
-        eServiceId,
-        start + 50,
-        headers
-      )
+  if (consumers.totalCount >= 50) {
+    return consumers.results.concat(
+      (
+        await getEserviceFrom(
+          catalogProcessClient,
+          eServiceId,
+          offset + 50,
+          headers
+        )
+      ).results
     );
   }
 
-  return consumers;
+  return consumers.results;
 };
 
 export const getEserviceFrom = async (
@@ -181,19 +183,17 @@ export const getEserviceFrom = async (
   eserviceId: EServiceId,
   offset: number,
   headers: Headers
-): Promise<catalogApi.EServiceConsumer[]> =>
-  (
-    await catalogProcessClient.getEServiceConsumers({
-      headers,
-      params: {
-        eServiceId: eserviceId,
-      },
-      queries: {
-        offset,
-        limit: 50,
-      },
-    })
-  ).results;
+): Promise<catalogApi.EServiceConsumers> =>
+  await catalogProcessClient.getEServiceConsumers({
+    headers,
+    params: {
+      eServiceId: eserviceId,
+    },
+    queries: {
+      offset,
+      limit: 50,
+    },
+  });
 
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
