@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  initFileManager,
   loggerMiddleware,
   zodiosCtx,
   initRedisRateLimiter,
@@ -15,9 +16,13 @@ import agreementRouter from "./routers/agreementRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
+import authorizationRouter from "./routers/authorizationRouter.js";
+import getAllowList from "./utilities/getAllowList.js";
 import { config } from "./config/config.js";
 
 const serviceName = "bff-process";
+const fileManager = initFileManager(config);
+const allowList = await getAllowList(serviceName, fileManager, config);
 
 const clients = getInteropBeClients();
 
@@ -38,10 +43,16 @@ const redisRateLimiter = await initRedisRateLimiter({
 app.disable("x-powered-by");
 
 app.use(contextMiddleware(serviceName, true));
+
+// Unauthenticated routes
 app.use(healthRouter);
+app.use(authorizationRouter(zodiosCtx, clients, allowList));
+
 app.use(authenticationMiddleware);
-app.use(rateLimiterMiddleware(redisRateLimiter));
+
+// Authenticated routes - rate limiter and logger need authentication data to work
 app.use(loggerMiddleware(serviceName));
+app.use(rateLimiterMiddleware(redisRateLimiter));
 app.use(genericRouter(zodiosCtx));
 app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx));
