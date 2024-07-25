@@ -20,6 +20,12 @@ const activeDescriptorStatesFilter: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.DEPRECATED,
 ];
 
+const subscribedAgreementStates: agreementApi.AgreementState[] = [
+  agreementApiState.PENDING,
+  agreementApiState.ACTIVE,
+  agreementApiState.SUSPENDED,
+];
+
 export function getLatestActiveDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor | undefined {
@@ -66,12 +72,6 @@ export function isAgreementUpgradable(
       ) !== undefined
   );
 }
-
-const subscribedAgreementStates: agreementApi.AgreementState[] = [
-  agreementApiState.PENDING,
-  agreementApiState.ACTIVE,
-  agreementApiState.SUSPENDED,
-];
 
 export function isAgreementSubscribed(
   agreement: agreementApi.Agreement | undefined
