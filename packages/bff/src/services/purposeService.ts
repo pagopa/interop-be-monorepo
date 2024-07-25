@@ -230,7 +230,7 @@ export function purposeServiceBuilder(
 ) {
   return {
     async createPurpose(
-      createSeed: purposeApi.PurposeSeed,
+      createSeed: bffApi.PurposeSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
       logger.info(
@@ -241,13 +241,17 @@ export function purposeServiceBuilder(
       });
     },
     async createPurposeForReceiveEservice(
-      createSeed: purposeApi.EServicePurposeSeed,
+      createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
-      return await purposeClient.createPurposeFromEService(createSeed, {
+      const payload = {
+        ...createSeed,
+        eServiceId: createSeed.eserviceId,
+      };
+      return await purposeClient.createPurposeFromEService(payload, {
         headers,
       });
     },
