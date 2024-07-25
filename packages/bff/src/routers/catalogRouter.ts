@@ -50,7 +50,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          "Error retrieving Catalog EServices"
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -109,7 +110,8 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger
+            ctx.logger,
+            `Error retrieving producer descriptor ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -226,7 +228,12 @@ const catalogRouter = (
         );
         return res.status(200).json(id).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error updating description of eservice with Id: ${req.params.eServiceId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })

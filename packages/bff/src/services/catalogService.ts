@@ -18,7 +18,7 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import { getLatestAcriveDescriptor } from "../model/mappers.js";
+import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
@@ -57,7 +57,7 @@ const enhanceCatalogEService =
           })
         : producerTenant;
 
-    const latestActiveDescriptor = getLatestAcriveDescriptor(eservice);
+    const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
@@ -84,7 +84,7 @@ const enhanceProducesEService = (
   id: eservice.id,
   name: eservice.name,
   mode: eservice.mode,
-  activeDescriptor: getLatestAcriveDescriptor(eservice),
+  activeDescriptor: getLatestActiveDescriptor(eservice),
   draftDescriptor: eservice.descriptors.find(
     (d) => d.state === catalogApiDescriptorState.DRAFT
   ),

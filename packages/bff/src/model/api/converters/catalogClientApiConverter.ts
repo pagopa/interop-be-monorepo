@@ -13,11 +13,11 @@ import { attributeNotExists } from "../../domain/errors.js";
 import {
   getLatestAcriveDescriptor,
   getNotDraftDescriptor,
-  getTenantEmail,
   isAgreementSubscribed,
   isAgreementUpgradable,
 } from "../../mappers.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
+import { getTenantEmail } from "../../modelMappingUtils.js";
 import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
 import {
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
@@ -179,7 +179,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
         )
       )
       .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
-        const key = `${answer.key}`;
+        const key = answer.key;
         if (answers[key] && answer.value) {
           answers[key] = [...answers[key], answer.value];
         } else {
