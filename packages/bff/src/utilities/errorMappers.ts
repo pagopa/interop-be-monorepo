@@ -13,7 +13,10 @@ const {
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
