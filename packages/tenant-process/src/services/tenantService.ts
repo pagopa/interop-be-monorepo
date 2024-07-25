@@ -22,6 +22,7 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
   unsafeBrandId,
+  TenantMail,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -509,11 +510,13 @@ export function tenantServiceBuilder(
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
-        throw mailAlreadyExists(mailSeed.address);
+        throw mailAlreadyExists();
       }
 
-      const newMail = {
-        ...mailSeed,
+      const newMail: TenantMail = {
+        kind: mailSeed.kind,
+        address: mailSeed.address,
+        description: mailSeed.description,
         id: generateId(),
         createdAt: new Date(),
       };

@@ -10,11 +10,11 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   mailAlreadyExists,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { MailSeed } from "../src/model/domain/models.js";
 import {
   addOneTenant,
   getMockTenant,
@@ -24,7 +24,7 @@ import {
 
 describe("addTenantMail", async () => {
   const mockTenant = getMockTenant();
-  const mailSeed: MailSeed = {
+  const mailSeed: tenantApi.MailSeed = {
     kind: "CONTACT_EMAIL",
     address: "testMail@test.it",
     description: "mail description",
@@ -130,6 +130,6 @@ describe("addTenantMail", async () => {
         },
         genericLogger
       )
-    ).rejects.toThrowError(mailAlreadyExists(mailSeed.address));
+    ).rejects.toThrowError(mailAlreadyExists());
   });
 });
