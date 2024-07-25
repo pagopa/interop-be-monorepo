@@ -17,7 +17,7 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import { getLatestAcriveDescriptor } from "../model/mappers.js";
+import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
   assertRequesterIsProducer,
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
@@ -29,8 +29,8 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -59,7 +59,7 @@ const enhanceCatalogEService =
           })
         : producerTenant;
 
-    const latestActiveDescriptor = getLatestAcriveDescriptor(eservice);
+    const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
@@ -92,7 +92,7 @@ const enhanceProducesEService = (
   id: eservice.id,
   name: eservice.name,
   mode: eservice.mode,
-  activeDescriptor: getLatestAcriveDescriptor(eservice),
+  activeDescriptor: getLatestActiveDescriptor(eservice),
   draftDescriptor: eservice.descriptors.find(
     (d) => d.state === catalogApiDescriptorState.DRAFT
   ),
