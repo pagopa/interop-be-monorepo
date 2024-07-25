@@ -14,6 +14,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
   emptyErrorMapper,
+  getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
   getPurposeErrorMapper,
@@ -42,7 +43,8 @@ const apiGatewayRouter = (
 
   const purposeService = purposeServiceBuilder(
     purposeProcessClient,
-    catalogProcessClient
+    catalogProcessClient,
+    agreementProcessClient
   );
 
   apiGatewayRouter
@@ -221,7 +223,23 @@ const apiGatewayRouter = (
     .get(
       "/purposes/:purposeId/agreement",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const agreement = await purposeService.getAgreementByPurpose(
+            ctx,
+            req.params.purposeId
+          );
+          return res.status(200).json(agreement).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getAgreementByPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/organizations/:organizationId",
