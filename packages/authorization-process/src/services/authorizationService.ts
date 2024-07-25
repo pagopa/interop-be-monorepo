@@ -6,7 +6,7 @@ import {
   DescriptorId,
   EService,
   EServiceId,
-  Key,
+  ClientKey,
   ListResult,
   Purpose,
   PurposeId,
@@ -498,7 +498,7 @@ export function authorizationServiceBuilder(
       userIds: UserId[];
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<Key[]> {
+    }): Promise<ClientKey[]> {
       logger.info(`Retrieving keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
@@ -624,7 +624,7 @@ export function authorizationServiceBuilder(
       if (jwk.kty !== "RSA") {
         throw invalidKey();
       }
-      const newKey: Key = {
+      const newKey: ClientKey = {
         clientId,
         name: keySeed.name,
         createdAt: new Date(),
@@ -666,7 +666,7 @@ export function authorizationServiceBuilder(
       kid: string;
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<Key> {
+    }): Promise<ClientKey> {
       logger.info(`Retrieving key ${kid} in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
 

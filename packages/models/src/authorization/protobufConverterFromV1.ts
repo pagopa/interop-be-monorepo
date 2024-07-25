@@ -4,8 +4,8 @@ import { genericInternalError } from "../errors.js";
 import { ClientKindV1, ClientV1 } from "../gen/v1/authorization/client.js";
 import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
-import { Client, ClientKind, clientKind } from "./client.js";
-import { Key, KeyUse, keyUse } from "./client.js";
+import { Client, ClientKind, clientKind, ClientKey } from "./client.js";
+import { KeyUse, keyUse } from "./key.js";
 
 const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   switch (input) {
@@ -19,7 +19,7 @@ const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   }
 };
 
-export const fromKeyV1 = (input: KeyV1, clientId: ClientId): Key => ({
+export const fromKeyV1 = (input: KeyV1, clientId: ClientId): ClientKey => ({
   ...input,
   clientId,
   userId: input.userId
