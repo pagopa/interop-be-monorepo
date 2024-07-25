@@ -24,6 +24,10 @@ export const errorCodes = {
   noAgreementFoundInRequiredState: "0012",
   purposeAlreadyLinkedToClient: "0013",
   organizationNotAllowedOnPurpose: "0014",
+  tooManyKeysPerClient: "0015",
+  userNotFound: "0016",
+  keyAlreadyExists: "0017",
+  invalidKey: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -171,5 +175,43 @@ export function organizationNotAllowedOnPurpose(
     detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
     code: "organizationNotAllowedOnPurpose",
     title: "Organization not allowed on purpose",
+  });
+}
+
+export function tooManyKeysPerClient(
+  clientId: ClientId,
+  size: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
+    code: "tooManyKeysPerClient",
+    title: "Too many Keys per client",
+  });
+}
+
+export function userNotFound(
+  userId: UserId,
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
+    code: "userNotFound",
+    title: "User not found",
+  });
+}
+
+export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key with kid ${kid} already exists `,
+    code: "keyAlreadyExists",
+    title: "Key already exists",
+  });
+}
+
+export function invalidKey(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key is not an RSA key`,
+    code: "invalidKey",
+    title: "Invalid Key",
   });
 }
