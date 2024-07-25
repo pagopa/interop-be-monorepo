@@ -31,7 +31,7 @@ import {
   Client,
   clientKind,
   keyUse,
-  Key,
+  ClientKey,
   AttributeKind,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
@@ -257,7 +257,7 @@ export const getMockClient = (): Client => ({
   keys: [],
 });
 
-export const getMockKey = (): Key => ({
+export const getMockKey = (): ClientKey => ({
   clientId: generateId(),
   userId: generateId(),
   name: "test key",
