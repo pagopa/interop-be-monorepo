@@ -179,6 +179,7 @@ export const publishDescriptorErrorMapper = (
       "eServiceRiskAnalysisIsRequired",
       "riskAnalysisNotValid",
       "notValidDescriptor",
+      "audienceCannotBeEmpty",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
