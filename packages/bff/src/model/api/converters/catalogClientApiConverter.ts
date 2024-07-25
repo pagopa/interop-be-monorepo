@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
-import { getTenantEmail, isUpgradable } from "../../mappers.js";
+import { getTenantEmail, isUpgradable } from "../../modelMappingUtils.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -112,7 +112,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
         )
       )
       .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
-        const key = `${answer.key}`;
+        const key = answer.key;
         if (answers[key] && answer.value) {
           answers[key] = [...answers[key], answer.value];
         } else {
