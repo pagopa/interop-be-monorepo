@@ -11,6 +11,7 @@ import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   emptyErrorMapper,
+  getAgreementByIdErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
@@ -162,7 +163,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getAgreementsErrorMapper,
+          getAgreementByIdErrorMapper,
           ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
