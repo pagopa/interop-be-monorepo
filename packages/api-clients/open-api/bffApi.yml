@@ -11347,7 +11347,7 @@ components:
       type: object
       description: contains the expected payload for purpose creation.
       properties:
-        eServiceId:
+        eserviceId:
           type: string
           format: uuid
         consumerId:
@@ -11369,7 +11369,7 @@ components:
           format: int32
           minimum: 0
       required:
-        - eServiceId
+        - eserviceId
         - consumerId
         - riskAnalysisId
         - title
