@@ -43,7 +43,7 @@ export function toDescriptorWithOnlyAttributes(
 }
 
 export function toEserviceCatalogProcessQueryParams(
-  queryParams: bffApi.GetCatalogQueryParam
+  queryParams: bffApi.BffGetCatalogQueryParam
 ): catalogApi.GetCatalogQueryParam {
   return {
     ...queryParams,
