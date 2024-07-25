@@ -192,9 +192,9 @@ export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function mailAlreadyExists(address: string): ApiError<ErrorCodes> {
+export function mailAlreadyExists(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail with address ${address} already exists`,
+    detail: `mail already exists`,
     code: "mailAlreadyExists",
     title: "Mail already exists",
   });
