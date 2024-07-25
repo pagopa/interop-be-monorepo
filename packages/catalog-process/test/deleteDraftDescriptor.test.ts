@@ -219,7 +219,7 @@ describe("delete draft descriptor", () => {
     ).not.toContain(document2.path);
   });
 
-  it.only("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {
+  it("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
     };
