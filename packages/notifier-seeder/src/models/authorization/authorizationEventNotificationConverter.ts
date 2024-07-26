@@ -1,6 +1,6 @@
 import {
   AuthorizationEventEnvelopeV2,
-  fromKeyV2,
+  fromClientKeyV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -26,7 +26,7 @@ export const toAuthorizationEventNotification = (
         throw missingKafkaMessageDataError("key", event.type);
       }
 
-      const keyV2 = fromKeyV2(key);
+      const keyV2 = fromClientKeyV2(key);
       return {
         clientId: event.data.client.id,
         keys: [toKeyV1Notification(keyV2)],
