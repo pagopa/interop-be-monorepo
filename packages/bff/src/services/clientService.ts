@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { Logger } from "pagopa-interop-commons";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import { WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  bffApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { userNotFound } from "../model/domain/errors.js";
 import { toBffApiCompactUser } from "../model/domain/apiConverter.js";
@@ -12,13 +14,13 @@ import { toAuthorizationKeySeed } from "../model/api/apiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
-  selfcareV2Client: SelfcareV2Client
+  selfcareUsersClient: SelfcareV2UsersClient
 ) {
   const { authorizationProcessClient } = apiClients;
 
   return {
     async getClients({
-      headers,
+      ctx,
       limit,
       offset,
       requesterId,
@@ -30,13 +32,13 @@ export function clientServiceBuilder(
       offset: number;
       limit: number;
       userIds: string[];
-      headers: Headers;
+      ctx: WithLogger<BffAppContext>;
       name?: string;
       kind?: bffApi.ClientKind;
-    }): Promise<authorizationApi.Clients> {
+    }): Promise<authorizationApi.ClientsWithKeys> {
       ctx.logger.info(`Retrieving clients`);
 
-      return authorizationProcessClient.client.getClients({
+      return authorizationProcessClient.client.getClientsWithKeys({
         queries: {
           offset,
           limit,
@@ -46,7 +48,7 @@ export function clientServiceBuilder(
           kind,
           purposeId: undefined,
         },
-        headers,
+        headers: ctx.headers,
       });
     },
 
@@ -58,63 +60,59 @@ export function clientServiceBuilder(
 
       const client = await authorizationProcessClient.client.getClient({
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers: ctx.headers,
       });
-      return enhanceClient(apiClients, client, requestHeaders);
+      return enhanceClient(apiClients, client, ctx);
     },
 
     async deleteClient(
       clientId: string,
-      requestHeaders: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
       return authorizationProcessClient.client.deleteClient(undefined, {
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async removeClientPurpose(
       clientId: string,
       purposeId: string,
-      requestHeaders: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeId} from client ${clientId}`);
 
       return authorizationProcessClient.client.removeClientPurpose(undefined, {
         params: { clientId, purposeId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async deleteClientKeyById(
       clientId: string,
       keyId: string,
-      requestHeaders: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Deleting key ${keyId} from client ${clientId}`);
 
       return authorizationProcessClient.client.deleteClientKeyById(undefined, {
         params: { clientId, keyId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
     async removeUser(
       clientId: string,
       userId: string,
-      requestHeaders: Headers,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
       return authorizationProcessClient.client.removeUser(undefined, {
         params: { clientId, userId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
@@ -150,7 +148,7 @@ export function clientServiceBuilder(
 
       await authorizationProcessClient.client.createKeys(body, {
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
@@ -168,7 +166,7 @@ export function clientServiceBuilder(
       });
 
       return Promise.all(
-        keys.map((k) => decorateKey(selfcareV2Client, k, clientId))
+        keys.map((k) => decorateKey(selfcareUsersClient, k, clientId))
       );
     },
 
@@ -181,7 +179,7 @@ export function clientServiceBuilder(
 
       await authorizationProcessClient.client.addClientPurpose(purpose, {
         params: { clientId },
-        headers: { ...requestHeaders },
+        headers,
       });
     },
 
@@ -200,7 +198,7 @@ export function clientServiceBuilder(
 
       const users = clientUsers.map(async (id) =>
         toBffApiCompactUser(
-          await getSelfcareUserById(selfcareV2Client, id, selfcareId),
+          await getSelfcareUserById(selfcareUsersClient, id, selfcareId),
           id
         )
       );
@@ -219,7 +217,7 @@ export function clientServiceBuilder(
         params: { clientId, keyId },
         headers,
       });
-      return decorateKey(selfcareV2Client, key, selfcareId);
+      return decorateKey(selfcareUsersClient, key, selfcareId);
     },
 
     async getEncodedClientKeyById(
@@ -269,11 +267,11 @@ async function enhanceClient(
 ): Promise<bffApi.Client> {
   const consumer = await apiClients.tenantProcessClient.tenant.getTenant({
     params: { id: client.consumerId },
-    headers: { ...requestHeaders },
+    headers: ctx.headers,
   });
 
   const purposes = await Promise.all(
-    client.purposes.map((p) => enhancePurpose(apiClients, p, requestHeaders))
+    client.purposes.map((p) => enhancePurpose(apiClients, p, ctx))
   );
 
   return {
@@ -311,7 +309,7 @@ async function enhancePurpose(
 
   const producer = await tenantProcessClient.tenant.getTenant({
     params: { id: eservice.producerId },
-    headers: { ...requestHeaders },
+    headers,
   });
 
   return {
@@ -330,7 +328,7 @@ async function enhancePurpose(
 }
 
 async function getSelfcareUserById(
-  selfcareClient: SelfcareV2Client,
+  selfcareClient: SelfcareV2UsersClient,
   userId: string,
   selfcareId: string
 ) {
@@ -345,7 +343,7 @@ async function getSelfcareUserById(
 }
 
 async function decorateKey(
-  selfcareClient: SelfcareV2Client,
+  selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string
 ): Promise<bffApi.PublicKey> {
