@@ -385,13 +385,12 @@ export const toCreateEventEServiceDocumentDeleted = (
 });
 
 export const toCreateEventEServiceDraftDescriptorDeleted = (
-  streamId: string,
   version: number,
   eservice: EService,
   descriptorId: DescriptorId,
   correlationId: string
 ): CreateEvent<EServiceEvent> => ({
-  streamId,
+  streamId: eservice.id,
   version,
   event: {
     type: "EServiceDraftDescriptorDeleted",
