@@ -4,7 +4,7 @@ import {
   ClientReadModel,
   EServiceReadModel,
   TenantReadModel,
-  JWKKey,
+  ClientJWKKey,
   PurposeReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -37,7 +37,7 @@ export type TenantCollection = GenericCollection<TenantReadModel>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
 export type ClientCollection = GenericCollection<ClientReadModel>;
-export type KeyCollection = GenericCollection<JWKKey>;
+export type KeyCollection = GenericCollection<ClientJWKKey>;
 
 export type Collections =
   | EServiceCollection

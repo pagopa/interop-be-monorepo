@@ -1,11 +1,11 @@
 import {
-  JWKKey,
+  ClientJWKKey,
   missingRequiredJWKClaim,
   ClientKey,
 } from "pagopa-interop-models";
 import { createJWK, decodeBase64ToPem } from "./jwk.js";
 
-export const keyToJWKKey = (key: ClientKey): JWKKey => {
+export const keyToJWKKey = (key: ClientKey): ClientJWKKey => {
   const jwk = createJWK(decodeBase64ToPem(key.encodedPem));
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
