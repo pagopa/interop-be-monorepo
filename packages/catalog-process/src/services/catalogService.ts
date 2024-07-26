@@ -580,13 +580,37 @@ export function catalogServiceBuilder(
 
       assertIsDraftEservice(eservice.data);
 
-      const event = toCreateEventEServiceDeleted(
-        eserviceId,
-        eservice.metadata.version,
-        eservice.data,
-        correlationId
-      );
-      await repository.createEvent(event);
+      if (eservice.data.descriptors.length === 1) {
+        const eserviceWithoutDescriptors: EService = {
+          ...eservice.data,
+          descriptors: [],
+        };
+        const descriptorDeletionEvent =
+          toCreateEventEServiceDraftDescriptorDeleted(
+            eservice.metadata.version,
+            eserviceWithoutDescriptors,
+            eservice.data.descriptors[0].id,
+            correlationId
+          );
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eserviceId,
+          eservice.metadata.version + 1,
+          eserviceWithoutDescriptors,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+      } else {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eserviceId,
+          eservice.metadata.version,
+          eservice.data,
+          correlationId
+        );
+        await repository.createEvent(eserviceDeletionEvent);
+      }
     },
 
     async uploadDocument(
@@ -988,7 +1012,6 @@ export function catalogServiceBuilder(
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
-          eservice.data.id,
           eservice.metadata.version,
           newEservice,
           descriptorId,
