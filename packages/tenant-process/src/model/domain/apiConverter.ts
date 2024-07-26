@@ -88,7 +88,6 @@ export function toApiTenantAttribute(
       declared: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
-        revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
       },
     }))
     .exhaustive();

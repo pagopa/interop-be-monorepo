@@ -86,7 +86,6 @@ export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}
 export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions) {
     return new Zodios(baseUrl, {{@key}}Endpoints, {
 			...options,
-			validate: false,
 			axiosConfig: {
 				...options?.axiosConfig,
 				// This configuration is used to serialize correctly array query parameters.

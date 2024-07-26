@@ -5,18 +5,10 @@ import { ErrorCodes as BFFErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = BFFErrorCodes | CommonErrorCodes;
 
-const {
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_UNAUTHORIZED,
-  HTTP_STATUS_FORBIDDEN,
-} = constants;
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("descriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -43,12 +35,6 @@ export const getClientUsersErrorMapper = (
 ): number =>
   match(error.code)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
-    .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;

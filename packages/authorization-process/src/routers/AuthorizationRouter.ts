@@ -39,7 +39,6 @@ import {
   createKeysErrorMapper,
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
-  addClientPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -491,7 +490,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addClientPurposeErrorMapper,
+            addUserErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
