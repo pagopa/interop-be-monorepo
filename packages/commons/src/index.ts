@@ -4,8 +4,6 @@ export * from "./context/index.js";
 export * from "./file-manager/index.js";
 export * from "./interop-token/interopTokenService.js";
 export * from "./interop-token/refreshableInteropTokenService.js";
-export * from "./interop-token/utils.js";
-export * from "./interop-token/models.js";
 export * from "./kafka/kafka.js";
 export * from "./logging/index.js";
 export * from "./model/apiEndpoint.js";

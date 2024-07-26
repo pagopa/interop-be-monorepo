@@ -3,7 +3,7 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type BffApi = typeof bffApi.eservicesApi.api;
 
-export type BffGetCatalogQueryParam = QueryParametersByAlias<
+export type GetCatalogQueryParam = QueryParametersByAlias<
   BffApi,
   "getEServicesCatalog"
 >;

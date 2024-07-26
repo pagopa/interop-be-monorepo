@@ -1,34 +1,36 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {
-  attributeRegistryApi,
-  bffApi,
-  catalogApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
-import {
-  toBffCatalogApiDescriptorAttributes,
-  toBffCatalogApiDescriptorDoc,
-  toBffCatalogApiEService,
-  toBffCatalogApiEserviceRiskAnalysis,
-  toBffCatalogApiProducerDescriptorEService,
-} from "../model/api/converters/catalogClientApiConverter.js";
-
-import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
-import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
-import {
-  assertRequesterIsProducer,
-  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
-} from "../model/validators.js";
+import { catalogApi, tenantApi, bffApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
+import { EServiceId } from "pagopa-interop-models";
+import { toBffCatalogApiEServiceResponse } from "../model/api/apiConverter.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "../model/validators.js";
 import {
   AgreementProcessClient,
-  AttributeProcessClient,
   CatalogProcessClient,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
+
+function activeDescriptorStateFilter(
+  descriptor: catalogApi.EServiceDescriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      catalogApiDescriptorState.PUBLISHED,
+      catalogApiDescriptorState.SUSPENDED,
+      catalogApiDescriptorState.DEPRECATED,
+      () => true
+    )
+    .with(
+      catalogApiDescriptorState.DRAFT,
+      catalogApiDescriptorState.ARCHIVED,
+      () => false
+    )
+    .exhaustive();
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -57,7 +59,11 @@ const enhanceCatalogEService =
           })
         : producerTenant;
 
-    const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+    const latestActiveDescriptor: catalogApi.EServiceDescriptor | undefined =
+      eservice.descriptors
+        .filter(activeDescriptorStateFilter)
+        .sort((a, b) => Number(a.version) - Number(b.version))
+        .at(-1);
 
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
@@ -74,7 +80,7 @@ const enhanceCatalogEService =
         requesterTenant
       );
 
-    return toBffCatalogApiEService(
+    return toBffCatalogApiEServiceResponse(
       eservice,
       producerTenant,
       hasCertifiedAttributes,
@@ -84,69 +90,10 @@ const enhanceCatalogEService =
     );
   };
 
-const getBulkAttributes = async (
-  attributeProcessClient: AttributeProcessClient,
-  headers: Headers,
-  descriptorAttributeIds: string[]
-) => {
-  // Fetch all attributes in a recursive way
-  const attributesBulk = async (
-    offset: number,
-    result: attributeRegistryApi.Attribute[]
-  ): Promise<attributeRegistryApi.Attribute[]> => {
-    const attributes = await attributeProcessClient.getBulkedAttributes(
-      descriptorAttributeIds,
-      {
-        headers,
-        queries: {
-          limit: 50,
-          offset,
-        },
-      }
-    );
-
-    if (attributes.totalCount <= 50) {
-      return result.concat(attributes.results);
-    } else {
-      return await attributesBulk(offset + 50, result);
-    }
-  };
-
-  return await attributesBulk(0, []);
-};
-
-const retrieveEserviceDescriptor = (
-  eservice: catalogApi.EService,
-  descriptorId: DescriptorId
-): catalogApi.EServiceDescriptor => {
-  const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
-
-  if (!descriptor) {
-    throw eserviceDescriptorNotFound(eservice.id, descriptorId);
-  }
-
-  return descriptor;
-};
-
-const getAttributeIds = (
-  descriptor: catalogApi.EServiceDescriptor
-): string[] => [
-  ...descriptor.attributes.certified.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-  ...descriptor.attributes.declared.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-  ...descriptor.attributes.verified.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-];
-
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  agreementProcessClient: AgreementProcessClient
 ) {
   return {
     getCatalog: async (
@@ -186,96 +133,8 @@ export function catalogServiceBuilder(
           totalCount: eservicesResponse.totalCount,
         },
       };
+
       return response;
-    },
-    getProducerEServiceDescriptor: async (
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      context: WithLogger<BffAppContext>
-    ): Promise<bffApi.ProducerEServiceDescriptor> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
-
-      const eservice: catalogApi.EService =
-        await catalogProcessClient.getEServiceById({
-          params: {
-            eServiceId: eserviceId,
-          },
-          headers,
-        });
-
-      assertRequesterIsProducer(requesterId, eservice);
-
-      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
-
-      const descriptorAttributeIds = getAttributeIds(descriptor);
-
-      const attributes = await getBulkAttributes(
-        attributeProcessClient,
-        headers,
-        descriptorAttributeIds
-      );
-
-      const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
-        attributes,
-        descriptor
-      );
-
-      const requesterTenant = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: requesterId,
-        },
-      });
-
-      return {
-        id: descriptor.id,
-        version: descriptor.version,
-        description: descriptor.description,
-        interface:
-          descriptor.interface &&
-          toBffCatalogApiDescriptorDoc(descriptor.interface),
-        docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
-        state: descriptor.state,
-        audience: descriptor.audience,
-        voucherLifespan: descriptor.voucherLifespan,
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-        dailyCallsTotal: descriptor.dailyCallsTotal,
-        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
-        attributes: descriptorAttributes,
-        eservice: toBffCatalogApiProducerDescriptorEService(
-          eservice,
-          requesterTenant
-        ),
-      };
-    },
-    getProducerEServiceDetails: async (
-      eServiceId: string,
-      context: WithLogger<BffAppContext>
-    ): Promise<bffApi.ProducerEServiceDetails> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
-
-      const eservice: catalogApi.EService =
-        await catalogProcessClient.getEServiceById({
-          params: {
-            eServiceId,
-          },
-          headers,
-        });
-
-      assertRequesterIsProducer(requesterId, eservice);
-
-      return {
-        id: eservice.id,
-        name: eservice.name,
-        description: eservice.description,
-        technology: eservice.technology,
-        mode: eservice.mode,
-        riskAnalysis: eservice.riskAnalysis.map(
-          toBffCatalogApiEserviceRiskAnalysis
-        ),
-      };
     },
     updateEServiceDescription: async (
       headers: Headers,

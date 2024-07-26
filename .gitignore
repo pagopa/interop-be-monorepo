@@ -51,7 +51,6 @@ docker/minio-data
 # Turborepo task cache
 .turbo
 
-.env.local
 ## Ignore pnpm-lock.yaml files in packages, to prevent committing them
 packages/**/pnpm-lock.yaml
 

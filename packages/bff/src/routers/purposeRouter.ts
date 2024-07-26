@@ -40,8 +40,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           reversePurposeUpdateErrorMapper,
-          ctx.logger,
-          `Error updating reverse purpose ${req.params.purposeId}`
+          ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
