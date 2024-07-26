@@ -1,5 +1,6 @@
 import { ZodiosInstance } from "@zodios/core";
 import axios, { AxiosInstance } from "axios";
+import * as AxiosLogger from "axios-logger";
 import { z } from "zod";
 import { SelfCareConfig } from "pagopa-interop-commons";
 import { selfcareV2ClientApi } from "./index.js";
@@ -13,6 +14,13 @@ const createAxiosInstance = (selfcareApiKey: string): AxiosInstance => {
     headers: {
       "Ocp-Apim-Subscription-Key": selfcareApiKey,
     },
+  });
+
+  instance.interceptors.request.use((request) => {
+    AxiosLogger.requestLogger(request as never, {
+      params: true,
+    });
+    return request;
   });
 
   instance.interceptors.response.use(
