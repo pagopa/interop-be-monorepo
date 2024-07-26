@@ -1,5 +1,6 @@
 import {
   ApiError,
+  AttributeId,
   PurposeId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -9,9 +10,12 @@ export const errorCodes = {
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
   agreementDescriptorNotFound: "0004",
-  missingClaim: "0005",
-  tenantLoginNotAllowed: "0006",
-  tokenVerificationFailed: "0007",
+  eserviceDescriptorNotFound: "0005",
+  attributeNotExists: "0006",
+  invalidEserviceRequester: "0007",
+  missingClaim: "0008",
+  tenantLoginNotAllowed: "0009",
+  tokenVerificationFailed: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -55,6 +59,36 @@ export function agreementDescriptorNotFound(
     detail: `Descriptor of agreement ${agreementId} not found`,
     code: "agreementDescriptorNotFound",
     title: "Agreement descriptor not found",
+  });
+}
+
+export function invalidEServiceRequester(
+  eServiceId: string,
+  requesterId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
+    code: "invalidEserviceRequester",
+    title: `Invalid eservice requester`,
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eServiceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: `Descriptor not found`,
+  });
+}
+
+export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${id} does not exist in the attribute registry`,
+    code: "attributeNotExists",
+    title: "Attribute not exists",
   });
 }
 
