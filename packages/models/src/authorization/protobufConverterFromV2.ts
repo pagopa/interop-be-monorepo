@@ -1,11 +1,21 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ClientId, UserId, unsafeBrandId } from "../brandedIds.js";
+import {
+  ClientId,
+  UserId,
+  unsafeBrandId,
+  EServiceId,
+  ProducerKeychainId,
+} from "../brandedIds.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
 import { ProducerKeychainV2 } from "../gen/v2/authorization/producer-keychain.js";
-import { KeyUseV2, ClientKeyV2 } from "../gen/v2/authorization/key.js";
+import {
+  KeyUseV2,
+  ClientKeyV2,
+  ProducerKeychainKeyV2,
+} from "../gen/v2/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind, ClientKey } from "./client.js";
-import { ProducerKeychain } from "./producerKeychain.js";
+import { ProducerKeychain, ProducerKeychainKey } from "./producerKeychain.js";
 import { KeyUse, keyUse } from "./key.js";
 
 const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
@@ -34,13 +44,6 @@ export const fromClientKindV2 = (input: ClientKindV2): ClientKind => {
   }
 };
 
-// WIP
-export const fromProducerKeychainV2 = (
-  input: ProducerKeychainV2
-): ProducerKeychain => ({
-  id: unsafeBrandId(input.id),
-});
-
 export const fromClientV2 = (input: ClientV2): Client => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -50,4 +53,28 @@ export const fromClientV2 = (input: ClientV2): Client => ({
   kind: fromClientKindV2(input.kind),
   createdAt: bigIntToDate(input.createdAt),
   keys: input.keys.map(fromClientKeyV2),
+});
+
+export const fromProducerKeychainKeyV2 = (
+  input: ProducerKeychainKeyV2
+): ProducerKeychainKey => ({
+  ...input,
+  producerKeychainId: unsafeBrandId<ProducerKeychainId>(
+    input.producerKeychainId
+  ),
+  userId: unsafeBrandId<UserId>(input.userId),
+  use: fromKeyUseV2(input.use),
+  createdAt: bigIntToDate(input.createdAt),
+});
+
+export const fromProducerKeychainV2 = (
+  input: ProducerKeychainV2
+): ProducerKeychain => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  producerId: unsafeBrandId(input.producerId),
+  createdAt: bigIntToDate(input.createdAt),
+  eservices: input.eservices.map(unsafeBrandId<EServiceId>),
+  users: input.users.map(unsafeBrandId<UserId>),
+  keys: input.keys.map(fromProducerKeychainKeyV2),
 });
