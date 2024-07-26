@@ -582,7 +582,6 @@ export function catalogServiceBuilder(
 
       if (eservice.data.descriptors.length === 0) {
         const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eserviceId,
           eservice.metadata.version,
           eservice.data,
           correlationId
@@ -601,7 +600,6 @@ export function catalogServiceBuilder(
             correlationId
           );
         const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eserviceId,
           eservice.metadata.version + 1,
           eserviceWithoutDescriptors,
           correlationId
@@ -1003,7 +1001,7 @@ export function catalogServiceBuilder(
 
       await Promise.all(deleteDescriptorDocs);
 
-      const newEservice: EService = {
+      const eserviceAfterDescriptorDeletion: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.filter(
           (d: Descriptor) => d.id !== descriptorId
@@ -1013,16 +1011,15 @@ export function catalogServiceBuilder(
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
           eservice.metadata.version,
-          newEservice,
+          eserviceAfterDescriptorDeletion,
           descriptorId,
           correlationId
         );
 
-      if (newEservice.descriptors.length === 0) {
+      if (eserviceAfterDescriptorDeletion.descriptors.length === 0) {
         const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eservice.data.id,
           eservice.metadata.version + 1,
-          newEservice,
+          eserviceAfterDescriptorDeletion,
           correlationId
         );
         await repository.createEvents([

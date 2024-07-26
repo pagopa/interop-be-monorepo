@@ -311,18 +311,17 @@ export const toCreateEventEServiceDescriptorSuspended = (
 });
 
 export const toCreateEventEServiceDeleted = (
-  streamId: string,
   version: number,
   eservice: EService,
   correlationId: string
 ): CreateEvent<EServiceEvent> => ({
-  streamId,
+  streamId: eservice.id,
   version,
   event: {
     type: "EServiceDeleted",
     event_version: 2,
     data: {
-      eserviceId: streamId,
+      eserviceId: eservice.id,
       eservice: toEServiceV2(eservice),
     },
   },
