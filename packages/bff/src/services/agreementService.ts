@@ -121,6 +121,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
       const eservices = await agreementProcessClient.getAgreementEServices({
         queries: {
           offset,
@@ -131,10 +135,6 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         headers,
       });
-
-      if (eServiceName && eServiceName.length < 3) {
-        return emptyPagination(offset, limit);
-      }
 
       return {
         pagination: {
@@ -157,6 +157,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
       const eservices = await agreementProcessClient.getAgreementEServices({
         queries: {
           offset,
@@ -166,10 +170,6 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         headers,
       });
-
-      if (eServiceName && eServiceName.length < 3) {
-        return emptyPagination(offset, limit);
-      }
 
       return {
         pagination: {
@@ -188,6 +188,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement producers`);
+
+      if (producerName && producerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
       const producers = await agreementProcessClient.getAgreementProducers({
         queries: {
           offset,
@@ -196,10 +201,6 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         headers,
       });
-
-      if (producerName && producerName.length < 3) {
-        return emptyPagination(offset, limit);
-      }
 
       return {
         pagination: {
@@ -218,6 +219,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement consumers`);
+
+      if (consumerName && consumerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
       const consumers = await agreementProcessClient.getAgreementConsumers({
         queries: {
           offset,
@@ -226,10 +232,6 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         headers,
       });
-
-      if (consumerName && consumerName.length < 3) {
-        return emptyPagination(offset, limit);
-      }
 
       return {
         pagination: {
