@@ -46,7 +46,7 @@ export function clientToApiClientWithKeys(
       kind: clientKindToApiClientKind(client.kind),
       description: client.description,
     },
-    keys: client.keys.map(keyToApiKey),
+    keys: client.keys.map(clientKeyToApiKey),
   };
 }
 
@@ -66,7 +66,7 @@ export function clientToApiClient(
   };
 }
 
-export const keyToApiKey = (key: ClientKey): authorizationApi.Key => ({
+export const clientKeyToApiKey = (key: ClientKey): authorizationApi.Key => ({
   name: key.name,
   createdAt: key.createdAt.toJSON(),
   kid: key.kid,
