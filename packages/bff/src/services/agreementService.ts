@@ -35,25 +35,26 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       });
     },
 
-    async getAgreements({
-      offset,
-      limit,
-      producersIds,
-      eservicesIds,
-      consumersIds,
-      states,
-      ctx,
-      showOnlyUpgradeable,
-    }: {
-      offset: number;
-      limit: number;
-      producersIds: string[];
-      eservicesIds: string[];
-      consumersIds: string[];
-      states: bffApi.AgreementState[];
-      ctx: WithLogger<BffAppContext>;
-      showOnlyUpgradeable?: boolean;
-    }): Promise<bffApi.Agreements> {
+    async getAgreements(
+      ctx: WithLogger<BffAppContext>,
+      {
+        offset,
+        limit,
+        producersIds,
+        eservicesIds,
+        consumersIds,
+        states,
+        showOnlyUpgradeable,
+      }: {
+        offset: number;
+        limit: number;
+        producersIds: string[];
+        eservicesIds: string[];
+        consumersIds: string[];
+        states: bffApi.AgreementState[];
+        showOnlyUpgradeable?: boolean;
+      }
+    ): Promise<bffApi.Agreements> {
       ctx.logger.info("Retrieving agreements");
 
       const { results, totalCount } =
