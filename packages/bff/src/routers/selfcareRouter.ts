@@ -6,8 +6,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   toApiSelfcareInstitution,
   toApiSelfcareProduct,
