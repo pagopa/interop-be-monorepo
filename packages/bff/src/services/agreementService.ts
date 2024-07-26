@@ -36,7 +36,6 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     },
 
     async getAgreements(
-      ctx: WithLogger<BffAppContext>,
       {
         offset,
         limit,
@@ -53,7 +52,8 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         consumersIds: string[];
         states: bffApi.AgreementState[];
         showOnlyUpgradeable?: boolean;
-      }
+      },
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreements> {
       ctx.logger.info("Retrieving agreements");
 

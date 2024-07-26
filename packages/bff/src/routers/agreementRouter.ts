@@ -41,15 +41,18 @@ const agreementRouter = (
           states,
         } = req.query;
 
-        const result = await agreementService.getAgreements(ctx, {
-          offset,
-          limit,
-          producersIds,
-          eservicesIds,
-          consumersIds,
-          states,
-          showOnlyUpgradeable,
-        });
+        const result = await agreementService.getAgreements(
+          {
+            offset,
+            limit,
+            producersIds,
+            eservicesIds,
+            consumersIds,
+            states,
+            showOnlyUpgradeable,
+          },
+          ctx
+        );
         return res.status(200).json(result).end();
       } catch (error) {
         const errorRes = makeApiProblem(
