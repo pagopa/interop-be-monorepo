@@ -52,6 +52,14 @@ export async function handleMessageV2(
       { type: "ClientUserDeleted" },
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
+      { type: "ProducerKeychainAdded" },
+      { type: "ProducerKeychainDeleted" },
+      { type: "ProducerKeychainKeyAdded" },
+      { type: "ProducerKeychainKeyDeleted" },
+      { type: "ProducerKeychainUserAdded" },
+      { type: "ProducerKeychainUserDeleted" },
+      { type: "ProducerKeychainEServiceAdded" },
+      { type: "ProducerKeychainEServiceRemoved" },
       () => Promise.resolve
     )
     .exhaustive();
