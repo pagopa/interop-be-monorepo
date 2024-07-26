@@ -41,14 +41,13 @@ const agreementRouter = (
           states,
         } = req.query;
 
-        const result = await agreementService.getAgreements({
+        const result = await agreementService.getAgreements(ctx, {
           offset,
           limit,
           producersIds,
           eservicesIds,
           consumersIds,
           states,
-          ctx,
           showOnlyUpgradeable,
         });
         return res.status(200).json(result).end();
