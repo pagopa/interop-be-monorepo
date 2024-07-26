@@ -36,7 +36,9 @@
   },
   "dependencies": {
     "@zodios/core": "10.9.6",
+    "pagopa-interop-commons": "workspace:*",
     "qs" : "6.12.3",
+    "axios": "1.7.2",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0"
