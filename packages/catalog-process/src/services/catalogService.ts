@@ -580,7 +580,15 @@ export function catalogServiceBuilder(
 
       assertIsDraftEservice(eservice.data);
 
-      if (eservice.data.descriptors.length === 1) {
+      if (eservice.data.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eserviceId,
+          eservice.metadata.version,
+          eservice.data,
+          correlationId
+        );
+        await repository.createEvent(eserviceDeletionEvent);
+      } else {
         const eserviceWithoutDescriptors: EService = {
           ...eservice.data,
           descriptors: [],
@@ -602,14 +610,6 @@ export function catalogServiceBuilder(
           descriptorDeletionEvent,
           eserviceDeletionEvent,
         ]);
-      } else {
-        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eserviceId,
-          eservice.metadata.version,
-          eservice.data,
-          correlationId
-        );
-        await repository.createEvent(eserviceDeletionEvent);
       }
     },
 
