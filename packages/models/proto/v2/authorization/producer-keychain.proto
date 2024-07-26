@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package authorization.v2;
+
+import "v2/authorization/key.proto";
+
+message ProducerKeychainV2 {
+  string id = 1;
+  string producerId = 2;
+  string name = 3;
+  string description = 4;
+  repeated string eservices = 5;
+  int64 createdAt = 6;
+  repeated string users = 7;
+  repeated ProducerKeychainKeyV2 keys = 9;
+}
