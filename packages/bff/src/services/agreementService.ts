@@ -39,25 +39,26 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       });
     },
 
-    async getAgreements({
-      offset,
-      limit,
-      producersIds,
-      eservicesIds,
-      consumersIds,
-      states,
-      ctx,
-      showOnlyUpgradeable,
-    }: {
-      offset: number;
-      limit: number;
-      producersIds: string[];
-      eservicesIds: string[];
-      consumersIds: string[];
-      states: bffApi.AgreementState[];
-      ctx: WithLogger<BffAppContext>;
-      showOnlyUpgradeable?: boolean;
-    }): Promise<bffApi.Agreements> {
+    async getAgreements(
+      ctx: WithLogger<BffAppContext>,
+      {
+        offset,
+        limit,
+        producersIds,
+        eservicesIds,
+        consumersIds,
+        states,
+        showOnlyUpgradeable,
+      }: {
+        offset: number;
+        limit: number;
+        producersIds: string[];
+        eservicesIds: string[];
+        consumersIds: string[];
+        states: bffApi.AgreementState[];
+        showOnlyUpgradeable?: boolean;
+      }
+    ): Promise<bffApi.Agreements> {
       ctx.logger.info("Retrieving agreements");
 
       const { results, totalCount } =
@@ -74,7 +75,9 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) => enrichAgreement(a, clients, ctx));
+      const agreements = results.map((a) =>
+        enhanceAgreementOverview(a, clients, ctx)
+      );
       return {
         pagination: {
           limit,
@@ -95,7 +98,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreement(agreement, clients, ctx);
+      return enhanceAgreementDetailed(agreement, clients, ctx);
     },
 
     async getAgreementsEserviceProducers({
@@ -308,7 +311,7 @@ function isUpgradable(
     );
 }
 
-async function enrichAgreement(
+async function enhanceAgreementOverview(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
@@ -342,7 +345,7 @@ async function enrichAgreement(
   };
 }
 
-export async function enhanceAgreement(
+export async function enhanceAgreementDetailed(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
