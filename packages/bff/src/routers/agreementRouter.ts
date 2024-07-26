@@ -41,15 +41,18 @@ const agreementRouter = (
           states,
         } = req.query;
 
-        const result = await agreementService.getAgreements(ctx, {
-          offset,
-          limit,
-          producersIds,
-          eservicesIds,
-          consumersIds,
-          states,
-          showOnlyUpgradeable,
-        });
+        const result = await agreementService.getAgreements(
+          {
+            offset,
+            limit,
+            producersIds,
+            eservicesIds,
+            consumersIds,
+            states,
+            showOnlyUpgradeable,
+          },
+          ctx
+        );
         return res.status(200).json(result).end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -77,14 +80,16 @@ const agreementRouter = (
 
       try {
         const { limit, offset, states, q } = req.query;
-        const result = await agreementService.getAgreementsEserviceProducers({
-          ctx,
-          limit,
-          offset,
-          states,
-          eServiceName: q,
-          requesterId: ctx.authData.organizationId,
-        });
+        const result = await agreementService.getAgreementsEserviceProducers(
+          {
+            limit,
+            offset,
+            states,
+            eServiceName: q,
+            requesterId: ctx.authData.organizationId,
+          },
+          ctx
+        );
 
         return res.status(200).json(result).end();
       } catch (error) {
@@ -102,8 +107,8 @@ const agreementRouter = (
           offset,
           limit,
           ctx.authData.organizationId,
-          ctx,
-          q
+          q,
+          ctx
         );
 
         return res.status(200).json(result).end();
@@ -120,8 +125,8 @@ const agreementRouter = (
         const result = await agreementService.getAgreementProducers(
           offset,
           limit,
-          ctx,
-          q
+          q,
+          ctx
         );
 
         return res.status(200).json(result).end();
@@ -139,8 +144,8 @@ const agreementRouter = (
         const result = await agreementService.getAgreementConsumers(
           offset,
           limit,
-          ctx,
-          q
+          q,
+          ctx
         );
 
         return res.status(200).json(result).end();

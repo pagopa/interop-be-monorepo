@@ -40,7 +40,6 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     },
 
     async getAgreements(
-      ctx: WithLogger<BffAppContext>,
       {
         offset,
         limit,
@@ -57,7 +56,8 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         consumersIds: string[];
         states: bffApi.AgreementState[];
         showOnlyUpgradeable?: boolean;
-      }
+      },
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreements> {
       ctx.logger.info("Retrieving agreements");
 
@@ -101,22 +101,23 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       return enhanceAgreementDetailed(agreement, clients, ctx);
     },
 
-    async getAgreementsEserviceProducers({
-      ctx,
-      offset,
-      limit,
-      requesterId,
-      states,
-      eServiceName,
-    }: {
-      offset: number;
-      limit: number;
-      requesterId: string;
-      states: agreementApi.AgreementState[];
-      ctx: WithLogger<BffAppContext>;
-      eServiceName?: string;
-    }): Promise<bffApi.CompactEServicesLight> {
-      ctx.logger.info(
+    async getAgreementsEserviceProducers(
+      {
+        offset,
+        limit,
+        requesterId,
+        states,
+        eServiceName,
+      }: {
+        offset: number;
+        limit: number;
+        requesterId: string;
+        states: agreementApi.AgreementState[];
+        eServiceName?: string;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactEServicesLight> {
+      logger.info(
         `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
@@ -128,7 +129,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           producersIds: [requesterId],
           states,
         },
-        headers: ctx.headers,
+        headers,
       });
 
       if (eServiceName && eServiceName.length < 3) {
@@ -149,10 +150,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       offset: number,
       limit: number,
       requesterId: string,
-      ctx: WithLogger<BffAppContext>,
-      eServiceName?: string
+      eServiceName: string | undefined,
+      { headers, logger }: WithLogger<BffAppContext>
     ) {
-      ctx.logger.info(
+      logger.info(
         `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
@@ -163,7 +164,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           eServiceName,
           consumersIds: [requesterId],
         },
-        headers: ctx.headers,
+        headers,
       });
 
       if (eServiceName && eServiceName.length < 3) {
@@ -183,8 +184,8 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     async getAgreementProducers(
       offset: number,
       limit: number,
-      { logger, headers }: WithLogger<BffAppContext>,
-      producerName?: string
+      producerName: string | undefined,
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement producers`);
       const producers = await agreementProcessClient.getAgreementProducers({
@@ -213,8 +214,8 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     async getAgreementConsumers(
       offset: number,
       limit: number,
-      { logger, headers }: WithLogger<BffAppContext>,
-      consumerName?: string
+      consumerName: string | undefined,
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement consumers`);
       const consumers = await agreementProcessClient.getAgreementConsumers({
