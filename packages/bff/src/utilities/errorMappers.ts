@@ -38,6 +38,14 @@ export const getAgreementByIdErrorMapper = (
     .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const activateAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): number =>
+  match(error.code)
+    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
