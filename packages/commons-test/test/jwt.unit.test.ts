@@ -230,7 +230,7 @@ describe("JWT tests", () => {
       });
     });
 
-    it("should successfully read auth data from an Maintenance token", async () => {
+    it("should successfully read auth data from a Maintenance token", async () => {
       const token = getMockSignedToken(mockMaintenanceToken);
       expect(readAuthDataFromJwtToken(token)).toEqual({
         externalId: {
