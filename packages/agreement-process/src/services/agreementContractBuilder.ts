@@ -28,10 +28,8 @@ import {
   unsafeBrandId,
   AgreementDocument,
 } from "pagopa-interop-models";
-import {
-  selfcareV2ClientApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
 import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,

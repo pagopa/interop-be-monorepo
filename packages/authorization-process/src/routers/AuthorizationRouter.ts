@@ -11,10 +11,8 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import {
-  authorizationApi,
-  selfcareV2InstitutionClientBuilder,
-} from "pagopa-interop-api-clients";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-selfcare-v2-client";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";

@@ -3,10 +3,10 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
-  SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
 
 export const TenantProcessServerConfig = z
   .object({

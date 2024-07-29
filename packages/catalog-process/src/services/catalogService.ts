@@ -580,35 +580,13 @@ export function catalogServiceBuilder(
 
       assertIsDraftEservice(eservice.data);
 
-      if (eservice.data.descriptors.length === 0) {
-        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eservice.metadata.version,
-          eservice.data,
-          correlationId
-        );
-        await repository.createEvent(eserviceDeletionEvent);
-      } else {
-        const eserviceWithoutDescriptors: EService = {
-          ...eservice.data,
-          descriptors: [],
-        };
-        const descriptorDeletionEvent =
-          toCreateEventEServiceDraftDescriptorDeleted(
-            eservice.metadata.version,
-            eserviceWithoutDescriptors,
-            eservice.data.descriptors[0].id,
-            correlationId
-          );
-        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eservice.metadata.version + 1,
-          eserviceWithoutDescriptors,
-          correlationId
-        );
-        await repository.createEvents([
-          descriptorDeletionEvent,
-          eserviceDeletionEvent,
-        ]);
-      }
+      const event = toCreateEventEServiceDeleted(
+        eserviceId,
+        eservice.metadata.version,
+        eservice.data,
+        correlationId
+      );
+      await repository.createEvent(event);
     },
 
     async uploadDocument(
@@ -1001,34 +979,22 @@ export function catalogServiceBuilder(
 
       await Promise.all(deleteDescriptorDocs);
 
-      const eserviceAfterDescriptorDeletion: EService = {
+      const newEservice: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.filter(
           (d: Descriptor) => d.id !== descriptorId
         ),
       };
 
-      const descriptorDeletionEvent =
-        toCreateEventEServiceDraftDescriptorDeleted(
-          eservice.metadata.version,
-          eserviceAfterDescriptorDeletion,
-          descriptorId,
-          correlationId
-        );
+      const event = toCreateEventEServiceDraftDescriptorDeleted(
+        eservice.data.id,
+        eservice.metadata.version,
+        newEservice,
+        descriptorId,
+        correlationId
+      );
 
-      if (eserviceAfterDescriptorDeletion.descriptors.length === 0) {
-        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
-          eservice.metadata.version + 1,
-          eserviceAfterDescriptorDeletion,
-          correlationId
-        );
-        await repository.createEvents([
-          descriptorDeletionEvent,
-          eserviceDeletionEvent,
-        ]);
-      } else {
-        await repository.createEvent(descriptorDeletionEvent);
-      }
+      await repository.createEvent(event);
     },
 
     async updateDraftDescriptor(

@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { UserId } from "pagopa-interop-models";
-import {
-  selfcareV2ClientApi,
-  SelfcareV2InstitutionClient,
-} from "pagopa-interop-api-clients";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
 import { userNotFound } from "../model/domain/errors.js";
 
 export function selfcareServiceBuilder(

@@ -1,6 +1,6 @@
 import { userRoles } from "pagopa-interop-commons";
 import { Client, Purpose, TenantId, UserId } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
 import {
   userWithoutSecurityPrivileges,
   organizationNotAllowedOnPurpose,

@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
-import {
-  decodeProtobufPayload,
-  readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -11,9 +8,6 @@ import {
   EServiceDraftDescriptorDeletedV2,
   toEServiceV2,
   operationForbidden,
-  DescriptorId,
-  generateId,
-  EServiceDeletedV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../src/config/config.js";
@@ -31,39 +25,30 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
-  postgresDB,
 } from "./utils.js";
 
 describe("delete draft descriptor", () => {
+  const mockEService = getMockEService();
+  const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
     vi.spyOn(fileManager, "delete");
-
-    const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      version: "1",
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
     };
-    const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
-      version: "2",
-    };
-
     const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [publishedDescriptor, descriptorToDelete],
+      ...mockEService,
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      descriptorToDelete.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    await catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
+      authData: getMockAuthData(eservice.producerId),
+      correlationId: "",
+      serviceName: "",
+      logger: genericLogger,
+    });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -80,11 +65,11 @@ describe("delete draft descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [publishedDescriptor],
+      descriptors: [],
     });
 
     expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.descriptorId).toEqual(descriptorToDelete.id);
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -107,20 +92,15 @@ describe("delete draft descriptor", () => {
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_interface`,
     };
 
-    const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      version: "1",
-    };
-    const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
       docs: [document1, document2],
       interface: interfaceDocument,
-      version: "2",
+      state: descriptorState.draft,
     };
-
     const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [publishedDescriptor, descriptorToDelete],
+      ...mockEService,
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
 
@@ -161,16 +141,12 @@ describe("delete draft descriptor", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
 
-    await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      descriptorToDelete.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    await catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
+      authData: getMockAuthData(eservice.producerId),
+      correlationId: "",
+      serviceName: "",
+      logger: genericLogger,
+    });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -186,11 +162,11 @@ describe("delete draft descriptor", () => {
 
     const expectedEservice = toEServiceV2({
       ...eservice,
-      descriptors: [publishedDescriptor],
+      descriptors: [],
     });
 
     expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.descriptorId).toEqual(descriptorToDelete.id);
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -219,94 +195,22 @@ describe("delete draft descriptor", () => {
     ).not.toContain(document2.path);
   });
 
-  it("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {
-    const draftDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
-    };
-
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [draftDescriptor],
-    };
-    await addOneEService(eservice);
-
-    await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      draftDescriptor.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: "",
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
-
-    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
-      1,
-      "catalog",
-      postgresDB
-    );
-
-    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
-
-    expect(descriptorDeletionEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDraftDescriptorDeleted",
-      event_version: 2,
-    });
-    expect(eserviceDeletionEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "2",
-      type: "EServiceDeleted",
-      event_version: 2,
-    });
-
-    const descriptorDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDraftDescriptorDeletedV2,
-      payload: descriptorDeletionEvent.data,
-    });
-    const eserviceDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV2,
-      payload: eserviceDeletionEvent.data,
-    });
-
-    const expectedEserviceBeforeDeletion: EService = {
-      ...eservice,
-      descriptors: [],
-    };
-
-    expect(descriptorDeletionPayload).toEqual({
-      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
-      descriptorId: draftDescriptor.id,
-    });
-    expect(eserviceDeletionPayload).toEqual({
-      eserviceId: eservice.id,
-      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
-    });
-  });
-
   it("should fail if one of the file deletions fails", async () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
-    const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      version: "1",
-    };
-    const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
       docs: [mockDocument, mockDocument],
-      version: "2",
+      state: descriptorState.draft,
     };
     const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [publishedDescriptor, descriptorToDelete],
+      ...mockEService,
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
 
     await expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
+      catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(eservice.producerId),
         correlationId: "",
         serviceName: "",
@@ -322,10 +226,8 @@ describe("delete draft descriptor", () => {
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    const mockEService = getMockEService();
-    const mockDescriptorId: DescriptorId = generateId();
     expect(
-      catalogService.deleteDraftDescriptor(mockEService.id, mockDescriptorId, {
+      catalogService.deleteDraftDescriptor(mockEService.id, mockDescriptor.id, {
         authData: getMockAuthData(mockEService.producerId),
         correlationId: "",
         serviceName: "",
@@ -335,40 +237,35 @@ describe("delete draft descriptor", () => {
   });
 
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
-    const descriptorIdToDelete: DescriptorId = generateId();
     const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [getMockDescriptor()],
+      ...mockEService,
+      descriptors: [],
     };
     await addOneEService(eservice);
     expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorIdToDelete, {
-        authData: getMockAuthData(eservice.producerId),
+      catalogService.deleteDraftDescriptor(mockEService.id, mockDescriptor.id, {
+        authData: getMockAuthData(mockEService.producerId),
         correlationId: "",
         serviceName: "",
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      eServiceDescriptorNotFound(eservice.id, descriptorIdToDelete)
+      eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
-    const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      version: "1",
-    };
-    const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
-      version: "2",
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
     };
     const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [publishedDescriptor, descriptorToDelete],
+      ...mockEService,
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
     expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
+      catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
         authData: getMockAuthData(),
         correlationId: "",
         serviceName: "",
@@ -377,60 +274,102 @@ describe("delete draft descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it.each([descriptorState.published, descriptorState.suspended])(
-    "should throw notValidDescriptor if the eservice is in %s state",
-    async (state) => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
-        interface: mockDocument,
-      };
-      const eservice: EService = {
-        ...getMockEService(),
-        descriptors: [descriptor],
-      };
-      await addOneEService(eservice);
+  it("should throw notValidDescriptor if the eservice is in published state", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.published,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
 
-      expect(
-        catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: "",
-          serviceName: "",
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
-    }
-  );
+    expect(
+      catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      notValidDescriptor(descriptor.id, descriptorState.published)
+    );
+  });
+  it("should throw notValidDescriptor if the eservice is in deprecated state", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.deprecated,
+      publishedAt: new Date(),
+      deprecatedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
 
-  it.each([descriptorState.deprecated, descriptorState.archived])(
-    "should throw notValidDescriptor if the eservice is in %s state",
-    async (state) => {
-      const descriptorToDelete: Descriptor = {
-        ...getMockDescriptor(state),
-        interface: mockDocument,
-        version: "1",
-      };
-      const publishedDescriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.published),
-        version: "2",
-      };
-      const eservice: EService = {
-        ...getMockEService(),
-        descriptors: [publishedDescriptor, descriptorToDelete],
-      };
-      await addOneEService(eservice);
+    expect(
+      catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      notValidDescriptor(descriptor.id, descriptorState.deprecated)
+    );
+  });
+  it("should throw notValidDescriptor if the eservice is in suspended state", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.suspended,
+      publishedAt: new Date(),
+      suspendedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
 
-      expect(
-        catalogService.deleteDraftDescriptor(
-          eservice.id,
-          descriptorToDelete.id,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: "",
-            serviceName: "",
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(notValidDescriptor(descriptorToDelete.id, state));
-    }
-  );
+    expect(
+      catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      notValidDescriptor(descriptor.id, descriptorState.suspended)
+    );
+  });
+  it("should throw notValidDescriptor if the eservice is in archived state", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.archived,
+      publishedAt: new Date(),
+      archivedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: "",
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      notValidDescriptor(descriptor.id, descriptorState.archived)
+    );
+  });
 });
