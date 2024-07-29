@@ -30,7 +30,7 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
-  verifiedAttributeSelfVerification,
+  verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -331,7 +331,7 @@ describe("verifyVerifiedAttribute", async () => {
       )
     );
   });
-  it("Should throw verifiedAttributeSelfVerification if the organizations are not allowed to revoke own attributes", async () => {
+  it("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
     await writeInReadmodel(toReadModelEService(eService1), eservices);
@@ -350,6 +350,6 @@ describe("verifyVerifiedAttribute", async () => {
         },
         genericLogger
       )
-    ).rejects.toThrowError(verifiedAttributeSelfVerification());
+    ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
   });
 });

@@ -41,9 +41,9 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
-  verifiedAttributeSelfVerification,
+  verifiedAttributeSelfVerificationNotAllowed,
   attributeAlreadyRevoked,
-  verifiedAttributeSelfRevocation,
+  verifiedAttributeSelfRevocationNotAllowed,
 } from "../model/domain/errors.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
@@ -454,7 +454,7 @@ export function tenantServiceBuilder(
       );
 
       if (organizationId === tenantId) {
-        throw verifiedAttributeSelfVerification();
+        throw verifiedAttributeSelfVerificationNotAllowed();
       }
 
       const allowedStatuses = [
@@ -523,12 +523,12 @@ export function tenantServiceBuilder(
       {
         tenantId,
         attributeId,
-        organizationId,
+        revokerId,
         correlationId,
       }: {
         tenantId: TenantId;
         attributeId: AttributeId;
-        organizationId: TenantId;
+        revokerId: TenantId;
         correlationId: string;
       },
       logger: Logger
@@ -537,8 +537,8 @@ export function tenantServiceBuilder(
         `Revoke verified attribute ${attributeId} to tenant ${tenantId}`
       );
 
-      if (organizationId === tenantId) {
-        throw verifiedAttributeSelfRevocation();
+      if (revokerId === tenantId) {
+        throw verifiedAttributeSelfRevocationNotAllowed();
       }
 
       const allowedStatuses = [
@@ -548,7 +548,7 @@ export function tenantServiceBuilder(
       ];
 
       await assertVerifiedAttributeOperationAllowed({
-        producerId: organizationId,
+        producerId: revokerId,
         consumerId: tenantId,
         attributeId,
         agreementStates: allowedStatuses,
@@ -568,28 +568,25 @@ export function tenantServiceBuilder(
       }
 
       const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === organizationId
+        (a) => a.id === revokerId
       );
 
       if (!verifier) {
         throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
-      if (
-        verifiedTenantAttribute.revokedBy.find((a) => a.id === organizationId)
-      ) {
-        throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
+      if (verifiedTenantAttribute.revokedBy.find((a) => a.id === revokerId)) {
+        throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
       }
 
       const updatedTenant = {
         ...targetTenant.data,
-        createdAt: new Date(),
         attributes: targetTenant.data.attributes.map((attr) =>
           attr.id === attributeId
             ? ({
                 ...verifiedTenantAttribute,
                 verifiedBy: verifiedTenantAttribute.verifiedBy.filter(
-                  (v) => v.id !== organizationId
+                  (v) => v.id !== revokerId
                 ),
                 revokedBy: [
                   ...verifiedTenantAttribute.revokedBy,
