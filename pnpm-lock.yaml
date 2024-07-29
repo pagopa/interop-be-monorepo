@@ -286,6 +286,9 @@ importers:
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
+      axios-logger:
+        specifier: 2.8.1
+        version: 2.8.1
       handlebars:
         specifier: 4.7.7
         version: 4.7.7
@@ -4937,6 +4940,13 @@ packages:
       - aws-crt
     dev: false
 
+  /axios-logger@2.8.1:
+    resolution: {integrity: sha512-Bbl7XRR/Rkxg2Owv/kRgAZ/0qf8kMPLc08LtiUcGCWV5RmoI7vHr+eee6SUc8jRi2nE5KWShziCVh35C1SBEaw==}
+    dependencies:
+      chalk: 4.1.2
+      dateformat: 3.0.3
+    dev: true
+
   /axios@1.7.2:
     resolution: {integrity: sha512-2A8QhOMrbomlDuiLeK9XibIBzuHeRcqqNOHp0Cyp5EoJ1IFDh+XZH3A6BkXtv0K4gFGCI0Y4BM7B1wOEi0Rmgw==}
     dependencies:
@@ -5417,6 +5427,10 @@ packages:
 
   /date-fns@3.6.0:
     resolution: {integrity: sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==}
+
+  /dateformat@3.0.3:
+    resolution: {integrity: sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==}
+    dev: true
 
   /debounce@2.1.0:
     resolution: {integrity: sha512-OkL3+0pPWCqoBc/nhO9u6TIQNTK44fnBnzuVtJAbp13Naxw9R6u21x+8tVTka87AhDZ3htqZ2pSSsZl9fqL2Wg==}
