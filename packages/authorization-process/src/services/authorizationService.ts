@@ -31,8 +31,10 @@ import {
   decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 
 import {
   clientNotFound,
