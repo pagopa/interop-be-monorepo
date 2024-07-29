@@ -91,7 +91,7 @@ describe("activate agreement", () => {
   };
 
   // eslint-disable-next-line functional/no-let
-  let mockSelfcareUserResponseWithMissingInfo: UserResponse =
+  let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
     mockSelfcareUserResponse;
   while (
     mockSelfcareUserResponseWithMissingInfo.name &&
