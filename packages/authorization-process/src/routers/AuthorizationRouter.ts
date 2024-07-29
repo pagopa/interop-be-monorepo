@@ -20,7 +20,7 @@ import {
   apiClientKindToClientKind,
   clientToApiClient,
   clientToApiClientWithKeys,
-  clientKeyToApiKey,
+  keyToApiKey,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -376,7 +376,7 @@ const authorizationRouter = (
           });
           return res
             .status(200)
-            .json({ keys: client.keys.map((key) => clientKeyToApiKey(key)) })
+            .json({ keys: client.keys.map((key) => keyToApiKey(key)) })
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -408,7 +408,7 @@ const authorizationRouter = (
 
           return res
             .status(200)
-            .json({ keys: keys.map((key) => clientKeyToApiKey(key)) })
+            .json({ keys: keys.map((key) => keyToApiKey(key)) })
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -438,7 +438,7 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).json(clientKeyToApiKey(key)).end();
+          return res.status(200).json(keyToApiKey(key)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
