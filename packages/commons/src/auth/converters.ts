@@ -1,7 +1,7 @@
 import {
+  ClientKey,
   ClientJWKKey,
   missingRequiredJWKClaim,
-  ClientKey,
 } from "pagopa-interop-models";
 import { createJWK, decodeBase64ToPem } from "./jwk.js";
 
