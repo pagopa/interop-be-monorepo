@@ -100,6 +100,9 @@ importers:
 
   packages/agreement-outbound-writer:
     dependencies:
+      '@pagopa/interop-outbound-models':
+        specifier: 1.0.0
+        version: 1.0.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3599,6 +3602,14 @@ packages:
       - tsutils
       - typescript
     dev: true
+
+  /@pagopa/interop-outbound-models@1.0.0:
+    resolution: {integrity: sha512-gzJCs8eTvoca4ECvIkRiTPd7HmWDmIGFsWGhGnQ32gFHbsLL4emPGzuzJr9wFmR3Qz6dJ83+gK6myqaCqdeRlw==}
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+    dev: false
 
   /@pkgjs/parseargs@0.11.0:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
