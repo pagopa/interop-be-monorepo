@@ -5,8 +5,8 @@ import {
   ReadModelDbConfig,
   EventStoreConfig,
   S3Config,
+  SelfCareConfig,
 } from "pagopa-interop-commons";
-import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelDbConfig)
