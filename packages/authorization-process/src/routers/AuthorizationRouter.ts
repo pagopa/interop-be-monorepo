@@ -549,6 +549,79 @@ const authorizationRouter = (
     async (_req, res) => res.status(501).send()
   );
 
+  const authorizationProducerKeychainRouter = ctx.router(
+    authorizationApi.producerKeychainApi.api,
+    {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    }
+  );
+  authorizationProducerKeychainRouter
+    .post(
+      "/producerKeychains",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producerKeychains",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/users",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .post(
+      "/producerKeychains/:producerKeychainId/users/:userId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/users/:userId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .post(
+      "/producerKeychains/:producerKeychainId/keys",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/keys",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/keys/:keyId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/keys/:keyId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .post(
+      "/producerKeychains/:producerKeychainId/eservices",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/eservices/:eserviceId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    );
+
   const tokenGenerationRouter = ctx.router(
     authorizationApi.tokenGenerationApi.api,
     {
@@ -593,6 +666,7 @@ const authorizationRouter = (
   return [
     authorizationClientRouter,
     authorizationUserRouter,
+    authorizationProducerKeychainRouter,
     tokenGenerationRouter,
   ];
 };
