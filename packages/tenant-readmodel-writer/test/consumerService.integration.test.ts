@@ -10,8 +10,9 @@ import {
   TenantMailDeletedV1,
   TenantUpdatedV1,
   generateId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
-import { handleMessage } from "../src/tenantConsumerService.js";
+import { handleMessageV1 } from "../src/tenantConsumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
 import { tenants } from "./utils.js";
 
@@ -32,7 +33,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, tenants);
+      await handleMessageV1(message, tenants);
 
       const retrievedTenant = await tenants.findOne({
         "data.id": mockTenant.id,
@@ -45,7 +46,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantDeleted", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants);
+      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
       const payload: TenantDeletedV1 = {
         tenantId: mockTenant.id,
@@ -59,7 +60,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, tenants);
+      await handleMessageV1(message, tenants);
 
       const retrievedTenant = await tenants.findOne({
         "data.id": mockTenant.id,
@@ -69,7 +70,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantUpdated", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants);
+      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -87,7 +88,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, tenants);
+      await handleMessageV1(message, tenants);
 
       const retrievedTenant = await tenants.findOne({
         "data.id": mockTenant.id,
@@ -100,7 +101,7 @@ describe("Integration tests", async () => {
     });
 
     it("SelfcareMappingCreated", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants);
+      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
       const selfcareId = generateId();
 
@@ -121,7 +122,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, tenants);
+      await handleMessageV1(message, tenants);
 
       const retrievedTenant = await tenants.findOne({
         "data.id": mockTenant.id,
@@ -134,7 +135,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantMailAdded", async () => {
-      await writeInReadmodel<Tenant>(mockTenant, tenants);
+      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
       const mailId = generateId();
       const updatedTenant: Tenant = {
@@ -163,7 +164,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, tenants);
+      await handleMessageV1(message, tenants);
 
       const retrievedTenant = await tenants.findOne({
         "data.id": mockTenant.id,
@@ -188,7 +189,7 @@ describe("Integration tests", async () => {
           },
         ],
       };
-      await writeInReadmodel<Tenant>(tenantWithMail, tenants);
+      await writeInReadmodel(toReadModelTenant(tenantWithMail), tenants);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -207,7 +208,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, tenants);
+      await handleMessageV1(message, tenants);
 
       const retrievedTenant = await tenants.findOne({
         "data.id": mockTenant.id,
