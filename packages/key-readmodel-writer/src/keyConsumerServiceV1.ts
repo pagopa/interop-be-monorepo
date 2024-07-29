@@ -1,12 +1,10 @@
-import { KeyCollection } from "pagopa-interop-commons";
+import { KeyCollection, keyToJWKKey } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   fromKeyV1,
-  toReadModelKey,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { fromKeyToReadModelJWKKey } from "./../../commons/src/auth/converters.js";
 
 export async function handleMessageV1(
   message: AuthorizationEventEnvelopeV1,
@@ -25,10 +23,8 @@ export async function handleMessageV1(
             },
             {
               $set: {
-                data: fromKeyToReadModelJWKKey(
-                  toReadModelKey(
-                    fromKeyV1(key, unsafeBrandId(message.data.clientId))
-                  )
+                data: keyToJWKKey(
+                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
                 ),
                 metadata: {
                   version: message.version,

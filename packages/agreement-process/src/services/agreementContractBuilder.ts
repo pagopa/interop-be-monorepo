@@ -29,9 +29,9 @@ import {
   AgreementDocument,
 } from "pagopa-interop-models";
 import {
-  SelfcareV2Client,
-  UserResponse,
-} from "pagopa-interop-selfcare-v2-client";
+  selfcareV2ClientApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
@@ -47,10 +47,10 @@ const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
 const retrieveUser = async (
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   selfcareId: SelfcareId,
   id: UserId
-): Promise<UserResponse> => {
+): Promise<selfcareV2ClientApi.UserResponse> => {
   const user = await selfcareV2Client.getUserInfoUsingGET({
     queries: { institutionId: selfcareId },
     params: { id },
@@ -139,7 +139,7 @@ const getAttributeInvolved = async (
 };
 
 const getSubmissionInfo = async (
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   consumer: Tenant,
   agreement: Agreement
 ): Promise<[string, Date]> => {
@@ -154,7 +154,7 @@ const getSubmissionInfo = async (
 
   const consumerSelfcareId: SelfcareId = unsafeBrandId(consumer.selfcareId);
 
-  const consumerUser: UserResponse = await retrieveUser(
+  const consumerUser: selfcareV2ClientApi.UserResponse = await retrieveUser(
     selfcareV2Client,
     consumerSelfcareId,
     submission.who
@@ -170,7 +170,7 @@ const getSubmissionInfo = async (
 };
 
 const getActivationInfo = async (
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   selfcareId: SelfcareId,
   agreement: Agreement
 ): Promise<[string, Date]> => {
@@ -180,7 +180,7 @@ const getActivationInfo = async (
     throw agreementStampNotFound("activation");
   }
 
-  const user: UserResponse = await retrieveUser(
+  const user: selfcareV2ClientApi.UserResponse = await retrieveUser(
     selfcareV2Client,
     selfcareId,
     activation.who
@@ -199,7 +199,7 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2Client: SelfcareV2UsersClient
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
@@ -319,7 +319,7 @@ export const contractBuilder = (
   readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
-  selfcareV2Client: SelfcareV2Client,
+  selfcareV2Client: SelfcareV2UsersClient,
   config: AgreementProcessConfig,
   logger: Logger
 ) => {

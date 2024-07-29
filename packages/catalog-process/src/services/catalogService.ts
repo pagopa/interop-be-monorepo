@@ -48,6 +48,7 @@ import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
@@ -84,6 +85,8 @@ import {
   eServiceRiskAnalysisNotFound,
   prettyNameDuplicate,
   riskAnalysisDuplicated,
+  eserviceWithoutValidDescriptors,
+  audienceCannotBeEmpty,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -403,12 +406,10 @@ export function catalogServiceBuilder(
     },
 
     async createEService(
-      apiEServicesSeed: catalogApi.EServiceSeed,
+      seed: catalogApi.EServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(
-        `Creating EService with service name ${apiEServicesSeed.name}`
-      );
+      logger.info(`Creating EService with name ${seed.name}`);
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
@@ -416,35 +417,85 @@ export function catalogServiceBuilder(
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
-          name: apiEServicesSeed.name,
+          name: seed.name,
           producerId: authData.organizationId,
         });
       if (eserviceWithSameName) {
-        throw eServiceDuplicate(apiEServicesSeed.name);
+        throw eServiceDuplicate(seed.name);
       }
 
+      const creationDate = new Date();
       const newEService: EService = {
         id: generateId(),
         producerId: authData.organizationId,
-        name: apiEServicesSeed.name,
-        description: apiEServicesSeed.description,
-        technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
-        mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
+        name: seed.name,
+        description: seed.description,
+        technology: apiTechnologyToTechnology(seed.technology),
+        mode: apiEServiceModeToEServiceMode(seed.mode),
         attributes: undefined,
         descriptors: [],
-        createdAt: new Date(),
+        createdAt: creationDate,
         riskAnalysis: [],
       };
 
-      const event = toCreateEventEServiceAdded(newEService, correlationId);
-      await repository.createEvent(event);
+      const eserviceCreationEvent = toCreateEventEServiceAdded(
+        newEService,
+        correlationId
+      );
 
-      return newEService;
+      if (
+        seed.descriptor.dailyCallsPerConsumer > seed.descriptor.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const draftDescriptor: Descriptor = {
+        id: generateId(),
+        description: seed.descriptor.description,
+        version: "1",
+        interface: undefined,
+        docs: [],
+        state: descriptorState.draft,
+        voucherLifespan: seed.descriptor.voucherLifespan,
+        audience: seed.descriptor.audience,
+        dailyCallsPerConsumer: seed.descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.descriptor.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.descriptor.agreementApprovalPolicy
+          ),
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: creationDate,
+        attributes: { certified: [], declared: [], verified: [] },
+      };
+
+      const eserviceWithDescriptor: EService = {
+        ...newEService,
+        descriptors: [draftDescriptor],
+      };
+
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
+        eserviceWithDescriptor,
+        0,
+        draftDescriptor.id,
+        correlationId
+      );
+
+      await repository.createEvents([
+        eserviceCreationEvent,
+        descriptorCreationEvent,
+      ]);
+
+      return eserviceWithDescriptor;
     },
 
     async updateEService(
       eserviceId: EServiceId,
-      eserviceSeed: catalogApi.EServiceSeed,
+      eserviceSeed: catalogApi.UpdateEServiceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
@@ -529,13 +580,35 @@ export function catalogServiceBuilder(
 
       assertIsDraftEservice(eservice.data);
 
-      const event = toCreateEventEServiceDeleted(
-        eserviceId,
-        eservice.metadata.version,
-        eservice.data,
-        correlationId
-      );
-      await repository.createEvent(event);
+      if (eservice.data.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.metadata.version,
+          eservice.data,
+          correlationId
+        );
+        await repository.createEvent(eserviceDeletionEvent);
+      } else {
+        const eserviceWithoutDescriptors: EService = {
+          ...eservice.data,
+          descriptors: [],
+        };
+        const descriptorDeletionEvent =
+          toCreateEventEServiceDraftDescriptorDeleted(
+            eservice.metadata.version,
+            eserviceWithoutDescriptors,
+            eservice.data.descriptors[0].id,
+            correlationId
+          );
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.metadata.version + 1,
+          eserviceWithoutDescriptors,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+      }
     },
 
     async uploadDocument(
@@ -615,7 +688,6 @@ export function catalogServiceBuilder(
               correlationId
             )
           : toCreateEventEServiceDocumentAdded(
-              eserviceId,
               eservice.metadata.version,
               {
                 descriptorId,
@@ -814,6 +886,7 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
+      const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
@@ -843,16 +916,56 @@ export function catalogServiceBuilder(
         descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
-      const event = toCreateEventEServiceDescriptorAdded(
-        eservice.data.id,
-        eservice.metadata.version,
-        descriptorId,
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         newEservice,
+        eserviceVersion,
+        descriptorId,
         correlationId
       );
-      await repository.createEvent(event);
 
-      return newDescriptor;
+      const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
+        (acc, document, index) => {
+          const newDocument: Document = {
+            id: unsafeBrandId(document.documentId),
+            name: document.fileName,
+            contentType: document.contentType,
+            prettyName: document.prettyName,
+            path: document.filePath,
+            checksum: document.checksum,
+            uploadDate: new Date(),
+          };
+
+          const descriptorWithDocs: Descriptor = {
+            ...acc.descriptorWithDocs,
+            docs: [...acc.descriptorWithDocs.docs, newDocument],
+          };
+          const updatedEService = replaceDescriptor(
+            newEservice,
+            descriptorWithDocs
+          );
+          const version = eserviceVersion + index + 1;
+          const documentEvent = toCreateEventEServiceDocumentAdded(
+            version,
+            {
+              descriptorId,
+              documentId: unsafeBrandId(document.documentId),
+              eservice: updatedEService,
+            },
+            correlationId
+          );
+          return {
+            events: [...acc.events, documentEvent],
+            descriptorWithDocs,
+          };
+        },
+        {
+          events: [descriptorCreationEvent],
+          descriptorWithDocs: newDescriptor,
+        }
+      );
+
+      await repository.createEvents(events);
+      return descriptorWithDocs;
     },
 
     async deleteDraftDescriptor(
@@ -888,22 +1001,34 @@ export function catalogServiceBuilder(
 
       await Promise.all(deleteDescriptorDocs);
 
-      const newEservice: EService = {
+      const eserviceAfterDescriptorDeletion: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.filter(
           (d: Descriptor) => d.id !== descriptorId
         ),
       };
 
-      const event = toCreateEventEServiceDraftDescriptorDeleted(
-        eservice.data.id,
-        eservice.metadata.version,
-        newEservice,
-        descriptorId,
-        correlationId
-      );
+      const descriptorDeletionEvent =
+        toCreateEventEServiceDraftDescriptorDeleted(
+          eservice.metadata.version,
+          eserviceAfterDescriptorDeletion,
+          descriptorId,
+          correlationId
+        );
 
-      await repository.createEvent(event);
+      if (eserviceAfterDescriptorDeletion.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.metadata.version + 1,
+          eserviceAfterDescriptorDeletion,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+      } else {
+        await repository.createEvent(descriptorDeletionEvent);
+      }
     },
 
     async updateDraftDescriptor(
@@ -994,6 +1119,10 @@ export function catalogServiceBuilder(
         );
         assertTenantKindExists(tenant);
         assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
+      }
+
+      if (descriptor.audience.length === 0) {
+        throw audienceCannotBeEmpty(descriptor.id);
       }
 
       const currentActiveDescriptor = eservice.data.descriptors.find(
@@ -1520,6 +1649,39 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceDescription(
+      eserviceId: EServiceId,
+      description: string,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} description`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const hasValidDescriptor = eservice.data.descriptors.some(
+        (descriptor) =>
+          descriptor.state !== descriptorState.draft &&
+          descriptor.state !== descriptorState.archived
+      );
+      if (!hasValidDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceDescriptionUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
     },
   };
 }

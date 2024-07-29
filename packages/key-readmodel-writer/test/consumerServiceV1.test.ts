@@ -7,7 +7,6 @@ import {
 import {
   Key,
   Client,
-  toReadModelKey,
   KeysAddedV1,
   toKeyV1,
   generateId,
@@ -17,8 +16,8 @@ import {
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { keyToJWKKey } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
-import { fromKeyToReadModelJWKKey } from "./../../commons/src/auth/converters.js";
 import { keys } from "./utils.js";
 
 describe("Events V1", async () => {
@@ -40,7 +39,7 @@ describe("Events V1", async () => {
 
   it("KeysAdded", async () => {
     const mockKey = { ...getMockKey(), encodedPem: pemKey };
-    const jwkKey = fromKeyToReadModelJWKKey(toReadModelKey(mockKey));
+    const jwkKey = keyToJWKKey(mockKey);
     const mockClient: Client = {
       ...getMockClient(),
       keys: [],
@@ -79,9 +78,7 @@ describe("Events V1", async () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(
-      fromKeyToReadModelJWKKey(toReadModelKey(addedKey))
-    );
+    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey));
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
@@ -89,7 +86,7 @@ describe("Events V1", async () => {
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
     const mockKey = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const jwkKey = fromKeyToReadModelJWKKey(toReadModelKey(mockKey));
+    const jwkKey = keyToJWKKey(mockKey);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -126,8 +123,8 @@ describe("Events V1", async () => {
     const clientId: ClientId = generateId();
     const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
     const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
-    const jwkKey1 = fromKeyToReadModelJWKKey(toReadModelKey(mockKey1));
-    const jwkKey2 = fromKeyToReadModelJWKKey(toReadModelKey(mockKey2));
+    const jwkKey1 = keyToJWKKey(mockKey1);
+    const jwkKey2 = keyToJWKKey(mockKey2);
 
     const mockClient: Client = {
       ...getMockClient(),

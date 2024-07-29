@@ -4,8 +4,28 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
+  fromAppContext,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  selfcareV2InstitutionClientBuilder,
+} from "pagopa-interop-api-clients";
+import {
+  toApiSelfcareInstitution,
+  toApiSelfcareProduct,
+  toApiSelfcareUser,
+} from "../model/domain/apiConverter.js";
+import { selfcareServiceBuilder } from "../services/selfcareService.js";
+import {
+  getSelfcareErrorMapper,
+  getSelfcareUserErrorMapper,
+} from "../utilities/errorMapper.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
+
+const selfcareService = selfcareServiceBuilder(
+  selfcareV2InstitutionClientBuilder(config)
+);
 
 const selfcareRouter = (
   ctx: ZodiosContext
@@ -15,14 +35,71 @@ const selfcareRouter = (
   });
 
   selfcareRouter
-    .get("/users/:userId", async (_req, res) => res.status(501).send())
-    .get("/selfcare/institutions/products", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/tenants/:tenantId/users", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/selfcare/institutions", async (_req, res) => res.status(501).send());
+    .get("/users/:userId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const user = await selfcareService.getSelfcareUser(
+          ctx.authData.userId,
+          req.params.userId,
+          ctx.authData.selfcareId
+        );
+
+        return res
+          .status(200)
+          .json(toApiSelfcareUser(user, ctx.authData.organizationId))
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getSelfcareUserErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/selfcare/institutions/products", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const products = await selfcareService.getSelfcareInstitutionsProducts(
+          ctx.authData.userId,
+          ctx.authData.selfcareId
+        );
+
+        return res.status(200).json(products.map(toApiSelfcareProduct)).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getSelfcareErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/selfcare/institutions", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        const institutions = await selfcareService.getSelfcareInstitutions(
+          ctx.authData.userId
+        );
+
+        return res
+          .status(200)
+          .json(institutions.map(toApiSelfcareInstitution))
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getSelfcareErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    });
 
   return selfcareRouter;
 };

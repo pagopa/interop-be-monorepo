@@ -10,7 +10,10 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
-import { agreementApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -35,7 +38,6 @@ import {
   unsafeBrandId,
   CompactTenant,
 } from "pagopa-interop-models";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
@@ -203,7 +205,7 @@ export function agreementServiceBuilder(
   readModelService: ReadModelService,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2Client: SelfcareV2UsersClient
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {

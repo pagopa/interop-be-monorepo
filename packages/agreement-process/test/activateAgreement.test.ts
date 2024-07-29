@@ -5,6 +5,7 @@ import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -46,7 +47,6 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { UserResponse } from "pagopa-interop-selfcare-v2-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agreementActivableStates,
@@ -82,7 +82,7 @@ import {
 } from "./utils.js";
 
 describe("activate agreement", () => {
-  const mockSelfcareUserResponse: UserResponse = {
+  const mockSelfcareUserResponse: selfcareV2ClientApi.UserResponse = {
     email: "test@test.com",
     name: "Test Name",
     surname: "Test Surname",

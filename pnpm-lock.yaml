@@ -130,9 +130,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      pagopa-interop-selfcare-v2-client:
-        specifier: workspace:*
-        version: link:../selfcare-v2-client
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -258,6 +255,15 @@ importers:
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+      axios:
+        specifier: 1.7.2
+        version: 1.7.2
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -277,6 +283,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
       handlebars:
         specifier: 4.7.7
         version: 4.7.7
@@ -465,15 +474,15 @@ importers:
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      pagopa-interop-selfcare-v2-client:
-        specifier: workspace:*
-        version: link:../selfcare-v2-client
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
@@ -538,6 +547,9 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -611,6 +623,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -630,6 +645,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -1482,34 +1500,6 @@ importers:
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
-
-  packages/selfcare-v2-client:
-    dependencies:
-      '@zodios/core':
-        specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
-      axios:
-        specifier: 1.7.2
-        version: 1.7.2
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
-      eslint:
-        specifier: 8.57.0
-        version: 8.57.0
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
 
   packages/tenant-process:
     dependencies:
@@ -8068,6 +8058,13 @@ packages:
 
   /qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
+    engines: {node: '>=0.6'}
+    dependencies:
+      side-channel: 1.0.6
+    dev: false
+
+  /qs@6.12.3:
+    resolution: {integrity: sha512-AWJm14H1vVaO/iNZ4/hO+HyaTehuy9nRqVdkTqlJt0HWvBiBIEXFmb4C0DGeYo3Xes9rrEW+TxHsaigCbN5ICQ==}
     engines: {node: '>=0.6'}
     dependencies:
       side-channel: 1.0.6
