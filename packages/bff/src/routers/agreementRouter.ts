@@ -107,9 +107,17 @@ const agreementRouter = (
       }
     })
 
-    .delete("/agreements/:agreementId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .delete("/agreements/:agreementId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await agreementService.deleteAgreement(req.params.agreementId, ctx);
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/agreements/:agreementId/activate", async (_req, res) =>
       res.status(501).send()
     )
