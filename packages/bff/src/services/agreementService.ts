@@ -96,6 +96,16 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return enhanceAgreementDetailed(agreement, clients, ctx);
     },
+
+    async deleteAgreement(
+      agreementId: string,
+      { headers }: WithLogger<BffAppContext>
+    ) {
+      return await agreementProcessClient.deleteAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+    },
   };
 }
 
