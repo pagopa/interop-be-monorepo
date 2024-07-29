@@ -4,7 +4,6 @@ import {
   Logger,
   WithLogger,
   AppContext,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -14,7 +13,6 @@ import {
   ListResult,
   Tenant,
   TenantAttribute,
-  TenantEvent,
   TenantId,
   TenantVerifier,
   VerifiedTenantAttribute,
@@ -354,15 +352,19 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [updatedTenant, tenantKindUpdatedEvent] =
-        await reevaluateTenantKind({
-          tenant: tenantWithNewAttribute,
-          version: targetTenant.metadata.version + 1,
-          readModelService,
-          correlationId,
-        });
+      const [updatedTenant, isEventPresent] = await reevaluateTenantKind({
+        tenant: tenantWithNewAttribute,
+        readModelService,
+      });
 
-      if (tenantKindUpdatedEvent) {
+      if (isEventPresent) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          targetTenant.data.kind!,
+          updatedTenant,
+          correlationId
+        );
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -568,14 +570,20 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [, tenantKindUpdatedEvent] = await reevaluateTenantKind({
+      const [updatedTenant, isEventPresent] = await reevaluateTenantKind({
         tenant: tenantWithNewAttribute,
-        version: tenantToModify.metadata.version + 1,
         readModelService,
-        correlationId,
       });
 
-      if (tenantKindUpdatedEvent) {
+      if (isEventPresent) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          tenantToModify.metadata.version + 1,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          tenantToModify.data.kind!, // To solve this, I suggest implementing a check whether the kind is there or not and if so, launch kindNotFound
+          updatedTenant,
+          correlationId
+        );
+
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -739,15 +747,11 @@ async function assignCertifiedAttribute({
 
 async function reevaluateTenantKind({
   tenant,
-  version,
   readModelService,
-  correlationId,
 }: {
   tenant: Tenant;
-  version: number;
   readModelService: ReadModelService;
-  correlationId: string;
-}): Promise<[Tenant, CreateEvent<TenantEvent>?]> {
+}): Promise<[Tenant, boolean]> {
   const tenantKind = await getTenantKindLoadingCertifiedAttributes(
     readModelService,
     tenant.attributes,
@@ -760,16 +764,9 @@ async function reevaluateTenantKind({
   };
 
   if (tenant.kind !== tenantKind) {
-    const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-      version,
-      tenantKind,
-      updatedTenant,
-      correlationId
-    );
-
-    return [updatedTenant, tenantKindUpdatedEvent];
+    return [updatedTenant, true];
   }
-  return [updatedTenant];
+  return [updatedTenant, false];
 }
 
 function buildVerifiedBy(
