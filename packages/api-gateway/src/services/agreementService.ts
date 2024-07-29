@@ -1,9 +1,5 @@
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  apiGatewayApi,
-  purposeApi,
-} from "pagopa-interop-api-clients";
+import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
   PurposeProcessClient,
@@ -14,10 +10,7 @@ import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
-import {
-  toApiGatewayPurpose,
-  toPurposeProcessGetPurposesQueryParams,
-} from "../api/purposeApiConverter.js";
+import { getPurposes } from "./purposeService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
@@ -117,24 +110,10 @@ export function agreementServiceBuilder(
         },
       });
 
-      const getPurposesQueryParams = toPurposeProcessGetPurposesQueryParams({
+      return await getPurposes(purposeProcessClient, headers, {
         eserviceId: agreement.eserviceId,
         consumerId: agreement.consumerId,
       });
-
-      const purposes = await getAllFromPaginated<purposeApi.Purpose>(
-        async (offset, limit) =>
-          await purposeProcessClient.getPurposes({
-            headers,
-            queries: {
-              ...getPurposesQueryParams,
-              offset,
-              limit,
-            },
-          })
-      );
-
-      return { purposes: purposes.map(toApiGatewayPurpose) };
     },
   };
 }

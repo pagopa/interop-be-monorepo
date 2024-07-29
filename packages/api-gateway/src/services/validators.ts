@@ -1,8 +1,10 @@
 import {
   agreementApi,
   apiGatewayApi,
+  catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import { operationForbidden, TenantId } from "pagopa-interop-models";
 import {
   invalidAgreementState,
   missingActivePurposeVersion,
@@ -23,5 +25,14 @@ export function assertActivePurposeVersionExists(
 ): asserts purposeVersion is NonNullable<purposeApi.PurposeVersion> {
   if (!purposeVersion) {
     throw missingActivePurposeVersion(purposeId);
+  }
+}
+
+export function assertIsEserviceProducer(
+  eservice: catalogApi.EService,
+  organizationId: TenantId
+): void {
+  if (eservice.producerId !== organizationId) {
+    throw operationForbidden;
   }
 }

@@ -1,9 +1,14 @@
 import {
   agreementApi,
+  catalogApi,
   purposeApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
+
+export type CatalogProcessClient = ReturnType<
+  typeof catalogApi.createProcessApiClient
+>;
 
 export type AgreementProcessClient = ReturnType<
   typeof agreementApi.createAgreementApiClient
@@ -18,6 +23,7 @@ export type PurposeProcessClient = ReturnType<
 >;
 
 export type PagoPAInteropBeClients = {
+  catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   tenantProcessClient: TenantProcessClient;
   purposeProcessClient: PurposeProcessClient;
@@ -25,6 +31,9 @@ export type PagoPAInteropBeClients = {
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
+    catalogProcessClient: catalogApi.createProcessApiClient(
+      config.catalogProcessUrl
+    ),
     agreementProcessClient: agreementApi.createAgreementApiClient(
       config.agreementProcessUrl
     ),
