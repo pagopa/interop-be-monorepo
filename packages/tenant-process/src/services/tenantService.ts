@@ -39,7 +39,7 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
-  verifiedAttributeSelfVerification,
+  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
@@ -450,7 +450,7 @@ export function tenantServiceBuilder(
       );
 
       if (organizationId === tenantId) {
-        throw verifiedAttributeSelfVerification();
+        throw verifiedAttributeSelfVerificationNotAllowed();
       }
 
       const allowedStatuses = [

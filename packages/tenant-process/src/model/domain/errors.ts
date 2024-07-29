@@ -23,18 +23,18 @@ export const errorCodes = {
   attributeDoesNotBelongToCertifier: "0014",
   certifiedAttributeAlreadyAssigned: "0015",
   attributeVerificationNotAllowed: "0016",
-  verifiedAttributeSelfVerification: "0017",
+  verifiedAttributeSelfVerificationNotAllowed: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function verifiedAttributeSelfVerification(): ApiError<ErrorCodes> {
+export function verifiedAttributeSelfVerificationNotAllowed(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organizations are not allowed to verify own attributes`,
-    code: "verifiedAttributeSelfVerification",
-    title: "verified Attribute Self Verification",
+    code: "verifiedAttributeSelfVerificationNotAllowed",
+    title: "Verified attribute self verification not allowed",
   });
 }
 
