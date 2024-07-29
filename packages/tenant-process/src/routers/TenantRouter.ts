@@ -541,7 +541,7 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               attributeId: unsafeBrandId(req.params.attributeId),
-              organizationId: req.ctx.authData.organizationId,
+              revokerId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             },
             ctx.logger
