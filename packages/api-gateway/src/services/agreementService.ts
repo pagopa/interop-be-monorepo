@@ -12,6 +12,28 @@ import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiC
 import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
 import { getPurposes } from "./purposeService.js";
 
+export async function getAgreements(
+  agreementProcessClient: AgreementProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  queryParams: apiGatewayApi.GetAgreementsQueryParams
+): Promise<apiGatewayApi.Agreements> {
+  const getAgreementsQueryParams =
+    toAgreementProcessGetAgreementsQueryParams(queryParams);
+
+  const agreements = await getAllFromPaginated<agreementApi.Agreement>(
+    async (offset, limit) =>
+      await agreementProcessClient.getAgreements({
+        headers,
+        queries: {
+          ...getAgreementsQueryParams,
+          offset,
+          limit,
+        },
+      })
+  );
+  return { agreements: agreements.map(toApiGatewayAgreementIfNotDraft) };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
   agreementProcessClient: AgreementProcessClient,
@@ -34,21 +56,7 @@ export function agreementServiceBuilder(
         throw producerAndConsumerParamMissing();
       }
 
-      const getAgreementsQueryParams =
-        toAgreementProcessGetAgreementsQueryParams(queryParams);
-
-      const agreements = await getAllFromPaginated<agreementApi.Agreement>(
-        async (offset, limit) =>
-          await agreementProcessClient.getAgreements({
-            headers,
-            queries: {
-              ...getAgreementsQueryParams,
-              offset,
-              limit,
-            },
-          })
-      );
-      return { agreements: agreements.map(toApiGatewayAgreementIfNotDraft) };
+      return await getAgreements(agreementProcessClient, headers, queryParams);
     },
 
     getAgreementById: async (

@@ -5,6 +5,8 @@ export const errorCodes = {
   invalidAgreementState: "0001",
   producerAndConsumerParamMissing: "0002",
   missingActivePurposeVersion: "0003",
+  activeAgreementByEserviceAndConsumerNotFound: "0004",
+  multipleAgreementForEserviceAndConsumer: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -37,5 +39,27 @@ export function missingActivePurposeVersion(
     detail: `There is no active version for purpose ${purposeId}`,
     code: "missingActivePurposeVersion",
     title: "Missing active purpose version",
+  });
+}
+
+export function activeAgreementByEserviceAndConsumerNotFound(
+  eserviceId: agreementApi.Agreement["eserviceId"],
+  consumerId: agreementApi.Agreement["consumerId"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Active Agreement not found for EService ${eserviceId} and Consumer ${consumerId}`,
+    code: "activeAgreementByEserviceAndConsumerNotFound",
+    title: "Active Agreement not found",
+  });
+}
+
+export function multipleAgreementForEserviceAndConsumer(
+  eserviceId: agreementApi.Agreement["eserviceId"],
+  consumerId: agreementApi.Agreement["consumerId"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected multiple Active Agreements for EService ${eserviceId} and Consumer ${consumerId}`,
+    code: "multipleAgreementForEserviceAndConsumer",
+    title: "Multiple active Agreements found",
   });
 }

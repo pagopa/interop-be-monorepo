@@ -1,6 +1,7 @@
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { apiGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
+  AgreementProcessClient,
   CatalogProcessClient,
   PurposeProcessClient,
 } from "../clients/clientsProvider.js";
@@ -9,7 +10,11 @@ import {
   toApiGatewayPurpose,
   toPurposeProcessGetPurposesQueryParams,
 } from "../api/purposeApiConverter.js";
-import { assertIsEserviceProducer } from "./validators.js";
+import {
+  assertIsEserviceProducer,
+  assertOnlyOneAgreementForEserviceAndConsumerExists,
+} from "./validators.js";
+import { getAgreements } from "./agreementService.js";
 
 export async function getPurposes(
   purposeProcessClient: PurposeProcessClient,
@@ -39,7 +44,8 @@ export async function getPurposes(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   purposeProcessClient: PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient
+  catalogProcessClient: CatalogProcessClient,
+  agreementProcessClient: AgreementProcessClient
 ) {
   return {
     getPurpose: async (
@@ -84,6 +90,42 @@ export function purposeServiceBuilder(
         eserviceId,
         consumerId,
       });
+    },
+
+    getAgreementByPurpose: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      purposeId: purposeApi.Purpose["id"]
+    ): Promise<apiGatewayApi.Agreement> => {
+      logger.info(`Retrieving agreement by purpose ${purposeId}`);
+      const purpose = await purposeProcessClient.getPurpose({
+        headers,
+        params: {
+          id: purposeId,
+        },
+      });
+
+      const { agreements } = await getAgreements(
+        agreementProcessClient,
+        headers,
+        {
+          consumerId: purpose.consumerId,
+          eserviceId: purpose.eserviceId,
+          producerId: undefined,
+          descriptorId: undefined,
+          states: [
+            apiGatewayApi.AgreementState.Values.ACTIVE,
+            apiGatewayApi.AgreementState.Values.SUSPENDED,
+          ],
+        }
+      );
+
+      assertOnlyOneAgreementForEserviceAndConsumerExists(
+        agreements,
+        purpose.eserviceId,
+        purpose.consumerId
+      );
+
+      return agreements[0];
     },
   };
 }
