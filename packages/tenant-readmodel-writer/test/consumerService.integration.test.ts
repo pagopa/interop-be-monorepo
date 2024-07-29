@@ -40,7 +40,7 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedTenant).toMatchObject({
-        data: mockTenant,
+        data: toReadModelTenant(mockTenant),
         metadata: { version: 1 },
       });
     });
@@ -95,7 +95,7 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedTenant).toMatchObject({
-        data: updatedTenant,
+        data: toReadModelTenant(updatedTenant),
         metadata: { version: 2 },
       });
     });
@@ -129,7 +129,7 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedTenant).toMatchObject({
-        data: updatedTenant,
+        data: toReadModelTenant(updatedTenant),
         metadata: { version: 2 },
       });
     });
@@ -171,7 +171,7 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedTenant).toMatchObject({
-        data: updatedTenant,
+        data: toReadModelTenant(updatedTenant),
         metadata: { version: 2 },
       });
     });
@@ -215,7 +215,7 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedTenant).toMatchObject({
-        data: updatedTenant,
+        data: toReadModelTenant(updatedTenant),
         metadata: { version: 2 },
       });
     });
