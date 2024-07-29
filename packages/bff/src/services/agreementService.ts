@@ -120,6 +120,17 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       );
       return enhanceAgreementDetailed(agreement, clients, ctx);
     },
+
+    async cloneAgreement(
+      agreementId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      const agreement = await agreementProcessClient.cloneAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+      return { id: agreement.id };
+    },
   };
 }
 
