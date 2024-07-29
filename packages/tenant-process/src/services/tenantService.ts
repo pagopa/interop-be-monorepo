@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import {
   DB,
   eventRepository,
@@ -517,7 +518,10 @@ export function tenantServiceBuilder(
         kind: mailSeed.kind,
         address: mailSeed.address,
         description: mailSeed.description,
-        id: generateId(),
+        id: crypto
+          .createHash("sha256")
+          .update(mailSeed.address)
+          .digest("base64"), // i suggest creating a function calculateSHA256 and putting it in commons
         createdAt: new Date(),
       };
 

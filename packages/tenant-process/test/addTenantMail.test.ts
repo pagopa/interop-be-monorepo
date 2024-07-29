@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
 import {
   generateId,
   Tenant,
@@ -93,7 +94,7 @@ describe("addTenantMail", async () => {
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
-  it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
+  it("Should throw operationForbidden when when the requester is trying to assign an email to another tenant", async () => {
     await addOneTenant(mockTenant);
     expect(
       tenantService.addTenantMail(
@@ -113,7 +114,10 @@ describe("addTenantMail", async () => {
       mails: [
         {
           ...mailSeed,
-          id: generateId(),
+          id: crypto
+            .createHash("sha256")
+            .update(mailSeed.address)
+            .digest("base64"),
           createdAt: new Date(),
         },
       ],
