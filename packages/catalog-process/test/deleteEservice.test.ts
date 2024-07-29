@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  readEventByStreamIdAndVersion,
+} from "pagopa-interop-commons-test/index.js";
 import {
   EService,
   EServiceDeletedV1,
   Descriptor,
   descriptorState,
   operationForbidden,
+  EServiceDraftDescriptorDeletedV2,
+  toEServiceV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -21,6 +26,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  postgresDB,
 } from "./utils.js";
 
 describe("delete eservice", () => {
@@ -70,18 +76,46 @@ describe("delete eservice", () => {
       serviceName: "",
       logger: genericLogger,
     });
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
+
+    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
+      eservice.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
+
+    expect(descriptorDeletionEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
+      type: "EServiceDraftDescriptorDeleted",
+      event_version: 2,
+    });
+    expect(eserviceDeletionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "2",
       type: "EServiceDeleted",
       event_version: 2,
     });
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV1,
-      payload: writtenEvent.data,
+
+    const descriptorDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorDeletedV2,
+      payload: descriptorDeletionEvent.data,
     });
-    expect(writtenPayload.eserviceId).toBe(mockEService.id);
+    const eserviceDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDeletedV1,
+      payload: eserviceDeletionEvent.data,
+    });
+
+    const expectedEserviceWithoutDescriptors: EService = {
+      ...eservice,
+      descriptors: [],
+    };
+    expect(eserviceDeletionPayload.eserviceId).toBe(mockEService.id);
+    expect(descriptorDeletionPayload).toEqual({
+      eservice: toEServiceV2(expectedEserviceWithoutDescriptors),
+      descriptorId: eservice.descriptors[0].id,
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
