@@ -313,7 +313,7 @@ export function tenantServiceBuilder(
 
       const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
-          attr.id === attributeId && attr.type === "PersistentDeclaredAttribute"
+          attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
       );
 
       if (!maybeDeclaredTenantAttribute) {
