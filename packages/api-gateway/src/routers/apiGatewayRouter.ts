@@ -20,7 +20,11 @@ import {
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
-  { agreementProcessClient, tenantProcessClient }: PagoPAInteropBeClients
+  {
+    agreementProcessClient,
+    tenantProcessClient,
+    purposeProcessClient,
+  }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
@@ -29,7 +33,8 @@ const apiGatewayRouter = (
 
   const agreementService = agreementServiceBuilder(
     agreementProcessClient,
-    tenantProcessClient
+    tenantProcessClient,
+    purposeProcessClient
   );
 
   apiGatewayRouter
@@ -101,7 +106,21 @@ const apiGatewayRouter = (
     .get(
       "/agreements/:agreementId/purposes",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const purposes = await agreementService.getAgreementPurposes(
+            ctx,
+            req.params.agreementId
+          );
+
+          return res.status(200).json(purposes).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/attributes",

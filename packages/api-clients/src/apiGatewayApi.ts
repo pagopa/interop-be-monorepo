@@ -8,4 +8,6 @@ export type GetAgreementsQueryParams = QueryParametersByAlias<
   "getAgreements"
 >;
 
+export type GetPurposesQueryParams = QueryParametersByAlias<Api, "getPurposes">;
+
 export * from "./generated/apiGatewayApi.js";
