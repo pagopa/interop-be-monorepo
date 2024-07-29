@@ -1,4 +1,7 @@
-import { KeyCollection, keyToJWKKey } from "pagopa-interop-commons";
+import {
+  ClientKeyCollection,
+  clientKeyToClientJWKKey,
+} from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
@@ -7,7 +10,7 @@ import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  keys: KeyCollection
+  keys: ClientKeyCollection
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientKeyAdded" }, async (message) => {
@@ -25,7 +28,7 @@ export async function handleMessageV2(
         },
         {
           $set: {
-            data: keyToJWKKey(key),
+            data: clientKeyToClientJWKKey(key),
             metadata: {
               version: message.version,
             },
