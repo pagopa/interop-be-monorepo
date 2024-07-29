@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { getMockTenant, writeInReadmodel } from "pagopa-interop-commons-test";
 import {
   SelfcareMappingCreatedV1,
@@ -39,10 +39,13 @@ describe("Integration tests", async () => {
         "data.id": mockTenant.id,
       });
 
-      expect(retrievedTenant).toMatchObject({
-        data: toReadModelTenant(mockTenant),
-        metadata: { version: 1 },
-      });
+      expect(retrievedTenant?.data).toEqual(
+        toReadModelTenant({
+          ...mockTenant,
+          onboardedAt: mockTenant.createdAt,
+        })
+      );
+      expect(retrievedTenant?.metadata).toEqual({ version: 1 });
     });
 
     it("TenantDeleted", async () => {
@@ -94,13 +97,19 @@ describe("Integration tests", async () => {
         "data.id": mockTenant.id,
       });
 
-      expect(retrievedTenant).toMatchObject({
-        data: toReadModelTenant(updatedTenant),
-        metadata: { version: 2 },
-      });
+      expect(retrievedTenant?.data).toEqual(
+        toReadModelTenant({
+          ...updatedTenant,
+          onboardedAt: updatedTenant.createdAt,
+        })
+      );
+      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
     });
 
     it("SelfcareMappingCreated", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
       const selfcareId = generateId();
@@ -128,10 +137,15 @@ describe("Integration tests", async () => {
         "data.id": mockTenant.id,
       });
 
-      expect(retrievedTenant).toMatchObject({
-        data: toReadModelTenant(updatedTenant),
-        metadata: { version: 2 },
-      });
+      expect(retrievedTenant?.data).toEqual(
+        toReadModelTenant({
+          ...updatedTenant,
+          onboardedAt: new Date(),
+        })
+      );
+      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
+
+      vi.useRealTimers();
     });
 
     it("TenantMailAdded", async () => {
@@ -170,10 +184,13 @@ describe("Integration tests", async () => {
         "data.id": mockTenant.id,
       });
 
-      expect(retrievedTenant).toMatchObject({
-        data: toReadModelTenant(updatedTenant),
-        metadata: { version: 2 },
-      });
+      expect(retrievedTenant?.data).toEqual(
+        toReadModelTenant({
+          ...updatedTenant,
+          onboardedAt: updatedTenant.createdAt,
+        })
+      );
+      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
     });
 
     it("TenantMailDeleted", async () => {
@@ -214,10 +231,8 @@ describe("Integration tests", async () => {
         "data.id": mockTenant.id,
       });
 
-      expect(retrievedTenant).toMatchObject({
-        data: toReadModelTenant(updatedTenant),
-        metadata: { version: 2 },
-      });
+      expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
+      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
     });
   });
 });
