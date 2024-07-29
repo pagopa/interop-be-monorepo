@@ -1,4 +1,4 @@
-import { KeyCollection, keyToJWKKey } from "pagopa-interop-commons";
+import { KeyCollection, clientKeyToClientJWKKey } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
@@ -25,7 +25,7 @@ export async function handleMessageV2(
         },
         {
           $set: {
-            data: keyToJWKKey(key),
+            data: clientKeyToClientJWKKey(key),
             metadata: {
               version: message.version,
             },
