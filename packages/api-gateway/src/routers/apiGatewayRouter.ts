@@ -13,20 +13,24 @@ import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
+  emptyErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
-  { agreementProcessClient }: PagoPAInteropBeClients
+  { agreementProcessClient, tenantProcessClient }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const agreementService = agreementServiceBuilder(agreementProcessClient);
+  const agreementService = agreementServiceBuilder(
+    agreementProcessClient,
+    tenantProcessClient
+  );
 
   apiGatewayRouter
     .get(
@@ -78,7 +82,21 @@ const apiGatewayRouter = (
     .get(
       "/agreements/:agreementId/attributes",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const attributes = await agreementService.getAgreementAttributes(
+            ctx,
+            req.params.agreementId
+          );
+
+          return res.status(200).json(attributes).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/agreements/:agreementId/purposes",
