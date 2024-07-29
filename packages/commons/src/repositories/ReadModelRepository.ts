@@ -37,7 +37,7 @@ export type TenantCollection = GenericCollection<TenantReadModel>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
 export type ClientCollection = GenericCollection<ClientReadModel>;
-export type KeyCollection = GenericCollection<ClientJWKKey>;
+export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
 
 export type Collections =
   | EServiceCollection
@@ -46,7 +46,7 @@ export type Collections =
   | AttributeCollection
   | PurposeCollection
   | ClientCollection
-  | KeyCollection;
+  | ClientKeyCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -151,7 +151,7 @@ export class ReadModelRepository {
 
   public clients: ClientCollection;
 
-  public keys: KeyCollection;
+  public keys: ClientKeyCollection;
 
   private client: MongoClient;
   private db: Db;
