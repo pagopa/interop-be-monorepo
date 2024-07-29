@@ -61,7 +61,7 @@ describe("delete eservice", () => {
     expect(writtenPayload.eserviceId).toBe(eservice.id);
   });
 
-  it.only("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only) and delete the interface and documents of the draft descriptor", async () => {
+  it("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only) and delete the interface and documents of the draft descriptor", async () => {
     vi.spyOn(fileManager, "delete");
 
     const mockDocument = getMockDocument();
