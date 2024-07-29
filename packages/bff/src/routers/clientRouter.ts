@@ -48,9 +48,14 @@ const clientRouter = (
     )
     .post("/clientsConsumer", async (_req, res) => res.status(501).send())
     .post("/clientsApi", async (_req, res) => res.status(501).send())
-    .get("/clients/:clientId/users/:userId/keys", async (_req, res) =>
+    .get(
+      "/export/eservices/:eserviceId/descriptors/:descriptorId",
+      async (_req, res) => res.status(501).send()
+    )
+    .get("/import/eservices/presignedUrl", async (_req, res) =>
       res.status(501).send()
-    );
+    ).post("/import/eservices", async (_req, res) => res.status(501).send());
+
 
   return clientRouter;
 };
