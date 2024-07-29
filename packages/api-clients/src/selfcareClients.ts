@@ -1,8 +1,8 @@
 import { ZodiosInstance } from "@zodios/core";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import axios, { AxiosInstance } from "axios";
 import { z } from "zod";
-import { SelfCareConfig } from "./config/selfcareConfig.js";
+import { SelfCareConfig } from "pagopa-interop-commons";
+import { selfcareV2ClientApi } from "./index.js";
 
 export type SelfcareV2InstitutionClient = ZodiosInstance<
   typeof selfcareV2ClientApi.institutionsApi.api
