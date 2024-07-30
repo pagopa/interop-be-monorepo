@@ -77,25 +77,27 @@ export function attributeServiceBuilder(
       });
     },
 
-    async getAttributes({
-      offset,
-      limit,
-      kinds,
-      ctx,
-      name,
-      origin,
-    }: {
-      offset: number;
-      limit: number;
-      kinds: attributeRegistryApi.AttributeKind[];
-      ctx: WithLogger<BffAppContext>;
-      name?: string;
-      origin?: string;
-    }): Promise<attributeRegistryApi.Attributes> {
-      ctx.logger.info("Retrieving attributes");
+    async getAttributes(
+      {
+        offset,
+        limit,
+        kinds,
+        name,
+        origin,
+      }: {
+        offset: number;
+        limit: number;
+        kinds: attributeRegistryApi.AttributeKind[];
+        ctx: WithLogger<BffAppContext>;
+        name?: string;
+        origin?: string;
+      },
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<attributeRegistryApi.Attributes> {
+      logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds, name, origin },
-        headers: ctx.headers,
+        headers,
       });
     },
   };
