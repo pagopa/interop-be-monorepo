@@ -450,7 +450,7 @@ export function purposeServiceBuilder(
       seed: bffApi.RejectPurposeVersionPayload,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Rejecting version $versionId of purpose ${purposeId}`);
+      logger.info(`Rejecting version ${versionId} of purpose ${purposeId}`);
 
       await purposeClient.rejectPurposeVersion(seed, {
         params: {
@@ -465,9 +465,29 @@ export function purposeServiceBuilder(
       versionId: PurposeVersionId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      logger.info(`Archiving purpose $purposeId with version ${versionId}`);
+      logger.info(`Archiving purpose ${purposeId} with version ${versionId}`);
 
       await purposeClient.archivePurposeVersion(undefined, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+
+      return {
+        purposeId,
+        versionId,
+      };
+    },
+    async suspendPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
+
+      await purposeClient.suspendPurposeVersion(undefined, {
         params: {
           purposeId,
           versionId,
