@@ -1370,8 +1370,8 @@ paths:
     post:
       tags:
         - producerKeychain
-      summary: Adds an eservice to a producer keychain
-      description: Adds an eservice to a producer keychain
+      summary: Adds a eservice to a producer keychain
+      description: Adds a eservice to a producer keychain
       operationId: addProducerKeychainEService
       parameters:
         - name: producerKeychainId
@@ -1415,8 +1415,8 @@ paths:
     delete:
       tags:
         - producerKeychain
-      summary: Removes an eservice from a producer keychain
-      description: Removes an eservice from a producer keychain
+      summary: Removes a eservice from a producer keychain
+      description: Removes a eservice from a producer keychain
       operationId: removeProducerKeychainEService
       parameters:
         - name: producerKeychainId
