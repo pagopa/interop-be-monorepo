@@ -23,6 +23,7 @@ import {
   clientToApiClient,
   clientToApiClientWithKeys,
   keyToApiKey,
+  producerKeychainToApiProducerKeychain,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -42,6 +43,7 @@ import {
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
   addClientPurposeErrorMapper,
+  createProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -562,7 +564,29 @@ const authorizationRouter = (
     .post(
       "/producerKeychains",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const producerKeychain =
+            await authorizationService.createProducerKeychain({
+              producerKeychainSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(producerKeychainToApiProducerKeychain(producerKeychain))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createProducerKeychainErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/producerKeychains",

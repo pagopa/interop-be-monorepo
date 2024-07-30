@@ -20,6 +20,7 @@ import {
   genericInternalError,
   purposeVersionState,
   unsafeBrandId,
+  ProducerKeychain,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -62,6 +63,7 @@ import {
   toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
+  toCreateEventProducerKeychainAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -709,6 +711,38 @@ export function authorizationServiceBuilder(
           showUsers: false,
         }),
       };
+    },
+    async createProducerKeychain({
+      producerKeychainSeed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<ProducerKeychain> {
+      logger.info(
+        `Creating producer keychain ${producerKeychainSeed.name} for producer ${organizationId}"`
+      );
+
+      const producerKeychain: ProducerKeychain = {
+        id: generateId(),
+        producerId: organizationId,
+        name: producerKeychainSeed.name,
+        eservices: [],
+        description: producerKeychainSeed.description,
+        users: producerKeychainSeed.members.map(unsafeBrandId<UserId>),
+        createdAt: new Date(),
+        keys: [],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
+      );
+
+      return producerKeychain;
     },
   };
 }

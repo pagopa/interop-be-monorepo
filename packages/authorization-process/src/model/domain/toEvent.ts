@@ -2,9 +2,11 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   AuthorizationEventV2,
   Client,
+  ProducerKeychain,
   PurposeId,
   UserId,
   toClientV2,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 
 export function toCreateEventClientAdded(
@@ -165,6 +167,24 @@ export function toCreateEventKeyAdded(
       data: {
         client: toClientV2(client),
         kid,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainAdded(
+  producerKeychain: ProducerKeychain,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version: 0,
+    event: {
+      type: "ProducerKeychainAdded",
+      event_version: 2,
+      data: {
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,
