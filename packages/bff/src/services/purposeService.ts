@@ -500,5 +500,25 @@ export function purposeServiceBuilder(
         versionId,
       };
     },
+    async activatePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
+
+      await purposeClient.activatePurposeVersion(undefined, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+
+      return {
+        purposeId,
+        versionId,
+      };
+    },
   };
 }

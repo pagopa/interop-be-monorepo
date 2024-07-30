@@ -256,7 +256,22 @@ const purposeRouter = (
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await purposeService.activatePurposeVersion(
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId),
+            ctx
+          );
+
+          return res.status(200).json(result).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/purposes/:purposeId", async (_req, res) => res.status(501).send())
     .delete("/purposes/:purposeId", async (_req, res) => res.status(501).send())
