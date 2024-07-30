@@ -647,14 +647,14 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      const sourceVersion = [
+      const previousVersion = [
         ...purpose.data.versions.filter(
           (v) =>
             v.state === purposeVersionState.active ||
             v.state === purposeVersionState.suspended
         ),
       ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-      const previousDailyCalls = sourceVersion?.dailyCalls || 0;
+      const previousDailyCalls = previousVersion?.dailyCalls || 0;
 
       if (previousDailyCalls === seed.dailyCalls) {
         throw unchangedDailyCalls(purpose.data.id);
@@ -680,7 +680,7 @@ export function purposeServiceBuilder(
       );
 
       const deltaDailyCalls =
-        sourceVersion.state === purposeVersionState.suspended
+        previousVersion.state === purposeVersionState.suspended
           ? seed.dailyCalls
           : seed.dailyCalls - previousDailyCalls;
 
