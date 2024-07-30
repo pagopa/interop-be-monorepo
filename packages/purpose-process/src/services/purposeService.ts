@@ -682,7 +682,7 @@ export function purposeServiceBuilder(
       const deltaDailyCalls =
         sourceVersion.state === purposeVersionState.suspended
           ? seed.dailyCalls
-          : seed.dailyCalls - previousDailyCalls || 0;
+          : seed.dailyCalls - previousDailyCalls;
 
       /**
        * If, with the given daily calls, the purpose goes in over quota,
