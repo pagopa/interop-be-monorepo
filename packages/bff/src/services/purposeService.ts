@@ -467,7 +467,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Archiving purpose ${purposeId} with version ${versionId}`);
 
-      await purposeClient.archivePurposeVersion(undefined, {
+      const result = await purposeClient.archivePurposeVersion(undefined, {
         params: {
           purposeId,
           versionId,
@@ -477,7 +477,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId,
+        versionId: result.id,
       };
     },
     async suspendPurposeVersion(
@@ -487,7 +487,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
 
-      await purposeClient.suspendPurposeVersion(undefined, {
+      const result = await purposeClient.suspendPurposeVersion(undefined, {
         params: {
           purposeId,
           versionId,
@@ -497,7 +497,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId,
+        versionId: result.id,
       };
     },
     async activatePurposeVersion(
@@ -507,7 +507,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
 
-      await purposeClient.activatePurposeVersion(undefined, {
+      const result = await purposeClient.activatePurposeVersion(undefined, {
         params: {
           purposeId,
           versionId,
@@ -517,7 +517,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId,
+        versionId: result.id,
       };
     },
     async deletePurpose(
@@ -547,6 +547,25 @@ export function purposeServiceBuilder(
         },
         headers,
       });
+    },
+    async updatePurpose(
+      id: PurposeId,
+      seed: bffApi.PurposeUpdateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Updating Purpose ${id}`);
+
+      const result = await purposeClient.updatePurpose(seed, {
+        params: {
+          id,
+        },
+        headers,
+      });
+
+      return {
+        purposeId: id,
+        versionId: result.id,
+      };
     },
   };
 }
