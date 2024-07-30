@@ -646,20 +646,42 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeToRevoke.id);
       }
 
-      const updatedTenant = await revokeCertifiedAttribute(
+      const tenantWithRevokedAttribute = await revokeCertifiedAttribute(
         tenantToModify.data,
         readModelService,
         attributeToRevoke.id
       );
 
-      await repository.createEvent(
+      const tenantCertifiedAttributeRevokedEvent =
         toCreateEventTenantCertifiedAttributeRevoked(
           tenantToModify.metadata.version,
-          updatedTenant,
+          tenantWithRevokedAttribute,
           attributeToRevoke.id,
           correlationId
-        )
-      );
+        );
+
+      const { updatedTenant, tenantKindHasBeenUpdated } =
+        await reevaluateTenantKind({
+          tenant: tenantWithRevokedAttribute,
+          readModelService,
+        });
+
+      if (tenantKindHasBeenUpdated) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          tenantToModify.metadata.version + 1,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          tenantToModify.data.kind!,
+          updatedTenant,
+          correlationId
+        );
+
+        await repository.createEvents([
+          tenantCertifiedAttributeRevokedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+      }
     },
 
     async getCertifiedAttributes({
