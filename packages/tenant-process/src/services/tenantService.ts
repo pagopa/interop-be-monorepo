@@ -352,12 +352,13 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [updatedTenant, isEventPresent] = await reevaluateTenantKind({
-        tenant: tenantWithNewAttribute,
-        readModelService,
-      });
+      const { updatedTenant, tenantKindHasBeenUpdated } =
+        await reevaluateTenantKind({
+          tenant: tenantWithNewAttribute,
+          readModelService,
+        });
 
-      if (isEventPresent) {
+      if (tenantKindHasBeenUpdated) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -570,12 +571,13 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [updatedTenant, isEventPresent] = await reevaluateTenantKind({
-        tenant: tenantWithNewAttribute,
-        readModelService,
-      });
+      const { updatedTenant, tenantKindHasBeenUpdated } =
+        await reevaluateTenantKind({
+          tenant: tenantWithNewAttribute,
+          readModelService,
+        });
 
-      if (isEventPresent) {
+      if (tenantKindHasBeenUpdated) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -751,7 +753,7 @@ async function reevaluateTenantKind({
 }: {
   tenant: Tenant;
   readModelService: ReadModelService;
-}): Promise<[Tenant, boolean]> {
+}): Promise<{ updatedTenant: Tenant; tenantKindHasBeenUpdated: boolean }> {
   const tenantKind = await getTenantKindLoadingCertifiedAttributes(
     readModelService,
     tenant.attributes,
@@ -764,9 +766,9 @@ async function reevaluateTenantKind({
   };
 
   if (tenant.kind !== tenantKind) {
-    return [updatedTenant, true];
+    return { updatedTenant, tenantKindHasBeenUpdated: true };
   }
-  return [updatedTenant, false];
+  return { updatedTenant, tenantKindHasBeenUpdated: false };
 }
 
 function buildVerifiedBy(
