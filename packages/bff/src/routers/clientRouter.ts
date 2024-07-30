@@ -1,14 +1,12 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  bffApi,
-  selfcareV2UsersClientBuilder,
-} from "pagopa-interop-api-clients";
+import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
 import { clientServiceBuilder } from "../services/clientService.js";
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -18,7 +16,7 @@ import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactClient } from "../model/api/apiConverter.js";
+import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
