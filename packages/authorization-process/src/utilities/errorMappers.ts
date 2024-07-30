@@ -125,6 +125,7 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "organizationNotAllowedOnClient",
       "userWithoutSecurityPrivileges",
+      "userNotFound",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
