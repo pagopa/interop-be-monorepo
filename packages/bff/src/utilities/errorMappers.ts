@@ -33,7 +33,7 @@ export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "tenantNotFound",
       "eServiceNotFound",
       "agreementNotFound",
-      "eServiceDescriptorNotFound",
+      "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

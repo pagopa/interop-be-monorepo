@@ -13,7 +13,7 @@ export const getAllClients = async (
       await authorizationProcessClient.client.getClientsWithKeys({
         headers,
         queries: {
-          userIds: "",
+          userIds: [],
           consumerId,
           purposeId,
           limit: 50,

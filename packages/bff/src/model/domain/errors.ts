@@ -17,7 +17,7 @@ export const errorCodes = {
   eServiceNotFound: "0010",
   tenantNotFound: "0011",
   agreementNotFound: "0012",
-  eServiceDescriptorNotFound: "0013",
+  eserviceDescriptorNotFound: "0013",
   purposeDraftVersionNotFound: "0014",
 };
 
@@ -79,13 +79,13 @@ export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceDescriptorNotFound(
+export function eserviceDescriptorNotFound(
   eserviceId: string,
   descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
-    code: "eServiceDescriptorNotFound",
+    code: "eserviceDescriptorNotFound",
     title: "EService descriptor not found",
   });
 }
@@ -108,17 +108,6 @@ export function invalidEServiceRequester(
     detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
     code: "invalidEserviceRequester",
     title: `Invalid eservice requester`,
-  });
-}
-
-export function eserviceDescriptorNotFound(
-  eServiceId: string,
-  descriptorId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
-    code: "descriptorNotFound",
-    title: `Descriptor not found`,
   });
 }
 

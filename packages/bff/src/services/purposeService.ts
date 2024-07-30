@@ -14,7 +14,7 @@ import {
 } from "../providers/clientProvider.js";
 import {
   agreementNotFound,
-  eServiceDescriptorNotFound,
+  eserviceDescriptorNotFound,
   eServiceNotFound,
   purposeDraftVersionNotFound,
   purposeNotFound,
@@ -70,9 +70,17 @@ async function getPurposes(
   limit: number,
   headers: Headers
 ): Promise<bffApi.Purposes> {
+  const distinctFilters = {
+    ...filters,
+    eseviceIds: filters.eservicesIds && toSetToArray(filters.eservicesIds),
+    consumersIds: filters.consumersIds && toSetToArray(filters.consumersIds),
+    producersIds: filters.producersIds && toSetToArray(filters.producersIds),
+    states: filters.states && toSetToArray(filters.states),
+  };
+
   const purposes = await purposeClient.getPurposes({
     queries: {
-      ...filters,
+      ...distinctFilters,
       limit,
       offset,
     },
@@ -80,10 +88,10 @@ async function getPurposes(
   });
 
   const eservices = await Promise.all(
-    toSetToArray(purposes.results.map((p) => p.eserviceId)).map((id) =>
+    toSetToArray(purposes.results.map((p) => p.eserviceId)).map((eServiceId) =>
       eserviceClient.getEServiceById({
         params: {
-          eServiceId: id,
+          eServiceId,
         },
         headers,
       })
@@ -98,10 +106,10 @@ async function getPurposes(
       headers,
     });
   const consumers = await Promise.all(
-    [...new Set(purposes.results.map((p) => p.consumerId))].map(getTenant)
+    toSetToArray(purposes.results.map((p) => p.consumerId)).map(getTenant)
   );
   const producers = await Promise.all(
-    [...new Set(eservices.map((e) => e.producerId))].map(getTenant)
+    toSetToArray(eservices.map((e) => e.producerId)).map(getTenant)
   );
 
   const enhancePurpose = async (
@@ -109,17 +117,17 @@ async function getPurposes(
   ): Promise<bffApi.Purpose> => {
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
     if (!eservice) {
-      throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
+      throw eServiceNotFound(purpose.eserviceId);
     }
 
     const producer = producers.find((p) => p.id === eservice.producerId);
     if (!producer) {
-      throw tenantNotFound(unsafeBrandId(eservice.producerId));
+      throw tenantNotFound(eservice.producerId);
     }
 
     const consumer = consumers.find((c) => c.id === purpose.consumerId);
     if (!consumer) {
-      throw tenantNotFound(unsafeBrandId(purpose.consumerId));
+      throw tenantNotFound(purpose.consumerId);
     }
 
     const latestAgreement = await getLatestAgreement(
@@ -129,16 +137,16 @@ async function getPurposes(
       headers
     );
     if (!latestAgreement) {
-      throw agreementNotFound(unsafeBrandId(purpose.consumerId));
+      throw agreementNotFound(purpose.consumerId);
     }
 
     const currentDescriptor = eservice.descriptors.find(
       (d) => d.id === latestAgreement.descriptorId
     );
     if (!currentDescriptor) {
-      throw eServiceDescriptorNotFound(
-        unsafeBrandId(eservice.id),
-        unsafeBrandId(latestAgreement.descriptorId)
+      throw eserviceDescriptorNotFound(
+        eservice.id,
+        latestAgreement.descriptorId
       );
     }
 
