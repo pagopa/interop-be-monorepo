@@ -11,8 +11,11 @@ import {
   AuthorizationEvent,
   Client,
   ClientId,
+  ProducerKeychain,
   toClientV2,
+  toProducerKeychainV2,
   toReadModelClient,
+  toReadModelProducerKeychain,
 } from "pagopa-interop-models";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -25,8 +28,15 @@ export const { cleanup, readModelRepository, postgresDB } =
 
 afterEach(cleanup);
 
-export const { agreements, clients, eservices, keys, purposes, tenants } =
-  readModelRepository;
+export const {
+  agreements,
+  clients,
+  eservices,
+  keys,
+  purposes,
+  tenants,
+  producerKeychains,
+} = readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const selfcareV2Client: SelfcareV2InstitutionClient =
@@ -59,6 +69,34 @@ export const writeClientInEventstore = async (
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(toReadModelClient(client), clients);
+};
+
+export const writeProducerKeychainInEventstore = async (
+  producerKeychain: ProducerKeychain
+): Promise<void> => {
+  const authorizationtEvent: AuthorizationEvent = {
+    type: "ProducerKeychainAdded",
+    event_version: 2,
+    data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
+  };
+  const eventToWrite: StoredEvent<AuthorizationEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: authorizationtEvent.data.producerKeychain!.id,
+    version: 0,
+    event: authorizationtEvent,
+  };
+
+  await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
+};
+
+export const addOneProducerKeychain = async (
+  producerKeychain: ProducerKeychain
+): Promise<void> => {
+  await writeProducerKeychainInEventstore(producerKeychain);
+  await writeInReadmodel(
+    toReadModelProducerKeychain(producerKeychain),
+    producerKeychains
+  );
 };
 
 export const readLastAuthorizationEvent = async (

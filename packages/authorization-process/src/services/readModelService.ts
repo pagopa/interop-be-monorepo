@@ -292,7 +292,7 @@ export function readModelServiceBuilder(
           $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
         });
 
-      const consumerIdFilter: ReadModelFilter<ProducerKeychain> = {
+      const producerIdFilter: ReadModelFilter<ProducerKeychain> = {
         "data.producerId": { $eq: producerId },
       };
 
@@ -307,7 +307,7 @@ export function readModelServiceBuilder(
           $match: {
             ...nameFilter,
             ...userIdsFilter,
-            ...consumerIdFilter,
+            ...producerIdFilter,
             ...purposeIdFilter,
           } satisfies ReadModelFilter<ProducerKeychain>,
         },
@@ -345,7 +345,7 @@ export function readModelServiceBuilder(
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
-          clients,
+          producerKeychains,
           aggregationPipeline,
           false
         ),
