@@ -20,6 +20,7 @@ export const errorCodes = {
   eserviceDescriptorNotFound: "0013",
   purposeDraftVersionNotFound: "0014",
   invalidRiskAnalysisContentType: "0015",
+  missingInterface: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -156,5 +157,16 @@ export function invalidRiskAnalysisContentType(
     detail: `Invalid contentType ${contentType} for document ${documentId} from purpose ${purposeId} and version ${versionId}`,
     code: "invalidRiskAnalysisContentType",
     title: "Invalid Risk Analysis content type",
+  });
+}
+
+export function missingInterface(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
+    code: "missingInterface",
+    title: "Missing interface",
   });
 }

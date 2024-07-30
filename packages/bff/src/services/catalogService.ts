@@ -21,7 +21,10 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  missingInterface,
+} from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
@@ -519,5 +522,41 @@ export function catalogServiceBuilder(
         file: Buffer.from(buildCsv(consumers)),
       };
     },
+    exportEServiceDescriptor: async (
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      const requesterId = context.authData.organizationId;
+      const headers = context.headers;
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers,
+      });
+
+      assertRequesterIsProducer(requesterId, eservice);
+
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      if (!descriptor.interface) {
+        throw missingInterface(eserviceId, descriptorId);
+      }
+    },
+    updateEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      riskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.updateRiskAnalysis(riskAnalysisSeed, {
+        headers: context.headers,
+        params: {
+          eServiceId: eserviceId,
+          riskAnalysisId,
+        },
+      }),
   };
 }
