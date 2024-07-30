@@ -1,11 +1,11 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 
 const clientRouter = (
   ctx: ZodiosContext
@@ -48,9 +48,6 @@ const clientRouter = (
     )
     .post("/clientsConsumer", async (_req, res) => res.status(501).send())
     .post("/clientsApi", async (_req, res) => res.status(501).send())
-    .get("/clients/:clientId/users/:userId/keys", async (_req, res) =>
-      res.status(501).send()
-    );
 
   return clientRouter;
 };

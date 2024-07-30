@@ -15,6 +15,7 @@ export const errorCodes = {
   missingClaim: "0007",
   tenantLoginNotAllowed: "0008",
   tokenVerificationFailed: "0009",
+  missingInterface: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -104,5 +105,16 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function missingInterface(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
+    code: "missingInterface",
+    title: "Missing interface",
   });
 }
