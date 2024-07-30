@@ -544,29 +544,6 @@ export function catalogServiceBuilder(
         file: Buffer.from(buildCsv(consumers)),
       };
     },
-    exportEServiceDescriptor: async (
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      context: WithLogger<BffAppContext>
-    ): Promise<void> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
-
-      const eservice = await catalogProcessClient.getEServiceById({
-        params: {
-          eServiceId: eserviceId,
-        },
-        headers,
-      });
-
-      assertRequesterIsProducer(requesterId, eservice);
-
-      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
-
-      if (!descriptor.interface) {
-        throw missingInterface(eserviceId, descriptorId);
-      }
-    },
     updateEServiceRiskAnalysis: async (
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
@@ -592,5 +569,28 @@ export function catalogServiceBuilder(
           riskAnalysisId,
         },
       }),
+    exportEServiceDescriptor: async (
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      const requesterId = context.authData.organizationId;
+      const headers = context.headers;
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers,
+      });
+
+      assertRequesterIsProducer(requesterId, eservice);
+
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      if (!descriptor.interface) {
+        throw missingInterface(eserviceId, descriptorId);
+      }
+    },
   };
 }
