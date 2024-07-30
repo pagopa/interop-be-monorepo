@@ -21,6 +21,7 @@ import {
   purposeVersionState,
   unsafeBrandId,
   ProducerKeychain,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -53,6 +54,7 @@ import {
   userNotFound,
   userNotAllowedOnClient,
   invalidKey,
+  producerKeychainNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -64,6 +66,7 @@ import {
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
+  toCreateEventProducerKeychainDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -79,6 +82,7 @@ import {
   assertOrganizationIsPurposeConsumer,
   assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
+  assertOrganizationIsProducerKeychainProducer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -127,6 +131,19 @@ const retrieveDescriptor = (
   }
 
   return descriptor;
+};
+
+const retrieveProducerKeychain = async (
+  producerKeychainId: ProducerKeychainId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<ProducerKeychain>> => {
+  const producerKeychain = await readModelService.getProducerKeychainById(
+    producerKeychainId
+  );
+  if (!producerKeychain) {
+    throw producerKeychainNotFound(producerKeychainId);
+  }
+  return producerKeychain;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -774,6 +791,36 @@ export function authorizationServiceBuilder(
           offset,
           limit,
         }
+      );
+    },
+    async deleteProducerKeychain({
+      producerKeychainId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Deleting producer keychain ${producerKeychainId}`);
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainDeleted(
+          producerKeychain.data,
+          producerKeychain.metadata.version,
+          correlationId
+        )
       );
     },
   };

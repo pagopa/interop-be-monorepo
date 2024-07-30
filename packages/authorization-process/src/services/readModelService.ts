@@ -16,6 +16,7 @@ import {
   ClientKey,
   ClientKind,
   ProducerKeychain,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -350,6 +351,35 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+
+    async getProducerKeychainById(
+      id: ProducerKeychainId
+    ): Promise<WithMetadata<ProducerKeychain> | undefined> {
+      const data = await producerKeychains.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            data: ProducerKeychain,
+            metadata: z.object({ version: z.number() }),
+          })
+          .safeParse(data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse producer keychain item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
     },
   };
 }

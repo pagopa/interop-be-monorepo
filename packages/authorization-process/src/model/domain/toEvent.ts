@@ -190,3 +190,23 @@ export function toCreateEventProducerKeychainAdded(
     correlationId,
   };
 }
+
+export function toCreateEventProducerKeychainDeleted(
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainDeleted",
+      event_version: 2,
+      data: {
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+        producerKeychainId: producerKeychain.id,
+      },
+    },
+    correlationId,
+  };
+}

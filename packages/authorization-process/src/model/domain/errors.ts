@@ -3,6 +3,7 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  ProducerKeychainId,
   PurposeId,
   TenantId,
   UserId,
@@ -28,6 +29,8 @@ export const errorCodes = {
   userNotFound: "0016",
   keyAlreadyExists: "0017",
   invalidKey: "0018",
+  producerKeychainNotFound: "0019",
+  organizationNotAllowedOnProducerKeychain: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -213,5 +216,26 @@ export function invalidKey(): ApiError<ErrorCodes> {
     detail: `Key is not an RSA key`,
     code: "invalidKey",
     title: "Invalid Key",
+  });
+}
+
+export function producerKeychainNotFound(
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer Keychain ${producerKeychainId} not found`,
+    code: "producerKeychainNotFound",
+    title: "Producer Keychain not found",
+  });
+}
+
+export function organizationNotAllowedOnProducerKeychain(
+  organizationId: TenantId,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
+    code: "organizationNotAllowedOnProducerKeychain",
+    title: "Organization not allowed on producer keychain",
   });
 }

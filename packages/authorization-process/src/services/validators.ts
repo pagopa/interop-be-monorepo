@@ -1,10 +1,17 @@
 import { userRoles } from "pagopa-interop-commons";
-import { Client, Purpose, TenantId, UserId } from "pagopa-interop-models";
+import {
+  Client,
+  ProducerKeychain,
+  Purpose,
+  TenantId,
+  UserId,
+} from "pagopa-interop-models";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   userWithoutSecurityPrivileges,
   organizationNotAllowedOnPurpose,
   organizationNotAllowedOnClient,
+  organizationNotAllowedOnProducerKeychain,
 } from "../model/domain/errors.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({
@@ -49,5 +56,17 @@ export const assertOrganizationIsPurposeConsumer = (
 ): void => {
   if (organizationId !== purpose.consumerId) {
     throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
+  }
+};
+
+export const assertOrganizationIsProducerKeychainProducer = (
+  organizationId: TenantId,
+  producerKeychain: ProducerKeychain
+): void => {
+  if (producerKeychain.producerId !== organizationId) {
+    throw organizationNotAllowedOnProducerKeychain(
+      organizationId,
+      producerKeychain.id
+    );
   }
 };
