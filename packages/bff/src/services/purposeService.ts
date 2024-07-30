@@ -444,5 +444,21 @@ export function purposeServiceBuilder(
         logger
       );
     },
+    async rejectPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      seed: bffApi.RejectPurposeVersionPayload,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Rejecting version $versionId of purpose ${purposeId}`);
+
+      await purposeClient.rejectPurposeVersion(seed, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+    },
   };
 }

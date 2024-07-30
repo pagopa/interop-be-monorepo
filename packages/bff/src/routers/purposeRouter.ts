@@ -198,7 +198,23 @@ const purposeRouter = (
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await purposeService.rejectPurposeVersion(
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId),
+            req.body,
+            ctx
+          );
+
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
