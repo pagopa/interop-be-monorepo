@@ -12,6 +12,7 @@ import {
   Client,
   ClientId,
   ProducerKeychain,
+  ProducerKeychainId,
   toClientV2,
   toProducerKeychainV2,
   toReadModelClient,
@@ -100,6 +101,6 @@ export const addOneProducerKeychain = async (
 };
 
 export const readLastAuthorizationEvent = async (
-  clientId: ClientId
+  clientId: ClientId | ProducerKeychainId
 ): Promise<ReadEvent<AuthorizationEvent>> =>
   await readLastEventByStreamId(clientId, '"authorization"', postgresDB);
