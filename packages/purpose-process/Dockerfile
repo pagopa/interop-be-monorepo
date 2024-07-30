@@ -53,6 +53,6 @@ RUN chmod -R 700 /app
 USER app
 
 WORKDIR /app/packages/purpose-process
-EXPOSE 3000
+EXPOSE 3400
 
 CMD [ "node", "." ]
