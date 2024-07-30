@@ -18,6 +18,7 @@ import {
   clientKind,
   generateId,
   genericInternalError,
+  invalidKey,
   purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -51,7 +52,6 @@ import {
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
-  invalidKey,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -622,7 +622,7 @@ export function authorizationServiceBuilder(
       const keySeed = keysSeeds[0];
       const jwk = createJWK(decodeBase64ToPem(keySeed.key));
       if (jwk.kty !== "RSA") {
-        throw invalidKey();
+        throw invalidKey(keySeed.key, "It's not an RSA key");
       }
       const newKey: Key = {
         clientId,

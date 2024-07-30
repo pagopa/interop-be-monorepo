@@ -1,5 +1,6 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
 import {
+  invalidKey,
   jwkDecodingError,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
@@ -27,7 +28,11 @@ function createPublicKey(key: string): KeyObject {
   try {
     crypto.createPrivateKey(key);
   } catch {
-    return crypto.createPublicKey(key);
+    try {
+      return crypto.createPublicKey(key);
+    } catch (error) {
+      throw invalidKey(key, error);
+    }
   }
   throw notAllowedPrivateKeyException();
 }
