@@ -274,11 +274,38 @@ const purposeRouter = (
       }
     )
     .get("/purposes/:purposeId", async (_req, res) => res.status(501).send())
-    .delete("/purposes/:purposeId", async (_req, res) => res.status(501).send())
+    .delete("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeService.deletePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/purposes/:purposeId", async (_req, res) => res.status(501).send())
-    .delete("/purposes/:purposeId/versions/:versionId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeService.deletePurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          unsafeBrandId(req.params.versionId),
+          ctx
+        );
+
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/purposes/riskAnalysis/latest", async (_req, res) =>
       res.status(501).send()
     )

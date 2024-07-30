@@ -520,5 +520,33 @@ export function purposeServiceBuilder(
         versionId,
       };
     },
+    async deletePurpose(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose ${purposeId}`);
+
+      await purposeClient.deletePurpose(undefined, {
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+    },
+    async deletePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting version ${versionId} of purpose ${purposeId}`);
+
+      await purposeClient.deletePurposeVersion(undefined, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+    },
   };
 }
