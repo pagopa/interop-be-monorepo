@@ -9,6 +9,7 @@ import {
   AgreementProcessClient,
   AuthorizationProcessClient,
   CatalogProcessClient,
+  PagoPAInteropBeClients,
   PurposeProcessClient,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
@@ -45,18 +46,12 @@ export const getCurrentVersion = (
 // eslint-disable-next-line max-params
 async function getPurposes(
   {
-    purposeClient,
-    eserviceClient,
-    tenantClient,
-    agreementClient,
+    purposeProcessClient,
+    catalogProcessClient,
+    tenantProcessClient,
+    agreementProcessClient,
     authorizationClient,
-  }: {
-    purposeClient: PurposeProcessClient;
-    eserviceClient: CatalogProcessClient;
-    tenantClient: TenantProcessClient;
-    agreementClient: AgreementProcessClient;
-    authorizationClient: AuthorizationProcessClient;
-  },
+  }: Omit<PagoPAInteropBeClients, "attributeProcessClient">,
   requesterId: string,
   filters: {
     name?: string | undefined;
@@ -78,7 +73,7 @@ async function getPurposes(
     states: filters.states && toSetToArray(filters.states),
   };
 
-  const purposes = await purposeClient.getPurposes({
+  const purposes = await purposeProcessClient.getPurposes({
     queries: {
       ...distinctFilters,
       limit,
@@ -89,7 +84,7 @@ async function getPurposes(
 
   const eservices = await Promise.all(
     toSetToArray(purposes.results.map((p) => p.eserviceId)).map((eServiceId) =>
-      eserviceClient.getEServiceById({
+      catalogProcessClient.getEServiceById({
         params: {
           eServiceId,
         },
@@ -99,7 +94,7 @@ async function getPurposes(
   );
 
   const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
-    tenantClient.tenant.getTenant({
+    tenantProcessClient.tenant.getTenant({
       params: {
         id,
       },
@@ -131,7 +126,7 @@ async function getPurposes(
     }
 
     const latestAgreement = await getLatestAgreement(
-      agreementClient,
+      agreementProcessClient,
       purpose.consumerId,
       eservice,
       headers
@@ -167,13 +162,13 @@ async function getPurposes(
       (v) =>
         v.state === purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
     );
-    // eslint-disable-next-line functional/immutable-data
-    const latestVersion = purpose.versions
+
+    const latestVersion = [...purpose.versions]
       .sort(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       )
-      .pop();
+      .at(-1);
 
     const rejectedVersion =
       latestVersion?.state === purposeApi.PurposeVersionState.Values.REJECTED
@@ -230,28 +225,30 @@ async function getPurposes(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
-  purposeClient: PurposeProcessClient,
-  eserviceClient: CatalogProcessClient,
-  tenantClient: TenantProcessClient,
-  agreementClient: AgreementProcessClient,
+  purposeProcessClient: PurposeProcessClient,
+  catalogProcessClient: CatalogProcessClient,
+  tenantProcessClient: TenantProcessClient,
+  agreementProcessClient: AgreementProcessClient,
   authorizationClient: AuthorizationProcessClient
 ) {
   return {
     async createPurpose(
       createSeed: bffApi.PurposeSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<ReturnType<typeof purposeClient.createPurpose>> {
+    ): Promise<ReturnType<typeof purposeProcessClient.createPurpose>> {
       logger.info(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
       );
-      return await purposeClient.createPurpose(createSeed, {
+      return await purposeProcessClient.createPurpose(createSeed, {
         headers,
       });
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<ReturnType<typeof purposeClient.createPurposeFromEService>> {
+    ): Promise<
+      ReturnType<typeof purposeProcessClient.createPurposeFromEService>
+    > {
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
@@ -259,7 +256,7 @@ export function purposeServiceBuilder(
         ...createSeed,
         eServiceId: createSeed.eserviceId,
       };
-      return await purposeClient.createPurposeFromEService(payload, {
+      return await purposeProcessClient.createPurposeFromEService(payload, {
         headers,
       });
     },
@@ -269,7 +266,7 @@ export function purposeServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
       logger.info(`Updating reverse purpose ${id}`);
-      const updatedPurpose = await purposeClient.updateReversePurpose(
+      const updatedPurpose = await purposeProcessClient.updateReversePurpose(
         updateSeed,
         {
           headers,
@@ -304,10 +301,10 @@ export function purposeServiceBuilder(
       );
       return await getPurposes(
         {
-          purposeClient,
-          eserviceClient,
-          tenantClient,
-          agreementClient,
+          purposeProcessClient,
+          catalogProcessClient,
+          tenantProcessClient,
+          agreementProcessClient,
           authorizationClient,
         },
         authData.organizationId,
@@ -334,10 +331,10 @@ export function purposeServiceBuilder(
       );
       return await getPurposes(
         {
-          purposeClient,
-          eserviceClient,
-          tenantClient,
-          agreementClient,
+          purposeProcessClient,
+          catalogProcessClient,
+          tenantProcessClient,
+          agreementProcessClient,
           authorizationClient,
         },
         authData.organizationId,
@@ -354,7 +351,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Cloning purpose ${purposeId}`);
 
-      const cloned = await purposeClient.clonePurpose(seed, {
+      const cloned = await purposeProcessClient.clonePurpose(seed, {
         params: {
           purposeId,
         },
@@ -382,12 +379,15 @@ export function purposeServiceBuilder(
         `Creating version for purpose ${purposeId} with dailyCalls ${seed.dailyCalls}`
       );
 
-      const purposeVersion = await purposeClient.createPurposeVersion(seed, {
-        params: {
-          purposeId,
-        },
-        headers,
-      });
+      const purposeVersion = await purposeProcessClient.createPurposeVersion(
+        seed,
+        {
+          params: {
+            purposeId,
+          },
+          headers,
+        }
+      );
 
       return {
         purposeId,
