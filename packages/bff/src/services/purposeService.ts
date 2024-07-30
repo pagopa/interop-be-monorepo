@@ -460,5 +460,25 @@ export function purposeServiceBuilder(
         headers,
       });
     },
+    async archivePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Archiving purpose $purposeId with version ${versionId}`);
+
+      await purposeClient.archivePurposeVersion(undefined, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+
+      return {
+        purposeId,
+        versionId,
+      };
+    },
   };
 }
