@@ -98,14 +98,16 @@ const attributeRouter = (
       try {
         const { q, offset, limit, kinds, origin } = req.query;
 
-        const attributes = await attributeService.getAttributes({
-          name: q,
-          offset,
-          limit,
-          kinds,
-          origin,
-          ctx,
-        });
+        const attributes = await attributeService.getAttributes(
+          {
+            name: q,
+            offset,
+            limit,
+            kinds,
+            origin,
+          },
+          ctx
+        );
 
         return res
           .json({

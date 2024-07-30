@@ -88,7 +88,6 @@ export function attributeServiceBuilder(
         offset: number;
         limit: number;
         kinds: attributeRegistryApi.AttributeKind[];
-        ctx: WithLogger<BffAppContext>;
         name?: string;
         origin?: string;
       },
