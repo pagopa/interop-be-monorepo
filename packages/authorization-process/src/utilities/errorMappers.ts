@@ -146,3 +146,8 @@ export const createProducerKeychainErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getProducerKeychainsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

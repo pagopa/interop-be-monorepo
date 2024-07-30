@@ -15,6 +15,7 @@ import {
   agreementState,
   ClientKey,
   ClientKind,
+  ProducerKeychain,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -26,11 +27,19 @@ export type GetClientsFilters = {
   kind?: ClientKind;
 };
 
+export type GetProducerKeychainsFilters = {
+  name?: string;
+  userIds: UserId[];
+  producerId: TenantId;
+  eserviceId: EServiceId | undefined;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { agreements, clients, eservices, purposes } = readModelRepository;
+  const { agreements, clients, eservices, purposes, producerKeychains } =
+    readModelRepository;
 
   return {
     async getClientById(
@@ -262,6 +271,85 @@ export function readModelServiceBuilder(
         return result.data.keys.find((k) => k.kid === kid);
       }
       return undefined;
+    },
+    async getProducerKeychains(
+      filters: GetProducerKeychainsFilters,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<ProducerKeychain>> {
+      const { name, userIds, producerId, eserviceId } = filters;
+
+      const nameFilter: ReadModelFilter<ProducerKeychain> = name
+        ? {
+            "data.name": {
+              $regex: ReadModelRepository.escapeRegExp(name),
+              $options: "i",
+            },
+          }
+        : {};
+
+      const userIdsFilter: ReadModelFilter<ProducerKeychain> =
+        ReadModelRepository.arrayToFilter(userIds, {
+          $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
+        });
+
+      const consumerIdFilter: ReadModelFilter<ProducerKeychain> = {
+        "data.producerId": { $eq: producerId },
+      };
+
+      const purposeIdFilter: ReadModelFilter<ProducerKeychain> = eserviceId
+        ? {
+            "data.eservices": { $eq: eserviceId },
+          }
+        : {};
+
+      const aggregationPipeline = [
+        {
+          $match: {
+            ...nameFilter,
+            ...userIdsFilter,
+            ...consumerIdFilter,
+            ...purposeIdFilter,
+          } satisfies ReadModelFilter<ProducerKeychain>,
+        },
+        {
+          $project: {
+            data: 1,
+            computedColumn: { $toLower: ["$data.name"] },
+          },
+        },
+      ];
+
+      const data = await producerKeychains
+        .aggregate(
+          [
+            ...aggregationPipeline,
+            { $skip: offset },
+            { $limit: limit },
+            { $sort: { computedColumn: 1 } },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z
+        .array(ProducerKeychain)
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse client items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          clients,
+          aggregationPipeline,
+          false
+        ),
+      };
     },
   };
 }

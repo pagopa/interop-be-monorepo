@@ -10,7 +10,12 @@ import {
   initDB,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  PurposeId,
+  UserId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   authorizationApi,
   selfcareV2InstitutionClientBuilder,
@@ -44,6 +49,7 @@ import {
   getClientsWithKeysErrorMapper,
   addClientPurposeErrorMapper,
   createProducerKeychainErrorMapper,
+  getProducerKeychainsErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -590,8 +596,50 @@ const authorizationRouter = (
     )
     .get(
       "/producerKeychains",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { name, userIds, producerId, eserviceId, offset, limit } =
+            req.query;
+          const producerKeychains =
+            await authorizationService.getProducerKeychains({
+              filters: {
+                name,
+                userIds: userIds?.map(unsafeBrandId<UserId>),
+                producerId: unsafeBrandId(producerId),
+                eserviceId: eserviceId
+                  ? unsafeBrandId<EServiceId>(eserviceId)
+                  : undefined,
+              },
+              authData: req.ctx.authData,
+              offset,
+              limit,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json({
+              results: producerKeychains.results.map((producerKeychain) =>
+                producerKeychainToApiProducerKeychain(producerKeychain)
+              ),
+              totalCount: producerKeychains.totalCount,
+            })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainsErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/producerKeychains/:producerKeychainId",

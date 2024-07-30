@@ -70,7 +70,11 @@ import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
 } from "../model/domain/apiConverter.js";
-import { GetClientsFilters, ReadModelService } from "./readModelService.js";
+import {
+  GetClientsFilters,
+  GetProducerKeychainsFilters,
+  ReadModelService,
+} from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
   assertUserSelfcareSecurityPrivileges,
@@ -743,6 +747,34 @@ export function authorizationServiceBuilder(
       );
 
       return producerKeychain;
+    },
+    async getProducerKeychains({
+      filters,
+      authData,
+      offset,
+      limit,
+      logger,
+    }: {
+      filters: GetProducerKeychainsFilters;
+      authData: AuthData;
+      offset: number;
+      limit: number;
+      logger: Logger;
+    }): Promise<ListResult<ProducerKeychain>> {
+      logger.info(
+        `Retrieving producer keychains by name ${filters.name} , userIds ${filters.userIds}`
+      );
+      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
+        ? [authData.userId]
+        : filters.userIds;
+
+      return await readModelService.getProducerKeychains(
+        { ...filters, userIds },
+        {
+          offset,
+          limit,
+        }
+      );
     },
   };
 }
