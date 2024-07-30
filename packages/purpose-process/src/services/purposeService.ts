@@ -647,15 +647,14 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      const previousDailyCalls =
-        [
-          ...purpose.data.versions.filter(
-            (v) =>
-              v.state === purposeVersionState.active ||
-              v.state === purposeVersionState.suspended
-          ),
-        ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
-          ?.dailyCalls || 0;
+      const sourceVersion = [
+        ...purpose.data.versions.filter(
+          (v) =>
+            v.state === purposeVersionState.active ||
+            v.state === purposeVersionState.suspended
+        ),
+      ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+      const previousDailyCalls = sourceVersion?.dailyCalls || 0;
 
       if (previousDailyCalls === seed.dailyCalls) {
         throw unchangedDailyCalls(purpose.data.id);
@@ -680,6 +679,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const deltaDailyCalls =
+        sourceVersion.state === purposeVersionState.suspended
+          ? seed.dailyCalls
+          : seed.dailyCalls - previousDailyCalls || 0;
+
       /**
        * If, with the given daily calls, the purpose goes in over quota,
        * we will create a new version in waiting for approval state
@@ -688,7 +692,7 @@ export function purposeServiceBuilder(
         await isOverQuota(
           eservice,
           purpose.data,
-          seed.dailyCalls - previousDailyCalls,
+          deltaDailyCalls,
           readModelService
         )
       ) {
