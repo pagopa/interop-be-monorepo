@@ -34,7 +34,14 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating certified attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -50,7 +57,14 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating verified attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -66,7 +80,14 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating declared attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -93,7 +114,12 @@ const attributeRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving attributes with name = ${req.query.q}, limit = ${req.query.limit}, offset = ${req.query.offset}, kinds = ${req.query.kinds}`
+        );
         return res.status(errorRes.status).end();
       }
     })
@@ -109,7 +135,12 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving attribute with id ${req.params.attributeId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -126,7 +157,12 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving attribute with origin = ${req.params.origin} and code = ${req.params.code}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     });
