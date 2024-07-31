@@ -151,6 +151,39 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
     },
+
+    async updateAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementUpdatePayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Updating agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.updateAgreementById(
+        payload,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enhanceAgreementDetailed(agreement, clients, ctx);
+    },
+
+    async upgradeAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Upgrading agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.upgradeAgreementById(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enhanceAgreementDetailed(agreement, clients, ctx);
+    },
   };
 }
 

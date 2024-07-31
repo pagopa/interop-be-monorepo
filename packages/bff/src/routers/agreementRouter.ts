@@ -207,12 +207,47 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/agreements/:agreementId/update", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/agreements/:agreementId/upgrade", async (_req, res) =>
-      res.status(501).send()
-    );
+
+    .post("/agreements/:agreementId/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.updateAgreement(
+          req.params.agreementId,
+          req.body,
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error updating agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/agreements/:agreementId/upgrade", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.upgradeAgreement(
+          req.params.agreementId,
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error upgrading agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    });
 
   return agreementRouter;
 };
