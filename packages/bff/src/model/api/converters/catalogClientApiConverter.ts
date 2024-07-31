@@ -18,7 +18,6 @@ import {
   isAgreementSubscribed,
   isAgreementUpgradable,
 } from "../../mappers.js";
-import { CompactOrganization } from "../../../../../api-clients/dist/bffApi.js";
 import {
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
   isRequesterEserviceProducer,
@@ -84,7 +83,7 @@ export function toBffCatalogApiEService(
 
 export function toBffCompactOrganization(
   tenant: tenantApi.Tenant
-): CompactOrganization {
+): bffApi.CompactOrganization {
   return {
     id: tenant.id,
     name: tenant.name,
