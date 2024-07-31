@@ -183,7 +183,7 @@ const catalogRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceDescription(
-          ctx.headers,
+          ctx,
           unsafeBrandId(req.params.eServiceId),
           req.body
         );
