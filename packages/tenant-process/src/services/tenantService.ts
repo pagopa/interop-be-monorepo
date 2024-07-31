@@ -327,8 +327,6 @@ export function tenantServiceBuilder(
           declaredAttribute.id === attributeId
             ? {
                 ...declaredAttribute,
-                assignmentTimestamp:
-                  maybeDeclaredTenantAttribute.assignmentTimestamp,
                 revocationTimestamp: new Date(),
               }
             : declaredAttribute
