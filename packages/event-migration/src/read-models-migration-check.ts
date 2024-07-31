@@ -144,7 +144,23 @@ export async function compareReadModelsCollection<
     readmodelA
       .collection(collectionNameA)
       .find()
-      .map(({ data }) => schema.parse(data))
+      .map(({ data }) => {
+        if (
+          collectionNameA.includes("clients") &&
+          data.purposes !== undefined
+        ) {
+          const adjusted = {
+            ...data,
+            purposes: data.purposes.map(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (stateUpdate: any) => stateUpdate.purpose.purposeId
+            ),
+          };
+          return schema.parse(adjusted);
+        } else {
+          return schema.parse(data);
+        }
+      })
       .toArray(),
     readmodelB
       .collection(collectionNameB)
