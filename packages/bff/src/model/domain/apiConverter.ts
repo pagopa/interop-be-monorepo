@@ -99,17 +99,17 @@ export const toApiAttributeProcessSeed = (
 });
 
 export const toBffApiCompactClient = (
-  input: authorizationApi.Client
+  input: authorizationApi.ClientWithKeys
 ): bffApi.CompactClient => ({
   hasKeys: input.keys.length > 0,
-  id: input.id,
-  name: input.name,
+  id: input.client.id,
+  name: input.client.name,
 });
 
 export const toBffApiCompactUser = (
-  input: UserResponse,
+  input: selfcareV2ClientApi.UserResponse,
   userId: string
-): BffApiCompactUser =>
+): bffApi.CompactUser =>
   match(input)
     .with({ name: P.nullish, surname: P.nullish }, () => ({
       userId,
