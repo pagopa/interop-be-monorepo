@@ -973,6 +973,35 @@ export function authorizationServiceBuilder(
         )
       );
     },
+    async getProducerKeychainKeys({
+      producerKeychainId,
+      userIds,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      userIds: UserId[];
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<ProducerKeychainKey[]> {
+      logger.info(
+        `Retrieving keys for producer keychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      if (userIds.length > 0) {
+        return producerKeychain.data.keys.filter(
+          (k) => k.userId && userIds.includes(k.userId)
+        );
+      }
+      return producerKeychain.data.keys;
+    },
   };
 }
 

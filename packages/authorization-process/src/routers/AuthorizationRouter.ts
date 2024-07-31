@@ -53,6 +53,7 @@ import {
   deleteProducerKeychainErrorMapper,
   createProducerKeychainKeysErrorMapper,
   deleteProducerKeychainKeyByIdErrorMapper,
+  getProducerKeychainKeysErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -719,8 +720,35 @@ const authorizationRouter = (
     )
     .get(
       "/producerKeychains/:producerKeychainId/keys",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const keys = await authorizationService.getProducerKeychainKeys({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            userIds: req.query.userIds.map(unsafeBrandId<UserId>),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+
+          return res
+            .status(200)
+            .json({ keys: keys.map(keyToApiKey) })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainKeysErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
