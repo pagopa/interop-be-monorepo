@@ -24,15 +24,17 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
+  sesContainer,
 } from "./containerTestUtils.js";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PECConfigTest, SESConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
-    emailManagerConfig?: EmailManagerConfigTest;
+    PECEmailManager?: PECConfigTest;
+    SESEmailManager?: SESConfigTest;
   }
 }
 
@@ -51,7 +53,8 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
-  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
+  const PECEmailManager = PECConfigTest.safeParse(process.env);
+  const SESEmailManager = SESConfigTest.safeParse(process.env);
 
   return async function ({
     provide,
@@ -60,6 +63,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
+    let startedSESContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -113,15 +117,20 @@ export function setupTestContainersVitestGlobal() {
       provide("fileManagerConfig", fileManagerConfig.data);
     }
 
-    if (emailManagerConfig.success) {
+    if (PECEmailManager.success) {
       startedMailpitContainer = await mailpitContainer().start();
-      emailManagerConfig.data.smtpPort = startedMailpitContainer.getMappedPort(
+      PECEmailManager.data.smtpPort = startedMailpitContainer.getMappedPort(
         TEST_MAILPIT_SMTP_PORT
       );
-      emailManagerConfig.data.mailpitAPIPort =
+      PECEmailManager.data.mailpitAPIPort =
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
-      emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
-      provide("emailManagerConfig", emailManagerConfig.data);
+      PECEmailManager.data.smtpAddress = startedMailpitContainer.getHost();
+      provide("PECEmailManager", PECEmailManager.data);
+    }
+
+    if (SESEmailManager.success) {
+      startedSESContainer = await sesContainer().start();
+      provide("SESEmailManager", SESEmailManager.data);
     }
 
     return async (): Promise<void> => {
@@ -129,6 +138,7 @@ export function setupTestContainersVitestGlobal() {
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
+      await startedSESContainer?.stop();
     };
   };
 }

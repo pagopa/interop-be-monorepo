@@ -5,7 +5,8 @@ import {
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
-  initEmailManager,
+  initPECEmailManager,
+  initSESMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -21,14 +22,8 @@ import {
 
 import { config } from "./config/config.js";
 
-const emailManager = initEmailManager({
-  smtpAddress: config.smtpAddress,
-  smtpPort: config.smtpPort,
-  smtpSecure: config.smtpSecure,
-  smtpUsername: config.smtpUsername,
-  smtpPassword: config.smtpPassword,
-});
-const pecEmailManager = initEmailManager({
+const sesEmailManager = initSESMailManager({ awsRegion: config.awsRegion });
+const pecEmailManager = initPECEmailManager({
   smtpAddress: config.pecSmtpAddress,
   smtpPort: config.pecSmtpPort,
   smtpSecure: config.pecSmtpSecure,
@@ -84,7 +79,7 @@ export async function processMessage({
           await senderAgreementSubmissionEmail({
             agreementV2: agreement,
             readModelService,
-            emailManager,
+            emailManager: sesEmailManager,
             feBaseUrl: config.interopFeBaseUrl,
             sender: { label: config.senderLabel, mail: config.senderMail },
             templateService,

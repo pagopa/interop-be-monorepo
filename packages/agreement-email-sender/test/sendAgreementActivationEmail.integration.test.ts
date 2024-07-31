@@ -27,7 +27,7 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  emailManager,
+  pecEmailManager,
   getLatestMail,
   getMails,
   readModelService,
@@ -67,7 +67,7 @@ describe("sendAgreementActivationEmail", () => {
     await sendAgreementActivationEmail({
       agreementV2: toAgreementV2(agreement),
       readModelService,
-      emailManager,
+      emailManager: pecEmailManager,
       sender: { label: config.senderLabel, mail: config.senderMail },
       templateService,
       logger: genericLogger,
@@ -140,7 +140,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -161,7 +161,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -183,7 +183,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -208,7 +208,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -238,7 +238,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -271,7 +271,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -307,7 +307,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,
@@ -360,7 +360,7 @@ describe("sendAgreementActivationEmail", () => {
       sendAgreementActivationEmail({
         agreementV2: toAgreementV2(agreement),
         readModelService,
-        emailManager,
+        emailManager: pecEmailManager,
         sender: { label: config.senderLabel, mail: config.senderMail },
         templateService,
         logger: genericLogger,

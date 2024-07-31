@@ -16,9 +16,9 @@ import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const readModelConfig = inject("readModelConfig");
-export const emailManagerConfig = inject("emailManagerConfig");
+export const emailManagerConfig = inject("PECEmailManager");
 
-export const { cleanup, readModelRepository, emailManager } =
+export const { cleanup, readModelRepository, pecEmailManager } =
   setupTestContainersVitest(
     readModelConfig,
     undefined,

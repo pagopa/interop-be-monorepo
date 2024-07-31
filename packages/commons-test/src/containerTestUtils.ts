@@ -19,6 +19,9 @@ export const TEST_MAILPIT_HTTP_PORT = 8025;
 export const TEST_MAILPIT_SMTP_PORT = 465;
 export const TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.19";
 
+export const TEST_SES_IMAGE = "dasprid/aws-ses-v2-local";
+export const TEST_SES_PORT = 8005;
+
 /**
  * Starts a MongoDB container for testing purposes.
  *
@@ -96,3 +99,6 @@ export const mailpitContainer = (): GenericContainer =>
       MP_SMTP_BIND_ADDR: `0.0.0.0:${TEST_MAILPIT_SMTP_PORT}`,
     })
     .withExposedPorts(TEST_MAILPIT_HTTP_PORT, TEST_MAILPIT_SMTP_PORT);
+
+export const sesContainer = (): GenericContainer =>
+  new GenericContainer(TEST_SES_IMAGE).withExposedPorts(TEST_SES_PORT);
