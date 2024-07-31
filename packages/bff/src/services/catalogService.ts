@@ -355,7 +355,7 @@ export function catalogServiceBuilder(
             headers: context.headers,
             queries: {
               name: eserviceName,
-              eservicesIds: eserviceIds.join(","),
+              eservicesIds: eserviceIds,
               producersIds: producerId,
               offset,
               limit,
