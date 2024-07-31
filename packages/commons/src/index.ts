@@ -20,6 +20,7 @@ export * from "./types/index.js";
 export * from "./utils/arrays.js";
 export * from "./utils/getAll.js";
 export * from "./utils/date.js";
+export * from "./utils/getAll.js";
 export * from "./auth/jwk.js";
 export * from "./auth/converters.js";
 export * from "./email-manager/index.js";
