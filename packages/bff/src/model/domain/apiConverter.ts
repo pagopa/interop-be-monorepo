@@ -1,9 +1,11 @@
-import { P, match } from "ts-pattern";
+import { createHash } from "crypto";
 import {
-  authorizationApi,
   bffApi,
+  attributeRegistryApi,
+  authorizationApi,
   selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
+import { P, match } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
 
 export const toApiSelfcareInstitution = (
@@ -95,4 +97,11 @@ export const toBffApiCompactClient = (
   hasKeys: input.keys.length > 0,
   id: input.client.id,
   name: input.client.name,
+});
+
+export const toApiAttributeProcessSeed = (
+  seed: bffApi.AttributeSeed
+): attributeRegistryApi.CertifiedAttributeSeed => ({
+  ...seed,
+  code: createHash("sha256").update(seed.name).digest("hex"),
 });

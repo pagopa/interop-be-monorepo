@@ -18,6 +18,7 @@ import {
   clientKind,
   generateId,
   genericInternalError,
+  invalidKey,
   purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -28,11 +29,12 @@ import {
   eventRepository,
   userRoles,
   calculateKid,
-  decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 
 import {
   clientNotFound,
@@ -49,7 +51,6 @@ import {
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
-  invalidKey,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -618,9 +619,9 @@ export function authorizationServiceBuilder(
         throw genericInternalError("Wrong number of keys");
       }
       const keySeed = keysSeeds[0];
-      const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      const jwk = createJWK(keySeed.key);
       if (jwk.kty !== "RSA") {
-        throw invalidKey();
+        throw invalidKey(keySeed.key, "Not an RSA key");
       }
       const newKey: Key = {
         clientId,
@@ -693,8 +694,7 @@ export function authorizationServiceBuilder(
         throw keyNotFound(kid, clientId);
       }
 
-      const pemKey = decodeBase64ToPem(key.encodedPem);
-      const jwk: JsonWebKey = createJWK(pemKey);
+      const jwk: JsonWebKey = createJWK(key.encodedPem);
       const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
