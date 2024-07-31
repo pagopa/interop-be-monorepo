@@ -6,7 +6,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -30,7 +30,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
-import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
+import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -339,12 +339,18 @@ export function catalogServiceBuilder(
         response.totalCount = totalCount;
       } else {
         const eserviceIds = (
-          await getAllAgreements(
-            agreementProcessClient,
-            headers,
-            consumersIds,
-            [],
-            [producerId]
+          await getAllFromPaginated(async (offset: number, limit: number) =>
+            agreementProcessClient.getAgreements({
+              headers,
+              queries: {
+                consumersIds,
+                producersIds: [producerId],
+                eservicesIds: [],
+                states: [],
+                offset,
+                limit,
+              },
+            })
           )
         ).map((agreement) => agreement.eserviceId);
 
