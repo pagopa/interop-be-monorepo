@@ -57,7 +57,7 @@ export const getAgreementsFrom = async (
       consumersIds: consumerIds,
       producersIds: producerIds,
       eservicesIds: eserviceIds,
-      states: states.join(","),
+      states: states,
       offset: start,
       limit,
     },
