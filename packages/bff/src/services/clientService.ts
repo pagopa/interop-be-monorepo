@@ -19,24 +19,25 @@ export function clientServiceBuilder(
   const { authorizationProcessClient } = apiClients;
 
   return {
-    async getClients({
-      ctx,
-      limit,
-      offset,
-      requesterId,
-      userIds,
-      kind,
-      name,
-    }: {
-      requesterId: string;
-      offset: number;
-      limit: number;
-      userIds: string[];
-      ctx: WithLogger<BffAppContext>;
-      name?: string;
-      kind?: bffApi.ClientKind;
-    }): Promise<authorizationApi.ClientsWithKeys> {
-      ctx.logger.info(`Retrieving clients`);
+    async getClients(
+      {
+        limit,
+        offset,
+        requesterId,
+        userIds,
+        kind,
+        name,
+      }: {
+        requesterId: string;
+        offset: number;
+        limit: number;
+        userIds: string[];
+        name?: string;
+        kind?: bffApi.ClientKind;
+      },
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<authorizationApi.ClientsWithKeys> {
+      logger.info(`Retrieving clients`);
 
       return authorizationProcessClient.client.getClientsWithKeys({
         queries: {
@@ -48,7 +49,7 @@ export function clientServiceBuilder(
           kind,
           purposeId: undefined,
         },
-        headers: ctx.headers,
+        headers,
       });
     },
 

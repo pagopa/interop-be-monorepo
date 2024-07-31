@@ -39,15 +39,17 @@ const clientRouter = (
       try {
         const requesterId = ctx.authData.organizationId;
         const { limit, offset, userIds, kind, q } = req.query;
-        const clients = await clientService.getClients({
-          ctx,
-          limit,
-          offset,
-          userIds,
-          kind,
-          name: q,
-          requesterId,
-        });
+        const clients = await clientService.getClients(
+          {
+            limit,
+            offset,
+            userIds,
+            kind,
+            name: q,
+            requesterId,
+          },
+          ctx
+        );
 
         return res
           .status(200)
