@@ -7,6 +7,8 @@ import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 import { Key, KeyUse, keyUse } from "./client.js";
 
+const defaultCreatedAt = new Date("2023-04-18T12:00:00");
+
 const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   switch (input) {
     case KeyUseV1.SIG:
@@ -56,7 +58,6 @@ export const fromClientV1 = (input: ClientV1): Client => ({
   }),
   users: input.users.map(unsafeBrandId<UserId>),
   kind: fromClientKindV1(input.kind),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  createdAt: bigIntToDate(input.createdAt!),
+  createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
   keys: [],
 });
