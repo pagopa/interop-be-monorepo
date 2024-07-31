@@ -24,7 +24,8 @@ export async function handleMessageV1(
             {
               $set: {
                 data: keyToJWKKey(
-                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                  fromKeyV1(key),
+                  unsafeBrandId(message.data.clientId)
                 ),
                 metadata: {
                   version: message.version,

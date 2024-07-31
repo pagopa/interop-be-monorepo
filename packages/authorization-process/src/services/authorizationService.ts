@@ -625,7 +625,6 @@ export function authorizationServiceBuilder(
         throw invalidKey();
       }
       const newKey: Key = {
-        clientId,
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),

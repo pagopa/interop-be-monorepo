@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ClientId, UserId, unsafeBrandId } from "../brandedIds.js";
+import { UserId, unsafeBrandId } from "../brandedIds.js";
 import { genericInternalError } from "../errors.js";
 import { ClientKindV1, ClientV1 } from "../gen/v1/authorization/client.js";
 import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
@@ -21,9 +21,8 @@ const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   }
 };
 
-export const fromKeyV1 = (input: KeyV1, clientId: ClientId): Key => ({
+export const fromKeyV1 = (input: KeyV1): Key => ({
   ...input,
-  clientId,
   userId: input.userId
     ? unsafeBrandId<UserId>(input.userId)
     : unsafeBrandId<UserId>(""), // userId has become required in v2 events, so old v1 events might have no userId
