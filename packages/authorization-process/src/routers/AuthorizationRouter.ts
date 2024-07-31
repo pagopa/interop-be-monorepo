@@ -753,6 +753,11 @@ const authorizationRouter = (
     .get(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
       authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/keys/:keyId",
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -773,11 +778,6 @@ const authorizationRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
-    )
-    .delete(
-      "/producerKeychains/:producerKeychainId/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
     )
     .post(
       "/producerKeychains/:producerKeychainId/eservices",
