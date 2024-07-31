@@ -10,18 +10,18 @@ import {
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
-import { getTenantEmail } from "../../modelMappingUtils.js";
-import { catalogApiDescriptorState } from "../apiTypes.js";
 import {
-  getLatestAcriveDescriptor,
+  getLatestActiveDescriptor,
   getNotDraftDescriptor,
+  getTenantEmail,
   isAgreementSubscribed,
   isAgreementUpgradable,
-} from "../../mappers.js";
+} from "../../modelMappingUtils.js";
 import {
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
   isRequesterEserviceProducer,
 } from "../../validators.js";
+import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -124,7 +124,7 @@ export function toBffCatalogDescriptorEService(
         requesterTenant
       ),
     isSubscribed: isAgreementSubscribed(agreement),
-    activeDescriptor: getLatestAcriveDescriptor(eservice),
+    activeDescriptor: getLatestActiveDescriptor(eservice),
     mail: getTenantEmail(producerTenant),
     mode: eservice.mode,
     riskAnalysis: eservice.riskAnalysis.map(

@@ -1,15 +1,5 @@
 /* eslint-disable max-params */
 import {
-  TenantAttribute,
-  AttributeId,
-  EServiceAttribute,
-  unsafeBrandId,
-  tenantAttributeType,
-  CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
-  VerifiedTenantAttribute,
-} from "pagopa-interop-models";
-import {
   DescriptorWithOnlyAttributes,
   TenantWithOnlyAttributes,
 } from "pagopa-interop-agreement-lifecycle";
@@ -19,7 +9,17 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { isUpgradable } from "../modelMappingUtils.js";
+import {
+  AttributeId,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  EServiceAttribute,
+  TenantAttribute,
+  tenantAttributeType,
+  unsafeBrandId,
+  VerifiedTenantAttribute,
+} from "pagopa-interop-models";
+import { isAgreementUpgradable } from "../modelMappingUtils.js";
 
 export function toDescriptorWithOnlyAttributes(
   descriptor: catalogApi.EServiceDescriptor
@@ -88,7 +88,7 @@ export function toBffCatalogApiEServiceResponse(
           agreement: {
             id: agreement.id,
             state: agreement.state,
-            canBeUpgraded: isUpgradable(eservice, agreement),
+            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
           },
         }
       : {}),

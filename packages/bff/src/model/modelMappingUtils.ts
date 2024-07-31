@@ -45,7 +45,7 @@ export function getNotDraftDescriptor(
   );
 }
 
-export function isUpgradable(
+export function isAgreementUpgradable(
   eservice: catalogApi.EService,
   agreement: agreementApi.Agreement
 ): boolean {
@@ -67,7 +67,7 @@ export function isUpgradable(
   );
 }
 
-const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
+const subscribedAgreementStates: agreementApi.AgreementState[] = [
   agreementApiState.PENDING,
   agreementApiState.ACTIVE,
   agreementApiState.SUSPENDED,
@@ -76,7 +76,7 @@ const SUBSCRIBED_AGREEMENT_STATES: agreementApi.AgreementState[] = [
 export function isAgreementSubscribed(
   agreement: agreementApi.Agreement | undefined
 ): boolean {
-  return !!agreement && SUBSCRIBED_AGREEMENT_STATES.includes(agreement.state);
+  return !!agreement && subscribedAgreementStates.includes(agreement.state);
 }
 
 export function hasCertifiedAttributes(
