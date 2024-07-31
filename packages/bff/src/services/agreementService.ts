@@ -96,6 +96,36 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return enhanceAgreementDetailed(agreement, clients, ctx);
     },
+
+    async submitAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementSubmissionPayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Submitting agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.submitAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enhanceAgreementDetailed(agreement, clients, ctx);
+    },
+
+    async suspendAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Suspending agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.suspendAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enhanceAgreementDetailed(agreement, clients, ctx);
+    },
   };
 }
 
