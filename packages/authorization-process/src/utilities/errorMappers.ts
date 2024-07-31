@@ -173,3 +173,16 @@ export const getProducerKeychainUsersErrorMapper = (
     )
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addProducerKeychainUserErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

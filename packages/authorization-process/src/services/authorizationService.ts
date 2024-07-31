@@ -55,6 +55,7 @@ import {
   userNotAllowedOnClient,
   invalidKey,
   producerKeychainNotFound,
+  producerKeychainUserAlreadyAssigned,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -67,6 +68,7 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
+  toCreateEventProducerKeychainUserAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -864,6 +866,58 @@ export function authorizationServiceBuilder(
       );
       return {
         users: producerKeychain.data.users,
+        showUsers: true,
+      };
+    },
+    async addProducerKeychainUser(
+      {
+        producerKeychainId,
+        userId,
+        authData,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        userId: UserId;
+        authData: AuthData;
+      },
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(
+        `Binding producer keychain ${producerKeychainId} with user ${userId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData.organizationId,
+        producerKeychain.data
+      );
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: userId,
+      });
+      if (producerKeychain.data.users.includes(userId)) {
+        throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
+      }
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        users: [...producerKeychain.data.users, userId],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainUserAdded(
+          userId,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+      return {
+        producerKeychain: updatedProducerKeychain,
         showUsers: true,
       };
     },
