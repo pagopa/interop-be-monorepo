@@ -11,7 +11,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { clientServiceBuilder } from "../services/clientService.js";
 import { config } from "../config/config.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -19,6 +18,7 @@ import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
+import { toBffApiCompactClient } from "../model/api/apiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,

@@ -8,9 +8,9 @@ import {
 } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { userNotFound } from "../model/domain/errors.js";
-import { toBffApiCompactUser } from "../model/domain/apiConverter.js";
+import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../model/api/apiConverter.js";
+import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
