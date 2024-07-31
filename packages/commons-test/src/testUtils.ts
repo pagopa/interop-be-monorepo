@@ -34,6 +34,7 @@ import {
   ClientKey,
   AttributeKind,
   ProducerKeychain,
+  ProducerKeychainKey,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -289,4 +290,15 @@ export const getMockProducerKeychain = (): ProducerKeychain => ({
   users: [],
   createdAt: new Date(),
   keys: [],
+});
+
+export const getMockProducerKeychainKey = (): ProducerKeychainKey => ({
+  producerKeychainId: generateId(),
+  userId: generateId(),
+  name: "test key",
+  createdAt: new Date(),
+  kid: `kid ${Math.random()}`,
+  encodedPem: "encodedPem",
+  algorithm: "",
+  use: keyUse.sig,
 });

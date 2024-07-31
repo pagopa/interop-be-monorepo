@@ -703,7 +703,7 @@ const authorizationRouter = (
           return res
             .status(200)
             .json({
-              keys: producerKeychain.keys.map((key) => keyToApiKey(key)),
+              keys: producerKeychain.keys.map(keyToApiKey),
             })
             .end();
         } catch (error) {
