@@ -340,9 +340,19 @@ const purposeRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/purposes/riskAnalysis/latest", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/purposes/riskAnalysis/latest", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await purposeService.retrieveLatestRiskAnalysisConfiguration(ctx);
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
       async (_req, res) => res.status(501).send()

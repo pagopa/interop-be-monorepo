@@ -660,5 +660,16 @@ export function purposeServiceBuilder(
         }
       );
     },
+    async retrieveLatestRiskAnalysisConfiguration({
+      headers,
+      logger,
+    }: WithLogger<BffAppContext>): Promise<bffApi.RiskAnalysisFormConfig> {
+      logger.info(`Retrieving risk analysis latest configuration`);
+
+      return await purposeClient.retrieveLatestRiskAnalysisConfiguration({
+        queries: undefined,
+        headers,
+      });
+    },
   };
 }
