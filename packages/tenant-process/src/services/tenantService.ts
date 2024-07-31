@@ -353,17 +353,21 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const { updatedTenant, tenantKindHasBeenUpdated } =
+      const { tenantKind, tenantKindHasBeenUpdated } =
         await reevaluateTenantKind({
           tenant: tenantWithNewAttribute,
           readModelService,
         });
 
+      const updatedTenant: Tenant = {
+        ...tenantWithNewAttribute,
+        kind: tenantKind,
+      };
+
       if (tenantKindHasBeenUpdated) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          targetTenant.data.kind!,
+          tenantKind,
           updatedTenant,
           correlationId
         );
@@ -578,11 +582,12 @@ export function tenantServiceBuilder(
           readModelService,
         });
 
+      const updatedTenant: Tenant = {
+        ...tenantWithNewAttribute,
+        kind: tenantKind,
+      };
+
       if (tenantKindHasBeenUpdated) {
-        const updatedTenant: Tenant = {
-          ...tenantWithNewAttribute,
-          kind: tenantKind,
-        };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
           tenantKind,
