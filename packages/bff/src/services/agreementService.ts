@@ -423,9 +423,9 @@ export const getAgreementsFrom = async (
   await agreementProcessClient.getAgreements({
     headers,
     queries: {
-      consumersIds: consumerIds?.join(","),
-      producersIds: producerIds?.join(","),
-      eservicesIds: eserviceIds?.join(","),
+      consumersIds: consumerIds,
+      producersIds: producerIds,
+      eservicesIds: eserviceIds,
       states: states.join(","),
       offset: start,
       limit,
