@@ -15,12 +15,11 @@ import {
   S3Config,
   genericLogger,
   initDB,
+  initEmailManager,
   initFileManager,
-  initPECEmailManager,
-  initSESMailManager,
 } from "pagopa-interop-commons";
 import axios from "axios";
-import { PECConfigTest, SESConfigTest } from "./testConfig.js";
+import { EmailManagerConfigTest } from "./testConfig.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -69,28 +68,24 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  pecConfig?: PECConfigTest,
-  sesConfig?: SESConfigTest
+  emailManagerConfig?: EmailManagerConfigTest
 ): {
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
-  pecEmailManager: EmailManager;
-  sesEmailManager: EmailManager;
+  emailManager: EmailManager;
   cleanup: () => Promise<void>;
 };
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  pecConfig?: PECConfigTest,
-  sesConfig?: SESConfigTest
+  emailManagerConfig?: EmailManagerConfigTest
 ): {
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
-  pecEmailManager?: EmailManager;
-  sesEmailManager?: EmailManager;
+  emailManager?: EmailManager;
   cleanup: () => Promise<void>;
 } {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
@@ -98,8 +93,7 @@ export function setupTestContainersVitest(
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
-  let pecEmailManager: EmailManager | undefined;
-  let sesEmailManager: EmailManager | undefined;
+  let emailManager: EmailManager | undefined;
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -121,20 +115,15 @@ export function setupTestContainersVitest(
     fileManager = initFileManager(fileManagerConfig);
   }
 
-  if (pecConfig) {
-    pecEmailManager = initPECEmailManager(pecConfig, false);
-  }
-
-  if (sesConfig) {
-    sesEmailManager = initSESMailManager(sesConfig);
+  if (emailManagerConfig) {
+    emailManager = initEmailManager(emailManagerConfig, false);
   }
 
   return {
     readModelRepository,
     postgresDB,
     fileManager,
-    pecEmailManager,
-    sesEmailManager,
+    emailManager,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
@@ -173,18 +162,13 @@ export function setupTestContainersVitest(
         fileManagerConfig.s3Bucket = s3OriginalBucket;
       }
 
-      if (pecConfig?.smtpAddress && pecConfig?.mailpitAPIPort) {
+      if (
+        emailManagerConfig?.smtpAddress &&
+        emailManagerConfig?.mailpitAPIPort
+      ) {
         await axios.delete(
-          `http://${pecConfig?.smtpAddress}:${pecConfig?.mailpitAPIPort}/api/v1/messages`
+          `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
         );
-      }
-
-      if (sesConfig?.sesAPIPort) {
-        await axios({
-          method: "get",
-          baseURL: "localhost",
-          url: "/store",
-        });
       }
     },
   };
