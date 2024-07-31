@@ -46,8 +46,4 @@ describe("initSESMailManager", () => {
       FromEmailAddress: from,
     });
   });
-
-  afterEach(() => {
-    sesMock.reset();
-  });
 });
