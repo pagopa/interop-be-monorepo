@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
 import { WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  bffApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { userNotFound } from "../model/domain/errors.js";
-import { toBffApiCompactUser } from "../model/domain/apiConverter.js";
+import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
+import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -15,35 +19,37 @@ export function clientServiceBuilder(
   const { authorizationProcessClient } = apiClients;
 
   return {
-    async getClients({
-      ctx,
-      limit,
-      offset,
-      requesterId,
-      userIds,
-      kind,
-      name,
-    }: {
-      requesterId: string;
-      offset: number;
-      limit: number;
-      userIds: string[];
-      ctx: WithLogger<BffAppContext>;
-      name?: string;
-      kind?: bffApi.ClientKind;
-    }): Promise<authorizationApi.ClientsWithKeys> {
-      ctx.logger.info(`Retrieving clients`);
+    async getClients(
+      {
+        limit,
+        offset,
+        requesterId,
+        userIds,
+        kind,
+        name,
+      }: {
+        requesterId: string;
+        offset: number;
+        limit: number;
+        userIds: string[];
+        name?: string;
+        kind?: bffApi.ClientKind;
+      },
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<authorizationApi.ClientsWithKeys> {
+      logger.info(`Retrieving clients`);
 
       return authorizationProcessClient.client.getClientsWithKeys({
         queries: {
           offset,
           limit,
-          userIds: userIds.join(","),
+          userIds,
           consumerId: requesterId,
           name,
           kind,
+          purposeId: undefined,
         },
-        headers: ctx.headers,
+        headers,
       });
     },
 
@@ -115,13 +121,18 @@ export function clientServiceBuilder(
       userId: string,
       clientId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(`Add user ${userId} to client ${clientId}`);
 
-      await authorizationProcessClient.client.addUser(undefined, {
-        params: { clientId, userId },
-        headers,
-      });
+      const { id } = await authorizationProcessClient.client.addUser(
+        undefined,
+        {
+          params: { clientId, userId },
+          headers,
+        }
+      );
+
+      return { id };
     },
 
     async createKeys(
@@ -132,14 +143,9 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Create keys for client ${clientId}`);
 
-      const body: authorizationApi.KeysSeed = keySeed.map((seed) => ({
-        userId,
-        key: seed.key,
-        use: seed.use,
-        alg: seed.alg,
-        name: seed.name,
-        createdAt: new Date().toISOString(),
-      }));
+      const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
+        toAuthorizationKeySeed(seed, userId)
+      );
 
       await authorizationProcessClient.client.createKeys(body, {
         params: { clientId },
@@ -156,7 +162,7 @@ export function clientServiceBuilder(
 
       const { keys } = await authorizationProcessClient.client.getClientKeys({
         params: { clientId },
-        queries: { userIds: userIds.join(",") },
+        queries: { userIds },
         headers,
       });
 
@@ -219,7 +225,7 @@ export function clientServiceBuilder(
       clientId: string,
       keyId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ key: string }> {
+    ): Promise<bffApi.EncodedClientKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
       const key = await authorizationProcessClient.client.getClientKeyById({
@@ -232,7 +238,7 @@ export function clientServiceBuilder(
     async createConsumerClient(
       seed: authorizationApi.ClientSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ id: string }> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating consumer client with name ${seed.name}`);
 
       return authorizationProcessClient.client.createConsumerClient(seed, {
@@ -243,7 +249,7 @@ export function clientServiceBuilder(
     async createApiClient(
       seed: authorizationApi.ClientSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ id: string }> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating api client with name ${seed.name}`);
 
       return authorizationProcessClient.client.createApiClient(seed, {

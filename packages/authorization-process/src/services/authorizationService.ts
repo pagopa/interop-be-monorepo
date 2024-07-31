@@ -31,8 +31,10 @@ import {
   decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-selfcare-v2-client";
+import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 
 import {
   clientNotFound,
@@ -49,6 +51,7 @@ import {
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
+  invalidKey,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -614,10 +617,13 @@ export function authorizationServiceBuilder(
       });
 
       if (keysSeeds.length !== 1) {
-        throw genericInternalError("Wrong number of keys"); // TODO should we add a specific error?
+        throw genericInternalError("Wrong number of keys");
       }
       const keySeed = keysSeeds[0];
       const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      if (jwk.kty !== "RSA") {
+        throw invalidKey();
+      }
       const newKey: Key = {
         clientId,
         name: keySeed.name,

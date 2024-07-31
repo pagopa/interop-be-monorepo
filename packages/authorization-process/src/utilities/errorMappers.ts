@@ -118,12 +118,15 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "tooManyKeysPerClient",
       "notAllowedPrivateKeyException",
+      "invalidKey",
+      "jwkDecodingError",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .with(
       "organizationNotAllowedOnClient",
       "userWithoutSecurityPrivileges",
+      "userNotFound",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

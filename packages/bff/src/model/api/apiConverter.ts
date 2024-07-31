@@ -15,12 +15,14 @@ import {
 } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  authorizationApi,
   bffApi,
   catalogApi,
+  selfcareV2ClientApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { agreementApiState } from "./agreementTypes.js";
-import { descriptorApiState } from "./catalogTypes.js";
+import { match, P } from "ts-pattern";
+import { agreementApiState, catalogApiDescriptorState } from "./apiTypes.js";
 
 export function toDescriptorWithOnlyAttributes(
   descriptor: catalogApi.EServiceDescriptor
@@ -43,7 +45,7 @@ export function toDescriptorWithOnlyAttributes(
 }
 
 export function toEserviceCatalogProcessQueryParams(
-  queryParams: bffApi.GetCatalogQueryParam
+  queryParams: bffApi.BffGetCatalogQueryParam
 ): catalogApi.GetCatalogQueryParam {
   return {
     ...queryParams,
@@ -71,8 +73,8 @@ export function toBffCatalogApiEServiceResponse(
         .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
         .find(
           (d) =>
-            (d.state === descriptorApiState.PUBLISHED ||
-              d.state === descriptorApiState.SUSPENDED) &&
+            (d.state === catalogApiDescriptorState.PUBLISHED ||
+              d.state === catalogApiDescriptorState.SUSPENDED) &&
             (agreement.state === agreementApiState.ACTIVE ||
               agreement.state === agreementApiState.SUSPENDED)
         ) !== undefined
@@ -168,3 +170,27 @@ export function toTenantWithOnlyAttributes(
     attributes: tenant.attributes.map(toTenantAttribute).flat(),
   };
 }
+
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
+
+export const toBffApiCompactUser = (
+  input: selfcareV2ClientApi.UserResponse,
+  userId: string
+): bffApi.CompactUser =>
+  match(input)
+    .with({ name: P.nullish, surname: P.nullish }, () => ({
+      userId,
+      name: "Utente",
+      familyName: userId,
+    }))
+    .otherwise((ur) => ({
+      userId,
+      name: ur.name ?? "",
+      familyName: ur.surname ?? "",
+    }));

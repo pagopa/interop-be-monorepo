@@ -99,29 +99,19 @@ export const toApiAttributeProcessSeed = (
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
 
-export const toBffApiCompactClient = (
-  input: authorizationApi.ClientWithKeys
-): bffApi.CompactClient => ({
-  hasKeys: input.keys.length > 0,
-  id: input.client.id,
-  name: input.client.name,
-});
-
-export const toBffApiCompactUser = (
-  input: selfcareV2ClientApi.UserResponse,
+export function toAuthorizationKeySeed(
+  seed: bffApi.KeySeed,
   userId: string
-): bffApi.CompactUser =>
-  match(input)
-    .with({ name: P.nullish, surname: P.nullish }, () => ({
-      userId,
-      name: "Utente",
-      familyName: userId,
-    }))
-    .otherwise((ur) => ({
-      userId,
-      name: ur.name ?? "",
-      familyName: ur.surname ?? "",
-    }));
+): authorizationApi.KeySeed {
+  return {
+    userId,
+    key: seed.key,
+    use: seed.use,
+    alg: seed.alg,
+    name: seed.name,
+    createdAt: new Date().toISOString(),
+  };
+}
 
 export const fromApiConsentType = (type: "TOS" | "PP"): PrivacyNoticeKind =>
   match(type)

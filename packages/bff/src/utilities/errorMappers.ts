@@ -9,10 +9,15 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_UNAUTHORIZED,
+  HTTP_STATUS_FORBIDDEN,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("descriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -32,6 +37,12 @@ export const getSelfcareUserErrorMapper = (
   match(error.code)
     .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
+    .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientUsersErrorMapper = (

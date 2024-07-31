@@ -9,8 +9,8 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
+import { emptyErrorMapper } from "../utilities/errorMappers.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -34,7 +34,14 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating certified attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -50,7 +57,14 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating verified attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -66,7 +80,14 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating declared attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -77,14 +98,16 @@ const attributeRouter = (
       try {
         const { q, offset, limit, kinds, origin } = req.query;
 
-        const attributes = await attributeService.getAttributes({
-          name: q,
-          offset,
-          limit,
-          kinds,
-          origin,
-          ctx,
-        });
+        const attributes = await attributeService.getAttributes(
+          {
+            name: q,
+            offset,
+            limit,
+            kinds,
+            origin,
+          },
+          ctx
+        );
 
         return res
           .json({
@@ -93,7 +116,12 @@ const attributeRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving attributes with name = ${req.query.q}, limit = ${req.query.limit}, offset = ${req.query.offset}, kinds = ${req.query.kinds}`
+        );
         return res.status(errorRes.status).end();
       }
     })
@@ -109,7 +137,12 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving attribute with id ${req.params.attributeId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -126,7 +159,12 @@ const attributeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving attribute with origin = ${req.params.origin} and code = ${req.params.code}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     });

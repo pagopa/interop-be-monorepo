@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { bffApi, attributeRegistryApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { BffAppContext } from "../utilities/context.js";
 import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
@@ -77,25 +77,26 @@ export function attributeServiceBuilder(
       });
     },
 
-    async getAttributes({
-      offset,
-      limit,
-      kinds,
-      ctx,
-      name,
-      origin,
-    }: {
-      offset: number;
-      limit: number;
-      kinds: attributeRegistryApi.AttributeKind[];
-      ctx: WithLogger<BffAppContext>;
-      name?: string;
-      origin?: string;
-    }): Promise<attributeRegistryApi.Attributes> {
-      ctx.logger.info("Retrieving attributes");
+    async getAttributes(
+      {
+        offset,
+        limit,
+        kinds,
+        name,
+        origin,
+      }: {
+        offset: number;
+        limit: number;
+        kinds: attributeRegistryApi.AttributeKind[];
+        name?: string;
+        origin?: string;
+      },
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<attributeRegistryApi.Attributes> {
+      logger.info("Retrieving attributes");
       return attributeClient.getAttributes({
         queries: { offset, limit, kinds, name, origin },
-        headers: ctx.headers,
+        headers,
       });
     },
   };

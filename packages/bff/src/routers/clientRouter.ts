@@ -5,11 +5,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { selfcareV2UsersClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import {
+  bffApi,
+  selfcareV2UsersClientBuilder,
+} from "pagopa-interop-api-clients";
 import { clientServiceBuilder } from "../services/clientService.js";
 import { config } from "../config/config.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -17,6 +18,7 @@ import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
+import { toBffApiCompactClient } from "../model/api/apiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
@@ -37,15 +39,17 @@ const clientRouter = (
       try {
         const requesterId = ctx.authData.organizationId;
         const { limit, offset, userIds, kind, q } = req.query;
-        const clients = await clientService.getClients({
-          ctx,
-          limit,
-          offset,
-          userIds,
-          kind,
-          name: q,
-          requesterId,
-        });
+        const clients = await clientService.getClients(
+          {
+            limit,
+            offset,
+            userIds,
+            kind,
+            name: q,
+            requesterId,
+          },
+          ctx
+        );
 
         return res
           .status(200)
@@ -144,13 +148,13 @@ const clientRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await clientService.addUserToClient(
+        const createdUser = await clientService.addUserToClient(
           req.params.userId,
           req.params.clientId,
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).json(createdUser);
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
@@ -284,12 +288,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
-    })
-
-    .get("/clients/:clientId/users/:userId/keys", async (_req, res) =>
-      res.status(501).send()
-    );
-
+    });
   return clientRouter;
 };
 

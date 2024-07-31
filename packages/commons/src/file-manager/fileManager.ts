@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 /* eslint-disable max-params */
 import {
   CopyObjectCommand,
@@ -13,13 +14,12 @@ import { Logger, LoggerConfig } from "../index.js";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
+  fileManagerGetError,
   fileManagerListFilesError,
-  fileManagerGetFileError,
   fileManagerStoreBytesError,
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
-  get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   delete: (bucket: string, path: string, logger: Logger) => Promise<void>;
   copy: (
     bucket: string,
@@ -37,6 +37,7 @@ export type FileManager = {
     fileContent: Buffer,
     logger: Logger
   ) => Promise<string>;
+  get: (bucket: string, path: string, logger: Logger) => Promise<Readable>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
 };
 
@@ -59,25 +60,6 @@ export function initFileManager(
   ): string => `${path}/${resourceId}/${fileName}`;
 
   return {
-    get: async (
-      bucket: string,
-      path: string,
-      logger: Logger
-    ): Promise<Uint8Array> => {
-      logger.info(`Getting file ${path} from bucket ${bucket}`);
-      try {
-        const response = await client.send(
-          new GetObjectCommand({
-            Bucket: bucket,
-            Key: path,
-          })
-        );
-
-        return response.Body?.transformToByteArray() ?? new Uint8Array();
-      } catch (error) {
-        throw fileManagerGetFileError(bucket, path, error);
-      }
-    },
     delete: async (
       bucket: string,
       path: string,
@@ -118,6 +100,28 @@ export function initFileManager(
         return key;
       } catch (error) {
         throw fileManagerCopyError(filePathToCopy, key, bucket, error);
+      }
+    },
+    get: async (
+      bucket: string,
+      path: string,
+      logger: Logger
+    ): Promise<Readable> => {
+      logger.info(`Getting file ${path} in bucket ${bucket}`);
+      try {
+        const response = await client.send(
+          new GetObjectCommand({
+            Bucket: bucket,
+            Key: path,
+          })
+        );
+        const body = response.Body;
+        if (!body) {
+          throw fileManagerGetError(bucket, path, "File is empty");
+        }
+        return body as Readable;
+      } catch (error) {
+        throw fileManagerGetError(bucket, path, error);
       }
     },
     listFiles: async (bucket: string, logger: Logger): Promise<string[]> => {
