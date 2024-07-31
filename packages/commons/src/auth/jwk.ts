@@ -26,12 +26,16 @@ export const calculateKid = (jwk: JsonWebKey): string => {
 
 function createPublicKey(key: string): KeyObject {
   /*
-  In this function we use a little trick to check whether the key is a public or private key. 
-  First let's decode what comes to us as input.
-  After which we try to create a private key, if the creation is successful, we throw notAllowedPrivateKeyException(), 
-  but if it is not successful we most likely received a string containing the information for a public key as input.
-  With the second try catch we check if the key is formatted in the right way, 
-  if so we create the public key, otherwise we throw invalidKey
+  Validation of a public key in PEM format.
+  The standard library does not provide a specific method.
+  Note: crypto.createPublicKey cannot be used directly because it succeeds also when providing a private key.
+  In order to perform the check, the function:
+    1. tries to create a private key
+      - success: the value is a private key and the function fails
+      - failure: the value is not a private key and the function proceeds
+    2. tries to create a public key
+      - success: the value is a public key
+      - failure: the value is not a key
   */
   const pemKey = decodeBase64ToPem(key);
   try {
