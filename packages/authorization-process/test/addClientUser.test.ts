@@ -47,7 +47,7 @@ const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
   surname: "surname_test",
 };
 
-describe("addUser", () => {
+describe("addClientUser", () => {
   it("should write on event-store when adding a user to a client", async () => {
     const consumerId: TenantId = generateId();
     const userIdToAdd: UserId = generateId();
@@ -63,7 +63,7 @@ describe("addUser", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.addUser(
+    await authorizationService.addClientUser(
       {
         clientId: mockClient.id,
         userId: userIdToAdd,
@@ -105,7 +105,7 @@ describe("addUser", () => {
     await addOneClient(getMockClient());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId: userIdToAdd,
@@ -130,7 +130,7 @@ describe("addUser", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId,
@@ -154,7 +154,7 @@ describe("addUser", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId: userIdToAdd,
@@ -192,7 +192,7 @@ describe("addUser", () => {
     mockSelfcareV2ClientCall([]);
 
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId: generateId(),

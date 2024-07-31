@@ -32,7 +32,7 @@ import {
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  addUserErrorMapper,
+  addClientUserErrorMapper,
   deleteClientErrorMapper,
   getClientsErrorMapper,
   createApiClientErrorMapper,
@@ -351,15 +351,16 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client, showUsers } = await authorizationService.addUser(
-            {
-              clientId: unsafeBrandId(req.params.clientId),
-              userId: unsafeBrandId(req.params.userId),
-              authData: req.ctx.authData,
-            },
-            req.ctx.correlationId,
-            ctx.logger
-          );
+          const { client, showUsers } =
+            await authorizationService.addClientUser(
+              {
+                clientId: unsafeBrandId(req.params.clientId),
+                userId: unsafeBrandId(req.params.userId),
+                authData: req.ctx.authData,
+              },
+              req.ctx.correlationId,
+              ctx.logger
+            );
           return res
             .status(200)
             .json(clientToApiClient(client, { showUsers }))
@@ -367,7 +368,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addUserErrorMapper,
+            addClientUserErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

@@ -467,7 +467,7 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async addUser(
+    async addClientUser(
       {
         clientId,
         userId,
