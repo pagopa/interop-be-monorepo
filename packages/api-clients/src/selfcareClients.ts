@@ -1,8 +1,7 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
+import { AxiosInstance, AxiosResponse } from "axios";
 import { ZodiosInstance, ZodiosOptions } from "@zodios/core";
 import * as AxiosLogger from "axios-logger";
-import { z } from "zod";
-import { SelfCareConfig } from "pagopa-interop-commons";
+import { genericLogger, SelfCareConfig } from "pagopa-interop-commons";
 import { selfcareV2ClientApi } from "./index.js";
 
 const createClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
@@ -14,33 +13,13 @@ const createClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
 });
 
 const configureInterceptors = (client: AxiosInstance): void => {
-  client.interceptors.request.use((request) => {
-    AxiosLogger.requestLogger(request as never, { params: true });
-    return request;
-  });
-
   client.interceptors.response.use(
     (response: AxiosResponse): AxiosResponse => response,
-    (error: AxiosError): Promise<AxiosError> => {
-      if (!axios.isAxiosError(error)) {
-        return Promise.reject(error);
-      }
-
-      const parsedErrorResponseData = z
-        .object({
-          statusCode: z.number(),
-          message: z.string(),
-        })
-        .safeParse(error.response?.data);
-
-      if (parsedErrorResponseData.success) {
-        const { statusCode, message } = parsedErrorResponseData.data;
-        // eslint-disable-next-line functional/immutable-data
-        error.message = `${statusCode} - ${message}`;
-      }
-
-      return Promise.reject(error);
-    }
+    (error) =>
+      AxiosLogger.errorLogger(error, {
+        params: true,
+        logger: genericLogger.error,
+      })
   );
 };
 
