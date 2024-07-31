@@ -374,7 +374,7 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKey(keySeed.key, "It's not an RSA key"));
+    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
     const keySeed: authorizationApi.KeySeed = {
