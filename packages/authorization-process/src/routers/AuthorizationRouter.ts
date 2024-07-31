@@ -630,7 +630,10 @@ const authorizationRouter = (
             .status(200)
             .json({
               results: producerKeychains.results.map((producerKeychain) =>
-                producerKeychainToApiProducerKeychain(producerKeychain)
+                producerKeychainToApiProducerKeychain(producerKeychain, {
+                  showUsers:
+                    ctx.authData.organizationId === producerKeychain.producerId,
+                })
               ),
               totalCount: producerKeychains.totalCount,
             })
