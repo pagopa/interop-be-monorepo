@@ -10,7 +10,10 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
-import { agreementApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -35,7 +38,6 @@ import {
   unsafeBrandId,
   CompactTenant,
 } from "pagopa-interop-models";
-import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
 import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
