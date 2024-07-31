@@ -164,14 +164,14 @@ export function catalogServiceBuilder(
 ) {
   return {
     getCatalog: async (
-      context: WithLogger<BffAppContext>,
+      { headers, authData }: WithLogger<BffAppContext>,
       queries: catalogApi.GetCatalogQueryParam
     ): Promise<bffApi.CatalogEServices> => {
-      const requesterId = context.authData.organizationId;
+      const requesterId = authData.organizationId;
       const { offset, limit } = queries;
       const eservicesResponse: catalogApi.EServices =
         await catalogProcessClient.getEServices({
-          headers: context.headers,
+          headers,
           queries: {
             ...queries,
             eservicesIds: queries.eservicesIds,
@@ -187,7 +187,7 @@ export function catalogServiceBuilder(
           enhanceCatalogEService(
             tenantProcessClient,
             agreementProcessClient,
-            context.headers,
+            headers,
             requesterId
           )
         )
@@ -205,10 +205,9 @@ export function catalogServiceBuilder(
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      context: WithLogger<BffAppContext>
+      { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
+      const requesterId = authData.organizationId;
 
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
@@ -265,10 +264,9 @@ export function catalogServiceBuilder(
     },
     getProducerEServiceDetails: async (
       eServiceId: string,
-      context: WithLogger<BffAppContext>
+      { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDetails> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
+      const requesterId = authData.organizationId;
 
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
@@ -292,7 +290,7 @@ export function catalogServiceBuilder(
       };
     },
     updateEServiceDescription: async (
-      headers: Headers,
+      { headers }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
       updateSeed: bffApi.EServiceDescriptionSeed
     ): Promise<bffApi.CreatedResource> => {
@@ -313,9 +311,9 @@ export function catalogServiceBuilder(
       consumersIds: string[],
       offset: number,
       limit: number,
-      context: WithLogger<BffAppContext>
+      { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
-      const producerId = context.authData.organizationId;
+      const producerId = authData.organizationId;
       const response: {
         results: catalogApi.EService[];
         totalCount: number;
@@ -327,7 +325,7 @@ export function catalogServiceBuilder(
       if (consumersIds.length === 0) {
         const { results, totalCount } = await catalogProcessClient.getEServices(
           {
-            headers: context.headers,
+            headers,
             queries: {
               name: eserviceName,
               producersIds: producerId,
@@ -343,7 +341,7 @@ export function catalogServiceBuilder(
         const eserviceIds = (
           await getAllAgreements(
             agreementProcessClient,
-            context.headers,
+            headers,
             consumersIds,
             [],
             [producerId]
@@ -352,7 +350,7 @@ export function catalogServiceBuilder(
 
         const { results, totalCount } = await catalogProcessClient.getEServices(
           {
-            headers: context.headers,
+            headers,
             queries: {
               name: eserviceName,
               eservicesIds: eserviceIds,
