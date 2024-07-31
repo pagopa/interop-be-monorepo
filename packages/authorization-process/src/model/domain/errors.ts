@@ -31,6 +31,7 @@ export const errorCodes = {
   invalidKey: "0018",
   producerKeychainNotFound: "0019",
   organizationNotAllowedOnProducerKeychain: "0020",
+  tooManyKeysPerProducerKeychain: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -189,6 +190,17 @@ export function tooManyKeysPerClient(
     detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
     code: "tooManyKeysPerClient",
     title: "Too many Keys per client",
+  });
+}
+
+export function tooManyKeysPerProducerKeychain(
+  producerKeychainId: ProducerKeychainId,
+  size: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Keys count (${size}) for the producer keychain ${producerKeychainId} exceed maximum allowed value`,
+    code: "tooManyKeysPerProducerKeychain",
+    title: "Too many Keys per producer keychain",
   });
 }
 

@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
   ProducerKeychain,
   ProducerKeychainId,
+  ProducerKeychainKey,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -48,7 +49,6 @@ import {
   noPurposeVersionsFoundInRequiredState,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
-  tooManyKeysPerClient,
   userAlreadyAssigned,
   userIdNotFound,
   userNotFound,
@@ -67,8 +67,8 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
+  toCreateEventProducerKeychainKeyAdded,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
 import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
@@ -83,6 +83,8 @@ import {
   assertUserSelfcareSecurityPrivileges,
   assertOrganizationIsClientConsumer,
   assertOrganizationIsProducerKeychainProducer,
+  assertClientKeysCountIsBelowThreshold,
+  assertProducerKeychainKeysCountIsBelowThreshold,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -623,7 +625,7 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      assertKeysCountIsBelowThreshold(
+      assertClientKeysCountIsBelowThreshold(
         clientId,
         client.data.keys.length + keysSeeds.length
       );
@@ -657,7 +659,7 @@ export function authorizationServiceBuilder(
         use: ApiKeyUseToKeyUse(keySeed.use),
         userId: authData.userId,
       };
-      const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
+      const duplicateKid = await readModelService.getClientKeyByKid(newKey.kid);
       if (duplicateKid) {
         throw keyAlreadyExists(newKey.kid);
       }
@@ -823,18 +825,91 @@ export function authorizationServiceBuilder(
         )
       );
     },
+
+    async createProducerKeychainKeys({
+      producerKeychainId,
+      authData,
+      keysSeeds,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      authData: AuthData;
+      keysSeeds: authorizationApi.KeysSeed;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<ProducerKeychain> {
+      logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        unsafeBrandId(authData.organizationId),
+        producerKeychain.data
+      );
+      assertProducerKeychainKeysCountIsBelowThreshold(
+        producerKeychainId,
+        producerKeychain.data.keys.length + keysSeeds.length
+      );
+
+      if (!producerKeychain.data.users.includes(authData.userId)) {
+        throw userNotFound(authData.userId, authData.selfcareId);
+      }
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: authData.userId,
+      });
+
+      if (keysSeeds.length !== 1) {
+        throw genericInternalError("Wrong number of keys");
+      }
+      const keySeed = keysSeeds[0];
+      const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      if (jwk.kty !== "RSA") {
+        throw invalidKey();
+      }
+      const newKey: ProducerKeychainKey = {
+        producerKeychainId,
+        name: keySeed.name,
+        createdAt: new Date(),
+        kid: calculateKid(jwk),
+        encodedPem: keySeed.key,
+        algorithm: keySeed.alg,
+        use: ApiKeyUseToKeyUse(keySeed.use),
+        userId: authData.userId,
+      };
+      const duplicateKid = await readModelService.getProducerKeychainKeyByKid(
+        newKey.kid
+      );
+
+      if (duplicateKid) {
+        throw keyAlreadyExists(newKey.kid);
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        keys: [...producerKeychain.data.keys, newKey],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainKeyAdded(
+          newKey.kid,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+
+      return updatedProducerKeychain;
+    },
   };
 }
 
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
-
-const assertKeysCountIsBelowThreshold = (
-  clientId: ClientId,
-  size: number
-): void => {
-  if (size > config.maxKeysPerClient) {
-    throw tooManyKeysPerClient(clientId, size);
-  }
-};

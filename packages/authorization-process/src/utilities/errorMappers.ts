@@ -162,3 +162,22 @@ export const deleteProducerKeychainErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createProducerKeychainKeysErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tooManyKeysPerProducerKeychain",
+      "notAllowedPrivateKeyException",
+      "invalidKey",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
