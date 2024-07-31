@@ -1,8 +1,10 @@
 import { WithLogger, FileManager, toSetToArray } from "pagopa-interop-commons";
 import {
+  EServiceId,
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -668,6 +670,25 @@ export function purposeServiceBuilder(
 
       return await purposeClient.retrieveLatestRiskAnalysisConfiguration({
         queries: undefined,
+        headers,
+      });
+    },
+    async retrieveRiskAnalysisConfigurationByVersion(
+      eserviceId: EServiceId,
+      riskAnalysisVersion: RiskAnalysisId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisFormConfig> {
+      logger.info(
+        `Retrieving risk analysis latest configuration for version ${riskAnalysisVersion}`
+      );
+
+      return await purposeClient.retrieveRiskAnalysisConfigurationByVersion({
+        params: {
+          riskAnalysisVersion,
+        },
+        queries: {
+          eserviceId,
+        },
         headers,
       });
     },
