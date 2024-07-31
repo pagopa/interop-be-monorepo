@@ -13,6 +13,7 @@ import { diff } from "json-diff";
 import {
   Agreement,
   Attribute,
+  Client,
   EService,
   Purpose,
   Tenant,
@@ -24,6 +25,7 @@ const Collection = z.enum([
   "eservices",
   "tenants",
   "purposes",
+  "clients",
 ]);
 type Collection = z.infer<typeof Collection>;
 
@@ -33,6 +35,7 @@ const readModelSchemas = {
   eservices: EService,
   tenants: Tenant,
   purposes: Purpose,
+  clients: Client,
 } as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
