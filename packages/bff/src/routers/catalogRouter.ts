@@ -90,7 +90,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving producer eservice ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
