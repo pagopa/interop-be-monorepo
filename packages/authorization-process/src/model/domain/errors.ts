@@ -32,7 +32,8 @@ export const errorCodes = {
   producerKeychainNotFound: "0019",
   organizationNotAllowedOnProducerKeychain: "0020",
   tooManyKeysPerProducerKeychain: "0021",
-  producerKeychainKeyNotFound: "0022",
+  userNotAllowedOnProducerKeychain: "0022",
+  producerKeychainKeyNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -250,6 +251,17 @@ export function organizationNotAllowedOnProducerKeychain(
     detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
     code: "organizationNotAllowedOnProducerKeychain",
     title: "Organization not allowed on producer keychain",
+  });
+}
+
+export function userNotAllowedOnProducerKeychain(
+  userId: UserId,
+  producerKeychain: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is not allowed on producer keychain ${producerKeychain}`,
+    code: "userNotAllowedOnProducerKeychain",
+    title: "User not allowed on producer keychain",
   });
 }
 

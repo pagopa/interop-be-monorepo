@@ -56,6 +56,7 @@ import {
   invalidKey,
   producerKeychainNotFound,
   producerKeychainKeyNotFound,
+  userNotAllowedOnProducerKeychain,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -909,7 +910,7 @@ export function authorizationServiceBuilder(
 
       return updatedProducerKeychain;
     },
-    async deleteProducerKeychainKeyById({
+    async removeProducerKeychainKeyById({
       producerKeychainId,
       keyIdToRemove,
       authData,
@@ -935,17 +936,15 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
-      if (!producerKeychain.data.users.includes(authData.userId)) {
-        throw userNotFound(authData.userId, authData.selfcareId);
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !producerKeychain.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnProducerKeychain(
+          authData.userId,
+          producerKeychain.data.id
+        );
       }
-
-      await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
-        requesterUserId: authData.userId,
-        consumerId: authData.organizationId,
-        selfcareV2InstitutionClient,
-        userIdToCheck: authData.userId,
-      });
 
       const keyToRemove = producerKeychain.data.keys.find(
         (key) => key.kid === keyIdToRemove

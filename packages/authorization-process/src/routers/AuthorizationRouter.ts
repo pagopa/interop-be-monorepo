@@ -728,7 +728,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.deleteProducerKeychainKeyById({
+          await authorizationService.removeProducerKeychainKeyById({
             producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
             keyIdToRemove: unsafeBrandId(req.params.keyId),
             authData: ctx.authData,
