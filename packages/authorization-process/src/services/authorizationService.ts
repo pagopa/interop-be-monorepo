@@ -722,7 +722,7 @@ export function authorizationServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
-    }): Promise<ProducerKeychain> {
+    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${organizationId}"`
       );
@@ -742,7 +742,7 @@ export function authorizationServiceBuilder(
         toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
       );
 
-      return producerKeychain;
+      return { producerKeychain, showUsers: true };
     },
   };
 }

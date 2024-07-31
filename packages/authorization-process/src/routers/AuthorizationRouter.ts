@@ -567,7 +567,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const producerKeychain =
+          const { producerKeychain, showUsers } =
             await authorizationService.createProducerKeychain({
               producerKeychainSeed: req.body,
               organizationId: ctx.authData.organizationId,
@@ -576,7 +576,11 @@ const authorizationRouter = (
             });
           return res
             .status(200)
-            .json(producerKeychainToApiProducerKeychain(producerKeychain))
+            .json(
+              producerKeychainToApiProducerKeychain(producerKeychain, {
+                showUsers,
+              })
+            )
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(
