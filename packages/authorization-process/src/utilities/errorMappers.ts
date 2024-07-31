@@ -80,7 +80,7 @@ export const addClientUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("userAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with("clientUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (

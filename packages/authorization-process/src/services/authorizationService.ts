@@ -49,7 +49,7 @@ import {
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   tooManyKeysPerClient,
-  userAlreadyAssigned,
+  clientUserAlreadyAssigned,
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
@@ -493,7 +493,7 @@ export function authorizationServiceBuilder(
         userIdToCheck: userId,
       });
       if (client.data.users.includes(userId)) {
-        throw userAlreadyAssigned(clientId, userId);
+        throw clientUserAlreadyAssigned(clientId, userId);
       }
       const updatedClient: Client = {
         ...client.data,

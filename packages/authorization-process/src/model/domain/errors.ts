@@ -18,7 +18,7 @@ export const errorCodes = {
   userNotAllowedOnClient: "0005",
   purposeNotFound: "0006",
   userWithoutSecurityPrivileges: "0007",
-  userAlreadyAssigned: "0008",
+  clientUserAlreadyAssigned: "0008",
   eserviceNotFound: "0009",
   noPurposeVersionsFoundInRequiredState: "0010",
   descriptorNotFound: "0011",
@@ -109,14 +109,14 @@ export function userWithoutSecurityPrivileges(
   });
 }
 
-export function userAlreadyAssigned(
+export function clientUserAlreadyAssigned(
   clientId: ClientId,
   userId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} is already assigned to the client ${clientId}`,
-    code: "userAlreadyAssigned",
-    title: "User already assigned",
+    code: "clientUserAlreadyAssigned",
+    title: "User already assigned to the client",
   });
 }
 
