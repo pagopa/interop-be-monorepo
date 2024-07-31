@@ -13,7 +13,12 @@ import {
   notAllowedPrivateKeyException,
   toClientV2,
 } from "pagopa-interop-models";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import {
+  AuthData,
+  calculateKid,
+  createJWK,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockKey,
@@ -32,7 +37,6 @@ import {
   userNotFound,
   userWithoutSecurityPrivileges,
 } from "../src/model/domain/errors.js";
-import { calculateKid, createJWK } from "../../commons/src/auth/jwk.js";
 import {
   addOneClient,
   authorizationService,
