@@ -210,7 +210,7 @@ describe("remove producer keychain key", () => {
       )
     );
   });
-  it("should throw userNotAllowedOnClient if a security user tries to delete a key without being member of the client", async () => {
+  it("should throw userNotAllowedOnProducerKeychain if a security user tries to delete a key without being member of the producer keychain", async () => {
     const mockProducer = getMockTenant();
     const mockUserId: UserId = generateId();
     const keyToRemove: ProducerKeychainKey = {
