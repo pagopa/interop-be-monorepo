@@ -126,6 +126,31 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return enhanceAgreementDetailed(agreement, clients, ctx);
     },
+
+    async rejectAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementRejectionPayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Rejecting agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.rejectAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enhanceAgreementDetailed(agreement, clients, ctx);
+    },
+
+    async archiveAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<void> {
+      ctx.logger.info(`Archiving agreement ${agreementId}`);
+      await agreementProcessClient.archiveAgreement(undefined, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+    },
   };
 }
 

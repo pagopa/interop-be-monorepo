@@ -170,12 +170,43 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/reject", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/agreements/:agreementId/archive", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/agreements/:agreementId/reject", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.rejectAgreement(
+          req.params.agreementId,
+          req.body,
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error rejecting agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/agreements/:agreementId/archive", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await agreementService.archiveAgreement(req.params.agreementId, ctx);
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error archiving agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/agreements/:agreementId/update", async (_req, res) =>
       res.status(501).send()
     )
