@@ -452,7 +452,7 @@ export function purposeServiceBuilder(
     ): Promise<void> {
       logger.info(`Rejecting version ${versionId} of purpose ${purposeId}`);
 
-      await purposeClient.rejectPurposeVersion(seed, {
+      await purposeProcessClient.rejectPurposeVersion(seed, {
         params: {
           purposeId,
           versionId,
@@ -467,13 +467,16 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Archiving purpose ${purposeId} with version ${versionId}`);
 
-      const result = await purposeClient.archivePurposeVersion(undefined, {
-        params: {
-          purposeId,
-          versionId,
-        },
-        headers,
-      });
+      const result = await purposeProcessClient.archivePurposeVersion(
+        undefined,
+        {
+          params: {
+            purposeId,
+            versionId,
+          },
+          headers,
+        }
+      );
 
       return {
         purposeId,
@@ -487,13 +490,16 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
 
-      const result = await purposeClient.suspendPurposeVersion(undefined, {
-        params: {
-          purposeId,
-          versionId,
-        },
-        headers,
-      });
+      const result = await purposeProcessClient.suspendPurposeVersion(
+        undefined,
+        {
+          params: {
+            purposeId,
+            versionId,
+          },
+          headers,
+        }
+      );
 
       return {
         purposeId,
@@ -507,13 +513,16 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
 
-      const result = await purposeClient.activatePurposeVersion(undefined, {
-        params: {
-          purposeId,
-          versionId,
-        },
-        headers,
-      });
+      const result = await purposeProcessClient.activatePurposeVersion(
+        undefined,
+        {
+          params: {
+            purposeId,
+            versionId,
+          },
+          headers,
+        }
+      );
 
       return {
         purposeId,
@@ -526,7 +535,7 @@ export function purposeServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting purpose ${purposeId}`);
 
-      await purposeClient.deletePurpose(undefined, {
+      await purposeProcessClient.deletePurpose(undefined, {
         params: {
           id: purposeId,
         },
@@ -540,7 +549,7 @@ export function purposeServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting version ${versionId} of purpose ${purposeId}`);
 
-      await purposeClient.deletePurposeVersion(undefined, {
+      await purposeProcessClient.deletePurposeVersion(undefined, {
         params: {
           purposeId,
           versionId,
@@ -555,7 +564,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating Purpose ${id}`);
 
-      const result = await purposeClient.updatePurpose(seed, {
+      const result = await purposeProcessClient.updatePurpose(seed, {
         params: {
           id,
         },
