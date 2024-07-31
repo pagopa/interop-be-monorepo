@@ -14,6 +14,7 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  TenantKind,
   TenantVerifier,
   VerifiedTenantAttribute,
   WithMetadata,
@@ -571,17 +572,20 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const { updatedTenant, tenantKindHasBeenUpdated } =
+      const { tenantKind, tenantKindHasBeenUpdated } =
         await reevaluateTenantKind({
           tenant: tenantWithNewAttribute,
           readModelService,
         });
 
       if (tenantKindHasBeenUpdated) {
+        const updatedTenant: Tenant = {
+          ...tenantWithNewAttribute,
+          kind: tenantKind,
+        };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantToModify.data.kind!, // To solve this, I suggest implementing a check whether the kind is there or not and if so, launch kindNotFound
+          tenantKind,
           updatedTenant,
           correlationId
         );
@@ -753,22 +757,15 @@ async function reevaluateTenantKind({
 }: {
   tenant: Tenant;
   readModelService: ReadModelService;
-}): Promise<{ updatedTenant: Tenant; tenantKindHasBeenUpdated: boolean }> {
+}): Promise<{ tenantKind: TenantKind; tenantKindHasBeenUpdated: boolean }> {
   const tenantKind = await getTenantKindLoadingCertifiedAttributes(
     readModelService,
     tenant.attributes,
     tenant.externalId
   );
-
-  const updatedTenant = {
-    ...tenant,
-    kind: tenantKind,
-  };
-
-  if (tenant.kind !== tenantKind) {
-    return { updatedTenant, tenantKindHasBeenUpdated: true };
-  }
-  return { updatedTenant, tenantKindHasBeenUpdated: false };
+  return tenant.kind !== tenantKind
+    ? { tenantKind, tenantKindHasBeenUpdated: true }
+    : { tenantKind, tenantKindHasBeenUpdated: false };
 }
 
 function buildVerifiedBy(
