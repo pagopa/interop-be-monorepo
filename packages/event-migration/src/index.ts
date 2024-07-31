@@ -242,11 +242,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .when(
     (targetSchema) =>
       targetSchema.includes("authorization") || targetSchema.includes("authz"),
-    (targetSchema) => {
-      const schemaTemplate = targetSchema.includes("authz")
-        ? "authz"
-        : "authorization";
-      checkSchema(config.sourceDbSchema, schemaTemplate);
+    () => {
+      checkSchema(config.sourceDbSchema, "auth");
 
       const parseEventType = (event_ser_manifest: any) =>
         event_ser_manifest
@@ -295,7 +292,7 @@ for (const event of originalEvents) {
   ];
   // Authorization has some event-store entries that don't have to be migrated
   if (
-    config.targetDbSchema.includes("authorization") &&
+    config.targetDbSchema.includes("auth") &&
     authorizationEventsToSkip.includes(parsedEventType)
   ) {
     skippedEvents++;
