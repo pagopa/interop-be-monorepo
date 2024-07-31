@@ -10,7 +10,10 @@ import { Client } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { clientNotFound, clientKeyNotFound } from "../src/model/domain/errors.js";
+import {
+  clientNotFound,
+  clientKeyNotFound,
+} from "../src/model/domain/errors.js";
 import { clientToApiClient } from "../src/model/domain/apiConverter.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
