@@ -15,8 +15,8 @@ const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const createJWK = (key: string): JsonWebKey =>
-  createPublicKey(key).export({ format: "jwk" });
+export const createJWK = (pemKeyBase64: string): JsonWebKey =>
+  createPublicKey(pemKeyBase64).export({ format: "jwk" });
 
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
@@ -25,6 +25,14 @@ export const calculateKid = (jwk: JsonWebKey): string => {
 };
 
 function createPublicKey(key: string): KeyObject {
+  /*
+  In this function we use a little trick to check whether the key is a public or private key. 
+  First let's decode what comes to us as input.
+  After which we try to create a private key, if the creation is successful, we throw notAllowedPrivateKeyException(), 
+  but if it is not successful we most likely received a string containing the information for a public key as input.
+  With the second try catch we check if the key is formatted in the right way, 
+  if so we create the public key, otherwise we throw invalidKey
+  */
   const pemKey = decodeBase64ToPem(key);
   try {
     crypto.createPrivateKey(pemKey);
