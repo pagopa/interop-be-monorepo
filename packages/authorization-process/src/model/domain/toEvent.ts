@@ -224,7 +224,7 @@ export function toCreateEventProducerKeychainUserAdded(
       type: "ProducerKeychainUserAdded",
       event_version: 2,
       data: {
-        producerKeychainId: toProducerKeychainV2(producerKeychain).id,
+        producerKeychainId: producerKeychain.id,
         userId,
       },
     },
