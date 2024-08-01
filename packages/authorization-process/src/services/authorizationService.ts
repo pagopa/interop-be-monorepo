@@ -70,6 +70,7 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
+  toCreateEventProducerKeychainEServiceRemoved,
   toCreateEventProducerKeychainKeyAdded,
   toCreateEventProducerKeychainKeyDeleted,
   toCreateEventProducerKeychainUserAdded,
@@ -1177,6 +1178,48 @@ export function authorizationServiceBuilder(
         throw producerKeychainKeyNotFound(kid, producerKeychainId);
       }
       return key;
+    },
+    async removeProducerKeychainEService({
+      producerKeychainId,
+      eserviceIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      eserviceIdToRemove: EServiceId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing e-service ${eserviceIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        eservices: producerKeychain.data.eservices.filter(
+          (eserviceId) => eserviceId !== eserviceIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainEServiceRemoved(
+          updatedProducerKeychain,
+          eserviceIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
     },
   };
 }

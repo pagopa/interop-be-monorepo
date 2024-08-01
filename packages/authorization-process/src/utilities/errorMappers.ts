@@ -265,3 +265,14 @@ export const getProducerKeychainKeyErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeProducerKeychainEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
