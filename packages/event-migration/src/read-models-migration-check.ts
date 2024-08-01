@@ -91,21 +91,28 @@ async function main(): Promise<void> {
   await scalaReadModel.close();
   await nodeReadModel.close();
 
+  // eslint-disable-next-line functional/no-let
+  let differencesCount = 0;
   differences.forEach(([scala, node]) => {
     if (scala && !node) {
+      differencesCount++;
       console.warn(`Object with id ${scala.id} not found in node readmodel`);
     }
     if (!scala && node) {
+      differencesCount++;
       console.warn(`Object with id ${node.id} not found in scala readmodel`);
     }
     if (scala && node) {
-      const objectsDiff = diff(scala, node);
-      console.warn(`Differences in object with id ${scala.id}`);
-      console.warn(JSON.stringify(objectsDiff, null, 2));
+      const objectsDiff = diff(scala, node, { sort: true });
+      if (objectsDiff) {
+        differencesCount++;
+        console.warn(`Differences in object with id ${scala.id}`);
+        console.warn(JSON.stringify(objectsDiff, null, 2));
+      }
     }
   });
 
-  if (differences.length > 0) {
+  if (differencesCount > 0) {
     process.exit(1);
   }
 
