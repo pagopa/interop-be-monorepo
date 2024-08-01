@@ -679,6 +679,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
       const deltaDailyCalls =
         previousVersion.state === purposeVersionState.suspended
           ? seed.dailyCalls
