@@ -58,6 +58,7 @@ import {
   userNotAllowedOnProducerKeychain,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
+  eserviceAlreadyLinkedToProducerKeychain,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -70,6 +71,7 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
+  toCreateEventProducerKeychainEServiceAdded,
   toCreateEventProducerKeychainKeyAdded,
   toCreateEventProducerKeychainKeyDeleted,
   toCreateEventProducerKeychainUserAdded,
@@ -91,6 +93,7 @@ import {
   assertOrganizationIsProducerKeychainProducer,
   assertClientKeysCountIsBelowThreshold,
   assertProducerKeychainKeysCountIsBelowThreshold,
+  assertOrganizationIsEServiceProducer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -1177,6 +1180,57 @@ export function authorizationServiceBuilder(
         throw producerKeychainKeyNotFound(kid, producerKeychainId);
       }
       return key;
+    },
+    async addProducerKeychainEService({
+      producerKeychainId,
+      seed,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      seed: authorizationApi.EServiceAdditionDetails;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Adding eservice with id ${seed.eserviceId} to client ${producerKeychainId}`
+      );
+      const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertOrganizationIsEServiceProducer(organizationId, eservice);
+
+      if (producerKeychain.data.eservices.includes(eserviceId)) {
+        throw eserviceAlreadyLinkedToProducerKeychain(
+          eserviceId,
+          producerKeychain.data.id
+        );
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        eservices: [...producerKeychain.data.eservices, eserviceId],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainEServiceAdded(
+          eserviceId,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
     },
   };
 }
