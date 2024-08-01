@@ -5,8 +5,8 @@ import {
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
-  initPECEmailManager,
-  initSESMailManager,
+  initPecEmailManager,
+  initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -22,13 +22,13 @@ import {
 
 import { config } from "./config/config.js";
 
-const sesEmailManager = initSESMailManager({ awsRegion: config.awsRegion });
-const pecEmailManager = initPECEmailManager({
-  smtpAddress: config.pecSmtpAddress,
-  smtpPort: config.pecSmtpPort,
-  smtpSecure: config.pecSmtpSecure,
-  smtpUsername: config.pecSmtpUsername,
-  smtpPassword: config.pecSmtpPassword,
+const sesEmailManager = initSesMailManager({ awsRegion: config.awsRegion });
+const pecEmailManager = initPecEmailManager({
+  smtpAddress: config.smtpAddress,
+  smtpPort: config.smtpPort,
+  smtpSecure: config.smtpSecure,
+  smtpUsername: config.smtpUsername,
+  smtpPassword: config.smtpPassword,
 });
 
 const readModelService = readModelServiceBuilder(

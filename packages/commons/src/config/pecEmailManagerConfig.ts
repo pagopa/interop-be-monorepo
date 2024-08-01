@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const EmailManagerConfig = z
+export const PecEmailManagerConfig = z
   .object({
     SMTP_ADDRESS: z.string(),
     SMTP_PORT: z.coerce.number(),
@@ -18,4 +18,4 @@ export const EmailManagerConfig = z
     smtpPassword: c.SMTP_PASSWORD,
   }));
 
-export type EmailManagerConfig = z.infer<typeof EmailManagerConfig>;
+export type PecEmailManagerConfig = z.infer<typeof PecEmailManagerConfig>;

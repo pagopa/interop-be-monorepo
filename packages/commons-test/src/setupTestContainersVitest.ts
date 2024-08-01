@@ -15,7 +15,7 @@ import {
   S3Config,
   genericLogger,
   initDB,
-  initPECEmailManager,
+  initPecEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
 import axios from "axios";
@@ -116,7 +116,7 @@ export function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initPECEmailManager(emailManagerConfig, false);
+    emailManager = initPecEmailManager(emailManagerConfig, false);
   }
 
   return {

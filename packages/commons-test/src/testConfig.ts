@@ -1,7 +1,7 @@
-import { EmailManagerConfig } from "pagopa-interop-commons";
+import { PecEmailManagerConfig } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const EmailManagerConfigTest = EmailManagerConfig.and(
+export const EmailManagerConfigTest = PecEmailManagerConfig.and(
   z.object({
     mailpitAPIPort: z.number().optional(),
   })
