@@ -13,12 +13,12 @@ import {
 export const errorCodes = {
   clientNotFound: "0001",
   organizationNotAllowedOnClient: "0002",
-  userIdNotFound: "0003",
+  clientUserIdNotFound: "0003",
   clientKeyNotFound: "0004",
   userNotAllowedOnClient: "0005",
   purposeNotFound: "0006",
   userWithoutSecurityPrivileges: "0007",
-  userAlreadyAssigned: "0008",
+  clientUserAlreadyAssigned: "0008",
   eserviceNotFound: "0009",
   noPurposeVersionsFoundInRequiredState: "0010",
   descriptorNotFound: "0011",
@@ -28,12 +28,13 @@ export const errorCodes = {
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
   keyAlreadyExists: "0017",
-  invalidKey: "0018",
-  producerKeychainNotFound: "0019",
-  organizationNotAllowedOnProducerKeychain: "0020",
-  tooManyKeysPerProducerKeychain: "0021",
-  userNotAllowedOnProducerKeychain: "0022",
-  producerKeychainKeyNotFound: "0023",
+  producerKeychainNotFound: "0018",
+  organizationNotAllowedOnProducerKeychain: "0019",
+  producerKeychainUserAlreadyAssigned: "0020",
+  producerKeychainUserIdNotFound: "0021",
+  tooManyKeysPerProducerKeychain: "0022",
+  userNotAllowedOnProducerKeychain: "0023",
+  producerKeychainKeyNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -59,14 +60,14 @@ export function organizationNotAllowedOnClient(
   });
 }
 
-export function userIdNotFound(
+export function clientUserIdNotFound(
   userId: UserId,
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} not found in client ${clientId}`,
-    code: "userIdNotFound",
-    title: "User id not found",
+    code: "clientUserIdNotFound",
+    title: "User id not found in client",
   });
 }
 
@@ -111,14 +112,14 @@ export function userWithoutSecurityPrivileges(
   });
 }
 
-export function userAlreadyAssigned(
+export function clientUserAlreadyAssigned(
   clientId: ClientId,
   userId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} is already assigned to the client ${clientId}`,
-    code: "userAlreadyAssigned",
-    title: "User already assigned",
+    code: "clientUserAlreadyAssigned",
+    title: "User already assigned to the client",
   });
 }
 
@@ -225,14 +226,6 @@ export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidKey(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Key is not an RSA key`,
-    code: "invalidKey",
-    title: "Invalid Key",
-  });
-}
-
 export function producerKeychainNotFound(
   producerKeychainId: ProducerKeychainId
 ): ApiError<ErrorCodes> {
@@ -273,5 +266,27 @@ export function producerKeychainKeyNotFound(
     detail: `Key ${keyId} not found in producer keychain ${producerKeychainId}`,
     code: "producerKeychainKeyNotFound",
     title: "Key not found",
+  });
+}
+
+export function producerKeychainUserAlreadyAssigned(
+  producerKeychainId: ProducerKeychainId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned to the producer keychain ${producerKeychainId}`,
+    code: "producerKeychainUserAlreadyAssigned",
+    title: "User already assigned to the producer keychain",
+  });
+}
+
+export function producerKeychainUserIdNotFound(
+  userId: UserId,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeychainUserIdNotFound",
+    title: "User id not found in producer keychain",
   });
 }

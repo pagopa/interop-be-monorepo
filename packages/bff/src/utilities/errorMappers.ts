@@ -25,6 +25,19 @@ export const reversePurposeUpdateErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getSelfcareUserErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
