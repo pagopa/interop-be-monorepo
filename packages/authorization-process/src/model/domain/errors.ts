@@ -28,9 +28,8 @@ export const errorCodes = {
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
   keyAlreadyExists: "0017",
-  invalidKey: "0018",
-  producerKeychainNotFound: "0019",
-  organizationNotAllowedOnProducerKeychain: "0020",
+  producerKeychainNotFound: "0018",
+  organizationNotAllowedOnProducerKeychain: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -208,14 +207,6 @@ export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
     detail: `Key with kid ${kid} already exists `,
     code: "keyAlreadyExists",
     title: "Key already exists",
-  });
-}
-
-export function invalidKey(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Key is not an RSA key`,
-    code: "invalidKey",
-    title: "Invalid Key",
   });
 }
 
