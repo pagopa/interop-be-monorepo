@@ -14,7 +14,7 @@ export const keyToJWKKey = (key: Key, clientId: ClientId): JWKKey => {
   return {
     clientId,
     kid: key.kid,
-    use: key.use,
+    use: key.use.toLowerCase(),
     alg: key.algorithm,
     e: jwk.e,
     kty: jwk.kty,
