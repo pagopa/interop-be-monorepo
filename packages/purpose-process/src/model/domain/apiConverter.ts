@@ -107,6 +107,7 @@ export const purposeVersionToApiPurposeVersion = (
     : undefined,
   dailyCalls: version.dailyCalls,
   suspendedAt: version.suspendedAt?.toJSON(),
+  rejectionReason: version.rejectionReason,
 });
 
 export const purposeToApiPurpose = (
