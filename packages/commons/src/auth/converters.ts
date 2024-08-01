@@ -5,10 +5,10 @@ import {
   ProducerKeychainKey,
   ProducerKeychainJWKKey,
 } from "pagopa-interop-models";
-import { createJWK, decodeBase64ToPem } from "./jwk.js";
+import { createJWK } from "./jwk.js";
 
-export const clientKeyToClientJWKKey = (key: ClientKey): ClientJWKKey => {
-  const jwk = createJWK(decodeBase64ToPem(key.encodedPem));
+export const keyToJWKKey = (key: ClientKey): ClientJWKKey => {
+  const jwk = createJWK(key.encodedPem);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
@@ -26,7 +26,7 @@ export const clientKeyToClientJWKKey = (key: ClientKey): ClientJWKKey => {
 export const producerKeychainKeyToProducerKeychainJWKKey = (
   key: ProducerKeychainKey
 ): ProducerKeychainJWKKey => {
-  const jwk = createJWK(decodeBase64ToPem(key.encodedPem));
+  const jwk = createJWK(key.encodedPem);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
