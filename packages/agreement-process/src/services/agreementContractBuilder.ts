@@ -33,6 +33,7 @@ import {
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+import { isAxiosError } from "axios";
 import {
   agreementMissingUserInfo,
   agreementSelfcareIdNotFound,
@@ -171,20 +172,51 @@ const getSubmissionInfo = async (
 
 const getActivationInfo = async (
   selfcareV2Client: SelfcareV2UsersClient,
-  selfcareId: SelfcareId,
+  producer: Tenant,
+  consumer: Tenant,
   agreement: Agreement
 ): Promise<[string, Date]> => {
   const activation = agreement.stamps.activation;
-
   if (!activation) {
     throw agreementStampNotFound("activation");
   }
 
-  const user: selfcareV2ClientApi.UserResponse = await retrieveUser(
-    selfcareV2Client,
-    selfcareId,
-    activation.who
-  );
+  if (!producer.selfcareId) {
+    throw agreementSelfcareIdNotFound(producer.id);
+  }
+  if (!consumer.selfcareId) {
+    throw agreementSelfcareIdNotFound(consumer.id);
+  }
+
+  const producerSelfcareId: SelfcareId = unsafeBrandId(producer.selfcareId);
+  const consumerSelfcareId: SelfcareId = unsafeBrandId(consumer.selfcareId);
+
+  /**
+   * The user that activated the agreement, the one in the activation.who stamp, could both belong to the producer institution or the consumer institution.
+   * In case the user is not found with the producer institutionId, we try to retrieve it from the consumer selfcare.
+   */
+
+  // eslint-disable-next-line functional/no-let, @typescript-eslint/no-non-null-assertion
+  let user: selfcareV2ClientApi.UserResponse = undefined!;
+
+  try {
+    user = await retrieveUser(
+      selfcareV2Client,
+      producerSelfcareId,
+      activation.who
+    );
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 404) {
+      user = await retrieveUser(
+        selfcareV2Client,
+        consumerSelfcareId,
+        activation.who
+      );
+    } else {
+      throw e;
+    }
+  }
+
   if (user.name && user.surname && user.taxCode) {
     return [`${user.name} ${user.surname} (${user.taxCode})`, activation.when];
   }
@@ -193,7 +225,6 @@ const getActivationInfo = async (
 };
 
 const getPdfPayload = async (
-  selfcareId: SelfcareId,
   agreement: Agreement,
   eservice: EService,
   consumer: Tenant,
@@ -285,7 +316,8 @@ const getPdfPayload = async (
   );
   const [activator, activationTimestamp] = await getActivationInfo(
     selfcareV2Client,
-    selfcareId,
+    producer,
+    consumer,
     agreement
   );
 
@@ -328,7 +360,6 @@ export const contractBuilder = (
 
   return {
     createContract: async (
-      selfcareId: SelfcareId,
       agreement: Agreement,
       eservice: EService,
       consumer: Tenant,
@@ -342,7 +373,6 @@ export const contractBuilder = (
       );
 
       const pdfPayload = await getPdfPayload(
-        selfcareId,
         agreement,
         eservice,
         consumer,
