@@ -16,7 +16,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
-  userIdNotFound,
+  clientUserIdNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -108,7 +108,9 @@ describe("remove client user", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(userIdNotFound(notExistingUserId, mockClient.id));
+    ).rejects.toThrowError(
+      clientUserIdNotFound(notExistingUserId, mockClient.id)
+    );
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     const mockConsumer1 = getMockTenant();
