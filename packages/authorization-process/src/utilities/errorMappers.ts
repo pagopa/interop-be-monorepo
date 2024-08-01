@@ -40,9 +40,11 @@ export const deleteClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const removeUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
+export const removeClientUserErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
   match(error.code)
-    .with("clientNotFound", "userIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "clientUserIdNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -72,7 +74,7 @@ export const getClientUsersErrorMapper = (
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const addUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
+export const addClientUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "organizationNotAllowedOnClient",
@@ -80,7 +82,7 @@ export const addUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("userAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with("clientUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (
@@ -118,13 +120,14 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "tooManyKeysPerClient",
       "notAllowedPrivateKeyException",
-      "invalidKey",
+      "jwkDecodingError",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .with(
       "organizationNotAllowedOnClient",
       "userWithoutSecurityPrivileges",
+      "userNotFound",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -163,6 +166,45 @@ export const deleteProducerKeychainErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getProducerKeychainUsersErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addProducerKeychainUserErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeProducerKeychainUserErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "producerKeychainNotFound",
+      "producerKeychainUserIdNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createProducerKeychainKeysErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -171,7 +213,6 @@ export const createProducerKeychainKeysErrorMapper = (
     .with(
       "tooManyKeysPerProducerKeychain",
       "notAllowedPrivateKeyException",
-      "invalidKey",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)

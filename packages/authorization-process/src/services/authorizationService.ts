@@ -18,6 +18,7 @@ import {
   clientKind,
   generateId,
   genericInternalError,
+  invalidKey,
   purposeVersionState,
   unsafeBrandId,
   ProducerKeychain,
@@ -31,7 +32,6 @@ import {
   eventRepository,
   userRoles,
   calculateKid,
-  decodeBase64ToPem,
   createJWK,
 } from "pagopa-interop-commons";
 import {
@@ -49,12 +49,13 @@ import {
   noPurposeVersionsFoundInRequiredState,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
-  userAlreadyAssigned,
-  userIdNotFound,
+  clientUserAlreadyAssigned,
+  clientUserIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
-  invalidKey,
   producerKeychainNotFound,
+  producerKeychainUserAlreadyAssigned,
+  producerKeychainUserIdNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -68,6 +69,8 @@ import {
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
   toCreateEventProducerKeychainKeyAdded,
+  toCreateEventProducerKeychainUserAdded,
+  toCreateEventProducerKeychainUserDeleted,
 } from "../model/domain/toEvent.js";
 import {
   ApiKeyUseToKeyUse,
@@ -299,7 +302,7 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeUser({
+    async removeClientUser({
       clientId,
       userIdToRemove,
       organizationId,
@@ -318,7 +321,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       if (!client.data.users.includes(userIdToRemove)) {
-        throw userIdNotFound(userIdToRemove, clientId);
+        throw clientUserIdNotFound(userIdToRemove, clientId);
       }
 
       const updatedClient: Client = {
@@ -469,7 +472,7 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async addUser(
+    async addClientUser(
       {
         clientId,
         userId,
@@ -493,7 +496,7 @@ export function authorizationServiceBuilder(
         userIdToCheck: userId,
       });
       if (client.data.users.includes(userId)) {
-        throw userAlreadyAssigned(clientId, userId);
+        throw clientUserAlreadyAssigned(clientId, userId);
       }
       const updatedClient: Client = {
         ...client.data,
@@ -645,9 +648,9 @@ export function authorizationServiceBuilder(
         throw genericInternalError("Wrong number of keys");
       }
       const keySeed = keysSeeds[0];
-      const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      const jwk = createJWK(keySeed.key);
       if (jwk.kty !== "RSA") {
-        throw invalidKey();
+        throw invalidKey(keySeed.key, "Not an RSA key");
       }
       const newKey: ClientKey = {
         clientId,
@@ -720,8 +723,7 @@ export function authorizationServiceBuilder(
         throw keyNotFound(kid, clientId);
       }
 
-      const pemKey = decodeBase64ToPem(key.encodedPem);
-      const jwk: JsonWebKey = createJWK(pemKey);
+      const jwk: JsonWebKey = createJWK(key.encodedPem);
       const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
@@ -745,7 +747,7 @@ export function authorizationServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
-    }): Promise<ProducerKeychain> {
+    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${organizationId}"`
       );
@@ -765,7 +767,7 @@ export function authorizationServiceBuilder(
         toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
       );
 
-      return producerKeychain;
+      return { producerKeychain, showUsers: true };
     },
     async getProducerKeychains({
       filters,
@@ -794,6 +796,25 @@ export function authorizationServiceBuilder(
           limit,
         }
       );
+    },
+    async getProducerKeychainById({
+      producerKeychainId,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      return {
+        producerKeychain: producerKeychain.data,
+        showUsers: organizationId === producerKeychain.data.producerId,
+      };
     },
     async deleteProducerKeychain({
       producerKeychainId,
@@ -825,7 +846,132 @@ export function authorizationServiceBuilder(
         )
       );
     },
+    async getProducerKeychainUsers({
+      producerKeychainId,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<{ users: UserId[]; showUsers: boolean }> {
+      logger.info(
+        `Retrieving users of producer keychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      return {
+        users: producerKeychain.data.users,
+        showUsers: true,
+      };
+    },
+    async addProducerKeychainUser(
+      {
+        producerKeychainId,
+        userId,
+        authData,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        userId: UserId;
+        authData: AuthData;
+      },
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(
+        `Binding producer keychain ${producerKeychainId} with user ${userId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData.organizationId,
+        producerKeychain.data
+      );
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: userId,
+      });
+      if (producerKeychain.data.users.includes(userId)) {
+        throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
+      }
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        users: [...producerKeychain.data.users, userId],
+      };
 
+      await repository.createEvent(
+        toCreateEventProducerKeychainUserAdded(
+          userId,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+      return {
+        producerKeychain: updatedProducerKeychain,
+        showUsers: true,
+      };
+    },
+    async removeProducerKeychainUser({
+      producerKeychainId,
+      userIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      userIdToRemove: UserId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing user ${userIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      if (!producerKeychain.data.users.includes(userIdToRemove)) {
+        throw producerKeychainUserIdNotFound(
+          userIdToRemove,
+          producerKeychainId
+        );
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        users: producerKeychain.data.users.filter(
+          (userId) => userId !== userIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainUserDeleted(
+          updatedProducerKeychain,
+          userIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
     async createProducerKeychainKeys({
       producerKeychainId,
       authData,
@@ -869,9 +1015,9 @@ export function authorizationServiceBuilder(
         throw genericInternalError("Wrong number of keys");
       }
       const keySeed = keysSeeds[0];
-      const jwk = createJWK(decodeBase64ToPem(keySeed.key));
+      const jwk = createJWK(keySeed.key);
       if (jwk.kty !== "RSA") {
-        throw invalidKey();
+        throw invalidKey(keySeed.key, "Not an RSA key");
       }
       const newKey: ProducerKeychainKey = {
         producerKeychainId,
