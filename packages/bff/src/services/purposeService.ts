@@ -15,7 +15,6 @@ import {
 } from "../providers/clientProvider.js";
 import {
   agreementNotFound,
-  eserviceDescriptorNotFound,
   eServiceNotFound,
   purposeDraftVersionNotFound,
   purposeNotFound,
@@ -26,6 +25,7 @@ import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { isUpgradable } from "../model/modelMappingUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { retrieveEserviceDescriptor } from "./catalogService.js";
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -135,15 +135,10 @@ async function getPurposes(
       throw agreementNotFound(purpose.consumerId);
     }
 
-    const currentDescriptor = eservice.descriptors.find(
-      (d) => d.id === latestAgreement.descriptorId
+    const currentDescriptor = retrieveEserviceDescriptor(
+      eservice,
+      unsafeBrandId(latestAgreement.descriptorId)
     );
-    if (!currentDescriptor) {
-      throw eserviceDescriptorNotFound(
-        eservice.id,
-        latestAgreement.descriptorId
-      );
-    }
 
     const clients =
       requesterId === purpose.consumerId

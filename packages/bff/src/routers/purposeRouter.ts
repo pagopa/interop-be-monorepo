@@ -46,7 +46,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -66,7 +71,7 @@ const purposeRouter = (
           error,
           reversePurposeUpdateErrorMapper,
           ctx.logger,
-          `Error updating reverse purpose ${req.params.purposeId}`
+          `Error updating reverse Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -79,7 +84,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -105,7 +115,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposesErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -132,7 +143,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposesErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -152,7 +164,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           clonePurposeErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error cloning purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -169,7 +182,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating version for purpose $purposeId with dailyCalls ${req.body.dailyCalls}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
