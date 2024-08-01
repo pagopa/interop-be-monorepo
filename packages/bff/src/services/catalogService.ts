@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import { randomUUID } from "crypto";
@@ -16,7 +17,7 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
-import { config } from "../config/config.js";
+import { BffProcessConfig, config } from "../config/config.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -32,7 +33,6 @@ import {
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
   eserviceDescriptorNotFound,
-  missingInterface,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -44,6 +44,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
+import { createdescriptorDocumentZipFile } from "../utilities/fileutils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -186,7 +187,8 @@ export function catalogServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  fileManager: FileManager
+  fileManager: FileManager,
+  bffConfig: BffProcessConfig
 ) {
   return {
     getCatalog: async (
@@ -879,10 +881,9 @@ export function catalogServiceBuilder(
     exportEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      context: WithLogger<BffAppContext>
-    ): Promise<void> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
+      { authData, headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.FileResource> => {
+      const requesterId = authData.organizationId;
 
       const eservice = await catalogProcessClient.getEServiceById({
         params: {
@@ -893,11 +894,24 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(requesterId, eservice);
 
-      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+      const zipFolderName = `${eservice.id}_${descriptorId}`;
+      const zipFile = await createdescriptorDocumentZipFile(
+        bffConfig.s3Bucket,
+        fileManager,
+        logger,
+        zipFolderName,
+        eservice,
+        descriptorId
+      );
 
-      if (!descriptor.interface) {
-        throw missingInterface(eserviceId, descriptorId);
-      }
+      await fileManager.storeBytes(
+        bffConfig.s3Bucket,
+        bffConfig.exportEserviceContainer,
+        bffConfig.exportEservicePath,
+        `${requesterId}_${zipFolderName}.zip`,
+        Buffer.from(zipFile),
+        logger
+      );
     },
   };
 }

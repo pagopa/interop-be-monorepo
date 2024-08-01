@@ -24,6 +24,7 @@ import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
+import { config } from "../config/config.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -44,7 +45,8 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
-    fileManager
+    fileManager,
+    config
   );
 
   catalogRouter
@@ -595,7 +597,31 @@ const catalogRouter = (
     )
     .get(
       "/export/eservices/:eserviceId/descriptors/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const response = await catalogService.exportEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res
+            .header(
+              "Content-Disposition",
+              `attachment; filename=${response.filename}`
+            )
+            .header("Content-Type", "application/octet-stream")
+            .send(response.file);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/import/eservices/presignedUrl", async (_req, res) =>
       res.status(501).send()

@@ -8,6 +8,10 @@ import {
   catalogApiDescriptorState,
 } from "./api/apiTypes.js";
 import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "./validators.js";
+import {
+  eserviceDescriptorNotFound,
+  eserviceRiskNotFound,
+} from "./domain/errors.js";
 
 /* 
   This file contains commons utility functions 
@@ -35,6 +39,19 @@ export function getLatestActiveDescriptor(
     .at(-1);
 }
 
+export function retrieveEserviceDescriptor(
+  eservice: catalogApi.EService,
+  descriptorId: string
+): catalogApi.EServiceDescriptor {
+  const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+
+  if (!descriptor) {
+    throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
+}
+
 export function getNotDraftDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor[] {
@@ -42,6 +59,20 @@ export function getNotDraftDescriptor(
     (d) => d.state !== catalogApiDescriptorState.DRAFT
   );
 }
+
+export const retrieveRiskAnalysis = (
+  eservice: catalogApi.EService,
+  riskAnalysisId: string
+): catalogApi.EServiceRiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra) => ra.id === riskAnalysisId
+  );
+
+  if (!riskAnalysis) {
+    throw eserviceRiskNotFound(eservice.id, riskAnalysisId);
+  }
+  return riskAnalysis;
+};
 
 export function getTenantEmail(
   tenant: tenantApi.Tenant
