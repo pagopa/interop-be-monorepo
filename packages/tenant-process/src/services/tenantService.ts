@@ -14,7 +14,6 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
-  TenantKind,
   TenantVerifier,
   VerifiedTenantAttribute,
   WithMetadata,
@@ -353,18 +352,18 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const { tenantKind, tenantKindHasBeenUpdated } =
-        await reevaluateTenantKind({
-          tenant: tenantWithNewAttribute,
-          readModelService,
-        });
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId
+      );
 
       const updatedTenant: Tenant = {
         ...tenantWithNewAttribute,
         kind: tenantKind,
       };
 
-      if (tenantKindHasBeenUpdated) {
+      if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
           tenantKind,
@@ -576,18 +575,18 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const { tenantKind, tenantKindHasBeenUpdated } =
-        await reevaluateTenantKind({
-          tenant: tenantWithNewAttribute,
-          readModelService,
-        });
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId
+      );
 
       const updatedTenant: Tenant = {
         ...tenantWithNewAttribute,
         kind: tenantKind,
       };
 
-      if (tenantKindHasBeenUpdated) {
+      if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
           tenantKind,
@@ -754,23 +753,6 @@ async function assignCertifiedAttribute({
       updatedAt: new Date(),
     };
   }
-}
-
-async function reevaluateTenantKind({
-  tenant,
-  readModelService,
-}: {
-  tenant: Tenant;
-  readModelService: ReadModelService;
-}): Promise<{ tenantKind: TenantKind; tenantKindHasBeenUpdated: boolean }> {
-  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-    readModelService,
-    tenant.attributes,
-    tenant.externalId
-  );
-  return tenant.kind !== tenantKind
-    ? { tenantKind, tenantKindHasBeenUpdated: true }
-    : { tenantKind, tenantKindHasBeenUpdated: false };
 }
 
 function buildVerifiedBy(
