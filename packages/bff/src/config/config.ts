@@ -3,9 +3,10 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
-  SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  S3Config,
+  SelfCareConfig,
 } from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
@@ -82,6 +83,18 @@ export const AllowedListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
+export const ExportFileConfig = z
+  .object({
+    EXPORT_ESERVICE_CONTAINER: z.string(),
+    EXPORT_ESERVICE_PATH: z.string(),
+    PRESIGNED_URL_GET_DURATION_MINUTES: z.coerce.number(),
+  })
+  .transform((c) => ({
+    exportEserviceContainer: c.EXPORT_ESERVICE_CONTAINER,
+    exportEservicePath: c.EXPORT_ESERVICE_PATH,
+    presignedUrlGetDurationMinutes: c.PRESIGNED_URL_GET_DURATION_MINUTES,
+  }));
+export type ExportFileConfig = z.infer<typeof ExportFileConfig>;
 
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
@@ -93,6 +106,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig);
+  .and(SelfCareConfig)
+  .and(S3Config)
+  .and(ExportFileConfig);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
