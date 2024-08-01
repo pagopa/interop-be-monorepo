@@ -75,18 +75,85 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers/agreements/eservices", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/consumers/agreements/eservices", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/agreements/filter/producers", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/agreements/filter/consumers", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/producers/agreements/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { limit, offset, states, q } = req.query;
+        const result = await agreementService.getAgreementsEserviceProducers(
+          {
+            limit,
+            offset,
+            states,
+            eServiceName: q,
+            requesterId: ctx.authData.organizationId,
+          },
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/consumers/agreements/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { limit, offset, q } = req.query;
+        const result = await agreementService.getAgreementsEserviceConsumers(
+          offset,
+          limit,
+          ctx.authData.organizationId,
+          q,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .get("/agreements/filter/producers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { limit, offset, q } = req.query;
+        const result = await agreementService.getAgreementProducers(
+          offset,
+          limit,
+          q,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end;
+      }
+    })
+
+    .get("/agreements/filter/consumers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const { limit, offset, q } = req.query;
+        const result = await agreementService.getAgreementConsumers(
+          offset,
+          limit,
+          q,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
 
     .get("/agreements/:agreementId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
