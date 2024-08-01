@@ -7,7 +7,7 @@ import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 import { Key, KeyUse, keyUse } from "./client.js";
 
-const defaultCreatedAt = new Date("2023-04-18T12:00:00");
+const defaultCreatedAt = new Date("2023-04-18T12:00:00Z");
 
 const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   switch (input) {
