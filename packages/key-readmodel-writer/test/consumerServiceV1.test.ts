@@ -25,7 +25,7 @@ describe("Events V1", async () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey = Buffer.from(
+  const base64Key = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
@@ -33,12 +33,12 @@ describe("Events V1", async () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey2 = Buffer.from(
+  const base64Key2 = Buffer.from(
     key2.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
   it("KeysAdded", async () => {
-    const mockKey = { ...getMockKey(), encodedPem: pemKey };
+    const mockKey = { ...getMockKey(), encodedPem: base64Key };
     const jwkKey = keyToJWKKey(mockKey);
     const mockClient: Client = {
       ...getMockClient(),
@@ -49,7 +49,7 @@ describe("Events V1", async () => {
     const addedKey: ClientKey = {
       ...getMockKey(),
       clientId: mockClient.id,
-      encodedPem: pemKey2,
+      encodedPem: base64Key2,
     };
 
     const payload: KeysAddedV1 = {
@@ -85,7 +85,7 @@ describe("Events V1", async () => {
   });
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), clientId, encodedPem: pemKey };
+    const mockKey = { ...getMockKey(), clientId, encodedPem: base64Key };
     const jwkKey = keyToJWKKey(mockKey);
 
     const mockClient: Client = {
@@ -124,12 +124,12 @@ describe("Events V1", async () => {
     const mockKey1: ClientKey = {
       ...getMockKey(),
       clientId,
-      encodedPem: pemKey,
+      encodedPem: base64Key,
     };
     const mockKey2: ClientKey = {
       ...getMockKey(),
       clientId,
-      encodedPem: pemKey2,
+      encodedPem: base64Key2,
     };
     const jwkKey1 = keyToJWKKey(mockKey1);
     const jwkKey2 = keyToJWKKey(mockKey2);
