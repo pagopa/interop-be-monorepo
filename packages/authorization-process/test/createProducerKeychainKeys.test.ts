@@ -10,6 +10,7 @@ import {
   ProducerKeychain,
   ProducerKeychainKeyAddedV2,
   ProducerKeychainKey,
+  invalidKey,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
@@ -24,7 +25,6 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   producerKeychainNotFound,
-  invalidKey,
   keyAlreadyExists,
   userNotFound,
   userWithoutSecurityPrivileges,
@@ -355,7 +355,7 @@ describe("createProducerKeychainKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKey());
+    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
     const keySeed: authorizationApi.KeySeed = {
