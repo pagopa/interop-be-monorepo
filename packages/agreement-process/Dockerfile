@@ -56,6 +56,6 @@ RUN chmod -R 700 /app
 USER app
 
 WORKDIR /app/packages/agreement-process
-EXPOSE 3000
+EXPOSE 3100
 
 CMD [ "node", "." ]
