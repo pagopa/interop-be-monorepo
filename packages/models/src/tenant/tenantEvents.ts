@@ -19,7 +19,7 @@ import {
   TenantVerifiedAttributeAssignedV2,
   TenantVerifiedAttributeRevokedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
-  MaintenanceTenantDeletedV2,
+  MaintenanceTenantDeleteV2,
   TenantMailAddedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
   TenantKindUpdatedV2,
@@ -92,8 +92,8 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     .with({ type: "TenantVerifiedAttributeExtensionUpdated" }, ({ data }) =>
       TenantVerifiedAttributeExtensionUpdatedV2.toBinary(data)
     )
-    .with({ type: "MaintenanceTenantDeleted" }, ({ data }) =>
-      MaintenanceTenantDeletedV2.toBinary(data)
+    .with({ type: "MaintenanceTenantDelete" }, ({ data }) =>
+      MaintenanceTenantDeleteV2.toBinary(data)
     )
     .with({ type: "TenantMailAdded" }, ({ data }) =>
       TenantMailAddedV2.toBinary(data)
@@ -197,8 +197,8 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("MaintenanceTenantDeleted"),
-    data: protobufDecoder(MaintenanceTenantDeletedV2),
+    type: z.literal("MaintenanceTenantDelete"),
+    data: protobufDecoder(MaintenanceTenantDeleteV2),
   }),
   z.object({
     event_version: z.literal(2),

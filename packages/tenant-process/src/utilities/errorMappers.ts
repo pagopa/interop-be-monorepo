@@ -88,7 +88,7 @@ export const getCertifiedAttributesErrorMapper = (
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const maintenanceTenantDeletedErrorMapper = (
+export const maintenanceTenantDeleteErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

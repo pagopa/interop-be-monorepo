@@ -52,7 +52,7 @@ message TenantVerifiedAttributeExtensionUpdatedV2 {
   TenantV2 tenant = 2;
 }
 
-message MaintenanceTenantDeletedV2 {
+message MaintenanceTenantDeleteV2 {
   string tenantId = 1;
   TenantV2 tenant = 2;
 }
