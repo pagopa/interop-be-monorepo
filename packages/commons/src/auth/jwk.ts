@@ -9,7 +9,7 @@ const decodeBase64ToPem = (base64String: string): string => {
   try {
     const cleanedBase64 = base64String.trim();
     const decodedBytes = Buffer.from(cleanedBase64, "base64");
-    return decodedBytes.toString("utf-8");
+    return decodedBytes.toString("utf-8").replaceAll("\n\n", "\n");
   } catch (error) {
     throw jwkDecodingError(error);
   }
