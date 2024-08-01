@@ -31,11 +31,7 @@ import {
   organizationNotAllowedOnProducerKeychain,
   tooManyKeysPerProducerKeychain,
 } from "../src/model/domain/errors.js";
-import {
-  calculateKid,
-  createJWK,
-  decodeBase64ToPem,
-} from "../../commons/src/auth/jwk.js";
+import { calculateKid, createJWK } from "../../commons/src/auth/jwk.js";
 import {
   addOneProducerKeychain,
   authorizationService,
@@ -60,14 +56,14 @@ describe("createProducerKeychainKeys", () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey = Buffer.from(
+  const base64Key = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
   const keySeed: authorizationApi.KeySeed = {
     name: "key seed",
     use: "ENC",
-    key: pemKey,
+    key: base64Key,
     alg: "",
   };
 
@@ -252,14 +248,14 @@ describe("createProducerKeychainKeys", () => {
       modulusLength: 2048,
     }).privateKey;
 
-    const privatePemKey = Buffer.from(
+    const privateBase64Key = Buffer.from(
       privateKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
     const keySeedByPrivateKey: authorizationApi.KeySeed = {
       name: "key seed",
       use: "ENC",
-      key: privatePemKey,
+      key: privateBase64Key,
       alg: "",
     };
 
@@ -280,7 +276,7 @@ describe("createProducerKeychainKeys", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of that producer keychain ", async () => {
     const key: ProducerKeychainKey = {
       ...getMockProducerKeychainKey(),
-      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
+      kid: calculateKid(createJWK(keySeed.key)),
     };
 
     const producerKeychainWithDuplicateKey: ProducerKeychain = {
@@ -303,7 +299,7 @@ describe("createProducerKeychainKeys", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different producer keychain ", async () => {
     const key: ProducerKeychainKey = {
       ...getMockProducerKeychainKey(),
-      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
+      kid: calculateKid(createJWK(keySeed.key)),
     };
 
     const producerKeychain: ProducerKeychain = {
@@ -360,5 +356,29 @@ describe("createProducerKeychainKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(invalidKey());
+  });
+  it("should throw invalidKey if the key doesn't have the delimiters", async () => {
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: `Ck1JSUJDZ0tDQVFFQXF1c1hpYUtuR2RmbnZyZ21WNDlGK2lJR0lOa0tUQ0FJQTZ0d3NVUzNzaWVxdXlQRk80QmMKcVhZSUE2cXZyWDJxc21hOElTS2RMbkt5azBFNXczQ0JOZmZCcUs2ZE9pYm5xZGxEVndnZDZEWm1HY2VWWWFoYQp6QnpqbFdXcllmNEUrTUNvZ1FiUEFYTytOa0Z0M1c3cVhMTFFCYzBYTXlIelQzTlBtQlpJTktRMS9hd05iR3dYCnJJSGlyVnBqZHVpNzJRb3hjR1VBMW5JallRTW9iQ3VBMHg1L3dFL29KblFZZ1g1NVg3SnRKaTQ2dmx0VlpiVVMKckZiWkdlRUIzMEF1NUV6a0U0NUpLVGpTZnVmclJEZDJzcFByKzJiYmFibFFsY1lSYnloaHVpeVR2cU1pSGZmKwplZ2JJNGpseVFSTExhUXdEeThzOHd2NDNWNUtzNmtmVGVRSURBUUFCCgo=`,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
+    await addOneProducerKeychain(mockProducerKeychain);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createProducerKeychainKeys({
+        producerKeychainId: mockProducerKeychain.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
+    );
   });
 });
