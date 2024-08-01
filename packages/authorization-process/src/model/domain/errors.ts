@@ -32,6 +32,7 @@ export const errorCodes = {
   producerKeychainNotFound: "0019",
   organizationNotAllowedOnProducerKeychain: "0020",
   producerKeychainUserAlreadyAssigned: "0021",
+  producerKeychainUserIdNotFound: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -249,5 +250,16 @@ export function producerKeychainUserAlreadyAssigned(
     detail: `User ${userId} is already assigned to the producer keychain ${producerKeychainId}`,
     code: "producerKeychainUserAlreadyAssigned",
     title: "User already assigned to the producer keychain",
+  });
+}
+
+export function producerKeychainUserIdNotFound(
+  userId: UserId,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeychainUserIdNotFound",
+    title: "User id not found in producer keychain",
   });
 }
