@@ -191,7 +191,12 @@ const purposeRouter = (
 
           return res.status(200).json(Buffer.from(result)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error downloading risk analysis document ${req.params.documentId} from purpose ${req.params.purposeId} with version ${req.params.versionId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -211,7 +216,12 @@ const purposeRouter = (
 
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error rejecting version ${req.params.versionId} of purpose ${req.params.purposeId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -230,7 +240,12 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error archiving purpose ${req.params.purposeId} with version ${req.params.versionId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -249,7 +264,12 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error suspending Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -268,7 +288,12 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error activating Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -285,7 +310,12 @@ const purposeRouter = (
 
         return res.status(204).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting purpose ${req.params.purposeId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -301,7 +331,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error updating Purpose ${req.params.purposeId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -317,7 +352,12 @@ const purposeRouter = (
 
         return res.status(204).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting purpose ${req.params.purposeId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
