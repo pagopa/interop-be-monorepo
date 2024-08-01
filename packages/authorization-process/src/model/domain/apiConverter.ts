@@ -69,13 +69,14 @@ export function clientToApiClient(
 }
 
 export function producerKeychainToApiProducerKeychain(
-  producerKeychain: ProducerKeychain
+  producerKeychain: ProducerKeychain,
+  { showUsers }: { showUsers: boolean }
 ): authorizationApi.ProducerKeychain {
   return {
     id: producerKeychain.id,
     name: producerKeychain.name,
     producerId: producerKeychain.producerId,
-    users: producerKeychain.users,
+    users: showUsers ? producerKeychain.users : [],
     createdAt: producerKeychain.createdAt.toJSON(),
     eservices: producerKeychain.eservices,
     description: producerKeychain.description,
