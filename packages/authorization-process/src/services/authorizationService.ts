@@ -299,7 +299,7 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeUser({
+    async removeClientUser({
       clientId,
       userIdToRemove,
       organizationId,

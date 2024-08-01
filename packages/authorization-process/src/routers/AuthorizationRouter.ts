@@ -43,7 +43,7 @@ import {
   getClientKeysErrorMapper,
   getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
-  removeUserErrorMapper,
+  removeClientUserErrorMapper,
   createKeysErrorMapper,
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
@@ -328,7 +328,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.removeUser({
+          await authorizationService.removeClientUser({
             clientId: unsafeBrandId(req.params.clientId),
             userIdToRemove: unsafeBrandId(req.params.userId),
             organizationId: ctx.authData.organizationId,
@@ -339,7 +339,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            removeUserErrorMapper,
+            removeClientUserErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

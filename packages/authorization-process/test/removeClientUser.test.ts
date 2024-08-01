@@ -24,7 +24,7 @@ import {
   readLastAuthorizationEvent,
 } from "./utils.js";
 
-describe("remove user", () => {
+describe("remove client user", () => {
   it("should write on event-store for removing a user from a client", async () => {
     const mockConsumer = getMockTenant();
     const userIdToRemove: UserId = generateId();
@@ -38,7 +38,7 @@ describe("remove user", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.removeUser({
+    await authorizationService.removeClientUser({
       clientId: mockClient.id,
       userIdToRemove,
       organizationId: mockConsumer.id,
@@ -78,7 +78,7 @@ describe("remove user", () => {
     await addOneClient(getMockClient());
 
     expect(
-      authorizationService.removeUser({
+      authorizationService.removeClientUser({
         clientId: mockClient.id,
         userIdToRemove,
         organizationId: mockConsumer.id,
@@ -87,7 +87,7 @@ describe("remove user", () => {
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw userNotFound if the user isn't related to that client", async () => {
+  it("should throw clientUserNotFound if the user isn't related to that client", async () => {
     const mockConsumer = getMockTenant();
     const notExistingUserId: UserId = generateId();
     const userIdToNotRemove: UserId = generateId();
@@ -101,7 +101,7 @@ describe("remove user", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.removeUser({
+      authorizationService.removeClientUser({
         clientId: mockClient.id,
         userIdToRemove: notExistingUserId,
         organizationId: mockConsumer.id,
@@ -123,7 +123,7 @@ describe("remove user", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.removeUser({
+      authorizationService.removeClientUser({
         clientId: mockClient.id,
         userIdToRemove,
         organizationId: mockConsumer2.id,
