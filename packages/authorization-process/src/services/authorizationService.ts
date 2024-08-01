@@ -1254,6 +1254,12 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
+      if (
+        !producerKeychain.data.eservices.find((id) => id === eserviceIdToRemove)
+      ) {
+        throw eserviceNotFound(eserviceIdToRemove);
+      }
+
       const updatedProducerKeychain: ProducerKeychain = {
         ...producerKeychain.data,
         eservices: producerKeychain.data.eservices.filter(

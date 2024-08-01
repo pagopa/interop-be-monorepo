@@ -288,6 +288,7 @@ export const removeProducerKeychainEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "organizationNotAllowedOnProducerKeychain",
       () => HTTP_STATUS_FORBIDDEN

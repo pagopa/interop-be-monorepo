@@ -15,6 +15,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   producerKeychainNotFound,
   organizationNotAllowedOnProducerKeychain,
+  eserviceNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
@@ -86,6 +87,29 @@ describe("remove producer keychain e-service", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
+  });
+  it("should throw eserviceNotFound if that eserviceId is not related to that producer keychain", async () => {
+    const mockProducer = getMockTenant();
+    const notExistingEServiceId: EServiceId = generateId();
+    const eserviceIdToNotRemove: EServiceId = generateId();
+
+    const mockProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      producerId: mockProducer.id,
+      eservices: [eserviceIdToNotRemove],
+    };
+
+    await addOneProducerKeychain(mockProducerKeychain);
+
+    expect(
+      authorizationService.removeProducerKeychainEService({
+        producerKeychainId: mockProducerKeychain.id,
+        eserviceIdToRemove: notExistingEServiceId,
+        organizationId: mockProducer.id,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(eserviceNotFound(notExistingEServiceId));
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
