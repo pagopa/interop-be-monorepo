@@ -360,15 +360,11 @@ export function readModelServiceBuilder(
       states: AgreementState[];
     }): Promise<Agreement[]> {
       const data = await agreements
-        .find([
-          {
-            $match: {
-              "data.consumerId": consumerId,
-              "data.producerId": producerId,
-              "data.state": { $in: states },
-            },
-          },
-        ])
+        .find({
+          "data.consumerId": consumerId,
+          "data.producerId": producerId,
+          "data.state": { $in: states },
+        })
         .toArray();
 
       const result = z.array(Agreement).safeParse(data.map((d) => d.data));
