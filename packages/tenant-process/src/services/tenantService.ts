@@ -4,7 +4,6 @@ import {
   Logger,
   WithLogger,
   AppContext,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -14,7 +13,6 @@ import {
   ListResult,
   Tenant,
   TenantAttribute,
-  TenantEvent,
   TenantId,
   TenantVerifier,
   VerifiedTenantAttribute,
@@ -39,7 +37,6 @@ import {
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
-  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
@@ -354,15 +351,24 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [updatedTenant, tenantKindUpdatedEvent] =
-        await reevaluateTenantKind({
-          tenant: tenantWithNewAttribute,
-          version: targetTenant.metadata.version + 1,
-          readModelService,
-          correlationId,
-        });
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId
+      );
 
-      if (tenantKindUpdatedEvent) {
+      const updatedTenant: Tenant = {
+        ...tenantWithNewAttribute,
+        kind: tenantKind,
+      };
+
+      if (tenantWithNewAttribute.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          tenantKind,
+          updatedTenant,
+          correlationId
+        );
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -449,9 +455,7 @@ export function tenantServiceBuilder(
         `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
 
-      if (organizationId === tenantId) {
-        throw verifiedAttributeSelfVerificationNotAllowed();
-      }
+      const attributeId = unsafeBrandId<AttributeId>(tenantAttributeSeed.id);
 
       const allowedStatuses = [
         agreementState.pending,
@@ -461,21 +465,15 @@ export function tenantServiceBuilder(
       await assertVerifiedAttributeOperationAllowed({
         producerId: organizationId,
         consumerId: tenantId,
-        attributeId: unsafeBrandId(tenantAttributeSeed.id),
+        attributeId,
         agreementStates: allowedStatuses,
         readModelService,
-        error: attributeVerificationNotAllowed(
-          tenantId,
-          unsafeBrandId(tenantAttributeSeed.id)
-        ),
+        error: attributeVerificationNotAllowed(tenantId, attributeId),
       });
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      const attribute = await retrieveAttribute(
-        unsafeBrandId(tenantAttributeSeed.id),
-        readModelService
-      );
+      const attribute = await retrieveAttribute(attributeId, readModelService);
 
       if (attribute.kind !== attributeKind.verified) {
         throw attributeNotFound(attribute.id);
@@ -508,7 +506,7 @@ export function tenantServiceBuilder(
         toCreateEventTenantVerifiedAttributeAssigned(
           targetTenant.metadata.version,
           updatedTenant,
-          unsafeBrandId(tenantAttributeSeed.id),
+          attributeId,
           correlationId
         )
       );
@@ -667,41 +665,6 @@ async function assignCertifiedAttribute({
   }
 }
 
-async function reevaluateTenantKind({
-  tenant,
-  version,
-  readModelService,
-  correlationId,
-}: {
-  tenant: Tenant;
-  version: number;
-  readModelService: ReadModelService;
-  correlationId: string;
-}): Promise<[Tenant, CreateEvent<TenantEvent>?]> {
-  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-    readModelService,
-    tenant.attributes,
-    tenant.externalId
-  );
-
-  const updatedTenant = {
-    ...tenant,
-    kind: tenantKind,
-  };
-
-  if (tenant.kind !== tenantKind) {
-    const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-      version,
-      tenantKind,
-      updatedTenant,
-      correlationId
-    );
-
-    return [updatedTenant, tenantKindUpdatedEvent];
-  }
-  return [updatedTenant];
-}
-
 function buildVerifiedBy(
   verifiers: TenantVerifier[],
   organizationId: TenantId,
@@ -717,7 +680,9 @@ function buildVerifiedBy(
               expirationDate: expirationDate
                 ? new Date(expirationDate)
                 : undefined,
-              extensionDate: undefined,
+              extensionDate: expirationDate
+                ? new Date(expirationDate)
+                : undefined,
             }
           : verification
       )
@@ -727,7 +692,7 @@ function buildVerifiedBy(
           id: organizationId,
           verificationDate: new Date(),
           expirationDate: expirationDate ? new Date(expirationDate) : undefined,
-          extensionDate: undefined,
+          extensionDate: expirationDate ? new Date(expirationDate) : undefined,
         },
       ];
 }
@@ -803,6 +768,9 @@ function reassignVerifiedAttribute(
             verifiedTenantAttribute.verifiedBy,
             organizationId,
             tenantAttributeSeed.expirationDate
+          ),
+          revokedBy: verifiedTenantAttribute.revokedBy.filter(
+            (i) => i.id !== attr.id
           ),
         }
       : attr

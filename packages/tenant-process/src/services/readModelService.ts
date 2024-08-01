@@ -360,7 +360,7 @@ export function readModelServiceBuilder(
       states: AgreementState[];
     }): Promise<Agreement[]> {
       const data = await agreements
-        .aggregate([
+        .find([
           {
             $match: {
               "data.consumerId": consumerId,
