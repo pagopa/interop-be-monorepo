@@ -144,7 +144,6 @@ describe("createKeys", () => {
       ...mockClient,
       keys: [
         {
-          clientId: mockClient.id,
           name: keySeed.name,
           createdAt: new Date(),
           kid: writtenPayload.kid,
