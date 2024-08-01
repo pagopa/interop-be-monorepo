@@ -15,6 +15,7 @@ import {
   Attribute,
   Client,
   EService,
+  JWKKey,
   Purpose,
   Tenant,
 } from "pagopa-interop-models";
@@ -26,6 +27,7 @@ const Collection = z.enum([
   "tenants",
   "purposes",
   "clients",
+  "keys",
 ]);
 type Collection = z.infer<typeof Collection>;
 
@@ -36,6 +38,7 @@ const readModelSchemas = {
   tenants: Tenant,
   purposes: Purpose,
   clients: Client,
+  keys: JWKKey,
 } as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
@@ -76,6 +79,12 @@ type Config = z.infer<typeof Config>;
 
 const config: Config = Config.parse(process.env);
 
+function getIdentificationKey<T extends { id: string } | { kid: string }>(
+  obj: T
+): string {
+  return "id" in obj ? obj.id : obj.kid;
+}
+
 async function main(): Promise<void> {
   const scalaReadModel = connectToReadModel(config.scalaReadModelConfig);
   const nodeReadModel = connectToReadModel(config.nodeReadModelConfig);
@@ -96,17 +105,27 @@ async function main(): Promise<void> {
   differences.forEach(([scala, node]) => {
     if (scala && !node) {
       differencesCount++;
-      console.warn(`Object with id ${scala.id} not found in node readmodel`);
+      console.warn(
+        `Object with id ${getIdentificationKey(
+          scala
+        )} not found in node readmodel`
+      );
     }
     if (!scala && node) {
       differencesCount++;
-      console.warn(`Object with id ${node.id} not found in scala readmodel`);
+      console.warn(
+        `Object with id ${getIdentificationKey(
+          node
+        )} not found in scala readmodel`
+      );
     }
     if (scala && node) {
       const objectsDiff = diff(scala, node, { sort: true });
       if (objectsDiff) {
         differencesCount++;
-        console.warn(`Differences in object with id ${scala.id}`);
+        console.warn(
+          `Differences in object with id ${getIdentificationKey(scala)}`
+        );
         console.warn(JSON.stringify(objectsDiff, null, 2));
       }
     }
@@ -179,14 +198,16 @@ export async function compareReadModelsCollection<
   return zipDataById(resultsA, resultsB).filter(([a, b]) => !isEqual(a, b));
 }
 
-export function zipDataById<T extends { id: string }>(
+export function zipDataById<T extends { id: string } | { kid: string }>(
   dataA: T[],
   dataB: T[]
 ): Array<[T | undefined, T | undefined]> {
-  const allIds = new Set([...dataA, ...dataB].map((d) => d.id));
+  const allIds = new Set(
+    [...dataA, ...dataB].map((d) => getIdentificationKey(d))
+  );
   return Array.from(allIds).map((id) => [
-    dataA.find((d) => d.id === id),
-    dataB.find((d) => d.id === id),
+    dataA.find((d) => getIdentificationKey(d) === id),
+    dataB.find((d) => getIdentificationKey(d) === id),
   ]);
 }
 
