@@ -28,7 +28,7 @@ import {
   selfcareUpsertTenantErrorMapper,
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
-  maintenanceTenantDeletedErrorMapper,
+  maintenanceTenantDeleteErrorMapper,
   addDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -357,10 +357,11 @@ const tenantsRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.maintenanceTenantDeleted(
+          await tenantService.maintenanceTenantDelete(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
-              correlationId: req.ctx.correlationId,
+              version: req.body.version,
+              correlationId: ctx.correlationId,
             },
             ctx.logger
           );
@@ -368,7 +369,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            maintenanceTenantDeletedErrorMapper,
+            maintenanceTenantDeleteErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

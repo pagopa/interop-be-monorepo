@@ -792,7 +792,7 @@ paths:
       tags:
         - tenant
       summary: Deletes a tenant
-      operationId: maintenanceTenantDeleted
+      operationId: maintenanceTenantDelete
       responses:
         "204":
           description: Tenant Deleted
@@ -802,6 +802,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: number
+              required:
+                - version
+        required: true
   /status:
     get:
       security: []
@@ -1155,33 +1166,6 @@ components:
         - externalId
         - selfcareId
         - name
-    TenantDelta:
-      description: Tenant Delta model
-      type: object
-      properties:
-        mails:
-          type: array
-          items:
-            $ref: "#/components/schemas/MailSeed"
-      required:
-        - mails
-    MailSeed:
-      description: A specific kind of mail
-      type: object
-      properties:
-        kind:
-          $ref: "#/components/schemas/MailKind"
-        address:
-          type: string
-          minLength: 5
-          maxLength: 320
-        description:
-          type: string
-          minLength: 10
-          maxLength: 250
-      required:
-        - kind
-        - address
     Mail:
       description: A specific kind of mail
       type: object
