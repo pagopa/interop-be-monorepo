@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { WithLogger } from "pagopa-interop-commons";
+import { toSetToArray, WithLogger } from "pagopa-interop-commons";
 import {
   bffApi,
   catalogApi,
@@ -221,9 +221,10 @@ export async function enhanceAgreementDetailed(
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
-  const allAttributesIds = Array.from(
-    new Set([...activeDescriptorAttributes, ...tenantAttributesIds(consumer)])
-  );
+  const allAttributesIds = toSetToArray([
+    ...activeDescriptorAttributes,
+    ...tenantAttributesIds(consumer),
+  ]);
 
   const attributes = await getBulkAttributes(
     allAttributesIds,
