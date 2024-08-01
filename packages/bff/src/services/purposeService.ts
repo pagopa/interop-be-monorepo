@@ -668,10 +668,12 @@ export function purposeServiceBuilder(
     }: WithLogger<BffAppContext>): Promise<bffApi.RiskAnalysisFormConfig> {
       logger.info(`Retrieving risk analysis latest configuration`);
 
-      return await purposeClient.retrieveLatestRiskAnalysisConfiguration({
-        queries: undefined,
-        headers,
-      });
+      return await purposeProcessClient.retrieveLatestRiskAnalysisConfiguration(
+        {
+          queries: undefined,
+          headers,
+        }
+      );
     },
     async retrieveRiskAnalysisConfigurationByVersion(
       eserviceId: EServiceId,
@@ -682,15 +684,17 @@ export function purposeServiceBuilder(
         `Retrieving risk analysis latest configuration for version ${riskAnalysisVersion}`
       );
 
-      return await purposeClient.retrieveRiskAnalysisConfigurationByVersion({
-        params: {
-          riskAnalysisVersion,
-        },
-        queries: {
-          eserviceId,
-        },
-        headers,
-      });
+      return await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
+        {
+          params: {
+            riskAnalysisVersion,
+          },
+          queries: {
+            eserviceId,
+          },
+          headers,
+        }
+      );
     },
   };
 }
