@@ -3,18 +3,23 @@ import {
   PurposeId,
   makeApiProblemBuilder,
   AttributeId,
+  parseErrorMessage,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0004",
-  attributeNotExists: "0005",
-  invalidEserviceRequester: "0006",
-  missingClaim: "0007",
-  tenantLoginNotAllowed: "0008",
-  tokenVerificationFailed: "0009",
+  privacyNoticeNotFoundInConfiguration: "0004",
+  privacyNoticeNotFound: "0005",
+  privacyNoticeVersionIsNotTheLatest: "0006",
+  dynamoReadingError: "0007",
+  descriptorNotFound: "0008",
+  attributeNotExists: "0009",
+  invalidEserviceRequester: "0010",
+  missingClaim: "00011",
+  tenantLoginNotAllowed: "00012",
+  tokenVerificationFailed: "00013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -48,6 +53,46 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function dynamoReadingError(error: unknown): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error while reading data from Dynamo -> ${parseErrorMessage(
+      error
+    )}`,
+    code: "dynamoReadingError",
+    title: "Dynamo reading error",
+  });
+}
+
+export function privacyNoticeNotFoundInConfiguration(
+  privacyNoticeKind: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Privacy Notice ${privacyNoticeKind} not found in configuration`,
+    code: "privacyNoticeNotFoundInConfiguration",
+    title: "Privacy Notice not found in configuration",
+  });
+}
+
+export function privacyNoticeNotFound(
+  privacyNoticeKind: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Privacy Notice ${privacyNoticeKind} not found`,
+    code: "privacyNoticeNotFound",
+    title: "Privacy Notice not found",
+  });
+}
+
+export function privacyNoticeVersionIsNotTheLatest(
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PrivacyNotice version ${versionId} not found`,
+    code: "privacyNoticeVersionIsNotTheLatest",
+    title: "Privacy Notice version is not the latest",
   });
 }
 
