@@ -266,6 +266,23 @@ export const getProducerKeychainKeyErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const addPurposeKeychainEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "producerKeychainNotFound",
+      "eserviceNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("eserviceAlreadyLinkedToProducerKeychain", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "organizationNotAllowedOnEService",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const removeProducerKeychainEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
