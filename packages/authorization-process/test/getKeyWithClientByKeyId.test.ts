@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto, { JsonWebKey } from "crypto";
-import {
-  createJWK,
-  decodeBase64ToPem,
-  genericLogger,
-} from "pagopa-interop-commons";
+import { createJWK, genericLogger } from "pagopa-interop-commons";
 import { Client } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
@@ -20,13 +16,13 @@ describe("getKeyWithClientByKeyId", async () => {
       modulusLength: 2048,
     }).publicKey;
 
-    const pemKey = Buffer.from(
+    const base64Key = Buffer.from(
       key.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const mockKey1 = { ...getMockKey(), encodedPem: pemKey };
+    const mockKey1 = { ...getMockKey(), encodedPem: base64Key };
 
-    const jwk: JsonWebKey = createJWK(decodeBase64ToPem(pemKey));
+    const jwk: JsonWebKey = createJWK(base64Key);
 
     const mockKey2 = getMockKey();
     const mockClient: Client = {
