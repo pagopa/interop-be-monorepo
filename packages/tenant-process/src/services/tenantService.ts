@@ -590,8 +590,8 @@ export function tenantServiceBuilder(
       } else {
         await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
       }
-    }
-    
+    },
+
     async verifyVerifiedAttribute(
       {
         tenantId,
