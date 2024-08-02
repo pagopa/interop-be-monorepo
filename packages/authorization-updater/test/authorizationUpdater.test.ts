@@ -757,7 +757,7 @@ describe("Authorization Updater processMessage", () => {
       authorizationManagementClients.clientApiClient.createClient
     ).toHaveBeenCalledWith(
       {
-        id: client.id,
+        clientId: client.id,
         name: client.name,
         description: client.description,
         consumerId: client.consumerId,
