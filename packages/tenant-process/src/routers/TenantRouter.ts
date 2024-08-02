@@ -31,6 +31,7 @@ import {
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
+  verifyVerifiedAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -282,11 +283,6 @@ const tenantsRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
-    )
-    .post(
-      "/tenants/:tenantId/attributes/verified",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
@@ -558,6 +554,32 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             addDeclaredAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/tenants/:tenantId/attributes/verified",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.verifyVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              tenantAttributeSeed: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            verifyVerifiedAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

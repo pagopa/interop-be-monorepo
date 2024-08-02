@@ -15,7 +15,10 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  TenantVerifier,
+  VerifiedTenantAttribute,
   WithMetadata,
+  agreementState,
   attributeKind,
   generateId,
   tenantAttributeType,
@@ -36,6 +39,7 @@ import {
   toCreateEventTenantDeclaredAttributeRevoked,
   toCreateEventTenantMailDeleted,
   toCreateEventTenantMailAdded,
+  toCreateEventTenantVerifiedAttributeAssigned,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
@@ -44,6 +48,7 @@ import {
   mailNotFound,
   tenantNotFound,
   mailAlreadyExists,
+  attributeVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -58,6 +63,7 @@ import {
   assertTenantExists,
   assertRequesterAllowed,
   getTenantCertifierId,
+  assertVerifiedAttributeOperationAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -491,6 +497,82 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
+    async verifyVerifiedAttribute(
+      {
+        tenantId,
+        tenantAttributeSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(
+        `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+      );
+
+      const attributeId = unsafeBrandId<AttributeId>(tenantAttributeSeed.id);
+
+      const allowedStatuses = [
+        agreementState.pending,
+        agreementState.active,
+        agreementState.suspended,
+      ];
+      await assertVerifiedAttributeOperationAllowed({
+        producerId: organizationId,
+        consumerId: tenantId,
+        attributeId,
+        agreementStates: allowedStatuses,
+        readModelService,
+        error: attributeVerificationNotAllowed(tenantId, attributeId),
+      });
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const attribute = await retrieveAttribute(attributeId, readModelService);
+
+      if (attribute.kind !== attributeKind.verified) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      const verifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr): attr is VerifiedTenantAttribute =>
+          attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
+      );
+
+      const updatedTenant: Tenant = {
+        ...targetTenant.data,
+        attributes: verifiedTenantAttribute
+          ? reassignVerifiedAttribute(
+              targetTenant.data.attributes,
+              verifiedTenantAttribute,
+              organizationId,
+              tenantAttributeSeed
+            )
+          : assignVerifiedAttribute(
+              targetTenant.data.attributes,
+              organizationId,
+              tenantAttributeSeed
+            ),
+
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantVerifiedAttributeAssigned(
+          targetTenant.metadata.version,
+          updatedTenant,
+          attributeId,
+          correlationId
+        )
+      );
+      return updatedTenant;
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
@@ -731,6 +813,37 @@ async function assignCertifiedAttribute({
   }
 }
 
+function buildVerifiedBy(
+  verifiers: TenantVerifier[],
+  organizationId: TenantId,
+  expirationDate: string | undefined
+): TenantVerifier[] {
+  const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
+  return hasPreviouslyVerified
+    ? verifiers.map((verification) =>
+        verification.id === organizationId
+          ? {
+              id: organizationId,
+              verificationDate: new Date(),
+              expirationDate: expirationDate
+                ? new Date(expirationDate)
+                : undefined,
+              extensionDate: expirationDate
+                ? new Date(expirationDate)
+                : undefined,
+            }
+          : verification
+      )
+    : [
+        ...verifiers,
+        {
+          id: organizationId,
+          verificationDate: new Date(),
+          expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+          extensionDate: expirationDate ? new Date(expirationDate) : undefined,
+        },
+      ];
+}
 function assignDeclaredAttribute(
   attributes: TenantAttribute[],
   attributeId: AttributeId
@@ -756,6 +869,57 @@ function reassignDeclaredAttribute(
           ...attr,
           assignmentTimestamp: new Date(),
           revocationTimestamp: undefined,
+        }
+      : attr
+  );
+}
+
+function assignVerifiedAttribute(
+  attributes: TenantAttribute[],
+  organizationId: TenantId,
+  tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
+): TenantAttribute[] {
+  return [
+    ...attributes,
+    {
+      id: unsafeBrandId(tenantAttributeSeed.id),
+      type: tenantAttributeType.VERIFIED,
+      assignmentTimestamp: new Date(),
+      verifiedBy: [
+        {
+          id: organizationId,
+          verificationDate: new Date(),
+          expirationDate: tenantAttributeSeed.expirationDate
+            ? new Date(tenantAttributeSeed.expirationDate)
+            : undefined,
+          extensionDate: tenantAttributeSeed.expirationDate
+            ? new Date(tenantAttributeSeed.expirationDate)
+            : undefined,
+        },
+      ],
+      revokedBy: [],
+    },
+  ];
+}
+
+function reassignVerifiedAttribute(
+  attributes: TenantAttribute[],
+  verifiedTenantAttribute: VerifiedTenantAttribute,
+  organizationId: TenantId,
+  tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed
+): TenantAttribute[] {
+  return attributes.map((attr) =>
+    attr.id === verifiedTenantAttribute.id
+      ? {
+          ...attr,
+          verifiedBy: buildVerifiedBy(
+            verifiedTenantAttribute.verifiedBy,
+            organizationId,
+            tenantAttributeSeed.expirationDate
+          ),
+          revokedBy: verifiedTenantAttribute.revokedBy.filter(
+            (i) => i.id !== attr.id
+          ),
         }
       : attr
   );
