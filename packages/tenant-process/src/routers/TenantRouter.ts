@@ -30,7 +30,11 @@ import {
   getCertifiedAttributesErrorMapper,
   maintenanceTenantDeletedErrorMapper,
   maintenanceTenantPromotedToCertifierErrorMapper,
+  deleteTenantMailErrorMapper,
+  addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
+  verifyVerifiedAttributeErrorMapper,
+  revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -284,11 +288,6 @@ const tenantsRouter = (
       }
     )
     .post(
-      "/tenants/:tenantId/attributes/verified",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
@@ -367,13 +366,34 @@ const tenantsRouter = (
         }
       }
     )
-    .delete(
-      "/tenants/:tenantId/attributes/verified/:attributeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+    .post(
+      "/tenants/:tenantId/mails",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.addTenantMail(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              mailSeed: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addTenantMailErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
-      "/tenants/attributes/declared/:attributeId",
+      "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
@@ -383,10 +403,11 @@ const tenantsRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.maintenanceTenantDeleted(
+          await tenantService.maintenanceTenantDelete(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
-              correlationId: req.ctx.correlationId,
+              version: req.body.currentVersion,
+              correlationId: ctx.correlationId,
             },
             ctx.logger
           );
@@ -395,6 +416,33 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             maintenanceTenantDeletedErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/mails/:mailId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tenantId, mailId } = req.params;
+          await tenantService.deleteTenantMailById(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              mailId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteTenantMailErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -559,6 +607,57 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             addDeclaredAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/tenants/:tenantId/attributes/verified",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.verifyVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              tenantAttributeSeed: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            verifyVerifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/attributes/declared/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.revokeDeclaredAttribute(
+            {
+              attributeId: unsafeBrandId(req.params.attributeId),
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDeclaredAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

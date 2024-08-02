@@ -32,6 +32,7 @@ export async function handleMessageV2(
       { type: "TenantVerifiedAttributeExtensionUpdated" },
       { type: "TenantMailAdded" },
       { type: "MaintenanceTenantPromotedToCertifier" },
+      { type: "TenantMailDeleted" },
       { type: "TenantKindUpdated" },
       async (message) =>
         await tenants.updateOne(
