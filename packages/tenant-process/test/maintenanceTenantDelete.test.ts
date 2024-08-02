@@ -16,11 +16,11 @@ import {
   tenantService,
 } from "./utils.js";
 
-describe("maintenanceTenantDeleted", async () => {
+describe("maintenanceTenantDelete", async () => {
   it("should write on event-store for the deletion of a tenant", async () => {
     const mockTenant = getMockTenant();
     await addOneTenant(mockTenant);
-    await tenantService.maintenanceTenantDeleted(
+    await tenantService.maintenanceTenantDelete(
       {
         tenantId: mockTenant.id,
         version: 0,
@@ -49,7 +49,7 @@ describe("maintenanceTenantDeleted", async () => {
     const mockTenant = getMockTenant();
 
     expect(
-      tenantService.maintenanceTenantDeleted(
+      tenantService.maintenanceTenantDelete(
         {
           tenantId: mockTenant.id,
           version: 0,

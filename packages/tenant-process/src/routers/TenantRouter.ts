@@ -357,7 +357,7 @@ const tenantsRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.maintenanceTenantDeleted(
+          await tenantService.maintenanceTenantDelete(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               version: req.body.currentVersion,

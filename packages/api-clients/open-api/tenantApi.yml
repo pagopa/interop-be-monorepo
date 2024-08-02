@@ -792,7 +792,7 @@ paths:
       tags:
         - tenant
       summary: Deletes a tenant
-      operationId: maintenanceTenantDeleted
+      operationId: maintenanceTenantDelete
       responses:
         "204":
           description: Tenant Deleted

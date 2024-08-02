@@ -446,7 +446,7 @@ export function tenantServiceBuilder(
       });
     },
 
-    async maintenanceTenantDeleted(
+    async maintenanceTenantDelete(
       {
         tenantId,
         version,
