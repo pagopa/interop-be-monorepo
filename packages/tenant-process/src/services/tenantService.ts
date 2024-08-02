@@ -708,7 +708,6 @@ export function tenantServiceBuilder(
 
       const tenantWithRevokedAttribute = await revokeCertifiedAttribute(
         tenantToModify.data,
-        readModelService,
         attributeToRevoke.id
       );
 
@@ -1126,10 +1125,9 @@ function reassignVerifiedAttribute(
 
 async function revokeCertifiedAttribute(
   tenant: Tenant,
-  readModelService: ReadModelService,
   attributeId: AttributeId
 ): Promise<Tenant> {
-  const updatedTenant: Tenant = {
+  return {
     ...tenant,
     updatedAt: new Date(),
     attributes: tenant.attributes.map((attr) =>
@@ -1140,17 +1138,7 @@ async function revokeCertifiedAttribute(
           }
         : attr
     ),
-  };
-
-  const updatedKind = await getTenantKindLoadingCertifiedAttributes(
-    readModelService,
-    updatedTenant.attributes,
-    updatedTenant.externalId
-  );
-
-  return updatedTenant.kind === updatedKind
-    ? updatedTenant
-    : { ...updatedTenant, kind: updatedKind };
+  } satisfies Tenant;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

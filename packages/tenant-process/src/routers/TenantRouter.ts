@@ -632,7 +632,7 @@ const tenantsRouter = (
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
     )
     .post(
