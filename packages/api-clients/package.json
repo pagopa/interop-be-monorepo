@@ -37,6 +37,7 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "axios": "1.7.2",
+    "axios-logger": "2.8.1",
     "pagopa-interop-commons": "workspace:*",
     "qs": "6.12.3",
     "ts-pattern": "5.2.0",
