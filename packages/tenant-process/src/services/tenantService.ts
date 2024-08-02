@@ -36,7 +36,6 @@ import {
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
   attributeAlreadyRevoked,
-  tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
@@ -430,31 +429,21 @@ export function tenantServiceBuilder(
       {
         tenantId,
         attributeId,
-        organizationId,
-        correlationId,
       }: {
         tenantId: TenantId;
         attributeId: AttributeId;
-        organizationId: TenantId;
-        correlationId: string;
       },
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
       );
       const requesterTenant = await retrieveTenant(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 
-      const certifierId = requesterTenant.data.features.find(
-        (feature) => feature.type === "PersistentCertifier"
-      )?.certifierId;
-
-      if (!certifierId) {
-        throw tenantIsNotACertifier(organizationId);
-      }
+      const retrieveCertifiedId = getTenantCertifierId(requesterTenant.data);
 
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
@@ -462,10 +451,10 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      if (!attribute.origin || attribute.origin !== certifierId) {
+      if (!attribute.origin || attribute.origin !== retrieveCertifiedId) {
         throw attributeDoesNotBelongToCertifier(
           attribute.id,
-          organizationId,
+          authData.organizationId,
           tenantId
         );
       }
@@ -482,7 +471,11 @@ export function tenantServiceBuilder(
       }
 
       if (certifiedTenantAttribute.revocationTimestamp) {
-        throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
+        throw attributeAlreadyRevoked(
+          tenantId,
+          authData.organizationId,
+          attributeId
+        );
       }
 
       const tenantWithRevokedAttribute: Tenant = await revokeCertifiedAttribute(

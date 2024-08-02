@@ -525,10 +525,8 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(tenantId),
               attributeId: unsafeBrandId(attributeId),
-              organizationId: req.ctx.authData.organizationId,
-              correlationId: req.ctx.correlationId,
             },
-            ctx.logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {

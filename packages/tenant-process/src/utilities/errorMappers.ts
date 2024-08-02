@@ -84,10 +84,12 @@ export const revokeCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
-    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "attributeDoesNotBelongToCertifier",
+      "tenantIsNotACertifier",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

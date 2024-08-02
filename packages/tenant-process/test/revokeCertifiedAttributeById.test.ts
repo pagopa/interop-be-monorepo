@@ -16,6 +16,7 @@ import {
   writeInReadmodel,
   getMockAttribute,
   readEventByStreamIdAndVersion,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -34,7 +35,6 @@ import {
 } from "./utils.js";
 
 describe("revokeCertifiedAttributeById", async () => {
-  const targetTenant: Tenant = getMockTenant();
   const requesterTenant: Tenant = {
     ...getMockTenant(),
     features: [
@@ -44,6 +44,8 @@ describe("revokeCertifiedAttributeById", async () => {
       },
     ],
   };
+  const authData = getRandomAuthData(requesterTenant.id);
+
   const attribute: Attribute = {
     ...getMockAttribute(),
     kind: attributeKind.certified,
@@ -61,7 +63,7 @@ describe("revokeCertifiedAttributeById", async () => {
 
   it("Should revoke the certified attribute if it exist", async () => {
     const tenantWithCertifiedAttribute: Tenant = {
-      ...targetTenant,
+      ...getMockTenant(),
       attributes: [
         {
           ...getMockCertifiedTenantAttribute(),
@@ -78,10 +80,13 @@ describe("revokeCertifiedAttributeById", async () => {
       {
         tenantId: tenantWithCertifiedAttribute.id,
         attributeId: attribute.id,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      {
+        authData,
+        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
@@ -120,16 +125,20 @@ describe("revokeCertifiedAttributeById", async () => {
     expect(
       tenantService.revokeCertifiedAttributeById(
         {
-          tenantId: targetTenant.id,
+          tenantId: getMockTenant().id,
           attributeId: attribute.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
   });
   it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
+    const targetTenant = getMockTenant();
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
 
@@ -138,17 +147,22 @@ describe("revokeCertifiedAttributeById", async () => {
         {
           tenantId: targetTenant.id,
           attributeId: attribute.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
+    const targetTenant = getMockTenant();
     const notCertifierTenant: Tenant = {
       ...getMockTenant(),
     };
+    const authData = getRandomAuthData(notCertifierTenant.id);
 
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     await addOneTenant(targetTenant);
@@ -159,14 +173,18 @@ describe("revokeCertifiedAttributeById", async () => {
         {
           tenantId: targetTenant.id,
           attributeId: attribute.id,
-          organizationId: notCertifierTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
   });
   it("Should throw attributeDoesNotBelongToCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
+    const targetTenant = getMockTenant();
     const notCompliantOriginAttribute: Attribute = {
       ...attribute,
       origin: generateId(),
@@ -183,10 +201,13 @@ describe("revokeCertifiedAttributeById", async () => {
         {
           tenantId: targetTenant.id,
           attributeId: attribute.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(
       attributeDoesNotBelongToCertifier(
@@ -198,7 +219,7 @@ describe("revokeCertifiedAttributeById", async () => {
   });
   it("Should throw attributeAlreadyRevoked if the attribute was already assigned revoked", async () => {
     const tenantAlreadyRevoked: Tenant = {
-      ...targetTenant,
+      ...getMockTenant(),
       attributes: [
         {
           ...getMockCertifiedTenantAttribute(),
@@ -215,10 +236,13 @@ describe("revokeCertifiedAttributeById", async () => {
         {
           tenantId: tenantAlreadyRevoked.id,
           attributeId: attribute.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(
       attributeAlreadyRevoked(
