@@ -15,6 +15,7 @@ import {
   KafkaConfig as InteropKafkaConfig,
   Logger,
   genericLogger,
+  KafkaProducerConfig,
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -245,7 +246,7 @@ const initConsumer = async (
 };
 
 export const initProducer = async (
-  config: InteropKafkaConfig,
+  config: KafkaProducerConfig,
   topic: string
 ): Promise<
   Producer & {
@@ -253,7 +254,15 @@ export const initProducer = async (
   }
 > => {
   try {
-    const kafka = initKafka(config);
+    const kafka = initKafka({
+      kafkaBrokers: config.producerKafkaBrokers,
+      kafkaClientId: config.producerKafkaClientId,
+      kafkaDisableAwsIamAuth: config.producerKafkaDisableAwsIamAuth,
+      kafkaLogLevel: config.producerKafkaLogLevel,
+      kafkaReauthenticationThreshold:
+        config.producerKafkaReauthenticationThreshold,
+      awsRegion: config.awsRegion,
+    });
 
     const producer = kafka.producer({
       allowAutoTopicCreation: false,
