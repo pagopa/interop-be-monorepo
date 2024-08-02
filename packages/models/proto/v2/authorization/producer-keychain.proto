@@ -12,5 +12,5 @@ message ProducerKeychainV2 {
   repeated string eservices = 5;
   int64 createdAt = 6;
   repeated string users = 7;
-  repeated ProducerKeychainKeyV2 keys = 9;
+  repeated ProducerKeyV2 keys = 9;
 }
