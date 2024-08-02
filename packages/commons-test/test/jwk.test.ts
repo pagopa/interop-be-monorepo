@@ -16,14 +16,9 @@ describe("jwk test", () => {
   it("should calculate the kid", async () => {
     const expetedKid = "23j6WZbSbFiX_By98MBDgjnL3ZPkJJU83euQxrZxVsA";
     const kid = calculateKid(
-      createJWK(`-----BEGIN RSA PUBLIC KEY-----
-MIIBCgKCAQEA6s10aGJMLOPKLjJAlRoly4jcBx52X30r156ZRwtG7mNjSIQMclLy
-BrxcZ/OXCkwSnwbgp3Iq7hILppgOA91TI57GHzBJZg4H/Laaq6I0+cE3R1vPmOpz
-/5YsDPtCxrvMshaEiNaJZk/BctJMtlarNMZVSEUni/r5IryMVdmgCMiPhffGVBvp
-JaU5NNACdUt7KluGnmljOd15gLsQbnHWYEFTLuRU5T2bA/GoBKREiz8csodFz8M4
-D59t0zN9Pdy5hAzytnRsPrpppvrS1ErOPLinMarkKSdgmJWltCqyXVx+bgQflctq
-cKMMmMozoK32uTscd8y4aDLiovOsiYq3YwIDAQAB
------END RSA PUBLIC KEY-----`)
+      createJWK(
+        `LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJDZ0tDQVFFQTZzMTBhR0pNTE9QS0xqSkFsUm9seTRqY0J4NTJYMzByMTU2WlJ3dEc3bU5qU0lRTWNsTHkKQnJ4Y1ovT1hDa3dTbndiZ3AzSXE3aElMcHBnT0E5MVRJNTdHSHpCSlpnNEgvTGFhcTZJMCtjRTNSMXZQbU9wegovNVlzRFB0Q3hydk1zaGFFaU5hSlprL0JjdEpNdGxhck5NWlZTRVVuaS9yNUlyeU1WZG1nQ01pUGhmZkdWQnZwCkphVTVOTkFDZFV0N0tsdUdubWxqT2QxNWdMc1FibkhXWUVGVEx1UlU1VDJiQS9Hb0JLUkVpejhjc29kRno4TTQKRDU5dDB6TjlQZHk1aEF6eXRuUnNQcnBwcHZyUzFFck9QTGluTWFya0tTZGdtSldsdENxeVhWeCtiZ1FmbGN0cQpjS01NbU1vem9LMzJ1VHNjZDh5NGFETGlvdk9zaVlxM1l3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0=`
+      )
     );
     expect(kid).toEqual(expetedKid);
   });
