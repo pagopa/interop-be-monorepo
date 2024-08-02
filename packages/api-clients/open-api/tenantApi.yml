@@ -539,7 +539,7 @@ paths:
           format: uuid
     delete:
       tags:
-        - tenant
+        - tenantAttribute
       operationId: revokeDeclaredAttribute
       description: Revokes a Declared attribute to the requesting Tenant
       responses:
