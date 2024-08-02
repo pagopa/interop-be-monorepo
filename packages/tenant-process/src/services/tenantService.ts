@@ -26,23 +26,23 @@ import {
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
+  toCreateEventTenantVerifiedAttributeExpirationUpdated,
+  toCreateEventTenantVerifiedAttributeExtensionUpdated,
+  toCreateEventTenantOnboardDetailsUpdated,
+  toCreateEventTenantOnboarded,
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
   toCreateEventTenantKindUpdated,
+  toCreateEventTenantMailDeleted,
   toCreateEventTenantDeclaredAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
+  mailNotFound,
 } from "../model/domain/errors.js";
 import { tenantNotFound } from "../model/domain/errors.js";
-import {
-  toCreateEventTenantVerifiedAttributeExpirationUpdated,
-  toCreateEventTenantVerifiedAttributeExtensionUpdated,
-  toCreateEventTenantOnboardDetailsUpdated,
-  toCreateEventTenantOnboarded,
-} from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -54,6 +54,7 @@ import {
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
   assertTenantExists,
+  assertRequesterAllowed,
   getTenantCertifierId,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
@@ -497,6 +498,46 @@ export function tenantServiceBuilder(
         offset,
         limit,
       });
+    },
+
+    async deleteTenantMailById(
+      {
+        tenantId,
+        mailId,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailId: string;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (!tenant.data.mails.find((m) => m.id === mailId)) {
+        throw mailNotFound(mailId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: tenant.data.mails.filter((mail) => mail.id !== mailId),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailDeleted(
+          tenant.metadata.version,
+          updatedTenant,
+          mailId,
+          correlationId
+        )
+      );
     },
 
     async getProducers(

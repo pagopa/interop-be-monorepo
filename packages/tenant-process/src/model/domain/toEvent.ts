@@ -154,3 +154,22 @@ export const toCreateEventTenantDeclaredAttributeRevoked = (
   },
   correlationId,
 });
+
+export const toCreateEventTenantMailDeleted = (
+  version: number,
+  updatedTenant: Tenant,
+  mailId: string,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantMailDeleted",
+    data: {
+      mailId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
