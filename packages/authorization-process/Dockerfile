@@ -39,6 +39,6 @@ FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe
 COPY --from=build /out /app
 
 WORKDIR /app/packages/authorization-process
-EXPOSE 3000
+EXPOSE 3300
 
 CMD [ "node", "." ]

@@ -22,7 +22,8 @@ export const errorCodes = {
   tenantIsNotACertifier: "0013",
   attributeDoesNotBelongToCertifier: "0014",
   certifiedAttributeAlreadyAssigned: "0015",
-  attributeAlreadyRevoked: "0016",
+  mailNotFound: "0016",
+  attributeAlreadyRevoked: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -192,5 +193,12 @@ export function attributeAlreadyRevoked(
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
     code: "attributeAlreadyRevoked",
     title: "attribute is Already Revoked",
+  });
+}
+export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail ${mailId} not found`,
+    code: "mailNotFound",
+    title: "Mail not found",
   });
 }
