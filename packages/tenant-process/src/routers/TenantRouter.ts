@@ -368,11 +368,6 @@ const tenantsRouter = (
       }
     )
     .delete(
-      "/tenants/:tenantId/attributes/verified/:attributeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
       "/maintenance/tenants/:tenantId",
       authorizationMiddleware([MAINTENANCE_ROLE]),
       async (req, res) => {
