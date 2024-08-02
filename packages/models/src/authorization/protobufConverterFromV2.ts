@@ -11,11 +11,11 @@ import { ProducerKeychainV2 } from "../gen/v2/authorization/producer-keychain.js
 import {
   KeyUseV2,
   ClientKeyV2,
-  ProducerKeychainKeyV2,
+  ProducerKeyV2,
 } from "../gen/v2/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind, ClientKey } from "./client.js";
-import { ProducerKeychain, ProducerKeychainKey } from "./producerKeychain.js";
+import { ProducerKeychain, ProducerKey } from "./producerKeychain.js";
 import { KeyUse, keyUse } from "./key.js";
 
 const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
@@ -55,9 +55,7 @@ export const fromClientV2 = (input: ClientV2): Client => ({
   keys: input.keys.map(fromClientKeyV2),
 });
 
-export const fromProducerKeychainKeyV2 = (
-  input: ProducerKeychainKeyV2
-): ProducerKeychainKey => ({
+export const fromProducerKeyV2 = (input: ProducerKeyV2): ProducerKey => ({
   ...input,
   producerKeychainId: unsafeBrandId<ProducerKeychainId>(
     input.producerKeychainId
@@ -76,5 +74,5 @@ export const fromProducerKeychainV2 = (
   createdAt: bigIntToDate(input.createdAt),
   eservices: input.eservices.map(unsafeBrandId<EServiceId>),
   users: input.users.map(unsafeBrandId<UserId>),
-  keys: input.keys.map(fromProducerKeychainKeyV2),
+  keys: input.keys.map(fromProducerKeyV2),
 });

@@ -8,6 +8,7 @@ import {
   PurposeReadModel,
   genericInternalError,
   ProducerKeychainReadModel,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -41,6 +42,7 @@ export type ClientCollection = GenericCollection<ClientReadModel>;
 export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
 export type ProducerKeychainCollection =
   GenericCollection<ProducerKeychainReadModel>;
+export type ProducerKeyCollection = GenericCollection<ProducerJWKKey>;
 
 export type Collections =
   | EServiceCollection
@@ -50,7 +52,8 @@ export type Collections =
   | PurposeCollection
   | ClientCollection
   | ClientKeyCollection
-  | ProducerKeychainCollection;
+  | ProducerKeychainCollection
+  | ProducerKeyCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -159,6 +162,8 @@ export class ReadModelRepository {
 
   public producerKeychains: ProducerKeychainCollection;
 
+  public producerKeys: ProducerKeyCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -185,8 +190,10 @@ export class ReadModelRepository {
     this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
     this.keys = this.db.collection("keys", { ignoreUndefined: true });
-    // TODO is the collection name casing okkay?
-    this.producerKeychains = this.db.collection("producerKeychains", {
+    this.producerKeychains = this.db.collection("producer_keychains", {
+      ignoreUndefined: true,
+    });
+    this.producerKeys = this.db.collection("producer_keys", {
       ignoreUndefined: true,
     });
   }
