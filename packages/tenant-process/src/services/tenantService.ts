@@ -5,7 +5,6 @@ import {
   Logger,
   WithLogger,
   AppContext,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -15,7 +14,6 @@ import {
   ListResult,
   Tenant,
   TenantAttribute,
-  TenantEvent,
   TenantId,
   WithMetadata,
   attributeKind,
@@ -406,15 +404,25 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [updatedTenant, tenantKindUpdatedEvent] =
-        await reevaluateTenantKind({
-          tenant: tenantWithNewAttribute,
-          version: targetTenant.metadata.version + 1,
-          readModelService,
-          correlationId,
-        });
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId
+      );
 
-      if (tenantKindUpdatedEvent) {
+      const updatedTenant = {
+        ...tenantWithNewAttribute,
+        kind: tenantKind,
+      };
+
+      if (tenantWithNewAttribute.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          tenantKind,
+          updatedTenant,
+          correlationId
+        );
+
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -721,41 +729,6 @@ async function assignCertifiedAttribute({
       updatedAt: new Date(),
     };
   }
-}
-
-async function reevaluateTenantKind({
-  tenant,
-  version,
-  readModelService,
-  correlationId,
-}: {
-  tenant: Tenant;
-  version: number;
-  readModelService: ReadModelService;
-  correlationId: string;
-}): Promise<[Tenant, CreateEvent<TenantEvent>?]> {
-  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-    readModelService,
-    tenant.attributes,
-    tenant.externalId
-  );
-
-  const updatedTenant = {
-    ...tenant,
-    kind: tenantKind,
-  };
-
-  if (tenant.kind !== tenantKind) {
-    const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-      version,
-      tenantKind,
-      updatedTenant,
-      correlationId
-    );
-
-    return [updatedTenant, tenantKindUpdatedEvent];
-  }
-  return [updatedTenant];
 }
 
 function assignDeclaredAttribute(
