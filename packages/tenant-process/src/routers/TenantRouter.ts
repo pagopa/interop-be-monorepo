@@ -541,10 +541,8 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               attributeId: unsafeBrandId(req.params.attributeId),
-              revokerId: req.ctx.authData.organizationId,
-              correlationId: req.ctx.correlationId,
             },
-            ctx.logger
+            ctx
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {

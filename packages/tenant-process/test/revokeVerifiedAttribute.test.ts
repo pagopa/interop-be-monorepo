@@ -19,6 +19,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   writeInReadmodel,
   readLastEventByStreamId,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -45,8 +46,9 @@ import {
 describe("revokeVerifiedAttribute", async () => {
   const targetTenant: Tenant = getMockTenant();
   const revokerTenant: Tenant = getMockTenant();
+  const authData = getMockAuthData(revokerTenant.id);
   const verifiedAttribute = getMockVerifiedTenantAttribute();
-  const descriptor1: Descriptor = {
+  const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
     attributes: {
@@ -62,15 +64,15 @@ describe("revokeVerifiedAttribute", async () => {
       certified: [],
     },
   };
-  const eService1: EService = {
+  const eService: EService = {
     ...getMockEService(),
     producerId: revokerTenant.id,
-    descriptors: [descriptor1],
+    descriptors: [descriptor],
   };
-  const agreementEservice1: Agreement = getMockAgreement({
-    eserviceId: eService1.id,
-    descriptorId: descriptor1.id,
-    producerId: eService1.producerId,
+  const agreementEservice: Agreement = getMockAgreement({
+    eserviceId: eService.id,
+    descriptorId: descriptor.id,
+    producerId: eService.producerId,
     consumerId: targetTenant.id,
   });
 
@@ -105,20 +107,20 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
 
     const returnedTenant = await tenantService.revokeVerifiedAttribute(
       {
         tenantId: tenantWithVerifiedAttribute.id,
         attributeId: verifiedAttribute.id,
-        revokerId: revokerTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -162,20 +164,20 @@ describe("revokeVerifiedAttribute", async () => {
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
     expect(
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: targetTenant.id,
           attributeId: verifiedAttribute.id,
-          revokerId: revokerTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(tenantNotFound(targetTenant.id));
   });
@@ -199,20 +201,20 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithoutSameAttributeId);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
     expect(
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: tenantWithoutSameAttributeId.id,
           attributeId: verifiedAttribute.id,
-          revokerId: revokerTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(attributeNotFound(verifiedAttribute.id));
   });
@@ -235,44 +237,43 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
 
     expect(
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: verifiedAttribute.id,
-          revokerId: revokerTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(
       attributeRevocationNotAllowed(targetTenant.id, verifiedAttribute.id)
     );
   });
   it("Should throw verifiedAttributeSelfRevocationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
-    await addOneTenant(targetTenant);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
 
     expect(
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: revokerTenant.id,
           attributeId: verifiedAttribute.id,
-          revokerId: revokerTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(verifiedAttributeSelfRevocationNotAllowed());
   });
@@ -295,21 +296,21 @@ describe("revokeVerifiedAttribute", async () => {
 
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
 
     expect(
       tenantService.revokeVerifiedAttribute(
         {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: verifiedAttribute.id,
-          revokerId: revokerTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        {
+          authData,
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(
       attributeAlreadyRevoked(

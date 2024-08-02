@@ -523,21 +523,17 @@ export function tenantServiceBuilder(
       {
         tenantId,
         attributeId,
-        revokerId,
-        correlationId,
       }: {
         tenantId: TenantId;
         attributeId: AttributeId;
-        revokerId: TenantId;
-        correlationId: string;
       },
-      logger: Logger
+      { logger, authData, correlationId }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(
-        `Revoke verified attribute ${attributeId} to tenant ${tenantId}`
+        `Revokeing verified attribute ${attributeId} to tenant ${tenantId}`
       );
 
-      if (revokerId === tenantId) {
+      if (authData.organizationId === tenantId) {
         throw verifiedAttributeSelfRevocationNotAllowed();
       }
 
@@ -548,7 +544,7 @@ export function tenantServiceBuilder(
       ];
 
       await assertVerifiedAttributeOperationAllowed({
-        producerId: revokerId,
+        producerId: authData.organizationId,
         consumerId: tenantId,
         attributeId,
         agreementStates: allowedStatuses,
@@ -568,25 +564,34 @@ export function tenantServiceBuilder(
       }
 
       const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === revokerId
+        (a) => a.id === authData.organizationId
       );
 
       if (!verifier) {
         throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
-      if (verifiedTenantAttribute.revokedBy.find((a) => a.id === revokerId)) {
-        throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
+      if (
+        verifiedTenantAttribute.revokedBy.some(
+          (a) => a.id === authData.organizationId
+        )
+      ) {
+        throw attributeAlreadyRevoked(
+          tenantId,
+          authData.organizationId,
+          attributeId
+        );
       }
 
-      const updatedTenant = {
+      const updatedTenant: Tenant = {
         ...targetTenant.data,
+        updatedAt: new Date(),
         attributes: targetTenant.data.attributes.map((attr) =>
           attr.id === attributeId
             ? ({
                 ...verifiedTenantAttribute,
                 verifiedBy: verifiedTenantAttribute.verifiedBy.filter(
-                  (v) => v.id !== revokerId
+                  (v) => v.id !== authData.organizationId
                 ),
                 revokedBy: [
                   ...verifiedTenantAttribute.revokedBy,
