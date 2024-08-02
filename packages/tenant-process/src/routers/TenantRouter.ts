@@ -28,6 +28,7 @@ import {
   selfcareUpsertTenantErrorMapper,
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
+  deleteTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -344,6 +345,33 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/tenants/:tenantId/mails/:mailId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tenantId, mailId } = req.params;
+          await tenantService.deleteTenantMailById(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              mailId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteTenantMailErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   const m2mRouter = ctx.router(tenantApi.m2mApi.api, {

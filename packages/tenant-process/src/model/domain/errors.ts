@@ -22,6 +22,7 @@ export const errorCodes = {
   tenantIsNotACertifier: "0013",
   attributeDoesNotBelongToCertifier: "0014",
   certifiedAttributeAlreadyAssigned: "0015",
+  mailNotFound: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -179,5 +180,13 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "certified Attribute Already Assigned",
+  });
+}
+
+export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail ${mailId} not found`,
+    code: "mailNotFound",
+    title: "Mail not found",
   });
 }
