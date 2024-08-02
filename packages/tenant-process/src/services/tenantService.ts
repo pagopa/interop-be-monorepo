@@ -720,17 +720,21 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const { updatedTenant, tenantKindHasBeenUpdated } =
-        await reevaluateTenantKind({
-          tenant: tenantWithRevokedAttribute,
-          readModelService,
-        });
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithRevokedAttribute.attributes,
+        tenantWithRevokedAttribute.externalId
+      );
 
-      if (tenantKindHasBeenUpdated) {
+      const updatedTenant: Tenant = {
+        ...tenantWithRevokedAttribute,
+        kind: tenantKind,
+      };
+
+      if (tenantWithRevokedAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantToModify.data.kind!,
+          tenantKind,
           updatedTenant,
           correlationId
         );
