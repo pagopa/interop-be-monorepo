@@ -1,10 +1,10 @@
+import crypto from "crypto";
 import {
   DB,
   eventRepository,
   Logger,
   WithLogger,
   AppContext,
-  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -14,7 +14,6 @@ import {
   ListResult,
   Tenant,
   TenantAttribute,
-  TenantEvent,
   TenantId,
   WithMetadata,
   attributeKind,
@@ -22,6 +21,7 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
   unsafeBrandId,
+  TenantMail,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -33,16 +33,18 @@ import {
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
   toCreateEventTenantKindUpdated,
-  toCreateEventTenantMailDeleted,
   toCreateEventTenantDeclaredAttributeRevoked,
+  toCreateEventTenantMailDeleted,
+  toCreateEventTenantMailAdded,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
   mailNotFound,
+  tenantNotFound,
+  mailAlreadyExists,
 } from "../model/domain/errors.js";
-import { tenantNotFound } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -402,15 +404,25 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-      const [updatedTenant, tenantKindUpdatedEvent] =
-        await reevaluateTenantKind({
-          tenant: tenantWithNewAttribute,
-          version: targetTenant.metadata.version + 1,
-          readModelService,
-          correlationId,
-        });
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId
+      );
 
-      if (tenantKindUpdatedEvent) {
+      const updatedTenant = {
+        ...tenantWithNewAttribute,
+        kind: tenantKind,
+      };
+
+      if (tenantWithNewAttribute.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          tenantKind,
+          updatedTenant,
+          correlationId
+        );
+
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -535,6 +547,54 @@ export function tenantServiceBuilder(
           tenant.metadata.version,
           updatedTenant,
           mailId,
+          correlationId
+        )
+      );
+    },
+
+    async addTenantMail(
+      {
+        tenantId,
+        mailSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailSeed: tenantApi.MailSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+        throw mailAlreadyExists();
+      }
+
+      const newMail: TenantMail = {
+        kind: mailSeed.kind,
+        address: mailSeed.address,
+        description: mailSeed.description,
+        id: crypto.createHash("sha256").update(mailSeed.address).digest("hex"),
+        createdAt: new Date(),
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: [...tenant.data.mails, newMail],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailAdded(
+          tenant.metadata.version,
+          updatedTenant,
+          newMail.id,
           correlationId
         )
       );
@@ -669,41 +729,6 @@ async function assignCertifiedAttribute({
       updatedAt: new Date(),
     };
   }
-}
-
-async function reevaluateTenantKind({
-  tenant,
-  version,
-  readModelService,
-  correlationId,
-}: {
-  tenant: Tenant;
-  version: number;
-  readModelService: ReadModelService;
-  correlationId: string;
-}): Promise<[Tenant, CreateEvent<TenantEvent>?]> {
-  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-    readModelService,
-    tenant.attributes,
-    tenant.externalId
-  );
-
-  const updatedTenant = {
-    ...tenant,
-    kind: tenantKind,
-  };
-
-  if (tenant.kind !== tenantKind) {
-    const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-      version,
-      tenantKind,
-      updatedTenant,
-      correlationId
-    );
-
-    return [updatedTenant, tenantKindUpdatedEvent];
-  }
-  return [updatedTenant];
 }
 
 function assignDeclaredAttribute(

@@ -173,3 +173,22 @@ export const toCreateEventTenantMailDeleted = (
   },
   correlationId,
 });
+
+export const toCreateEventTenantMailAdded = (
+  version: number,
+  updatedTenant: Tenant,
+  mailId: string,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantMailAdded",
+    data: {
+      mailId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});

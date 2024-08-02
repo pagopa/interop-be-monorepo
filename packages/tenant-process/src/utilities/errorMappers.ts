@@ -104,3 +104,10 @@ export const deleteTenantMailErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("mailNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
