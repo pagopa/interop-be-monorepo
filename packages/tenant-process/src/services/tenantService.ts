@@ -648,6 +648,13 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...tenant.data,
+        features: [
+          ...tenant.data.features,
+          {
+            type: "PersistentCertifier",
+            certifierId,
+          },
+        ],
         updatedAt: new Date(),
       };
 
