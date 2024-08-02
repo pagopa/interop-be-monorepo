@@ -778,6 +778,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/tenants/{tenantId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - tenant
+      summary: Deletes a tenant
+      operationId: maintenanceTenantDelete
+      responses:
+        "204":
+          description: Tenant Deleted
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentVersion:
+                  type: number
+              required:
+                - currentVersion
+        required: true
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
