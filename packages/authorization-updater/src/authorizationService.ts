@@ -255,7 +255,7 @@ export const authorizationServiceBuilder = (
       const headers = getHeaders(correlationId, token);
       await authMgmtClients.clientApiClient.createClient(
         {
-          id: client.id,
+          clientId: client.id,
           name: client.name,
           description: client.description,
           consumerId: client.consumerId,
