@@ -802,17 +802,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-                requestBody:
-                  content:
-                    application/json:
-                    schema:
-                      type: object
-                      properties:
-                        currentVersion:
-                          type: number
-                      required:
-                        - currentVersion
-                required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentVersion:
+                  type: number
+              required:
+                - currentVersion
+        required: true
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
