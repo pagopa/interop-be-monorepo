@@ -24,6 +24,8 @@ export const errorCodes = {
   certifiedAttributeAlreadyAssigned: "0015",
   attributeVerificationNotAllowed: "0016",
   verifiedAttributeSelfVerificationNotAllowed: "0017",
+  mailNotFound: "0018",
+  mailAlreadyExists: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -201,5 +203,21 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "certified Attribute Already Assigned",
+  });
+}
+
+export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail ${mailId} not found`,
+    code: "mailNotFound",
+    title: "Mail not found",
+  });
+}
+
+export function mailAlreadyExists(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail already exists`,
+    code: "mailAlreadyExists",
+    title: "Mail already exists",
   });
 }
