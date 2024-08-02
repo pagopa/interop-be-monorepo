@@ -8,7 +8,7 @@ import {
   PurposeReadModel,
   genericInternalError,
   ProducerKeychainReadModel,
-  ProducerKeychainJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -42,8 +42,7 @@ export type ClientCollection = GenericCollection<ClientReadModel>;
 export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
 export type ProducerKeychainCollection =
   GenericCollection<ProducerKeychainReadModel>;
-export type ProducerKeychainKeyCollection =
-  GenericCollection<ProducerKeychainJWKKey>;
+export type ProducerKeychainKeyCollection = GenericCollection<ProducerJWKKey>;
 
 export type Collections =
   | EServiceCollection
