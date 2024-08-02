@@ -25,6 +25,7 @@ export async function handleMessageV2(
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
+          "data.clientId": client.id,
           "metadata.version": { $lte: message.version },
         },
         {
@@ -39,8 +40,16 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ClientKeyDeleted" }, async (message) => {
+      const client = message.data.client
+        ? fromClientV2(message.data.client)
+        : undefined;
+
+      if (!client) {
+        throw Error("Client not found in event");
+      }
       await keys.deleteOne({
         "data.kid": message.data.kid,
+        "data.clientId": client.id,
         "metadata.version": { $lte: message.version },
       });
     })
