@@ -27,6 +27,8 @@ export const errorCodes = {
   attributeRevocationNotAllowed: "0018",
   attributeAlreadyRevoked: "0019",
   verifiedAttributeSelfRevocationNotAllowed: "0020",
+  mailNotFound: "0021",
+  mailAlreadyExists: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -236,5 +238,21 @@ export function attributeAlreadyRevoked(
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
     code: "attributeAlreadyRevoked",
     title: "attribute is Already Revoked",
+  });
+}
+
+export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail ${mailId} not found`,
+    code: "mailNotFound",
+    title: "Mail not found",
+  });
+}
+
+export function mailAlreadyExists(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail already exists`,
+    code: "mailAlreadyExists",
+    title: "Mail already exists",
   });
 }
