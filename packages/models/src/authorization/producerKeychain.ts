@@ -7,10 +7,10 @@ import {
 } from "../brandedIds.js";
 import { Key } from "./key.js";
 
-export const ProducerKeychainKey = Key.extend({
+export const ProducerKey = Key.extend({
   producerKeychainId: ProducerKeychainId,
 });
-export type ProducerKeychainKey = z.infer<typeof ProducerKeychainKey>;
+export type ProducerKey = z.infer<typeof ProducerKey>;
 
 export const ProducerKeychain = z.object({
   id: ProducerKeychainId,
@@ -20,6 +20,6 @@ export const ProducerKeychain = z.object({
   eservices: z.array(EServiceId),
   description: z.string(),
   users: z.array(UserId),
-  keys: z.array(ProducerKeychainKey),
+  keys: z.array(ProducerKey),
 });
 export type ProducerKeychain = z.infer<typeof ProducerKeychain>;
