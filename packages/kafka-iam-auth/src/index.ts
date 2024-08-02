@@ -123,13 +123,13 @@ const initConsumer = async (
   const kafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
         clientId: config.kafkaClientId,
-        brokers: [config.kafkaBrokers],
+        brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
         ssl: false,
       }
     : {
         clientId: config.kafkaClientId,
-        brokers: [config.kafkaBrokers],
+        brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
