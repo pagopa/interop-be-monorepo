@@ -62,6 +62,17 @@ const mockInternalToken = {
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
 };
 
+const mockMaintenanceToken = {
+  aud: "refactor.dev.interop.pagopa.it/m2m,refactor.dev.interop.pagopa.it/fake",
+  sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
+  role: "maintenance",
+  nbf: 1710511524,
+  iss: "refactor.dev.interop.pagopa.it",
+  exp: 1810511523,
+  iat: 1710511524,
+  jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
+};
+
 const mockSupportToken = {
   iss: "refactor.dev.interop.pagopa.it",
   externalId: {
@@ -173,6 +184,7 @@ describe("JWT tests", () => {
         mockUiToken,
         mockM2MToken,
         mockInternalToken,
+        mockMaintenanceToken,
       ]);
       const token = getMockSignedToken({
         ...mockToken,
@@ -190,6 +202,7 @@ describe("JWT tests", () => {
         mockUiToken,
         mockM2MToken,
         mockInternalToken,
+        mockMaintenanceToken,
       ]);
       const token = getMockSignedToken({
         ...mockToken,
@@ -217,6 +230,20 @@ describe("JWT tests", () => {
       });
     });
 
+    it("should successfully read auth data from a Maintenance token", async () => {
+      const token = getMockSignedToken(mockMaintenanceToken);
+      expect(readAuthDataFromJwtToken(token)).toEqual({
+        externalId: {
+          origin: "",
+          value: "",
+        },
+        organizationId: "",
+        selfcareId: "",
+        userId: "",
+        userRoles: ["maintenance"],
+      });
+    });
+
     it("should fail when the token is invalid", async () => {
       const token = getMockSignedToken({
         role: "invalid-role",
@@ -224,7 +251,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
         invalidClaim(
-          "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' |  at \"role\""
+          "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' | 'maintenance' |  at \"role\""
         )
       );
     });
