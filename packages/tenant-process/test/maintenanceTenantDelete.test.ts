@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
-  MaintenanceTenantDeleteV2,
+  MaintenanceTenantDeletedV2,
   generateId,
   protobufDecoder,
   toTenantV2,
@@ -16,11 +16,11 @@ import {
   tenantService,
 } from "./utils.js";
 
-describe("maintenanceTenantDelete", async () => {
+describe("maintenanceTenantDeleted", async () => {
   it("should write on event-store for the deletion of a tenant", async () => {
     const mockTenant = getMockTenant();
     await addOneTenant(mockTenant);
-    await tenantService.maintenanceTenantDelete(
+    await tenantService.maintenanceTenantDeleted(
       {
         tenantId: mockTenant.id,
         version: 0,
@@ -37,11 +37,11 @@ describe("maintenanceTenantDelete", async () => {
     expect(writtenEvent).toMatchObject({
       stream_id: mockTenant.id,
       version: "1",
-      type: "MaintenanceTenantDelete",
+      type: "MaintenanceTenantDeleted",
       event_version: 2,
     });
-    const writtenPayload: MaintenanceTenantDeleteV2 | undefined =
-      protobufDecoder(MaintenanceTenantDeleteV2).parse(writtenEvent.data);
+    const writtenPayload: MaintenanceTenantDeletedV2 | undefined =
+      protobufDecoder(MaintenanceTenantDeletedV2).parse(writtenEvent.data);
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(mockTenant));
   });
@@ -49,7 +49,7 @@ describe("maintenanceTenantDelete", async () => {
     const mockTenant = getMockTenant();
 
     expect(
-      tenantService.maintenanceTenantDelete(
+      tenantService.maintenanceTenantDeleted(
         {
           tenantId: mockTenant.id,
           version: 0,

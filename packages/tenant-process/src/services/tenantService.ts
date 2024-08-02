@@ -41,7 +41,7 @@ import {
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
-  toCreateEventMaintenanceTenantDelete,
+  toCreateEventMaintenanceTenantDeleted,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -446,7 +446,7 @@ export function tenantServiceBuilder(
       });
     },
 
-    async maintenanceTenantDelete(
+    async maintenanceTenantDeleted(
       {
         tenantId,
         version,
@@ -463,7 +463,7 @@ export function tenantServiceBuilder(
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       await repository.createEvent(
-        toCreateEventMaintenanceTenantDelete(
+        toCreateEventMaintenanceTenantDeleted(
           version,
           tenant.data,
           correlationId

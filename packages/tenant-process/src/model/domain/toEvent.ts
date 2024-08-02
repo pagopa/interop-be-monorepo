@@ -136,7 +136,7 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
   correlationId,
 });
 
-export const toCreateEventMaintenanceTenantDelete = (
+export const toCreateEventMaintenanceTenantDeleted = (
   version: number,
   tenant: Tenant,
   correlationId: string
@@ -145,7 +145,7 @@ export const toCreateEventMaintenanceTenantDelete = (
   version,
   event: {
     event_version: 2,
-    type: "MaintenanceTenantDelete",
+    type: "MaintenanceTenantDeleted",
     data: {
       tenantId: tenant.id,
       tenant: toTenantV2(tenant),

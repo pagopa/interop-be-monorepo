@@ -13,7 +13,7 @@ export async function handleMessageV2(
   const tenant = message.data.tenant;
 
   await match(message)
-    .with({ type: "MaintenanceTenantDelete" }, async (message) => {
+    .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
       await tenants.deleteOne({
         "data.id": message.stream_id,
         "metadata.version": { $lte: message.version },
