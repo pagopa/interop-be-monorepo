@@ -30,6 +30,7 @@ import {
   getCertifiedAttributesErrorMapper,
   revokeCertifiedAttributeErrorMapper,
   deleteTenantMailErrorMapper,
+  addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -336,6 +337,32 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateVerifiedAttributeExtensionDateErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/tenants/:tenantId/mails",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.addTenantMail(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              mailSeed: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addTenantMailErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

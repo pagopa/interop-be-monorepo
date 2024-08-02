@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import {
   DB,
   eventRepository,
@@ -20,6 +21,7 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
   unsafeBrandId,
+  TenantMail,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -31,9 +33,10 @@ import {
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
   toCreateEventTenantKindUpdated,
-  toCreateEventTenantMailDeleted,
   toCreateEventTenantDeclaredAttributeRevoked,
   toCreateEventTenantCertifiedAttributeRevoked,
+  toCreateEventTenantMailDeleted,
+  toCreateEventTenantMailAdded,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
@@ -41,8 +44,9 @@ import {
   attributeDoesNotBelongToCertifier,
   attributeAlreadyRevoked,
   mailNotFound,
+  tenantNotFound,
+  mailAlreadyExists,
 } from "../model/domain/errors.js";
-import { tenantNotFound } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -420,6 +424,7 @@ export function tenantServiceBuilder(
           updatedTenant,
           correlationId
         );
+
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -637,6 +642,54 @@ export function tenantServiceBuilder(
           tenant.metadata.version,
           updatedTenant,
           mailId,
+          correlationId
+        )
+      );
+    },
+
+    async addTenantMail(
+      {
+        tenantId,
+        mailSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailSeed: tenantApi.MailSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+        throw mailAlreadyExists();
+      }
+
+      const newMail: TenantMail = {
+        kind: mailSeed.kind,
+        address: mailSeed.address,
+        description: mailSeed.description,
+        id: crypto.createHash("sha256").update(mailSeed.address).digest("hex"),
+        createdAt: new Date(),
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: [...tenant.data.mails, newMail],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailAdded(
+          tenant.metadata.version,
+          updatedTenant,
+          newMail.id,
           correlationId
         )
       );

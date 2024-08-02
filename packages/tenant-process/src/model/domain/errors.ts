@@ -24,6 +24,7 @@ export const errorCodes = {
   certifiedAttributeAlreadyAssigned: "0015",
   mailNotFound: "0016",
   attributeAlreadyRevoked: "0017",
+  mailAlreadyExists: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -200,5 +201,13 @@ export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
     detail: `mail ${mailId} not found`,
     code: "mailNotFound",
     title: "Mail not found",
+  });
+}
+
+export function mailAlreadyExists(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail already exists`,
+    code: "mailAlreadyExists",
+    title: "Mail already exists",
   });
 }
