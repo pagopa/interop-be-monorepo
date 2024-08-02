@@ -792,7 +792,7 @@ paths:
       tags:
         - tenant
       summary: Deletes a tenant
-      operationId: maintenanceTenantDelete
+      operationId: maintenanceTenantDeleted
       responses:
         "204":
           description: Tenant Deleted
@@ -808,10 +808,10 @@ paths:
             schema:
               type: object
               properties:
-                version:
+                currentVersion:
                   type: number
               required:
-                - version
+                - currentVersion
         required: true
   /status:
     get:
