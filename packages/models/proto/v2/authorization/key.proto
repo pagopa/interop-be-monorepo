@@ -13,7 +13,7 @@ message ClientKeyV2 {
   string clientId = 8;
 }
 
-message ProducerKeychainKeyV2 {
+message ProducerKeyV2 {
   string kid = 1;
   string encodedPem = 2;
   KeyUseV2 use = 3;
