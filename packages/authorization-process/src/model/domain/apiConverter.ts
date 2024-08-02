@@ -7,7 +7,7 @@ import {
   clientKind,
   keyUse,
   ProducerKeychain,
-  ProducerKeychainKey,
+  ProducerKey,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -85,7 +85,7 @@ export function producerKeychainToApiProducerKeychain(
 }
 
 export const keyToApiKey = (
-  key: ClientKey | ProducerKeychainKey
+  key: ClientKey | ProducerKey
 ): authorizationApi.Key => ({
   name: key.name,
   createdAt: key.createdAt.toJSON(),
