@@ -155,6 +155,24 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
   correlationId,
 });
 
+export const toCreateEventMaintenanceTenantDeleted = (
+  version: number,
+  tenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantDeleted",
+    data: {
+      tenantId: tenant.id,
+      tenant: toTenantV2(tenant),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventTenantVerifiedAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
@@ -168,6 +186,63 @@ export const toCreateEventTenantVerifiedAttributeAssigned = (
     event_version: 2,
     data: {
       attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantDeclaredAttributeRevoked = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantDeclaredAttributeRevoked",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantMailDeleted = (
+  version: number,
+  updatedTenant: Tenant,
+  mailId: string,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantMailDeleted",
+    data: {
+      mailId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantMailAdded = (
+  version: number,
+  updatedTenant: Tenant,
+  mailId: string,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantMailAdded",
+    data: {
+      mailId,
       tenant: toTenantV2(updatedTenant),
     },
   },
