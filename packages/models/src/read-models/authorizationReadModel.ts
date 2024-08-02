@@ -16,9 +16,7 @@ export const ProducerKeyReadModel = ProducerKey.extend({
   createdAt: z.string().datetime(),
 });
 
-export type ProducerKeyReadModel = z.infer<
-  typeof ProducerKeyReadModel
->;
+export type ProducerKeyReadModel = z.infer<typeof ProducerKeyReadModel>;
 
 export const ClientReadModel = Client.extend({
   createdAt: z.string().datetime(),
