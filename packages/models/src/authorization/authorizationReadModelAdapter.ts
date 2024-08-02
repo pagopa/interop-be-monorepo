@@ -2,10 +2,10 @@ import {
   ClientReadModel,
   ClientKeyReadModel,
   ProducerKeychainReadModel,
-  ProducerKeychainKeyReadModel,
+  ProducerKeyReadModel,
 } from "../read-models/authorizationReadModel.js";
 import { Client, ClientKey } from "./client.js";
-import { ProducerKeychain, ProducerKeychainKey } from "./producerKeychain.js";
+import { ProducerKeychain, ProducerKey } from "./producerKeychain.js";
 
 export const toReadModelClientKey = (key: ClientKey): ClientKeyReadModel => ({
   ...key,
@@ -18,9 +18,9 @@ export const toReadModelClient = (client: Client): ClientReadModel => ({
   keys: client.keys.map(toReadModelClientKey),
 });
 
-export const toReadModelProducerKeychainKey = (
-  key: ProducerKeychainKey
-): ProducerKeychainKeyReadModel => ({
+export const toReadModelProducerKey = (
+  key: ProducerKey
+): ProducerKeyReadModel => ({
   ...key,
   createdAt: key.createdAt.toISOString(),
 });
@@ -30,5 +30,5 @@ export const toReadModelProducerKeychain = (
 ): ProducerKeychainReadModel => ({
   ...producerKeychain,
   createdAt: producerKeychain.createdAt.toISOString(),
-  keys: producerKeychain.keys.map(toReadModelProducerKeychainKey),
+  keys: producerKeychain.keys.map(toReadModelProducerKey),
 });
