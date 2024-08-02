@@ -11,10 +11,7 @@ import { config } from "./config/config.js";
 import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
-const producer = await initProducer(
-  config.producerConfig,
-  config.tenantOutboundTopic
-);
+const producer = await initProducer(config, config.tenantOutboundTopic);
 
 async function processMessage({
   message,
@@ -46,4 +43,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(config.consumerConfig, [config.tenantTopic], processMessage);
+await runConsumer(config, [config.tenantTopic], processMessage);
