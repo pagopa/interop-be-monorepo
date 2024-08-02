@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import {
   DB,
   eventRepository,
@@ -23,28 +24,32 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
   unsafeBrandId,
+  TenantMail,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import {
-  toCreateEventTenantVerifiedAttributeAssigned,
-  toCreateEventTenantCertifiedAttributeAssigned,
-  toCreateEventTenantDeclaredAttributeAssigned,
-  toCreateEventTenantKindUpdated,
-} from "../model/domain/toEvent.js";
-import {
-  attributeNotFound,
-  attributeVerificationNotAllowed,
-  certifiedAttributeAlreadyAssigned,
-  attributeDoesNotBelongToCertifier,
-} from "../model/domain/errors.js";
-import { tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
+  toCreateEventTenantCertifiedAttributeAssigned,
+  toCreateEventTenantDeclaredAttributeAssigned,
+  toCreateEventTenantKindUpdated,
+  toCreateEventTenantDeclaredAttributeRevoked,
+  toCreateEventTenantMailDeleted,
+  toCreateEventTenantMailAdded,
+  toCreateEventTenantVerifiedAttributeAssigned,
 } from "../model/domain/toEvent.js";
+import {
+  attributeNotFound,
+  certifiedAttributeAlreadyAssigned,
+  attributeDoesNotBelongToCertifier,
+  mailNotFound,
+  tenantNotFound,
+  mailAlreadyExists,
+  attributeVerificationNotAllowed,
+} from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -56,6 +61,7 @@ import {
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
   assertTenantExists,
+  assertRequesterAllowed,
   getTenantCertifierId,
   assertVerifiedAttributeOperationAllowed,
 } from "./validators.js";
@@ -294,6 +300,59 @@ export function tenantServiceBuilder(
       }
     },
 
+    async revokeDeclaredAttribute(
+      {
+        attributeId,
+        organizationId,
+        correlationId,
+      }: {
+        attributeId: AttributeId;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(
+        `Revoking declared attribute ${attributeId} to tenant ${organizationId}`
+      );
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
+        (attr): attr is DeclaredTenantAttribute =>
+          attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
+      );
+
+      if (!maybeDeclaredTenantAttribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        updatedAt: new Date(),
+        attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
+          declaredAttribute.id === attributeId
+            ? {
+                ...declaredAttribute,
+                revocationTimestamp: new Date(),
+              }
+            : declaredAttribute
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDeclaredAttributeRevoked(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          unsafeBrandId(attributeId),
+          correlationId
+        )
+      );
+      return updatedTenant;
+    },
+
     async addCertifiedAttribute(
       {
         tenantId,
@@ -357,7 +416,7 @@ export function tenantServiceBuilder(
         tenantWithNewAttribute.externalId
       );
 
-      const updatedTenant: Tenant = {
+      const updatedTenant = {
         ...tenantWithNewAttribute,
         kind: tenantKind,
       };
@@ -369,6 +428,7 @@ export function tenantServiceBuilder(
           updatedTenant,
           correlationId
         );
+
         await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
@@ -532,6 +592,94 @@ export function tenantServiceBuilder(
         offset,
         limit,
       });
+    },
+
+    async deleteTenantMailById(
+      {
+        tenantId,
+        mailId,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailId: string;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (!tenant.data.mails.find((m) => m.id === mailId)) {
+        throw mailNotFound(mailId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: tenant.data.mails.filter((mail) => mail.id !== mailId),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailDeleted(
+          tenant.metadata.version,
+          updatedTenant,
+          mailId,
+          correlationId
+        )
+      );
+    },
+
+    async addTenantMail(
+      {
+        tenantId,
+        mailSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailSeed: tenantApi.MailSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+        throw mailAlreadyExists();
+      }
+
+      const newMail: TenantMail = {
+        kind: mailSeed.kind,
+        address: mailSeed.address,
+        description: mailSeed.description,
+        id: crypto.createHash("sha256").update(mailSeed.address).digest("hex"),
+        createdAt: new Date(),
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: [...tenant.data.mails, newMail],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailAdded(
+          tenant.metadata.version,
+          updatedTenant,
+          newMail.id,
+          correlationId
+        )
+      );
     },
 
     async getProducers(
