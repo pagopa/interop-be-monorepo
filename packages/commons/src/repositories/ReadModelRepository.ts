@@ -7,6 +7,8 @@ import {
   ClientJWKKey,
   PurposeReadModel,
   genericInternalError,
+  ProducerKeychainReadModel,
+  ProducerKeychainJWKKey,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -38,6 +40,10 @@ export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
 export type ClientCollection = GenericCollection<ClientReadModel>;
 export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
+export type ProducerKeychainCollection =
+  GenericCollection<ProducerKeychainReadModel>;
+export type ProducerKeychainKeyCollection =
+  GenericCollection<ProducerKeychainJWKKey>;
 
 export type Collections =
   | EServiceCollection
@@ -46,7 +52,9 @@ export type Collections =
   | AttributeCollection
   | PurposeCollection
   | ClientCollection
-  | ClientKeyCollection;
+  | ClientKeyCollection
+  | ProducerKeychainCollection
+  | ProducerKeychainKeyCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -153,6 +161,10 @@ export class ReadModelRepository {
 
   public keys: ClientKeyCollection;
 
+  public producerKeychains: ProducerKeychainCollection;
+
+  public producerKeys: ProducerKeychainKeyCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -179,6 +191,12 @@ export class ReadModelRepository {
     this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
     this.keys = this.db.collection("keys", { ignoreUndefined: true });
+    this.producerKeychains = this.db.collection("producer_keychains", {
+      ignoreUndefined: true,
+    });
+    this.producerKeys = this.db.collection("producer_keys", {
+      ignoreUndefined: true,
+    });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
