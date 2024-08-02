@@ -579,7 +579,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            verifyVerifiedAttributeErrorMapper
+            verifyVerifiedAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
