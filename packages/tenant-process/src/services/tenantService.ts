@@ -363,12 +363,12 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
+      const declaredTenantAttribute = requesterTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
       );
 
-      if (!maybeDeclaredTenantAttribute) {
+      if (!declaredTenantAttribute) {
         throw attributeNotFound(attributeId);
       }
 
@@ -512,14 +512,14 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
+      const declaredTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
-        attributes: maybeDeclaredTenantAttribute
+        attributes: declaredTenantAttribute
           ? reassignDeclaredAttribute(
               targetTenant.data.attributes,
               attribute.id
@@ -721,13 +721,13 @@ export function tenantServiceBuilder(
         readModelService,
       });
 
-      const maybeAttribute = tenantToModify.data.attributes.find(
+      const certifiedAttribute = tenantToModify.data.attributes.find(
         (attr): attr is CertifiedTenantAttribute =>
           attr.type === tenantAttributeType.CERTIFIED &&
           attr.id === attributeToRevoke.id
       );
 
-      if (!maybeAttribute) {
+      if (!certifiedAttribute) {
         throw attributeNotFoundInTenant(
           attributeToRevoke.id,
           tenantToModify.data.id
