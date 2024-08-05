@@ -3,11 +3,10 @@
 import path from "path";
 import JSZip from "jszip";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { FileManager, S3Config } from "pagopa-interop-commons";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/domain/errors.js";
 import { retrieveEserviceDescriptor } from "../model/modelMappingUtils.js";
-
 /* 
   FileDocumentsRegistry is a map that contains the following information:
   - occurrences: a map that contains the number of occurrences of a document name
