@@ -158,7 +158,7 @@ describe("Integration tests", () => {
         const mockTenant = getMockTenant();
         await addOneTenant(mockTenant);
 
-        const tenantSeed: ApiSelfcareTenantSeed = {
+        const tenantSeed: tenantApi.SelfcareTenantSeed = {
           externalId: {
             origin: "IPA",
             value: mockTenant.externalId.value,
