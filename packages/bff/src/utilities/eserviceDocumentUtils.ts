@@ -125,10 +125,7 @@ function handleOpenApiV2(openApi: Record<string, unknown>) {
   const { data: host, error: hostError } = z.string().safeParse(openApi.host);
   const { error: pathsError } = z.array(z.object({})).safeParse(openApi.paths);
 
-  if (hostError) {
-    throw new Error();
-  }
-  if (pathsError) {
+  if (hostError || pathsError) {
     throw new Error();
   }
 
