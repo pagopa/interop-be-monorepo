@@ -64,7 +64,7 @@ jobs:
           - image_name: purpose-outbound-writer
             dockerfile_path: packages/purpose-outbound-writer
           - image_name: tenant-outbound-writer
-            dockerfile_path: packages/tentant-outbound-writer
+            dockerfile_path: packages/tenant-outbound-writer
 
     steps:
       - name: Checkout repository
