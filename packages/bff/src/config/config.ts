@@ -66,10 +66,15 @@ export type PurposeProcessServerConfig = z.infer<
 export const AuthorizationProcessServerConfig = z
   .object({
     TENANT_ALLOWED_ORIGINS: z.string(),
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
+    authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
   }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
 
 export const AllowedListConfig = z
   .object({
@@ -87,6 +92,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
+  .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(TokenGenerationConfig)
@@ -94,5 +100,6 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
   .and(SelfCareConfig);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
