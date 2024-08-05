@@ -54,6 +54,7 @@ import {
   tenantNotFoundByExternalId,
   tenantNotFoundBySelfcareId,
   tenantNotFound,
+  tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1055,7 +1056,6 @@ export function tenantServiceBuilder(
 
       const updatedTenant = await revokeCertifiedAttribute(
         targetTenant.data,
-        readModelService,
         attributeToRevoke.id
       );
 
