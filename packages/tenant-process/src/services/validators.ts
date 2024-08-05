@@ -1,7 +1,9 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  AgreementState,
   Attribute,
   AttributeId,
+  EService,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -23,6 +25,7 @@ import {
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
+  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -42,6 +45,63 @@ export function assertVerifiedAttributeExistsInTenant(
 ): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export async function assertVerifiedAttributeOperationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  agreementStates,
+  readModelService,
+  error,
+}: {
+  producerId: TenantId;
+  consumerId: TenantId;
+  attributeId: AttributeId;
+  agreementStates: AgreementState[];
+  readModelService: ReadModelService;
+  error: Error;
+}): Promise<void> {
+  if (producerId === consumerId) {
+    throw verifiedAttributeSelfVerificationNotAllowed();
+  }
+  // Get agreements
+  const agreements = await readModelService.getAgreements({
+    consumerId,
+    producerId,
+    states: agreementStates,
+  });
+
+  // Extract descriptor IDs
+  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+
+  // Get eServices concurrently
+  const eServices = (
+    await Promise.all(
+      agreements.map((agreement) =>
+        readModelService.getEServiceById(agreement.eserviceId)
+      )
+    )
+  ).filter((eService): eService is EService => eService !== undefined);
+
+  // Find verified attribute IDs
+  const attributeIds = new Set(
+    eServices
+      .flatMap((eService) =>
+        eService.descriptors.filter((descriptor) =>
+          descriptorIds.includes(descriptor.id)
+        )
+      )
+      .flatMap((descriptor) =>
+        descriptor.attributes.verified.flatMap((attribute) =>
+          attribute.map((a) => a.id)
+        )
+      )
+  );
+  // Check if attribute is allowed
+  if (!attributeIds.has(attributeId)) {
+    throw error;
   }
 }
 
