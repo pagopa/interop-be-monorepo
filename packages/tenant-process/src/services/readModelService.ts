@@ -16,6 +16,8 @@ import {
   EServiceId,
   attributeKind,
   AttributeReadmodel,
+  Agreement,
+  AgreementState,
   TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -146,7 +148,7 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { attributes, eservices, tenants } = readModelRepository;
+  const { attributes, eservices, tenants, agreements } = readModelRepository;
   return {
     async getTenantsByName({
       name,
@@ -329,13 +331,12 @@ export function readModelServiceBuilder(
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
-
       if (!data) {
         return undefined;
       } else {
-        const result = EService.safeParse(data);
+        const result = EService.safeParse(data.data);
 
         if (!result.success) {
           throw genericInternalError(
@@ -347,6 +348,35 @@ export function readModelServiceBuilder(
 
         return result.data;
       }
+    },
+
+    async getAgreements({
+      consumerId,
+      producerId,
+      states,
+    }: {
+      consumerId: TenantId;
+      producerId: TenantId;
+      states: AgreementState[];
+    }): Promise<Agreement[]> {
+      const data = await agreements
+        .find({
+          "data.consumerId": consumerId,
+          "data.producerId": producerId,
+          "data.state": { $in: states },
+        })
+        .toArray();
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse agreements item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getCertifiedAttributes({
