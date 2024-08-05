@@ -29,18 +29,6 @@ import {
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
-  attributeDoesNotBelongToCertifier,
-  attributeNotFound,
-  attributeNotFoundInTenant,
-  attributeVerificationNotAllowed,
-  certifiedAttributeAlreadyAssigned,
-  mailAlreadyExists,
-  mailNotFound,
-  tenantNotFoundByExternalId,
-  tenantNotFoundBySelfcareId,
-  tenantNotFound,
-} from "../model/domain/errors.js";
-import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
@@ -55,6 +43,18 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventTenantCertifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
+import {
+  attributeDoesNotBelongToCertifier,
+  attributeNotFound,
+  attributeNotFoundInTenant,
+  attributeVerificationNotAllowed,
+  certifiedAttributeAlreadyAssigned,
+  mailAlreadyExists,
+  mailNotFound,
+  tenantNotFoundByExternalId,
+  tenantNotFoundBySelfcareId,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
