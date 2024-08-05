@@ -4,7 +4,7 @@ import { AWSConfig } from "./awsConfig.js";
 
 export const KafkaConfig = z
   .object({
-    KAFKA_BROKERS: z.string(),
+    KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
     KAFKA_CLIENT_ID: z.string(),
     KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
     KAFKA_LOG_LEVEL: z
