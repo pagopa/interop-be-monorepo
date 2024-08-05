@@ -8,6 +8,7 @@ import {
   S3Client,
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { FileManagerConfig } from "../config/fileManagerConfig.js";
 import { Logger, LoggerConfig } from "../index.js";
 import {
@@ -38,6 +39,12 @@ export type FileManager = {
   ) => Promise<string>;
   get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
+  generateGetPresignedUrl: (
+    bucketName: string,
+    path: string,
+    fileName: string,
+    durationInMinutes: number
+  ) => Promise<string>;
 };
 
 export function initFileManager(
@@ -54,9 +61,10 @@ export function initFileManager(
 
   const buildS3Key = (
     path: string,
-    resourceId: string,
+    resourceId: string | undefined,
     fileName: string
-  ): string => `${path}/${resourceId}/${fileName}`;
+  ): string =>
+    [path, resourceId, fileName].filter((s) => s && s.length > 0).join("/");
 
   return {
     delete: async (
@@ -162,6 +170,16 @@ export function initFileManager(
       } catch (error) {
         throw fileManagerStoreBytesError(key, bucket, error);
       }
+    },
+    generateGetPresignedUrl: async (
+      bucketName: string,
+      path: string,
+      fileName: string,
+      durationInMinutes: number
+    ): Promise<string> => {
+      const key: string = buildS3Key(path, "", fileName);
+      const command = new GetObjectCommand({ Bucket: bucketName, Key: key });
+      return getSignedUrl(client, command, { expiresIn: durationInMinutes });
     },
   };
 }
