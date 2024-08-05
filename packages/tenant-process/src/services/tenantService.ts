@@ -55,7 +55,6 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventTenantCertifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
-import {} from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
