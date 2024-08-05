@@ -168,10 +168,12 @@ export const deleteProducerKeychainErrorMapper = (
 export const getProducerKeychainUsersErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code).with(
-    "organizationNotAllowedOnProducerKeychain",
-    () => HTTP_STATUS_FORBIDDEN
-  );
+  match(error.code)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainErrorMapper = (
   error: ApiError<ErrorCodes>
