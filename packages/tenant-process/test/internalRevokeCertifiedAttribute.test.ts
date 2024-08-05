@@ -3,8 +3,8 @@
 import {
   writeInReadmodel,
   getMockAttribute,
-  readLastEventByStreamId,
   getMockTenant,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -81,8 +81,9 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
       },
       genericLogger
     );
-    const writtenEvent = await readLastEventByStreamId(
+    const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
+      1,
       "tenant",
       postgresDB
     );

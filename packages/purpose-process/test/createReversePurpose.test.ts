@@ -30,12 +30,13 @@ import {
   toReadModelEService,
   toReadModelPurpose,
   unsafeBrandId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import {
   genericLogger,
   unexpectedRulesVersionError,
 } from "pagopa-interop-commons";
-import { ApiReversePurposeSeed } from "../src/model/domain/models.js";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   agreementNotFound,
   duplicatedPurposeTitle,
@@ -87,7 +88,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -99,8 +100,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } =
@@ -143,7 +144,10 @@ describe("createReversePurpose", () => {
       description: reversePurposeSeed.description,
       isFreeOfCharge: reversePurposeSeed.isFreeOfCharge,
       freeOfChargeReason: reversePurposeSeed.freeOfChargeReason,
-      riskAnalysisForm: mockRiskAnalysis.riskAnalysisForm,
+      riskAnalysisForm: {
+        ...mockRiskAnalysis.riskAnalysisForm,
+        riskAnalysisId: mockRiskAnalysis.id,
+      },
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
@@ -179,7 +183,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -191,8 +195,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -231,7 +235,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -243,8 +247,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -285,7 +289,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: randomRiskAnalysisId,
@@ -297,8 +301,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -339,7 +343,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -351,8 +355,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -391,7 +395,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -403,8 +407,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -436,7 +440,7 @@ describe("createReversePurpose", () => {
       mode: eserviceMode.receive,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -448,8 +452,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
 
     expect(
       purposeService.createReversePurpose(
@@ -495,7 +499,7 @@ describe("createReversePurpose", () => {
       consumerId: consumer.id,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -508,8 +512,8 @@ describe("createReversePurpose", () => {
 
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -556,7 +560,7 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: ApiReversePurposeSeed = {
+    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
       eServiceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
@@ -568,8 +572,8 @@ describe("createReversePurpose", () => {
     };
 
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(producer, tenants);
-    await writeInReadmodel(consumer, tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
