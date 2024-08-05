@@ -904,14 +904,27 @@ export function catalogServiceBuilder(
         descriptorId
       );
 
-      await fileManager.storeBytes(
+      const zipPath = `${requesterId}_${zipFolderName}.zip`;
+      const filename = await fileManager.storeBytes(
         bffConfig.s3Bucket,
         bffConfig.exportEserviceContainer,
         bffConfig.exportEservicePath,
-        `${requesterId}_${zipFolderName}.zip`,
+        zipPath,
         Buffer.from(zipFile),
         logger
       );
+
+      const url = await fileManager.generateGetPresignedUrl(
+        bffConfig.s3Bucket,
+        bffConfig.exportEservicePath,
+        zipPath,
+        bffConfig.presignedUrlGetDurationMinutes
+      );
+
+      return {
+        filename,
+        url,
+      };
     },
   };
 }

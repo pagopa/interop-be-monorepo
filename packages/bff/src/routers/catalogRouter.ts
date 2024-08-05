@@ -612,7 +612,7 @@ const catalogRouter = (
               `attachment; filename=${response.filename}`
             )
             .header("Content-Type", "application/octet-stream")
-            .send(response.file);
+            .send(response);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

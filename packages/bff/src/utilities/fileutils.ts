@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
@@ -154,9 +155,15 @@ export async function createdescriptorDocumentZipFile(
   const zip = new JSZip();
 
   // Add interface file to the zip
+  console.log("// Add interface file to the zip");
+
   const interfaceFileContent: FileData = {
     id: interfaceDocument.id,
-    file: await fileManager.get(s3BucketName, interfaceDocument.path, logger),
+    file: await fileManager.get(
+      s3BucketName,
+      "/" + interfaceDocument.path,
+      logger
+    ),
   };
   zip.file(
     `${zipFolderName}/${interfaceDocument.name}`,
@@ -164,12 +171,14 @@ export async function createdescriptorDocumentZipFile(
   );
 
   // Add descriptor's document files to the zip
+  console.log("//  Add descriptor's document files to the zip");
   const documentFilesContent: FileData[] = await Promise.all(
     descriptor.docs.map(async (doc) => ({
       id: doc.id,
       file: await fileManager.get(s3BucketName, doc.path, logger),
     }))
   );
+  console.log("DONE --  Add descriptor's document files to the zip");
 
   documentFilesContent.forEach((doc) => {
     const uniqueName = getUniqueNameByDocumentId(fileDocumentRegistry, doc.id);
