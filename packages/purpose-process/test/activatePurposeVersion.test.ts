@@ -35,6 +35,7 @@ import {
   eserviceMode,
   toReadModelAgreement,
   PurposeVersionActivatedV2,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -126,8 +127,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -180,8 +181,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -236,8 +237,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -293,8 +294,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -350,8 +351,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -405,8 +406,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -456,8 +457,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const purposeVersion = await purposeService.activatePurposeVersion({
       purposeId: mockPurpose.id,
@@ -504,8 +505,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -528,8 +529,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -562,8 +563,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(eservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(consumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -590,8 +591,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -607,8 +608,8 @@ describe("activatePurposeVersion", () => {
   it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -630,8 +631,8 @@ describe("activatePurposeVersion", () => {
 
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -664,8 +665,8 @@ describe("activatePurposeVersion", () => {
       await addOnePurpose(purpose);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-      await writeInReadmodel(mockConsumer, tenants);
-      await writeInReadmodel(mockProducer, tenants);
+      await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+      await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
       expect(async () => {
         await purposeService.activatePurposeVersion({
@@ -687,9 +688,9 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
-    await writeInReadmodel(anotherTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await writeInReadmodel(toReadModelTenant(anotherTenant), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -716,8 +717,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -746,8 +747,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
@@ -783,7 +784,7 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(purpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -800,7 +801,7 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -823,8 +824,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(eservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(consumer, tenants);
-    await writeInReadmodel(mockProducer, tenants);
+    await writeInReadmodel(toReadModelTenant(consumer), tenants);
+    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -847,8 +848,8 @@ describe("activatePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(eservice), eservices);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(producer, tenants);
+    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+    await writeInReadmodel(toReadModelTenant(producer), tenants);
 
     expect(async () => {
       await purposeService.activatePurposeVersion({
@@ -877,8 +878,8 @@ describe("activatePurposeVersion", () => {
       await addOnePurpose(purpose);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-      await writeInReadmodel(mockConsumer, tenants);
-      await writeInReadmodel(mockProducer, tenants);
+      await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+      await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
       expect(async () => {
         await purposeService.activatePurposeVersion({
@@ -908,8 +909,8 @@ describe("activatePurposeVersion", () => {
       await addOnePurpose(purpose);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-      await writeInReadmodel(mockConsumer, tenants);
-      await writeInReadmodel(mockProducer, tenants);
+      await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
+      await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
 
       expect(async () => {
         await purposeService.activatePurposeVersion({

@@ -6,6 +6,7 @@
     ":automergeLinters",
     ":automergeTesters",
     ":automergeTypes",
+    ":automergeDigest",
     ":combinePatchMinorReleases",
     ":ignoreUnstable",
     ":rebaseStalePrs",

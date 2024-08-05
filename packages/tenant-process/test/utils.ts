@@ -11,6 +11,7 @@ import {
   generateId,
   tenantAttributeType,
   toReadModelEService,
+  toReadModelTenant,
   toReadModelAgreement,
   toTenantV2,
   EServiceId,
@@ -133,7 +134,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeTenantInEventstore(tenant);
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastTenantEvent = async (
