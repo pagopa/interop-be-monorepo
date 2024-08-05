@@ -54,7 +54,7 @@ import {
   userNotFound,
   userNotAllowedOnClient,
   producerKeychainNotFound,
-  producerKeychainKeyNotFound,
+  producerKeyNotFound,
   userNotAllowedOnProducerKeychain,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
@@ -1097,10 +1097,7 @@ export function authorizationServiceBuilder(
       );
 
       if (!keyToRemove) {
-        throw producerKeychainKeyNotFound(
-          keyIdToRemove,
-          producerKeychain.data.id
-        );
+        throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
       }
 
       const updatedProducerKeychain: ProducerKeychain = {
