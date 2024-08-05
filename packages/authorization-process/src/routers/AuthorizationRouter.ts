@@ -53,6 +53,7 @@ import {
   deleteProducerKeychainErrorMapper,
   getProducerKeychainUsersErrorMapper,
   addProducerKeychainUserErrorMapper,
+  getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -680,7 +681,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getProducerKeychainsErrorMapper,
+            getProducerKeychainErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
