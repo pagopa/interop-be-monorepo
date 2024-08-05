@@ -76,6 +76,10 @@ export function toOutboundEventV2(
       stream_id: msg.stream_id,
       timestamp: new Date(),
     }))
-    .with({ type: "TenantMailAdded" }, () => undefined)
+    .with(
+      { type: "TenantMailAdded" },
+      { type: "TenantMailDeleted" },
+      () => undefined
+    )
     .exhaustive();
 }
