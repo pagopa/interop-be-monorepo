@@ -9,7 +9,6 @@ import {
   AgreementProcessClient,
   AuthorizationProcessClient,
   CatalogProcessClient,
-  PagoPAInteropBeClients,
   PurposeProcessClient,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
@@ -43,181 +42,6 @@ export const getCurrentVersion = (
     .at(-1);
 };
 
-// eslint-disable-next-line max-params
-async function getPurposes(
-  {
-    purposeProcessClient,
-    catalogProcessClient,
-    tenantProcessClient,
-    agreementProcessClient,
-    authorizationClient,
-  }: Omit<PagoPAInteropBeClients, "attributeProcessClient">,
-  requesterId: string,
-  filters: {
-    name?: string | undefined;
-    eservicesIds?: string[];
-    consumersIds?: string[];
-    producersIds?: string[];
-    states?: purposeApi.PurposeVersionState[];
-    excludeDraft?: boolean | undefined;
-  },
-  offset: number,
-  limit: number,
-  headers: Headers
-): Promise<bffApi.Purposes> {
-  const distinctFilters = {
-    ...filters,
-    eseviceIds: filters.eservicesIds && toSetToArray(filters.eservicesIds),
-    consumersIds: filters.consumersIds && toSetToArray(filters.consumersIds),
-    producersIds: filters.producersIds && toSetToArray(filters.producersIds),
-    states: filters.states && toSetToArray(filters.states),
-  };
-
-  const purposes = await purposeProcessClient.getPurposes({
-    queries: {
-      ...distinctFilters,
-      limit,
-      offset,
-    },
-    headers,
-  });
-
-  const eservices = await Promise.all(
-    toSetToArray(purposes.results.map((p) => p.eserviceId)).map((eServiceId) =>
-      catalogProcessClient.getEServiceById({
-        params: {
-          eServiceId,
-        },
-        headers,
-      })
-    )
-  );
-
-  const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
-    tenantProcessClient.tenant.getTenant({
-      params: {
-        id,
-      },
-      headers,
-    });
-  const consumers = await Promise.all(
-    toSetToArray(purposes.results.map((p) => p.consumerId)).map(getTenant)
-  );
-  const producers = await Promise.all(
-    toSetToArray(eservices.map((e) => e.producerId)).map(getTenant)
-  );
-
-  const enhancePurpose = async (
-    purpose: purposeApi.Purpose
-  ): Promise<bffApi.Purpose> => {
-    const eservice = eservices.find((e) => e.id === purpose.eserviceId);
-    if (!eservice) {
-      throw eServiceNotFound(purpose.eserviceId);
-    }
-
-    const producer = producers.find((p) => p.id === eservice.producerId);
-    if (!producer) {
-      throw tenantNotFound(eservice.producerId);
-    }
-
-    const consumer = consumers.find((c) => c.id === purpose.consumerId);
-    if (!consumer) {
-      throw tenantNotFound(purpose.consumerId);
-    }
-
-    const latestAgreement = await getLatestAgreement(
-      agreementProcessClient,
-      purpose.consumerId,
-      eservice,
-      headers
-    );
-    if (!latestAgreement) {
-      throw agreementNotFound(purpose.consumerId);
-    }
-
-    const currentDescriptor = retrieveEserviceDescriptor(
-      eservice,
-      unsafeBrandId(latestAgreement.descriptorId)
-    );
-
-    const clients =
-      requesterId === purpose.consumerId
-        ? (
-            await getAllClients(
-              authorizationClient,
-              purpose.consumerId,
-              purpose.id,
-              headers
-            )
-          ).map(toBffApiCompactClient)
-        : [];
-
-    const currentVersion = getCurrentVersion(purpose.versions);
-    const waitingForApprovalVersion = purpose.versions.find(
-      (v) =>
-        v.state === purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
-    );
-
-    const latestVersion = [...purpose.versions]
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      )
-      .at(-1);
-
-    const rejectedVersion =
-      latestVersion?.state === purposeApi.PurposeVersionState.Values.REJECTED
-        ? latestVersion
-        : undefined;
-
-    return {
-      id: purpose.id,
-      title: purpose.title,
-      description: purpose.description,
-      consumer: { id: consumer.id, name: consumer.name },
-      riskAnalysisForm: purpose.riskAnalysisForm,
-      eservice: {
-        id: eservice.id,
-        name: eservice.name,
-        producer: { id: producer.id, name: producer.name },
-        descriptor: {
-          id: currentDescriptor.id,
-          state: currentDescriptor.state,
-          version: currentDescriptor.version,
-          audience: currentDescriptor.audience,
-        },
-        mode: eservice.mode,
-      },
-      agreement: {
-        id: latestAgreement.id,
-        state: latestAgreement.state,
-        canBeUpgraded: isUpgradable(eservice, latestAgreement),
-      },
-      currentVersion,
-      versions: purpose.versions,
-      clients,
-      waitingForApprovalVersion,
-      suspendedByConsumer: purpose.suspendedByConsumer,
-      suspendedByProducer: purpose.suspendedByProducer,
-      isFreeOfCharge: purpose.isFreeOfCharge,
-      dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
-      dailyCallsTotal: currentDescriptor.dailyCallsTotal,
-      rejectedVersion,
-    };
-  };
-
-  const results = await Promise.all(purposes.results.map(enhancePurpose));
-
-  return {
-    pagination: {
-      offset,
-      limit,
-      totalCount: purposes.totalCount,
-    },
-    results,
-  };
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   purposeProcessClient: PurposeProcessClient,
@@ -226,6 +50,174 @@ export function purposeServiceBuilder(
   agreementProcessClient: AgreementProcessClient,
   authorizationClient: AuthorizationProcessClient
 ) {
+  const getPurposes = async (
+    requesterId: string,
+    filters: {
+      name?: string | undefined;
+      eservicesIds?: string[];
+      consumersIds?: string[];
+      producersIds?: string[];
+      states?: purposeApi.PurposeVersionState[];
+      excludeDraft?: boolean | undefined;
+    },
+    offset: number,
+    limit: number,
+    headers: Headers
+  ): Promise<bffApi.Purposes> => {
+    const distinctFilters = {
+      ...filters,
+      eseviceIds: filters.eservicesIds && toSetToArray(filters.eservicesIds),
+      consumersIds: filters.consumersIds && toSetToArray(filters.consumersIds),
+      producersIds: filters.producersIds && toSetToArray(filters.producersIds),
+      states: filters.states && toSetToArray(filters.states),
+    };
+
+    const purposes = await purposeProcessClient.getPurposes({
+      queries: {
+        ...distinctFilters,
+        limit,
+        offset,
+      },
+      headers,
+    });
+
+    const eservices = await Promise.all(
+      toSetToArray(purposes.results.map((p) => p.eserviceId)).map(
+        (eServiceId) =>
+          catalogProcessClient.getEServiceById({
+            params: {
+              eServiceId,
+            },
+            headers,
+          })
+      )
+    );
+
+    const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
+      tenantProcessClient.tenant.getTenant({
+        params: {
+          id,
+        },
+        headers,
+      });
+    const consumers = await Promise.all(
+      toSetToArray(purposes.results.map((p) => p.consumerId)).map(getTenant)
+    );
+    const producers = await Promise.all(
+      toSetToArray(eservices.map((e) => e.producerId)).map(getTenant)
+    );
+
+    const enhancePurpose = async (
+      purpose: purposeApi.Purpose
+    ): Promise<bffApi.Purpose> => {
+      const eservice = eservices.find((e) => e.id === purpose.eserviceId);
+      if (!eservice) {
+        throw eServiceNotFound(purpose.eserviceId);
+      }
+
+      const producer = producers.find((p) => p.id === eservice.producerId);
+      if (!producer) {
+        throw tenantNotFound(eservice.producerId);
+      }
+
+      const consumer = consumers.find((c) => c.id === purpose.consumerId);
+      if (!consumer) {
+        throw tenantNotFound(purpose.consumerId);
+      }
+
+      const latestAgreement = await getLatestAgreement(
+        agreementProcessClient,
+        purpose.consumerId,
+        eservice,
+        headers
+      );
+      if (!latestAgreement) {
+        throw agreementNotFound(purpose.consumerId);
+      }
+
+      const currentDescriptor = retrieveEserviceDescriptor(
+        eservice,
+        unsafeBrandId(latestAgreement.descriptorId)
+      );
+
+      const clients =
+        requesterId === purpose.consumerId
+          ? (
+              await getAllClients(
+                authorizationClient,
+                purpose.consumerId,
+                purpose.id,
+                headers
+              )
+            ).map(toBffApiCompactClient)
+          : [];
+
+      const currentVersion = getCurrentVersion(purpose.versions);
+      const waitingForApprovalVersion = purpose.versions.find(
+        (v) =>
+          v.state === purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
+      );
+
+      const latestVersion = [...purpose.versions]
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        )
+        .at(-1);
+
+      const rejectedVersion =
+        latestVersion?.state === purposeApi.PurposeVersionState.Values.REJECTED
+          ? latestVersion
+          : undefined;
+
+      return {
+        id: purpose.id,
+        title: purpose.title,
+        description: purpose.description,
+        consumer: { id: consumer.id, name: consumer.name },
+        riskAnalysisForm: purpose.riskAnalysisForm,
+        eservice: {
+          id: eservice.id,
+          name: eservice.name,
+          producer: { id: producer.id, name: producer.name },
+          descriptor: {
+            id: currentDescriptor.id,
+            state: currentDescriptor.state,
+            version: currentDescriptor.version,
+            audience: currentDescriptor.audience,
+          },
+          mode: eservice.mode,
+        },
+        agreement: {
+          id: latestAgreement.id,
+          state: latestAgreement.state,
+          canBeUpgraded: isUpgradable(eservice, latestAgreement),
+        },
+        currentVersion,
+        versions: purpose.versions,
+        clients,
+        waitingForApprovalVersion,
+        suspendedByConsumer: purpose.suspendedByConsumer,
+        suspendedByProducer: purpose.suspendedByProducer,
+        isFreeOfCharge: purpose.isFreeOfCharge,
+        dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: currentDescriptor.dailyCallsTotal,
+        rejectedVersion,
+      };
+    };
+
+    const results = await Promise.all(purposes.results.map(enhancePurpose));
+
+    return {
+      pagination: {
+        offset,
+        limit,
+        totalCount: purposes.totalCount,
+      },
+      results,
+    };
+  };
+
   return {
     async createPurpose(
       createSeed: bffApi.PurposeSeed,
@@ -295,13 +287,6 @@ export function purposeServiceBuilder(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds}, offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
-        {
-          purposeProcessClient,
-          catalogProcessClient,
-          tenantProcessClient,
-          agreementProcessClient,
-          authorizationClient,
-        },
         authData.organizationId,
         { ...filters, excludeDraft: true },
         offset,
@@ -325,13 +310,6 @@ export function purposeServiceBuilder(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds}, offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
-        {
-          purposeProcessClient,
-          catalogProcessClient,
-          tenantProcessClient,
-          agreementProcessClient,
-          authorizationClient,
-        },
         authData.organizationId,
         { ...filters, excludeDraft: false },
         offset,
