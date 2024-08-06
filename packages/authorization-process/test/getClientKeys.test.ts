@@ -4,7 +4,7 @@ import {
 } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   Client,
-  ClientKey,
+  Key,
   UserId,
   generateId,
   unsafeBrandId,
@@ -31,15 +31,15 @@ describe("getClientKeys", async () => {
     const keyUserId2: UserId = generateId();
     const keyUserId3: UserId = generateId();
 
-    const keyWithUser1: ClientKey = {
+    const keyWithUser1: Key = {
       ...mockKey,
       userId: keyUserId1,
     };
-    const keyWithUser2: ClientKey = {
+    const keyWithUser2: Key = {
       ...mockKey,
       userId: keyUserId2,
     };
-    const keyWithUser3: ClientKey = {
+    const keyWithUser3: Key = {
       ...mockKey,
       userId: keyUserId3,
     };
@@ -65,15 +65,15 @@ describe("getClientKeys", async () => {
 
     const userId: UserId = generateId();
 
-    const keyWithUser1: ClientKey = {
+    const keyWithUser1: Key = {
       ...mockKey,
       userId: keyUserId1,
     };
-    const keyWithUser2: ClientKey = {
+    const keyWithUser2: Key = {
       ...mockKey,
       userId: keyUserId2,
     };
-    const keyWithUser3: ClientKey = {
+    const keyWithUser3: Key = {
       ...mockKey,
       userId: keyUserId3,
     };

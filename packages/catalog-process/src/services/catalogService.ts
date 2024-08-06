@@ -588,6 +588,12 @@ export function catalogServiceBuilder(
         );
         await repository.createEvent(eserviceDeletionEvent);
       } else {
+        await deleteDescriptorInterfaceAndDocs(
+          eservice.data.descriptors[0],
+          fileManager,
+          logger
+        );
+
         const eserviceWithoutDescriptors: EService = {
           ...eservice.data,
           descriptors: [],
@@ -986,20 +992,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state);
       }
 
-      const descriptorInterface = descriptor.interface;
-      if (descriptorInterface !== undefined) {
-        await fileManager.delete(
-          config.s3Bucket,
-          descriptorInterface.path,
-          logger
-        );
-      }
-
-      const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-        fileManager.delete(config.s3Bucket, doc.path, logger)
-      );
-
-      await Promise.all(deleteDescriptorDocs);
+      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
 
       const eserviceAfterDescriptorDeletion: EService = {
         ...eservice.data,
@@ -1717,6 +1710,23 @@ const applyVisibilityToEService = (
       (d) => d.state !== descriptorState.draft
     ),
   };
+};
+
+const deleteDescriptorInterfaceAndDocs = async (
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> => {
+  const descriptorInterface = descriptor.interface;
+  if (descriptorInterface !== undefined) {
+    await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
+  }
+
+  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
+    fileManager.delete(config.s3Bucket, doc.path, logger)
+  );
+
+  await Promise.all(deleteDescriptorDocs);
 };
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

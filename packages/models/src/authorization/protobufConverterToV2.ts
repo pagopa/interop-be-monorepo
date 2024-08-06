@@ -1,16 +1,11 @@
 import { match } from "ts-pattern";
 import { dateToBigInt } from "../utils.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
-import {
-  KeyUseV2,
-  ClientKeyV2,
-  ProducerKeyV2,
-} from "../gen/v2/authorization/key.js";
 import { ProducerKeychainV2 } from "../gen/v2/authorization/producer-keychain.js";
-import { ClientKey } from "./client.js";
-import { KeyUse, keyUse } from "./key.js";
+import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
+import { Key, KeyUse, keyUse } from "./key.js";
 import { Client, ClientKind, clientKind } from "./client.js";
-import { ProducerKeychain, ProducerKey } from "./producerKeychain.js";
+import { ProducerKeychain } from "./producerKeychain.js";
 
 const toKeyUseV2 = (input: KeyUse): KeyUseV2 =>
   match(input)
@@ -18,7 +13,7 @@ const toKeyUseV2 = (input: KeyUse): KeyUseV2 =>
     .with(keyUse.enc, () => KeyUseV2.ENC)
     .exhaustive();
 
-export const toClientKeyV2 = (input: ClientKey): ClientKeyV2 => ({
+export const toKeyV2 = (input: Key): KeyV2 => ({
   ...input,
   use: toKeyUseV2(input.use),
   createdAt: dateToBigInt(input.createdAt),
@@ -35,16 +30,7 @@ export const toClientV2 = (input: Client): ClientV2 => ({
   consumerId: input.consumerId,
   kind: toClientKindV2(input.kind),
   createdAt: dateToBigInt(input.createdAt),
-  keys: input.keys.map(toClientKeyV2),
-});
-
-export const toProducerKeyV2 = (
-  input: ProducerKey
-  // eslint-disable-next-line sonarjs/no-identical-functions
-): ProducerKeyV2 => ({
-  ...input,
-  use: toKeyUseV2(input.use),
-  createdAt: dateToBigInt(input.createdAt),
+  keys: input.keys.map(toKeyV2),
 });
 
 export const toProducerKeychainV2 = (
@@ -52,5 +38,5 @@ export const toProducerKeychainV2 = (
 ): ProducerKeychainV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
-  keys: input.keys.map(toProducerKeyV2),
+  keys: input.keys.map(toKeyV2),
 });
