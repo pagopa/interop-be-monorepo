@@ -188,12 +188,7 @@ describe("revokeVerifiedAttribute", async () => {
         {
           ...verifiedAttribute,
           id: generateId(),
-          verifiedBy: [
-            {
-              ...getMockVerifiedBy(),
-              id: revokerTenant.id,
-            },
-          ],
+          verifiedBy: [{ ...getMockVerifiedBy() }],
           revokedBy: [{ ...getMockRevokedBy() }],
         },
       ],
@@ -283,12 +278,7 @@ describe("revokeVerifiedAttribute", async () => {
       attributes: [
         {
           ...verifiedAttribute,
-          verifiedBy: [
-            {
-              ...getMockVerifiedBy(),
-              id: revokerTenant.id,
-            },
-          ],
+          verifiedBy: [{ ...getMockVerifiedBy() }],
           revokedBy: [{ ...getMockRevokedBy(), id: revokerTenant.id }],
         },
       ],

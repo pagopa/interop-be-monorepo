@@ -24,11 +24,11 @@ export const errorCodes = {
   certifiedAttributeAlreadyAssigned: "0015",
   attributeVerificationNotAllowed: "0016",
   verifiedAttributeSelfVerificationNotAllowed: "0017",
-  attributeRevocationNotAllowed: "0018",
-  attributeAlreadyRevoked: "0019",
-  verifiedAttributeSelfRevocationNotAllowed: "0020",
-  mailNotFound: "0021",
-  mailAlreadyExists: "0022",
+  mailNotFound: "0018",
+  mailAlreadyExists: "0019",
+  attributeRevocationNotAllowed: "0020",
+  attributeAlreadyRevoked: "0021",
+  verifiedAttributeSelfRevocationNotAllowed: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

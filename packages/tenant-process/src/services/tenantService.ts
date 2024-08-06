@@ -622,14 +622,6 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === authData.organizationId
-      );
-
-      if (!verifier) {
-        throw attributeRevocationNotAllowed(tenantId, attributeId);
-      }
-
       if (
         verifiedTenantAttribute.revokedBy.some(
           (a) => a.id === authData.organizationId
@@ -640,6 +632,14 @@ export function tenantServiceBuilder(
           authData.organizationId,
           attributeId
         );
+      }
+
+      const verifier = verifiedTenantAttribute.verifiedBy.find(
+        (a) => a.id === authData.organizationId
+      );
+
+      if (!verifier) {
+        throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
       const updatedTenant: Tenant = {
