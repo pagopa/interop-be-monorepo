@@ -33,6 +33,7 @@ import {
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
+  toCreateEventMaintenanceTenantDeleted,
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
   toCreateEventTenantKindUpdated,
@@ -689,6 +690,30 @@ export function tenantServiceBuilder(
       });
     },
 
+    async maintenanceTenantDelete(
+      {
+        tenantId,
+        version,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        version: number;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Deleting Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantDeleted(
+          version,
+          tenant.data,
+          correlationId
+        )
+      );
+    },
     async deleteTenantMailById(
       {
         tenantId,

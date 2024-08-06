@@ -29,6 +29,7 @@ import {
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
   revokeCertifiedAttributeErrorMapper,
+  maintenanceTenantDeletedErrorMapper,
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
@@ -65,6 +66,7 @@ const tenantsRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    MAINTENANCE_ROLE,
   } = userRoles;
   const tenantsRouter = ctx.router(tenantApi.tenantApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -369,6 +371,31 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/maintenance/tenants/:tenantId",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await tenantService.maintenanceTenantDelete(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              version: req.body.currentVersion,
+              correlationId: ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantDeletedErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/tenants/:tenantId/mails/:mailId",

@@ -155,6 +155,24 @@ export const toCreateEventTenantCertifiedAttributeRevoked = (
   correlationId,
 });
 
+export const toCreateEventMaintenanceTenantDeleted = (
+  version: number,
+  tenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantDeleted",
+    data: {
+      tenantId: tenant.id,
+      tenant: toTenantV2(tenant),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventTenantVerifiedAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
