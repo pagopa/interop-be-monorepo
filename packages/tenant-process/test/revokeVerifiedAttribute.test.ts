@@ -252,7 +252,7 @@ describe("revokeVerifiedAttribute", async () => {
       attributeRevocationNotAllowed(targetTenant.id, verifiedAttribute.id)
     );
   });
-  it("Should throw verifiedAttributeSelfRevocationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
+  it("Should throw verifiedAttributeSelfRevocationNotAllowed when trying to revoke own attributes", async () => {
     await addOneTenant(revokerTenant);
     await writeInReadmodel(toReadModelEService(eService), eservices);
     await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
