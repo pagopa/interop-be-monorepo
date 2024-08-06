@@ -968,10 +968,8 @@ export function tenantServiceBuilder(
     },
     async getTenantById(id: TenantId, logger: Logger): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
-      const tenant = await readModelService.getTenantById(id);
-      if (!tenant) {
-        throw tenantNotFound(id);
-      }
+      const tenant = await retrieveTenant(id, readModelService);
+
       return tenant.data;
     },
     async getTenantByExternalId(
@@ -981,10 +979,12 @@ export function tenantServiceBuilder(
       logger.info(
         `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
       );
-      const tenant = await readModelService.getTenantByExternalId(externalId);
-      if (!tenant) {
-        throw tenantNotFoundByExternalId(externalId.origin, externalId.value);
-      }
+      const tenant = await retrieveTenantByExternalId({
+        tenantOrigin: externalId.origin,
+        tenantExternalId: externalId.value,
+        readModelService,
+      });
+
       return tenant.data;
     },
     async getTenantBySelfcareId(
