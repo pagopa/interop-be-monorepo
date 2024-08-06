@@ -16,7 +16,7 @@ import {
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { keyToJWKKey } from "pagopa-interop-commons";
+import { keyToClientJWKKey } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
 import { keys } from "./utils.js";
 
@@ -43,7 +43,7 @@ describe("Events V1", async () => {
       keys: [],
     };
     const mockKey = { ...getMockKey(), encodedPem: base64Key };
-    const jwkKey = keyToJWKKey(mockKey, mockClient.id);
+    const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
 
     await writeInReadmodel(jwkKey, keys);
 
@@ -78,7 +78,9 @@ describe("Events V1", async () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey, mockClient.id));
+    expect(retrievedKey?.data).toEqual(
+      keyToClientJWKKey(addedKey, mockClient.id)
+    );
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
@@ -86,7 +88,7 @@ describe("Events V1", async () => {
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
     const mockKey = { ...getMockKey(), encodedPem: base64Key };
-    const jwkKey = keyToJWKKey(mockKey, clientId);
+    const jwkKey = keyToClientJWKKey(mockKey, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -123,8 +125,8 @@ describe("Events V1", async () => {
     const clientId: ClientId = generateId();
     const mockKey1: Key = { ...getMockKey(), encodedPem: base64Key };
     const mockKey2: Key = { ...getMockKey(), encodedPem: base64Key2 };
-    const jwkKey1 = keyToJWKKey(mockKey1, clientId);
-    const jwkKey2 = keyToJWKKey(mockKey2, clientId);
+    const jwkKey1 = keyToClientJWKKey(mockKey1, clientId);
+    const jwkKey2 = keyToClientJWKKey(mockKey2, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),

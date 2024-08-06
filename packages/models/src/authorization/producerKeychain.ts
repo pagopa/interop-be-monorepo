@@ -5,7 +5,7 @@ import {
   TenantId,
   UserId,
 } from "../brandedIds.js";
-import { Key } from "./key.js";
+import { JWKKey, Key } from "./key.js";
 
 export const ProducerKeychain = z.object({
   id: ProducerKeychainId,
@@ -18,3 +18,9 @@ export const ProducerKeychain = z.object({
   keys: z.array(Key),
 });
 export type ProducerKeychain = z.infer<typeof ProducerKeychain>;
+
+export const ProducerJWKKey = JWKKey.extend({
+  producerKeychainId: ProducerKeychainId,
+});
+
+export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;

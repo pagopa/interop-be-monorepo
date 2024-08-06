@@ -22,3 +22,14 @@ export const Key = z.object({
 });
 
 export type Key = z.infer<typeof Key>;
+
+export const JWKKey = z.object({
+  alg: z.string(),
+  e: z.string(),
+  kid: z.string(),
+  kty: z.string(),
+  n: z.string(),
+  use: z.string(),
+});
+
+export type JWKKey = z.infer<typeof JWKKey>;

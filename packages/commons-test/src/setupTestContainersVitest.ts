@@ -133,6 +133,7 @@ export function setupTestContainersVitest(
       await readModelRepository?.clients.deleteMany({});
       await readModelRepository?.keys.deleteMany({});
       await readModelRepository?.producerKeychains.deleteMany({});
+      await readModelRepository?.producerKeys.deleteMany({});
 
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
