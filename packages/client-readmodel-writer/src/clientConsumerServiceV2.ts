@@ -10,8 +10,6 @@ export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
   clients: ClientCollection
 ): Promise<void> {
-  const client = message.data.client;
-
   await match(message)
     .with(
       { type: "ClientAdded" },
@@ -22,6 +20,7 @@ export async function handleMessageV2(
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
       async (message) => {
+        const client = message.data.client;
         await clients.updateOne(
           {
             "data.id": message.stream_id,
@@ -47,5 +46,16 @@ export async function handleMessageV2(
         "metadata.version": { $lte: message.version },
       });
     })
+    .with(
+      { type: "ProducerKeychainAdded" },
+      { type: "ProducerKeychainDeleted" },
+      { type: "ProducerKeychainKeyAdded" },
+      { type: "ProducerKeychainKeyDeleted" },
+      { type: "ProducerKeychainUserAdded" },
+      { type: "ProducerKeychainUserDeleted" },
+      { type: "ProducerKeychainEServiceAdded" },
+      { type: "ProducerKeychainEServiceRemoved" },
+      () => Promise.resolve
+    )
     .exhaustive();
 }
