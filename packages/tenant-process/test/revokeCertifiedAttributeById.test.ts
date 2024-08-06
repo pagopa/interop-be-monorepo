@@ -83,7 +83,7 @@ describe("revokeCertifiedAttributeById", async () => {
       },
       {
         authData,
-        correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+        correlationId: "",
         serviceName: "",
         logger: genericLogger,
       }
@@ -130,7 +130,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          correlationId: "",
           serviceName: "",
           logger: genericLogger,
         }
@@ -150,7 +150,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          correlationId: "",
           serviceName: "",
           logger: genericLogger,
         }
@@ -176,7 +176,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          correlationId: "",
           serviceName: "",
           logger: genericLogger,
         }
@@ -204,7 +204,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          correlationId: "",
           serviceName: "",
           logger: genericLogger,
         }
@@ -239,7 +239,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
         {
           authData,
-          correlationId: "B4F48C22-A585-4C5B-AB69-9E702DA4C9A4",
+          correlationId: "",
           serviceName: "",
           logger: genericLogger,
         }
