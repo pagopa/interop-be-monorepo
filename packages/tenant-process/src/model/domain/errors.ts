@@ -26,6 +26,7 @@ export const errorCodes = {
   verifiedAttributeSelfVerificationNotAllowed: "0017",
   mailNotFound: "0018",
   mailAlreadyExists: "0019",
+  attributeAlreadyRevoked: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -120,7 +121,7 @@ export function attributeVerificationNotAllowed(
     detail: `Organization is not allowed to verify attribute ${attributeId} 
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
-    title: "attribute Verification is Not Allowed",
+    title: "Attribute verification is not allowed",
   });
 }
 
@@ -179,7 +180,7 @@ export function tenantIsNotACertifier(
   return new ApiError({
     detail: `Organization ${organizationId} not allowed to assign attributes`,
     code: "tenantIsNotACertifier",
-    title: "Tenant Is Not A Certifier",
+    title: "Tenant is not a certifier",
   });
 }
 
@@ -202,10 +203,21 @@ export function certifiedAttributeAlreadyAssigned(
   return new ApiError({
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
-    title: "certified Attribute Already Assigned",
+    title: "Certified attribute already assigned",
   });
 }
 
+export function attributeAlreadyRevoked(
+  tenantId: TenantId,
+  organizationId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
+    code: "attributeAlreadyRevoked",
+    title: "Attribute is already revoked",
+  });
+}
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `mail ${mailId} not found`,
