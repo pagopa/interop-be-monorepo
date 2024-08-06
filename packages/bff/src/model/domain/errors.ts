@@ -1,20 +1,21 @@
 import {
   ApiError,
+  AttributeId,
   PurposeId,
   makeApiProblemBuilder,
-  AttributeId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0004",
-  attributeNotExists: "0005",
-  invalidEserviceRequester: "0006",
-  missingClaim: "0007",
-  tenantLoginNotAllowed: "0008",
-  tokenVerificationFailed: "0009",
+  agreementDescriptorNotFound: "0004",
+  eserviceDescriptorNotFound: "0005",
+  attributeNotExists: "0006",
+  invalidEserviceRequester: "0007",
+  missingClaim: "0008",
+  tenantLoginNotAllowed: "0009",
+  tokenVerificationFailed: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -51,6 +52,16 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   });
 }
 
+export function agreementDescriptorNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor of agreement ${agreementId} not found`,
+    code: "agreementDescriptorNotFound",
+    title: "Agreement descriptor not found",
+  });
+}
+
 export function invalidEServiceRequester(
   eServiceId: string,
   requesterId: string
@@ -68,7 +79,7 @@ export function eserviceDescriptorNotFound(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
-    code: "descriptorNotFound",
+    code: "eserviceDescriptorNotFound",
     title: `Descriptor not found`,
   });
 }

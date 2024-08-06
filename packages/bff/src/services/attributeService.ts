@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { WithLogger } from "pagopa-interop-commons";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
@@ -103,3 +103,16 @@ export function attributeServiceBuilder(
 }
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
+
+export async function getBulkAttributes(
+  ids: string[],
+  attributeProcess: PagoPAInteropBeClients["attributeProcessClient"],
+  { headers }: WithLogger<BffAppContext>
+): Promise<attributeRegistryApi.Attribute[]> {
+  return getAllFromPaginated((offset, limit) =>
+    attributeProcess.getBulkedAttributes(ids, {
+      queries: { offset, limit },
+      headers,
+    })
+  );
+}

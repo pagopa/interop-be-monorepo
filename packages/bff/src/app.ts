@@ -39,7 +39,7 @@ app.use(genericRouter(zodiosCtx));
 app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
-app.use(agreementRouter(zodiosCtx));
+app.use(agreementRouter(zodiosCtx, clients));
 app.use(selfcareRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx));
 
