@@ -36,6 +36,12 @@ function getUniqueNameByDocumentId(
   return uniqueName;
 }
 
+/* 
+  This function creates a FileDocumentsRegistry object that contains the following information:
+  - occurrences: a map that contains the number of occurrences of a document name
+    (the same document name can be used multiple times in the same descriptor)
+  - uniqueNames: a map that contains the unique name for each document id
+*/
 export function buildFileDocumentRegistry(
   eserviceDocuments: catalogApi.EServiceDoc[]
 ): FileDocumentsRegistry {
@@ -170,10 +176,9 @@ export async function createdescriptorDocumentZipFile(
   const zip = new JSZip();
 
   // Add interface file to the zip
-
   const interfaceFile: Readable = await fileManager.get(
     s3BucketName,
-    "/" + interfaceDocument.path,
+    `${interfaceDocument.path}/${interfaceDocument.name}`,
     logger
   );
 
@@ -189,7 +194,8 @@ export async function createdescriptorDocumentZipFile(
   // Add descriptor's document files to the zip
   const documentFilesContent: FileData[] = await Promise.all(
     descriptor.docs.map(async (doc) => {
-      const file = await fileManager.get(s3BucketName, doc.path, logger);
+      const s3Key = fileManager.buildS3Key(s3BucketName, doc.path, doc.name);
+      const file = await fileManager.get(s3BucketName, s3Key, logger);
       return { id: doc.id, file: await readableToInt8Array(file) };
     })
   );
