@@ -5,8 +5,16 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  WithLogger,
+  streamToBuffer,
+} from "pagopa-interop-commons";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+} from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -14,13 +22,13 @@ import {
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
   assertRequesterIsProducer,
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
 } from "../model/validators.js";
+import { config } from "../config/config.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -146,7 +154,8 @@ export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: AttributeProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -293,6 +302,26 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    getEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<{ contentType: string; document: Buffer }> => {
+      const { path, contentType } =
+        await catalogProcessClient.getEServiceDocumentById({
+          headers: ctx.headers,
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+        });
+
+      const stream = await fileManager.get(config.s3Bucket, path, ctx.logger);
+
+      return { contentType, document: await streamToBuffer(stream) };
     },
   };
 }
