@@ -904,20 +904,21 @@ export function catalogServiceBuilder(
         descriptorId
       );
 
-      const zipPath = `${requesterId}_${zipFolderName}.zip`;
+      const zipFileName = `${requesterId}_${zipFolderName}.zip`;
       const filename = await fileManager.storeBytes(
-        bffConfig.s3Bucket,
-        bffConfig.exportEserviceContainer,
-        bffConfig.exportEservicePath,
-        zipPath,
-        Buffer.from(zipFile),
+        {
+          bucket: bffConfig.exportEserviceContainer,
+          path: bffConfig.exportEservicePath,
+          name: zipFileName,
+          content: Buffer.from(zipFile),
+        },
         logger
       );
 
       const url = await fileManager.generateGetPresignedUrl(
-        bffConfig.s3Bucket,
+        bffConfig.exportEserviceContainer,
         bffConfig.exportEservicePath,
-        zipPath,
+        zipFileName,
         bffConfig.presignedUrlGetDurationMinutes
       );
 
