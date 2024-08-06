@@ -161,7 +161,7 @@ export class ReadModelRepository {
 
   public producerKeychains: ProducerKeychainCollection;
 
-  public producerKeys: ProducerKeysCollection;
+  public producerKeys: ProducerKeyCollection;
 
   private client: MongoClient;
   private db: Db;
