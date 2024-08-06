@@ -624,7 +624,6 @@ export function authorizationServiceBuilder(
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
       const newKey: Key = {
-        clientId,
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),
