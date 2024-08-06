@@ -65,8 +65,8 @@ import {
   assertExpirationDateExist,
   assertTenantExists,
   assertRequesterAllowed,
-  getTenantCertifierId,
   assertVerifiedAttributeOperationAllowed,
+  retrieveCertifierId,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -379,7 +379,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const certifierId = getTenantCertifierId(requesterTenant.data);
+      const certifierId = retrieveCertifierId(requesterTenant.data);
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
@@ -517,7 +517,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const retrieveCertifiedId = getTenantCertifierId(requesterTenant.data);
+      const certifierId = retrieveCertifierId(requesterTenant.data);
 
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
@@ -525,7 +525,7 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      if (!attribute.origin || attribute.origin !== retrieveCertifiedId) {
+      if (!attribute.origin || attribute.origin !== certifierId) {
         throw attributeDoesNotBelongToCertifier(
           attribute.id,
           authData.organizationId,
@@ -681,7 +681,7 @@ export function tenantServiceBuilder(
       const tenant = await readModelService.getTenantById(organizationId);
       assertTenantExists(organizationId, tenant);
 
-      const certifierId = getTenantCertifierId(tenant.data);
+      const certifierId = retrieveCertifierId(tenant.data);
 
       return await readModelService.getCertifiedAttributes({
         certifierId,
