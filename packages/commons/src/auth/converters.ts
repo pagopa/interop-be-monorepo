@@ -1,21 +1,25 @@
 import {
-  ClientKey,
   ClientJWKKey,
-  missingRequiredJWKClaim,
-  ProducerKey,
   ProducerJWKKey,
+  missingRequiredJWKClaim,
+  Key,
+  ClientId,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import { createJWK } from "./jwk.js";
 
-export const clientKeyToClientJWKKey = (key: ClientKey): ClientJWKKey => {
+export const keyToClientJWKKey = (
+  key: Key,
+  clientId: ClientId
+): ClientJWKKey => {
   const jwk = createJWK(key.encodedPem);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
   return {
-    clientId: key.clientId,
+    clientId,
     kid: key.kid,
-    use: key.use,
+    use: key.use.toLowerCase(),
     alg: key.algorithm,
     e: jwk.e,
     kty: jwk.kty,
@@ -23,17 +27,18 @@ export const clientKeyToClientJWKKey = (key: ClientKey): ClientJWKKey => {
   };
 };
 
-export const ProducerKeyToProducerJWKKey = (
-  key: ProducerKey
+export const keyToProducerJWKKey = (
+  key: Key,
+  producerKeychainId: ProducerKeychainId
 ): ProducerJWKKey => {
   const jwk = createJWK(key.encodedPem);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
   return {
-    producerKeychainId: key.producerKeychainId,
+    producerKeychainId,
     kid: key.kid,
-    use: key.use,
+    use: key.use.toLowerCase(),
     alg: key.algorithm,
     e: jwk.e,
     kty: jwk.kty,

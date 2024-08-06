@@ -5,7 +5,6 @@ export const keyUse = {
   sig: "Sig",
   enc: "Enc",
 } as const;
-
 export const KeyUse = z.enum([
   Object.values(keyUse)[0],
   ...Object.values(keyUse).slice(1),
@@ -30,7 +29,7 @@ export const JWKKey = z.object({
   kid: z.string(),
   kty: z.string(),
   n: z.string(),
-  use: KeyUse,
+  use: z.string(),
 });
 
 export type JWKKey = z.infer<typeof JWKKey>;
