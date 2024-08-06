@@ -11,7 +11,11 @@ import {
   WithLogger,
   formatDateyyyyMMddThhmmss,
 } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId, RiskAnalysisId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  RiskAnalysisId,
+} from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
