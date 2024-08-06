@@ -10,7 +10,6 @@ message ClientKeyV2 {
   int64 createdAt = 5;
   string name = 6;
   string userId = 7;
-  string clientId = 8;
 }
 
 message ProducerKeyV2 {
