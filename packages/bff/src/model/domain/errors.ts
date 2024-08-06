@@ -1,3 +1,4 @@
+import { constants } from "node:http2";
 import {
   ApiError,
   PurposeId,
@@ -9,17 +10,24 @@ export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0004",
+  eserviceDescriptorNotFound: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
   missingClaim: "0007",
   tenantLoginNotAllowed: "0008",
   tokenVerificationFailed: "0009",
+  invalidInterfaceContentTypeDetected: "0010",
+  invalidInterfaceFileDetected: "0011",
+  openapiVersionNotRecognized: "0012",
+  interfaceExtractingInfoError: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export const emptyErrorMapper = (): number =>
+  constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export function selfcareEntityNotFilled(
   className: string,
@@ -63,13 +71,13 @@ export function invalidEServiceRequester(
 }
 
 export function eserviceDescriptorNotFound(
-  eServiceId: string,
+  eserviceId: string,
   descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
-    code: "descriptorNotFound",
-    title: `Descriptor not found`,
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "EService descriptor not found",
   });
 }
 
@@ -104,5 +112,45 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  eServiceId: string,
+  contentType: string,
+  technology: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
+  });
+}
+
+export function invalidInterfaceFileDetected(
+  eServiceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} is invalid`,
+    code: "invalidInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
   });
 }

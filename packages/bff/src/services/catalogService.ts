@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { randomUUID } from "crypto";
 import {
   attributeRegistryApi,
   bffApi,
@@ -6,7 +7,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -14,7 +15,6 @@ import {
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
@@ -28,6 +28,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -146,7 +147,8 @@ export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: AttributeProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -293,6 +295,38 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    createEServiceDocument: async (
+      eServiceId: string,
+      descriptorId: string,
+      doc: bffApi.createEServiceDocument_Body,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      const eService = await catalogProcessClient.getEServiceById({
+        params: { eServiceId },
+        headers: ctx.headers,
+      });
+
+      const descriptor = eService.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+      }
+
+      const documentId = randomUUID();
+
+      await verifyAndCreateEServiceDocument(
+        catalogProcessClient,
+        fileManager,
+        eService,
+        doc,
+        descriptorId,
+        documentId,
+        ctx
+      );
+
+      return { id: documentId };
     },
   };
 }

@@ -6,6 +6,7 @@ import {
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 
 export const TenantProcessServerConfig = z
@@ -33,9 +34,11 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -93,6 +96,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig);
+  .and(SelfCareConfig)
+  .and(S3Config);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

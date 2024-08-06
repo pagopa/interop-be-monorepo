@@ -13,7 +13,7 @@ export default async function getAllowList(
     `${config.allowListPath}/${config.allowListFileName}`,
     loggerInstance
   );
-  const content = await streamToString(stream);
+  const content = streamToString(stream);
 
   return content.split("\n").flatMap((line) => line.split(","));
 }

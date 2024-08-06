@@ -14,7 +14,7 @@ const {
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("descriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
