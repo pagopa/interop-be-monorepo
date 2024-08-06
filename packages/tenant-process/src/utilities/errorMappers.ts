@@ -138,6 +138,20 @@ export const verifyVerifiedAttributeErrorMapper = (
     .with("attributeVerificationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const revokeVerifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "verifiedAttributeSelfRevocationNotAllowed",
+      "attributeRevocationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteTenantMailErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

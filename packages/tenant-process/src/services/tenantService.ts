@@ -42,16 +42,19 @@ import {
   toCreateEventTenantMailDeleted,
   toCreateEventTenantMailAdded,
   toCreateEventTenantVerifiedAttributeAssigned,
+  toCreateEventTenantVerifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
-  attributeAlreadyRevoked,
   mailNotFound,
   tenantNotFound,
   mailAlreadyExists,
   attributeVerificationNotAllowed,
+  attributeAlreadyRevoked,
+  attributeRevocationNotAllowed,
+  verifiedAttributeSelfRevocationNotAllowed,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -662,6 +665,102 @@ export function tenantServiceBuilder(
         toCreateEventTenantVerifiedAttributeAssigned(
           targetTenant.metadata.version,
           updatedTenant,
+          unsafeBrandId(tenantAttributeSeed.id),
+          correlationId
+        )
+      );
+      return updatedTenant;
+    },
+
+    async revokeVerifiedAttribute(
+      {
+        tenantId,
+        attributeId,
+      }: {
+        tenantId: TenantId;
+        attributeId: AttributeId;
+      },
+      { logger, authData, correlationId }: WithLogger<AppContext>
+    ): Promise<Tenant> {
+      logger.info(
+        `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
+      );
+
+      if (authData.organizationId === tenantId) {
+        throw verifiedAttributeSelfRevocationNotAllowed();
+      }
+
+      const allowedStatuses = [
+        agreementState.pending,
+        agreementState.active,
+        agreementState.suspended,
+      ];
+
+      await assertVerifiedAttributeOperationAllowed({
+        producerId: authData.organizationId,
+        consumerId: tenantId,
+        attributeId,
+        agreementStates: allowedStatuses,
+        readModelService,
+        error: attributeRevocationNotAllowed(tenantId, attributeId),
+      });
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const verifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr): attr is VerifiedTenantAttribute =>
+          attr.type === tenantAttributeType.VERIFIED && attr.id === attributeId
+      );
+
+      if (!verifiedTenantAttribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      if (
+        verifiedTenantAttribute.revokedBy.some(
+          (a) => a.id === authData.organizationId
+        )
+      ) {
+        throw attributeAlreadyRevoked(
+          tenantId,
+          authData.organizationId,
+          attributeId
+        );
+      }
+
+      const verifier = verifiedTenantAttribute.verifiedBy.find(
+        (a) => a.id === authData.organizationId
+      );
+
+      if (!verifier) {
+        throw attributeRevocationNotAllowed(tenantId, attributeId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...targetTenant.data,
+        updatedAt: new Date(),
+        attributes: targetTenant.data.attributes.map((attr) =>
+          attr.id === attributeId
+            ? ({
+                ...verifiedTenantAttribute,
+                verifiedBy: verifiedTenantAttribute.verifiedBy.filter(
+                  (v) => v.id !== authData.organizationId
+                ),
+                revokedBy: [
+                  ...verifiedTenantAttribute.revokedBy,
+                  {
+                    ...verifier,
+                    revocationDate: new Date(),
+                  },
+                ],
+              } satisfies VerifiedTenantAttribute)
+            : attr
+        ),
+      };
+      await repository.createEvent(
+        toCreateEventTenantVerifiedAttributeRevoked(
+          targetTenant.metadata.version,
+          updatedTenant,
           attributeId,
           correlationId
         )
@@ -1045,6 +1144,7 @@ function buildVerifiedBy(
         },
       ];
 }
+
 function assignDeclaredAttribute(
   attributes: TenantAttribute[],
   attributeId: AttributeId
