@@ -14,7 +14,7 @@ import {
   ClientId,
   ClientPurposeAddedV1,
   ClientPurposeRemovedV1,
-  ClientKey,
+  Key,
   KeyDeletedV1,
   KeyRelationshipToUserMigratedV1,
   KeysAddedV1,
@@ -279,7 +279,7 @@ describe("Events V1", async () => {
   });
   it("KeyRelationshipToUserMigrated", async () => {
     const userId: UserId = generateId();
-    const key: ClientKey = { ...getMockKey(), userId };
+    const key: Key = { ...getMockKey(), userId };
 
     const updatedClient: Client = {
       ...mockClient,
@@ -320,7 +320,7 @@ describe("Events V1", async () => {
     await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
 
     const keyId = generateId();
-    const addedKey: ClientKey = {
+    const addedKey: Key = {
       ...getMockKey(),
       kid: keyId,
     };
@@ -365,7 +365,7 @@ describe("Events V1", async () => {
     });
   });
   it("KeyDeleted", async () => {
-    const mockKey: ClientKey = getMockKey();
+    const mockKey: Key = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
       keys: [mockKey],

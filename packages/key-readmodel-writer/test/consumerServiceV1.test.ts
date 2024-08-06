@@ -5,7 +5,6 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
-  ClientKey,
   Client,
   KeysAddedV1,
   toKeyV1,
@@ -14,6 +13,7 @@ import {
   KeyDeletedV1,
   ClientId,
   ClientDeletedV1,
+  Key,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { keyToJWKKey } from "pagopa-interop-commons";
@@ -47,7 +47,7 @@ describe("Events V1", async () => {
 
     await writeInReadmodel(jwkKey, keys);
 
-    const addedKey: ClientKey = {
+    const addedKey: Key = {
       ...getMockKey(),
       encodedPem: base64Key2,
     };
