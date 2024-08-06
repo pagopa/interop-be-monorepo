@@ -29,7 +29,7 @@ export const JWKKey = z.object({
   kid: z.string(),
   kty: z.string(),
   n: z.string(),
-  use: KeyUse,
+  use: z.string(),
 });
 
 export type JWKKey = z.infer<typeof JWKKey>;
