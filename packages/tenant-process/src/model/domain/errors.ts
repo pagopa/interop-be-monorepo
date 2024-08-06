@@ -26,9 +26,8 @@ export const errorCodes = {
   verifiedAttributeSelfVerificationNotAllowed: "0017",
   mailNotFound: "0018",
   mailAlreadyExists: "0019",
-  verifiedAttributeSelfVerification: "0020",
-  attributeNotFoundInTenant: "0021",
-  tenantNotFoundByExternalId: "0022",
+  attributeNotFoundInTenant: "0020",
+  tenantNotFoundByExternalId: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
