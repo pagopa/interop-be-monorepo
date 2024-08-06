@@ -13,7 +13,7 @@ import {
   Purpose,
   Agreement,
   agreementState,
-  ClientKey,
+  Key,
   ClientKind,
   ProducerKeychain,
   ProducerKeychainId,
@@ -253,7 +253,7 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getKeyByKid(kid: string): Promise<ClientKey | undefined> {
+    async getKeyByKid(kid: string): Promise<Key | undefined> {
       const data = await clients.findOne(
         { "data.keys.kid": { $eq: kid } },
         {
