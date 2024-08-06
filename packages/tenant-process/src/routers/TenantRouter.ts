@@ -28,6 +28,7 @@ import {
   selfcareUpsertTenantErrorMapper,
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
+  revokeCertifiedAttributeErrorMapper,
   maintenanceTenantDeletedErrorMapper,
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
@@ -655,6 +656,31 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyVerifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/certified/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tenantId, attributeId } = req.params;
+          await tenantService.revokeCertifiedAttributeById(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              attributeId: unsafeBrandId(attributeId),
+            },
+            ctx
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeCertifiedAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
