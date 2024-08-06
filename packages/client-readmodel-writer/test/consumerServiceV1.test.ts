@@ -323,7 +323,6 @@ describe("Events V1", async () => {
     const addedKey: Key = {
       ...getMockKey(),
       kid: keyId,
-      clientId: mockClient.id,
     };
 
     const updatedClient: Client = {
