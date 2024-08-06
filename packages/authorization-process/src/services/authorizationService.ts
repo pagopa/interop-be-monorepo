@@ -839,6 +839,28 @@ export function authorizationServiceBuilder(
         )
       );
     },
+    async getProducerKeychainUsers({
+      producerKeychainId,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<UserId[]> {
+      logger.info(
+        `Retrieving users of producer keychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      return producerKeychain.data.users;
+    },
   };
 }
 
