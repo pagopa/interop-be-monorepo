@@ -103,14 +103,6 @@ export const maintenanceTenantDeletedErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const maintenanceTenantPromotedToCertifierErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantIsAlreadyACertifier", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const verifyVerifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -138,4 +130,12 @@ export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceTenantPromotedToCertifierErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantIsAlreadyACertifier", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

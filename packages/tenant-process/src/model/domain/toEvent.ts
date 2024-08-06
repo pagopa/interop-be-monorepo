@@ -154,22 +154,6 @@ export const toCreateEventMaintenanceTenantDeleted = (
   correlationId,
 });
 
-export const toCreateEventMaintenanceTenantPromotedToCertifier = (
-  version: number,
-  tenant: Tenant,
-  correlationId: string
-): CreateEvent<TenantEvent> => ({
-  streamId: tenant.id,
-  version,
-  event: {
-    event_version: 2,
-    type: "MaintenanceTenantPromotedToCertifier",
-    data: {
-      tenant: toTenantV2(tenant),
-    },
-  },
-  correlationId,
-});
 export const toCreateEventTenantVerifiedAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
@@ -241,6 +225,23 @@ export const toCreateEventTenantMailAdded = (
     data: {
       mailId,
       tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventMaintenanceTenantPromotedToCertifier = (
+  version: number,
+  tenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantPromotedToCertifier",
+    data: {
+      tenant: toTenantV2(tenant),
     },
   },
   correlationId,

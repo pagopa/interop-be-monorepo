@@ -103,11 +103,11 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     .with({ type: "TenantKindUpdated" }, ({ data }) =>
       TenantKindUpdatedV2.toBinary(data)
     )
-    .with({ type: "MaintenanceTenantPromotedToCertifier" }, ({ data }) =>
-      MaintenanceTenantPromotedToCertifierV2.toBinary(data)
-    )
     .with({ type: "TenantMailDeleted" }, ({ data }) =>
       TenantMailDeletedV2.toBinary(data)
+    )
+    .with({ type: "MaintenanceTenantPromotedToCertifier" }, ({ data }) =>
+      MaintenanceTenantPromotedToCertifierV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -220,13 +220,13 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("MaintenanceTenantPromotedToCertifier"),
-    data: protobufDecoder(MaintenanceTenantPromotedToCertifierV2),
+    type: z.literal("TenantMailDeleted"),
+    data: protobufDecoder(TenantMailDeletedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("TenantMailDeleted"),
-    data: protobufDecoder(TenantMailDeletedV2),
+    type: z.literal("MaintenanceTenantPromotedToCertifier"),
+    data: protobufDecoder(MaintenanceTenantPromotedToCertifierV2),
   }),
 ]);
 

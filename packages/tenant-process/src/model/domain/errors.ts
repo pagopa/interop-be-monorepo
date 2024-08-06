@@ -207,16 +207,6 @@ export function certifiedAttributeAlreadyAssigned(
   });
 }
 
-export function tenantIsAlreadyACertifier(
-  tenantId: TenantId,
-  certifierId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
-    code: "tenantIsAlreadyACertifier",
-    title: "Tenant is already a certifier",
-  });
-}
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `mail ${mailId} not found`,
@@ -230,5 +220,16 @@ export function mailAlreadyExists(): ApiError<ErrorCodes> {
     detail: `mail already exists`,
     code: "mailAlreadyExists",
     title: "Mail already exists",
+  });
+}
+
+export function tenantIsAlreadyACertifier(
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
+    code: "tenantIsAlreadyACertifier",
+    title: "Tenant is already a certifier",
   });
 }

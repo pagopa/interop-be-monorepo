@@ -1334,7 +1334,6 @@ components:
           type: string
       required:
         - certifierId
-
     Problem:
       properties:
         type:
