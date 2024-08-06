@@ -185,7 +185,7 @@ export class ReadModelRepository {
     this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
     this.keys = this.db.collection("keys", { ignoreUndefined: true });
-    this.producerKeychains = this.db.collection("producerkeychains", {
+    this.producerKeychains = this.db.collection("producer_keychains", {
       ignoreUndefined: true,
     });
   }
