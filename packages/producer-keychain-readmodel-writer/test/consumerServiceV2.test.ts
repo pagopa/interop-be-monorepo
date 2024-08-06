@@ -1,6 +1,6 @@
 import {
+  getMockKey,
   getMockProducerKeychain,
-  getMockProducerKeychainKey,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -10,7 +10,6 @@ import {
   ProducerKeychainAddedV2,
   toProducerKeychainV2,
   toReadModelProducerKeychain,
-  ProducerKeychainKey,
   ProducerKeychain,
   ProducerKeychainKeyAddedV2,
   ProducerKeychainKeyDeletedV2,
@@ -19,6 +18,7 @@ import {
   EServiceId,
   ProducerKeychainEServiceAddedV2,
   ProducerKeychainEServiceRemovedV2,
+  Key,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/producerKeychainConsumerServiceV2.js";
@@ -69,7 +69,7 @@ describe("Events V2", async () => {
       1
     );
 
-    const key: ProducerKeychainKey = getMockProducerKeychainKey();
+    const key: Key = getMockKey();
     const updatedProducerKeychain: ProducerKeychain = {
       ...mockProducerKeychain,
       keys: [key],
@@ -101,7 +101,7 @@ describe("Events V2", async () => {
   });
 
   it("ProducerKeychainKeyDeleted", async () => {
-    const key: ProducerKeychainKey = getMockProducerKeychainKey();
+    const key: Key = getMockKey();
     const producerKeychain: ProducerKeychain = {
       ...mockProducerKeychain,
       keys: [key],
