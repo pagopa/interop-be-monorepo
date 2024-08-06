@@ -638,13 +638,13 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifierIdsAlredyExistsInTenant = tenant.data.features.find(
+      const certifierFeature = tenant.data.features.find(
         (a) => a.certifierId === certifierId
       );
-      if (certifierIdsAlredyExistsInTenant) {
+      if (certifierFeature) {
         const certifiedAttribute =
           await readModelService.getCertifiedAttributes({
-            certifierId: certifierIdsAlredyExistsInTenant.certifierId,
+            certifierId: certifierFeature.certifierId,
             offset: 0,
             limit: 1,
           });
