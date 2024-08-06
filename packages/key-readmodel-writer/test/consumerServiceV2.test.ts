@@ -39,8 +39,8 @@ describe("Events V2", () => {
 
   it("ClientKeyAdded", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), clientId, encodedPem: base64Key };
-    const jwkKey = keyToJWKKey(mockKey);
+    const mockKey = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToJWKKey(mockKey, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -76,19 +76,15 @@ describe("Events V2", () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey));
+    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey, clientId));
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
   });
   it("ClientKeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey: ClientKey = {
-      ...getMockKey(),
-      clientId,
-      encodedPem: base64Key,
-    };
-    const jwkKey = keyToJWKKey(mockKey);
+    const mockKey: Key = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToJWKKey(mockKey, clientId);
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
@@ -126,18 +122,10 @@ describe("Events V2", () => {
   });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: ClientKey = {
-      ...getMockKey(),
-      clientId,
-      encodedPem: base64Key,
-    };
-    const mockKey2: ClientKey = {
-      ...getMockKey(),
-      clientId,
-      encodedPem: base64Key2,
-    };
-    const jwkKey1 = keyToJWKKey(mockKey1);
-    const jwkKey2 = keyToJWKKey(mockKey2);
+    const mockKey1: Key = { ...getMockKey(), encodedPem: base64Key };
+    const mockKey2: Key = { ...getMockKey(), encodedPem: base64Key2 };
+    const jwkKey1 = keyToJWKKey(mockKey1, clientId);
+    const jwkKey2 = keyToJWKKey(mockKey2, clientId);
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,

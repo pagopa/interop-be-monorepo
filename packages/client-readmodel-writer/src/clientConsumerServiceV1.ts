@@ -4,8 +4,7 @@ import {
   fromClientV1,
   fromKeyV1,
   toReadModelClient,
-  toReadModelClientKey,
-  unsafeBrandId,
+  toReadModelKey,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -140,11 +139,7 @@ export async function handleMessageV1(
             "data.keys": {
               $each: message.data.keys
                 .map((v) =>
-                  v.value
-                    ? toReadModelClientKey(
-                        fromKeyV1(v.value, unsafeBrandId(message.data.clientId))
-                      )
-                    : undefined
+                  v.value ? toReadModelKey(fromKeyV1(v.value)) : undefined
                 )
                 .filter((k) => k !== undefined),
             },
@@ -184,10 +179,8 @@ export async function handleMessageV1(
           "metadata.version": { $lte: message.version },
         },
         {
-          $push: {
-            "data.keys.$[key].users": message.data.userId,
-          },
           $set: {
+            "data.keys.$[key].userId": message.data.userId,
             "metadata.version": message.version,
           },
         },

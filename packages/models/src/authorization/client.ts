@@ -2,12 +2,6 @@ import { z } from "zod";
 import { ClientId, PurposeId, TenantId, UserId } from "../brandedIds.js";
 import { Key } from "./key.js";
 
-export const ClientKey = Key.extend({
-  clientId: ClientId,
-});
-
-export type ClientKey = z.infer<typeof ClientKey>;
-
 export const clientKind = {
   consumer: "Consumer",
   api: "Api",
@@ -39,7 +33,7 @@ export const Client = z.object({
   users: z.array(UserId),
   kind: ClientKind,
   createdAt: z.coerce.date(),
-  keys: z.array(ClientKey),
+  keys: z.array(Key),
 });
 
 export type Client = z.infer<typeof Client>;
