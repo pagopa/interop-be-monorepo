@@ -5,7 +5,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
-  ClientKey,
+  Key,
   Client,
   KeysAddedV1,
   toKeyV1,
@@ -16,7 +16,7 @@ import {
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { clientKeyToClientJWKKey } from "pagopa-interop-commons";
+import { keyToClientJWKKey } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
 import { keys } from "./utils.js";
 
@@ -38,17 +38,17 @@ describe("Events V1", async () => {
   ).toString("base64url");
 
   it("KeysAdded", async () => {
-    const mockKey = { ...getMockKey(), encodedPem: base64Key };
-    const jwkKey = clientKeyToClientJWKKey(mockKey);
     const mockClient: Client = {
       ...getMockClient(),
       keys: [],
     };
+    const mockKey = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
+
     await writeInReadmodel(jwkKey, keys);
 
-    const addedKey: ClientKey = {
+    const addedKey: Key = {
       ...getMockKey(),
-      clientId: mockClient.id,
       encodedPem: base64Key2,
     };
 
@@ -78,15 +78,17 @@ describe("Events V1", async () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(clientKeyToClientJWKKey(addedKey));
+    expect(retrievedKey?.data).toEqual(
+      keyToClientJWKKey(addedKey, mockClient.id)
+    );
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
   });
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), clientId, encodedPem: base64Key };
-    const jwkKey = clientKeyToClientJWKKey(mockKey);
+    const mockKey = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToClientJWKKey(mockKey, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -121,18 +123,10 @@ describe("Events V1", async () => {
   });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: ClientKey = {
-      ...getMockKey(),
-      clientId,
-      encodedPem: base64Key,
-    };
-    const mockKey2: ClientKey = {
-      ...getMockKey(),
-      clientId,
-      encodedPem: base64Key2,
-    };
-    const jwkKey1 = clientKeyToClientJWKKey(mockKey1);
-    const jwkKey2 = clientKeyToClientJWKKey(mockKey2);
+    const mockKey1: Key = { ...getMockKey(), encodedPem: base64Key };
+    const mockKey2: Key = { ...getMockKey(), encodedPem: base64Key2 };
+    const jwkKey1 = keyToClientJWKKey(mockKey1, clientId);
+    const jwkKey2 = keyToClientJWKKey(mockKey2, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),
