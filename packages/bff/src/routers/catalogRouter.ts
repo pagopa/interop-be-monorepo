@@ -302,13 +302,7 @@ const catalogRouter = (
             ctx
           );
 
-          return res
-            .header(
-              "Content-Disposition",
-              `attachment; filename=${response.filename}`
-            )
-            .header("Content-Type", "application/octet-stream")
-            .send(response);
+          return res.json(response).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
