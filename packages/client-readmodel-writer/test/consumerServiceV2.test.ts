@@ -13,7 +13,7 @@ import {
   ClientPurposeRemovedV2,
   ClientUserAddedV2,
   ClientUserDeletedV2,
-  ClientKey,
+  Key,
   PurposeId,
   UserId,
   generateId,
@@ -63,7 +63,7 @@ describe("Events V2", async () => {
   it("ClientKeyAdded", async () => {
     await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
 
-    const key: ClientKey = getMockKey();
+    const key: Key = getMockKey();
     const updatedClient: Client = {
       ...mockClient,
       keys: [key],
@@ -93,7 +93,7 @@ describe("Events V2", async () => {
   });
 
   it("ClientKeyDeleted", async () => {
-    const key: ClientKey = getMockKey();
+    const key: Key = getMockKey();
     const client: Client = {
       ...mockClient,
       keys: [key],
