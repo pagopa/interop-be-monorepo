@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ClientId, UserId, unsafeBrandId } from "../brandedIds.js";
+import { UserId, unsafeBrandId } from "../brandedIds.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
 import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
-import { Client, ClientKind, clientKind, ClientKey } from "./client.js";
-import { KeyUse, keyUse } from "./key.js";
+import { Client, ClientKind, clientKind } from "./client.js";
+import { Key, KeyUse, keyUse } from "./key.js";
 
 const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
   switch (input) {
@@ -15,9 +15,8 @@ const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
   }
 };
 
-export const fromKeyV2 = (input: KeyV2): ClientKey => ({
+export const fromKeyV2 = (input: KeyV2): Key => ({
   ...input,
-  clientId: unsafeBrandId<ClientId>(input.clientId),
   userId: unsafeBrandId<UserId>(input.userId),
   use: fromKeyUseV2(input.use),
   createdAt: bigIntToDate(input.createdAt),

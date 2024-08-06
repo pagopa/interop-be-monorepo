@@ -2,7 +2,7 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   Client,
   ClientKind,
-  ClientKey,
+  Key,
   KeyUse,
   clientKind,
   keyUse,
@@ -66,7 +66,7 @@ export function clientToApiClient(
   };
 }
 
-export const keyToApiKey = (key: ClientKey): authorizationApi.Key => ({
+export const keyToApiKey = (key: Key): authorizationApi.Key => ({
   name: key.name,
   createdAt: key.createdAt.toJSON(),
   kid: key.kid,
