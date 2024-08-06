@@ -20,7 +20,7 @@ import {
   assertRequesterIsProducer,
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
 } from "../model/validators.js";
-import { toCatalogEServiceSeed } from "../model/api/apiConverter.js";
+import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -299,7 +299,7 @@ export function catalogServiceBuilder(
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
       const { id } = await catalogProcessClient.createEService(
-        toCatalogEServiceSeed(eServiceSeed),
+        toCatalogCreateEServiceSeed(eServiceSeed),
         {
           headers,
         }

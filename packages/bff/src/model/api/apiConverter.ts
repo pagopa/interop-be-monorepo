@@ -168,7 +168,7 @@ export function toTenantWithOnlyAttributes(
   };
 }
 
-export function toCatalogEServiceSeed(
+export function toCatalogCreateEServiceSeed(
   eServiceSeed: bffApi.EServiceSeed
 ): catalogApi.EServiceSeed {
   return {
