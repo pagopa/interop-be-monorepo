@@ -40,8 +40,8 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { createdescriptorDocumentZipFile } from "../utilities/fileUtils.js";
 import { BffProcessConfig } from "../config/config.js";
+import { createdescriptorDocumentZipFile } from "../utilities/fileutils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

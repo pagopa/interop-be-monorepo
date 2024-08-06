@@ -109,6 +109,17 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
   });
 }
 
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
+  });
+}
+
 export function missingInterface(
   eserviceId: string,
   descriptorId: string
