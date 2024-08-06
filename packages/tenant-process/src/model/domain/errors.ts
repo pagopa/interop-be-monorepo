@@ -28,8 +28,7 @@ export const errorCodes = {
   mailAlreadyExists: "0019",
   attributeAlreadyRevoked: "0020",
   attributeRevocationNotAllowed: "0021",
-  attributeAlreadyRevoked: "0022",
-  verifiedAttributeSelfRevocationNotAllowed: "0023",
+  verifiedAttributeSelfRevocationNotAllowed: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -227,18 +226,6 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "Certified attribute already assigned",
-  });
-}
-
-export function attributeAlreadyRevoked(
-  tenantId: TenantId,
-  organizationId: TenantId,
-  attributeId: AttributeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
-    code: "attributeAlreadyRevoked",
-    title: "Attribute is already revoked",
   });
 }
 

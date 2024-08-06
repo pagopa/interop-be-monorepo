@@ -36,7 +36,6 @@ import {
   verifyVerifiedAttributeErrorMapper,
   revokeVerifiedAttributeErrorMapper,
   internalAddCertifiedAttributeErrorMapper,
-
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -654,12 +653,12 @@ const tenantsRouter = (
             error,
             revokeVerifiedAttributeErrorMapper,
             ctx.logger
-           );
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
-      .delete(
+    .delete(
       "/tenants/:tenantId/attributes/certified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {

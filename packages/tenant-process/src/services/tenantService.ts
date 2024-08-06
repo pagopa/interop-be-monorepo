@@ -48,7 +48,6 @@ import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   attributeDoesNotBelongToCertifier,
-  attributeAlreadyRevoked,
   mailNotFound,
   tenantNotFound,
   mailAlreadyExists,
