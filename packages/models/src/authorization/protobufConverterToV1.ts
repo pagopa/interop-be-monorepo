@@ -9,7 +9,7 @@ import {
 } from "../gen/v1/authorization/client.js";
 import { dateToBigInt } from "../utils.js";
 import { PurposeId, generateId } from "../brandedIds.js";
-import { KeyUse, keyUse, Key } from "./key.js";
+import { Key, KeyUse, keyUse } from "./key.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 
 const clientComponentState = {

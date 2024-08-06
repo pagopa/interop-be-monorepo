@@ -5,6 +5,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
+  Key,
   Client,
   KeysAddedV1,
   toKeyV1,
@@ -13,7 +14,6 @@ import {
   KeyDeletedV1,
   ClientId,
   ClientDeletedV1,
-  Key,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { keyToJWKKey } from "pagopa-interop-commons";

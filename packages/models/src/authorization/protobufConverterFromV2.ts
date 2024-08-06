@@ -4,7 +4,7 @@ import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
 import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind } from "./client.js";
-import { KeyUse, keyUse, Key } from "./key.js";
+import { Key, KeyUse, keyUse } from "./key.js";
 
 const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
   switch (input) {
