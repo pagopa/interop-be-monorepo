@@ -9,8 +9,7 @@ import {
 } from "../gen/v1/authorization/client.js";
 import { dateToBigInt } from "../utils.js";
 import { PurposeId, generateId } from "../brandedIds.js";
-import { ClientKey } from "./client.js";
-import { KeyUse, keyUse } from "./key.js";
+import { KeyUse, keyUse, Key } from "./key.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 
 const clientComponentState = {
@@ -29,7 +28,7 @@ export const toKeyUseV1 = (input: KeyUse): KeyUseV1 =>
     .with(keyUse.enc, () => KeyUseV1.ENC)
     .exhaustive();
 
-export const toKeyV1 = (input: ClientKey): KeyV1 => ({
+export const toKeyV1 = (input: Key): KeyV1 => ({
   ...input,
   use: toKeyUseV1(input.use),
   createdAt: input.createdAt.toISOString(),

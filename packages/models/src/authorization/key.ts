@@ -5,7 +5,6 @@ export const keyUse = {
   sig: "Sig",
   enc: "Enc",
 } as const;
-
 export const KeyUse = z.enum([
   Object.values(keyUse)[0],
   ...Object.values(keyUse).slice(1),
