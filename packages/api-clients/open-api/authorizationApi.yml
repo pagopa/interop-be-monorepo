@@ -1178,7 +1178,7 @@ paths:
       tags:
         - producerKeychain
       summary: Create Keys for the specific producerKeychainId.
-      operationId: createProducerKeychainKeys
+      operationId: createProducerKeys
       responses:
         "200":
           description: Keys created
@@ -1231,7 +1231,7 @@ paths:
         - producerKeychain
       summary: Returns a set of keys by producer keychain ID.
       description: "Given a producer keychain identifier it returns its corresponding set of keys, if any"
-      operationId: getProducerKeychainKeys
+      operationId: getProducerKeys
       parameters:
         - name: producerKeychainId
           in: path
@@ -1283,7 +1283,7 @@ paths:
         - producerKeychain
       summary: Returns a key by producer keychain and key identifier (kid).
       description: "Given a producer keychain and key identifiers it returns the corresponding key, if any"
-      operationId: getProducerKeychainKeyById
+      operationId: getProducerKeyById
       parameters:
         - name: producerKeychainId
           in: path
@@ -1328,7 +1328,7 @@ paths:
         - producerKeychain
       summary: Deletes a key by producer keychain id and key identifier (kid).
       description: "Given a producer keychain and key identifiers it deletes the corresponding key, if any"
-      operationId: deleteProducerKeychainKeyById
+      operationId: deleteProducerKeyById
       parameters:
         - name: producerKeychainId
           in: path
