@@ -20,6 +20,11 @@ import {
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
+  buildS3Key: (
+    path: string,
+    resourceId: string | undefined,
+    fileName: string
+  ) => string;
   delete: (bucket: string, path: string, logger: Logger) => Promise<void>;
   copy: (
     bucket: string,
@@ -30,11 +35,13 @@ export type FileManager = {
     logger: Logger
   ) => Promise<string>;
   storeBytes: (
-    bucket: string,
-    path: string,
-    resourceId: string,
-    fileName: string,
-    fileContent: Buffer,
+    s3File: {
+      bucket: string;
+      path: string;
+      resourceId?: string;
+      name: string;
+      content: Buffer;
+    },
     logger: Logger
   ) => Promise<string>;
   get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
@@ -67,6 +74,11 @@ export function initFileManager(
     [path, resourceId, fileName].filter((s) => s && s.length > 0).join("/");
 
   return {
+    buildS3Key: (
+      path: string,
+      resourceId: string | undefined,
+      fileName: string
+    ): string => buildS3Key(path, resourceId, fileName),
     delete: async (
       bucket: string,
       path: string,
@@ -149,26 +161,28 @@ export function initFileManager(
       }
     },
     storeBytes: async (
-      bucket: string,
-      path: string,
-      resourceId: string,
-      fileName: string,
-      fileContent: Buffer,
+      s3File: {
+        bucket: string;
+        path: string;
+        resourceId?: string;
+        name: string;
+        content: Buffer;
+      },
       logger: Logger
     ): Promise<string> => {
-      const key = buildS3Key(path, resourceId, fileName);
-      logger.info(`Storing file ${key} in bucket ${bucket}`);
+      const key = buildS3Key(s3File.path, s3File.resourceId, s3File.name);
+      logger.info(`Storing file ${key} in bucket ${s3File.bucket}`);
       try {
         await client.send(
           new PutObjectCommand({
-            Bucket: bucket,
+            Bucket: s3File.bucket,
             Key: key,
-            Body: fileContent,
+            Body: s3File.content,
           })
         );
         return key;
       } catch (error) {
-        throw fileManagerStoreBytesError(key, bucket, error);
+        throw fileManagerStoreBytesError(key, s3File.bucket, error);
       }
     },
     generateGetPresignedUrl: async (
@@ -177,7 +191,7 @@ export function initFileManager(
       fileName: string,
       durationInMinutes: number
     ): Promise<string> => {
-      const key: string = buildS3Key(path, "", fileName);
+      const key: string = buildS3Key(path, undefined, fileName);
       const command = new GetObjectCommand({ Bucket: bucketName, Key: key });
       return getSignedUrl(client, command, { expiresIn: durationInMinutes });
     },
