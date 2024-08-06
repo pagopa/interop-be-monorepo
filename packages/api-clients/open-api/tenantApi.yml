@@ -1083,7 +1083,6 @@ components:
         - name
         - attributeId
         - attributeName
-
     CertifiedAttributes:
       type: object
       properties:
@@ -1278,16 +1277,6 @@ components:
         - externalId
         - selfcareId
         - name
-    TenantDelta:
-      description: Tenant Delta model
-      type: object
-      properties:
-        mails:
-          type: array
-          items:
-            $ref: "#/components/schemas/MailSeed"
-      required:
-        - mails
     MailSeed:
       description: A specific kind of mail
       type: object
