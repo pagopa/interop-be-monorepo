@@ -47,7 +47,7 @@ const clientRouter = (
       res.status(501).send()
     )
     .post("/clientsConsumer", async (_req, res) => res.status(501).send())
-    .post("/clientsApi", async (_req, res) => res.status(501).send())
+    .post("/clientsApi", async (_req, res) => res.status(501).send());
 
   return clientRouter;
 };
