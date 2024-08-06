@@ -4,7 +4,6 @@ import { AWSConfig } from "./awsConfig.js";
 
 export const KafkaProducerConfig = AWSConfig.and(
   z.object({
-    PURPOSE_OUTBOUND_TOPIC: z.string(),
     PRODUCER_KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
     PRODUCER_KAFKA_CLIENT_ID: z.string(),
     PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
