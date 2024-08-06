@@ -15,16 +15,16 @@ import {
 import { addOneProducerKeychain, authorizationService } from "./utils.js";
 
 describe("getProducerKeychainUsers", async () => {
-  const organizationId: TenantId = generateId();
-  const userId1: UserId = generateId();
-  const userId2: UserId = generateId();
-  const mockProducerKeychain: ProducerKeychain = {
-    ...getMockProducerKeychain(),
-    users: [userId1, userId2],
-    producerId: organizationId,
-  };
-
   it("should get from the readModel the users in the specified producer keychain", async () => {
+    const organizationId: TenantId = generateId();
+    const userId1: UserId = generateId();
+    const userId2: UserId = generateId();
+    const mockProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      users: [userId1, userId2],
+      producerId: organizationId,
+    };
+
     await addOneProducerKeychain(mockProducerKeychain);
 
     const users = await authorizationService.getProducerKeychainUsers({
@@ -35,7 +35,7 @@ describe("getProducerKeychainUsers", async () => {
     expect(users).toEqual([userId1, userId2]);
   });
   it("should throw producerKeychainNotFound if the producer keychain with the specified Id doesn't exist", async () => {
-    await addOneProducerKeychain(mockProducerKeychain);
+    await addOneProducerKeychain(getMockProducerKeychain());
     const producerKeychainId: ProducerKeychainId = generateId();
     await expect(
       authorizationService.getProducerKeychainUsers({
@@ -46,6 +46,7 @@ describe("getProducerKeychainUsers", async () => {
     ).rejects.toThrowError(producerKeychainNotFound(producerKeychainId));
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+    const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
     await addOneProducerKeychain(mockProducerKeychain);
     const organizationIdNotMatchWithProducer: TenantId = generateId();
     await expect(
