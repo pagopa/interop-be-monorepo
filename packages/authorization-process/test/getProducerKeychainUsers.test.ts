@@ -27,7 +27,7 @@ describe("getProducerKeychainUsers", async () => {
   it("should get from the readModel the users in the specified producer keychain", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
-    const { users } = await authorizationService.getProducerKeychainUsers({
+    const users = await authorizationService.getProducerKeychainUsers({
       producerKeychainId: mockProducerKeychain.id,
       organizationId,
       logger: genericLogger,
