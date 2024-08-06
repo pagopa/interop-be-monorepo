@@ -342,14 +342,16 @@ const readModel = connectToReadModel({
   readModelDbName: config.tenantCollection.readModelDbName,
 });
 
-const tenantsIdsToInclude = await readModel
-  .db(config.tenantCollection.readModelDbName)
-  .collection(config.tenantCollection.collectionName)
-  .find({
-    "data.selfcareId": { $exists: true, $ne: undefined },
-  })
-  .map(({ data }) => Tenant.parse(data).id)
-  .toArray();
+const tenantsIdsToInclude = new Set(
+  await readModel
+    .db(config.tenantCollection.readModelDbName)
+    .collection(config.tenantCollection.collectionName)
+    .find({
+      "data.selfcareId": { $exists: true, $ne: undefined },
+    })
+    .map(({ data }) => Tenant.parse(data).id)
+    .toArray()
+);
 
 await readModel.close();
 
@@ -398,7 +400,7 @@ for (const event of originalEvents) {
 
   if (
     config.targetDbSchema.includes("tenant") &&
-    !tenantsIdsToInclude.includes(id)
+    !tenantsIdsToInclude.has(id)
   ) {
     skippedEvents++;
     continue;
