@@ -192,6 +192,9 @@ export class ReadModelRepository {
     this.producerKeychains = this.db.collection("producerkeychains", {
       ignoreUndefined: true,
     });
+    this.producerKeys = this.db.collection("producer_keys", {
+      ignoreUndefined: true,
+    });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
