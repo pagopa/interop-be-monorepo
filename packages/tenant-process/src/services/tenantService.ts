@@ -42,7 +42,6 @@ import {
   toCreateEventTenantMailDeleted,
   toCreateEventTenantMailAdded,
   toCreateEventTenantVerifiedAttributeAssigned,
-  toCreateEventTenantCertifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   attributeNotFound,
