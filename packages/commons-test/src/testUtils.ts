@@ -290,14 +290,3 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   },
   selfcareId: generateId(),
 });
-
-export const getMockProducerKeychain = (): ProducerKeychain => ({
-  id: generateId(),
-  producerId: generateId(),
-  name: "Test producer keychain",
-  eservices: [],
-  description: "Producer Keychain description",
-  users: [],
-  createdAt: new Date(),
-  keys: [],
-});
