@@ -200,6 +200,16 @@ export function invalidRiskAnalysisContentType(
     title: "Invalid Risk Analysis content type",
   });
 }
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
+  });
+}
 
 export function missingInterface(
   eserviceId: string,
@@ -209,17 +219,6 @@ export function missingInterface(
     detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
     code: "missingInterface",
     title: "Missing interface",
-  });
-}
-
-export function eserviceRiskNotFound(
-  eserviceId: string,
-  riskAnalysisId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
-    code: "eserviceRiskNotFound",
-    title: "Risk analysis not found",
   });
 }
 

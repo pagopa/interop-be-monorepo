@@ -1,7 +1,8 @@
-/* eslint-disable no-console */
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
+import { Readable } from "stream";
 import JSZip from "jszip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -109,6 +110,20 @@ export function buildJsonConfig(
   };
 }
 
+async function readableToInt8Array(readable: Readable): Promise<Uint8Array> {
+  // Collect the data from the stream
+  const chunks = [];
+  for await (const chunk of readable) {
+    chunks.push(chunk);
+  }
+
+  // Combine all chunks into a single buffer
+  const buffer = Buffer.concat(chunks);
+
+  // Create and return an Int8Array from the buffer
+  return new Uint8Array(buffer);
+}
+
 /* 
   This function creates a zip file fetched from the S3 bucket 
   using FileManager, the zip file containing the following files:
@@ -155,15 +170,16 @@ export async function createdescriptorDocumentZipFile(
   const zip = new JSZip();
 
   // Add interface file to the zip
-  console.log("// Add interface file to the zip");
+
+  const interfaceFile: Readable = await fileManager.get(
+    s3BucketName,
+    "/" + interfaceDocument.path,
+    logger
+  );
 
   const interfaceFileContent: FileData = {
     id: interfaceDocument.id,
-    file: await fileManager.get(
-      s3BucketName,
-      "/" + interfaceDocument.path,
-      logger
-    ),
+    file: await readableToInt8Array(interfaceFile),
   };
   zip.file(
     `${zipFolderName}/${interfaceDocument.name}`,
@@ -171,14 +187,12 @@ export async function createdescriptorDocumentZipFile(
   );
 
   // Add descriptor's document files to the zip
-  console.log("//  Add descriptor's document files to the zip");
   const documentFilesContent: FileData[] = await Promise.all(
-    descriptor.docs.map(async (doc) => ({
-      id: doc.id,
-      file: await fileManager.get(s3BucketName, doc.path, logger),
-    }))
+    descriptor.docs.map(async (doc) => {
+      const file = await fileManager.get(s3BucketName, doc.path, logger);
+      return { id: doc.id, file: await readableToInt8Array(file) };
+    })
   );
-  console.log("DONE --  Add descriptor's document files to the zip");
 
   documentFilesContent.forEach((doc) => {
     const uniqueName = getUniqueNameByDocumentId(fileDocumentRegistry, doc.id);
