@@ -634,12 +634,12 @@ export function tenantServiceBuilder(
         tenantWithNewAttribute.externalId
       );
 
-      const updatedTenant: Tenant = {
-        ...tenantWithNewAttribute,
-        kind: tenantKind,
-      };
-
       if (tenantWithNewAttribute.kind !== tenantKind) {
+        const updatedTenant: Tenant = {
+          ...tenantWithNewAttribute,
+          kind: tenantKind,
+        };
+
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
           tenantKind,

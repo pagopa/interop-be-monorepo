@@ -120,7 +120,7 @@ export function attributeVerificationNotAllowed(
     detail: `Organization is not allowed to verify attribute ${attributeId} 
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
-    title: "attribute Verification is Not Allowed",
+    title: "Attribute verification is not allowed",
   });
 }
 
@@ -191,7 +191,7 @@ export function attributeDoesNotBelongToCertifier(
   return new ApiError({
     detail: `Organization ${organizationId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
     code: "attributeDoesNotBelongToCertifier",
-    title: "Attribute does not belong to Certifier",
+    title: "Attribute does not belong to certifier",
   });
 }
 
@@ -202,7 +202,7 @@ export function certifiedAttributeAlreadyAssigned(
   return new ApiError({
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
-    title: "certified Attribute Already Assigned",
+    title: "Certified attribute already assigned",
   });
 }
 
