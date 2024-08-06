@@ -82,7 +82,7 @@ export function tenantNotFoundByExternalId(
   return new ApiError({
     detail: `Tenant with externalId ${origin}/${code} not found`,
     code: "tenantNotFoundByExternalId",
-    title: "Tenant not found",
+    title: "Tenant not found by externalId",
   });
 }
 
