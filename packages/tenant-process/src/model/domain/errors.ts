@@ -27,6 +27,8 @@ export const errorCodes = {
   mailNotFound: "0018",
   mailAlreadyExists: "0019",
   attributeAlreadyRevoked: "0020",
+  attributeRevocationNotAllowed: "0021",
+  verifiedAttributeSelfRevocationNotAllowed: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -38,6 +40,14 @@ export function verifiedAttributeSelfVerificationNotAllowed(): ApiError<ErrorCod
     detail: `Organizations are not allowed to verify own attributes`,
     code: "verifiedAttributeSelfVerificationNotAllowed",
     title: "Verified attribute self verification not allowed",
+  });
+}
+
+export function verifiedAttributeSelfRevocationNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organizations are not allowed to revoke own attributes`,
+    code: "verifiedAttributeSelfRevocationNotAllowed",
+    title: "Verified attribute self revocation not allowed",
   });
 }
 
@@ -122,6 +132,18 @@ export function attributeVerificationNotAllowed(
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
     title: "Attribute verification is not allowed",
+  });
+}
+
+export function attributeRevocationNotAllowed(
+  consumerId: string,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization is not allowed to revoke attribute ${attributeId} 
+    for tenant ${consumerId}`,
+    code: "attributeRevocationNotAllowed",
+    title: "Attribute revocation is not allowed",
   });
 }
 
