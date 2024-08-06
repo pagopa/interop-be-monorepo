@@ -36,6 +36,7 @@ import {
   verifyVerifiedAttributeErrorMapper,
   revokeVerifiedAttributeErrorMapper,
   internalAddCertifiedAttributeErrorMapper,
+  internalRevokeCertifiedAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -549,7 +550,30 @@ const tenantsRouter = (
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
+          await tenantService.internalRevokeCertifiedAttribute(
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              attributeOrigin: aOrigin,
+              attributeExternalId: aExternalId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalRevokeCertifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   const tenantsAttributeRouter = ctx.router(tenantApi.tenantAttributeApi.api, {
@@ -607,6 +631,11 @@ const tenantsRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/verified/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
     )
     .post(
       "/tenants/:tenantId/attributes/verified",
