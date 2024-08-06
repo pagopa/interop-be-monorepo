@@ -28,12 +28,14 @@ import {
   selfcareUpsertTenantErrorMapper,
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
+  revokeCertifiedAttributeErrorMapper,
   maintenanceTenantDeletedErrorMapper,
   maintenanceTenantPromotedToCertifierErrorMapper,
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
   verifyVerifiedAttributeErrorMapper,
+  internalAddCertifiedAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -549,7 +551,30 @@ const tenantsRouter = (
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
+          await tenantService.internalAssignCertifiedAttribute(
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              attributeOrigin: aOrigin,
+              attributeExternalId: aExternalId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalAddCertifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
@@ -633,6 +658,31 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyVerifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/certified/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tenantId, attributeId } = req.params;
+          await tenantService.revokeCertifiedAttributeById(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              attributeId: unsafeBrandId(attributeId),
+            },
+            ctx
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeCertifiedAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

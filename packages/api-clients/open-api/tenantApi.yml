@@ -778,6 +778,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/certified/{attributeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: attributeId
+        in: path
+        description: Attribute id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - tenantAttribute
+      operationId: revokeCertifiedAttributeById
+      description: Revoke a certified attribute to a Tenant by the requester Tenant
+      responses:
+        "204":
+          description: Certified Attribute revoked
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /maintenance/tenants/{tenantId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
