@@ -589,7 +589,7 @@ export function tenantServiceBuilder(
       { logger, authData, correlationId }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(
-        `Revokeing verified attribute ${attributeId} to tenant ${tenantId}`
+        `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
       );
 
       if (authData.organizationId === tenantId) {
