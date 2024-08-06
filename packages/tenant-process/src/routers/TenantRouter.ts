@@ -35,7 +35,9 @@ import {
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
   verifyVerifiedAttributeErrorMapper,
+  revokeVerifiedAttributeErrorMapper,
   internalAddCertifiedAttributeErrorMapper,
+  internalRevokeCertifiedAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -395,11 +397,6 @@ const tenantsRouter = (
       }
     )
     .delete(
-      "/tenants/:tenantId/attributes/verified/:attributeId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .delete(
       "/maintenance/tenants/:tenantId",
       authorizationMiddleware([MAINTENANCE_ROLE]),
       async (req, res) => {
@@ -579,7 +576,30 @@ const tenantsRouter = (
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
+          await tenantService.internalRevokeCertifiedAttribute(
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              attributeOrigin: aOrigin,
+              attributeExternalId: aExternalId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalRevokeCertifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   const tenantsAttributeRouter = ctx.router(tenantApi.tenantAttributeApi.api, {
@@ -638,6 +658,11 @@ const tenantsRouter = (
         }
       }
     )
+    .delete(
+      "/tenants/:tenantId/attributes/verified/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (_req, res) => res.status(501).send()
+    )
     .post(
       "/tenants/:tenantId/attributes/verified",
       authorizationMiddleware([ADMIN_ROLE]),
@@ -658,6 +683,30 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyVerifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/verified/:attributeId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.revokeVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              attributeId: unsafeBrandId(req.params.attributeId),
+            },
+            ctx
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeVerifiedAttributeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
