@@ -1,7 +1,4 @@
-import {
-  ClientKeyCollection,
-  clientKeyToClientJWKKey,
-} from "pagopa-interop-commons";
+import { ClientKeyCollection, keyToClientJWKKey } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   fromKeyV1,
@@ -22,12 +19,14 @@ export async function handleMessageV1(
           await keys.updateOne(
             {
               "data.kid": key.kid,
+              "data.clientId": message.data.clientId,
               "metadata.version": { $lte: message.version },
             },
             {
               $set: {
-                data: clientKeyToClientJWKKey(
-                  fromKeyV1(key, unsafeBrandId(message.data.clientId))
+                data: keyToClientJWKKey(
+                  fromKeyV1(key),
+                  unsafeBrandId(message.data.clientId)
                 ),
                 metadata: {
                   version: message.version,
@@ -42,6 +41,7 @@ export async function handleMessageV1(
     .with({ type: "KeyDeleted" }, async (message) => {
       await keys.deleteOne({
         "data.kid": message.data.keyId,
+        "data.clientId": message.data.clientId,
         "metadata.version": { $lte: message.version },
       });
     })
