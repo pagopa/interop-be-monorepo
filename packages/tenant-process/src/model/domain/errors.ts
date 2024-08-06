@@ -192,7 +192,7 @@ export function attributeDoesNotBelongToCertifier(
   return new ApiError({
     detail: `Organization ${organizationId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
     code: "attributeDoesNotBelongToCertifier",
-    title: "Attribute does not belong to Certifier",
+    title: "Attribute does not belong to certifier",
   });
 }
 
