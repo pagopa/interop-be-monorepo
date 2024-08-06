@@ -71,7 +71,7 @@ message MaintenanceTenantPromotedToCertifierV2{
    TenantV2 tenant = 1;
 }
 
-  message TenantMailDeletedV2 {
+message TenantMailDeletedV2 {
   string mailId = 1;
   TenantV2 tenant = 2;
 }

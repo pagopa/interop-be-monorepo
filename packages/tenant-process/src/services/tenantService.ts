@@ -638,12 +638,19 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      if (
-        tenant.data.features.some(
-          (feature) => feature.certifierId === certifierId
-        )
-      ) {
-        throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
+      const certifierIdsAlredyExistsInTenant = tenant.data.features.find(
+        (a) => a.certifierId === certifierId
+      );
+      if (certifierIdsAlredyExistsInTenant) {
+        const certifiedAttribute =
+          await readModelService.getCertifiedAttributes({
+            certifierId: certifierIdsAlredyExistsInTenant.certifierId,
+            offset: 0,
+            limit: 1,
+          });
+        if (certifiedAttribute) {
+          throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
+        }
       }
 
       const updatedTenant: Tenant = {
@@ -667,6 +674,7 @@ export function tenantServiceBuilder(
       );
       return updatedTenant;
     },
+
     async deleteTenantMailById(
       {
         tenantId,
