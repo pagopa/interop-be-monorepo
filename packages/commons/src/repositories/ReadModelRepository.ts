@@ -8,7 +8,7 @@ import {
   PurposeReadModel,
   genericInternalError,
   ProducerKeychainReadModel,
-  ProducerKeychainJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -42,8 +42,7 @@ export type ClientCollection = GenericCollection<ClientReadModel>;
 export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
 export type ProducerKeychainCollection =
   GenericCollection<ProducerKeychainReadModel>;
-export type ProducerKeychainKeyCollection =
-  GenericCollection<ProducerKeychainJWKKey>;
+export type ProducerKeyCollection = GenericCollection<ProducerJWKKey>;
 
 export type Collections =
   | EServiceCollection
@@ -54,7 +53,7 @@ export type Collections =
   | ClientCollection
   | ClientKeyCollection
   | ProducerKeychainCollection
-  | ProducerKeychainKeyCollection;
+  | ProducerKeyCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -163,7 +162,7 @@ export class ReadModelRepository {
 
   public producerKeychains: ProducerKeychainCollection;
 
-  public producerKeys: ProducerKeychainKeyCollection;
+  public producerKeys: ProducerKeyCollection;
 
   private client: MongoClient;
   private db: Db;
