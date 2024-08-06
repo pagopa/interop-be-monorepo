@@ -47,7 +47,7 @@ export function verifiedAttributeSelfRevocationNotAllowed(): ApiError<ErrorCodes
   return new ApiError({
     detail: `Organizations are not allowed to revoke own attributes`,
     code: "verifiedAttributeSelfRevocationNotAllowed",
-    title: "Verified attribute self revocation",
+    title: "Verified attribute self revocation not allowed",
   });
 }
 
@@ -131,7 +131,7 @@ export function attributeVerificationNotAllowed(
     detail: `Organization is not allowed to verify attribute ${attributeId} 
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
-    title: "attribute Verification is Not Allowed",
+    title: "Attribute verification is not allowed",
   });
 }
 
@@ -143,7 +143,7 @@ export function attributeRevocationNotAllowed(
     detail: `Organization is not allowed to revoke attribute ${attributeId} 
     for tenant ${consumerId}`,
     code: "attributeRevocationNotAllowed",
-    title: "attribute Revocation is Not Allowed",
+    title: "Attribute revocation is not allowed",
   });
 }
 
@@ -225,7 +225,7 @@ export function certifiedAttributeAlreadyAssigned(
   return new ApiError({
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
-    title: "certified Attribute Already Assigned",
+    title: "Certified attribute already assigned",
   });
 }
 
@@ -237,7 +237,7 @@ export function attributeAlreadyRevoked(
   return new ApiError({
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
     code: "attributeAlreadyRevoked",
-    title: "attribute is Already Revoked",
+    title: "Attribute is already revoked",
   });
 }
 
