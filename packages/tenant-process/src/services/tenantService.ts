@@ -725,12 +725,11 @@ export function tenantServiceBuilder(
         tenantWithRevokedAttribute.externalId
       );
 
-      const updatedTenant: Tenant = {
-        ...tenantWithRevokedAttribute,
-        kind: tenantKind,
-      };
-
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
+        const updatedTenant: Tenant = {
+          ...tenantWithRevokedAttribute,
+          kind: tenantKind,
+        };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
           tenantKind,
