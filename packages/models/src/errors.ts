@@ -165,6 +165,7 @@ const errorCodes = {
   notAllowedPrivateKeyException: "10001",
   missingRequiredJWKClaim: "10002",
   invalidKey: "10003",
+  tooManyRequestsError: "10004",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -294,6 +295,16 @@ export function badRequestError(
     code: "badRequestError",
     title: "Bad request",
     errors,
+  });
+}
+
+export function tooManyRequestsError(
+  organizationId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "tooManyRequestsError",
+    title: "Too Many Requests",
+    detail: `Requests limit exceeded for organization ${organizationId}`,
   });
 }
 

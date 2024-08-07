@@ -42,7 +42,7 @@ import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")

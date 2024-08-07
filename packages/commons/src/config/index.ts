@@ -12,3 +12,4 @@ export * from "./tokenGenerationConfig.js";
 export * from "./sessionTokenGenerationConfig.js";
 export * from "./emailManagerConfig.js";
 export * from "./selfcareConfig.js";
+export * from "./redisRateLimiterConfig.js";
