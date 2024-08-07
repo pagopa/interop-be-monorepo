@@ -390,6 +390,7 @@ export function purposeServiceBuilder(
         headers,
       });
 
+      // from https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes$.html
       const contentTypes = [
         "NoContentType",
         "application/grpc+proto",
