@@ -168,8 +168,9 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
     kind: input.kind != null ? fromTenantKindV2(input.kind) : undefined,
     updatedAt: bigIntToDate(input.updatedAt),
     onboardedAt: bigIntToDate(input.onboardedAt),
-    subUnitType: input.subUnitType
-      ? fromTenantUnitTypeV2(input.subUnitType)
-      : undefined,
+    subUnitType:
+      input.subUnitType != null
+        ? fromTenantUnitTypeV2(input.subUnitType)
+        : undefined,
   };
 };
