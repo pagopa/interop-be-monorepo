@@ -393,7 +393,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposeErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -407,7 +408,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          "Error retrieving latest risk analysis configuration"
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -426,7 +432,12 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error retrieving risk analysis configuration for version ${req.params.riskAnalysisVersion}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
