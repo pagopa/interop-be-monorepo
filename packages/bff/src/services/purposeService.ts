@@ -1,6 +1,7 @@
-import { WithLogger, toSetToArray } from "pagopa-interop-commons";
+import { WithLogger, FileManager, toSetToArray } from "pagopa-interop-commons";
 import {
   PurposeId,
+  PurposeVersionDocumentId,
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -15,6 +16,7 @@ import {
 import {
   agreementNotFound,
   eServiceNotFound,
+  invalidRiskAnalysisContentType,
   purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
@@ -22,6 +24,7 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
 import { isUpgradable } from "../model/modelMappingUtils.js";
+import { config } from "../config/config.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { retrieveEserviceDescriptor } from "./catalogService.js";
@@ -42,13 +45,14 @@ export const getCurrentVersion = (
     .at(-1);
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   purposeProcessClient: PurposeProcessClient,
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  authorizationClient: AuthorizationProcessClient
+  authorizationClient: AuthorizationProcessClient,
+  fileManager: FileManager
 ) {
   const getPurposes = async (
     requesterId: string,
@@ -365,6 +369,185 @@ export function purposeServiceBuilder(
       return {
         purposeId,
         versionId: purposeVersion.id,
+      };
+    },
+    async getRiskAnalysisDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      documentId: PurposeVersionDocumentId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Uint8Array> {
+      logger.info(
+        `Downloading risk analysis document ${documentId} from purpose ${purposeId} with version ${versionId}`
+      );
+
+      const document = await purposeProcessClient.getRiskAnalysisDocument({
+        params: {
+          purposeId,
+          versionId,
+          documentId,
+        },
+        headers,
+      });
+
+      // from https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes$.html
+      const contentTypes = [
+        "NoContentType",
+        "application/grpc+proto",
+        "application/json",
+        "application/octet-stream",
+        "application/x-www-form-urlencoded",
+        "text/csv(UTF-8)",
+        "text/html(UTF-8)",
+        "text/plain(UTF-8)",
+        "text/xml(UTF-8)",
+      ];
+
+      if (!contentTypes.includes(document.contentType)) {
+        throw invalidRiskAnalysisContentType(
+          document.contentType,
+          purposeId,
+          versionId,
+          documentId
+        );
+      }
+
+      return await fileManager.get(
+        config.riskAnalysisDocumentsPath,
+        document.path,
+        logger
+      );
+    },
+    async rejectPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      seed: bffApi.RejectPurposeVersionPayload,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Rejecting version ${versionId} of purpose ${purposeId}`);
+
+      await purposeProcessClient.rejectPurposeVersion(seed, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+    },
+    async archivePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Archiving purpose ${purposeId} with version ${versionId}`);
+
+      const result = await purposeProcessClient.archivePurposeVersion(
+        undefined,
+        {
+          params: {
+            purposeId,
+            versionId,
+          },
+          headers,
+        }
+      );
+
+      return {
+        purposeId,
+        versionId: result.id,
+      };
+    },
+    async suspendPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
+
+      const result = await purposeProcessClient.suspendPurposeVersion(
+        undefined,
+        {
+          params: {
+            purposeId,
+            versionId,
+          },
+          headers,
+        }
+      );
+
+      return {
+        purposeId,
+        versionId: result.id,
+      };
+    },
+    async activatePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
+
+      const result = await purposeProcessClient.activatePurposeVersion(
+        undefined,
+        {
+          params: {
+            purposeId,
+            versionId,
+          },
+          headers,
+        }
+      );
+
+      return {
+        purposeId,
+        versionId: result.id,
+      };
+    },
+    async deletePurpose(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose ${purposeId}`);
+
+      await purposeProcessClient.deletePurpose(undefined, {
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+    },
+    async deletePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting version ${versionId} of purpose ${purposeId}`);
+
+      await purposeProcessClient.deletePurposeVersion(undefined, {
+        params: {
+          purposeId,
+          versionId,
+        },
+        headers,
+      });
+    },
+    async updatePurpose(
+      id: PurposeId,
+      seed: bffApi.PurposeUpdateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Updating Purpose ${id}`);
+
+      const result = await purposeProcessClient.updatePurpose(seed, {
+        params: {
+          id,
+        },
+        headers,
+      });
+
+      return {
+        purposeId: id,
+        versionId: result.id,
       };
     },
   };
