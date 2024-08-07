@@ -156,29 +156,11 @@ const getAttributeIds = (
 export const fetchAllEserviceConsumers = async (
   catalogProcessClient: CatalogProcessClient,
   headers: Headers,
-  eServiceId: EServiceId,
-  offset: number = 0
-): Promise<catalogApi.EServiceConsumer[]> => {
-  const consumers = await getEserviceFrom(
-    catalogProcessClient,
-    eServiceId,
-    offset,
-    headers
+  eServiceId: EServiceId
+): Promise<catalogApi.EServiceConsumer[]> =>
+  await getAllFromPaginated(async (offset: number) =>
+    getEserviceFrom(catalogProcessClient, eServiceId, offset, headers)
   );
-
-  if (consumers.totalCount >= 50) {
-    return consumers.results.concat(
-      await fetchAllEserviceConsumers(
-        catalogProcessClient,
-        headers,
-        eServiceId,
-        offset + 50
-      )
-    );
-  }
-
-  return consumers.results;
-};
 
 export const getEserviceFrom = async (
   catalogProcessClient: CatalogProcessClient,
