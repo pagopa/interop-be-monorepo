@@ -50,7 +50,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -70,7 +75,7 @@ const purposeRouter = (
           error,
           reversePurposeUpdateErrorMapper,
           ctx.logger,
-          `Error updating reverse purpose ${req.params.purposeId}`
+          `Error updating reverse Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -83,7 +88,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -109,7 +119,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposesErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -136,7 +147,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposesErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -156,7 +168,8 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           clonePurposeErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error cloning purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -173,7 +186,12 @@ const purposeRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating version for purpose ${req.params.purposeId} with dailyCalls ${req.body.dailyCalls}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -192,7 +210,12 @@ const purposeRouter = (
 
           return res.status(200).json(Buffer.from(result)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error downloading risk analysis document ${req.params.documentId} from purpose ${req.params.purposeId} with version ${req.params.versionId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -212,7 +235,12 @@ const purposeRouter = (
 
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error rejecting version ${req.params.versionId} of purpose ${req.params.purposeId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -231,7 +259,12 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error archiving purpose ${req.params.purposeId} with version ${req.params.versionId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -250,7 +283,12 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error suspending Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -269,11 +307,78 @@ const purposeRouter = (
 
           return res.status(200).json(result).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error activating Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
+    .delete("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeService.deletePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .post("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.updatePurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error updating Purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeService.deletePurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          unsafeBrandId(req.params.versionId),
+          ctx
+        );
+
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/purposes/:purposeId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -290,53 +395,6 @@ const purposeRouter = (
           getPurposeErrorMapper,
           ctx.logger
         );
-        return res.status(errorRes.status).json(errorRes).end();
-      }
-    })
-    .delete("/purposes/:purposeId", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        await purposeService.deletePurpose(
-          unsafeBrandId(req.params.purposeId),
-          ctx
-        );
-
-        return res.status(204).end();
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-        return res.status(errorRes.status).json(errorRes).end();
-      }
-    })
-    .post("/purposes/:purposeId", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const result = await purposeService.updatePurpose(
-          unsafeBrandId(req.params.purposeId),
-          req.body,
-          ctx
-        );
-
-        return res.status(200).json(result).end();
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-        return res.status(errorRes.status).json(errorRes).end();
-      }
-    })
-    .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        await purposeService.deletePurposeVersion(
-          unsafeBrandId(req.params.purposeId),
-          unsafeBrandId(req.params.versionId),
-          ctx
-        );
-
-        return res.status(204).end();
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
