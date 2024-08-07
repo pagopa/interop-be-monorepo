@@ -800,9 +800,6 @@ importers:
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test

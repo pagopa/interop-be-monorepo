@@ -25,7 +25,6 @@
     "@types/node": "20.14.6",
     "@types/qs": "6.9.15",
     "@types/uuid": "9.0.8",
-    "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
