@@ -264,7 +264,7 @@ export const getProducerKeychainKeyErrorMapper = (
   match(error.code)
     .with(
       "producerKeychainNotFound",
-      "producerKeychainKeyNotFound",
+      "producerKeyNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(

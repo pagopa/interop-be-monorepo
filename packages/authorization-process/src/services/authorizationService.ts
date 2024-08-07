@@ -1149,7 +1149,7 @@ export function authorizationServiceBuilder(
       kid: string;
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<ProducerKeychainKey> {
+    }): Promise<Key> {
       logger.info(
         `Retrieving key ${kid} in producerKeychain ${producerKeychainId}`
       );
@@ -1165,7 +1165,7 @@ export function authorizationServiceBuilder(
       const key = producerKeychain.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
-        throw producerKeychainKeyNotFound(kid, producerKeychainId);
+        throw producerKeyNotFound(kid, producerKeychainId);
       }
       return key;
     },
