@@ -8,14 +8,15 @@ import {
   generateId,
   notAllowedPrivateKeyException,
   ProducerKeychain,
+  Key,
   ProducerKeychainKeyAddedV2,
-  ProducerKeychainKey,
   invalidKey,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockProducerKeychainKey,
+  getMockKey,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
 import { getMockProducerKeychain } from "pagopa-interop-commons-test";
@@ -136,7 +137,24 @@ describe("createProducerKeychainKeys", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.producerKeychainId).toEqual(producerKeychain.id);
+    const expectedProducerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      keys: [
+        {
+          name: keySeed.name,
+          createdAt: new Date(),
+          kid: writtenPayload.kid,
+          encodedPem: keySeed.key,
+          algorithm: keySeed.alg,
+          use: "Enc",
+          userId,
+        },
+      ],
+    };
+
+    expect(writtenPayload.producerKeychain).toEqual(
+      toProducerKeychainV2(expectedProducerKeychain)
+    );
     expect(writtenPayload.kid).toEqual(writtenPayload.kid);
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist ", async () => {
@@ -194,8 +212,8 @@ describe("createProducerKeychainKeys", () => {
     );
   });
   it("should throw tooManyKeysPerProducerKeychain if the keys number is greater than maxKeysPerProducerKeychain ", async () => {
-    function get30Keys(): ProducerKeychainKey[] {
-      return Array.from({ length: 100 }).map(getMockProducerKeychainKey);
+    function get30Keys(): Key[] {
+      return Array.from({ length: 100 }).map(getMockKey);
     }
     const producerKeychainWith30Keys: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -274,8 +292,8 @@ describe("createProducerKeychainKeys", () => {
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
   it("should throw keyAlreadyExists if the kid already exists in the keys of that producer keychain ", async () => {
-    const key: ProducerKeychainKey = {
-      ...getMockProducerKeychainKey(),
+    const key: Key = {
+      ...getMockKey(),
       kid: calculateKid(createJWK(keySeed.key)),
     };
 
@@ -297,8 +315,8 @@ describe("createProducerKeychainKeys", () => {
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different producer keychain ", async () => {
-    const key: ProducerKeychainKey = {
-      ...getMockProducerKeychainKey(),
+    const key: Key = {
+      ...getMockKey(),
       kid: calculateKid(createJWK(keySeed.key)),
     };
 
