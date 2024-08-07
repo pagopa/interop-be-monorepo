@@ -14,6 +14,7 @@ import {
   generateId,
   toReadModelEService,
   EServiceId,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -75,7 +76,10 @@ describe("addProducerKeychainEService", async () => {
 
     expect(writtenPayload).toEqual({
       eserviceId: mockEService.id,
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychain: toProducerKeychainV2({
+        ...mockProducerKeychain,
+        eservices: [mockEService.id],
+      }),
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain does not exist", async () => {

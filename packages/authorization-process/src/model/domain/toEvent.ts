@@ -310,7 +310,7 @@ export function toCreateEventProducerKeychainEServiceAdded(
       event_version: 2,
       data: {
         eserviceId,
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,
