@@ -14,13 +14,13 @@ import {
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import {
   assertRequesterIsProducer,
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
 } from "../model/validators.js";
+import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -294,5 +294,43 @@ export function catalogServiceBuilder(
         id: updatedEservice.id,
       };
     },
+    createEService: async (
+      eServiceSeed: bffApi.EServiceSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.createEService(
+        toCatalogCreateEServiceSeed(eServiceSeed),
+        {
+          headers,
+        }
+      );
+      return { id };
+    },
+    updateEServiceById: async (
+      eServiceId: EServiceId,
+      updateEServiceSeed: bffApi.UpdateEServiceSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.updateEServiceById(
+        updateEServiceSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+      return { id };
+    },
+    deleteEService: async (
+      eServiceId: EServiceId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.deleteEService(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      }),
   };
 }

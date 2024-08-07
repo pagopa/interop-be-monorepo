@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
@@ -101,7 +101,6 @@ const catalogRouter = (
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
       async (_req, res) => res.status(501).send()
     )
-    .post("/eservices", async (_req, res) => res.status(501).send())
     .get("/eservices/:eServiceId/consumers", async (_req, res) =>
       res.status(501).send()
     )
@@ -152,10 +151,46 @@ const catalogRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       async (_req, res) => res.status(501).send()
     )
-    .delete("/eservices/:eServiceId", async (_req, res) =>
-      res.status(501).send()
-    )
-    .put("/eservices/:eServiceId", async (_req, res) => res.status(501).send())
+    .post("/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.createEService(
+          req.body,
+          ctx
+        );
+        return res.status(200).send(createdResource);
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .delete("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.deleteEService(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .put("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.updateEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(createdResource);
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/eservices/:eServiceId/riskAnalysis", async (_req, res) =>
       res.status(501).send()
     )
