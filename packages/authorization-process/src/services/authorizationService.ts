@@ -50,11 +50,12 @@ import {
   purposeNotFound,
   tooManyKeysPerClient,
   clientUserAlreadyAssigned,
-  userIdNotFound,
+  clientUserIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
+  producerKeychainUserIdNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -68,6 +69,7 @@ import {
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
   toCreateEventProducerKeychainUserAdded,
+  toCreateEventProducerKeychainUserDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -298,7 +300,7 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeUser({
+    async removeClientUser({
       clientId,
       userIdToRemove,
       organizationId,
@@ -317,7 +319,7 @@ export function authorizationServiceBuilder(
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       if (!client.data.users.includes(userIdToRemove)) {
-        throw userIdNotFound(userIdToRemove, clientId);
+        throw clientUserIdNotFound(userIdToRemove, clientId);
       }
 
       const updatedClient: Client = {
@@ -914,6 +916,55 @@ export function authorizationServiceBuilder(
         producerKeychain: updatedProducerKeychain,
         showUsers: true,
       };
+    },
+    async removeProducerKeychainUser({
+      producerKeychainId,
+      userIdToRemove,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      userIdToRemove: UserId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing user ${userIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+
+      if (!producerKeychain.data.users.includes(userIdToRemove)) {
+        throw producerKeychainUserIdNotFound(
+          userIdToRemove,
+          producerKeychainId
+        );
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        users: producerKeychain.data.users.filter(
+          (userId) => userId !== userIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainUserDeleted(
+          updatedProducerKeychain,
+          userIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
     },
   };
 }
