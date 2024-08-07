@@ -398,7 +398,7 @@ paths:
       description: Removes a user from a Client
       tags:
         - client
-      summary: Remove an user from a Client
+      summary: Remove a user from a Client
       operationId: removeUser
       responses:
         "204":
@@ -430,7 +430,7 @@ paths:
     post:
       tags:
         - client
-      summary: Add an user to a Client
+      summary: Add a user to a Client
       operationId: addUser
       responses:
         "200":
@@ -463,7 +463,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-      description: Add an user to a Client
+      description: Add a user to a Client
   "/clients/{clientId}/keys":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -715,7 +715,7 @@ paths:
       tags:
         - user
       summary: Returns a set of keys by user ID and client ID.
-      description: "Given an user and a client it returns its corresponding set of keys, if any"
+      description: "Given a user and a client it returns its corresponding set of keys, if any"
       operationId: getClientUserKeys
       responses:
         "200":
@@ -1105,7 +1105,7 @@ paths:
       description: Removes a user from a Producer Keychain
       tags:
         - producerKeychain
-      summary: Remove an user from a Producer Keychain
+      summary: Remove a user from a Producer Keychain
       operationId: removeProducerKeychainUser
       responses:
         "204":
@@ -1137,7 +1137,7 @@ paths:
     post:
       tags:
         - producerKeychain
-      summary: Add an user to a Producer Keychain
+      summary: Add a user to a Producer Keychain
       operationId: addProducerKeychainUser
       responses:
         "200":
@@ -1170,7 +1170,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-      description: Add an user to a Producer Keychain
+      description: Add a user to a Producer Keychain
   "/producerKeychains/{producerKeychainId}/keys":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1370,8 +1370,8 @@ paths:
     post:
       tags:
         - producerKeychain
-      summary: Adds a eservice to a producer keychain
-      description: Adds a eservice to a producer keychain
+      summary: Adds an eservice to a producer keychain
+      description: Adds an eservice to a producer keychain
       operationId: addProducerKeychainEService
       parameters:
         - name: producerKeychainId
@@ -1415,8 +1415,8 @@ paths:
     delete:
       tags:
         - producerKeychain
-      summary: Removes a eservice from a producer keychain
-      description: Removes a eservice from a producer keychain
+      summary: Removes an eservice from a producer keychain
+      description: Removes an eservice from a producer keychain
       operationId: removeProducerKeychainEService
       parameters:
         - name: producerKeychainId
