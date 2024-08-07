@@ -1,4 +1,4 @@
-import { ClientCollection } from "pagopa-interop-commons";
+import { ClientCollection, createJWK } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   fromClientV1,
@@ -129,6 +129,13 @@ export async function handleMessageV1(
       );
     })
     .with({ type: "KeysAdded" }, async (message) => {
+      const keys = message.data.keys
+        .map((keyV1) => (keyV1.value ? fromKeyV1(keyV1.value) : undefined))
+        .filter((k) => k !== undefined)
+        .filter((k) => {
+          const jwk = createJWK(k.encodedPem);
+          return jwk.kty !== "EC";
+        });
       await clients.updateOne(
         {
           "data.id": message.stream_id,
@@ -137,10 +144,8 @@ export async function handleMessageV1(
         {
           $push: {
             "data.keys": {
-              $each: message.data.keys
-                .map((v) =>
-                  v.value ? toReadModelKey(fromKeyV1(v.value)) : undefined
-                )
+              $each: keys
+                .map((k) => toReadModelKey(k))
                 .filter((k) => k !== undefined),
             },
           },
