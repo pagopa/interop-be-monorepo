@@ -14,6 +14,10 @@ export async function handleMessageV2(
       const client = message.data.client
         ? fromClientV2(message.data.client)
         : undefined;
+
+      if (!client) {
+        throw Error("Client not found in event");
+      }
       const key = client?.keys.find((key) => key.kid === message.data.kid);
       if (!key) {
         throw Error(`Key not found in client: ${client?.id}`);
@@ -21,11 +25,12 @@ export async function handleMessageV2(
       await keys.updateOne(
         {
           "data.kid": message.data.kid,
+          "data.clientId": client.id,
           "metadata.version": { $lte: message.version },
         },
         {
           $set: {
-            data: keyToJWKKey(key),
+            data: keyToJWKKey(key, client.id),
             metadata: {
               version: message.version,
             },
@@ -35,8 +40,16 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ClientKeyDeleted" }, async (message) => {
+      const client = message.data.client
+        ? fromClientV2(message.data.client)
+        : undefined;
+
+      if (!client) {
+        throw Error("Client not found in event");
+      }
       await keys.deleteOne({
         "data.kid": message.data.kid,
+        "data.clientId": client.id,
         "metadata.version": { $lte: message.version },
       });
     })

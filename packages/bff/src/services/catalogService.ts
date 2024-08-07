@@ -130,7 +130,7 @@ const getBulkAttributes = async (
   return await attributesBulk(0, []);
 };
 
-const retrieveEserviceDescriptor = (
+export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
   descriptorId: DescriptorId
 ): catalogApi.EServiceDescriptor => {
