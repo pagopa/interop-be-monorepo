@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import {
+  agreementApi,
   attributeRegistryApi,
   bffApi,
   catalogApi,
@@ -86,7 +87,7 @@ const enhanceCatalogEService =
     );
   };
 
-const enhanceProducesEService = (
+const enhanceProducerEService = (
   eservice: catalogApi.EService
 ): bffApi.ProducerEService => ({
   id: eservice.id,
@@ -338,28 +339,41 @@ export function catalogServiceBuilder(
         response.results = results;
         response.totalCount = totalCount;
       } else {
-        const eserviceIds = (
-          await getAllFromPaginated(async (offset: number, limit: number) =>
-            agreementProcessClient.getAgreements({
-              headers,
-              queries: {
-                consumersIds,
-                producersIds: [producerId],
-                eservicesIds: [],
-                states: [],
-                offset,
-                limit,
-              },
-            })
-          )
-        ).map((agreement) => agreement.eserviceId);
+        const eserviceIds: Set<string> = new Set<string>(
+          (
+            await getAllFromPaginated(async (offset: number, limit: number) =>
+              agreementProcessClient.getAgreements({
+                headers,
+                queries: {
+                  consumersIds,
+                  producersIds: [producerId],
+                  eservicesIds: [],
+                  states: [],
+                  offset,
+                  limit,
+                },
+              })
+            )
+          ).map((agreement: agreementApi.Agreement) => agreement.eserviceId)
+        );
+
+        if (eserviceIds.size === 0) {
+          return {
+            results: [],
+            pagination: {
+              offset,
+              limit,
+              totalCount: 0,
+            },
+          };
+        }
 
         const { results, totalCount } = await catalogProcessClient.getEServices(
           {
             headers,
             queries: {
               name: eserviceName,
-              eservicesIds: eserviceIds,
+              eservicesIds: Array.from(eserviceIds),
               producersIds: producerId,
               offset,
               limit,
@@ -372,7 +386,7 @@ export function catalogServiceBuilder(
       }
 
       return {
-        results: response.results.map(enhanceProducesEService),
+        results: response.results.map(enhanceProducerEService),
         pagination: {
           offset,
           limit,
