@@ -52,6 +52,7 @@ import {
   getProducerKeychainsErrorMapper,
   deleteProducerKeychainErrorMapper,
   createProducerKeychainKeysErrorMapper,
+  deleteProducerKeychainKeyByIdErrorMapper,
   getProducerKeychainUsersErrorMapper,
   addProducerKeychainUserErrorMapper,
   removeProducerKeychainUserErrorMapper,
@@ -837,13 +838,32 @@ const authorizationRouter = (
     )
     .get(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
       async (_req, res) => res.status(501).send()
     )
     .delete(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeProducerKeychainKeyById({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            keyIdToRemove: unsafeBrandId(req.params.keyId),
+            authData: ctx.authData,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteProducerKeychainKeyByIdErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/producerKeychains/:producerKeychainId/eservices",

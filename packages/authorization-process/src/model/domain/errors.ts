@@ -14,7 +14,7 @@ export const errorCodes = {
   clientNotFound: "0001",
   organizationNotAllowedOnClient: "0002",
   clientUserIdNotFound: "0003",
-  keyNotFound: "0004",
+  clientKeyNotFound: "0004",
   userNotAllowedOnClient: "0005",
   purposeNotFound: "0006",
   userWithoutSecurityPrivileges: "0007",
@@ -33,6 +33,8 @@ export const errorCodes = {
   producerKeychainUserAlreadyAssigned: "0020",
   producerKeychainUserIdNotFound: "0021",
   tooManyKeysPerProducerKeychain: "0022",
+  userNotAllowedOnProducerKeychain: "0023",
+  producerKeyNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -69,13 +71,13 @@ export function clientUserIdNotFound(
   });
 }
 
-export function keyNotFound(
+export function clientKeyNotFound(
   keyId: string,
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Key ${keyId} not found in client ${clientId}`,
-    code: "keyNotFound",
+    code: "clientKeyNotFound",
     title: "Key not found",
   });
 }
@@ -242,6 +244,28 @@ export function organizationNotAllowedOnProducerKeychain(
     detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
     code: "organizationNotAllowedOnProducerKeychain",
     title: "Organization not allowed on producer keychain",
+  });
+}
+
+export function userNotAllowedOnProducerKeychain(
+  userId: UserId,
+  producerKeychain: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is not allowed on producer keychain ${producerKeychain}`,
+    code: "userNotAllowedOnProducerKeychain",
+    title: "User not allowed on producer keychain",
+  });
+}
+
+export function producerKeyNotFound(
+  keyId: string,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key ${keyId} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeyNotFound",
+    title: "Key not found",
   });
 }
 

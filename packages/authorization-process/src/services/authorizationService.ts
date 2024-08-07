@@ -43,7 +43,7 @@ import {
   descriptorNotFound,
   eserviceNotFound,
   keyAlreadyExists,
-  keyNotFound,
+  clientKeyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
   purposeAlreadyLinkedToClient,
@@ -53,6 +53,8 @@ import {
   userNotFound,
   userNotAllowedOnClient,
   producerKeychainNotFound,
+  producerKeyNotFound,
+  userNotAllowedOnProducerKeychain,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
 } from "../model/domain/errors.js";
@@ -68,6 +70,7 @@ import {
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
   toCreateEventProducerKeychainKeyAdded,
+  toCreateEventProducerKeychainKeyDeleted,
   toCreateEventProducerKeychainUserAdded,
   toCreateEventProducerKeychainUserDeleted,
 } from "../model/domain/toEvent.js";
@@ -359,7 +362,7 @@ export function authorizationServiceBuilder(
         (key) => key.kid === keyIdToRemove
       );
       if (!keyToRemove) {
-        throw keyNotFound(keyIdToRemove, client.data.id);
+        throw clientKeyNotFound(keyIdToRemove, client.data.id);
       }
       if (
         authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
@@ -700,7 +703,7 @@ export function authorizationServiceBuilder(
       const key = client.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
-        throw keyNotFound(kid, clientId);
+        throw clientKeyNotFound(kid, clientId);
       }
       return key;
     },
@@ -718,7 +721,7 @@ export function authorizationServiceBuilder(
       const key = client.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
-        throw keyNotFound(kid, clientId);
+        throw clientKeyNotFound(kid, clientId);
       }
 
       const jwk: JsonWebKey = createJWK(key.encodedPem);
@@ -1046,6 +1049,66 @@ export function authorizationServiceBuilder(
       );
 
       return updatedProducerKeychain;
+    },
+    async removeProducerKeychainKeyById({
+      producerKeychainId,
+      keyIdToRemove,
+      authData,
+      correlationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      keyIdToRemove: string;
+      authData: AuthData;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Removing key ${keyIdToRemove} from producer keychain ${producerKeychainId}`
+      );
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData.organizationId,
+        producerKeychain.data
+      );
+
+      if (
+        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        !producerKeychain.data.users.includes(authData.userId)
+      ) {
+        throw userNotAllowedOnProducerKeychain(
+          authData.userId,
+          producerKeychain.data.id
+        );
+      }
+
+      const keyToRemove = producerKeychain.data.keys.find(
+        (key) => key.kid === keyIdToRemove
+      );
+
+      if (!keyToRemove) {
+        throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
+      }
+
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        keys: producerKeychain.data.keys.filter(
+          (key) => key.kid !== keyIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainKeyDeleted(
+          updatedProducerKeychain,
+          keyIdToRemove,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
     },
   };
 }

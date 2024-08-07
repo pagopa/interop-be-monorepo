@@ -52,7 +52,7 @@ export const deleteClientKeyByIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("clientNotFound", "keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "clientKeyNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -134,7 +134,7 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getClientKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("clientNotFound", "keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "clientKeyNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -142,7 +142,7 @@ export const getClientKeyWithClientErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("clientNotFound", "keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "clientKeyNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createProducerKeychainErrorMapper = (
@@ -223,6 +223,23 @@ export const createProducerKeychainKeysErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteProducerKeychainKeyByIdErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "producerKeychainNotFound",
+      "producerKeyNotFound",
+      "userNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "organizationNotAllowedOnProducerKeychain",
       "userWithoutSecurityPrivileges",
