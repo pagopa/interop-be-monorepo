@@ -1182,13 +1182,14 @@ export function tenantServiceBuilder(
         }
 
         const certifiedAttribute =
-          await readModelService.getCertifiedAttributes({
+          await readModelService.getOneCertifiedAttributeByCertifier({
             certifierId: certifierFeature.certifierId,
-            offset: 0,
-            limit: 1,
           });
         if (certifiedAttribute) {
-          throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
+          throw tenantIsAlreadyACertifier(
+            tenant.data.id,
+            certifierFeature.certifierId
+          );
         }
       }
 

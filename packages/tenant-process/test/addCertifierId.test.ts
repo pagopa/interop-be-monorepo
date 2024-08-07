@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  Attribute,
   MaintenanceTenantPromotedToCertifierV2,
   Tenant,
   generateId,
   protobufDecoder,
+  toReadModelAttribute,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  getMockCertifiedTenantAttribute,
+  getMockAttribute,
   readLastEventByStreamId,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
   tenantNotFound,
@@ -19,6 +22,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
+  attributes,
   getMockTenant,
   postgresDB,
   tenantService,
@@ -94,18 +98,25 @@ describe("addCertifierId", async () => {
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
   it("Should throw tenantIsAlreadyACertifier if the organization is a certifier and it also has certified attributes", async () => {
+    const previousCertifierId = generateId();
+
+    const attribute: Attribute = {
+      ...getMockAttribute(),
+      origin: previousCertifierId,
+    };
+
     const certifierTenant: Tenant = {
       ...getMockTenant(),
       features: [
         {
           type: "PersistentCertifier",
-          certifierId: generateId(),
+          certifierId: previousCertifierId,
         },
       ],
-      attributes: [getMockCertifiedTenantAttribute()],
     };
 
     await addOneTenant(certifierTenant);
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     expect(
       tenantService.addCertifierId(
         {
@@ -116,7 +127,7 @@ describe("addCertifierId", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
+      tenantIsAlreadyACertifier(certifierTenant.id, previousCertifierId)
     );
   });
   it("Should throw certifierIdAlreadyExistsInTenant if the organization already has the certifierId", async () => {
