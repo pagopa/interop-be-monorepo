@@ -274,7 +274,7 @@ export function certifierIdAlreadyExistsInTenant(
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `CertifierId ${certifierId}, already exists in tenant ${tenantId}`,
+    detail: `CertifierId ${certifierId} already exists in tenant ${tenantId}`,
     code: "certifierIdAlreadyExistsInTenant",
     title: "CertifierId already exists in tenant",
   });
