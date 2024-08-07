@@ -137,7 +137,7 @@ export function buildJsonConfig(
       |
       |- configuration.json
 */
-export async function createdescriptorDocumentZipFile(
+export async function createDescriptorDocumentZipFile(
   s3BucketName: string,
   fileManager: FileManager,
   logger: Logger,

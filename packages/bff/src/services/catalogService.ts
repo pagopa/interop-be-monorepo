@@ -44,7 +44,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
-import { createdescriptorDocumentZipFile } from "../utilities/fileutils.js";
+import { createDescriptorDocumentZipFile } from "../utilities/fileutils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -895,7 +895,7 @@ export function catalogServiceBuilder(
       assertRequesterIsProducer(requesterId, eservice);
 
       const zipFolderName = `${eservice.id}_${descriptorId}`;
-      const zipFile = await createdescriptorDocumentZipFile(
+      const zipFile = await createDescriptorDocumentZipFile(
         bffConfig.s3Bucket,
         fileManager,
         logger,
