@@ -1139,6 +1139,36 @@ export function authorizationServiceBuilder(
       }
       return producerKeychain.data.keys;
     },
+    async getProducerKeychainKeyById({
+      producerKeychainId,
+      kid,
+      organizationId,
+      logger,
+    }: {
+      producerKeychainId: ProducerKeychainId;
+      kid: string;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key> {
+      logger.info(
+        `Retrieving key ${kid} in producerKeychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+
+      assertOrganizationIsProducerKeychainProducer(
+        organizationId,
+        producerKeychain.data
+      );
+      const key = producerKeychain.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw producerKeyNotFound(kid, producerKeychainId);
+      }
+      return key;
+    },
   };
 }
 
