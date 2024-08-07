@@ -65,11 +65,16 @@ export type PurposeProcessServerConfig = z.infer<
 
 export const AuthorizationProcessServerConfig = z
   .object({
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
     TENANT_ALLOWED_ORIGINS: z.string(),
   })
   .transform((c) => ({
+    authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
   }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
 
 export const AllowedListConfig = z
   .object({
