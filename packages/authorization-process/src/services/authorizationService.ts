@@ -1120,7 +1120,7 @@ export function authorizationServiceBuilder(
       userIds: UserId[];
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<ProducerKeychainKey[]> {
+    }): Promise<Key[]> {
       logger.info(
         `Retrieving keys for producer keychain ${producerKeychainId}`
       );
