@@ -1,4 +1,3 @@
-import { Readable } from "node:stream";
 /* eslint-disable max-params */
 import {
   CopyObjectCommand,
@@ -45,7 +44,7 @@ export type FileManager = {
     },
     logger: Logger
   ) => Promise<string>;
-  get: (bucket: string, path: string, logger: Logger) => Promise<Readable>;
+  get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
   generateGetPresignedUrl: (
     bucketName: string,
@@ -126,7 +125,7 @@ export function initFileManager(
       bucket: string,
       path: string,
       logger: Logger
-    ): Promise<Readable> => {
+    ): Promise<Uint8Array> => {
       logger.info(`Getting file ${path} in bucket ${bucket}`);
       try {
         const response = await client.send(
@@ -139,7 +138,7 @@ export function initFileManager(
         if (!body) {
           throw fileManagerGetError(bucket, path, "File is empty");
         }
-        return body as Readable;
+        return await body.transformToByteArray();
       } catch (error) {
         throw fileManagerGetError(bucket, path, error);
       }
