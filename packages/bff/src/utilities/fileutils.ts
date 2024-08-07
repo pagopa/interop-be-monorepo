@@ -51,10 +51,9 @@ export function buildFileDocumentRegistry(
       const occurrence = fileRegistry.occurrences.get(doc.name) || 0;
       fileRegistry.occurrences.set(originalName, occurrence + 1);
 
+      const parsedName = path.parse(originalName);
       const newName = occurrence
-        ? `${path.parse(originalName).name}-${occurrence}${path.extname(
-            originalName
-          )}`
+        ? `${parsedName.name}-${occurrence}${parsedName.ext}`
         : originalName;
 
       fileRegistry.uniqueNames.set(doc.id, newName);
