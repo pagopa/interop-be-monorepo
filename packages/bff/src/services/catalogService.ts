@@ -587,11 +587,12 @@ export function catalogServiceBuilder(
         descriptorId
       );
 
-      const zipFileName = `${requesterId}/${zipFolderName}.zip`;
+      const zipFilePath = `${bffConfig.exportEservicePath}/${requesterId}`;
+      const zipFileName = `${zipFolderName}.zip`;
       const filename = await fileManager.storeBytes(
         {
           bucket: bffConfig.exportEserviceContainer,
-          path: bffConfig.exportEservicePath,
+          path: zipFilePath,
           name: zipFileName,
           content: Buffer.from(zipFile),
         },
@@ -600,7 +601,7 @@ export function catalogServiceBuilder(
 
       const url = await fileManager.generateGetPresignedUrl(
         bffConfig.exportEserviceContainer,
-        bffConfig.exportEservicePath,
+        zipFilePath,
         zipFileName,
         bffConfig.presignedUrlGetDurationMinutes
       );
