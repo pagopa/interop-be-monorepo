@@ -267,7 +267,7 @@ export function toCreateEventProducerKeychainKeyAdded(
       event_version: 2,
       data: {
         kid,
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,

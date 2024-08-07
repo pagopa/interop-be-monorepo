@@ -34,7 +34,6 @@ import {
   Key,
   AttributeKind,
   ProducerKeychain,
-  ProducerKeychainKey,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
