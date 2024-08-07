@@ -8,6 +8,7 @@ import { FileManager, Logger } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/domain/errors.js";
 import { retrieveEserviceDescriptor } from "../model/modelMappingUtils.js";
+import { verifyExportEligibility } from "../model/validators.js";
 /* 
   FileDocumentsRegistry is a map that contains the following information:
   - occurrences: a map that contains the number of occurrences of a document name
@@ -146,6 +147,8 @@ export async function createDescriptorDocumentZipFile(
   descriptorId: string
 ): Promise<Uint8Array> {
   const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+  verifyExportEligibility(descriptor);
+
   const interfaceDocument = descriptor.interface;
   if (!interfaceDocument) {
     throw missingInterface(eservice.id, descriptorId);

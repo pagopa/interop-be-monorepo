@@ -3,7 +3,11 @@ import { catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
 import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
-import { invalidEServiceRequester } from "./domain/errors.js";
+import {
+  invalidEServiceRequester,
+  notValidDescriptor,
+} from "./domain/errors.js";
+import { catalogApiDescriptorState } from "./api/apiTypes.js";
 
 export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
   descriptor: catalogApi.EServiceDescriptor | undefined,
@@ -28,5 +32,13 @@ export function assertRequesterIsProducer(
 ): void {
   if (!isRequesterEserviceProducer(requesterId, eservice)) {
     throw invalidEServiceRequester(eservice.id, requesterId);
+  }
+}
+
+export function verifyExportEligibility(
+  descriptor: catalogApi.EServiceDescriptor
+): void {
+  if (descriptor.state === catalogApiDescriptorState.DRAFT) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 }
