@@ -611,7 +611,8 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger
+            ctx.logger,
+            `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
