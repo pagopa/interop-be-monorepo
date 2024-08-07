@@ -497,7 +497,7 @@ export function catalogServiceBuilder(
     },
     getEServiceConsumers: async (
       eserviceId: EServiceId,
-      context: WithLogger<BffAppContext>
+      { headers }: WithLogger<BffAppContext>
     ): Promise<{
       filename: string;
       file: Buffer;
@@ -506,12 +506,12 @@ export function catalogServiceBuilder(
         params: {
           eServiceId: eserviceId,
         },
-        headers: context.headers,
+        headers,
       });
 
       const consumers = await fetchAllEserviceConsumers(
         catalogProcessClient,
-        context.headers,
+        headers,
         eserviceId
       );
 
