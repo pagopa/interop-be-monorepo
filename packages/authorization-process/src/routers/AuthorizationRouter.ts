@@ -60,6 +60,7 @@ import {
   removeProducerKeychainUserErrorMapper,
   removeProducerKeychainEServiceErrorMapper,
   addPurposeKeychainEServiceErrorMapper,
+  getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -687,7 +688,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getProducerKeychainsErrorMapper,
+            getProducerKeychainErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -728,13 +729,11 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { users } = await authorizationService.getProducerKeychainUsers(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              organizationId: ctx.authData.organizationId,
-              logger: ctx.logger,
-            }
-          );
+          const users = await authorizationService.getProducerKeychainUsers({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
           return res.status(200).json(users).end();
         } catch (error) {
           const errorRes = makeApiProblem(

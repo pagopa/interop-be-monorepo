@@ -5,7 +5,7 @@ import {
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
 
-const decodeBase64ToPem = (base64String: string): string => {
+export const decodeBase64ToPem = (base64String: string): string => {
   try {
     const cleanedBase64 = base64String.trim();
     const decodedBytes = Buffer.from(cleanedBase64, "base64");

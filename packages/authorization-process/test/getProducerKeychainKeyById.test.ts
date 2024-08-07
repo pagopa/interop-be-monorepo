@@ -4,11 +4,11 @@ import { ProducerKeychain, TenantId, generateId } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   getMockProducerKeychain,
-  getMockProducerKeychainKey,
+  getMockKey,
 } from "pagopa-interop-commons-test";
 import {
   producerKeychainNotFound,
-  producerKeychainKeyNotFound,
+  producerKeyNotFound,
   organizationNotAllowedOnProducerKeychain,
 } from "../src/model/domain/errors.js";
 import { addOneProducerKeychain, authorizationService } from "./utils.js";
@@ -16,8 +16,8 @@ import { addOneProducerKeychain, authorizationService } from "./utils.js";
 describe("getProducerKeychainKeyById", async () => {
   it("should get the producer keychain key if it exists", async () => {
     const producerId: TenantId = generateId();
-    const mockKey1 = getMockProducerKeychainKey();
-    const mockKey2 = getMockProducerKeychainKey();
+    const mockKey1 = getMockKey();
+    const mockKey2 = getMockKey();
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId,
@@ -35,7 +35,7 @@ describe("getProducerKeychainKeyById", async () => {
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const organizationId: TenantId = generateId();
-    const mockKey = getMockProducerKeychainKey();
+    const mockKey = getMockKey();
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId: generateId(),
@@ -59,7 +59,7 @@ describe("getProducerKeychainKeyById", async () => {
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {
     const producerId: TenantId = generateId();
-    const mockKey = getMockProducerKeychainKey();
+    const mockKey = getMockKey();
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId,
@@ -75,13 +75,13 @@ describe("getProducerKeychainKeyById", async () => {
       })
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
-  it("should throw producerKeychainKeyNotFound if the key doesn't exist", async () => {
+  it("should throw producerKeyNotFound if the key doesn't exist", async () => {
     const producerId: TenantId = generateId();
-    const mockKey = getMockProducerKeychainKey();
+    const mockKey = getMockKey();
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId,
-      keys: [getMockProducerKeychainKey()],
+      keys: [getMockKey()],
     };
     await addOneProducerKeychain(mockProducerKeychain);
 
@@ -93,7 +93,7 @@ describe("getProducerKeychainKeyById", async () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      producerKeychainKeyNotFound(mockKey.kid, mockProducerKeychain.id)
+      producerKeyNotFound(mockKey.kid, mockProducerKeychain.id)
     );
   });
 });

@@ -3,21 +3,22 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockProducerKeychain,
-  getMockProducerKeychainKey,
+  getMockKey,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   ProducerKeychainKeyDeletedV2,
+  Key,
   UserId,
   generateId,
   ProducerKeychain,
-  ProducerKeychainKey,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
 import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   producerKeychainNotFound,
-  producerKeychainKeyNotFound,
+  producerKeyNotFound,
   organizationNotAllowedOnProducerKeychain,
   userNotAllowedOnProducerKeychain,
 } from "../src/model/domain/errors.js";
@@ -30,8 +31,8 @@ import {
 describe("remove producer keychain key", () => {
   it("should write on event-store for removing a key from a producer keychain", async () => {
     const mockProducer = getMockTenant();
-    const keyToRemove = getMockProducerKeychainKey();
-    const keyToNotRemove = getMockProducerKeychainKey();
+    const keyToRemove = getMockKey();
+    const keyToNotRemove = getMockKey();
 
     const authData = getMockAuthData(mockProducer.id);
 
@@ -70,7 +71,10 @@ describe("remove producer keychain key", () => {
 
     expect(writtenPayload).toEqual({
       kid: keyToRemove.kid,
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychain: toProducerKeychainV2({
+        ...mockProducerKeychain,
+        keys: [keyToNotRemove],
+      }),
     });
   });
   it("should write on event-store for removing a key from a producer keychain (admin user deleting another user's key)", async () => {
@@ -84,8 +88,8 @@ describe("remove producer keychain key", () => {
       userId: mockUserId,
     };
 
-    const keyToRemove: ProducerKeychainKey = {
-      ...getMockProducerKeychainKey(),
+    const keyToRemove: Key = {
+      ...getMockKey(),
       userId: anotherUserId,
     };
     const mockProducerKeychain: ProducerKeychain = {
@@ -123,12 +127,15 @@ describe("remove producer keychain key", () => {
 
     expect(writtenPayload).toEqual({
       kid: keyToRemove.kid,
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychain: toProducerKeychainV2({
+        ...mockProducerKeychain,
+        keys: [],
+      }),
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {
     const mockProducer = getMockTenant();
-    const keyToRemove = getMockProducerKeychainKey();
+    const keyToRemove = getMockKey();
 
     const authData = getMockAuthData(mockProducer.id);
 
@@ -151,10 +158,10 @@ describe("remove producer keychain key", () => {
       })
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
-  it("should throw producerKeychainKeyNotFound if the key doesn't exist in that producer keychain", async () => {
+  it("should throw producerKeyNotFound if the key doesn't exist in that producer keychain", async () => {
     const mockProducer = getMockTenant();
     const notExistingKeyId = generateId();
-    const keyToNotRemove = getMockProducerKeychainKey();
+    const keyToNotRemove = getMockKey();
 
     const authData = getMockAuthData(mockProducer.id);
 
@@ -176,13 +183,13 @@ describe("remove producer keychain key", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      producerKeychainKeyNotFound(notExistingKeyId, mockProducerKeychain.id)
+      producerKeyNotFound(notExistingKeyId, mockProducerKeychain.id)
     );
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
     const mockProducer2 = getMockTenant();
-    const keyToRemove = getMockProducerKeychainKey();
+    const keyToRemove = getMockKey();
 
     const authData = getMockAuthData(mockProducer2.id);
 
@@ -213,8 +220,8 @@ describe("remove producer keychain key", () => {
   it("should throw userNotAllowedOnProducerKeychain if a security user tries to delete a key without being member of the producer keychain", async () => {
     const mockProducer = getMockTenant();
     const mockUserId: UserId = generateId();
-    const keyToRemove: ProducerKeychainKey = {
-      ...getMockProducerKeychainKey(),
+    const keyToRemove: Key = {
+      ...getMockKey(),
       userId: mockUserId,
     };
     const mockProducerKeychain: ProducerKeychain = {
