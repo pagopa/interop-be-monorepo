@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { UserId, unsafeBrandId } from "../brandedIds.js";
 import { genericInternalError } from "../errors.js";
 import { ClientKindV1, ClientV1 } from "../gen/v1/authorization/client.js";
 import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind } from "./client.js";
-import { Key, KeyUse, keyUse } from "./key.js";
+import { Key, KeyUse, keyUse } from "./client.js";
+
+const defaultCreatedAt = new Date("2023-04-18T12:00:00Z");
 
 const fromKeyUseV1 = (input: KeyUseV1): KeyUse => {
   switch (input) {
@@ -54,7 +57,6 @@ export const fromClientV1 = (input: ClientV1): Client => ({
   }),
   users: input.users.map(unsafeBrandId<UserId>),
   kind: fromClientKindV1(input.kind),
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  createdAt: bigIntToDate(input.createdAt!),
+  createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
   keys: [],
 });

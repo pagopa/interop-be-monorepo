@@ -5,7 +5,7 @@ import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
 import {
   writeInReadmodel,
   getMockAttribute,
-  readLastEventByStreamId,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -64,8 +64,9 @@ describe("internalAssignCertifiedAttributes", async () => {
       },
       genericLogger
     );
-    const writtenEvent = await readLastEventByStreamId(
+    const writtenEvent = await readEventByStreamIdAndVersion(
       targetTenant.id,
+      1,
       "tenant",
       postgresDB
     );
@@ -120,8 +121,9 @@ describe("internalAssignCertifiedAttributes", async () => {
       },
       genericLogger
     );
-    const writtenEvent = await readLastEventByStreamId(
+    const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
+      1,
       "tenant",
       postgresDB
     );

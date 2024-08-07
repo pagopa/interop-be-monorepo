@@ -14,7 +14,7 @@ import {
   decodeProtobufPayload,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test/index.js";
-import { ApiClientSeed } from "../src/model/domain/models.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { authorizationService, postgresDB } from "./utils.js";
 
 describe("createConsumerClient", () => {
@@ -29,7 +29,7 @@ describe("createConsumerClient", () => {
     vi.useRealTimers();
   });
 
-  const clientSeed: ApiClientSeed = {
+  const clientSeed: authorizationApi.ClientSeed = {
     name: "Seed name",
     description: "Description",
     members: [userId],

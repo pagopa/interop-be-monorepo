@@ -26,13 +26,13 @@ import {
   getMockAttribute,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
-  verifiedAttributeSelfVerification,
+  verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import { ApiVerifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
   addOneTenant,
   getMockAgreement,
@@ -52,7 +52,7 @@ import {
 describe("verifyVerifiedAttribute", async () => {
   const targetTenant: Tenant = getMockTenant();
   const requesterTenant: Tenant = getMockTenant();
-  const tenantAttributeSeed: ApiVerifiedTenantAttributeSeed = {
+  const tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed = {
     id: generateId(),
   };
   const attribute: Attribute = {
@@ -331,7 +331,7 @@ describe("verifyVerifiedAttribute", async () => {
       )
     );
   });
-  it("Should throw verifiedAttributeSelfVerification if the organizations are not allowed to revoke own attributes", async () => {
+  it("Should throw verifiedAttributeSelfVerificationNotAllowed if the organizations are not allowed to revoke own attributes", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
     await writeInReadmodel(toReadModelEService(eService1), eservices);
@@ -350,6 +350,6 @@ describe("verifyVerifiedAttribute", async () => {
         },
         genericLogger
       )
-    ).rejects.toThrowError(verifiedAttributeSelfVerification());
+    ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
   });
 });

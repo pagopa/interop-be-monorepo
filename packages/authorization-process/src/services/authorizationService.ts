@@ -1,3 +1,4 @@
+import { JsonWebKey } from "crypto";
 import {
   Client,
   ClientId,
@@ -16,6 +17,8 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
+  genericInternalError,
+  invalidKey,
   purposeVersionState,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -25,25 +28,30 @@ import {
   Logger,
   eventRepository,
   userRoles,
+  calculateKid,
+  createJWK,
 } from "pagopa-interop-commons";
-import { SelfcareV2Client } from "pagopa-interop-selfcare-v2-client";
+import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
+
 import {
   clientNotFound,
   descriptorNotFound,
   eserviceNotFound,
+  keyAlreadyExists,
   keyNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
+  tooManyKeysPerClient,
   userAlreadyAssigned,
   userIdNotFound,
+  userNotFound,
   userNotAllowedOnClient,
 } from "../model/domain/errors.js";
-import {
-  ApiClientSeed,
-  ApiPurposeAdditionSeed,
-} from "../model/domain/models.js";
 import {
   toCreateEventClientAdded,
   toCreateEventClientDeleted,
@@ -52,7 +60,13 @@ import {
   toCreateEventClientPurposeRemoved,
   toCreateEventClientUserAdded,
   toCreateEventClientUserDeleted,
+  toCreateEventKeyAdded,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
+import {
+  ApiKeyUseToKeyUse,
+  clientToApiClient,
+} from "../model/domain/apiConverter.js";
 import { GetClientsFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsPurposeConsumer,
@@ -112,7 +126,7 @@ const retrieveDescriptor = (
 export function authorizationServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -143,7 +157,7 @@ export function authorizationServiceBuilder(
       correlationId,
       logger,
     }: {
-      clientSeed: ApiClientSeed;
+      clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -178,7 +192,7 @@ export function authorizationServiceBuilder(
       correlationId,
       logger,
     }: {
-      clientSeed: ApiClientSeed;
+      clientSeed: authorizationApi.ClientSeed;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -445,13 +459,13 @@ export function authorizationServiceBuilder(
       logger.info(`Binding client ${clientId} with user ${userId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertUserSelfcareSecurityPrivileges(
-        authData.selfcareId,
-        authData.userId,
-        authData.organizationId,
-        selfcareV2Client,
-        userId
-      );
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: userId,
+      });
       if (client.data.users.includes(userId)) {
         throw userAlreadyAssigned(clientId, userId);
       }
@@ -503,7 +517,7 @@ export function authorizationServiceBuilder(
       logger,
     }: {
       clientId: ClientId;
-      seed: ApiPurposeAdditionSeed;
+      seed: authorizationApi.PurposeAdditionDetails;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
@@ -565,9 +579,146 @@ export function authorizationServiceBuilder(
         )
       );
     },
+
+    async createKeys({
+      clientId,
+      authData,
+      keysSeeds,
+      correlationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      authData: AuthData;
+      keysSeeds: authorizationApi.KeysSeed;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ client: Client; showUsers: boolean }> {
+      logger.info(`Creating keys for client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(
+        unsafeBrandId(authData.organizationId),
+        client.data
+      );
+      assertKeysCountIsBelowThreshold(
+        clientId,
+        client.data.keys.length + keysSeeds.length
+      );
+      if (!client.data.users.includes(authData.userId)) {
+        throw userNotFound(authData.userId, authData.selfcareId);
+      }
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: authData.userId,
+      });
+
+      if (keysSeeds.length !== 1) {
+        throw genericInternalError("Wrong number of keys");
+      }
+      const keySeed = keysSeeds[0];
+      const jwk = createJWK(keySeed.key);
+      if (jwk.kty !== "RSA") {
+        throw invalidKey(keySeed.key, "Not an RSA key");
+      }
+      const newKey: Key = {
+        name: keySeed.name,
+        createdAt: new Date(),
+        kid: calculateKid(jwk),
+        encodedPem: keySeed.key,
+        algorithm: keySeed.alg,
+        use: ApiKeyUseToKeyUse(keySeed.use),
+        userId: authData.userId,
+      };
+      const duplicateKid = await readModelService.getKeyByKid(newKey.kid);
+      if (duplicateKid) {
+        throw keyAlreadyExists(newKey.kid);
+      }
+      const updatedClient: Client = {
+        ...client.data,
+        keys: [...client.data.keys, newKey],
+      };
+      await repository.createEvent(
+        toCreateEventKeyAdded(
+          newKey.kid,
+          updatedClient,
+          client.metadata.version,
+          correlationId
+        )
+      );
+
+      return {
+        client: updatedClient,
+        showUsers: true,
+      };
+    },
+    async getClientKeyById({
+      clientId,
+      kid,
+      organizationId,
+      logger,
+    }: {
+      clientId: ClientId;
+      kid: string;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<Key> {
+      logger.info(`Retrieving key ${kid} in client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(organizationId, client.data);
+      const key = client.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw keyNotFound(kid, clientId);
+      }
+      return key;
+    },
+    async getKeyWithClientByKeyId({
+      clientId,
+      kid,
+      logger,
+    }: {
+      clientId: ClientId;
+      kid: string;
+      logger: Logger;
+    }): Promise<authorizationApi.KeyWithClient> {
+      logger.info(`Getting client ${clientId} and key ${kid}`);
+      const client = await retrieveClient(clientId, readModelService);
+      const key = client.data.keys.find((key) => key.kid === kid);
+
+      if (!key) {
+        throw keyNotFound(kid, clientId);
+      }
+
+      const jwk: JsonWebKey = createJWK(key.encodedPem);
+      const jwkKey = authorizationApi.JWKKey.parse({
+        ...jwk,
+        kid: key.kid,
+        use: "sig",
+      });
+
+      return {
+        key: jwkKey,
+        client: clientToApiClient(client.data, {
+          showUsers: false,
+        }),
+      };
+    },
   };
 }
 
 export type AuthorizationService = ReturnType<
   typeof authorizationServiceBuilder
 >;
+
+const assertKeysCountIsBelowThreshold = (
+  clientId: ClientId,
+  size: number
+): void => {
+  if (size > config.maxKeysPerClient) {
+    throw tooManyKeysPerClient(clientId, size);
+  }
+};

@@ -18,16 +18,17 @@ import {
   AttributeReadmodel,
   Agreement,
   AgreementState,
+  TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
 import { attributeNotFound } from "../model/domain/errors.js";
-import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
 
 function listTenantsFilters(
   name: string | undefined
-): Filter<{ data: Tenant }> {
+): Filter<{ data: TenantReadModel }> {
   const nameFilter = name
     ? {
         "data.name": {
@@ -57,7 +58,7 @@ export const getTenants = async ({
   allowDiskUse = false,
 }: {
   tenants: TenantCollection;
-  aggregationPipeline: Array<Filter<Tenant>>;
+  aggregationPipeline: Array<Filter<TenantReadModel>>;
   offset: number;
   limit: number;
   allowDiskUse?: boolean;
@@ -114,7 +115,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -372,15 +373,11 @@ export function readModelServiceBuilder(
       states: AgreementState[];
     }): Promise<Agreement[]> {
       const data = await agreements
-        .aggregate([
-          {
-            $match: {
-              "data.consumerId": consumerId,
-              "data.producerId": producerId,
-              "data.state": { $in: states },
-            },
-          },
-        ])
+        .find({
+          "data.consumerId": consumerId,
+          "data.producerId": producerId,
+          "data.state": { $in: states },
+        })
         .toArray();
 
       const result = z.array(Agreement).safeParse(data.map((d) => d.data));
@@ -403,7 +400,7 @@ export function readModelServiceBuilder(
       certifierId: string;
       offset: number;
       limit: number;
-    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
+    }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const aggregationPipeline: Document[] = [
         {
           $match: {
@@ -466,7 +463,7 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(CertifiedAttributeQueryResult).safeParse(data);
+      const result = z.array(tenantApi.CertifiedAttribute).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

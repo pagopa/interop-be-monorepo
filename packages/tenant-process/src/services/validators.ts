@@ -15,7 +15,6 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -26,6 +25,7 @@ import {
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
+  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -56,17 +56,20 @@ export async function assertVerifiedAttributeOperationAllowed({
   readModelService,
   error,
 }: {
-  producerId: string;
-  consumerId: string;
-  attributeId: string;
+  producerId: TenantId;
+  consumerId: TenantId;
+  attributeId: AttributeId;
   agreementStates: AgreementState[];
   readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
+  if (producerId === consumerId) {
+    throw verifiedAttributeSelfVerificationNotAllowed();
+  }
   // Get agreements
   const agreements = await readModelService.getAgreements({
-    consumerId: unsafeBrandId(consumerId),
-    producerId: unsafeBrandId(producerId),
+    consumerId,
+    producerId,
     states: agreementStates,
   });
 
@@ -83,19 +86,19 @@ export async function assertVerifiedAttributeOperationAllowed({
   ).filter((eService): eService is EService => eService !== undefined);
 
   // Find verified attribute IDs
-  const attributeIds = eServices
-    .flatMap((eService) =>
-      eService.descriptors.filter((descriptor) =>
-        descriptorIds.includes(descriptor.id)
+  const attributeIds = new Set(
+    eServices
+      .flatMap((eService) =>
+        eService.descriptors.filter((descriptor) =>
+          descriptorIds.includes(descriptor.id)
+        )
       )
-    )
-    .flatMap((descriptor) =>
-      descriptor.attributes.verified.flatMap((attribute) =>
-        attribute.map((a) => a.id)
+      .flatMap((descriptor) =>
+        descriptor.attributes.verified.flatMap((attribute) =>
+          attribute.map((a) => a.id)
+        )
       )
-    )
-    .reduce((acc, id) => acc.add(id), new Set<string>()); // Use Set for uniqueness
-
+  );
   // Check if attribute is allowed
   if (!attributeIds.has(attributeId)) {
     throw error;
@@ -235,7 +238,7 @@ export function evaluateNewSelfcareId({
   }
 }
 
-export function getTenantCertifierId(tenant: Tenant): string {
+export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
     (f) => f.type === "PersistentCertifier"
   )?.certifierId;

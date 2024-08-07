@@ -3,12 +3,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
+import { keyToJWKKey, decodeBase64ToPem } from "pagopa-interop-commons";
 import {
   AgreementEventV1,
   AttributeEvent,
   AuthorizationEvent,
+  authorizationEventToBinaryData,
   EServiceEventV1,
+  fromKeyV1,
+  Key,
+  KeyEntryV1,
   PurposeEventV1,
+  toKeyV1,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
@@ -57,9 +64,7 @@ const Config = z
   }));
 export type Config = z.infer<typeof Config>;
 
-export const config: Config = {
-  ...Config.parse(process.env),
-};
+export const config: Config = Config.parse(process.env);
 
 export type DB = IDatabase<unknown>;
 
@@ -129,6 +134,23 @@ const originalEvents = await sourceConnection.many(
 );
 
 const idVersionHashMap = new Map<string, number>();
+
+function sanitizePEM(pem: string) {
+  const group = pem.match(
+    /(-----BEGIN (PUBLIC KEY|RSA PUBLIC KEY)-----)([\s\S]*?)(-----END (PUBLIC KEY|RSA PUBLIC KEY)-*)/
+  );
+  if (!group) {
+    throw new Error("Invalid group match");
+  }
+  const begin = group[1];
+  const keyType = group[2];
+  const body = group[3];
+  const cleanedBody = body.replace(/\s+/g, "");
+  const formattedBody = cleanedBody.replace(/(.{64})/g, "$1\n");
+  const fixedEnd = `-----END ${keyType}-----`;
+
+  return `${begin}\n${formattedBody}\n${fixedEnd}`;
+}
 
 const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .when(
@@ -242,9 +264,10 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
     }
   )
   .when(
-    (targetSchema) => targetSchema.includes("authorization"),
+    (targetSchema) =>
+      targetSchema.includes("authorization") || targetSchema.includes("authz"),
     () => {
-      checkSchema(config.sourceDbSchema, "authorization");
+      checkSchema(config.sourceDbSchema, "auth");
 
       const parseEventType = (event_ser_manifest: any) =>
         event_ser_manifest
@@ -293,7 +316,7 @@ for (const event of originalEvents) {
   ];
   // Authorization has some event-store entries that don't have to be migrated
   if (
-    config.targetDbSchema.includes("authorization") &&
+    config.targetDbSchema.includes("auth") &&
     authorizationEventsToSkip.includes(parsedEventType)
   ) {
     skippedEvents++;
@@ -312,6 +335,40 @@ for (const event of originalEvents) {
 
   const anyPayload = decodedEvent.data.data;
   const id = parseId(anyPayload);
+
+  const parsedPayload =
+    decodedEvent.data.type === "KeysAdded"
+      ? Buffer.from(
+          authorizationEventToBinaryData({
+            type: "KeysAdded",
+            event_version: 1,
+            data: {
+              clientId: id,
+              keys: decodedEvent.data.data.keys.map((keyEntryV1) => {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const key = fromKeyV1(keyEntryV1.value!);
+                try {
+                  keyToJWKKey(key, unsafeBrandId(id));
+                  return keyEntryV1;
+                } catch (error) {
+                  const decodedPem = decodeBase64ToPem(key.encodedPem);
+                  const sanitizedPem = sanitizePEM(decodedPem);
+
+                  const adjustedKey: Key = {
+                    ...key,
+                    encodedPem: Buffer.from(sanitizedPem).toString("base64"),
+                  };
+
+                  return {
+                    keyId: keyEntryV1.keyId,
+                    value: toKeyV1(adjustedKey),
+                  } satisfies KeyEntryV1;
+                }
+              }),
+            },
+          })
+        )
+      : event_payload;
 
   let version = idVersionHashMap.get(id);
   if (version === undefined) {
@@ -333,7 +390,7 @@ for (const event of originalEvents) {
     version,
     type: parsedEventType,
     eventVersion: 1,
-    data: event_payload,
+    data: parsedPayload,
     logDate: new Date(parseInt(write_timestamp, 10)),
   };
   console.log(newEvent);
