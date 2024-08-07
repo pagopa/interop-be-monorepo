@@ -17,6 +17,7 @@ export const errorCodes = {
   tokenVerificationFailed: "0009",
   missingInterface: "0010",
   eserviceRiskNotFound: "0011",
+  notValidDescriptor: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -109,6 +110,17 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
   });
 }
 
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
+  });
+}
+
 export function missingInterface(
   eserviceId: string,
   descriptorId: string
@@ -117,5 +129,16 @@ export function missingInterface(
     detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
     code: "missingInterface",
     title: "Missing interface",
+  });
+}
+
+export function notValidDescriptor(
+  descriptorId: string,
+  state: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    code: "notValidDescriptor",
+    title: "Not valid descriptor",
   });
 }

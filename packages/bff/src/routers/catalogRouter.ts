@@ -4,6 +4,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
+  initFileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -17,6 +18,7 @@ import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
+import { config } from "../config/config.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -35,7 +37,9 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
-    attributeProcessClient
+    attributeProcessClient,
+    initFileManager(config),
+    config
   );
 
   catalogRouter
@@ -289,7 +293,26 @@ const catalogRouter = (
     )
     .get(
       "/export/eservices/:eserviceId/descriptors/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const response = await catalogService.exportEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.json(response).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/import/eservices/presignedUrl", async (_req, res) =>
       res.status(501).send()
