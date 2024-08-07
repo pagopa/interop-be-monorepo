@@ -316,3 +316,24 @@ export function toCreateEventProducerKeychainEServiceAdded(
     correlationId,
   };
 }
+
+export function toCreateEventProducerKeychainEServiceRemoved(
+  producerKeychain: ProducerKeychain,
+  eserviceId: EServiceId,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainEServiceRemoved",
+      event_version: 2,
+      data: {
+        eserviceId,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
