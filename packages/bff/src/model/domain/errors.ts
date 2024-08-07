@@ -19,6 +19,7 @@ export const errorCodes = {
   agreementNotFound: "0012",
   eserviceDescriptorNotFound: "0013",
   purposeDraftVersionNotFound: "0014",
+  invalidRiskAnalysisContentType: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -142,5 +143,18 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function invalidRiskAnalysisContentType(
+  contentType: string,
+  purposeId: string,
+  versionId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from purpose ${purposeId} and version ${versionId}`,
+    code: "invalidRiskAnalysisContentType",
+    title: "Invalid Risk Analysis content type",
   });
 }
