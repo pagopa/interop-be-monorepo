@@ -8,10 +8,14 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockCertifiedTenantAttribute,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
 import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
+  certifierIdAlreadyExistsInTenant,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -89,7 +93,33 @@ describe("addCertifierId", async () => {
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
-  it("Should throw tenantIsAlreadyACertifier if the organization is a certifier", async () => {
+  it("Should throw tenantIsAlreadyACertifier if the organization is a certifier and it also has certified attributes", async () => {
+    const certifierTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: generateId(),
+        },
+      ],
+      attributes: [getMockCertifiedTenantAttribute()],
+    };
+
+    await addOneTenant(certifierTenant);
+    expect(
+      tenantService.addCertifierId(
+        {
+          tenantId: certifierTenant.id,
+          certifierId,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
+    );
+  });
+  it("Should throw certifierIdAlreadyExistsInTenant if the organization already has the certifierId", async () => {
     const certifierTenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -111,7 +141,7 @@ describe("addCertifierId", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
+      certifierIdAlreadyExistsInTenant(certifierId, certifierTenant.id)
     );
   });
 });

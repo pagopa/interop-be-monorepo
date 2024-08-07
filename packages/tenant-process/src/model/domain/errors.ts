@@ -2,7 +2,6 @@ import {
   ApiError,
   AttributeId,
   EServiceId,
-  Tenant,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
