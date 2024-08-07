@@ -6,13 +6,20 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+// import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 
 const producerKeychainRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  _processClients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const producerKeychainRouter = ctx.router(bffApi.producerKeychainApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  // const producerKeychainService = producerKeychainServiceBuilder(
+  //   processClients.authorizationProcessClient
+  // );
 
   producerKeychainRouter
     .get("/producerKeychains", async (_req, res) => res.status(501).send())
