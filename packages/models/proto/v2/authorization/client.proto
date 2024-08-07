@@ -13,7 +13,7 @@ message ClientV2 {
   ClientKindV2 kind = 6;
   int64 createdAt = 7;
   repeated string users = 8;
-  repeated ClientKeyV2 keys = 9;
+  repeated KeyV2 keys = 9;
 }
 
 enum ClientKindV2 {

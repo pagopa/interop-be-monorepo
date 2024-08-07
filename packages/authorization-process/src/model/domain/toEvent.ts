@@ -224,7 +224,7 @@ export function toCreateEventProducerKeychainUserAdded(
       type: "ProducerKeychainUserAdded",
       event_version: 2,
       data: {
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
         userId,
       },
     },
@@ -245,7 +245,7 @@ export function toCreateEventProducerKeychainUserDeleted(
       type: "ProducerKeychainUserDeleted",
       event_version: 2,
       data: {
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
         userId,
       },
     },
@@ -267,7 +267,7 @@ export function toCreateEventProducerKeychainKeyAdded(
       event_version: 2,
       data: {
         kid,
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,
@@ -288,7 +288,7 @@ export function toCreateEventProducerKeychainKeyDeleted(
       event_version: 2,
       data: {
         kid: keyId,
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,

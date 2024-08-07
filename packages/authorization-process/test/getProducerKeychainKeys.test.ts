@@ -1,9 +1,9 @@
 import {
-  getMockProducerKeychainKey,
+  getMockKey,
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
-  ProducerKeychainKey,
+  Key,
   ProducerKeychain,
   UserId,
   generateId,
@@ -19,7 +19,7 @@ import { addOneProducerKeychain, authorizationService } from "./utils.js";
 
 describe("getProducerKeychainKeys", async () => {
   const producerId = generateId();
-  const mockKey = getMockProducerKeychainKey();
+  const mockKey = getMockKey();
   const mockProducerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain(),
     keys: [mockKey],
@@ -31,15 +31,15 @@ describe("getProducerKeychainKeys", async () => {
     const keyUserId2: UserId = generateId();
     const keyUserId3: UserId = generateId();
 
-    const keyWithUser1: ProducerKeychainKey = {
+    const keyWithUser1: Key = {
       ...mockKey,
       userId: keyUserId1,
     };
-    const keyWithUser2: ProducerKeychainKey = {
+    const keyWithUser2: Key = {
       ...mockKey,
       userId: keyUserId2,
     };
-    const keyWithUser3: ProducerKeychainKey = {
+    const keyWithUser3: Key = {
       ...mockKey,
       userId: keyUserId3,
     };
@@ -65,15 +65,15 @@ describe("getProducerKeychainKeys", async () => {
 
     const userId: UserId = generateId();
 
-    const keyWithUser1: ProducerKeychainKey = {
+    const keyWithUser1: Key = {
       ...mockKey,
       userId: keyUserId1,
     };
-    const keyWithUser2: ProducerKeychainKey = {
+    const keyWithUser2: Key = {
       ...mockKey,
       userId: keyUserId2,
     };
-    const keyWithUser3: ProducerKeychainKey = {
+    const keyWithUser3: Key = {
       ...mockKey,
       userId: keyUserId3,
     };
