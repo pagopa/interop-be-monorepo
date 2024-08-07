@@ -288,7 +288,7 @@ export function toCreateEventProducerKeychainKeyDeleted(
       event_version: 2,
       data: {
         kid: keyId,
-        producerKeychainId: producerKeychain.id,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,
