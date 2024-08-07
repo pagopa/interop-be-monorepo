@@ -236,7 +236,7 @@ export const deleteProducerKeychainKeyByIdErrorMapper = (
   match(error.code)
     .with(
       "producerKeychainNotFound",
-      "producerKeychainKeyNotFound",
+      "producerKeyNotFound",
       "userNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
