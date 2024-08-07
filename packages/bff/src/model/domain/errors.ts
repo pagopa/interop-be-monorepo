@@ -34,6 +34,7 @@ export const errorCodes = {
   invalidJwtClaim: "0026",
   samlNotValid: "0027",
   missingSelfcareId: "0028",
+  notValidDescriptor: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -279,5 +280,16 @@ export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
     detail: `Error extracting info from interface file`,
     code: "interfaceExtractingInfoError",
     title: "Error extracting info from interface file",
+  });
+}
+
+export function notValidDescriptor(
+  descriptorId: string,
+  state: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    code: "notValidDescriptor",
+    title: "Not valid descriptor",
   });
 }

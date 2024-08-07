@@ -7,7 +7,10 @@ import {
 import { TenantId } from "pagopa-interop-models";
 import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
 import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
-import { invalidEServiceRequester } from "./domain/errors.js";
+import {
+  invalidEServiceRequester,
+  notValidDescriptor,
+} from "./domain/errors.js";
 import {
   agreementApiState,
   catalogApiDescriptorState,
@@ -84,4 +87,12 @@ export function hasCertifiedAttributes(
       requesterTenant
     )
   );
+}
+
+export function verifyExportEligibility(
+  descriptor: catalogApi.EServiceDescriptor
+): void {
+  if (descriptor.state === catalogApiDescriptorState.DRAFT) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
 }
