@@ -1,35 +1,24 @@
 import { z } from "zod";
 import { Client } from "../authorization/client.js";
-import { ClientKey } from "../authorization/client.js";
-import {
-  ProducerKeychain,
-  ProducerKeychainKey,
-} from "../authorization/producerKeychain.js";
+import { ProducerKeychain } from "../authorization/producerKeychain.js";
+import { Key } from "../authorization/key.js";
 
-export const ClientKeyReadModel = ClientKey.extend({
+export const KeyReadModel = Key.extend({
   createdAt: z.string().datetime(),
 });
 
-export type ClientKeyReadModel = z.infer<typeof ClientKeyReadModel>;
-
-export const ProducerKeychainKeyReadModel = ProducerKeychainKey.extend({
-  createdAt: z.string().datetime(),
-});
-
-export type ProducerKeychainKeyReadModel = z.infer<
-  typeof ProducerKeychainKeyReadModel
->;
+export type KeyReadModel = z.infer<typeof KeyReadModel>;
 
 export const ClientReadModel = Client.extend({
   createdAt: z.string().datetime(),
-  keys: z.array(ClientKeyReadModel),
+  keys: z.array(KeyReadModel),
 });
 
 export type ClientReadModel = z.infer<typeof ClientReadModel>;
 
 export const ProducerKeychainReadModel = ProducerKeychain.extend({
   createdAt: z.string().datetime(),
-  keys: z.array(ProducerKeychainKeyReadModel),
+  keys: z.array(KeyReadModel),
 });
 
 export type ProducerKeychainReadModel = z.infer<

@@ -31,10 +31,9 @@ import {
   Client,
   clientKind,
   keyUse,
-  ClientKey,
+  Key,
   AttributeKind,
   ProducerKeychain,
-  ProducerKeychainKey,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -137,6 +136,7 @@ export const getMockTenant = (
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
   features: [],
   mails: [],
 });
@@ -259,8 +259,18 @@ export const getMockClient = (): Client => ({
   keys: [],
 });
 
-export const getMockKey = (): ClientKey => ({
-  clientId: generateId(),
+export const getMockProducerKeychain = (): ProducerKeychain => ({
+  id: generateId(),
+  producerId: generateId(),
+  name: "Test producer keychain",
+  eservices: [],
+  description: "producer keychain description",
+  users: [],
+  createdAt: new Date(),
+  keys: [],
+});
+
+export const getMockKey = (): Key => ({
   userId: generateId(),
   name: "test key",
   createdAt: new Date(),
@@ -279,26 +289,4 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     origin: "IPA",
   },
   selfcareId: generateId(),
-});
-
-export const getMockProducerKeychain = (): ProducerKeychain => ({
-  id: generateId(),
-  producerId: generateId(),
-  name: "Test producer keychain",
-  eservices: [],
-  description: "Producer Keychain description",
-  users: [],
-  createdAt: new Date(),
-  keys: [],
-});
-
-export const getMockProducerKeychainKey = (): ProducerKeychainKey => ({
-  producerKeychainId: generateId(),
-  userId: generateId(),
-  name: "test key",
-  createdAt: new Date(),
-  kid: `kid ${Math.random()}`,
-  encodedPem: "encodedPem",
-  algorithm: "",
-  use: keyUse.sig,
 });
