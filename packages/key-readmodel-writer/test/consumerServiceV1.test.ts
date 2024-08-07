@@ -84,9 +84,9 @@ describe("Events V1", async () => {
         version: 1,
       });
     });
-    it("KeysAdded - EC", async () => {
+    it.each(["prime256v1", "secp256k1"])("KeysAdded - EC", async (curve) => {
       const key = crypto.generateKeyPairSync("ec", {
-        namedCurve: "prime256v1",
+        namedCurve: curve,
       }).publicKey;
 
       const base64Key = Buffer.from(
