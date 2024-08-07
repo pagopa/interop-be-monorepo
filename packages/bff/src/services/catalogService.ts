@@ -904,7 +904,7 @@ export function catalogServiceBuilder(
         descriptorId
       );
 
-      const zipFileName = `${requesterId}_${zipFolderName}.zip`;
+      const zipFileName = `${requesterId}/${zipFolderName}.zip`;
       const filename = await fileManager.storeBytes(
         {
           bucket: bffConfig.exportEserviceContainer,

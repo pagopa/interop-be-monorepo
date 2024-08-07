@@ -182,7 +182,7 @@ export async function createDescriptorDocumentZipFile(
   // Add descriptor's document files to the zip
   const documentFilesContent: FileData[] = await Promise.all(
     descriptor.docs.map(async (doc) => {
-      const s3Key = fileManager.buildS3Key(s3BucketName, doc.path, doc.name);
+      const s3Key = fileManager.buildS3Key(doc.path, doc.id, doc.name);
       const file = await fileManager.get(s3BucketName, s3Key, logger);
       return { id: doc.id, file };
     })
