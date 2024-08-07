@@ -375,22 +375,22 @@ export function catalogServiceBuilder(
     getCatalogEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      context: WithLogger<BffAppContext>
+      { authData, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CatalogEServiceDescriptor> => {
-      const requesterId = context.authData.organizationId;
+      const requesterId = authData.organizationId;
 
       const eservice = await catalogProcessClient.getEServiceById({
         params: {
           eServiceId: eserviceId,
         },
-        headers: context.headers,
+        headers,
       });
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
       const attributes = await getBulkAttributes(
         attributeProcessClient,
-        context.headers,
+        headers,
         attributeIds
       );
 
@@ -400,13 +400,13 @@ export function catalogServiceBuilder(
       );
 
       const requesterTenant = await tenantProcessClient.tenant.getTenant({
-        headers: context.headers,
+        headers,
         params: {
           id: requesterId,
         },
       });
       const producerTenant = await tenantProcessClient.tenant.getTenant({
-        headers: context.headers,
+        headers,
         params: {
           id: eservice.producerId,
         },
@@ -415,7 +415,7 @@ export function catalogServiceBuilder(
         agreementProcessClient,
         requesterId,
         eservice,
-        context.headers
+        headers
       );
 
       return {
