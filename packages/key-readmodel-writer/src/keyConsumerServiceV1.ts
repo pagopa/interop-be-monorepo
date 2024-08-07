@@ -14,12 +14,13 @@ export async function handleMessageV1(
     .with({ type: "KeysAdded" }, async (message) => {
       const keysToAdd = message.data.keys
         .map((keyV1) => (keyV1.value ? fromKeyV1(keyV1.value) : undefined))
-        .filter((k) => k !== undefined)
-        .filter((k) => {
-          const jwk = createJWK(k.encodedPem);
-          return jwk.kty !== "EC";
-        });
-      for (const key of keysToAdd) {
+        .filter((k) => k !== undefined);
+
+      const filteredKeys = keysToAdd.filter((k) => {
+        const jwk = createJWK(k.encodedPem);
+        return jwk.kty !== "EC";
+      });
+      for (const key of filteredKeys) {
         if (key) {
           await keys.updateOne(
             {
