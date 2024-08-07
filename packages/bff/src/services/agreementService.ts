@@ -8,7 +8,7 @@ export const getLatestAgreement = async (
   consumerId: string,
   eservice: catalogApi.EService,
   headers: Headers
-): Promise<agreementApi.Agreement> => {
+): Promise<agreementApi.Agreement | undefined> => {
   const getAgreementsFrom = async (
     start: number
   ): Promise<agreementApi.Agreements> =>
@@ -36,24 +36,26 @@ export const getLatestAgreement = async (
 
   const allAgreements = await getAgreements(0);
 
-  return allAgreements.sort((firstAgreement, secondAgreement) => {
-    if (firstAgreement.version !== secondAgreement.version) {
-      const descriptorFirstAgreement = eservice.descriptors.find(
-        (d) => d.id === firstAgreement.descriptorId
-      );
-      const descriptorSecondAgreement = eservice.descriptors.find(
-        (d) => d.id === secondAgreement.descriptorId
-      );
+  return allAgreements
+    .sort((firstAgreement, secondAgreement) => {
+      if (firstAgreement.version !== secondAgreement.version) {
+        const descriptorFirstAgreement = eservice.descriptors.find(
+          (d) => d.id === firstAgreement.descriptorId
+        );
+        const descriptorSecondAgreement = eservice.descriptors.find(
+          (d) => d.id === secondAgreement.descriptorId
+        );
 
-      return descriptorFirstAgreement && descriptorSecondAgreement
-        ? Number(descriptorSecondAgreement.version) -
-            Number(descriptorFirstAgreement.version)
-        : 0;
-    } else {
-      return (
-        new Date(secondAgreement.createdAt).getTime() -
-        new Date(firstAgreement.createdAt).getTime()
-      );
-    }
-  })[0];
+        return descriptorFirstAgreement && descriptorSecondAgreement
+          ? Number(descriptorSecondAgreement.version) -
+              Number(descriptorFirstAgreement.version)
+          : 0;
+      } else {
+        return (
+          new Date(secondAgreement.createdAt).getTime() -
+          new Date(firstAgreement.createdAt).getTime()
+        );
+      }
+    })
+    .at(0);
 };

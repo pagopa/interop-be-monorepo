@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -28,6 +29,17 @@ export const reversePurposeUpdateErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "eServiceNotFound",
+      "agreementNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "tenantNotFound",
