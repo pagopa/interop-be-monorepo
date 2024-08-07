@@ -2,6 +2,7 @@ import {
   ApiError,
   AttributeId,
   EServiceId,
+  Tenant,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -30,6 +31,7 @@ export const errorCodes = {
   attributeRevocationNotAllowed: "0021",
   verifiedAttributeSelfRevocationNotAllowed: "0022",
   tenantIsAlreadyACertifier: "0023",
+  certifierIdAlreadyExistsInTenant: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -265,5 +267,16 @@ export function tenantIsAlreadyACertifier(
     detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
     code: "tenantIsAlreadyACertifier",
     title: "Tenant is already a certifier",
+  });
+}
+
+export function certifierIdAlreadyExistsInTenant(
+  certifierId: string,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `CertifierId ${certifierId}, already exists in tenant ${tenantId}`,
+    code: "certifierIdAlreadyExistsInTenant",
+    title: "CertifierId already exists in tenant",
   });
 }

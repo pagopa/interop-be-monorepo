@@ -57,6 +57,7 @@ import {
   attributeAlreadyRevoked,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
+  certifierIdAlreadyExistsInTenant,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1173,10 +1174,13 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifierFeature = tenant.data.features.find(
-        (a) => a.certifierId === certifierId
-      );
+      const certifierFeature = tenant.data.features.find((a) => a.certifierId);
+
       if (certifierFeature) {
+        if (certifierId === certifierFeature.certifierId) {
+          throw certifierIdAlreadyExistsInTenant(certifierId, tenant.data.id);
+        }
+
         const certifiedAttribute =
           await readModelService.getCertifiedAttributes({
             certifierId: certifierFeature.certifierId,
