@@ -52,7 +52,7 @@ export function buildFileDocumentRegistry(
       fileRegistry.occurrences.set(originalName, occurrence + 1);
 
       const newName = occurrence
-        ? `${path.basename(originalName)}-${occurrence}${path.extname(
+        ? `${path.parse(originalName).name}-${occurrence}${path.extname(
             originalName
           )}`
         : originalName;
@@ -166,7 +166,11 @@ export async function createDescriptorDocumentZipFile(
   // Add interface file to the zip
   const interfaceFile = await fileManager.get(
     s3BucketName,
-    `${interfaceDocument.path}/${interfaceDocument.name}`,
+    fileManager.buildS3Key(
+      interfaceDocument.path,
+      interfaceDocument.id,
+      interfaceDocument.name
+    ),
     logger
   );
 
