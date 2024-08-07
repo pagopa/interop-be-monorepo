@@ -589,7 +589,7 @@ export function catalogServiceBuilder(
 
       const zipFilePath = `${bffConfig.exportEservicePath}/${requesterId}`;
       const zipFileName = `${zipFolderName}.zip`;
-      const filename = await fileManager.storeBytes(
+      await fileManager.storeBytes(
         {
           bucket: bffConfig.exportEserviceContainer,
           path: zipFilePath,
@@ -607,7 +607,7 @@ export function catalogServiceBuilder(
       );
 
       return {
-        filename,
+        filename: zipFileName,
         url,
       };
     },
