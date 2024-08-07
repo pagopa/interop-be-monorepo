@@ -11,6 +11,7 @@ import {
   TenantId,
   UserId,
   generateId,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
@@ -88,9 +89,14 @@ describe("addProducerKeychainUser", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedProducerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      users: [userId, userIdToAdd],
+    };
+
     expect(writtenPayload).toEqual({
       userId: userIdToAdd,
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {

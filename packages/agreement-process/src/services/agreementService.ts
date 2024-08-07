@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   AppContext,
-  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -486,8 +485,7 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreement,
-        authData
+        updatedAgreement
       );
 
       const agreementEvent =
@@ -1047,8 +1045,7 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementWithoutContract,
-        authData
+        updatedAgreementWithoutContract
       );
 
       const suspendedByPlatformChanged =
@@ -1229,12 +1226,10 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  agreement: Agreement,
-  authData: AuthData
+  agreement: Agreement
 ): Promise<Agreement> {
   if (isFirstActivation) {
     const contract = await contractBuilder.createContract(
-      authData.selfcareId,
       agreement,
       eservice,
       consumer,

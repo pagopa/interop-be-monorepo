@@ -6,7 +6,7 @@ import {
   DescriptorId,
   EService,
   EServiceId,
-  ClientKey,
+  Key,
   ListResult,
   Purpose,
   PurposeId,
@@ -23,7 +23,6 @@ import {
   unsafeBrandId,
   ProducerKeychain,
   ProducerKeychainId,
-  ProducerKeychainKey,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -54,7 +53,7 @@ import {
   userNotFound,
   userNotAllowedOnClient,
   producerKeychainNotFound,
-  producerKeychainKeyNotFound,
+  producerKeyNotFound,
   userNotAllowedOnProducerKeychain,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
@@ -532,7 +531,7 @@ export function authorizationServiceBuilder(
       userIds: UserId[];
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<ClientKey[]> {
+    }): Promise<Key[]> {
       logger.info(`Retrieving keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
@@ -658,8 +657,7 @@ export function authorizationServiceBuilder(
       if (jwk.kty !== "RSA") {
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
-      const newKey: ClientKey = {
-        clientId,
+      const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),
@@ -700,7 +698,7 @@ export function authorizationServiceBuilder(
       kid: string;
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<ClientKey> {
+    }): Promise<Key> {
       logger.info(`Retrieving key ${kid} in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
 
@@ -860,7 +858,7 @@ export function authorizationServiceBuilder(
       producerKeychainId: ProducerKeychainId;
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<{ users: UserId[]; showUsers: boolean }> {
+    }): Promise<UserId[]> {
       logger.info(
         `Retrieving users of producer keychain ${producerKeychainId}`
       );
@@ -872,10 +870,7 @@ export function authorizationServiceBuilder(
         organizationId,
         producerKeychain.data
       );
-      return {
-        users: producerKeychain.data.users,
-        showUsers: true,
-      };
+      return producerKeychain.data.users;
     },
     async addProducerKeychainUser(
       {
@@ -1025,8 +1020,7 @@ export function authorizationServiceBuilder(
       if (jwk.kty !== "RSA") {
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
-      const newKey: ProducerKeychainKey = {
-        producerKeychainId,
+      const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),
@@ -1100,10 +1094,7 @@ export function authorizationServiceBuilder(
       );
 
       if (!keyToRemove) {
-        throw producerKeychainKeyNotFound(
-          keyIdToRemove,
-          producerKeychain.data.id
-        );
+        throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
       }
 
       const updatedProducerKeychain: ProducerKeychain = {
@@ -1161,7 +1152,7 @@ export function authorizationServiceBuilder(
       kid: string;
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<ProducerKeychainKey> {
+    }): Promise<Key> {
       logger.info(
         `Retrieving key ${kid} in producerKeychain ${producerKeychainId}`
       );
@@ -1177,7 +1168,7 @@ export function authorizationServiceBuilder(
       const key = producerKeychain.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
-        throw producerKeychainKeyNotFound(kid, producerKeychainId);
+        throw producerKeyNotFound(kid, producerKeychainId);
       }
       return key;
     },

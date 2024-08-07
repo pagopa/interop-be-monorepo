@@ -13,11 +13,10 @@ import {
   Purpose,
   Agreement,
   agreementState,
-  ClientKey,
+  Key,
   ClientKind,
   ProducerKeychain,
   ProducerKeychainId,
-  ProducerKeychainKey,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -254,7 +253,7 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getClientKeyByKid(kid: string): Promise<ClientKey | undefined> {
+    async getClientKeyByKid(kid: string): Promise<Key | undefined> {
       const data = await clients.findOne(
         { "data.keys.kid": { $eq: kid } },
         {
@@ -383,9 +382,7 @@ export function readModelServiceBuilder(
       }
     },
 
-    async getProducerKeychainKeyByKid(
-      kid: string
-    ): Promise<ProducerKeychainKey | undefined> {
+    async getProducerKeychainKeyByKid(kid: string): Promise<Key | undefined> {
       const data = await producerKeychains.findOne(
         { "data.keys.kid": { $eq: kid } },
         {

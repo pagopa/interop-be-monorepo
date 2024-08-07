@@ -10,6 +10,7 @@ import {
   ProducerKeychainUserDeletedV2,
   UserId,
   generateId,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -61,9 +62,14 @@ describe("remove producer keychain user", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedProducerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      users: [userIdToNotRemove],
+    };
+
     expect(writtenPayload).toEqual({
       userId: userIdToRemove,
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {

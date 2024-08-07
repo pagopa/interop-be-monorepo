@@ -34,7 +34,7 @@ export const errorCodes = {
   producerKeychainUserIdNotFound: "0021",
   tooManyKeysPerProducerKeychain: "0022",
   userNotAllowedOnProducerKeychain: "0023",
-  producerKeychainKeyNotFound: "0024",
+  producerKeyNotFound: "0024",
   organizationNotAllowedOnEService: "0025",
   eserviceAlreadyLinkedToProducerKeychain: "0026",
 };
@@ -260,13 +260,13 @@ export function userNotAllowedOnProducerKeychain(
   });
 }
 
-export function producerKeychainKeyNotFound(
+export function producerKeyNotFound(
   keyId: string,
   producerKeychainId: ProducerKeychainId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Key ${keyId} not found in producer keychain ${producerKeychainId}`,
-    code: "producerKeychainKeyNotFound",
+    code: "producerKeyNotFound",
     title: "Key not found",
   });
 }
