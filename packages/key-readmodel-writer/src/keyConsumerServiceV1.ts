@@ -2,6 +2,7 @@ import { createJWK, KeyCollection, keyToJWKKey } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   fromKeyV1,
+  Key,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -14,7 +15,7 @@ export async function handleMessageV1(
     .with({ type: "KeysAdded" }, async (message) => {
       const keysToAdd = message.data.keys
         .map((keyV1) => (keyV1.value ? fromKeyV1(keyV1.value) : undefined))
-        .filter((k) => k !== undefined);
+        .filter((k): k is Key => k !== undefined);
 
       const filteredKeys = keysToAdd.filter((k) => {
         const jwk = createJWK(k.encodedPem);
