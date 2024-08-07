@@ -10,6 +10,7 @@ import {
   generateId,
   ProducerKeychain,
   ProducerKeychainEServiceRemovedV2,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -62,7 +63,10 @@ describe("remove producer keychain e-service", () => {
     });
 
     expect(writtenPayload).toEqual({
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychain: toProducerKeychainV2({
+        ...mockProducerKeychain,
+        eservices: [eserviceIdToNotRemove],
+      }),
       eserviceId: eserviceIdToRemove,
     });
   });
