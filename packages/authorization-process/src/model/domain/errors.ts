@@ -3,6 +3,7 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  ProducerKeychainId,
   PurposeId,
   TenantId,
   UserId,
@@ -27,6 +28,8 @@ export const errorCodes = {
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
   keyAlreadyExists: "0017",
+  producerKeychainNotFound: "0018",
+  organizationNotAllowedOnProducerKeychain: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -204,5 +207,26 @@ export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
     detail: `Key with kid ${kid} already exists `,
     code: "keyAlreadyExists",
     title: "Key already exists",
+  });
+}
+
+export function producerKeychainNotFound(
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer Keychain ${producerKeychainId} not found`,
+    code: "producerKeychainNotFound",
+    title: "Producer Keychain not found",
+  });
+}
+
+export function organizationNotAllowedOnProducerKeychain(
+  organizationId: TenantId,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
+    code: "organizationNotAllowedOnProducerKeychain",
+    title: "Organization not allowed on producer keychain",
   });
 }
