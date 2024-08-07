@@ -120,7 +120,6 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "tooManyKeysPerClient",
       "notAllowedPrivateKeyException",
-      "invalidKey",
       "jwkDecodingError",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -209,6 +208,24 @@ export const removeProducerKeychainUserErrorMapper = (
     )
     .with(
       "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createProducerKeychainKeysErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tooManyKeysPerProducerKeychain",
+      "notAllowedPrivateKeyException",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
