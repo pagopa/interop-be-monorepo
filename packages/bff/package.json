@@ -19,6 +19,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
+    "@types/adm-zip": "0.5.5",
     "@types/express": "4.17.21",
     "@types/node": "20.14.6",
     "@types/qs": "6.9.15",
@@ -34,10 +35,10 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
+    "adm-zip": "0.5.15",
     "axios": "1.7.2",
     "dotenv-flow": "4.1.0",
     "express": "4.19.2",
-    "jszip": "3.10.1",
     "pagopa-interop-agreement-lifecycle": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",

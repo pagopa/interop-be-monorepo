@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
-import JSZip from "jszip";
+import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
@@ -161,7 +161,7 @@ export async function createDescriptorDocumentZipFile(
     descriptor
   );
 
-  const zip = new JSZip();
+  const zip = new AdmZip();
 
   // Add interface file to the zip
   const interfaceFile = await fileManager.get(
@@ -174,9 +174,9 @@ export async function createDescriptorDocumentZipFile(
     id: interfaceDocument.id,
     file: interfaceFile,
   };
-  zip.file(
+  zip.addFile(
     `${zipFolderName}/${interfaceDocument.name}`,
-    interfaceFileContent.file
+    Buffer.from(interfaceFileContent.file)
   );
 
   // Add descriptor's document files to the zip
@@ -190,14 +190,17 @@ export async function createDescriptorDocumentZipFile(
 
   documentFilesContent.forEach((doc) => {
     const uniqueName = getUniqueNameByDocumentId(fileDocumentRegistry, doc.id);
-    zip.file(`${zipFolderName}/documents/${uniqueName}`, doc.file);
+    zip.addFile(
+      `${zipFolderName}/documents/${uniqueName}`,
+      Buffer.from(doc.file)
+    );
   });
 
   // Add configuration File to the zip
-  zip.file(
+  zip.addFile(
     `${zipFolderName}/configuration.json`,
-    JSON.stringify(configuration)
+    Buffer.from(JSON.stringify(configuration))
   );
 
-  return zip.generateAsync({ type: "uint8array" });
+  return zip.toBuffer();
 }
