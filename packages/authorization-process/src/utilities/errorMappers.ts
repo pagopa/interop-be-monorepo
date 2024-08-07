@@ -171,6 +171,7 @@ export const getProducerKeychainUsersErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "organizationNotAllowedOnProducerKeychain",
       () => HTTP_STATUS_FORBIDDEN

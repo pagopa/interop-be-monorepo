@@ -851,7 +851,7 @@ export function authorizationServiceBuilder(
       producerKeychainId: ProducerKeychainId;
       organizationId: TenantId;
       logger: Logger;
-    }): Promise<{ users: UserId[]; showUsers: boolean }> {
+    }): Promise<UserId[]> {
       logger.info(
         `Retrieving users of producer keychain ${producerKeychainId}`
       );
@@ -863,10 +863,7 @@ export function authorizationServiceBuilder(
         organizationId,
         producerKeychain.data
       );
-      return {
-        users: producerKeychain.data.users,
-        showUsers: true,
-      };
+      return producerKeychain.data.users;
     },
     async addProducerKeychainUser(
       {
