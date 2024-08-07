@@ -8,10 +8,10 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
-  getAllFromPaginated,
   FileManager,
   WithLogger,
   formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -27,6 +27,7 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
+import { BffProcessConfig } from "../config/config.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   getLatestActiveDescriptor,
@@ -40,8 +41,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { BffProcessConfig } from "../config/config.js";
-import { createdescriptorDocumentZipFile } from "../utilities/fileutils.js";
+import { createDescriptorDocumentZipFile } from "../utilities/fileutils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -578,7 +578,7 @@ export function catalogServiceBuilder(
       assertRequesterIsProducer(requesterId, eservice);
 
       const zipFolderName = `${eservice.id}_${descriptorId}`;
-      const zipFile = await createdescriptorDocumentZipFile(
+      const zipFile = await createDescriptorDocumentZipFile(
         bffConfig.s3Bucket,
         fileManager,
         logger,
