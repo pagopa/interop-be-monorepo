@@ -49,11 +49,12 @@ import {
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   tooManyKeysPerClient,
-  userAlreadyAssigned,
+  clientUserAlreadyAssigned,
   userIdNotFound,
   userNotFound,
   userNotAllowedOnClient,
   producerKeychainNotFound,
+  producerKeychainUserAlreadyAssigned,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -66,6 +67,7 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
+  toCreateEventProducerKeychainUserAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -466,7 +468,7 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async addUser(
+    async addClientUser(
       {
         clientId,
         userId,
@@ -490,7 +492,7 @@ export function authorizationServiceBuilder(
         userIdToCheck: userId,
       });
       if (client.data.users.includes(userId)) {
-        throw userAlreadyAssigned(clientId, userId);
+        throw clientUserAlreadyAssigned(clientId, userId);
       }
       const updatedClient: Client = {
         ...client.data,
@@ -860,6 +862,58 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
       return producerKeychain.data.users;
+    },
+    async addProducerKeychainUser(
+      {
+        producerKeychainId,
+        userId,
+        authData,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        userId: UserId;
+        authData: AuthData;
+      },
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      logger.info(
+        `Binding producer keychain ${producerKeychainId} with user ${userId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData.organizationId,
+        producerKeychain.data
+      );
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        selfcareV2InstitutionClient,
+        userIdToCheck: userId,
+      });
+      if (producerKeychain.data.users.includes(userId)) {
+        throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
+      }
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        users: [...producerKeychain.data.users, userId],
+      };
+
+      await repository.createEvent(
+        toCreateEventProducerKeychainUserAdded(
+          userId,
+          updatedProducerKeychain,
+          producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+      return {
+        producerKeychain: updatedProducerKeychain,
+        showUsers: true,
+      };
     },
   };
 }

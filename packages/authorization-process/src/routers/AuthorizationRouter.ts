@@ -32,7 +32,7 @@ import {
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  addUserErrorMapper,
+  addClientUserErrorMapper,
   deleteClientErrorMapper,
   getClientsErrorMapper,
   createApiClientErrorMapper,
@@ -52,6 +52,7 @@ import {
   getProducerKeychainsErrorMapper,
   deleteProducerKeychainErrorMapper,
   getProducerKeychainUsersErrorMapper,
+  addProducerKeychainUserErrorMapper,
   getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -352,15 +353,16 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client, showUsers } = await authorizationService.addUser(
-            {
-              clientId: unsafeBrandId(req.params.clientId),
-              userId: unsafeBrandId(req.params.userId),
-              authData: req.ctx.authData,
-            },
-            req.ctx.correlationId,
-            ctx.logger
-          );
+          const { client, showUsers } =
+            await authorizationService.addClientUser(
+              {
+                clientId: unsafeBrandId(req.params.clientId),
+                userId: unsafeBrandId(req.params.userId),
+                authData: req.ctx.authData,
+              },
+              req.ctx.correlationId,
+              ctx.logger
+            );
           return res
             .status(200)
             .json(clientToApiClient(client, { showUsers }))
@@ -368,7 +370,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addUserErrorMapper,
+            addClientUserErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
@@ -739,7 +741,38 @@ const authorizationRouter = (
     .post(
       "/producerKeychains/:producerKeychainId/users/:userId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { producerKeychain, showUsers } =
+            await authorizationService.addProducerKeychainUser(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                userId: unsafeBrandId(req.params.userId),
+                authData: req.ctx.authData,
+              },
+              req.ctx.correlationId,
+              ctx.logger
+            );
+          return res
+            .status(200)
+            .json(
+              producerKeychainToApiProducerKeychain(producerKeychain, {
+                showUsers,
+              })
+            )
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addProducerKeychainUserErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/producerKeychains/:producerKeychainId/users/:userId",

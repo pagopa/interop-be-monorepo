@@ -18,7 +18,7 @@ export const errorCodes = {
   userNotAllowedOnClient: "0005",
   purposeNotFound: "0006",
   userWithoutSecurityPrivileges: "0007",
-  userAlreadyAssigned: "0008",
+  clientUserAlreadyAssigned: "0008",
   eserviceNotFound: "0009",
   noPurposeVersionsFoundInRequiredState: "0010",
   descriptorNotFound: "0011",
@@ -30,6 +30,7 @@ export const errorCodes = {
   keyAlreadyExists: "0017",
   producerKeychainNotFound: "0018",
   organizationNotAllowedOnProducerKeychain: "0019",
+  producerKeychainUserAlreadyAssigned: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -107,14 +108,14 @@ export function userWithoutSecurityPrivileges(
   });
 }
 
-export function userAlreadyAssigned(
+export function clientUserAlreadyAssigned(
   clientId: ClientId,
   userId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} is already assigned to the client ${clientId}`,
-    code: "userAlreadyAssigned",
-    title: "User already assigned",
+    code: "clientUserAlreadyAssigned",
+    title: "User already assigned to the client",
   });
 }
 
@@ -228,5 +229,16 @@ export function organizationNotAllowedOnProducerKeychain(
     detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
     code: "organizationNotAllowedOnProducerKeychain",
     title: "Organization not allowed on producer keychain",
+  });
+}
+
+export function producerKeychainUserAlreadyAssigned(
+  producerKeychainId: ProducerKeychainId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned to the producer keychain ${producerKeychainId}`,
+    code: "producerKeychainUserAlreadyAssigned",
+    title: "User already assigned to the producer keychain",
   });
 }
