@@ -15,11 +15,10 @@ import {
   Attribute,
   unsafeBrandId,
   toReadModelAttribute,
-  operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
-import { ApiInternalTenantSeed } from "../src/model/types.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
@@ -37,7 +36,7 @@ describe("internalUpsertTenant", async () => {
   const mockTenant = getMockTenant();
   const mockAuthData = getMockAuthData(generateId<TenantId>());
 
-  const tenantSeed: ApiInternalTenantSeed = {
+  const tenantSeed: tenantApi.InternalTenantSeed = {
     externalId: {
       origin: "IPA",
       value: "123456",
@@ -112,7 +111,7 @@ describe("internalUpsertTenant", async () => {
   });
 
   it("Should re-assign the attributes if they were revoked", async () => {
-    const tenantSeed2: ApiInternalTenantSeed = {
+    const tenantSeed2: tenantApi.InternalTenantSeed = {
       ...tenantSeed,
       certifiedAttributes: [
         ...tenantSeed.certifiedAttributes,
@@ -243,19 +242,6 @@ describe("internalUpsertTenant", async () => {
         )
       )
     );
-  });
-  it("Should throw operation forbidden if role isn't internal", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
-    await addOneTenant(mockTenant);
-
-    expect(
-      tenantService.internalUpsertTenant(tenantSeed, {
-        authData: mockAuthData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(operationForbidden);
   });
   it("Should throw attributeNotFound error if the attribute doesn't exist", async () => {
     await addOneTenant(mockTenant);

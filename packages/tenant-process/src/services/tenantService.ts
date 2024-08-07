@@ -403,7 +403,7 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      const tenantWithNewAttribute = await assignCertifiedAttribute({
+      const tenantWithNewAttribute = assignCertifiedAttribute({
         targetTenant: targetTenant.data,
         attribute,
       });
@@ -808,7 +808,7 @@ export function tenantServiceBuilder(
         throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
       }
 
-      const tenantWithNewAttribute = await assignCertifiedAttribute({
+      const tenantWithNewAttribute = assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
         attribute: attributeToAssign,
       });
@@ -1156,7 +1156,7 @@ export function tenantServiceBuilder(
 
     async internalUpsertTenant(
       internalTenantSeed: tenantApi.InternalTenantSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(
         `Updating tenant with external id ${internalTenantSeed.externalId} via internal request`
@@ -1173,57 +1173,75 @@ export function tenantServiceBuilder(
         existingTenant
       );
 
-      await assertResourceAllowed(existingTenant.data.id, authData);
-
-      const attributesExternalIds: ExternalId[] =
-        internalTenantSeed.certifiedAttributes.map((externalId) =>
+      const attributesExternalIds = internalTenantSeed.certifiedAttributes.map(
+        (externalId) =>
           ExternalId.parse({
             value: externalId.code,
             origin: externalId.origin,
           })
-        );
+      );
 
       const attributesByExternalId =
         await readModelService.getAttributesByExternalIds(
           attributesExternalIds
         );
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = { ...existingTenant.data };
+      const tenantWithNewAttributes = attributesByExternalId.reduce(
+        (acc, attribute) =>
+          assignCertifiedAttribute({
+            targetTenant: acc,
+            attribute,
+          }),
+        existingTenant.data
+      );
 
-      for (const attribute of attributesByExternalId) {
-        updatedTenant = await assignCertifiedAttribute({
-          targetTenant: updatedTenant,
-          attribute,
-        });
+      const tenantCertifiedAttributeAssignedEvent =
+        toCreateEventTenantOnboardDetailsUpdated(
+          tenantWithNewAttributes.id,
+          existingTenant.metadata.version,
+          tenantWithNewAttributes,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttributes.attributes,
+        internalTenantSeed.externalId
+      );
+
+      const tenantWithUpdatedKind: Tenant = {
+        ...tenantWithNewAttributes,
+        kind: tenantKind,
+      };
+
+      if (existingTenant.data.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          existingTenant.metadata.version + 1,
+          tenantKind,
+          tenantWithUpdatedKind,
+          correlationId
+        );
+
+        await repository.createEvents([
+          tenantCertifiedAttributeAssignedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
       }
 
-      updatedTenant = await revaluateTenantKind(
-        updatedTenant,
-        readModelService
-      );
-
-      await repository.createEvent(
-        toCreateEventTenantOnboardDetailsUpdated(
-          existingTenant.data.id,
-          existingTenant.metadata.version,
-          updatedTenant,
-          correlationId
-        )
-      );
-
-      return updatedTenant;
+      return tenantWithUpdatedKind;
     },
   };
 }
 
-async function assignCertifiedAttribute({
+function assignCertifiedAttribute({
   targetTenant,
   attribute,
 }: {
   targetTenant: Tenant;
   attribute: Attribute;
-}): Promise<Tenant> {
+}): Tenant {
   const certifiedTenantAttribute = targetTenant.attributes.find(
     (attr): attr is CertifiedTenantAttribute =>
       attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
