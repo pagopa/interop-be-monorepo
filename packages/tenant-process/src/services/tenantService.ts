@@ -1195,7 +1195,6 @@ export function tenantServiceBuilder(
       organizationId,
       tenantOrigin,
       tenantExternalId,
-      attributeOrigin,
       attributeExternalId,
       correlationId,
       logger,
@@ -1203,7 +1202,6 @@ export function tenantServiceBuilder(
       organizationId: TenantId;
       tenantOrigin: string;
       tenantExternalId: string;
-      attributeOrigin: string;
       attributeExternalId: string;
       correlationId: string;
       logger: Logger;
@@ -1214,11 +1212,11 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const certifierFeature = requesterTenant.data.features.find(
+      const certifierId = requesterTenant.data.features.find(
         (f) => f.type === "PersistentCertifier"
       )?.certifierId;
 
-      if (!certifierFeature) {
+      if (!certifierId) {
         throw tenantIsNotACertifier(requesterTenant.data.id);
       }
       const targetTenant = await retrieveTenantByExternalId({
@@ -1228,7 +1226,7 @@ export function tenantServiceBuilder(
       });
 
       const attributeToRevoke = await retrieveCertifiedAttribute({
-        attributeOrigin,
+        attributeOrigin: certifierId,
         attributeExternalId,
         readModelService,
       });
