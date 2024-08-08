@@ -17,9 +17,8 @@ const producerKeychainRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  // const producerKeychainService = producerKeychainServiceBuilder(
-  //   processClients.authorizationProcessClient
-  // );
+  // const producerKeychainService =
+  //   producerKeychainServiceBuilder(processClients);
 
   producerKeychainRouter
     .get("/producerKeychains", async (_req, res) => res.status(501).send())
