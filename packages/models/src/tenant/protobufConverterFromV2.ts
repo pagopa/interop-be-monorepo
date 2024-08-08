@@ -165,11 +165,12 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
     externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV2),
     mails: input.mails.map(fromTenantMailV2),
-    kind: input.kind ? fromTenantKindV2(input.kind) : undefined,
+    kind: input.kind != null ? fromTenantKindV2(input.kind) : undefined,
     updatedAt: bigIntToDate(input.updatedAt),
     onboardedAt: bigIntToDate(input.onboardedAt),
-    subUnitType: input.subUnitType
-      ? fromTenantUnitTypeV2(input.subUnitType)
-      : undefined,
+    subUnitType:
+      input.subUnitType != null
+        ? fromTenantUnitTypeV2(input.subUnitType)
+        : undefined,
   };
 };
