@@ -1186,13 +1186,17 @@ export function tenantServiceBuilder(
           attributesExternalIds
         );
 
-      for (const seedId of attributesExternalIds) {
+      for (const attributeToAssign of attributesExternalIds) {
         if (
           !attributesByExternalId.find(
-            (a) => a?.origin === seedId.origin && a?.code === seedId.value
+            (a) =>
+              a?.origin === attributeToAssign.origin &&
+              a?.code === attributeToAssign.value
           )
         ) {
-          throw attributeNotFound(`${seedId.origin}/${seedId.value}`);
+          throw attributeNotFound(
+            `${attributeToAssign.origin}/${attributeToAssign.value}`
+          );
         }
       }
 
@@ -1208,7 +1212,7 @@ export function tenantServiceBuilder(
         }
       );
 
-      const tenantCertifiedAttributeAssignedEvent =
+      const tenantCertifiedAttributesAssignedEvent =
         toCreateEventTenantOnboardDetailsUpdated(
           tenantWithNewAttributes.id,
           existingTenant.metadata.version,
@@ -1236,11 +1240,11 @@ export function tenantServiceBuilder(
         );
 
         await repository.createEvents([
-          tenantCertifiedAttributeAssignedEvent,
+          tenantCertifiedAttributesAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
       } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+        await repository.createEvent(tenantCertifiedAttributesAssignedEvent);
       }
 
       return tenantWithUpdatedKind;
