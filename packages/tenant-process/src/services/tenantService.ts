@@ -55,7 +55,6 @@ import {
   attributeAlreadyRevoked,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
-  tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1260,13 +1259,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const maybeCertifier = requesterTenant.data.features.find(
-        (feature) => feature.certifierId !== undefined
-      );
-
-      if (!maybeCertifier) {
-        throw tenantIsNotACertifier(requesterTenant.data.id);
-      }
+      const certifierId = retrieveCertifierId(requesterTenant.data);
 
       const existingTenant = await readModelService.getTenantByExternalId(
         m2mTenantSeed.externalId
@@ -1283,7 +1276,7 @@ export function tenantServiceBuilder(
         (externalId) =>
           ExternalId.parse({
             value: externalId.code,
-            origin: maybeCertifier.certifierId,
+            origin: certifierId,
           })
       );
 
@@ -1292,13 +1285,17 @@ export function tenantServiceBuilder(
           attributesExternalIds
         );
 
-      for (const seedId of attributesExternalIds) {
+      for (const attributeToAssign of attributesExternalIds) {
         if (
           !attributesByExternalId.find(
-            (a) => a?.origin === seedId.origin && a?.code === seedId.value
+            (a) =>
+              a?.origin === attributeToAssign.origin &&
+              a?.code === attributeToAssign.value
           )
         ) {
-          throw attributeNotFound(`${seedId.origin}/${seedId.value}`);
+          throw attributeNotFound(
+            `${attributeToAssign.origin}/${attributeToAssign.value}`
+          );
         }
       }
 
