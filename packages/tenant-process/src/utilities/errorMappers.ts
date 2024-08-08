@@ -183,8 +183,8 @@ export const m2mRevokeCertifiedAttributeErrorMapper = (
     .with(
       "tenantNotFound",
       "tenantNotFoundByExternalId",
-      "attributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("attributeNotFoundInTenant", () => HTTP_STATUS_BAD_REQUEST)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
