@@ -30,8 +30,7 @@ export const toAuthorizationEventNotification = (
       return {
         clientId: event.data.client.id,
         keys: {
-          kid: keyV2.kid,
-          key: toKeyV1Notification(keyV2),
+          [keyV2.kid]: toKeyV1Notification(keyV2),
         },
       };
     })
