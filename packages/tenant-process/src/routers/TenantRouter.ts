@@ -33,6 +33,7 @@ import {
   internalAddCertifiedAttributeErrorMapper,
   internalRevokeCertifiedAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
+  m2mRevokeCertifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -411,7 +412,28 @@ const tenantsRouter = (
     .delete(
       "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { origin, externalId, code } = req.params;
+          await tenantService.m2mRevokeCertifiedAttribute({
+            tenantOrigin: origin,
+            tenantExternalId: externalId,
+            organizationId: req.ctx.authData.organizationId,
+            attributeExternalId: code,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            m2mRevokeCertifiedAttributeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   const selfcareRouter = ctx.router(tenantApi.selfcareApi.api, {
