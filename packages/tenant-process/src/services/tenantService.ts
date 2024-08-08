@@ -1333,7 +1333,8 @@ export function tenantServiceBuilder(
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           existingTenant.metadata.version + 1,
-          tenantKind,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          existingTenant.data.kind!,
           tenantWithUpdatedKind,
           correlationId
         );
