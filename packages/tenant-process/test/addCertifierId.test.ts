@@ -98,7 +98,7 @@ describe("addCertifierId", async () => {
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
 
-  it("Should throw tenantIsAlreadyACertifier if the organization is a certifier", async () => {
+  it("Should throw tenantIsAlreadyACertifier if the organization is already a certifier with the same certifierId", async () => {
     const certifierTenant: Tenant = {
       ...getMockTenant(),
       features: [
