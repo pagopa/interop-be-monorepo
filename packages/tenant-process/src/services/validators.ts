@@ -25,6 +25,7 @@ import {
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerificationNotAllowed,
+  attributeNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -188,9 +189,16 @@ export async function getTenantKindLoadingCertifiedAttributes(
       }
     });
 
-  const attributesIds = getCertifiedAttributesIds(attributes);
-  const attrs = await readModelService.getAttributesById(attributesIds);
-  const extIds = convertAttributes(attrs);
+  const tenantAttributesIds = getCertifiedAttributesIds(attributes);
+  const retrievedAttributes = await readModelService.getAttributesById(
+    tenantAttributesIds
+  );
+  for (const attributeId of tenantAttributesIds) {
+    if (!retrievedAttributes.find((attr) => attr.id)) {
+      throw attributeNotFound(attributeId);
+    }
+  }
+  const extIds = convertAttributes(retrievedAttributes);
   return getTenantKind(extIds, externalId);
 }
 
@@ -228,7 +236,7 @@ export function evaluateNewSelfcareId({
   }
 }
 
-export function getTenantCertifierId(tenant: Tenant): string {
+export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
     (f) => f.type === "PersistentCertifier"
   )?.certifierId;

@@ -56,7 +56,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
     vi.useRealTimers();
   });
 
-  it("should revoke the certified attribute if it exist", async () => {
+  it("should revoke the certified attribute if it exists", async () => {
     const mockAttribute = getMockAttribute();
     const tenantWithCertifiedAttribute: Tenant = {
       ...requesterTenant,

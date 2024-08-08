@@ -1,8 +1,7 @@
 import {
   ApiError,
-  PurposeId,
-  makeApiProblemBuilder,
   AttributeId,
+  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -15,6 +14,12 @@ export const errorCodes = {
   missingClaim: "0007",
   tenantLoginNotAllowed: "0008",
   tokenVerificationFailed: "0009",
+  eServiceNotFound: "0010",
+  tenantNotFound: "0011",
+  agreementNotFound: "0012",
+  eserviceDescriptorNotFound: "0013",
+  purposeDraftVersionNotFound: "0014",
+  invalidRiskAnalysisContentType: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -43,11 +48,56 @@ export function userNotFound(
   });
 }
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function eServiceNotFound(eserviceId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} not found`,
+    code: "eServiceNotFound",
+    title: "EService not found",
+  });
+}
+
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement of consumer ${consumerId} not found`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "EService descriptor not found",
+  });
+}
+
+export function purposeDraftVersionNotFound(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
+    code: "purposeDraftVersionNotFound",
+    title: "Purpose draft version not found",
   });
 }
 
@@ -59,17 +109,6 @@ export function invalidEServiceRequester(
     detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
     code: "invalidEserviceRequester",
     title: `Invalid eservice requester`,
-  });
-}
-
-export function eserviceDescriptorNotFound(
-  eServiceId: string,
-  descriptorId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
-    code: "descriptorNotFound",
-    title: `Descriptor not found`,
   });
 }
 
@@ -104,5 +143,18 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function invalidRiskAnalysisContentType(
+  contentType: string,
+  purposeId: string,
+  versionId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from purpose ${purposeId} and version ${versionId}`,
+    code: "invalidRiskAnalysisContentType",
+    title: "Invalid Risk Analysis content type",
   });
 }

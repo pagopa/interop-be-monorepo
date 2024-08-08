@@ -321,18 +321,18 @@ export function readModelServiceBuilder(
     },
 
     async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
-      const fetchAttributeById = async (
-        id: AttributeId
-      ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, { "data.id": id });
-        if (!data) {
-          throw attributeNotFound(id);
-        }
-        return data;
-      };
-
-      const attributePromises = attributeIds.map(fetchAttributeById);
-      return Promise.all(attributePromises);
+      const data = await attributes
+        .aggregate([{ $match: { "data.id": { $in: attributeIds } } }])
+        .toArray();
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getAttributeById(
