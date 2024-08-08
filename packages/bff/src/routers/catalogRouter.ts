@@ -56,7 +56,28 @@ const catalogRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers/eservices", async (_req, res) => res.status(501).send())
+    .get("/producers/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getProducerEServices(
+          req.query.q,
+          req.query.consumersIds,
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          "Error retrieving Producer EServices"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/producers/eservices/:eserviceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -69,7 +90,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving producer eservice ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -163,7 +185,7 @@ const catalogRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceDescription(
-          ctx.headers,
+          ctx,
           unsafeBrandId(req.params.eServiceId),
           req.body
         );
