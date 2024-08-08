@@ -5,18 +5,18 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   Tenant,
   generateId,
-  TenantUpdatedV1,
   protobufDecoder,
+  toTenantV2,
+  TenantVerifiedAttributeExpirationUpdatedV2,
 } from "pagopa-interop-models";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   tenantNotFound,
   expirationDateCannotBeInThePast,
   verifiedAttributeNotFoundInTenant,
   organizationNotFoundInVerifiers,
 } from "../src/model/domain/errors.js";
-import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
-import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneTenant,
   currentDate,
@@ -35,9 +35,10 @@ describe("updateTenantVerifiedAttribute", async () => {
     currentDate.setDate(currentDate.getDate() + 1)
   );
 
-  const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed = {
-    expirationDate: expirationDate.toISOString(),
-  };
+  const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
+    {
+      expirationDate: expirationDate.toISOString(),
+    };
 
   const tenant: Tenant = {
     ...getMockTenant(),
@@ -85,11 +86,13 @@ describe("updateTenantVerifiedAttribute", async () => {
     expect(writtenEvent).toMatchObject({
       stream_id: tenant.id,
       version: "1",
-      type: "TenantUpdated",
+      type: "TenantVerifiedAttributeExpirationUpdated",
     });
 
-    const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
-      TenantUpdatedV1
+    const writtenPayload:
+      | TenantVerifiedAttributeExpirationUpdatedV2
+      | undefined = protobufDecoder(
+      TenantVerifiedAttributeExpirationUpdatedV2
     ).parse(writtenEvent.data);
 
     if (!writtenPayload) {
@@ -101,7 +104,7 @@ describe("updateTenantVerifiedAttribute", async () => {
       updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should throw tenantNotFound when tenant doesn't exist", async () => {
@@ -128,7 +131,7 @@ describe("updateTenantVerifiedAttribute", async () => {
       currentDate.setDate(currentDate.getDate() - 3)
     );
 
-    const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+    const updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed =
       {
         expirationDate: expirationDateinPast.toISOString(),
       };

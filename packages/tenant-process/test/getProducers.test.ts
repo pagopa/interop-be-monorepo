@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
 import { describe, expect, it } from "vitest";
 import {
   Descriptor,

@@ -9,7 +9,8 @@ import {
   generateId,
   protobufDecoder,
   Tenant,
-  TenantUpdatedV1,
+  TenantVerifiedAttributeExtensionUpdatedV2,
+  toTenantV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -18,7 +19,6 @@ import {
   verifiedAttributeNotFoundInTenant,
   organizationNotFoundInVerifiers,
 } from "../src/model/domain/errors.js";
-import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import {
   currentDate,
   addOneTenant,
@@ -53,6 +53,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     ],
     name: "A Tenant",
   };
+
   const attributeId = tenant.attributes.map((a) => a.id)[0];
   const verifierId = mockVerifiedBy.id;
   it("Should update the extensionDate", async () => {
@@ -85,10 +86,12 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     expect(writtenEvent).toMatchObject({
       stream_id: tenant.id,
       version: "1",
-      type: "TenantUpdated",
+      type: "TenantVerifiedAttributeExtensionUpdated",
     });
-    const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
-      TenantUpdatedV1
+    const writtenPayload:
+      | TenantVerifiedAttributeExtensionUpdatedV2
+      | undefined = protobufDecoder(
+      TenantVerifiedAttributeExtensionUpdatedV2
     ).parse(writtenEvent.data);
 
     const updatedTenant: Tenant = {
@@ -107,8 +110,8 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       ],
       updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
-    expect(returnedTenant).toEqual(toTenantV1(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should throw tenantNotFound when tenant doesn't exist", async () => {
     const correlationId = generateId();
