@@ -97,7 +97,34 @@ describe("addCertifierId", async () => {
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
-  it("Should throw tenantIsAlreadyACertifier if the organization is a certifier and it also has certified attributes", async () => {
+
+  it("Should throw tenantIsAlreadyACertifier if the organization is a certifier", async () => {
+    const certifierTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId,
+        },
+      ],
+    };
+
+    await addOneTenant(certifierTenant);
+    expect(
+      tenantService.addCertifierId(
+        {
+          tenantId: certifierTenant.id,
+          certifierId,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
+    );
+  });
+
+  it("Should throw certifierWithExistingAttributes if the organization has already created attributes", async () => {
     const previousCertifierId = generateId();
 
     const attribute: Attribute = {
@@ -127,32 +154,7 @@ describe("addCertifierId", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      tenantIsAlreadyACertifier(certifierTenant.id, previousCertifierId)
-    );
-  });
-  it("Should throw certifierIdAlreadyExistsInTenant if the organization already has the certifierId", async () => {
-    const certifierTenant: Tenant = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "PersistentCertifier",
-          certifierId,
-        },
-      ],
-    };
-
-    await addOneTenant(certifierTenant);
-    expect(
-      tenantService.addCertifierId(
-        {
-          tenantId: certifierTenant.id,
-          certifierId,
-          correlationId: generateId(),
-        },
-        genericLogger
-      )
-    ).rejects.toThrowError(
-      certifierWithExistingAttributes(certifierTenant.id, certifierId)
+      certifierWithExistingAttributes(certifierTenant.id, previousCertifierId)
     );
   });
 });
