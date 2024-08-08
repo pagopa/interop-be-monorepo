@@ -19,7 +19,7 @@ import {
   unsafeBrandId,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { isAgreementUpgradable } from "../modelMappingUtils.js";
+import { isAgreementUpgradable } from "../validators.js";
 
 export function toDescriptorWithOnlyAttributes(
   descriptor: catalogApi.EServiceDescriptor
