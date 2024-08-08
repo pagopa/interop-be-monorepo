@@ -101,8 +101,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.0.3
+        version: 1.0.3
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -746,8 +746,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.0.3
+        version: 1.0.3
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1504,8 +1504,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.0.3
+        version: 1.0.3
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1708,8 +1708,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.0.3
+        version: 1.0.3
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3779,8 +3779,8 @@ packages:
       - typescript
     dev: true
 
-  /@pagopa/interop-outbound-models@1.0.0:
-    resolution: {integrity: sha512-gzJCs8eTvoca4ECvIkRiTPd7HmWDmIGFsWGhGnQ32gFHbsLL4emPGzuzJr9wFmR3Qz6dJ83+gK6myqaCqdeRlw==}
+  /@pagopa/interop-outbound-models@1.0.3:
+    resolution: {integrity: sha512-ENUWBjKnUIHKzchN7cvs2s/uS0yWW8suoUh+/Ziw+DJQus7jz89DCMa7PMhl6gLijGm8PM3QcNqyP2V6qm5/Eg==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
