@@ -1,7 +1,9 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  AgreementState,
   Attribute,
   AttributeId,
+  EService,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -16,14 +18,14 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  attributeNotFound,
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
-  tenantIsNotCertifier,
+  tenantIsNotACertifier,
+  verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -43,6 +45,63 @@ export function assertVerifiedAttributeExistsInTenant(
 ): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export async function assertVerifiedAttributeOperationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  agreementStates,
+  readModelService,
+  error,
+}: {
+  producerId: TenantId;
+  consumerId: TenantId;
+  attributeId: AttributeId;
+  agreementStates: AgreementState[];
+  readModelService: ReadModelService;
+  error: Error;
+}): Promise<void> {
+  if (producerId === consumerId) {
+    throw verifiedAttributeSelfVerificationNotAllowed();
+  }
+  // Get agreements
+  const agreements = await readModelService.getAgreements({
+    consumerId,
+    producerId,
+    states: agreementStates,
+  });
+
+  // Extract descriptor IDs
+  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+
+  // Get eServices concurrently
+  const eServices = (
+    await Promise.all(
+      agreements.map((agreement) =>
+        readModelService.getEServiceById(agreement.eserviceId)
+      )
+    )
+  ).filter((eService): eService is EService => eService !== undefined);
+
+  // Find verified attribute IDs
+  const attributeIds = new Set(
+    eServices
+      .flatMap((eService) =>
+        eService.descriptors.filter((descriptor) =>
+          descriptorIds.includes(descriptor.id)
+        )
+      )
+      .flatMap((descriptor) =>
+        descriptor.attributes.verified.flatMap((attribute) =>
+          attribute.map((a) => a.id)
+        )
+      )
+  );
+  // Check if attribute is allowed
+  if (!attributeIds.has(attributeId)) {
+    throw error;
   }
 }
 
@@ -93,7 +152,7 @@ export function getTenantKind(
     .otherwise(() => tenantKind.PRIVATE);
 }
 
-async function assertRequesterAllowed(
+export async function assertRequesterAllowed(
   resourceId: string,
   requesterId: string
 ): Promise<void> {
@@ -145,15 +204,6 @@ export async function getTenantKindLoadingCertifiedAttributes(
   return getTenantKind(extIds, externalId);
 }
 
-export function assertAttributeExists(
-  attributeId: AttributeId,
-  attributes: TenantAttribute[]
-): asserts attributes is NonNullable<TenantAttribute[]> {
-  if (!attributes.some((attr) => attr.id === attributeId)) {
-    throw attributeNotFound(attributeId);
-  }
-}
-
 export function assertValidExpirationDate(
   expirationDate: Date | undefined
 ): void {
@@ -188,12 +238,13 @@ export function evaluateNewSelfcareId({
   }
 }
 
-export function getTenantCertifierId(tenant: Tenant): string {
+export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
     (f) => f.type === "PersistentCertifier"
-  );
+  )?.certifierId;
+
   if (!certifierFeature) {
-    throw tenantIsNotCertifier(tenant.id);
+    throw tenantIsNotACertifier(tenant.id);
   }
-  return certifierFeature.certifierId;
+  return certifierFeature;
 }

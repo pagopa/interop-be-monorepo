@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package tenant.v2;
+
+import "v2/tenant/tenant.proto";
+
+message TenantOnboardedV2 {
+  TenantV2 tenant = 1;
+}
+
+message TenantOnboardDetailsUpdatedV2 {
+  TenantV2 tenant = 1;
+}
+
+message TenantCertifiedAttributeAssignedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantCertifiedAttributeRevokedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantDeclaredAttributeAssignedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantDeclaredAttributeRevokedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantVerifiedAttributeAssignedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantVerifiedAttributeRevokedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantVerifiedAttributeExpirationUpdatedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantVerifiedAttributeExtensionUpdatedV2 {
+  string attributeId = 1;
+  TenantV2 tenant = 2;
+}
+
+message MaintenanceTenantDeletedV2 {
+  string tenantId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantMailAddedV2 {
+  string mailId = 1;
+  TenantV2 tenant = 2;
+}
+
+message TenantKindUpdatedV2 {
+  TenantKindV2 oldKind = 1;
+  TenantV2 tenant = 2;
+}
+  message TenantMailDeletedV2 {
+  string mailId = 1;
+  TenantV2 tenant = 2;
+}

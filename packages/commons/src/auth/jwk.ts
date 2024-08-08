@@ -1,5 +1,6 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
 import {
+  invalidKey,
   jwkDecodingError,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
@@ -14,8 +15,8 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const createJWK = (pemKey: string): JsonWebKey =>
-  createPublicKey(pemKey).export({ format: "jwk" });
+export const createJWK = (pemKeyBase64: string): JsonWebKey =>
+  createPublicKey(pemKeyBase64).export({ format: "jwk" });
 
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
@@ -24,10 +25,27 @@ export const calculateKid = (jwk: JsonWebKey): string => {
 };
 
 function createPublicKey(key: string): KeyObject {
+  /*
+  Validation of a public key in PEM format.
+  The standard library does not provide a specific method.
+  Note: crypto.createPublicKey cannot be used directly because it succeeds also when providing a private key.
+  In order to perform the check, the function:
+    1. tries to create a private key
+      - success: the value is a private key and the function fails
+      - failure: the value is not a private key and the function proceeds
+    2. tries to create a public key
+      - success: the value is a public key
+      - failure: the value is not a key
+  */
+  const pemKey = decodeBase64ToPem(key);
   try {
-    crypto.createPrivateKey(key);
+    crypto.createPrivateKey(pemKey);
   } catch {
-    return crypto.createPublicKey(key);
+    try {
+      return crypto.createPublicKey(pemKey);
+    } catch (error) {
+      throw invalidKey(key, error);
+    }
   }
   throw notAllowedPrivateKeyException();
 }

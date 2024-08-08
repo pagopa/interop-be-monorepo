@@ -647,9 +647,14 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      const previousDailyCalls = [...purpose.data.versions].sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0]?.dailyCalls;
+      const previousVersion = [
+        ...purpose.data.versions.filter(
+          (v) =>
+            v.state === purposeVersionState.active ||
+            v.state === purposeVersionState.suspended
+        ),
+      ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+      const previousDailyCalls = previousVersion?.dailyCalls || 0;
 
       if (previousDailyCalls === seed.dailyCalls) {
         throw unchangedDailyCalls(purpose.data.id);
@@ -674,6 +679,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
+      const deltaDailyCalls =
+        previousVersion.state === purposeVersionState.suspended
+          ? seed.dailyCalls
+          : seed.dailyCalls - previousDailyCalls;
+
       /**
        * If, with the given daily calls, the purpose goes in over quota,
        * we will create a new version in waiting for approval state
@@ -682,7 +693,7 @@ export function purposeServiceBuilder(
         await isOverQuota(
           eservice,
           purpose.data,
-          seed.dailyCalls - previousDailyCalls,
+          deltaDailyCalls,
           readModelService
         )
       ) {
@@ -1046,6 +1057,7 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
       );
+      const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
@@ -1053,10 +1065,7 @@ export function purposeServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
-      const riskAnalysis = retrieveRiskAnalysis(
-        unsafeBrandId(seed.riskAnalysisId),
-        eservice
-      );
+      const riskAnalysis = retrieveRiskAnalysis(riskAnalysisId, eservice);
 
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,
@@ -1102,7 +1111,10 @@ export function purposeServiceBuilder(
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
         freeOfChargeReason: seed.freeOfChargeReason,
-        riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+        riskAnalysisForm: {
+          ...riskAnalysis.riskAnalysisForm,
+          riskAnalysisId,
+        },
       };
 
       await repository.createEvent(

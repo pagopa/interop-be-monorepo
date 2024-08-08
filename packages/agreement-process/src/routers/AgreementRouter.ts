@@ -18,14 +18,14 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { selfcareV2ClientBuilder } from "pagopa-interop-selfcare-v2-client";
+import { agreementApi } from "pagopa-interop-api-clients";
+import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
-import { api } from "../model/generated/api.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -66,7 +66,7 @@ const agreementService = agreementServiceBuilder(
   readModelService,
   initFileManager(config),
   pdfGenerator,
-  selfcareV2ClientBuilder(config)
+  selfcareV2UsersClientBuilder(config)
 );
 
 const {
@@ -81,7 +81,7 @@ const {
 const agreementRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const agreementRouter = ctx.router(api.api, {
+  const agreementRouter = ctx.router(agreementApi.agreementApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 

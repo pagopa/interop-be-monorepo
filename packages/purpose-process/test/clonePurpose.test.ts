@@ -19,6 +19,7 @@ import {
   toPurposeV2,
   toReadModelAgreement,
   unsafeBrandId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -68,7 +69,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
@@ -138,7 +139,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
@@ -207,7 +208,7 @@ describe("clonePurpose", async () => {
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -243,7 +244,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -279,7 +280,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -325,7 +326,7 @@ describe("clonePurpose", async () => {
 
     await addOnePurpose(mockPurposeToClone);
     await addOnePurpose(mockPurposeWithSameName);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -363,7 +364,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
