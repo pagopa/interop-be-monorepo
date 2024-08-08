@@ -175,3 +175,16 @@ export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const m2mRevokeCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "tenantNotFoundByExternalId",
+      "attributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
