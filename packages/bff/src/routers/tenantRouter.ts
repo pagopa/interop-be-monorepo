@@ -67,9 +67,27 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/tenants/attributes/certified", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/tenants/attributes/certified", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await tenantService.getRequesterCertifiedAttributes(
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving tenant certified attributes offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/tenants/:tenantId/attributes/certified", async (_req, res) =>
       res.status(501).send()
     )
