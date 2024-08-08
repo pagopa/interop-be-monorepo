@@ -41,6 +41,6 @@ app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));
 app.use(selfcareRouter(zodiosCtx));
-app.use(tenantRouter(zodiosCtx));
+app.use(tenantRouter(zodiosCtx, clients));
 
 export default app;

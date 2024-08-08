@@ -4,6 +4,7 @@ import {
   attributeRegistryApi,
   authorizationApi,
   selfcareV2ClientApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
@@ -104,4 +105,11 @@ export const toApiAttributeProcessSeed = (
 ): attributeRegistryApi.CertifiedAttributeSeed => ({
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
+});
+
+export const toBffApiCompactOrganization = (
+  input: tenantApi.Tenant
+): bffApi.CompactOrganization => ({
+  id: input.id,
+  name: input.name,
 });
