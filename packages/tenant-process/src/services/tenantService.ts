@@ -1311,7 +1311,7 @@ export function tenantServiceBuilder(
         }
       );
 
-      const tenantCertifiedAttributeAssignedEvent =
+      const tenantCertifiedAttributesAssignedEvent =
         toCreateEventTenantOnboardDetailsUpdated(
           tenantWithNewAttributes.id,
           existingTenant.metadata.version,
@@ -1339,11 +1339,11 @@ export function tenantServiceBuilder(
         );
 
         await repository.createEvents([
-          tenantCertifiedAttributeAssignedEvent,
+          tenantCertifiedAttributesAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
       } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+        await repository.createEvent(tenantCertifiedAttributesAssignedEvent);
       }
 
       return tenantWithUpdatedKind;
