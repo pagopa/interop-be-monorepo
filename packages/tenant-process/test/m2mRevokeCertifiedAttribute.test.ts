@@ -43,14 +43,15 @@ describe("m2mRevokeCertifiedAttribute", () => {
   });
 
   it("should write on event-store for the revocation of a certified attribute", async () => {
+    const certifierId = generateId();
     const requesterTenant: Tenant = {
       ...getMockTenant(),
-      features: [{ certifierId: generateId(), type: "PersistentCertifier" }],
+      features: [{ certifierId, type: "PersistentCertifier" }],
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
-      origin: requesterTenant.id,
+      origin: certifierId,
       code: generateId(),
     };
     const targetTenant: Tenant = {
@@ -102,14 +103,15 @@ describe("m2mRevokeCertifiedAttribute", () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
   it("should throw tenantNotFound if the requester tenant doesn't exist", async () => {
+    const certifierId = generateId();
     const requesterTenant: Tenant = {
       ...getMockTenant(),
-      features: [{ certifierId: generateId(), type: "PersistentCertifier" }],
+      features: [{ certifierId, type: "PersistentCertifier" }],
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
-      origin: requesterTenant.id,
+      origin: certifierId,
       code: generateId(),
     };
     const targetTenant: Tenant = {
@@ -175,14 +177,15 @@ describe("m2mRevokeCertifiedAttribute", () => {
     ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
   });
   it("should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
+    const certifierId = generateId();
     const requesterTenant: Tenant = {
       ...getMockTenant(),
-      features: [{ certifierId: generateId(), type: "PersistentCertifier" }],
+      features: [{ certifierId, type: "PersistentCertifier" }],
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
-      origin: requesterTenant.id,
+      origin: certifierId,
       code: generateId(),
     };
     const targetTenant: Tenant = {
@@ -216,14 +219,15 @@ describe("m2mRevokeCertifiedAttribute", () => {
     );
   });
   it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+    const certifierId = generateId();
     const requesterTenant: Tenant = {
       ...getMockTenant(),
-      features: [{ certifierId: generateId(), type: "PersistentCertifier" }],
+      features: [{ certifierId, type: "PersistentCertifier" }],
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
-      origin: requesterTenant.id,
+      origin: certifierId,
       code: generateId(),
     };
     const targetTenant: Tenant = {
@@ -254,14 +258,15 @@ describe("m2mRevokeCertifiedAttribute", () => {
     );
   });
   it("should throw attributeNotFoundInTenant if the target tenant doesn't have that attribute", async () => {
+    const certifierId = generateId();
     const requesterTenant: Tenant = {
       ...getMockTenant(),
-      features: [{ certifierId: generateId(), type: "PersistentCertifier" }],
+      features: [{ certifierId, type: "PersistentCertifier" }],
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
-      origin: requesterTenant.id,
+      origin: certifierId,
       code: generateId(),
     };
     const targetTenant: Tenant = {
