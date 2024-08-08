@@ -1186,6 +1186,16 @@ export function tenantServiceBuilder(
           attributesExternalIds
         );
 
+      for (const seedId of attributesExternalIds) {
+        if (
+          !attributesByExternalId.find(
+            (a) => a?.origin === seedId.origin && a?.code === seedId.value
+          )
+        ) {
+          throw attributeNotFound(`${seedId.origin}/${seedId.value}`);
+        }
+      }
+
       const tenantWithNewAttributes = attributesByExternalId.reduce(
         (acc: Tenant, attribute: Attribute) =>
           assignCertifiedAttribute({
