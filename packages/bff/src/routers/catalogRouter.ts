@@ -219,9 +219,26 @@ const catalogRouter = (
       res.status(501).send()
     )
     .put("/eservices/:eServiceId", async (_req, res) => res.status(501).send())
-    .post("/eservices/:eServiceId/riskAnalysis", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.addRiskAnalysisToEService(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/eservices/:eServiceId/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -243,7 +260,25 @@ const catalogRouter = (
     })
     .get(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const riskAnalysis = await catalogService.getEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+
+          return res.status(200).json(riskAnalysis).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",

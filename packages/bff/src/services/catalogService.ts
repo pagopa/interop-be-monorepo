@@ -25,7 +25,10 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  eserviceRiskNotFound,
+} from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
@@ -140,6 +143,20 @@ export const retrieveEserviceDescriptor = (
   }
 
   return descriptor;
+};
+
+const retrieveRiskAnalysis = (
+  eservice: catalogApi.EService,
+  riskAnalysisId: string
+): catalogApi.EServiceRiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra) => ra.id === riskAnalysisId
+  );
+
+  if (!riskAnalysis) {
+    throw eserviceRiskNotFound(eservice.id, riskAnalysisId);
+  }
+  return riskAnalysis;
 };
 
 const getAttributeIds = (
@@ -548,5 +565,39 @@ export function catalogServiceBuilder(
           riskAnalysisId,
         },
       }),
+    addRiskAnalysisToEService: async (
+      eserviceId: EServiceId,
+      riskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.createRiskAnalysis(
+        {
+          name: riskAnalysisSeed.name,
+          riskAnalysisForm: riskAnalysisSeed.riskAnalysisForm,
+        },
+        {
+          headers: context.headers,
+          params: {
+            eServiceId: eserviceId,
+          },
+        }
+      ),
+    getEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceRiskAnalysis> => {
+      const eservice: catalogApi.EService =
+        await catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId: eserviceId,
+          },
+          headers: context.headers,
+        });
+
+      const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
+
+      return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+    },
   };
 }
