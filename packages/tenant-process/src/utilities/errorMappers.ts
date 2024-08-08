@@ -183,7 +183,7 @@ export const maintenanceTenantPromotedToCertifierErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "tenantIsAlreadyACertifier",
-      "certifierIdAlreadyExistsInTenant",
+      "certifierWithExistingAttributes",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

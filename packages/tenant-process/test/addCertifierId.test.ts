@@ -18,7 +18,7 @@ import {
 import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
-  certifierIdAlreadyExistsInTenant,
+  certifierWithExistingAttributes,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -152,7 +152,7 @@ describe("addCertifierId", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      certifierIdAlreadyExistsInTenant(certifierId, certifierTenant.id)
+      certifierWithExistingAttributes(certifierTenant.id, certifierId)
     );
   });
 });

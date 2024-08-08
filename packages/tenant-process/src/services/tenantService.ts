@@ -57,7 +57,7 @@ import {
   attributeAlreadyRevoked,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
-  certifierIdAlreadyExistsInTenant,
+  certifierWithExistingAttributes,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1178,7 +1178,7 @@ export function tenantServiceBuilder(
 
       if (certifierFeature) {
         if (certifierId === certifierFeature.certifierId) {
-          throw certifierIdAlreadyExistsInTenant(certifierId, tenant.data.id);
+          throw certifierWithExistingAttributes(tenant.data.id, certifierId);
         }
 
         const certifiedAttribute =
@@ -1196,7 +1196,9 @@ export function tenantServiceBuilder(
       const updatedTenant: Tenant = {
         ...tenant.data,
         features: [
-          ...tenant.data.features,
+          ...tenant.data.features.filter(
+            (feature) => feature.type !== "PersistentCertifier"
+          ),
           {
             type: "PersistentCertifier",
             certifierId,
