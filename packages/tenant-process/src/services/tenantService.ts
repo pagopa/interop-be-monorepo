@@ -1178,7 +1178,7 @@ export function tenantServiceBuilder(
 
       if (certifierFeature) {
         if (certifierId === certifierFeature.certifierId) {
-          throw certifierWithExistingAttributes(tenant.data.id, certifierId);
+          throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
         }
 
         const certifiedAttribute =
@@ -1186,7 +1186,7 @@ export function tenantServiceBuilder(
             certifierId: certifierFeature.certifierId,
           });
         if (certifiedAttribute) {
-          throw tenantIsAlreadyACertifier(
+          throw certifierWithExistingAttributes(
             tenant.data.id,
             certifierFeature.certifierId
           );
