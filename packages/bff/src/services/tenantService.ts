@@ -32,5 +32,30 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
         },
       };
     },
+    async getProducers(
+      name: string | undefined,
+      offset: number,
+      limit: number,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      const { results, totalCount } =
+        await tenantProcessClient.tenant.getProducers({
+          queries: {
+            name,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: results.map(toBffApiCompactOrganization),
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
+    },
   };
 }

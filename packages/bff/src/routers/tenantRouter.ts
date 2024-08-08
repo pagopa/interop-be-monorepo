@@ -45,7 +45,28 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers", async (_req, res) => res.status(501).send())
+    .get("/producers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await tenantService.getProducers(
+          req.query.q,
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving producers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/tenants/attributes/certified", async (_req, res) =>
       res.status(501).send()
     )
