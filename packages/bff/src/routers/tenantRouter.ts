@@ -20,7 +20,10 @@ const tenantRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const tenantService = tenantServiceBuilder(clients.tenantProcessClient);
+  const tenantService = tenantServiceBuilder(
+    clients.tenantProcessClient,
+    clients.attributeProcessClient
+  );
 
   tenantRouter
     .get("/consumers", async (req, res) => {
@@ -88,9 +91,27 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/tenants/:tenantId/attributes/certified", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/tenants/:tenantId/attributes/certified", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await tenantService.getTenantAttributes(
+          req.params.tenantId,
+          "certified",
+          ctx
+        );
+
+        return res.status(200).json({ attributes: result }).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving certified attributes for tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/tenants/:tenantId/attributes/certified", async (_req, res) =>
       res.status(501).send()
     )
