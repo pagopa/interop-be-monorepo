@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import {
-  attributeRegistryApi,
-  bffApi,
-  catalogApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
   WithLogger,
@@ -94,36 +89,21 @@ const enhanceProducerEService = (
   ),
 });
 
-const getBulkAttributes = async (
+const fetchAttributes = async (
   attributeProcessClient: AttributeProcessClient,
   headers: Headers,
   descriptorAttributeIds: string[]
-) => {
-  // Fetch all attributes in a recursive way
-  const attributesBulk = async (
-    offset: number,
-    result: attributeRegistryApi.Attribute[]
-  ): Promise<attributeRegistryApi.Attribute[]> => {
-    const attributes = await attributeProcessClient.getBulkedAttributes(
-      descriptorAttributeIds,
-      {
+) =>
+  await getAllFromPaginated(
+    async (offset: number) =>
+      await attributeProcessClient.getBulkedAttributes(descriptorAttributeIds, {
         headers,
         queries: {
           limit: 50,
           offset,
         },
-      }
-    );
-
-    if (attributes.totalCount <= 50) {
-      return result.concat(attributes.results);
-    } else {
-      return await attributesBulk(offset + 50, result);
-    }
-  };
-
-  return await attributesBulk(0, []);
-};
+      })
+  );
 
 export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
@@ -152,32 +132,23 @@ const getAttributeIds = (
   ),
 ];
 
-// Fetched all eservice consumers in a recursive way
 export const fetchAllEserviceConsumers = async (
   catalogProcessClient: CatalogProcessClient,
   headers: Headers,
   eServiceId: EServiceId
 ): Promise<catalogApi.EServiceConsumer[]> =>
   await getAllFromPaginated(async (offset: number) =>
-    getEserviceFrom(catalogProcessClient, eServiceId, offset, headers)
+    catalogProcessClient.getEServiceConsumers({
+      headers,
+      params: {
+        eServiceId,
+      },
+      queries: {
+        offset,
+        limit: 50,
+      },
+    })
   );
-
-export const getEserviceFrom = async (
-  catalogProcessClient: CatalogProcessClient,
-  eserviceId: EServiceId,
-  offset: number,
-  headers: Headers
-): Promise<catalogApi.EServiceConsumers> =>
-  await catalogProcessClient.getEServiceConsumers({
-    headers,
-    params: {
-      eServiceId: eserviceId,
-    },
-    queries: {
-      offset,
-      limit: 50,
-    },
-  });
 
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
@@ -246,7 +217,7 @@ export function catalogServiceBuilder(
 
       const descriptorAttributeIds = getAttributeIds(descriptor);
 
-      const attributes = await getBulkAttributes(
+      const attributes = await fetchAttributes(
         attributeProcessClient,
         headers,
         descriptorAttributeIds
@@ -419,7 +390,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
-      const attributes = await getBulkAttributes(
+      const attributes = await fetchAttributes(
         attributeProcessClient,
         headers,
         attributeIds
