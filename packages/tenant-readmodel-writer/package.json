@@ -6,6 +6,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
+    "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -20,9 +21,11 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
+    "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "vitest": "1.6.0"
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
