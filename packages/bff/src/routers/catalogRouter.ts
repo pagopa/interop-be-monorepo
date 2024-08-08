@@ -274,7 +274,8 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger
+            ctx.logger,
+            `Error retrieving risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -296,7 +297,8 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger
+            ctx.logger,
+            `Error updating risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -317,7 +319,8 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger
+            ctx.logger,
+            `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
