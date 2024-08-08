@@ -4,9 +4,14 @@ export type KeyV1Notification = Omit<KeyV1, "use"> & {
   use: string;
 };
 
+export type KeyPayloadNotification = {
+  kid: string;
+  key: KeyV1Notification;
+};
+
 export type KeysAddedNotification = {
   clientId: string;
-  keys: KeyV1Notification[];
+  keys: KeyPayloadNotification;
 };
 
 export type KeyDeletedNotification = {

@@ -29,7 +29,10 @@ export const toAuthorizationEventNotification = (
       const keyV2 = fromKeyV2(key);
       return {
         clientId: event.data.client.id,
-        keys: [toKeyV1Notification(keyV2)],
+        keys: {
+          kid: keyV2.kid,
+          key: toKeyV1Notification(keyV2),
+        },
       };
     })
     .with({ type: "ClientKeyDeleted" }, (event): KeyDeletedNotification => {
