@@ -56,7 +56,28 @@ const catalogRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers/eservices", async (_req, res) => res.status(501).send())
+    .get("/producers/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getProducerEServices(
+          req.query.q,
+          req.query.consumersIds,
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          "Error retrieving Producer EServices"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/producers/eservices/:eserviceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -69,7 +90,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving producer eservice ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -99,7 +121,26 @@ const catalogRouter = (
     )
     .get(
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const response = await catalogService.getCatalogEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.status(200).json(response).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error retrieving descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId} from catalog`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post("/eservices", async (_req, res) => res.status(501).send())
     .get("/eservices/:eServiceId/consumers", async (_req, res) =>
@@ -163,7 +204,7 @@ const catalogRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceDescription(
-          ctx.headers,
+          ctx,
           unsafeBrandId(req.params.eServiceId),
           req.body
         );

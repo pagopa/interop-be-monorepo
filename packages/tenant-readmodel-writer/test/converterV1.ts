@@ -94,6 +94,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
 
 export function toTenantMailV1(mail: TenantMail): TenantMailV1 {
   return {
+    id: mail.id ?? undefined,
     kind: toTenantMailKindV1(mail.kind),
     address: mail.address,
     createdAt: dateToBigInt(mail.createdAt),
