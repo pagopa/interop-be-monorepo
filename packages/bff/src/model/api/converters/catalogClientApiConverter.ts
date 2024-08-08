@@ -10,7 +10,17 @@ import {
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { attributeNotExists } from "../../domain/errors.js";
-import { getTenantEmail, isUpgradable } from "../../modelMappingUtils.js";
+import {
+  getLatestActiveDescriptor,
+  getNotDraftDescriptor,
+  getTenantEmail,
+} from "../../modelMappingUtils.js";
+import {
+  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
+  isRequesterEserviceProducer,
+  isAgreementSubscribed,
+  isAgreementUpgradable,
+} from "../../validators.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -26,7 +36,7 @@ export function toEserviceCatalogProcessQueryParams(
 export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
-  hasCertifiedAttributes: boolean,
+  requesterTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
@@ -40,7 +50,11 @@ export function toBffCatalogApiEService(
       name: producerTenant.name,
     },
     isMine: isRequesterEqProducer,
-    hasCertifiedAttributes,
+    hasCertifiedAttributes:
+      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+        activeDescriptor,
+        requesterTenant
+      ),
   };
 
   return {
@@ -60,10 +74,62 @@ export function toBffCatalogApiEService(
           agreement: {
             id: agreement.id,
             state: agreement.state,
-            canBeUpgraded: isUpgradable(eservice, agreement),
+            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
           },
         }
       : {}),
+  };
+}
+
+export function toBffCompactOrganization(
+  tenant: tenantApi.Tenant
+): bffApi.CompactOrganization {
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    kind: tenant.kind,
+  };
+}
+
+export function toBffCompactAgreement(
+  agreement: agreementApi.Agreement,
+  eservice: catalogApi.EService
+): bffApi.CompactAgreement {
+  return {
+    id: agreement.id,
+    state: agreement.state,
+    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+  };
+}
+
+export function toBffCatalogDescriptorEService(
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor,
+  producerTenant: tenantApi.Tenant,
+  agreement: agreementApi.Agreement | undefined,
+  requesterTenant: tenantApi.Tenant
+): bffApi.CatalogDescriptorEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: toBffCompactOrganization(producerTenant),
+    description: eservice.description,
+    technology: eservice.technology,
+    descriptors: getNotDraftDescriptor(eservice),
+    agreement: agreement && toBffCompactAgreement(agreement, eservice),
+    isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
+    hasCertifiedAttributes:
+      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+        descriptor,
+        requesterTenant
+      ),
+    isSubscribed: isAgreementSubscribed(agreement),
+    activeDescriptor: getLatestActiveDescriptor(eservice),
+    mail: getTenantEmail(producerTenant),
+    mode: eservice.mode,
+    riskAnalysis: eservice.riskAnalysis.map(
+      toBffCatalogApiEserviceRiskAnalysis
+    ),
   };
 }
 

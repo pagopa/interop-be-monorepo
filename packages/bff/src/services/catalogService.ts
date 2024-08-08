@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import {
-  agreementApi,
   attributeRegistryApi,
   bffApi,
   catalogApi,
@@ -15,14 +14,12 @@ import {
   toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiProducerDescriptorEService,
+  toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
-import {
-  assertRequesterIsProducer,
-  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
-} from "../model/validators.js";
+import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -70,17 +67,11 @@ const enhanceCatalogEService =
     );
 
     const isRequesterEqProducer = requesterId === eservice.producerId;
-    const hasCertifiedAttributes =
-      latestActiveDescriptor !== undefined &&
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        latestActiveDescriptor,
-        requesterTenant
-      );
 
     return toBffCatalogApiEService(
       eservice,
       producerTenant,
-      hasCertifiedAttributes,
+      requesterTenant,
       isRequesterEqProducer,
       latestActiveDescriptor,
       latestAgreement
@@ -315,7 +306,7 @@ export function catalogServiceBuilder(
       { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
       const producerId = authData.organizationId;
-      const response: {
+      const res: {
         results: catalogApi.EService[];
         totalCount: number;
       } = {
@@ -336,44 +327,31 @@ export function catalogServiceBuilder(
           }
         );
 
-        response.results = results;
-        response.totalCount = totalCount;
+        res.results = results;
+        res.totalCount = totalCount;
       } else {
-        const eserviceIds: Set<string> = new Set<string>(
-          (
-            await getAllFromPaginated(async (offset: number, limit: number) =>
-              agreementProcessClient.getAgreements({
-                headers,
-                queries: {
-                  consumersIds,
-                  producersIds: [producerId],
-                  eservicesIds: [],
-                  states: [],
-                  offset,
-                  limit,
-                },
-              })
-            )
-          ).map((agreement: agreementApi.Agreement) => agreement.eserviceId)
-        );
-
-        if (eserviceIds.size === 0) {
-          return {
-            results: [],
-            pagination: {
-              offset,
-              limit,
-              totalCount: 0,
-            },
-          };
-        }
+        const eserviceIds = (
+          await getAllFromPaginated(async (offset: number, limit: number) =>
+            agreementProcessClient.getAgreements({
+              headers,
+              queries: {
+                consumersIds,
+                producersIds: [producerId],
+                eservicesIds: [],
+                states: [],
+                offset,
+                limit,
+              },
+            })
+          )
+        ).map((agreement) => agreement.eserviceId);
 
         const { results, totalCount } = await catalogProcessClient.getEServices(
           {
             headers,
             queries: {
               name: eserviceName,
-              eservicesIds: Array.from(eserviceIds),
+              eservicesIds: eserviceIds,
               producersIds: producerId,
               offset,
               limit,
@@ -381,17 +359,91 @@ export function catalogServiceBuilder(
           }
         );
 
-        response.results = results;
-        response.totalCount = totalCount;
+        res.results = results;
+        res.totalCount = totalCount;
       }
 
       return {
-        results: response.results.map(enhanceProducerEService),
+        results: res.results.map(enhanceProducerEService),
         pagination: {
           offset,
           limit,
-          totalCount: response.totalCount,
+          totalCount: res.totalCount,
         },
+      };
+    },
+    getCatalogEServiceDescriptor: async (
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { authData, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogEServiceDescriptor> => {
+      const requesterId = authData.organizationId;
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers,
+      });
+
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+      const attributeIds = getAttributeIds(descriptor);
+      const attributes = await getBulkAttributes(
+        attributeProcessClient,
+        headers,
+        attributeIds
+      );
+
+      const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
+        attributes,
+        descriptor
+      );
+
+      const requesterTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: requesterId,
+        },
+      });
+      const producerTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+      const agreement = await getLatestAgreement(
+        agreementProcessClient,
+        requesterId,
+        eservice,
+        headers
+      );
+
+      return {
+        id: descriptor.id,
+        version: descriptor.version,
+        description: descriptor.description,
+        state: descriptor.state,
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+        attributes: descriptorAttributes,
+        publishedAt: descriptor.publishedAt,
+        suspendedAt: descriptor.suspendedAt,
+        deprecatedAt: descriptor.deprecatedAt,
+        archivedAt: descriptor.archivedAt,
+        interface:
+          descriptor.interface &&
+          toBffCatalogApiDescriptorDoc(descriptor.interface),
+        docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
+        eservice: toBffCatalogDescriptorEService(
+          eservice,
+          descriptor,
+          producerTenant,
+          agreement,
+          requesterTenant
+        ),
       };
     },
   };
