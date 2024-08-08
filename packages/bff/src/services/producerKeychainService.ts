@@ -2,10 +2,6 @@
 
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 
-export type ProducerKeychainService = ReturnType<
-  typeof producerKeychainServiceBuilder
->;
-
 export function producerKeychainServiceBuilder(
   _apiClients: PagoPAInteropBeClients
 ) {
@@ -13,3 +9,7 @@ export function producerKeychainServiceBuilder(
 
   return {};
 }
+
+export type ProducerKeychainService = ReturnType<
+  typeof producerKeychainServiceBuilder
+>;
