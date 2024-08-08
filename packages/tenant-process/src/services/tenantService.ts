@@ -55,6 +55,7 @@ import {
   attributeAlreadyRevoked,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
+  tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1220,6 +1221,111 @@ export function tenantServiceBuilder(
         readModelService,
         tenantWithNewAttributes.attributes,
         internalTenantSeed.externalId
+      );
+
+      const tenantWithUpdatedKind: Tenant = {
+        ...tenantWithNewAttributes,
+        kind: tenantKind,
+      };
+
+      if (existingTenant.data.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          existingTenant.metadata.version + 1,
+          tenantKind,
+          tenantWithUpdatedKind,
+          correlationId
+        );
+
+        await repository.createEvents([
+          tenantCertifiedAttributeAssignedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+      }
+
+      return tenantWithUpdatedKind;
+    },
+
+    async m2mUpsertTenant(
+      m2mTenantSeed: tenantApi.M2MTenantSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Tenant> {
+      logger.info(
+        `Updating tenant with external id ${m2mTenantSeed.externalId} via m2m request`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const maybeCertifier = requesterTenant.data.features.find(
+        (feature) => feature.certifierId !== undefined
+      );
+
+      if (!maybeCertifier) {
+        throw tenantIsNotACertifier(requesterTenant.data.id);
+      }
+
+      const existingTenant = await readModelService.getTenantByExternalId(
+        m2mTenantSeed.externalId
+      );
+
+      assertTenantExists(
+        unsafeBrandId(
+          `${m2mTenantSeed.externalId.origin}/${m2mTenantSeed.externalId.value}`
+        ),
+        existingTenant
+      );
+
+      const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
+        (externalId) =>
+          ExternalId.parse({
+            value: externalId.code,
+            origin: maybeCertifier.certifierId,
+          })
+      );
+
+      const attributesByExternalId =
+        await readModelService.getAttributesByExternalIds(
+          attributesExternalIds
+        );
+
+      for (const seedId of attributesExternalIds) {
+        if (
+          !attributesByExternalId.find(
+            (a) => a?.origin === seedId.origin && a?.code === seedId.value
+          )
+        ) {
+          throw attributeNotFound(`${seedId.origin}/${seedId.value}`);
+        }
+      }
+
+      const tenantWithNewAttributes = attributesByExternalId.reduce(
+        (accumulator: Tenant, attribute: Attribute) =>
+          assignCertifiedAttribute({
+            targetTenant: accumulator,
+            attribute,
+          }),
+        {
+          ...existingTenant.data,
+          updatedAt: new Date(),
+        }
+      );
+
+      const tenantCertifiedAttributeAssignedEvent =
+        toCreateEventTenantOnboardDetailsUpdated(
+          tenantWithNewAttributes.id,
+          existingTenant.metadata.version,
+          tenantWithNewAttributes,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttributes.attributes,
+        m2mTenantSeed.externalId
       );
 
       const tenantWithUpdatedKind: Tenant = {

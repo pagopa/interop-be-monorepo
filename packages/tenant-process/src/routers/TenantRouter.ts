@@ -39,6 +39,7 @@ import {
   internalRevokeCertifiedAttributeErrorMapper,
   revokeDeclaredAttributeErrorMapper,
   internalUpsertTenantErrorMapper,
+  m2mUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -431,7 +432,20 @@ const tenantsRouter = (
     .post(
       "/m2m/tenants",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.m2mUpsertTenant(req.body, ctx);
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            m2mUpsertTenantErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
