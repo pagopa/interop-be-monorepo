@@ -10403,7 +10403,7 @@ paths:
       operationId: getProducerKeychains
       parameters:
         - in: query
-          name: name
+          name: q
           description: Filter for the producer keychain name
           schema:
             type: string
