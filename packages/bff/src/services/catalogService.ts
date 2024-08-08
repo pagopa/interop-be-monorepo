@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
 import {
+  agreementApi,
   attributeRegistryApi,
   bffApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -28,6 +30,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -83,6 +86,18 @@ const enhanceCatalogEService =
       latestAgreement
     );
   };
+
+const enhanceProducerEService = (
+  eservice: catalogApi.EService
+): bffApi.ProducerEService => ({
+  id: eservice.id,
+  name: eservice.name,
+  mode: eservice.mode,
+  activeDescriptor: getLatestActiveDescriptor(eservice),
+  draftDescriptor: eservice.descriptors.find(
+    (d) => d.state === catalogApiDescriptorState.DRAFT
+  ),
+});
 
 const getBulkAttributes = async (
   attributeProcessClient: AttributeProcessClient,
@@ -150,14 +165,14 @@ export function catalogServiceBuilder(
 ) {
   return {
     getCatalog: async (
-      context: WithLogger<BffAppContext>,
+      { headers, authData }: WithLogger<BffAppContext>,
       queries: catalogApi.GetCatalogQueryParam
     ): Promise<bffApi.CatalogEServices> => {
-      const requesterId = context.authData.organizationId;
+      const requesterId = authData.organizationId;
       const { offset, limit } = queries;
       const eservicesResponse: catalogApi.EServices =
         await catalogProcessClient.getEServices({
-          headers: context.headers,
+          headers,
           queries: {
             ...queries,
             eservicesIds: queries.eservicesIds,
@@ -173,7 +188,7 @@ export function catalogServiceBuilder(
           enhanceCatalogEService(
             tenantProcessClient,
             agreementProcessClient,
-            context.headers,
+            headers,
             requesterId
           )
         )
@@ -191,10 +206,9 @@ export function catalogServiceBuilder(
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      context: WithLogger<BffAppContext>
+      { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
+      const requesterId = authData.organizationId;
 
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
@@ -251,10 +265,9 @@ export function catalogServiceBuilder(
     },
     getProducerEServiceDetails: async (
       eServiceId: string,
-      context: WithLogger<BffAppContext>
+      { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDetails> => {
-      const requesterId = context.authData.organizationId;
-      const headers = context.headers;
+      const requesterId = authData.organizationId;
 
       const eservice: catalogApi.EService =
         await catalogProcessClient.getEServiceById({
@@ -278,7 +291,7 @@ export function catalogServiceBuilder(
       };
     },
     updateEServiceDescription: async (
-      headers: Headers,
+      { headers }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
       updateSeed: bffApi.EServiceDescriptionSeed
     ): Promise<bffApi.CreatedResource> => {
@@ -292,6 +305,93 @@ export function catalogServiceBuilder(
 
       return {
         id: updatedEservice.id,
+      };
+    },
+    getProducerEServices: async (
+      eserviceName: string | undefined,
+      consumersIds: string[],
+      offset: number,
+      limit: number,
+      { headers, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServices> => {
+      const producerId = authData.organizationId;
+      const response: {
+        results: catalogApi.EService[];
+        totalCount: number;
+      } = {
+        results: [],
+        totalCount: 0,
+      };
+
+      if (consumersIds.length === 0) {
+        const { results, totalCount } = await catalogProcessClient.getEServices(
+          {
+            headers,
+            queries: {
+              name: eserviceName,
+              producersIds: producerId,
+              offset,
+              limit,
+            },
+          }
+        );
+
+        response.results = results;
+        response.totalCount = totalCount;
+      } else {
+        const eserviceIds: Set<string> = new Set<string>(
+          (
+            await getAllFromPaginated(async (offset: number, limit: number) =>
+              agreementProcessClient.getAgreements({
+                headers,
+                queries: {
+                  consumersIds,
+                  producersIds: [producerId],
+                  eservicesIds: [],
+                  states: [],
+                  offset,
+                  limit,
+                },
+              })
+            )
+          ).map((agreement: agreementApi.Agreement) => agreement.eserviceId)
+        );
+
+        if (eserviceIds.size === 0) {
+          return {
+            results: [],
+            pagination: {
+              offset,
+              limit,
+              totalCount: 0,
+            },
+          };
+        }
+
+        const { results, totalCount } = await catalogProcessClient.getEServices(
+          {
+            headers,
+            queries: {
+              name: eserviceName,
+              eservicesIds: Array.from(eserviceIds),
+              producersIds: producerId,
+              offset,
+              limit,
+            },
+          }
+        );
+
+        response.results = results;
+        response.totalCount = totalCount;
+      }
+
+      return {
+        results: response.results.map(enhanceProducerEService),
+        pagination: {
+          offset,
+          limit,
+          totalCount: response.totalCount,
+        },
       };
     },
   };
