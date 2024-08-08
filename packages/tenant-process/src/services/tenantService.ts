@@ -1244,19 +1244,45 @@ export function tenantServiceBuilder(
         );
       }
 
-      const updatedTenant = await revokeCertifiedAttribute(
+      const tenantWithAttributeRevoked = await revokeCertifiedAttribute(
         targetTenant.data,
         attributeToRevoke.id
       );
 
-      await repository.createEvent(
+      const attributeAssignmentEvent =
         toCreateEventTenantCertifiedAttributeRevoked(
           targetTenant.metadata.version,
-          updatedTenant,
+          tenantWithAttributeRevoked,
           attributeToRevoke.id,
           correlationId
-        )
+        );
+
+      const updatedTenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithAttributeRevoked.attributes,
+        tenantWithAttributeRevoked.externalId
       );
+
+      if (updatedTenantKind !== tenantWithAttributeRevoked.kind) {
+        const tenantWithUpdatedKind: Tenant = {
+          ...tenantWithAttributeRevoked,
+          kind: updatedTenantKind,
+        };
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          tenantWithAttributeRevoked.kind!,
+          tenantWithUpdatedKind,
+          correlationId
+        );
+
+        await repository.createEvents([
+          attributeAssignmentEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(attributeAssignmentEvent);
+      }
     },
   };
 }
