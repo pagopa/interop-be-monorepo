@@ -162,7 +162,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error getting consumers of eservice ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
