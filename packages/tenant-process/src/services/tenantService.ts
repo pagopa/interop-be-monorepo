@@ -1187,12 +1187,15 @@ export function tenantServiceBuilder(
         );
 
       const tenantWithNewAttributes = attributesByExternalId.reduce(
-        (acc, attribute) =>
+        (acc: Tenant, attribute: Attribute) =>
           assignCertifiedAttribute({
             targetTenant: acc,
             attribute,
           }),
-        existingTenant.data
+        {
+          ...existingTenant.data,
+          updatedAt: new Date(),
+        }
       );
 
       const tenantCertifiedAttributeAssignedEvent =
