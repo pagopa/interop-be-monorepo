@@ -78,7 +78,7 @@ const enhanceCatalogEService =
     );
   };
 
-const enhanceProducesEService = (
+const enhanceProducerEService = (
   eservice: catalogApi.EService
 ): bffApi.ProducerEService => ({
   id: eservice.id,
@@ -121,7 +121,7 @@ const getBulkAttributes = async (
   return await attributesBulk(0, []);
 };
 
-const retrieveEserviceDescriptor = (
+export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
   descriptorId: DescriptorId
 ): catalogApi.EServiceDescriptor => {
@@ -364,7 +364,7 @@ export function catalogServiceBuilder(
       }
 
       return {
-        results: res.results.map(enhanceProducesEService),
+        results: res.results.map(enhanceProducerEService),
         pagination: {
           offset,
           limit,
