@@ -1282,31 +1282,31 @@ export function tenantServiceBuilder(
 
       const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
         (externalId) =>
-          ExternalId.parse({
+          ({
             value: externalId.code,
             origin: certifierId,
-          })
+          } satisfies ExternalId)
       );
 
-      const attributesByExternalId =
+      const existingAttributes =
         await readModelService.getAttributesByExternalIds(
           attributesExternalIds
         );
 
-      for (const attributeToAssign of attributesExternalIds) {
+      attributesExternalIds.forEach((attributeToAssign) => {
         if (
-          !attributesByExternalId.find(
-            (a) =>
-              a?.origin === attributeToAssign.origin &&
-              a?.code === attributeToAssign.value
+          !existingAttributes.some(
+            (attr) =>
+              attr?.origin === attributeToAssign.origin &&
+              attr?.code === attributeToAssign.value
           )
         ) {
           throw attributeNotFound(
             `${attributeToAssign.origin}/${attributeToAssign.value}`
           );
         }
-      }
-      const tenantWithNewAttributes = attributesByExternalId.reduce(
+      });
+      const tenantWithNewAttributes = existingAttributes.reduce(
         (accumulator: Tenant, attribute: Attribute) =>
           assignCertifiedAttribute({
             targetTenant: accumulator,
