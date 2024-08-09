@@ -100,7 +100,7 @@ export const toCreateEventTenantCertifiedAttributeAssigned = (
 
 export const toCreateEventTenantKindUpdated = (
   version: number,
-  oldKind: TenantKind,
+  oldKind: TenantKind | undefined,
   updatedTenant: Tenant,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
@@ -110,7 +110,7 @@ export const toCreateEventTenantKindUpdated = (
     type: "TenantKindUpdated",
     event_version: 2,
     data: {
-      oldKind: toTenantKindV2(oldKind),
+      oldKind: oldKind ? toTenantKindV2(oldKind) : undefined,
       tenant: toTenantV2(updatedTenant),
     },
   },
