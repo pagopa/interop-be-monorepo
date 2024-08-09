@@ -183,3 +183,15 @@ export const internalUpsertTenantErrorMapper = (
     .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceTenantPromotedToCertifierErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantIsAlreadyACertifier",
+      "certifierWithExistingAttributes",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

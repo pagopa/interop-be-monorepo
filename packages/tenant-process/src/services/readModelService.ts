@@ -489,6 +489,17 @@ export function readModelServiceBuilder(
         ),
       };
     },
+
+    async getOneCertifiedAttributeByCertifier({
+      certifierId,
+    }: {
+      certifierId: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.kind": attributeKind.certified,
+        "data.origin": certifierId,
+      });
+    },
   };
 }
 
