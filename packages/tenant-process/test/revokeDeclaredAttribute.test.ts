@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
