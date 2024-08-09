@@ -23,7 +23,7 @@
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
     "@types/uuid": "9.0.8",
-    "openapi-endpoint-trimmer": "2.0.0",
+    "openapi-endpoint-trimmer": "2.0.1",
     "openapi-zod-client": "1.18.1",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
