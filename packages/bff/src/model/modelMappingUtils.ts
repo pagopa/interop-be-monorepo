@@ -1,13 +1,5 @@
-import {
-  agreementApi,
-  catalogApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
-import {
-  agreementApiState,
-  catalogApiDescriptorState,
-} from "./api/apiTypes.js";
-import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "./validators.js";
+import { catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import { catalogApiDescriptorState } from "./api/apiTypes.js";
 
 /* 
   This file contains commons utility functions 
@@ -18,12 +10,6 @@ const activeDescriptorStatesFilter: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.PUBLISHED,
   catalogApiDescriptorState.SUSPENDED,
   catalogApiDescriptorState.DEPRECATED,
-];
-
-const subscribedAgreementStates: agreementApi.AgreementState[] = [
-  agreementApiState.PENDING,
-  agreementApiState.ACTIVE,
-  agreementApiState.SUSPENDED,
 ];
 
 export function getLatestActiveDescriptor(
@@ -48,46 +34,5 @@ export function getTenantEmail(
 ): tenantApi.Mail | undefined {
   return tenant.mails.find(
     (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-  );
-}
-
-export function isAgreementUpgradable(
-  eservice: catalogApi.EService,
-  agreement: agreementApi.Agreement
-): boolean {
-  const eserviceDescriptor = eservice.descriptors.find(
-    (e) => e.id === agreement.descriptorId
-  );
-
-  return (
-    eserviceDescriptor !== undefined &&
-    eservice.descriptors
-      .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
-      .find(
-        (d) =>
-          (d.state === catalogApiDescriptorState.PUBLISHED ||
-            d.state === catalogApiDescriptorState.SUSPENDED) &&
-          (agreement.state === agreementApiState.ACTIVE ||
-            agreement.state === agreementApiState.SUSPENDED)
-      ) !== undefined
-  );
-}
-
-export function isAgreementSubscribed(
-  agreement: agreementApi.Agreement | undefined
-): boolean {
-  return !!agreement && subscribedAgreementStates.includes(agreement.state);
-}
-
-export function hasCertifiedAttributes(
-  descriptor: catalogApi.EServiceDescriptor | undefined,
-  requesterTenant: tenantApi.Tenant
-): boolean {
-  return (
-    descriptor !== undefined &&
-    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-      descriptor,
-      requesterTenant
-    )
   );
 }

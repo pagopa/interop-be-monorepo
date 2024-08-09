@@ -14,12 +14,12 @@ import {
   getLatestActiveDescriptor,
   getNotDraftDescriptor,
   getTenantEmail,
-  isAgreementSubscribed,
-  isAgreementUpgradable,
 } from "../../modelMappingUtils.js";
 import {
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
   isRequesterEserviceProducer,
+  isAgreementSubscribed,
+  isAgreementUpgradable,
 } from "../../validators.js";
 import { catalogApiDescriptorState } from "../apiTypes.js";
 
