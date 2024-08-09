@@ -12,7 +12,7 @@ import {
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
@@ -45,27 +45,14 @@ async function processMessage({
     .with(
       {
         event_version: 2,
-        type: "TenantCertifiedAttributeRevoked",
-      },
-      {
-        event_version: 2,
-        type: "TenantCertifiedAttributeAssigned",
-      },
-      {
-        event_version: 2,
-        type: "TenantDeclaredAttributeAssigned",
-      },
-      {
-        event_version: 2,
-        type: "TenantDeclaredAttributeRevoked",
-      },
-      {
-        event_version: 2,
-        type: "TenantVerifiedAttributeAssigned",
-      },
-      {
-        event_version: 2,
-        type: "TenantVerifiedAttributeRevoked",
+        type: P.union(
+          "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedAttributeAssigned",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantVerifiedAttributeAssigned",
+          "TenantVerifiedAttributeRevoked"
+        ),
       },
       async ({ data: { tenant, attributeId } }) => {
         if (tenant) {
@@ -91,7 +78,24 @@ async function processMessage({
         }
       }
     )
-    .otherwise(() => undefined);
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "TenantOnboarded",
+          "TenantOnboardDetailsUpdated",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "TenantKindUpdated",
+          "MaintenanceTenantDeleted",
+          "TenantMailDeleted",
+          "TenantMailAdded"
+        ),
+      },
+      () => Promise.resolve()
+    )
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .exhaustive();
 }
 
 await runConsumer(config, [config.tenantTopic], processMessage);
