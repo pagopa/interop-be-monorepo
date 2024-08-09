@@ -25,6 +25,9 @@ import {
   AttributeReadmodel,
   TenantId,
   genericInternalError,
+  EServiceReadModel,
+  AgreementReadModel,
+  DescriptorReadModel,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -301,94 +304,62 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const aggregationPipeline = [
-        getAgreementsFilters(filters),
-        {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservices",
-          },
-        },
-        {
-          $unwind: "$eservices",
-        },
-        ...(filters.showOnlyUpgradeable
-          ? [
-              {
-                $addFields: {
-                  currentDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "descr",
-                      cond: {
-                        $eq: ["$$descr.id", "$data.descriptorId"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $unwind: "$currentDescriptor",
-              },
-              {
-                $addFields: {
-                  upgradableDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "upgradable",
-                      cond: {
-                        $and: [
-                          {
-                            $gt: [
-                              "$$upgradable.publishedAt",
-                              "$currentDescriptor.publishedAt",
-                            ],
-                          },
-                          {
-                            $in: [
-                              "$$upgradable.state",
-                              [
-                                descriptorState.published,
-                                descriptorState.suspended,
-                              ],
-                            ],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $match: {
-                  upgradableDescriptor: { $ne: [] },
-                },
-              },
-            ]
-          : []),
-        {
-          $project: {
-            data: 1,
-            eservices: 1,
-            lowerName: { $toLower: "$eservices.data.name" },
-          },
-        },
-        {
-          $sort: { lowerName: 1 },
-        },
-      ];
-
-      const data = await agreements
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+      const agreementsData = await agreements
+        .aggregate([getAgreementsFilters(filters)])
         .toArray();
 
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+      const eserviceIds = agreementsData.map(
+        (agreement) => agreement.data.eserviceId
+      );
+
+      const eservicesData = await eservices
+        .find({ "data.id": { $in: eserviceIds } })
+        .toArray();
+
+      const eservicesMap = new Map(
+        eservicesData.map((eservice) => [eservice.data.id, eservice.data])
+      );
+
+      const combinedData: Array<{
+        agreement: AgreementReadModel;
+        eservice: EServiceReadModel;
+      }> = agreementsData.flatMap((agreement) => {
+        const eservice = eservicesMap.get(agreement.data.eserviceId);
+        return eservice ? [{ agreement: agreement.data, eservice }] : [];
+      });
+
+      const filteredData = filters.showOnlyUpgradeable
+        ? combinedData.filter((cb) => {
+            const currentDescriptor = cb.eservice.descriptors.find(
+              (descr) => descr.id === cb.agreement.descriptorId
+            );
+            const upgradableDescriptor = cb.eservice.descriptors.filter(
+              (upgradable: DescriptorReadModel) => {
+                // Since the dates are optional, if they are undefined they are set to a very old date
+                const currentPublishedAt =
+                  currentDescriptor?.publishedAt ?? new Date(0);
+                const upgradablePublishedAt =
+                  upgradable.publishedAt ?? new Date(0);
+                return (
+                  upgradablePublishedAt > currentPublishedAt &&
+                  (upgradable.state === descriptorState.published ||
+                    upgradable.state === descriptorState.suspended)
+                );
+              }
+            );
+            return upgradableDescriptor.length > 0;
+          })
+        : combinedData;
+
+      const data = filteredData
+        .slice(offset, offset + limit)
+        .sort((a, b) =>
+          a.eservice.name
+            .toLowerCase()
+            .localeCompare(b.eservice.name.toLowerCase())
+        );
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.agreement));
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
@@ -396,14 +367,9 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
       }
-
       return {
         results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          aggregationPipeline,
-          false
-        ),
+        totalCount: filteredData.length,
       };
     },
     async getAgreementById(
