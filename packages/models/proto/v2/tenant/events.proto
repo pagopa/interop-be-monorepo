@@ -63,7 +63,7 @@ message TenantMailAddedV2 {
 }
 
 message TenantKindUpdatedV2 {
-  TenantKindV2 oldKind = 1;
+  optional TenantKindV2 oldKind = 1;
   TenantV2 tenant = 2;
 }
   message TenantMailDeletedV2 {
