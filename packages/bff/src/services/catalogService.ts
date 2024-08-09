@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  attributeRegistryApi,
-  bffApi,
-  catalogApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+  getAllFromPaginated,
+  WithLogger,
+  formatDateyyyyMMddThhmmss,
+} from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -90,36 +89,21 @@ const enhanceProducerEService = (
   ),
 });
 
-const getBulkAttributes = async (
+const fetchAttributes = async (
   attributeProcessClient: AttributeProcessClient,
   headers: Headers,
   descriptorAttributeIds: string[]
-) => {
-  // Fetch all attributes in a recursive way
-  const attributesBulk = async (
-    offset: number,
-    result: attributeRegistryApi.Attribute[]
-  ): Promise<attributeRegistryApi.Attribute[]> => {
-    const attributes = await attributeProcessClient.getBulkedAttributes(
-      descriptorAttributeIds,
-      {
+) =>
+  await getAllFromPaginated(
+    async (offset: number) =>
+      await attributeProcessClient.getBulkedAttributes(descriptorAttributeIds, {
         headers,
         queries: {
           limit: 50,
           offset,
         },
-      }
-    );
-
-    if (attributes.totalCount <= 50) {
-      return result.concat(attributes.results);
-    } else {
-      return await attributesBulk(offset + 50, result);
-    }
-  };
-
-  return await attributesBulk(0, []);
-};
+      })
+  );
 
 export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
@@ -147,6 +131,24 @@ const getAttributeIds = (
     atts.map((att) => att.id)
   ),
 ];
+
+export const fetchAllEserviceConsumers = async (
+  catalogProcessClient: CatalogProcessClient,
+  headers: Headers,
+  eServiceId: EServiceId
+): Promise<catalogApi.EServiceConsumer[]> =>
+  await getAllFromPaginated(async (offset: number) =>
+    catalogProcessClient.getEServiceConsumers({
+      headers,
+      params: {
+        eServiceId,
+      },
+      queries: {
+        offset,
+        limit: 50,
+      },
+    })
+  );
 
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
@@ -215,7 +217,7 @@ export function catalogServiceBuilder(
 
       const descriptorAttributeIds = getAttributeIds(descriptor);
 
-      const attributes = await getBulkAttributes(
+      const attributes = await fetchAttributes(
         attributeProcessClient,
         headers,
         descriptorAttributeIds
@@ -388,7 +390,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
-      const attributes = await getBulkAttributes(
+      const attributes = await fetchAttributes(
         attributeProcessClient,
         headers,
         attributeIds
@@ -444,6 +446,48 @@ export function catalogServiceBuilder(
           agreement,
           requesterTenant
         ),
+      };
+    },
+    getEServiceConsumers: async (
+      eserviceId: EServiceId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<{
+      filename: string;
+      file: Buffer;
+    }> => {
+      const eservice = await catalogProcessClient.getEServiceById({
+        params: {
+          eServiceId: eserviceId,
+        },
+        headers,
+      });
+
+      const consumers = await fetchAllEserviceConsumers(
+        catalogProcessClient,
+        headers,
+        eserviceId
+      );
+
+      const currentDate = formatDateyyyyMMddThhmmss(new Date());
+      const filename = `${currentDate}-lista-fruitori-${eservice.name}.csv`;
+
+      const buildCsv = (consumers: catalogApi.EServiceConsumer[]): string =>
+        [
+          "versione,stato_versione,stato_richiesta_fruizione,fruitore,codice_ipa_fruitore",
+          ...consumers.map((c) =>
+            [
+              c.descriptorVersion,
+              c.descriptorState,
+              c.agreementState,
+              c.consumerName,
+              c.consumerExternalId,
+            ].join(",")
+          ),
+        ].join("\n");
+
+      return {
+        filename,
+        file: Buffer.from(buildCsv(consumers)),
       };
     },
   };

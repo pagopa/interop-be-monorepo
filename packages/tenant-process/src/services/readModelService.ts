@@ -305,16 +305,12 @@ export function readModelServiceBuilder(
       externalIds: ExternalId[]
     ): Promise<Attribute[]> {
       const data = await attributes
-        .aggregate([
-          {
-            $match: {
-              $or: externalIds.map((externalId) => ({
-                "data.origin": externalId.origin,
-                "data.code": externalId.value,
-              })),
-            },
-          },
-        ])
+        .find({
+          $or: externalIds.map((externalId) => ({
+            "data.origin": externalId.origin,
+            "data.code": externalId.value,
+          })),
+        })
         .toArray();
       const result = z.array(Attribute).safeParse(data.map((d) => d.data));
       if (!result.success) {
@@ -488,6 +484,17 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+
+    async getOneCertifiedAttributeByCertifier({
+      certifierId,
+    }: {
+      certifierId: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.kind": attributeKind.certified,
+        "data.origin": certifierId,
+      });
     },
   };
 }
