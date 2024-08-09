@@ -20,23 +20,14 @@ import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
-  tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerificationNotAllowed,
+  attributeNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-
-export function assertTenantExists(
-  tenantId: TenantId,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
 
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
@@ -198,9 +189,16 @@ export async function getTenantKindLoadingCertifiedAttributes(
       }
     });
 
-  const attributesIds = getCertifiedAttributesIds(attributes);
-  const attrs = await readModelService.getAttributesById(attributesIds);
-  const extIds = convertAttributes(attrs);
+  const tenantAttributesIds = getCertifiedAttributesIds(attributes);
+  const retrievedAttributes = await readModelService.getAttributesById(
+    tenantAttributesIds
+  );
+  tenantAttributesIds.forEach((attributeId) => {
+    if (!retrievedAttributes.some((attr) => attr.id === attributeId)) {
+      throw attributeNotFound(attributeId);
+    }
+  });
+  const extIds = convertAttributes(retrievedAttributes);
   return getTenantKind(extIds, externalId);
 }
 

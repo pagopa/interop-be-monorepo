@@ -13,12 +13,7 @@ import {
 import { unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { toApiTenant } from "../model/domain/apiConverter.js";
-import {
-  tenantBySelfcareIdNotFound,
-  tenantFromExternalIdNotFound,
-  tenantNotFound,
-  makeApiProblem,
-} from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
@@ -104,7 +99,8 @@ const tenantsRouter = (
             totalCount: consumers.totalCount,
           });
         } catch (error) {
-          return res.status(500).send();
+          const errorRes = makeApiProblem(error, () => 500, logger);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
@@ -135,7 +131,8 @@ const tenantsRouter = (
             totalCount: producers.totalCount,
           });
         } catch (error) {
-          return res.status(500).send();
+          const errorRes = makeApiProblem(error, () => 500, logger);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
@@ -166,7 +163,8 @@ const tenantsRouter = (
             totalCount: tenants.totalCount,
           });
         } catch (error) {
-          return res.status(500).end();
+          const errorRes = makeApiProblem(error, () => 500, logger);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
@@ -189,21 +187,7 @@ const tenantsRouter = (
             unsafeBrandId(req.params.id),
             ctx.logger
           );
-
-          if (tenant) {
-            return res.status(200).json(toApiTenant(tenant.data)).end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  tenantNotFound(unsafeBrandId(req.params.id)),
-                  getTenantByIdErrorMapper,
-                  ctx.logger
-                )
-              )
-              .end();
-          }
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -236,22 +220,14 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          if (tenant) {
-            return res.status(200).json(toApiTenant(tenant.data)).end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  tenantFromExternalIdNotFound(origin, code),
-                  getTenantByExternalIdErrorMapper,
-                  ctx.logger
-                )
-              )
-              .end();
-          }
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
-          return res.status(500).end();
+          const errorRes = makeApiProblem(
+            error,
+            getTenantByExternalIdErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
@@ -487,20 +463,7 @@ const tenantsRouter = (
             ctx.logger
           );
 
-          if (tenant) {
-            return res.status(200).json(toApiTenant(tenant.data)).end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  tenantBySelfcareIdNotFound(req.params.selfcareId),
-                  getTenantBySelfcareIdErrorMapper,
-                  ctx.logger
-                )
-              )
-              .end();
-          }
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

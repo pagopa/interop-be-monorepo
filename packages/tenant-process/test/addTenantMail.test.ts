@@ -12,16 +12,12 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   mailAlreadyExists,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  addOneTenant,
-  getMockTenant,
-  postgresDB,
-  tenantService,
-} from "./utils.js";
+import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("addTenantMail", async () => {
   const mockTenant = getMockTenant();

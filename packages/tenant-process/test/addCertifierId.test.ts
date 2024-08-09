@@ -12,9 +12,10 @@ import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAttribute,
+  getMockTenant,
   readLastEventByStreamId,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
@@ -23,7 +24,6 @@ import {
 import {
   addOneTenant,
   attributes,
-  getMockTenant,
   postgresDB,
   tenantService,
 } from "./utils.js";

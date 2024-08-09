@@ -1,6 +1,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { Descriptor, descriptorState, EService } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   addOneAgreement,
   addOneEService,
@@ -10,7 +11,6 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-  getMockTenant,
 } from "./utils.js";
 
 describe("get eservice consumers", () => {

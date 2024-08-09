@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockTenant,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   Tenant,
@@ -15,12 +18,7 @@ import {
   tenantNotFound,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  addOneTenant,
-  getMockTenant,
-  postgresDB,
-  tenantService,
-} from "./utils.js";
+import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("revokeDeclaredAttribute", async () => {
   const attributeId: AttributeId = generateId();

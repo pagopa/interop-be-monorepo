@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   Tenant,
   Attribute,
@@ -34,7 +35,6 @@ import {
   addOneTenant,
   tenantService,
   postgresDB,
-  getMockTenant,
 } from "./utils.js";
 
 describe("addCertifiedAttribute", async () => {
