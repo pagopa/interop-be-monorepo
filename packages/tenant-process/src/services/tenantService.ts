@@ -5,6 +5,7 @@ import {
   Logger,
   WithLogger,
   AppContext,
+  CreateEvent,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -25,6 +26,7 @@ import {
   tenantEventToBinaryData,
   unsafeBrandId,
   TenantMail,
+  TenantEvent,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -1179,10 +1181,10 @@ export function tenantServiceBuilder(
 
       const attributesExternalIds = internalTenantSeed.certifiedAttributes.map(
         (externalId) =>
-          ExternalId.parse({
+          ({
             value: externalId.code,
             origin: externalId.origin,
-          })
+          } satisfies ExternalId)
       );
 
       const existingAttributes =
@@ -1204,25 +1206,38 @@ export function tenantServiceBuilder(
         }
       });
 
-      const tenantWithNewAttributes = existingAttributes.reduce(
-        (acc: Tenant, attribute: Attribute) =>
-          assignCertifiedAttribute({
-            targetTenant: acc,
+      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
+        (
+          acc: {
+            events: Array<CreateEvent<TenantEvent>>;
+            tenantWithNewAttributes: Tenant;
+          },
+          attribute: Attribute,
+          index
+        ) => {
+          const tenantWithNewAttribute = assignCertifiedAttribute({
+            targetTenant: acc.tenantWithNewAttributes,
             attribute,
-          }),
+          });
+
+          const version = existingTenant.metadata.version + index;
+          const attributeAssignmentEvent =
+            toCreateEventTenantCertifiedAttributeAssigned(
+              version,
+              tenantWithNewAttribute,
+              attribute.id,
+              correlationId
+            );
+          return {
+            events: [...acc.events, attributeAssignmentEvent],
+            tenantWithNewAttributes: tenantWithNewAttribute,
+          };
+        },
         {
-          ...existingTenant.data,
-          updatedAt: new Date(),
+          events: [],
+          tenantWithNewAttributes: existingTenant.data,
         }
       );
-
-      const tenantCertifiedAttributesAssignedEvent =
-        toCreateEventTenantOnboardDetailsUpdated(
-          tenantWithNewAttributes.id,
-          existingTenant.metadata.version,
-          tenantWithNewAttributes,
-          correlationId
-        );
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
@@ -1237,18 +1252,15 @@ export function tenantServiceBuilder(
 
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          existingTenant.metadata.version + 1,
+          existingTenant.metadata.version + events.length,
           tenantKind,
           tenantWithUpdatedKind,
           correlationId
         );
 
-        await repository.createEvents([
-          tenantCertifiedAttributesAssignedEvent,
-          tenantKindUpdatedEvent,
-        ]);
+        await repository.createEvents([...events, tenantKindUpdatedEvent]);
       } else {
-        await repository.createEvent(tenantCertifiedAttributesAssignedEvent);
+        await repository.createEvents([...events]);
       }
 
       return tenantWithUpdatedKind;
