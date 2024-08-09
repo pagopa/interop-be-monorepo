@@ -1318,25 +1318,38 @@ export function tenantServiceBuilder(
           );
         }
       });
-      const tenantWithNewAttributes = existingAttributes.reduce(
-        (accumulator: Tenant, attribute: Attribute) =>
-          assignCertifiedAttribute({
-            targetTenant: accumulator,
+      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
+        (
+          accumulator: {
+            events: Array<CreateEvent<TenantEvent>>;
+            tenantWithNewAttributes: Tenant;
+          },
+          attribute: Attribute,
+          index
+        ) => {
+          const tenantWithNewAttribute = assignCertifiedAttribute({
+            targetTenant: accumulator.tenantWithNewAttributes,
             attribute,
-          }),
+          });
+
+          const version = existingTenant.metadata.version + index;
+          const attributeAssignmentEvent =
+            toCreateEventTenantCertifiedAttributeAssigned(
+              version,
+              tenantWithNewAttribute,
+              attribute.id,
+              correlationId
+            );
+          return {
+            events: [...accumulator.events, attributeAssignmentEvent],
+            tenantWithNewAttributes: tenantWithNewAttribute,
+          };
+        },
         {
-          ...existingTenant.data,
-          updatedAt: new Date(),
+          events: [],
+          tenantWithNewAttributes: existingTenant.data,
         }
       );
-
-      const tenantCertifiedAttributesAssignedEvent =
-        toCreateEventTenantOnboardDetailsUpdated(
-          tenantWithNewAttributes.id,
-          existingTenant.metadata.version,
-          tenantWithNewAttributes,
-          correlationId
-        );
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
@@ -1351,18 +1364,15 @@ export function tenantServiceBuilder(
 
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          existingTenant.metadata.version + 1,
+          existingTenant.metadata.version + events.length,
           tenantKind,
           tenantWithUpdatedKind,
           correlationId
         );
 
-        await repository.createEvents([
-          tenantCertifiedAttributesAssignedEvent,
-          tenantKindUpdatedEvent,
-        ]);
+        await repository.createEvents([...events, tenantKindUpdatedEvent]);
       } else {
-        await repository.createEvent(tenantCertifiedAttributesAssignedEvent);
+        await repository.createEvents([...events]);
       }
 
       return tenantWithUpdatedKind;
