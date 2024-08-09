@@ -31,6 +31,7 @@ export async function handleMessageV2(
       { type: "TenantVerifiedAttributeExpirationUpdated" },
       { type: "TenantVerifiedAttributeExtensionUpdated" },
       { type: "TenantMailAdded" },
+      { type: "MaintenanceTenantPromotedToCertifier" },
       { type: "TenantMailDeleted" },
       { type: "TenantKindUpdated" },
       async (message) =>
