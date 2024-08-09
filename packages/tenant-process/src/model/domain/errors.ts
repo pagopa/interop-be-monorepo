@@ -287,7 +287,7 @@ export function attributeNotFoundInTenant(
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Attribute ${attributeId} not found in ${tenantId}`,
+    detail: `Attribute ${attributeId} not found in tenant ${tenantId}`,
     code: "attributeNotFoundInTenant",
     title: "Attribute not found in tenant",
   });
