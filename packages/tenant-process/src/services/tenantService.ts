@@ -42,6 +42,7 @@ import {
   toCreateEventTenantMailDeleted,
   toCreateEventTenantMailAdded,
   toCreateEventTenantVerifiedAttributeAssigned,
+  toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
@@ -52,9 +53,11 @@ import {
   tenantNotFound,
   mailAlreadyExists,
   attributeVerificationNotAllowed,
+  tenantIsAlreadyACertifier,
   attributeAlreadyRevoked,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
+  certifierWithExistingAttributes,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -984,6 +987,7 @@ export function tenantServiceBuilder(
         )
       );
     },
+
     async deleteTenantMailById(
       {
         tenantId,
@@ -1152,6 +1156,65 @@ export function tenantServiceBuilder(
     ): Promise<WithMetadata<Tenant> | undefined> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       return readModelService.getTenantBySelfcareId(selfcareId);
+    },
+
+    async addCertifierId(
+      {
+        tenantId,
+        certifierId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        certifierId: string;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(`Adding certifierId to Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifierFeature = tenant.data.features.find((a) => a.certifierId);
+
+      if (certifierFeature) {
+        if (certifierId === certifierFeature.certifierId) {
+          throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
+        }
+
+        const certifiedAttribute =
+          await readModelService.getOneCertifiedAttributeByCertifier({
+            certifierId: certifierFeature.certifierId,
+          });
+        if (certifiedAttribute) {
+          throw certifierWithExistingAttributes(
+            tenant.data.id,
+            certifierFeature.certifierId
+          );
+        }
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        features: [
+          ...tenant.data.features.filter(
+            (feature) => feature.type !== "PersistentCertifier"
+          ),
+          {
+            type: "PersistentCertifier",
+            certifierId,
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantPromotedToCertifier(
+          tenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+      return updatedTenant;
     },
   };
 }

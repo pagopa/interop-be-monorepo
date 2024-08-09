@@ -30,6 +30,7 @@ import {
   getCertifiedAttributesErrorMapper,
   revokeCertifiedAttributeErrorMapper,
   maintenanceTenantDeletedErrorMapper,
+  maintenanceTenantPromotedToCertifierErrorMapper,
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
@@ -338,6 +339,31 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateVerifiedAttributeExtensionDateErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/maintenance/tenants/:tenantId/certifier",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const tenant = await tenantService.addCertifierId(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              certifierId: req.body.certifierId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantPromotedToCertifierErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
