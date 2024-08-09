@@ -89,7 +89,8 @@ async function processMessage({
           "TenantKindUpdated",
           "MaintenanceTenantDeleted",
           "TenantMailDeleted",
-          "TenantMailAdded"
+          "TenantMailAdded",
+          "MaintenanceTenantPromotedToCertifier"
         ),
       },
       () => Promise.resolve()
