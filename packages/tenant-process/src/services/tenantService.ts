@@ -1181,14 +1181,14 @@ export function tenantServiceBuilder(
           })
       );
 
-      const attributesByExternalId =
+      const existingAttributes =
         await readModelService.getAttributesByExternalIds(
           attributesExternalIds
         );
 
-      for (const attributeToAssign of attributesExternalIds) {
+      attributesExternalIds.forEach((attributeToAssign) => {
         if (
-          !attributesByExternalId.find(
+          !existingAttributes.some(
             (a) =>
               a?.origin === attributeToAssign.origin &&
               a?.code === attributeToAssign.value
@@ -1198,9 +1198,9 @@ export function tenantServiceBuilder(
             `${attributeToAssign.origin}/${attributeToAssign.value}`
           );
         }
-      }
+      });
 
-      const tenantWithNewAttributes = attributesByExternalId.reduce(
+      const tenantWithNewAttributes = existingAttributes.reduce(
         (acc: Tenant, attribute: Attribute) =>
           assignCertifiedAttribute({
             targetTenant: acc,

@@ -305,7 +305,7 @@ export function readModelServiceBuilder(
       externalIds: ExternalId[]
     ): Promise<Attribute[]> {
       const data = await attributes
-        .aggregate([
+        .find([
           {
             $match: {
               $or: externalIds.map((externalId) => ({
