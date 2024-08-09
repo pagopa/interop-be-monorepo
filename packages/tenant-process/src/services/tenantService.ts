@@ -1206,7 +1206,9 @@ export function tenantServiceBuilder(
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
-      logger.info(`Revoking certified attribute to tenant`);
+      logger.info(
+        `Revoking certified attribute ${attributeExternalId} to tenant (${tenantOrigin}/${tenantExternalId}) via m2m request`
+      );
       const requesterTenant = await retrieveTenant(
         organizationId,
         readModelService
