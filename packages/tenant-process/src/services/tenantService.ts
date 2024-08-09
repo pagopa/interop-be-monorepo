@@ -430,8 +430,7 @@ export function tenantServiceBuilder(
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          targetTenant.data.kind!,
+          tenantKind,
           updatedTenant,
           correlationId
         );
@@ -583,8 +582,7 @@ export function tenantServiceBuilder(
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          targetTenant.data.kind!,
+          tenantKind,
           updatedTenant,
           correlationId
         );
@@ -837,8 +835,7 @@ export function tenantServiceBuilder(
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantToModify.data.kind!,
+          tenantKind,
           updatedTenant,
           correlationId
         );
@@ -928,8 +925,7 @@ export function tenantServiceBuilder(
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantToModify.data.kind!,
+          tenantKind,
           updatedTenant,
           correlationId
         );
@@ -1238,8 +1234,7 @@ export function tenantServiceBuilder(
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           existingTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          existingTenant.data.kind!,
+          tenantKind,
           tenantWithUpdatedKind,
           correlationId
         );
