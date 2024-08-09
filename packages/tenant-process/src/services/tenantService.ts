@@ -1179,10 +1179,10 @@ export function tenantServiceBuilder(
 
       const attributesExternalIds = internalTenantSeed.certifiedAttributes.map(
         (externalId) =>
-          ExternalId.parse({
+          ({
             value: externalId.code,
             origin: externalId.origin,
-          })
+          } satisfies ExternalId)
       );
 
       const existingAttributes =
