@@ -22,6 +22,7 @@ export function toOutboundEventV2(
     .with(
       { type: "TenantOnboarded" },
       { type: "TenantOnboardDetailsUpdated" },
+      { type: "MaintenanceTenantPromotedToCertifier" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

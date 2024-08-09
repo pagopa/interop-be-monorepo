@@ -1,5 +1,6 @@
 import { catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { catalogApiDescriptorState } from "./api/apiTypes.js";
+import { catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied } from "./validators.js";
 
 /* 
   This file contains commons utility functions 
@@ -21,6 +22,14 @@ export function getLatestActiveDescriptor(
     .at(-1);
 }
 
+export function getNotDraftDescriptor(
+  eservice: catalogApi.EService
+): catalogApi.EServiceDescriptor[] {
+  return eservice.descriptors.filter(
+    (d) => d.state !== catalogApiDescriptorState.DRAFT
+  );
+}
+
 export function getTenantEmail(
   tenant: tenantApi.Tenant
 ): tenantApi.Mail | undefined {
@@ -29,10 +38,15 @@ export function getTenantEmail(
   );
 }
 
-export function getNotDraftDescriptor(
-  eservice: catalogApi.EService
-): catalogApi.EServiceDescriptor[] {
-  return eservice.descriptors.filter(
-    (d) => d.state !== catalogApiDescriptorState.DRAFT
+export function hasCertifiedAttributes(
+  descriptor: catalogApi.EServiceDescriptor | undefined,
+  requesterTenant: tenantApi.Tenant
+): boolean {
+  return (
+    descriptor !== undefined &&
+    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
+      descriptor,
+      requesterTenant
+    )
   );
 }
