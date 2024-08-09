@@ -197,8 +197,8 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
-export const addOneAttribute = async (agreement: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(agreement), attributes);
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
