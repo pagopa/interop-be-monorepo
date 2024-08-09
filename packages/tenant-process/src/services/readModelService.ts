@@ -305,16 +305,12 @@ export function readModelServiceBuilder(
       externalIds: ExternalId[]
     ): Promise<Attribute[]> {
       const data = await attributes
-        .find([
-          {
-            $match: {
-              $or: externalIds.map((externalId) => ({
-                "data.origin": externalId.origin,
-                "data.code": externalId.value,
-              })),
-            },
-          },
-        ])
+        .find({
+          $or: externalIds.map((externalId) => ({
+            "data.origin": externalId.origin,
+            "data.code": externalId.value,
+          })),
+        })
         .toArray();
       const result = z.array(Attribute).safeParse(data.map((d) => d.data));
       if (!result.success) {
