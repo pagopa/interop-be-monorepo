@@ -42,6 +42,7 @@ import {
   toCreateEventTenantMailDeleted,
   toCreateEventTenantMailAdded,
   toCreateEventTenantVerifiedAttributeAssigned,
+  toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
@@ -52,9 +53,11 @@ import {
   tenantNotFound,
   mailAlreadyExists,
   attributeVerificationNotAllowed,
+  tenantIsAlreadyACertifier,
   attributeAlreadyRevoked,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
+  certifierWithExistingAttributes,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -982,6 +985,7 @@ export function tenantServiceBuilder(
         )
       );
     },
+
     async deleteTenantMailById(
       {
         tenantId,
@@ -1179,14 +1183,14 @@ export function tenantServiceBuilder(
           })
       );
 
-      const attributesByExternalId =
+      const existingAttributes =
         await readModelService.getAttributesByExternalIds(
           attributesExternalIds
         );
 
-      for (const attributeToAssign of attributesExternalIds) {
+      attributesExternalIds.forEach((attributeToAssign) => {
         if (
-          !attributesByExternalId.find(
+          !existingAttributes.some(
             (a) =>
               a?.origin === attributeToAssign.origin &&
               a?.code === attributeToAssign.value
@@ -1196,9 +1200,9 @@ export function tenantServiceBuilder(
             `${attributeToAssign.origin}/${attributeToAssign.value}`
           );
         }
-      }
+      });
 
-      const tenantWithNewAttributes = attributesByExternalId.reduce(
+      const tenantWithNewAttributes = existingAttributes.reduce(
         (acc: Tenant, attribute: Attribute) =>
           assignCertifiedAttribute({
             targetTenant: acc,
@@ -1276,32 +1280,31 @@ export function tenantServiceBuilder(
 
       const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
         (externalId) =>
-          ExternalId.parse({
+          ({
             value: externalId.code,
             origin: certifierId,
-          })
+          } satisfies ExternalId)
       );
 
-      const attributesByExternalId =
+      const existingAttributes =
         await readModelService.getAttributesByExternalIds(
           attributesExternalIds
         );
 
-      for (const attributeToAssign of attributesExternalIds) {
+      attributesExternalIds.forEach((attributeToAssign) => {
         if (
-          !attributesByExternalId.find(
-            (a) =>
-              a?.origin === attributeToAssign.origin &&
-              a?.code === attributeToAssign.value
+          !existingAttributes.some(
+            (attr) =>
+              attr?.origin === attributeToAssign.origin &&
+              attr?.code === attributeToAssign.value
           )
         ) {
           throw attributeNotFound(
             `${attributeToAssign.origin}/${attributeToAssign.value}`
           );
         }
-      }
-
-      const tenantWithNewAttributes = attributesByExternalId.reduce(
+      });
+      const tenantWithNewAttributes = existingAttributes.reduce(
         (accumulator: Tenant, attribute: Attribute) =>
           assignCertifiedAttribute({
             targetTenant: accumulator,
@@ -1349,6 +1352,64 @@ export function tenantServiceBuilder(
       }
 
       return tenantWithUpdatedKind;
+    },
+    async addCertifierId(
+      {
+        tenantId,
+        certifierId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        certifierId: string;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(`Adding certifierId to Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifierFeature = tenant.data.features.find((a) => a.certifierId);
+
+      if (certifierFeature) {
+        if (certifierId === certifierFeature.certifierId) {
+          throw tenantIsAlreadyACertifier(tenant.data.id, certifierId);
+        }
+
+        const certifiedAttribute =
+          await readModelService.getOneCertifiedAttributeByCertifier({
+            certifierId: certifierFeature.certifierId,
+          });
+        if (certifiedAttribute) {
+          throw certifierWithExistingAttributes(
+            tenant.data.id,
+            certifierFeature.certifierId
+          );
+        }
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        features: [
+          ...tenant.data.features.filter(
+            (feature) => feature.type !== "PersistentCertifier"
+          ),
+          {
+            type: "PersistentCertifier",
+            certifierId,
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantPromotedToCertifier(
+          tenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+      return updatedTenant;
     },
   };
 }

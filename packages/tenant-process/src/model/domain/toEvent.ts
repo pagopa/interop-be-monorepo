@@ -267,3 +267,20 @@ export const toCreateEventTenantMailAdded = (
   },
   correlationId,
 });
+
+export const toCreateEventMaintenanceTenantPromotedToCertifier = (
+  version: number,
+  tenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantPromotedToCertifier",
+    data: {
+      tenant: toTenantV2(tenant),
+    },
+  },
+  correlationId,
+});
