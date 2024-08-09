@@ -29,6 +29,8 @@ export const errorCodes = {
   attributeAlreadyRevoked: "0020",
   attributeRevocationNotAllowed: "0021",
   verifiedAttributeSelfRevocationNotAllowed: "0022",
+  tenantIsAlreadyACertifier: "0023",
+  certifierWithExistingAttributes: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -253,5 +255,27 @@ export function mailAlreadyExists(): ApiError<ErrorCodes> {
     detail: `mail already exists`,
     code: "mailAlreadyExists",
     title: "Mail already exists",
+  });
+}
+
+export function tenantIsAlreadyACertifier(
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
+    code: "tenantIsAlreadyACertifier",
+    title: "Tenant is already a certifier",
+  });
+}
+
+export function certifierWithExistingAttributes(
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} with certifierId ${certifierId} has already created attributes`,
+    code: "certifierWithExistingAttributes",
+    title: "Certifier with existing attributes",
   });
 }
