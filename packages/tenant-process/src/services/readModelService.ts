@@ -463,7 +463,9 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(tenantApi.CertifiedAttribute).safeParse(data);
+      const result = z
+        .array(tenantApi.CertifiedAttribute.strip()) // "strip" used to remove "lowerName" field
+        .safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
