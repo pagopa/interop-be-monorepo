@@ -1,10 +1,18 @@
-import { features } from "process";
-import { Attribute, Tenant, TenantAttribute } from "pagopa-interop-models";
+import {
+  Attribute,
+  attributeKind,
+  Tenant,
+  TenantAttribute,
+} from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
+import {
+  tenantIsNotACertifier,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
@@ -13,13 +21,14 @@ import {
 } from "./utils.js";
 
 describe("getCertifiedAttributes", () => {
-  const tenantCertifier = {
-    ...getMockTenant(),
-    features: [{ type: "PersistentCertifier", certifierId: "cert" }],
-  };
-  const tenant2 = getMockTenant();
+  it("should get certified attributes certified by the passed certifier id", async () => {
+    const certifierId: string = "test";
+    const tenantCertifier = {
+      ...getMockTenant(),
+      features: [{ type: "PersistentCertifier" as const, certifierId }],
+    };
+    const tenant = getMockTenant();
 
-  it.only("should get certified attributes certified by the passed certifier id", async () => {
     const tenantCertifiedAttribute1: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
@@ -32,35 +41,24 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
       id: tenantCertifiedAttribute1.id,
-      origin: tenantCertifier.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
       id: tenantCertifiedAttribute2.id,
-      origin: tenantCertifier.id,
     };
 
     await addOneAttribute(certifiedAttribute1);
     await addOneAttribute(certifiedAttribute2);
 
     const tenantWithCertifiedAttributes: Tenant = {
-      ...tenant2,
-      attributes: [
-        {
-          id: certifiedAttribute1.id,
-          type: "PersistentCertifiedAttribute",
-          assignmentTimestamp: new Date(),
-          revocationTimestamp: new Date(),
-        },
-        {
-          id: certifiedAttribute2.id,
-          type: "PersistentCertifiedAttribute",
-          assignmentTimestamp: new Date(),
-          revocationTimestamp: new Date(),
-        },
-      ],
+      ...tenant,
+      attributes: [tenantCertifiedAttribute1, tenantCertifiedAttribute2],
     };
 
     await addOneTenant(tenantCertifier);
@@ -72,75 +70,91 @@ describe("getCertifiedAttributes", () => {
       limit: 50,
     });
 
+    expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([
       {
-        id: tenant2.id,
-        name: tenant2.name,
-        attributeId: tenantCertifiedAttribute1.id,
+        attributeId: certifiedAttribute1.id,
         attributeName: certifiedAttribute1.name,
+        id: tenant.id,
+        name: tenant.name,
       },
       {
-        id: tenant2.id,
-        name: tenant2.name,
-        attributeId: tenantCertifiedAttribute2.id,
-        attributeName: certifiedAttribute1.name,
+        attributeId: certifiedAttribute2.id,
+        attributeName: certifiedAttribute2.name,
+        id: tenant.id,
+        name: tenant.name,
       },
     ]);
-    expect(result.totalCount).toBe(2);
   });
 
   it("should not return the attributes when they are revoked", async () => {
+    const certifierId: string = "test";
+    const tenantCertifier = {
+      ...getMockTenant(),
+      features: [{ type: "PersistentCertifier" as const, certifierId }],
+    };
+    const tenant = getMockTenant();
+
     const tenantCertifiedAttribute: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
 
-    const revokedAttribute: TenantAttribute = {
+    const revokedTenantCertifiedAttribute: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: new Date(),
     };
 
-    const readModelCertifiedAttribute: Attribute = {
+    const certifiedAttribute: Attribute = {
       ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
       id: tenantCertifiedAttribute.id,
-      origin: tenant1.id,
     };
 
-    const readModelRevokedCertifiedAttribute: Attribute = {
+    const revokedCertifiedAttribute: Attribute = {
       ...getMockAttribute(),
-      id: revokedAttribute.id,
-      origin: tenant1.id,
+      kind: attributeKind.certified,
+      origin: certifierId,
+      id: revokedTenantCertifiedAttribute.id,
     };
 
-    await addOneAttribute(readModelCertifiedAttribute);
-    await addOneAttribute(readModelRevokedCertifiedAttribute);
+    await addOneAttribute(certifiedAttribute);
+    await addOneAttribute(revokedCertifiedAttribute);
 
     const tenantWithCertifiedAttributes: Tenant = {
-      ...tenant2,
-      attributes: [
-        ...tenant2.attributes,
-        tenantCertifiedAttribute,
-        revokedAttribute,
-      ],
+      ...tenant,
+      attributes: [tenantCertifiedAttribute, revokedTenantCertifiedAttribute],
     };
 
+    await addOneTenant(tenantCertifier);
     await addOneTenant(tenantWithCertifiedAttributes);
 
     const result = await tenantService.getCertifiedAttributes({
-      organizationId: tenant1.id,
+      organizationId: tenantCertifier.id,
       offset: 0,
       limit: 50,
     });
 
-    expect(result.results).not.toContainEqual({
-      id: tenant2.id,
-      name: tenant2.name,
-      attributeId: revokedAttribute.id,
-      attributeName: readModelRevokedCertifiedAttribute.name,
-    });
+    expect(result.totalCount).toBe(1);
+    expect(result.results).not.toContainEqual([
+      {
+        attributeId: certifiedAttribute.id,
+        attributeName: revokedCertifiedAttribute.name,
+        id: tenant.id,
+        name: tenant.name,
+      },
+    ]);
   });
 
-  it("should correctly manage pagination params (offset, limit)", async () => {
+  it("should throw tenantNotFound error if the caller tenant is not present in the read model", async () => {
+    const certifierId: string = "test";
+    const tenantCertifier = {
+      ...getMockTenant(),
+      features: [{ type: "PersistentCertifier" as const, certifierId }],
+    };
+    const tenant = getMockTenant();
+
     const tenantCertifiedAttribute1: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
@@ -151,38 +165,88 @@ describe("getCertifiedAttributes", () => {
       revocationTimestamp: undefined,
     };
 
-    const readModelCertifiedAttribute1: Attribute = {
+    const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
       id: tenantCertifiedAttribute1.id,
-      origin: tenant1.id,
     };
 
-    const readModelCertifiedAttribute2: Attribute = {
+    const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
       id: tenantCertifiedAttribute2.id,
-      origin: tenant1.id,
     };
 
-    await addOneAttribute(readModelCertifiedAttribute1);
-    await addOneAttribute(readModelCertifiedAttribute2);
+    await addOneAttribute(certifiedAttribute1);
+    await addOneAttribute(certifiedAttribute2);
 
     const tenantWithCertifiedAttributes: Tenant = {
-      ...tenant2,
-      attributes: [
-        ...tenant2.attributes,
-        tenantCertifiedAttribute1,
-        tenantCertifiedAttribute2,
-      ],
+      ...tenant,
+      attributes: [tenantCertifiedAttribute1, tenantCertifiedAttribute2],
     };
 
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    const { results } = await tenantService.getCertifiedAttributes({
-      organizationId: tenant1.id,
-      offset: 1,
-      limit: 1,
-    });
+    void expect(
+      tenantService.getCertifiedAttributes({
+        organizationId: tenantCertifier.id,
+        offset: 0,
+        limit: 50,
+      })
+    ).rejects.toThrowError(tenantNotFound(tenantCertifier.id));
+  });
 
-    expect(results).lengthOf(1);
+  it("should throw tenantIsNotACertifier error if the caller tenant is not a certifier", async () => {
+    const certifierId: string = "test";
+    const tenantNotCertifier = {
+      ...getMockTenant(),
+      features: [],
+    };
+    const tenant = getMockTenant();
+
+    const tenantCertifiedAttribute1: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const tenantCertifiedAttribute2: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+
+    const certifiedAttribute1: Attribute = {
+      ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
+      id: tenantCertifiedAttribute1.id,
+    };
+
+    const certifiedAttribute2: Attribute = {
+      ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: certifierId,
+      id: tenantCertifiedAttribute2.id,
+    };
+
+    await addOneAttribute(certifiedAttribute1);
+    await addOneAttribute(certifiedAttribute2);
+
+    const tenantWithCertifiedAttributes: Tenant = {
+      ...tenant,
+      attributes: [tenantCertifiedAttribute1, tenantCertifiedAttribute2],
+    };
+
+    await addOneTenant(tenantNotCertifier);
+    await addOneTenant(tenantWithCertifiedAttributes);
+
+    void expect(
+      tenantService.getCertifiedAttributes({
+        organizationId: tenantNotCertifier.id,
+        offset: 0,
+        limit: 50,
+      })
+    ).rejects.toThrowError(tenantIsNotACertifier(tenantNotCertifier.id));
   });
 });
