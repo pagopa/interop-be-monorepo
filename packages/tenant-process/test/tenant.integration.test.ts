@@ -18,7 +18,6 @@ import {
   generateId,
   operationForbidden,
   protobufDecoder,
-  tenantKind,
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -31,7 +30,6 @@ import {
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
 } from "../src/model/domain/errors.js";
-import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -73,7 +71,6 @@ describe("Integration tests", () => {
 
       it("Should update the tenant if it exists", async () => {
         await addOneTenant(mockTenant);
-        const kind = tenantKind.PA;
         const selfcareId = mockTenant.selfcareId!;
         const tenantSeed: tenantApi.SelfcareTenantSeed = {
           externalId: {
@@ -108,7 +105,6 @@ describe("Integration tests", () => {
         const updatedTenant: Tenant = {
           ...mockTenant,
           selfcareId,
-          kind,
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
 
@@ -150,7 +146,7 @@ describe("Integration tests", () => {
           ...mockTenant,
           externalId: tenantSeed.externalId,
           id: unsafeBrandId(id),
-          kind: getTenantKind([], tenantSeed.externalId),
+          kind: undefined,
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(),
           createdAt: new Date(),
