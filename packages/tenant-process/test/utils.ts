@@ -79,6 +79,7 @@ export const getMockTenant = (): Tenant => ({
   },
   features: [],
   mails: [],
+  kind: "PA",
 });
 
 export const currentDate = new Date();

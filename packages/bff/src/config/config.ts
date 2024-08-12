@@ -3,11 +3,11 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
-import { SelfCareConfig } from "pagopa-interop-selfcare-v2-client";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -66,11 +66,16 @@ export type PurposeProcessServerConfig = z.infer<
 
 export const AuthorizationProcessServerConfig = z
   .object({
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
     TENANT_ALLOWED_ORIGINS: z.string(),
   })
   .transform((c) => ({
+    authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
   }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
 
 export const AllowedListConfig = z
   .object({
@@ -84,6 +89,14 @@ export const AllowedListConfig = z
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
 
+export const S3Config = z
+  .object({
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+  }));
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -95,7 +108,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig);
-export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
+  .and(SelfCareConfig)
+  .and(S3Config);
 
+export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

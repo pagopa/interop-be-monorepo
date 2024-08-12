@@ -28,14 +28,16 @@ import {
   toReadModelAttribute,
   TenantId,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import {
   formatDateyyyyMMddHHmmss,
   genericLogger,
   initPDFGenerator,
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
-import { SelfcareV2UsersClient } from "pagopa-interop-selfcare-v2-client";
 import puppeteer, { Browser } from "puppeteer";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
