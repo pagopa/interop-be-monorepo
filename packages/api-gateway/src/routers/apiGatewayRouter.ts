@@ -20,6 +20,7 @@ import {
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -34,6 +35,8 @@ const apiGatewayRouter = (
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const catalogService = catalogServiceBuilder(catalogProcessClient);
 
   const agreementService = agreementServiceBuilder(
     agreementProcessClient,
@@ -147,8 +150,19 @@ const apiGatewayRouter = (
       authorizationMiddleware([M2M_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .get("/eservices", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
+    .get(
+      "/eservices",
+      authorizationMiddleware([M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const eservices = await catalogService.getEservices(ctx, req.query);
+          return res.status(200).json(eservices).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices/:eserviceId",
