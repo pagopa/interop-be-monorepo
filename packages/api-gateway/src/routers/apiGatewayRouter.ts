@@ -29,6 +29,7 @@ const apiGatewayRouter = (
     tenantProcessClient,
     purposeProcessClient,
     catalogProcessClient,
+    attributeProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
@@ -36,7 +37,11 @@ const apiGatewayRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const catalogService = catalogServiceBuilder(catalogProcessClient);
+  const catalogService = catalogServiceBuilder(
+    catalogProcessClient,
+    tenantProcessClient,
+    attributeProcessClient
+  );
 
   const agreementService = agreementServiceBuilder(
     agreementProcessClient,
@@ -167,7 +172,24 @@ const apiGatewayRouter = (
     .get(
       "/eservices/:eserviceId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const eservice = await catalogService.getEservice(
+            ctx,
+            req.params.eserviceId
+          );
+          return res.status(200).json(eservice).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            // TODO map errors
+            emptyErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices/:eserviceId/descriptors",

@@ -36,3 +36,18 @@ export function declaredAttributeToAttributeValidityState(
         : apiGatewayApi.AttributeValidity.Values.INVALID,
   };
 }
+
+export function toApiGatewayOrganization(
+  tenant: tenantApi.Tenant,
+  category: string
+): apiGatewayApi.Organization {
+  return {
+    id: tenant.id,
+    externalId: {
+      origin: tenant.externalId.origin,
+      id: tenant.externalId.value,
+    },
+    name: tenant.name,
+    category,
+  };
+}
