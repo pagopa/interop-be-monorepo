@@ -3,6 +3,7 @@ import {
   bffApi,
   attributeRegistryApi,
   selfcareV2ClientApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
@@ -90,9 +91,28 @@ export const toApiSelfcareUser = (
       throw selfcareEntityNotFilled("UserResource", "unknown");
     });
 
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
+
 export const toApiAttributeProcessSeed = (
   seed: bffApi.AttributeSeed
 ): attributeRegistryApi.CertifiedAttributeSeed => ({
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
+
+export function toAuthorizationKeySeed(
+  seed: bffApi.KeySeed
+): authorizationApi.KeySeed {
+  return {
+    key: seed.key,
+    use: seed.use,
+    alg: seed.alg,
+    name: seed.name,
+  };
+}

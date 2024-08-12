@@ -1,15 +1,44 @@
-import { JWKKey, missingRequiredJWKClaim, Key } from "pagopa-interop-models";
-import { createJWK, decodeBase64ToPem } from "./jwk.js";
+import {
+  ClientJWKKey,
+  ProducerJWKKey,
+  missingRequiredJWKClaim,
+  Key,
+  ClientId,
+  ProducerKeychainId,
+} from "pagopa-interop-models";
+import { createJWK } from "./jwk.js";
 
-export const keyToJWKKey = (key: Key): JWKKey => {
-  const jwk = createJWK(decodeBase64ToPem(key.encodedPem));
+export const keyToClientJWKKey = (
+  key: Key,
+  clientId: ClientId
+): ClientJWKKey => {
+  const jwk = createJWK(key.encodedPem);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
   return {
-    clientId: key.clientId,
+    clientId,
     kid: key.kid,
-    use: key.use,
+    use: key.use.toLowerCase(),
+    alg: key.algorithm,
+    e: jwk.e,
+    kty: jwk.kty,
+    n: jwk.n,
+  };
+};
+
+export const keyToProducerJWKKey = (
+  key: Key,
+  producerKeychainId: ProducerKeychainId
+): ProducerJWKKey => {
+  const jwk = createJWK(key.encodedPem);
+  if (!jwk.e || !jwk.kty || !jwk.n) {
+    throw missingRequiredJWKClaim();
+  }
+  return {
+    producerKeychainId,
+    kid: key.kid,
+    use: key.use.toLowerCase(),
     alg: key.algorithm,
     e: jwk.e,
     kty: jwk.kty,

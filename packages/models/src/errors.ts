@@ -164,6 +164,8 @@ const errorCodes = {
   jwkDecodingError: "10000",
   notAllowedPrivateKeyException: "10001",
   missingRequiredJWKClaim: "10002",
+  invalidKey: "10003",
+  tooManyRequestsError: "10004",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -296,6 +298,16 @@ export function badRequestError(
   });
 }
 
+export function tooManyRequestsError(
+  organizationId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "tooManyRequestsError",
+    title: "Too Many Requests",
+    detail: `Requests limit exceeded for organization ${organizationId}`,
+  });
+}
+
 export function invalidClaim(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Claim not valid or missing: ${parseErrorMessage(error)}`,
@@ -358,5 +370,16 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
     detail: `One or more required JWK claims are missing`,
     code: "missingRequiredJWKClaim",
     title: "Missing required JWK claims",
+  });
+}
+
+export function invalidKey(
+  kid: string,
+  error: unknown
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
+    code: "invalidKey",
+    title: "Invalid Key",
   });
 }

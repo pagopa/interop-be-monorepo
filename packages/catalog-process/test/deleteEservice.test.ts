@@ -13,11 +13,12 @@ import {
   EServiceDraftDescriptorDeletedV2,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, vi } from "vitest";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneEService,
   catalogService,
@@ -27,6 +28,7 @@ import {
   getMockDocument,
   getMockEService,
   postgresDB,
+  fileManager,
 } from "./utils.js";
 
 describe("delete eservice", () => {
@@ -59,11 +61,56 @@ describe("delete eservice", () => {
     expect(writtenPayload.eserviceId).toBe(eservice.id);
   });
 
-  it("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only)", async () => {
+  it("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only) and delete the interface and documents of the draft descriptor", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const mockDocument = getMockDocument();
+    const mockInterface = getMockDocument();
+    const document = {
+      ...mockDocument,
+      name: `${mockDocument.name}`,
+      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+    };
+    const interfaceDocument = {
+      ...mockInterface,
+      name: `${mockDocument.name}_interface`,
+      path: `${config.eserviceDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
+    };
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: interfaceDocument.id,
+        name: interfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document.id,
+        name: document.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(document.path);
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
-      interface: mockDocument,
+      interface: interfaceDocument,
       state: descriptorState.draft,
+      docs: [document],
     };
     const eservice: EService = {
       ...mockEService,
@@ -116,6 +163,24 @@ describe("delete eservice", () => {
       eservice: toEServiceV2(expectedEserviceWithoutDescriptors),
       descriptorId: eservice.descriptors[0].id,
     });
+
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      interfaceDocument.path,
+      genericLogger
+    );
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      document.path,
+      genericLogger
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(document.path);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

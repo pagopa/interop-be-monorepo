@@ -1,15 +1,13 @@
+import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
+import { catalogApiDescriptorState } from "./api/apiTypes.js";
 import {
-  agreementApi,
-  catalogApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
-import {
-  agreementApiState,
-  catalogApiDescriptorState,
-} from "./api/apiTypes.js";
+  fromApiTenantMail,
+  toBffTenantMail,
+} from "./api/tenantApiConverter.js";
 
-/* 
-  This file contains commons utility functions 
+/*
+  This file contains commons utility functions
   used to pick or transform data from model to another.
 */
 
@@ -28,32 +26,21 @@ export function getLatestActiveDescriptor(
     .at(-1);
 }
 
-export function getTenantEmail(
-  tenant: tenantApi.Tenant
-): tenantApi.Mail | undefined {
-  return tenant.mails.find(
-    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
+export function getNotDraftDescriptor(
+  eservice: catalogApi.EService
+): catalogApi.EServiceDescriptor[] {
+  return eservice.descriptors.filter(
+    (d) => d.state !== catalogApiDescriptorState.DRAFT
   );
 }
 
-export function isUpgradable(
-  eservice: catalogApi.EService,
-  agreement: agreementApi.Agreement
-): boolean {
-  const eserviceDescriptor = eservice.descriptors.find(
-    (e) => e.id === agreement.descriptorId
+export function getLatestTenantContactEmail(
+  tenant: tenantApi.Tenant
+): bffApi.Mail | undefined {
+  const mail = getLatestTenantMailOfKind(
+    tenant.mails.map(fromApiTenantMail),
+    tenantApi.MailKind.Values.CONTACT_EMAIL
   );
 
-  return (
-    eserviceDescriptor !== undefined &&
-    eservice.descriptors
-      .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
-      .find(
-        (d) =>
-          (d.state === catalogApiDescriptorState.PUBLISHED ||
-            d.state === catalogApiDescriptorState.SUSPENDED) &&
-          (agreement.state === agreementApiState.ACTIVE ||
-            agreement.state === agreementApiState.SUSPENDED)
-      ) !== undefined
-  );
+  return mail ? toBffTenantMail(mail) : undefined;
 }
