@@ -20,6 +20,8 @@ export const errorCodes = {
   eserviceDescriptorNotFound: "0013",
   purposeDraftVersionNotFound: "0014",
   invalidRiskAnalysisContentType: "0015",
+  missingInterface: "0016",
+  eserviceRiskNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -102,11 +104,11 @@ export function purposeDraftVersionNotFound(
 }
 
 export function invalidEServiceRequester(
-  eServiceId: string,
+  eserviceId: string,
   requesterId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
+    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
     code: "invalidEserviceRequester",
     title: `Invalid eservice requester`,
   });
@@ -156,5 +158,27 @@ export function invalidRiskAnalysisContentType(
     detail: `Invalid contentType ${contentType} for document ${documentId} from purpose ${purposeId} and version ${versionId}`,
     code: "invalidRiskAnalysisContentType",
     title: "Invalid Risk Analysis content type",
+  });
+}
+
+export function missingInterface(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
+    code: "missingInterface",
+    title: "Missing interface",
+  });
+}
+
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
   });
 }

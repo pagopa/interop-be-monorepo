@@ -1,5 +1,7 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable max-params */
 import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
+import { getAllFromPaginated } from "pagopa-interop-commons";
 import { AgreementProcessClient } from "../providers/clientProvider.js";
 import { Headers } from "../utilities/context.js";
 
@@ -9,32 +11,18 @@ export const getLatestAgreement = async (
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
-  const getAgreementsFrom = async (
-    start: number
-  ): Promise<agreementApi.Agreements> =>
-    await agreementProcessClient.getAgreements({
-      headers: { ...headers },
-      queries: {
-        consumersIds: consumerId,
-        eservicesIds: eservice.id,
-        offset: start,
-        limit: 50,
-      },
-    });
-
-  // Fetched all agreements in a recursive way
-  const getAgreements = async (
-    start: number
-  ): Promise<agreementApi.Agreement[]> => {
-    const agreements = (await getAgreementsFrom(start)).results;
-
-    if (agreements.length >= 50) {
-      return agreements.concat(await getAgreements(start + 50));
-    }
-    return agreements;
-  };
-
-  const allAgreements = await getAgreements(0);
+  const allAgreements = await getAllFromPaginated(
+    async (offset: number, limit: number) =>
+      agreementProcessClient.getAgreements({
+        headers,
+        queries: {
+          consumersIds: [consumerId],
+          eservicesIds: [eservice.id],
+          limit,
+          offset,
+        },
+      })
+  );
 
   return allAgreements
     .sort((firstAgreement, secondAgreement) => {
