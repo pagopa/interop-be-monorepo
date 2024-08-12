@@ -1,5 +1,3 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -267,12 +265,12 @@ describe("Notification tests", async () => {
       });
       expect(receivedAuthorizationMessage.payload).toEqual({
         clientId: mockClient.id,
-        keys: [
-          {
+        keys: {
+          [mockClient.keys[0].kid]: {
             ...mockClient.keys[0],
             createdAt: new Date().toISOString(),
           },
-        ],
+        },
       });
 
       vi.useRealTimers();

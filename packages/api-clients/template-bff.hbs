@@ -57,6 +57,10 @@ export const {{@key}}Endpoints = makeApi([
 			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/privacyNotices/:consentType"))}}
 			response: z.instanceof(Buffer),
+		{{else if (and (eq method "get") (eq path "/purposes/:purposeId/versions/:versionId/documents/:documentId"))}}
+			response: z.instanceof(Buffer),
+		{{else if (and (eq method "get") (eq path "/eservices/:eServiceId/consumers"))}}
+			response: z.instanceof(Buffer),
 		{{else}}
 			response: {{{response}}},
 		{{/if}}
@@ -86,6 +90,7 @@ export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}
 export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions) {
     return new Zodios(baseUrl, {{@key}}Endpoints, {
 			...options,
+			validate: false,
 			axiosConfig: {
 				...options?.axiosConfig,
 				// This configuration is used to serialize correctly array query parameters.
