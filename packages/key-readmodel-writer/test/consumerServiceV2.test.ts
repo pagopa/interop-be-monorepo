@@ -25,7 +25,7 @@ describe("Events V2", () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey = Buffer.from(
+  const base64Key = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
@@ -33,14 +33,14 @@ describe("Events V2", () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey2 = Buffer.from(
+  const base64Key2 = Buffer.from(
     key2.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
   it("ClientKeyAdded", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const jwkKey = keyToJWKKey(mockKey);
+    const mockKey = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToJWKKey(mockKey, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -49,7 +49,7 @@ describe("Events V2", () => {
     };
     await writeInReadmodel(jwkKey, keys);
 
-    const addedKey: Key = { ...getMockKey(), encodedPem: pemKey2 };
+    const addedKey: Key = { ...getMockKey(), encodedPem: base64Key2 };
     const updatedClient: Client = {
       ...mockClient,
       keys: [mockKey, addedKey],
@@ -76,15 +76,15 @@ describe("Events V2", () => {
       "data.kid": addedKey.kid,
     });
 
-    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey));
+    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey, clientId));
     expect(retrievedKey?.metadata).toEqual({
       version: 1,
     });
   });
   it("ClientKeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const jwkKey = keyToJWKKey(mockKey);
+    const mockKey: Key = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToJWKKey(mockKey, clientId);
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
@@ -122,10 +122,10 @@ describe("Events V2", () => {
   });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
-    const jwkKey1 = keyToJWKKey(mockKey1);
-    const jwkKey2 = keyToJWKKey(mockKey2);
+    const mockKey1: Key = { ...getMockKey(), encodedPem: base64Key };
+    const mockKey2: Key = { ...getMockKey(), encodedPem: base64Key2 };
+    const jwkKey1 = keyToJWKKey(mockKey1, clientId);
+    const jwkKey2 = keyToJWKKey(mockKey2, clientId);
     const mockClient: Client = {
       ...getMockClient(),
       id: clientId,
