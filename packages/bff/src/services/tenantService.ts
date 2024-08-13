@@ -149,5 +149,13 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async addDeclaredAttribute(
+      seed: bffApi.DeclaredTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.addDeclaredAttribute(seed, {
+        headers,
+      });
+    },
   };
 }

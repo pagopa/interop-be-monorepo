@@ -133,9 +133,23 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/tenants/attributes/declared", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/tenants/attributes/declared", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await tenantService.addDeclaredAttribute(req.body, ctx);
+
+        return res.status(200).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error adding declared attribute ${req.body.id} to requester tenant`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .delete("/tenants/attributes/declared/:attributeId", async (_req, res) =>
       res.status(501).send()
     )
