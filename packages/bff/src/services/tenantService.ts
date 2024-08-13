@@ -182,5 +182,18 @@ export function tenantServiceBuilder(
         }
       );
     },
+    async revokeVerifiedAttribute(
+      tenantId: string,
+      attributeId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
+        undefined,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
   };
 }

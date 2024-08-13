@@ -122,7 +122,7 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json().end();
+        return res.status(204).json().end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -139,7 +139,7 @@ const tenantRouter = (
       try {
         await tenantService.addDeclaredAttribute(req.body, ctx);
 
-        return res.status(200).json().end();
+        return res.status(204).json().end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -159,7 +159,7 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json().end();
+        return res.status(204).json().end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -191,7 +191,7 @@ const tenantRouter = (
             ctx
           );
 
-          return res.status(200).json().end();
+          return res.status(204).json().end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -209,7 +209,27 @@ const tenantRouter = (
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await tenantService.revokeVerifiedAttribute(
+            req.params.tenantId,
+            req.params.attributeId,
+            ctx
+          );
+
+          return res.status(204).json().end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error revoking verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/tenants/:tenantId", async (_req, res) => res.status(501).send())
     .post("/tenants/:tenantId/mails", async (_req, res) =>
