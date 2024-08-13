@@ -38,4 +38,9 @@ export const getAgreementByPurposeErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getEserviceErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("missingAvailableDescriptor", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;

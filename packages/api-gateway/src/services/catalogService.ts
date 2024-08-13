@@ -1,5 +1,5 @@
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
-import { isDefined, WithLogger } from "pagopa-interop-commons";
+import { toSetToArray, WithLogger } from "pagopa-interop-commons";
 import {
   AttributeProcessClient,
   CatalogProcessClient,
@@ -7,95 +7,16 @@ import {
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import {
+  NonDraftCatalogApiDescriptor,
   toApiGatewayCatalogEservice,
   toApiGatewayEserviceAttributes,
 } from "../api/catalogApiConverter.js";
-import { toApiGatewayOrganization } from "../api/tenantApiConverter.js";
 import {
   assertAvailableDescriptorExists,
-  assertDescriptorStateNotDraft,
+  assertNonDraftDescriptor,
 } from "./validators.js";
 import { getAllBulkAttributes } from "./attributeService.js";
-
-export async function enhanceEservice(
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
-  headers: ApiGatewayAppContext["headers"],
-  eservice: catalogApi.EService
-): Promise<apiGatewayApi.EService> {
-  // TODO  CHECK IF IT MAKES SENSE TO MOVE STUFF TO DEDICATED FUNCTIONS
-  const producerTenant = await tenantProcessClient.tenant.getTenant({
-    headers,
-    params: {
-      id: eservice.producerId,
-    },
-  });
-
-  const latestAvailableDescriptor = eservice.descriptors
-    .filter((d) => d.state === catalogApi.EServiceDescriptorState.Values.DRAFT)
-    .sort((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
-
-  assertAvailableDescriptorExists(latestAvailableDescriptor, eservice.id);
-  assertDescriptorStateNotDraft(
-    latestAvailableDescriptor.state,
-    eservice.id,
-    latestAvailableDescriptor.id
-  );
-
-  const allDescriptorAttributesIds = [
-    ...latestAvailableDescriptor.attributes.certified.flat(),
-    ...latestAvailableDescriptor.attributes.verified.flat(),
-    ...latestAvailableDescriptor.attributes.declared.flat(),
-  ].map((a) => a.id);
-
-  const allRegistryAttributes = await getAllBulkAttributes(
-    attributeProcessClient,
-    headers,
-    allDescriptorAttributesIds
-  );
-
-  const descriptorAttributes = toApiGatewayEserviceAttributes(
-    latestAvailableDescriptor.attributes,
-    allRegistryAttributes
-  );
-
-  // Extract category IPA TODO move to dedicated function
-  const tenantCertifiedAttributesIds = producerTenant.attributes
-    .map((atts) => atts.certified)
-    .filter(isDefined)
-    .map((a) => a.id);
-
-  const tenantCertifiedAttributes = await Promise.all(
-    tenantCertifiedAttributesIds.map((attributeId) =>
-      attributeProcessClient.getAttributeById({
-        headers,
-        params: { attributeId },
-      })
-    )
-  );
-  const categoryIpaAttribute = tenantCertifiedAttributes.find(
-    (a) => a.origin === "IPA"
-  );
-  const categoryIpaAttributeName = categoryIpaAttribute
-    ? categoryIpaAttribute.name
-    : "Unknown";
-
-  return {
-    id: eservice.id,
-    name: eservice.name,
-    description: eservice.description,
-    technology: eservice.technology,
-    version: latestAvailableDescriptor.version,
-    attributes: descriptorAttributes,
-    state: latestAvailableDescriptor.state,
-    serverUrls: latestAvailableDescriptor.serverUrls,
-    producer: toApiGatewayOrganization(
-      producerTenant,
-      categoryIpaAttributeName
-    ),
-  };
-}
+import { getOrganization } from "./tenantService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
@@ -145,5 +66,80 @@ export function catalogServiceBuilder(
         eservice
       );
     },
+  };
+}
+
+function getLatestNonDraftDescriptor(
+  eservice: catalogApi.EService
+): NonDraftCatalogApiDescriptor {
+  const latestNonDraftDescriptor = eservice.descriptors
+    .filter((d) => d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+
+  assertAvailableDescriptorExists(latestNonDraftDescriptor, eservice.id);
+  assertNonDraftDescriptor(
+    latestNonDraftDescriptor,
+    latestNonDraftDescriptor.id
+  );
+
+  return latestNonDraftDescriptor;
+}
+
+async function getDescriptorAttributes(
+  attributeProcessClient: AttributeProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  descriptor: NonDraftCatalogApiDescriptor
+): Promise<apiGatewayApi.EServiceAttributes> {
+  const allDescriptorAttributesIds = toSetToArray(
+    [
+      ...descriptor.attributes.certified.flat(),
+      ...descriptor.attributes.verified.flat(),
+      ...descriptor.attributes.declared.flat(),
+    ].map((a) => a.id)
+  );
+
+  const allRegistryAttributes = await getAllBulkAttributes(
+    attributeProcessClient,
+    headers,
+    allDescriptorAttributesIds
+  );
+
+  return toApiGatewayEserviceAttributes(
+    descriptor.attributes,
+    allRegistryAttributes
+  );
+}
+
+async function enhanceEservice(
+  tenantProcessClient: TenantProcessClient,
+  attributeProcessClient: AttributeProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  eservice: catalogApi.EService
+): Promise<apiGatewayApi.EService> {
+  const latestNonDraftDescriptor = getLatestNonDraftDescriptor(eservice);
+  const descriptorAttributes = await getDescriptorAttributes(
+    attributeProcessClient,
+    headers,
+    latestNonDraftDescriptor
+  );
+
+  const producerOrganization = await getOrganization(
+    tenantProcessClient,
+    attributeProcessClient,
+    headers,
+    eservice.producerId
+  );
+
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    description: eservice.description,
+    technology: eservice.technology,
+    version: latestNonDraftDescriptor.version,
+    attributes: descriptorAttributes,
+    state: latestNonDraftDescriptor.state,
+    serverUrls: latestNonDraftDescriptor.serverUrls,
+    producer: producerOrganization,
   };
 }

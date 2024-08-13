@@ -17,6 +17,7 @@ import {
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getEserviceErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
@@ -183,8 +184,7 @@ const apiGatewayRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            // TODO map errors
-            emptyErrorMapper,
+            getEserviceErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();

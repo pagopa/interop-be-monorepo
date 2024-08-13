@@ -1,4 +1,8 @@
-import { tenantApi, apiGatewayApi } from "pagopa-interop-api-clients";
+import {
+  tenantApi,
+  apiGatewayApi,
+  attributeRegistryApi,
+} from "pagopa-interop-api-clients";
 
 export function verifiedAttributeToAttributeValidityState(
   attribute: tenantApi.VerifiedTenantAttribute
@@ -37,9 +41,16 @@ export function declaredAttributeToAttributeValidityState(
   };
 }
 
+function toApiGatewayOrganizationCategory(
+  attributes: attributeRegistryApi.Attribute[]
+): apiGatewayApi.Organization["category"] {
+  const categoryIpaAttribute = attributes.find((a) => a.origin === "IPA");
+  return categoryIpaAttribute ? categoryIpaAttribute.name : "Unknown";
+}
+
 export function toApiGatewayOrganization(
   tenant: tenantApi.Tenant,
-  category: string
+  tenantAttributes: attributeRegistryApi.Attribute[]
 ): apiGatewayApi.Organization {
   return {
     id: tenant.id,
@@ -48,6 +59,6 @@ export function toApiGatewayOrganization(
       id: tenant.externalId.value,
     },
     name: tenant.name,
-    category,
+    category: toApiGatewayOrganizationCategory(tenantAttributes),
   };
 }

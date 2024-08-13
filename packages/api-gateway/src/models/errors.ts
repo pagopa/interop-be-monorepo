@@ -84,11 +84,10 @@ export function missingAvailableDescriptor(
 
 export function unexpectedDescriptorState(
   state: catalogApi.EServiceDescriptorState,
-  eserviceId: catalogApi.EService["id"],
   descriptorId: catalogApi.EServiceDescriptor["id"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unexpected Descriptor state: ${state} - EService ${eserviceId} - Descriptor ${descriptorId}`,
+    detail: `Unexpected Descriptor state: ${state} - id: ${descriptorId}`,
     code: "unexpectedDescriptorState",
     title: "Unexpected descriptor state",
   });

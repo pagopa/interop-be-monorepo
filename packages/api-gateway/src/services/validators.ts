@@ -15,6 +15,7 @@ import {
   multipleAgreementForEserviceAndConsumer,
   unexpectedDescriptorState,
 } from "../models/errors.js";
+import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
 export function assertAgreementStateNotDraft(
   agreementState: agreementApi.AgreementState,
@@ -64,13 +65,12 @@ export function assertAvailableDescriptorExists(
   }
 }
 
-export function assertDescriptorStateNotDraft(
-  descriptorState: catalogApi.EServiceDescriptorState,
-  eserviceId: catalogApi.EService["id"],
+export function assertNonDraftDescriptor(
+  descriptor: catalogApi.EServiceDescriptor,
   descriptorId: catalogApi.EServiceDescriptor["id"]
-): asserts descriptorState is apiGatewayApi.EServiceDescriptorState {
-  if (descriptorState === catalogApi.EServiceDescriptorState.Values.DRAFT) {
-    throw unexpectedDescriptorState(descriptorState, eserviceId, descriptorId);
+): asserts descriptor is NonDraftCatalogApiDescriptor {
+  if (descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT) {
+    throw unexpectedDescriptorState(descriptor.state, descriptorId);
   }
 }
 

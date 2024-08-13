@@ -5,6 +5,10 @@ import {
 } from "pagopa-interop-api-clients";
 import { assertRegistryAttributeExists } from "../services/validators.js";
 
+export type NonDraftCatalogApiDescriptor = catalogApi.EServiceDescriptor & {
+  state: Exclude<catalogApi.EServiceDescriptorState, "DRAFT">;
+};
+
 export function toApiGatewayCatalogEservice(
   eservice: catalogApi.EService
 ): apiGatewayApi.CatalogEService {
