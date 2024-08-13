@@ -112,9 +112,27 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/tenants/:tenantId/attributes/certified", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/tenants/:tenantId/attributes/certified", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await tenantService.addCertifiedAttribute(
+          req.params.tenantId,
+          req.body,
+          ctx
+        );
+
+        return res.status(200).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/tenants/attributes/declared", async (_req, res) =>
       res.status(501).send()
     )

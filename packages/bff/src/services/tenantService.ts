@@ -139,5 +139,15 @@ export function tenantServiceBuilder(
         })
         .filter(filterUndefined);
     },
+    async addCertifiedAttribute(
+      tenantId: string,
+      seed: bffApi.CertifiedTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.addCertifiedAttribute(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
   };
 }
