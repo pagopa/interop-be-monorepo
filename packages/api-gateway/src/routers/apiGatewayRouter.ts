@@ -17,6 +17,7 @@ import {
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -199,7 +200,24 @@ const apiGatewayRouter = (
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const descriptor = await catalogService.getEserviceDescriptor(
+            ctx,
+            req.params.eserviceId,
+            req.params.descriptorId
+          );
+          return res.status(200).json(descriptor).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceDescriptorErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/events", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
       res.status(501).send()
