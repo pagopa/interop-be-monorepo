@@ -195,7 +195,19 @@ const apiGatewayRouter = (
     .get(
       "/eservices/:eserviceId/descriptors",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const descriptors = await catalogService.getEserviceDescriptors(
+            ctx,
+            req.params.eserviceId
+          );
+          return res.status(200).json(descriptors).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId",
