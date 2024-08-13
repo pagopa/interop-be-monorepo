@@ -52,6 +52,12 @@ export type FileManager = {
     fileName: string,
     durationInMinutes: number
   ) => Promise<string>;
+  generatePutPresignedUrl: (
+    bucketName: string,
+    path: string,
+    fileName: string,
+    durationInMinutes: number
+  ) => Promise<string>;
 };
 
 export function initFileManager(
@@ -193,6 +199,16 @@ export function initFileManager(
     ): Promise<string> => {
       const key: string = buildS3Key(path, undefined, fileName);
       const command = new GetObjectCommand({ Bucket: bucketName, Key: key });
+      return getSignedUrl(client, command, { expiresIn: durationInMinutes });
+    },
+    generatePutPresignedUrl: async (
+      bucketName: string,
+      path: string,
+      fileName: string,
+      durationInMinutes: number
+    ): Promise<string> => {
+      const key: string = buildS3Key(path, undefined, fileName);
+      const command = new PutObjectCommand({ Bucket: bucketName, Key: key });
       return getSignedUrl(client, command, { expiresIn: durationInMinutes });
     },
   };
