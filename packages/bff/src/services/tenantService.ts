@@ -169,5 +169,18 @@ export function tenantServiceBuilder(
         }
       );
     },
+    async revokeCertifiedAttributeById(
+      tenantId: string,
+      attributeId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
+        undefined,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
   };
 }

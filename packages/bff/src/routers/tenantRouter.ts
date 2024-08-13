@@ -181,7 +181,27 @@ const tenantRouter = (
     )
     .delete(
       "/tenants/:tenantId/attributes/certified/:attributeId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await tenantService.revokeCertifiedAttributeById(
+            req.params.tenantId,
+            req.params.attributeId,
+            ctx
+          );
+
+          return res.status(200).json().end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error revoking certified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
