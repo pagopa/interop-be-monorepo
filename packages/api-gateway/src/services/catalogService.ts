@@ -49,7 +49,7 @@ export function catalogServiceBuilder(
     },
     getEservice: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
-      eserviceId: string
+      eserviceId: catalogApi.EService["id"]
     ): Promise<apiGatewayApi.EService> => {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await catalogProcessClient.getEServiceById({
