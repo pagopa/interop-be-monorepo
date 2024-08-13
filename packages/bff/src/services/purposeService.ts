@@ -604,7 +604,7 @@ export function purposeServiceBuilder(
 
       const consumer = await tenantProcessClient.tenant.getTenant({
         params: {
-          id: purpose.consumerId,
+          id: agreement.consumerId,
         },
         headers,
       });
