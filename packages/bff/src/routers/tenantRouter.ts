@@ -150,9 +150,26 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .delete("/tenants/attributes/declared/:attributeId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .delete("/tenants/attributes/declared/:attributeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await tenantService.revokeDeclaredAttribute(
+          req.params.attributeId,
+          ctx
+        );
+
+        return res.status(200).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error revoking declared attribute ${req.params.attributeId} to requester tenant`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/tenants/:tenantId/attributes/declared", async (_req, res) =>
       res.status(501).send()
     )

@@ -157,5 +157,17 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async revokeDeclaredAttribute(
+      attributeId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
+        undefined,
+        {
+          params: { attributeId },
+          headers,
+        }
+      );
+    },
   };
 }
