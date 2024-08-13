@@ -3,7 +3,6 @@ import { getAllFromPaginated } from "pagopa-interop-commons";
 import { AttributeProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 
-// TODO align other getAll functions to this one
 export async function getAllBulkAttributes(
   attributeProcessClient: AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
