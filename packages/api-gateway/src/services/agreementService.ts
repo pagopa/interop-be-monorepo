@@ -9,7 +9,7 @@ import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
-import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
+import { toApiGatewayAgreementAttributes } from "../api/attributeApiConverter.js";
 import { getAllPurposes } from "./purposeService.js";
 
 export async function getAllAgreements(
