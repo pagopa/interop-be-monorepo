@@ -24,7 +24,7 @@ export function authorizationServiceBuilder(
       }: WithLogger<ApiGatewayAppContext>,
       clientId: authorizationApi.Client["id"]
     ): Promise<apiGatewayApi.Client> => {
-      logger.info(`Retrieving client ${clientId}`);
+      logger.info(`Retrieving Client ${clientId}`);
 
       const client = await authorizationProcessClient.client.getClient({
         headers,
