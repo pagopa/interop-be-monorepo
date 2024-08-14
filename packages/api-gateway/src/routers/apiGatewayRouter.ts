@@ -22,6 +22,7 @@ import {
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
+import { attributeServiceBuilder } from "../services/attributeService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -55,6 +56,8 @@ const apiGatewayRouter = (
     catalogProcessClient,
     agreementProcessClient
   );
+
+  const attributeService = attributeServiceBuilder(attributeProcessClient);
 
   apiGatewayRouter
     .get(
@@ -149,7 +152,21 @@ const apiGatewayRouter = (
     .get(
       "/attributes/:attributeId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const attribute = await attributeService.getAttribute(
+            ctx,
+            req.params.attributeId
+          );
+
+          return res.status(200).json(attribute).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId",
