@@ -112,5 +112,27 @@ export function tenantServiceBuilder(
       );
       return { eservices };
     },
+    revokeTenantAttribute: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      params: {
+        origin: tenantApi.ExternalId["origin"];
+        externalId: tenantApi.ExternalId["value"];
+        attributeCode: string;
+      }
+    ): Promise<void> => {
+      const { origin, externalId, attributeCode } = params;
+      logger.info(
+        `Revoking attribute ${attributeCode} of tenant (${origin},${externalId})`
+      );
+
+      await tenantProcessClient.m2m.m2mRevokeAttribute(undefined, {
+        headers,
+        params: {
+          origin,
+          externalId,
+          code: attributeCode,
+        },
+      });
+    },
   };
 }

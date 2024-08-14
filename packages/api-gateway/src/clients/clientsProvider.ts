@@ -17,6 +17,7 @@ export type AgreementProcessClient = ReturnType<
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
+  m2m: ReturnType<typeof tenantApi.createM2mApiClient>;
 };
 
 export type PurposeProcessClient = ReturnType<
@@ -45,6 +46,7 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     ),
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
+      m2m: tenantApi.createM2mApiClient(config.tenantProcessUrl),
     },
     purposeProcessClient: purposeApi.createPurposeApiClient(
       config.purposeProcessUrl

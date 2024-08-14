@@ -311,7 +311,21 @@ const apiGatewayRouter = (
     .delete(
       "/organizations/origin/:origin/externalId/:externalId/attributes/:code",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          await tenantService.revokeTenantAttribute(ctx, {
+            origin: req.params.origin,
+            externalId: req.params.externalId,
+            attributeCode: req.params.code,
+          });
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/organizations/origin/:origin/externalId/:externalId/eservices",
