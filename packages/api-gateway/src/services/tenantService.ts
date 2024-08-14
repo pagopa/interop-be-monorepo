@@ -1,5 +1,5 @@
 import { apiGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { isDefined } from "pagopa-interop-commons";
+import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { toApiGatewayOrganization } from "../api/tenantApiConverter.js";
 import {
   TenantProcessClient,
@@ -35,4 +35,26 @@ export async function getOrganization(
   );
 
   return toApiGatewayOrganization(tenant, tenantCertifiedAttributes);
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function tenantServiceBuilder(
+  tenantProcessClient: TenantProcessClient,
+  attributeProcessClient: AttributeProcessClient
+) {
+  return {
+    getOrganization: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      tenantId: tenantApi.Tenant["id"]
+    ): Promise<apiGatewayApi.Organization> => {
+      logger.info(`Retrieving tenant ${tenantId}`);
+
+      return getOrganization(
+        tenantProcessClient,
+        attributeProcessClient,
+        headers,
+        tenantId
+      );
+    },
+  };
 }
