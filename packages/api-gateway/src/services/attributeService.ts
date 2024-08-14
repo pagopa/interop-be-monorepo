@@ -44,5 +44,26 @@ export function attributeServiceBuilder(
 
       return toApiGatewayAttribute(attribute);
     },
+    createCertifiedAttribute: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      attributeSeed: apiGatewayApi.AttributeSeed
+    ): Promise<apiGatewayApi.Attribute> => {
+      logger.info(
+        `Creating certified attribute with code ${attributeSeed.code}`
+      );
+
+      const attribute = await attributeProcessClient.createCertifiedAttribute(
+        {
+          code: attributeSeed.code,
+          name: attributeSeed.name,
+          description: attributeSeed.description,
+        },
+        {
+          headers,
+        }
+      );
+
+      return toApiGatewayAttribute(attribute);
+    },
   };
 }
