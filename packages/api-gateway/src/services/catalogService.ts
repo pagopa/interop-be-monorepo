@@ -1,5 +1,9 @@
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
-import { removeDuplicates, WithLogger } from "pagopa-interop-commons";
+import {
+  getAllFromPaginated,
+  removeDuplicates,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   AttributeProcessClient,
   CatalogProcessClient,
@@ -17,6 +21,26 @@ import {
 } from "./validators.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { getOrganization } from "./tenantService.js";
+
+export function getAllEservices(
+  catalogProcessClient: CatalogProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  producerId: catalogApi.EService["producerId"],
+  attributeId: catalogApi.Attribute["id"]
+): Promise<catalogApi.EService[]> {
+  return getAllFromPaginated<catalogApi.EService>(
+    async (offset, limit) =>
+      await catalogProcessClient.getEServices({
+        headers,
+        queries: {
+          producersIds: [producerId],
+          attributesIds: [attributeId],
+          offset,
+          limit,
+        },
+      })
+  );
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
@@ -111,7 +135,7 @@ async function getDescriptorAttributes(
   );
 }
 
-async function enhanceEservice(
+export async function enhanceEservice(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
