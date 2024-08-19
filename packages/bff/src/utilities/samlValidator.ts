@@ -128,7 +128,7 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
   if (attributes.length === 0) {
     throw samlNotValid("Missing Attributes");
   }
-  const now = +Date();
+  const now = +new Date();
 
   validateSignature(saml);
 
