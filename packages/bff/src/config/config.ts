@@ -3,6 +3,7 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  S3Config,
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
@@ -88,7 +89,7 @@ export const AllowedListConfig = z
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
 
-export const S3Config = z
+export const S3RiskAnalysisConfig = z
   .object({
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
@@ -105,7 +106,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
-  .and(S3Config)
+  .and(S3RiskAnalysisConfig)
   .and(AllowedListConfig)
   .and(SelfCareConfig)
   .and(S3Config);

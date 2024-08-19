@@ -1,4 +1,4 @@
-import { FileManager, logger, streamToString } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import { BffProcessConfig } from "../config/config.js";
 
 export default async function getAllowList(
@@ -13,7 +13,7 @@ export default async function getAllowList(
     `${config.allowListPath}/${config.allowListFileName}`,
     loggerInstance
   );
-  const content = streamToString(stream);
+  const content = Buffer.from(stream).toString();
 
   return content.split("\n").flatMap((line) => line.split(","));
 }

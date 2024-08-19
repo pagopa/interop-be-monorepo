@@ -6,7 +6,6 @@ import {
   WithLogger,
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
-  streamToBuffer,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -28,10 +27,7 @@ import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
 } from "../model/domain/errors.js";
-import {
-  getLatestActiveDescriptor,
-  getLatestAgreement,
-} from "../model/modelMappingUtils.js";
+import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
@@ -40,6 +36,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -594,7 +591,7 @@ export function catalogServiceBuilder(
 
       const stream = await fileManager.get(config.s3Bucket, path, ctx.logger);
 
-      return { contentType, document: await streamToBuffer(stream) };
+      return { contentType, document: Buffer.from(stream) };
     },
   };
 }
