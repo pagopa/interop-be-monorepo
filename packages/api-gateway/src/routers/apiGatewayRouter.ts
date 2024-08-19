@@ -22,6 +22,7 @@ import {
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
+import { notifierEventsServiceBuilder } from "../services/notifierEventsService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -31,6 +32,7 @@ const apiGatewayRouter = (
     purposeProcessClient,
     catalogProcessClient,
     attributeProcessClient,
+    notifierEventsClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
@@ -55,6 +57,9 @@ const apiGatewayRouter = (
     catalogProcessClient,
     agreementProcessClient
   );
+
+  const notifierEventsService =
+    notifierEventsServiceBuilder(notifierEventsClient);
 
   apiGatewayRouter
     .get(
@@ -201,23 +206,81 @@ const apiGatewayRouter = (
       authorizationMiddleware([M2M_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .get("/events", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/events", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        const events = await notifierEventsService.getEventsFromId(
+          ctx,
+          req.query.lastEventId,
+          req.query.limit
+        );
+
+        return res.status(200).json(events).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/events/agreements",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events = await notifierEventsService.getAgreementsEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/events/eservices",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events = await notifierEventsService.getEservicesEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/events/keys",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events = await notifierEventsService.getKeysEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/keys/:kid", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
       res.status(501).send()

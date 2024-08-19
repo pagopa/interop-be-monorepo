@@ -4,6 +4,7 @@ import {
   purposeApi,
   tenantApi,
   attributeRegistryApi,
+  notifierApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -27,12 +28,16 @@ export type AttributeProcessClient = ReturnType<
   typeof attributeRegistryApi.createAttributeApiClient
 >;
 
+export type NotifierEventsClient = ReturnType<
+  typeof notifierApi.createEventsApiClient
+>;
 export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   tenantProcessClient: TenantProcessClient;
   purposeProcessClient: PurposeProcessClient;
   attributeProcessClient: AttributeProcessClient;
+  notifierEventsClient: NotifierEventsClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -52,5 +57,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     attributeProcessClient: attributeRegistryApi.createAttributeApiClient(
       config.attributeRegistryProcessUrl
     ),
+    notifierEventsClient: notifierApi.createEventsApiClient(config.notifierUrl),
   };
 }

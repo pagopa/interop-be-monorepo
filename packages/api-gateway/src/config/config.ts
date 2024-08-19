@@ -56,11 +56,22 @@ export type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
+export const NotifierServerConfig = z
+  .object({
+    NOTIFIER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    notifierUrl: c.NOTIFIER_URL,
+  }));
+export type NotifierServerConfig = z.infer<typeof NotifierServerConfig>;
+
 const ApiGatewayConfig = CommonHTTPServiceConfig.and(CatalogProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
-  .and(AttributeRegistryProcessServerConfig);
+  .and(AttributeRegistryProcessServerConfig)
+  .and(NotifierServerConfig);
+
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
 export const config: ApiGatewayConfig = ApiGatewayConfig.parse(process.env);
