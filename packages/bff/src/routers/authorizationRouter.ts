@@ -46,7 +46,12 @@ const authorizationRouter = (
         );
         return res.status(200).send({ session_token });
       } catch (error) {
-        const err = makeApiProblem(error, sessionTokenErrorMapper, logger);
+        const err = makeApiProblem(
+          error,
+          sessionTokenErrorMapper,
+          logger,
+          "Error creating a session token"
+        );
 
         return res.status(err.status).send();
       }
