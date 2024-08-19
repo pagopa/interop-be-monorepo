@@ -33,15 +33,15 @@ export function authorizationServiceBuilder(
         },
       });
 
-      if (
-        !isAllowedToGetClient(
-          purposeProcessClient,
-          catalogProcessClient,
-          headers,
-          organizationId,
-          client
-        )
-      ) {
+      const isAllowed = await isAllowedToGetClient(
+        purposeProcessClient,
+        catalogProcessClient,
+        headers,
+        organizationId,
+        client
+      );
+
+      if (!isAllowed) {
         throw operationForbidden;
       }
 
@@ -56,7 +56,7 @@ async function isAllowedToGetClient(
   headers: ApiGatewayAppContext["headers"],
   requesterId: TenantId,
   client: authorizationApi.Client
-): Promise<Promise<boolean>> {
+): Promise<boolean> {
   if (client.consumerId === requesterId) {
     return true;
   }
