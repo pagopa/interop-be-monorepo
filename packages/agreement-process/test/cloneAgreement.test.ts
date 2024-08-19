@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
 import { FileManagerError, genericLogger } from "pagopa-interop-commons";

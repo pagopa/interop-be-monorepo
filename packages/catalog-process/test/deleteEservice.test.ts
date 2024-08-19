@@ -1,18 +1,24 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  readEventByStreamIdAndVersion,
+} from "pagopa-interop-commons-test/index.js";
 import {
   EService,
   EServiceDeletedV1,
   Descriptor,
   descriptorState,
   operationForbidden,
+  EServiceDraftDescriptorDeletedV2,
+  toEServiceV2,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, vi } from "vitest";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneEService,
   catalogService,
@@ -21,6 +27,8 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  postgresDB,
+  fileManager,
 } from "./utils.js";
 
 describe("delete eservice", () => {
@@ -53,11 +61,52 @@ describe("delete eservice", () => {
     expect(writtenPayload.eserviceId).toBe(eservice.id);
   });
 
-  it("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only)", async () => {
+  it("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only) and delete the interface and documents of the draft descriptor", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const mockDocument = getMockDocument();
+    const mockInterface = getMockDocument();
+    const document = {
+      ...mockDocument,
+      name: `${mockDocument.name}`,
+      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+    };
+    const interfaceDocument = {
+      ...mockInterface,
+      name: `${mockDocument.name}_interface`,
+      path: `${config.eserviceDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
+    };
+
+    await fileManager.storeBytes(
+      config.s3Bucket,
+      config.eserviceDocumentsPath,
+      interfaceDocument.id,
+      interfaceDocument.name,
+      Buffer.from("testtest"),
+      genericLogger
+    );
+
+    await fileManager.storeBytes(
+      config.s3Bucket,
+      config.eserviceDocumentsPath,
+      document.id,
+      document.name,
+      Buffer.from("testtest"),
+      genericLogger
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(document.path);
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
-      interface: mockDocument,
+      interface: interfaceDocument,
       state: descriptorState.draft,
+      docs: [document],
     };
     const eservice: EService = {
       ...mockEService,
@@ -70,18 +119,64 @@ describe("delete eservice", () => {
       serviceName: "",
       logger: genericLogger,
     });
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
+
+    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
+      eservice.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
+
+    expect(descriptorDeletionEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
+      type: "EServiceDraftDescriptorDeleted",
+      event_version: 2,
+    });
+    expect(eserviceDeletionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "2",
       type: "EServiceDeleted",
       event_version: 2,
     });
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV1,
-      payload: writtenEvent.data,
+
+    const descriptorDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorDeletedV2,
+      payload: descriptorDeletionEvent.data,
     });
-    expect(writtenPayload.eserviceId).toBe(mockEService.id);
+    const eserviceDeletionPayload = decodeProtobufPayload({
+      messageType: EServiceDeletedV1,
+      payload: eserviceDeletionEvent.data,
+    });
+
+    const expectedEserviceWithoutDescriptors: EService = {
+      ...eservice,
+      descriptors: [],
+    };
+    expect(eserviceDeletionPayload.eserviceId).toBe(mockEService.id);
+    expect(descriptorDeletionPayload).toEqual({
+      eservice: toEServiceV2(expectedEserviceWithoutDescriptors),
+      descriptorId: eservice.descriptors[0].id,
+    });
+
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      interfaceDocument.path,
+      genericLogger
+    );
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      document.path,
+      genericLogger
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(document.path);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

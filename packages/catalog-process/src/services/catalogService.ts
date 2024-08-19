@@ -580,13 +580,41 @@ export function catalogServiceBuilder(
 
       assertIsDraftEservice(eservice.data);
 
-      const event = toCreateEventEServiceDeleted(
-        eserviceId,
-        eservice.metadata.version,
-        eservice.data,
-        correlationId
-      );
-      await repository.createEvent(event);
+      if (eservice.data.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.metadata.version,
+          eservice.data,
+          correlationId
+        );
+        await repository.createEvent(eserviceDeletionEvent);
+      } else {
+        await deleteDescriptorInterfaceAndDocs(
+          eservice.data.descriptors[0],
+          fileManager,
+          logger
+        );
+
+        const eserviceWithoutDescriptors: EService = {
+          ...eservice.data,
+          descriptors: [],
+        };
+        const descriptorDeletionEvent =
+          toCreateEventEServiceDraftDescriptorDeleted(
+            eservice.metadata.version,
+            eserviceWithoutDescriptors,
+            eservice.data.descriptors[0].id,
+            correlationId
+          );
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.metadata.version + 1,
+          eserviceWithoutDescriptors,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+      }
     },
 
     async uploadDocument(
@@ -964,37 +992,36 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state);
       }
 
-      const descriptorInterface = descriptor.interface;
-      if (descriptorInterface !== undefined) {
-        await fileManager.delete(
-          config.s3Bucket,
-          descriptorInterface.path,
-          logger
-        );
-      }
+      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
 
-      const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-        fileManager.delete(config.s3Bucket, doc.path, logger)
-      );
-
-      await Promise.all(deleteDescriptorDocs);
-
-      const newEservice: EService = {
+      const eserviceAfterDescriptorDeletion: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.filter(
           (d: Descriptor) => d.id !== descriptorId
         ),
       };
 
-      const event = toCreateEventEServiceDraftDescriptorDeleted(
-        eservice.data.id,
-        eservice.metadata.version,
-        newEservice,
-        descriptorId,
-        correlationId
-      );
+      const descriptorDeletionEvent =
+        toCreateEventEServiceDraftDescriptorDeleted(
+          eservice.metadata.version,
+          eserviceAfterDescriptorDeletion,
+          descriptorId,
+          correlationId
+        );
 
-      await repository.createEvent(event);
+      if (eserviceAfterDescriptorDeletion.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeleted(
+          eservice.metadata.version + 1,
+          eserviceAfterDescriptorDeletion,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+      } else {
+        await repository.createEvent(descriptorDeletionEvent);
+      }
     },
 
     async updateDraftDescriptor(
@@ -1683,6 +1710,23 @@ const applyVisibilityToEService = (
       (d) => d.state !== descriptorState.draft
     ),
   };
+};
+
+const deleteDescriptorInterfaceAndDocs = async (
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> => {
+  const descriptorInterface = descriptor.interface;
+  if (descriptorInterface !== undefined) {
+    await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
+  }
+
+  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
+    fileManager.delete(config.s3Bucket, doc.path, logger)
+  );
+
+  await Promise.all(deleteDescriptorDocs);
 };
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
