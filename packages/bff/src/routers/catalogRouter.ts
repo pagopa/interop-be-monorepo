@@ -4,6 +4,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
+  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -25,7 +26,8 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
-  }: PagoPAInteropBeClients
+  }: PagoPAInteropBeClients,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -35,7 +37,8 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
-    attributeProcessClient
+    attributeProcessClient,
+    fileManager
   );
 
   catalogRouter
@@ -208,7 +211,6 @@ const catalogRouter = (
       try {
         const createdResource = await catalogService.createDescriptor(
           req.params.eServiceId,
-          req.body,
           ctx
         );
         return res.status(200).json(createdResource).send();

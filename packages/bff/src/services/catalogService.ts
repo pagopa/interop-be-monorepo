@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { randomUUID } from "crypto";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
+  FileManager,
   WithLogger,
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
@@ -24,6 +26,7 @@ import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
+  noDescriptorInEservice,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -34,6 +37,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { config } from "../config/config.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -175,7 +179,8 @@ export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: AttributeProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -572,11 +577,72 @@ export function catalogServiceBuilder(
     },
     createDescriptor: async (
       eServiceId: string,
-      eServiceDescriptorSeed: bffApi.EServiceDescriptorSeed,
-      { headers }: WithLogger<BffAppContext>
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
+      const eService = await catalogProcessClient.getEServiceById({
+        params: { eServiceId },
+        headers,
+      });
+
+      if (eService.descriptors.length === 0) {
+        throw noDescriptorInEservice(eServiceId);
+      }
+
+      const maxVersion = (
+        descriptors: catalogApi.EServiceDescriptor[]
+      ): catalogApi.EServiceDescriptor =>
+        descriptors.reduce(
+          (maxVersion, curr) =>
+            parseInt(curr.version, 10) > parseInt(maxVersion.version, 10)
+              ? curr
+              : maxVersion,
+          descriptors[0]
+        );
+
+      const previousDescriptor = maxVersion(eService.descriptors);
+
+      const cloneDocument = async (
+        clonedDocumentId: string,
+        doc: catalogApi.EServiceDoc
+      ): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> => {
+        const clonedPath = await fileManager.copy(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          doc.path,
+          clonedDocumentId,
+          doc.name,
+          logger
+        );
+
+        return {
+          documentId: clonedDocumentId,
+          kind: "DOCUMENT",
+          contentType: doc.contentType,
+          prettyName: doc.prettyName,
+          fileName: doc.name,
+          filePath: clonedPath,
+          checksum: doc.checksum,
+          serverUrls: [],
+        };
+      };
+
+      const clonedDocumentsCalls = previousDescriptor.docs.map((doc) =>
+        cloneDocument(randomUUID(), doc)
+      );
+
+      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
+
       const { id } = await catalogProcessClient.createDescriptor(
-        { ...eServiceDescriptorSeed, audience: [], docs: [] },
+        {
+          description: previousDescriptor.description,
+          audience: [],
+          voucherLifespan: previousDescriptor.voucherLifespan,
+          dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: previousDescriptor.dailyCallsTotal,
+          agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
+          attributes: previousDescriptor.attributes,
+          docs: clonedDocuments,
+        },
         {
           headers,
           params: {

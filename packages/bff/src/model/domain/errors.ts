@@ -22,6 +22,7 @@ export const errorCodes = {
   invalidRiskAnalysisContentType: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
+  noDescriptorInEservice: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -180,5 +181,15 @@ export function eserviceRiskNotFound(
     detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
     code: "eserviceRiskNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function noDescriptorInEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No descriptor found in Eservice ${eserviceId}`,
+    code: "noDescriptorInEservice",
+    title: "No descriptor found in Eservice",
   });
 }
