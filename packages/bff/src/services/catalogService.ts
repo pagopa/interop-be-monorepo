@@ -297,14 +297,14 @@ export function catalogServiceBuilder(
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> => {
-      const { id } = await catalogProcessClient.createEService(
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const { id, descriptors } = await catalogProcessClient.createEService(
         toCatalogCreateEServiceSeed(eServiceSeed),
         {
           headers,
         }
       );
-      return { id };
+      return { id, descriptorId: descriptors[0].id };
     },
     updateEServiceById: async (
       eServiceId: EServiceId,
