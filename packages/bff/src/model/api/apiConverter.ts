@@ -174,12 +174,12 @@ export function toCatalogCreateEServiceSeed(
   return {
     ...eServiceSeed,
     descriptor: {
-      description: "NONE",
       audience: [],
       voucherLifespan: 60,
       dailyCallsPerConsumer: 1,
       dailyCallsTotal: 1,
-      agreementApprovalPolicy: "AUTOMATIC",
+      agreementApprovalPolicy:
+        catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
     },
   };
 }
