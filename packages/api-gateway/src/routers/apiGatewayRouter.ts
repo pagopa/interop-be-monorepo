@@ -4,6 +4,7 @@ import { apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   authorizationMiddleware,
   ExpressContext,
+  ReadModelRepository,
   userRoles,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -20,11 +21,14 @@ import {
   getClientErrorMapper,
   getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
+  getJWKErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { config } from "../config/config.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -60,10 +64,15 @@ const apiGatewayRouter = (
     agreementProcessClient
   );
 
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+
   const authorizationService = authorizationServiceBuilder(
     authorizationProcessClient,
     purposeProcessClient,
-    catalogProcessClient
+    catalogProcessClient,
+    readModelService
   );
 
   apiGatewayRouter
@@ -275,8 +284,21 @@ const apiGatewayRouter = (
       authorizationMiddleware([M2M_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .get("/keys/:kid", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
+    .get(
+      "/keys/:kid",
+      authorizationMiddleware([M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const jwk = await authorizationService.getJWK(ctx, req.params.kid);
+
+          return res.status(200).json(jwk).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
       const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
