@@ -206,6 +206,19 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.selfcareId": selfcareId });
     },
 
+    async getAttributeByOriginAndCode({
+      origin,
+      code,
+    }: {
+      origin: string;
+      code: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.origin": origin,
+        "data.code": code,
+      });
+    },
+
     async getConsumers({
       consumerName,
       producerId,
@@ -468,6 +481,17 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+
+    async getOneCertifiedAttributeByCertifier({
+      certifierId,
+    }: {
+      certifierId: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.kind": attributeKind.certified,
+        "data.origin": certifierId,
+      });
     },
   };
 }
