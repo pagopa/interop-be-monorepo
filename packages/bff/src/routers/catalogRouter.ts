@@ -599,7 +599,24 @@ const catalogRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/import/eservices", async (_req, res) => res.status(501).send());
+    .post("/import/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdEServiceDescriptor = await catalogService.importEService(
+          req.body,
+          ctx
+        );
+        return res.status(200).json(createdEServiceDescriptor).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          "Error importing eService"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    });
 
   return catalogRouter;
 };
