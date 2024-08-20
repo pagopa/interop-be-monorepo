@@ -2,15 +2,16 @@
 /* eslint-disable functional/immutable-data */
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  getAllFromPaginated,
   WithLogger,
   formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
+import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -21,18 +22,10 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
-import {
-  assertRequesterIsProducer,
-  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
-} from "../model/validators.js";
-import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
-
-import {
-  eserviceDescriptorNotFound,
-  eserviceRiskNotFound,
-} from "../model/domain/errors.js";
-import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
+
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
+import { eserviceRiskNotFound } from "../model/domain/errors.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -40,7 +33,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
