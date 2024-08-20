@@ -1,6 +1,9 @@
 import { apiGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
-import { toApiGatewayOrganization } from "../api/tenantApiConverter.js";
+import {
+  toApiGatewayOrganization,
+  toM2MTenantSeed,
+} from "../api/tenantApiConverter.js";
 import {
   TenantProcessClient,
   AttributeProcessClient,
@@ -117,7 +120,7 @@ export function tenantServiceBuilder(
       params: {
         origin: tenantApi.ExternalId["origin"];
         externalId: tenantApi.ExternalId["value"];
-        attributeCode: string;
+        attributeCode: tenantApi.M2MAttributeSeed["code"];
       }
     ): Promise<void> => {
       const { origin, externalId, attributeCode } = params;
@@ -132,6 +135,24 @@ export function tenantServiceBuilder(
           externalId,
           code: attributeCode,
         },
+      });
+    },
+    upsertTenant: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      params: {
+        origin: tenantApi.ExternalId["origin"];
+        externalId: tenantApi.ExternalId["value"];
+        attributeCode: tenantApi.M2MAttributeSeed["code"];
+      }
+    ): Promise<void> => {
+      const { origin, externalId, attributeCode } = params;
+      logger.info(
+        `Upserting tenant with externalId (${origin},${externalId}) with attribute ${attributeCode}`
+      );
+
+      const tenantSeed = toM2MTenantSeed(origin, externalId, attributeCode);
+      await tenantProcessClient.m2m.m2mUpsertTenant(tenantSeed, {
+        headers,
       });
     },
   };
