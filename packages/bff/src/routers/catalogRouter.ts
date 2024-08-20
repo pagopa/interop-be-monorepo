@@ -142,7 +142,6 @@ const catalogRouter = (
         }
       }
     )
-    .post("/eservices", async (_req, res) => res.status(501).send())
     .get("/eservices/:eServiceId/consumers", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -224,7 +223,12 @@ const catalogRouter = (
         );
         return res.status(200).send(createdResource);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating eservice with seed: ${req.body}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
