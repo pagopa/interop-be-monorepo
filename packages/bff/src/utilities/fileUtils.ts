@@ -125,10 +125,6 @@ export function buildJsonConfig(
   The zip folder structure in output is the following:
   - zipFolderName
       |
-      |- interface
-      |     |
-      |     |- interfaceFile.{fileExtension}
-      |
       |- documents
       |     |
       |     |- documentFile1.{fileExtension}
@@ -136,6 +132,7 @@ export function buildJsonConfig(
       |     |- ...
       |
       |- configuration.json
+      |- interfaceFile.{fileExtension}
 */
 export async function createDescriptorDocumentZipFile(
   s3BucketName: string,
