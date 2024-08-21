@@ -1204,16 +1204,11 @@ export function tenantServiceBuilder(
         `Updating tenant with external id ${internalTenantSeed.externalId} via internal request`
       );
 
-      const existingTenant = await readModelService.getTenantByExternalId(
-        internalTenantSeed.externalId
-      );
-
-      assertTenantExists(
-        unsafeBrandId(
-          `${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value}`
-        ),
-        existingTenant
-      );
+      const existingTenant = await retrieveTenantByExternalId({
+        tenantOrigin: internalTenantSeed.externalId.origin,
+        tenantExternalId: internalTenantSeed.externalId.value,
+        readModelService,
+      });
 
       const attributesExternalIds = internalTenantSeed.certifiedAttributes.map(
         (externalId) =>
