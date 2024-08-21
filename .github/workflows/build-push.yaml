@@ -57,6 +57,16 @@ jobs:
             dockerfile_path: packages/client-readmodel-writer
           - image_name: key-readmodel-writer
             dockerfile_path: packages/key-readmodel-writer
+          - image_name: agreement-outbound-writer
+            dockerfile_path: packages/agreement-outbound-writer
+          - image_name: catalog-outbound-writer
+            dockerfile_path: packages/catalog-outbound-writer
+          - image_name: purpose-outbound-writer
+            dockerfile_path: packages/purpose-outbound-writer
+          - image_name: tenant-outbound-writer
+            dockerfile_path: packages/tenant-outbound-writer
+          - image_name: compute-agreements-consumer
+            dockerfile_path: packages/compute-agreements-consumer
 
     steps:
       - name: Checkout repository
@@ -101,7 +111,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build_push
-        uses: docker/build-push-action@5176d81f87c23d6fc96624dfdbcd9f3830bbe445
+        uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
           context: .
           file: ${{ matrix.dockerfile_path }}/Dockerfile
