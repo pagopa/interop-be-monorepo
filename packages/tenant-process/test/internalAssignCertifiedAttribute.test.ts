@@ -5,6 +5,7 @@ import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
 import {
   writeInReadmodel,
   getMockAttribute,
+  getMockTenant,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
@@ -20,14 +21,13 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  tenantNotFound,
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   attributes,
-  getMockTenant,
   postgresDB,
   tenantService,
 } from "./utils.js";
@@ -184,9 +184,9 @@ describe("internalAssignCertifiedAttributes", async () => {
       )
     );
   });
-  it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+  it("Should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    const targetTenant: Tenant = getMockTenant();
+    const targetTenant = getMockTenant();
     expect(
       tenantService.internalAssignCertifiedAttribute(
         {
@@ -199,10 +199,9 @@ describe("internalAssignCertifiedAttributes", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      tenantNotFound(
-        unsafeBrandId(
-          `${targetTenant.externalId.origin}/${targetTenant.externalId.value}`
-        )
+      tenantNotFoundByExternalId(
+        targetTenant.externalId.origin,
+        targetTenant.externalId.value
       )
     );
   });

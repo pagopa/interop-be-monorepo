@@ -15,6 +15,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   writeInReadmodel,
   getMockAttribute,
+  getMockTenant,
   readEventByStreamIdAndVersion,
   getRandomAuthData,
 } from "pagopa-interop-commons-test";
@@ -27,7 +28,6 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
-  getMockTenant,
   getMockCertifiedTenantAttribute,
   tenantService,
   attributes,

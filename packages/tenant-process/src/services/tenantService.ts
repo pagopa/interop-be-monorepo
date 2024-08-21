@@ -48,18 +48,21 @@ import {
   toCreateEventTenantVerifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
-  attributeNotFound,
-  certifiedAttributeAlreadyAssigned,
-  attributeDoesNotBelongToCertifier,
-  mailNotFound,
-  tenantNotFound,
-  mailAlreadyExists,
-  attributeVerificationNotAllowed,
-  tenantIsAlreadyACertifier,
   attributeAlreadyRevoked,
+  attributeDoesNotBelongToCertifier,
+  attributeNotFound,
+  attributeNotFoundInTenant,
   attributeRevocationNotAllowed,
-  verifiedAttributeSelfRevocationNotAllowed,
+  attributeVerificationNotAllowed,
+  certifiedAttributeAlreadyAssigned,
   certifierWithExistingAttributes,
+  mailAlreadyExists,
+  mailNotFound,
+  tenantNotFoundByExternalId,
+  tenantNotFoundBySelfcareId,
+  tenantNotFound,
+  tenantIsAlreadyACertifier,
+  verifiedAttributeSelfRevocationNotAllowed,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -71,7 +74,6 @@ import {
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
-  assertTenantExists,
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
@@ -89,6 +91,25 @@ const retrieveTenant = async (
   return tenant;
 };
 
+const retrieveTenantByExternalId = async ({
+  tenantOrigin,
+  tenantExternalId,
+  readModelService,
+}: {
+  tenantOrigin: string;
+  tenantExternalId: string;
+  readModelService: ReadModelService;
+}): Promise<WithMetadata<Tenant>> => {
+  const tenant = await readModelService.getTenantByExternalId({
+    origin: tenantOrigin,
+    value: tenantExternalId,
+  });
+  if (!tenant) {
+    throw tenantNotFoundByExternalId(tenantOrigin, tenantExternalId);
+  }
+  return tenant;
+};
+
 export async function retrieveAttribute(
   attributeId: AttributeId,
   readModelService: ReadModelService
@@ -96,6 +117,26 @@ export async function retrieveAttribute(
   const attribute = await readModelService.getAttributeById(attributeId);
   if (!attribute) {
     throw attributeNotFound(attributeId);
+  }
+  return attribute;
+}
+
+async function retrieveCertifiedAttribute({
+  attributeOrigin,
+  attributeExternalId,
+  readModelService,
+}: {
+  attributeOrigin: string;
+  attributeExternalId: string;
+  readModelService: ReadModelService;
+}): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeByOriginAndCode({
+    origin: attributeOrigin,
+    code: attributeExternalId,
+  });
+
+  if (!attribute) {
+    throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
   }
   return attribute;
 }
@@ -331,12 +372,12 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
+      const declaredTenantAttribute = requesterTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
       );
 
-      if (!maybeDeclaredTenantAttribute) {
+      if (!declaredTenantAttribute) {
         throw attributeNotFound(attributeId);
       }
 
@@ -479,14 +520,14 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
+      const declaredTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
-        attributes: maybeDeclaredTenantAttribute
+        attributes: declaredTenantAttribute
           ? reassignDeclaredAttribute(
               targetTenant.data.attributes,
               attribute.id
@@ -793,25 +834,17 @@ export function tenantServiceBuilder(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await readModelService.getTenantByExternalId({
-        origin: tenantOrigin,
-        value: tenantExternalId,
+      const tenantToModify = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
       });
 
-      assertTenantExists(
-        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
-        tenantToModify
-      );
-
-      const attributeToAssign =
-        await readModelService.getAttributeByOriginAndCode({
-          origin: attributeOrigin,
-          code: attributeExternalId,
-        });
-
-      if (!attributeToAssign) {
-        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
-      }
+      const attributeToAssign = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
 
       const tenantWithNewAttribute = assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
@@ -874,34 +907,29 @@ export function tenantServiceBuilder(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await readModelService.getTenantByExternalId({
-        origin: tenantOrigin,
-        value: tenantExternalId,
+      const tenantToModify = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
       });
 
-      assertTenantExists(
-        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
-        tenantToModify
-      );
+      const attributeToRevoke = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
 
-      const attributeToRevoke =
-        await readModelService.getAttributeByOriginAndCode({
-          origin: attributeOrigin,
-          code: attributeExternalId,
-        });
-
-      if (!attributeToRevoke) {
-        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
-      }
-
-      const maybeAttribute = tenantToModify.data.attributes.find(
+      const certifiedAttribute = tenantToModify.data.attributes.find(
         (attr): attr is CertifiedTenantAttribute =>
           attr.type === tenantAttributeType.CERTIFIED &&
           attr.id === attributeToRevoke.id
       );
 
-      if (!maybeAttribute) {
-        throw attributeNotFound(attributeToRevoke.id);
+      if (!certifiedAttribute) {
+        throw attributeNotFoundInTenant(
+          attributeToRevoke.id,
+          tenantToModify.data.id
+        );
       }
 
       const tenantWithRevokedAttribute = await revokeCertifiedAttribute(
@@ -953,8 +981,7 @@ export function tenantServiceBuilder(
       offset: number;
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
-      const tenant = await readModelService.getTenantById(organizationId);
-      assertTenantExists(organizationId, tenant);
+      const tenant = await retrieveTenant(organizationId, readModelService);
 
       const certifierId = retrieveCertifierId(tenant.data);
 
@@ -1136,28 +1163,37 @@ export function tenantServiceBuilder(
       );
       return readModelService.getTenantsByName({ name, offset, limit });
     },
-    async getTenantById(
-      id: TenantId,
-      logger: Logger
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(id: TenantId, logger: Logger): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
-      return readModelService.getTenantById(id);
+      const tenant = await retrieveTenant(id, readModelService);
+
+      return tenant.data;
     },
     async getTenantByExternalId(
       externalId: ExternalId,
       logger: Logger
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    ): Promise<Tenant> {
       logger.info(
         `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
       );
-      return readModelService.getTenantByExternalId(externalId);
+      const tenant = await retrieveTenantByExternalId({
+        tenantOrigin: externalId.origin,
+        tenantExternalId: externalId.value,
+        readModelService,
+      });
+
+      return tenant.data;
     },
     async getTenantBySelfcareId(
       selfcareId: string,
       logger: Logger
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    ): Promise<Tenant> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
-      return readModelService.getTenantBySelfcareId(selfcareId);
+      const tenant = await readModelService.getTenantBySelfcareId(selfcareId);
+      if (!tenant) {
+        throw tenantNotFoundBySelfcareId(selfcareId);
+      }
+      return tenant.data;
     },
 
     async internalUpsertTenant(
