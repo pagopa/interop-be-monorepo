@@ -57,7 +57,7 @@ jobs:
             dockerfile_path: packages/client-readmodel-writer
           - image_name: key-readmodel-writer
             dockerfile_path: packages/key-readmodel-writer
-          - image_name: bff
+          - image_name: backend-for-frontend
             dockerfile_path: packages/bff
           - image_name: api-gateway
             dockerfile_path: packages/api-gateway
