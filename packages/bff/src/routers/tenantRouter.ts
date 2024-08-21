@@ -164,7 +164,7 @@ const tenantRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
 
         try {
-          await tenantService.revokeCertifiedAttributeById(
+          await tenantService.revokeCertifiedAttribute(
             req.params.tenantId,
             req.params.attributeId,
             ctx

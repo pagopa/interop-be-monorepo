@@ -113,7 +113,7 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
         }
       );
     },
-    async revokeCertifiedAttributeById(
+    async revokeCertifiedAttribute(
       tenantId: string,
       attributeId: string,
       { headers }: WithLogger<BffAppContext>
