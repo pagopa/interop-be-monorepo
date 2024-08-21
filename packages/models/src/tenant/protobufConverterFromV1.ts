@@ -111,8 +111,8 @@ export const fromTenantAttributesV1 = (
         assignmentTimestamp: bigIntToDate(
           certifiedAttribute.assignmentTimestamp
         ),
-        revocationTimestamp: new Date(
-          Number(certifiedAttribute.revocationTimestamp)
+        revocationTimestamp: bigIntToDate(
+          certifiedAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -134,8 +134,8 @@ export const fromTenantAttributesV1 = (
         assignmentTimestamp: bigIntToDate(
           declaredAttribute.assignmentTimestamp
         ),
-        revocationTimestamp: new Date(
-          Number(declaredAttribute.revocationTimestamp)
+        revocationTimestamp: bigIntToDate(
+          declaredAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.DECLARED,
       };
