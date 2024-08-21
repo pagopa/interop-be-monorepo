@@ -104,7 +104,6 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
 });
