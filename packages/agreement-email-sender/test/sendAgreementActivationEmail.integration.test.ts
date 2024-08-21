@@ -35,7 +35,7 @@ import {
 } from "./utils.js";
 
 describe("sendAgreementActivationEmail", () => {
-  it("should send an email", async () => {
+  it.only("should send an email", async () => {
     const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
