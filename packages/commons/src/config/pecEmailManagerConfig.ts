@@ -2,20 +2,20 @@ import { z } from "zod";
 
 export const PecEmailManagerConfig = z
   .object({
-    SMTP_ADDRESS: z.string(),
-    SMTP_PORT: z.coerce.number(),
-    SMTP_SECURE: z
+    PEC_SMTP_ADDRESS: z.string(),
+    PEC_SMTP_PORT: z.coerce.number(),
+    PEC_SMTP_SECURE: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
-    SMTP_USERNAME: z.string(),
-    SMTP_PASSWORD: z.string(),
+    PEC_SMTP_USERNAME: z.string(),
+    PEC_SMTP_PASSWORD: z.string(),
   })
   .transform((c) => ({
-    smtpAddress: c.SMTP_ADDRESS,
-    smtpPort: c.SMTP_PORT,
-    smtpSecure: c.SMTP_SECURE,
-    smtpUsername: c.SMTP_USERNAME,
-    smtpPassword: c.SMTP_PASSWORD,
+    smtpAddress: c.PEC_SMTP_ADDRESS,
+    smtpPort: c.PEC_SMTP_PORT,
+    smtpSecure: c.PEC_SMTP_SECURE,
+    smtpUsername: c.PEC_SMTP_USERNAME,
+    smtpPassword: c.PEC_SMTP_PASSWORD,
   }));
 
 export type PecEmailManagerConfig = z.infer<typeof PecEmailManagerConfig>;
