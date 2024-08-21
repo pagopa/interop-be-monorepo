@@ -18,6 +18,7 @@ import {
   authorizationApi,
   bffApi,
   catalogApi,
+  selfcareV2ClientApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { agreementApiState, catalogApiDescriptorState } from "./apiTypes.js";
@@ -175,4 +176,13 @@ export const toBffApiCompactProducerKeychain = (
   hasKeys: input.keys.length > 0,
   id: input.id,
   name: input.name,
+});
+
+// TODO: correct?
+export const toBffApiCompactUser = (
+  input: selfcareV2ClientApi.UserResponse
+): bffApi.CompactUser => ({
+  userId: input.id ?? "",
+  name: input.name ?? "",
+  familyName: input.surname ?? "",
 });

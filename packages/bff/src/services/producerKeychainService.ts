@@ -1,12 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  bffApi,
+  selfcareV2ClientApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
+import { userNotFound } from "../model/domain/errors.js";
+import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 
 export function producerKeychainServiceBuilder(
-  apiClients: PagoPAInteropBeClients
+  apiClients: PagoPAInteropBeClients,
+  selfcareUsersClient: SelfcareV2UsersClient
 ) {
   const { authorizationProcessClient } = apiClients;
 
@@ -115,6 +124,144 @@ export function producerKeychainServiceBuilder(
         }
       );
     },
+    async createProducerKeys(
+      userId: string,
+      producerKeychainId: string,
+      keySeed: bffApi.KeysSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Create keys for producer keychain ${producerKeychainId}`);
+
+      const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
+        toAuthorizationKeySeed(seed, userId)
+      );
+
+      await authorizationProcessClient.producerKeychain.createProducerKeys(
+        body,
+        {
+          params: { producerKeychainId },
+          headers,
+        }
+      );
+    },
+    async getProducerKeys(
+      producerKeychainId: string,
+      userIds: string[],
+      { logger, headers, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PublicKey[]> {
+      logger.info(`Retrieve keys of producer keychain ${producerKeychainId}`);
+
+      const selfcareId = authData.selfcareId;
+
+      const { keys } =
+        await authorizationProcessClient.producerKeychain.getProducerKeys({
+          params: { producerKeychainId },
+          queries: { userIds },
+          headers,
+        });
+
+      return Promise.all(
+        // TODO: selfcareId?
+        keys.map((k) => decorateKey(selfcareUsersClient, k, selfcareId))
+      );
+    },
+    async getProducerKeyById(
+      producerKeychainId: string,
+      keyId: string,
+      { logger, headers, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PublicKey> {
+      logger.info(
+        `Retrieve key ${keyId} for producer keychain ${producerKeychainId}`
+      );
+
+      const selfcareId = authData.selfcareId;
+
+      const key =
+        await authorizationProcessClient.producerKeychain.getProducerKeyById({
+          params: { producerKeychainId, keyId },
+          headers,
+        });
+      return decorateKey(selfcareUsersClient, key, selfcareId);
+    },
+    async deleteProducerKeyById(
+      producerKeychainId: string,
+      keyId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting key ${keyId} from producer keychain ${producerKeychainId}`
+      );
+
+      return authorizationProcessClient.producerKeychain.deleteProducerKeyById(
+        undefined,
+        {
+          params: { producerKeychainId, keyId },
+          headers,
+        }
+      );
+    },
+    async getProducerKeychainUsers(
+      producerKeychainId: string,
+      { logger, headers, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactUser[]> {
+      logger.info(
+        `Retrieving users for producer keychain ${producerKeychainId}`
+      );
+
+      const selfcareId = authData.selfcareId;
+
+      const producerKeychainUsers =
+        await authorizationProcessClient.producerKeychain.getProducerKeychainUsers(
+          {
+            params: { producerKeychainId },
+            headers,
+          }
+        );
+
+      const users = producerKeychainUsers.map(async (id) =>
+        toBffApiCompactUser(
+          await getSelfcareUserById(selfcareUsersClient, id, selfcareId)
+        )
+      );
+      return Promise.all(users);
+    },
+    async addProducerKeychainUser(
+      userId: string,
+      producerKeychainId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      logger.info(
+        `Add user ${userId} to producer keychain ${producerKeychainId}`
+      );
+
+      const { id } =
+        await authorizationProcessClient.producerKeychain.addProducerKeychainUser(
+          undefined,
+          {
+            params: { producerKeychainId, userId },
+            headers,
+          }
+        );
+
+      return { id };
+    },
+    async removeProducerKeychainUser(
+      producerKeychainId: string,
+      userId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing user ${userId} from producer keychain ${producerKeychainId}`
+      );
+
+      return authorizationProcessClient.producerKeychain.removeProducerKeychainUser(
+        undefined,
+        {
+          params: { producerKeychainId, userId },
+          headers,
+        }
+      );
+    },
   };
 }
 
@@ -173,5 +320,41 @@ async function enhanceEService(
       name: producer.name,
       kind: producer.kind,
     },
+  };
+}
+
+// TODO: move to separate file
+async function getSelfcareUserById(
+  selfcareClient: SelfcareV2UsersClient,
+  userId: string,
+  selfcareId: string
+): Promise<selfcareV2ClientApi.UserResponse> {
+  try {
+    return selfcareClient.getUserInfoUsingGET({
+      params: { id: userId },
+      queries: { institutionId: selfcareId },
+    });
+  } catch (error) {
+    throw userNotFound(userId, selfcareId);
+  }
+}
+
+async function decorateKey(
+  selfcareClient: SelfcareV2UsersClient,
+  key: authorizationApi.Key,
+  selfcareId: string
+): Promise<bffApi.PublicKey> {
+  const user = await getSelfcareUserById(
+    selfcareClient,
+    key.userId,
+    selfcareId
+  );
+
+  return {
+    user: toBffApiCompactUser(user),
+    name: key.name,
+    keyId: key.kid,
+    createdAt: key.createdAt,
+    isOrphan: user.id === undefined,
   };
 }
