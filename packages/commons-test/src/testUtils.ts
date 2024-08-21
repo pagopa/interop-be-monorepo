@@ -32,6 +32,7 @@ import {
   clientKind,
   keyUse,
   Key,
+  technology,
   AttributeKind,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
@@ -100,10 +101,16 @@ export const getMockEService = (
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = []
 ): EService => ({
-  ...generateMock(EService),
   id: eserviceId,
+  name: "eService name",
+  description: "eService description",
+  createdAt: new Date(),
   producerId,
+  technology: technology.rest,
   descriptors,
+  attributes: undefined,
+  riskAnalysis: [],
+  mode: "Deliver",
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -135,11 +142,12 @@ export const getMockTenant = (
   id: tenantId,
   createdAt: new Date(),
   attributes,
+  selfcareId: generateId(),
+  onboardedAt: new Date(),
   externalId: {
-    value: "123456",
+    value: generateId(),
     origin: "IPA",
   },
-  selfcareId: generateId(),
   features: [],
   mails: [],
 });
