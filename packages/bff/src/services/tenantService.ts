@@ -1,10 +1,6 @@
 import { bffApi } from "pagopa-interop-api-clients";
-import { WithLogger, filterUndefined } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
-import {
-  AttributeProcessClient,
-  TenantProcessClient,
-} from "../providers/clientProvider.js";
+import { WithLogger } from "pagopa-interop-commons";
+import { TenantProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toBffApiCompactOrganization,
@@ -12,10 +8,7 @@ import {
 } from "../model/domain/apiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantServiceBuilder(
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient
-) {
+export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
   return {
     async getConsumers(
       name: string | undefined,
@@ -89,55 +82,6 @@ export function tenantServiceBuilder(
           totalCount,
         },
       };
-    },
-    async getTenantAttributes(
-      tenantId: string,
-      type: "certified",
-      { headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CertifiedTenantAttribute[]> {
-      const tenant = await tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers,
-      });
-      const tenantAttribute = tenant.attributes
-        .map((a) =>
-          match(type)
-            .with("certified", () => a.certified)
-            .otherwise(() => undefined)
-        )
-        .filter(filterUndefined);
-
-      const registryAttributes =
-        await attributeProcessClient.getBulkedAttributes(
-          tenantAttribute.map((a) => a.id),
-          {
-            // TODO: something is not ok here. Fix it!
-            queries: {
-              offset: 0,
-              limit: 0,
-            },
-            headers,
-          }
-        );
-
-      const registryMap = new Map(
-        registryAttributes.results.map((a) => [a.id, a])
-      );
-
-      return tenantAttribute
-        .map<bffApi.CertifiedTenantAttribute | undefined>((ta) => {
-          const ra = registryMap.get(ta.id);
-          return (
-            ra && {
-              name: ra.name,
-              description: ra.description,
-              id: ta.id,
-              assignmentTimestamp: ta.assignmentTimestamp,
-              expirationTimestamp: ta.expirationTimestamp,
-            }
-          );
-        })
-        .filter(filterUndefined);
     },
     async addCertifiedAttribute(
       tenantId: string,
