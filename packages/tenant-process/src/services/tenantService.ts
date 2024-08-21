@@ -1312,16 +1312,11 @@ export function tenantServiceBuilder(
 
       const certifierId = retrieveCertifierId(requesterTenant.data);
 
-      const existingTenant = await readModelService.getTenantByExternalId(
-        m2mTenantSeed.externalId
-      );
-
-      assertTenantExists(
-        unsafeBrandId(
-          `${m2mTenantSeed.externalId.origin}/${m2mTenantSeed.externalId.value}`
-        ),
-        existingTenant
-      );
+      const existingTenant = await retrieveTenantByExternalId({
+        tenantOrigin: m2mTenantSeed.externalId.origin,
+        tenantExternalId: m2mTenantSeed.externalId.value,
+        readModelService,
+      });
 
       const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
         (externalId) =>
