@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import { randomUUID } from "crypto";
+import AdmZip from "adm-zip";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  WithLogger,
+  formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
+} from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceDocumentId,
@@ -10,28 +17,26 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  formatDateyyyyMMddThhmmss,
-  getAllFromPaginated,
-  WithLogger,
-} from "pagopa-interop-commons";
 import { BffProcessConfig, config } from "../config/config.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
+import {
+  ImportedEservice,
+  catalogApiDescriptorState,
+} from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
-  toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiEService,
+  toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogApiEserviceRiskAnalysisSeed,
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
   toCatalogCreateEServiceSeed,
 } from "../model/api/converters/catalogClientApiConverter.js";
 import {
+  eserviceDescriptorNotFound,
   eserviceRiskNotFound,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
-  eserviceDescriptorNotFound,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -942,6 +947,117 @@ export function catalogServiceBuilder(
       return {
         filename,
         url,
+      };
+    },
+    importEService: async (
+      fileResource: bffApi.FileResource,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const tenantId = context.authData.organizationId;
+      const zipFile = await fileManager.get(
+        config.importEserviceContainer,
+        `${config.importEservicePath}/${tenantId}/${fileResource.filename}`,
+        context.logger
+      );
+
+      const zip = new AdmZip(Buffer.from(zipFile));
+
+      const entries = zip.getEntries();
+
+      const path =
+        entries.length === 1 && entries[0].isDirectory
+          ? entries[0].entryName
+          : "";
+      const jsonContent = zip.readAsText(`${path}/configuration.json`);
+      const { data: importedEservice, error } = ImportedEservice.safeParse(
+        JSON.parse(jsonContent)
+      );
+
+      if (error) {
+        throw new Error("Invalid configuration.json file");
+      }
+      const docsPath = importedEservice.descriptor.docs.map((doc) =>
+        zip.readFile(doc.path)
+      );
+      if (docsPath.some((doc) => doc === null)) {
+        throw new Error("Invalid docs path");
+      }
+
+      const descriptorInterface = importedEservice.descriptor.interface;
+
+      if (
+        descriptorInterface &&
+        zip.readFile(descriptorInterface.path) === null
+      ) {
+        throw new Error("Invalid interface path");
+      }
+
+      const allowedFiles = [
+        "configuration.json",
+        importedEservice.descriptor.interface?.path,
+        ...importedEservice.descriptor.docs.map((doc) => doc.path),
+      ].filter(
+        (path: string | undefined): path is string => path !== undefined
+      );
+
+      const filePaths = zip.getEntries().map((entry) => entry.entryName);
+
+      const difference = filePaths.filter(
+        (item) => !allowedFiles.includes(item)
+      );
+      if (difference.length > 0) {
+        throw new Error("Invalid files");
+      }
+
+      const eserviceSeed: catalogApi.EServiceSeed = {
+        name: importedEservice.name,
+        description: importedEservice.description,
+        technology: importedEservice.technology,
+        mode: importedEservice.mode,
+        descriptor: {
+          description: importedEservice.descriptor.description,
+          audience: importedEservice.descriptor.audience,
+          voucherLifespan: importedEservice.descriptor.voucherLifespan,
+          dailyCallsPerConsumer:
+            importedEservice.descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: importedEservice.descriptor.dailyCallsTotal,
+          agreementApprovalPolicy:
+            importedEservice.descriptor.agreementApprovalPolicy,
+        },
+      };
+
+      const eservice = await catalogProcessClient.createEService(eserviceSeed, {
+        headers: context.headers,
+      });
+      // TODO poll eservice
+
+      for (const riskAnalysis of importedEservice.riskAnalysis) {
+        try {
+          await catalogProcessClient.createRiskAnalysis(
+            toBffCatalogApiEserviceRiskAnalysisSeed(riskAnalysis),
+            {
+              headers: context.headers,
+              params: {
+                eServiceId: eservice.id,
+              },
+            }
+          );
+        } catch (error) {
+          await catalogProcessClient.deleteEService(undefined, {
+            headers: context.headers,
+            params: {
+              eServiceId: eservice.id,
+            },
+          });
+        }
+        // TODO poll
+      }
+
+      // TODO validation
+
+      return {
+        id: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
       };
     },
   };

@@ -610,7 +610,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          bffGetCatalogErrorMapper,
+          emptyErrorMapper,
           ctx.logger,
           "Error importing eService"
         );

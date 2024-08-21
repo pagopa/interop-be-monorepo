@@ -136,6 +136,7 @@ export const AllowedListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
+
 export const ExportFileConfig = z
   .object({
     EXPORT_ESERVICE_CONTAINER: z.string(),
@@ -189,6 +190,5 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(RiskAnalysisDocumentConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig);
-
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
