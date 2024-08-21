@@ -3,6 +3,7 @@ import { fail } from "assert";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAuthData,
+  getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
@@ -13,7 +14,6 @@ import {
   Tenant,
   toTenantV2,
   Attribute,
-  unsafeBrandId,
   toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
 } from "pagopa-interop-models";
@@ -24,12 +24,12 @@ import {
   certifiedAttributeAlreadyAssigned,
   tenantIsNotACertifier,
   tenantNotFound,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   tenantService,
   readLastTenantEvent,
-  getMockTenant,
   attributes,
   postgresDB,
 } from "./utils.js";
@@ -66,6 +66,11 @@ describe("m2mUpsertTenant", async () => {
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
       features: [
         {
           type: "PersistentCertifier",
@@ -128,6 +133,11 @@ describe("m2mUpsertTenant", async () => {
   it("Should re-assign the attributes if they were revoked", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
       features: [
         {
           type: "PersistentCertifier",
@@ -230,6 +240,11 @@ describe("m2mUpsertTenant", async () => {
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
       features: [
         {
           type: "PersistentCertifier",
@@ -289,6 +304,11 @@ describe("m2mUpsertTenant", async () => {
   it("Should throw tenantNotFound if the tenant by externalId doesn't exist", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
       features: [
         {
           type: "PersistentCertifier",
@@ -323,16 +343,20 @@ describe("m2mUpsertTenant", async () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      tenantNotFound(
-        unsafeBrandId(
-          `${tenantSeed.externalId.origin}/${tenantSeed.externalId.value}`
-        )
+      tenantNotFoundByExternalId(
+        tenantSeed.externalId.origin,
+        tenantSeed.externalId.value
       )
     );
   });
   it("Should throw attributeNotFound error if the attribute doesn't exist", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
       features: [
         {
           type: "PersistentCertifier",

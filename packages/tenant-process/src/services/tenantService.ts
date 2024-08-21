@@ -1202,16 +1202,11 @@ export function tenantServiceBuilder(
         `Updating tenant with external id ${internalTenantSeed.externalId} via internal request`
       );
 
-      const existingTenant = await readModelService.getTenantByExternalId(
-        internalTenantSeed.externalId
-      );
-
-      assertTenantExists(
-        unsafeBrandId(
-          `${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value}`
-        ),
-        existingTenant
-      );
+      const existingTenant = await retrieveTenantByExternalId({
+        tenantOrigin: internalTenantSeed.externalId.origin,
+        tenantExternalId: internalTenantSeed.externalId.value,
+        readModelService,
+      });
 
       const attributesExternalIds = internalTenantSeed.certifiedAttributes.map(
         (externalId) =>
@@ -1315,16 +1310,11 @@ export function tenantServiceBuilder(
 
       const certifierId = retrieveCertifierId(requesterTenant.data);
 
-      const existingTenant = await readModelService.getTenantByExternalId(
-        m2mTenantSeed.externalId
-      );
-
-      assertTenantExists(
-        unsafeBrandId(
-          `${m2mTenantSeed.externalId.origin}/${m2mTenantSeed.externalId.value}`
-        ),
-        existingTenant
-      );
+      const existingTenant = await retrieveTenantByExternalId({
+        tenantOrigin: m2mTenantSeed.externalId.origin,
+        tenantExternalId: m2mTenantSeed.externalId.value,
+        readModelService,
+      });
 
       const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
         (externalId) =>
