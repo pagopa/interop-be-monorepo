@@ -17,6 +17,7 @@ import {
   generateId,
   operationForbidden,
   protobufDecoder,
+  tenantKind,
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -62,7 +63,7 @@ describe("Integration tests", () => {
       const correlationId = generateId();
 
       it("should update the tenant if it exists", async () => {
-        const mockTenant = getMockTenant();
+        const mockTenant = { ...getMockTenant(), kind: tenantKind.PA };
         await addOneTenant(mockTenant);
         const selfcareId = mockTenant.selfcareId!;
         const tenantSeed: tenantApi.SelfcareTenantSeed = {
