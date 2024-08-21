@@ -24,7 +24,6 @@ import {
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
-import { attributeNotFound } from "../model/domain/errors.js";
 
 function listTenantsFilters(
   name: string | undefined

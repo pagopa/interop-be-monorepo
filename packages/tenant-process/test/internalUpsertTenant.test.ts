@@ -3,6 +3,7 @@ import { fail } from "assert";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAuthData,
+  getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
@@ -22,13 +23,12 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
-  tenantNotFound,
+  tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   tenantService,
   readLastTenantEvent,
-  getMockTenant,
   attributes,
   postgresDB,
 } from "./utils.js";
@@ -62,7 +62,14 @@ describe("internalUpsertTenant", async () => {
     vi.useRealTimers();
   });
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
-    const mockTenant = getMockTenant();
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
+    };
 
     const authData: AuthData = {
       ...getMockAuthData(),
@@ -119,7 +126,14 @@ describe("internalUpsertTenant", async () => {
   });
 
   it("Should re-assign the attributes if they were revoked", async () => {
-    const mockTenant = getMockTenant();
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
+    };
 
     const authData: AuthData = {
       ...getMockAuthData(),
@@ -225,6 +239,11 @@ describe("internalUpsertTenant", async () => {
           revocationTimestamp: undefined,
         },
       ],
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
     };
 
     const authData: AuthData = {
@@ -250,7 +269,14 @@ describe("internalUpsertTenant", async () => {
     );
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    const mockTenant = getMockTenant();
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
+    };
 
     const authData: AuthData = {
       ...getMockAuthData(),
@@ -266,15 +292,21 @@ describe("internalUpsertTenant", async () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      tenantNotFound(
-        unsafeBrandId(
-          `${mockTenant.externalId.origin}/${mockTenant.externalId.value}`
-        )
+      tenantNotFoundByExternalId(
+        mockTenant.externalId.origin,
+        mockTenant.externalId.value
       )
     );
   });
   it("Should throw attributeNotFound error if the attribute doesn't exist", async () => {
-    const mockTenant = getMockTenant();
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
+    };
 
     const authData: AuthData = {
       ...getMockAuthData(),
