@@ -3,18 +3,19 @@ import { fail } from "assert";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAuthData,
+  readEventByStreamIdAndVersion,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   tenantKind,
-  TenantOnboardDetailsUpdatedV2,
   protobufDecoder,
   Tenant,
   toTenantV2,
   Attribute,
   unsafeBrandId,
   toReadModelAttribute,
+  TenantCertifiedAttributeAssignedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -30,6 +31,7 @@ import {
   readLastTenantEvent,
   getMockTenant,
   attributes,
+  postgresDB,
 } from "./utils.js";
 
 describe("m2mUpsertTenant", async () => {
@@ -86,17 +88,24 @@ describe("m2mUpsertTenant", async () => {
       serviceName: "",
       logger: genericLogger,
     });
-    const writtenEvent = await readLastTenantEvent(mockTenant.id);
+    const writtenEvent = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      1,
+      "tenant",
+      postgresDB
+    );
     if (!writtenEvent) {
       fail("Update failed: tenant not found in event-store");
     }
     expect(writtenEvent).toMatchObject({
       stream_id: mockTenant.id,
       version: "1",
-      type: "TenantOnboardDetailsUpdated",
+      type: "TenantCertifiedAttributeAssigned",
     });
-    const writtenPayload: TenantOnboardDetailsUpdatedV2 | undefined =
-      protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(writtenEvent?.data);
+    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+        writtenEvent?.data
+      );
 
     const expectedTenant: Tenant = {
       ...mockTenant,
@@ -187,11 +196,13 @@ describe("m2mUpsertTenant", async () => {
     }
     expect(writtenEvent).toMatchObject({
       stream_id: tenant.id,
-      version: "1",
-      type: "TenantOnboardDetailsUpdated",
+      version: "2",
+      type: "TenantCertifiedAttributeAssigned",
     });
-    const writtenPayload: TenantOnboardDetailsUpdatedV2 | undefined =
-      protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(writtenEvent?.data);
+    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+        writtenEvent?.data
+      );
 
     const expectedTenant: Tenant = {
       ...mockTenant,
