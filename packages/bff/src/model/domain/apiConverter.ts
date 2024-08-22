@@ -2,7 +2,6 @@ import { createHash } from "crypto";
 import {
   bffApi,
   attributeRegistryApi,
-  authorizationApi,
   selfcareV2ClientApi,
   authorizationApi,
 } from "pagopa-interop-api-clients";
