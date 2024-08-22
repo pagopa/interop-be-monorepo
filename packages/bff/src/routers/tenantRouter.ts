@@ -96,8 +96,9 @@ const tenantRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getCertifiedAttributes(
-          req.params.tenantId,
+          tenantId,
           ctx
         );
 
@@ -169,10 +170,8 @@ const tenantRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await tenantService.getDeclaredAttributes(
-          req.params.tenantId,
-          ctx
-        );
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        const result = await tenantService.getDeclaredAttributes(tenantId, ctx);
 
         return res.status(200).json(result).end();
       } catch (error) {
@@ -189,10 +188,8 @@ const tenantRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await tenantService.getVerifiedAttributes(
-          req.params.tenantId,
-          ctx
-        );
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        const result = await tenantService.getVerifiedAttributes(tenantId, ctx);
 
         return res.status(200).json(result).end();
       } catch (error) {

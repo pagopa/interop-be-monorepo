@@ -115,7 +115,7 @@ export function tenantServiceBuilder(
       };
     },
     async getCertifiedAttributes(
-      tenantId: string,
+      tenantId: TenantId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CertifiedAttributesResponse> {
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -141,7 +141,7 @@ export function tenantServiceBuilder(
       return { attributes };
     },
     async getDeclaredAttributes(
-      tenantId: string,
+      tenantId: TenantId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.DeclaredAttributesResponse> {
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -167,7 +167,7 @@ export function tenantServiceBuilder(
       return { attributes };
     },
     async getVerifiedAttributes(
-      tenantId: string,
+      tenantId: TenantId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.VerifiedAttributesResponse> {
       const tenant = await tenantProcessClient.tenant.getTenant({
