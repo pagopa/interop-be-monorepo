@@ -1,15 +1,22 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { AttributeId, TenantId } from "pagopa-interop-models";
-import { TenantProcessClient } from "../providers/clientProvider.js";
+import {
+  AttributeProcessClient,
+  TenantProcessClient,
+} from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toBffApiCompactOrganization,
   toBffApiRequesterCertifiedAttributes,
 } from "../model/api/tenantApiConverter.js";
+import { getAllBulkAttributes } from "./attributeService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
+export function tenantServiceBuilder(
+  tenantProcessClient: TenantProcessClient,
+  attributeRegistryProcessClient: AttributeProcessClient
+) {
   return {
     async getConsumers(
       name: string | undefined,
@@ -83,6 +90,34 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
           totalCount,
         },
       };
+    },
+    async getTenantAttributes(
+      tenantId: string,
+      attributeType: bffApi.AttributeKind,
+      { headers }: WithLogger<BffAppContext>
+    ) {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const tenantAttributes = tenant.attributes
+        .map((v) =>
+          match(attributeType)
+            .with(bffApi.AttributeKind.Values.CERTIFIED, () => v.certified)
+            .with(bffApi.AttributeKind.Values.VERIFIED, () => v.verified)
+            .with(bffApi.AttributeKind.Values.DECLARED, () => v.declared)
+            .exhaustive()
+        )
+        .filter(isDefined);
+
+      const attributeIds = tenantAttributes.map((v) => v.id);
+
+      const registryAttributes = await getAllBulkAttributes(
+        attributeRegistryProcessClient,
+        headers,
+        attributeIds
+      );
     },
     async addCertifiedAttribute(
       tenantId: TenantId,
