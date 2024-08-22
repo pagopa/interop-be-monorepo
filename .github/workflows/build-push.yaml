@@ -57,6 +57,16 @@ jobs:
             dockerfile_path: packages/client-readmodel-writer
           - image_name: key-readmodel-writer
             dockerfile_path: packages/key-readmodel-writer
+          - image_name: agreement-outbound-writer
+            dockerfile_path: packages/agreement-outbound-writer
+          - image_name: catalog-outbound-writer
+            dockerfile_path: packages/catalog-outbound-writer
+          - image_name: purpose-outbound-writer
+            dockerfile_path: packages/purpose-outbound-writer
+          - image_name: tenant-outbound-writer
+            dockerfile_path: packages/tenant-outbound-writer
+          - image_name: compute-agreements-consumer
+            dockerfile_path: packages/compute-agreements-consumer
 
     steps:
       - name: Checkout repository

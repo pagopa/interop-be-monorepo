@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import {
   getMockAgreement,
@@ -51,6 +50,7 @@ describe("EService Descripors Archiver", async () => {
     });
 
     beforeEach(async () => {
+      // eslint-disable-next-line functional/immutable-data
       catalogProcessClient.archiveDescriptor = vi.fn();
     });
 
