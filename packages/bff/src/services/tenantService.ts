@@ -1,4 +1,4 @@
-import { bffApi, tenantApi } from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import {
@@ -12,24 +12,20 @@ import {
   toBffApiCompactOrganization,
   toBffApiDeclaredTenantAttributes,
   toBffApiRequesterCertifiedAttributes,
+  toBffApiTenant,
   toBffApiVerifiedTenantAttributes,
 } from "../model/api/tenantApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
-  tenantAttributes:
-    | tenantApi.CertifiedTenantAttribute[]
-    | tenantApi.DeclaredTenantAttribute[]
-    | tenantApi.VerifiedTenantAttribute[],
+  tenantAttributesIds: string[],
   attributeRegistryProcessClient: AttributeProcessClient,
   headers: WithLogger<BffAppContext>["headers"]
 ): Promise<RegistryAttributesMap> {
-  const attributeIds = tenantAttributes.map((v) => v.id);
-
   const registryAttributes = await getAllBulkAttributes(
     attributeRegistryProcessClient,
     headers,
-    attributeIds
+    tenantAttributesIds
   );
 
   return new Map(registryAttributes.map((a) => [a.id, a]));
@@ -41,6 +37,47 @@ export function tenantServiceBuilder(
   attributeRegistryProcessClient: AttributeProcessClient
 ) {
   return {
+    async getTenant(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Tenant> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const certifiedAttributes = tenant.attributes
+        .map((v) => v.certified)
+        .filter(isDefined);
+
+      const declaredAttributes = tenant.attributes
+        .map((v) => v.declared)
+        .filter(isDefined);
+
+      const verifiedAttributes = tenant.attributes
+        .map((v) => v.verified)
+        .filter(isDefined);
+
+      const allAttributeIds = [
+        ...certifiedAttributes,
+        ...declaredAttributes,
+        ...verifiedAttributes,
+      ].map((v) => v.id);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        allAttributeIds,
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      return toBffApiTenant(
+        tenant,
+        certifiedAttributes,
+        declaredAttributes,
+        verifiedAttributes,
+        registryAttributesMap
+      );
+    },
     async getConsumers(
       name: string | undefined,
       offset: number,
@@ -128,7 +165,7 @@ export function tenantServiceBuilder(
         .filter(isDefined);
 
       const registryAttributesMap = await getRegistryAttributesMap(
-        certifiedAttributes,
+        certifiedAttributes.map((v) => v.id),
         attributeRegistryProcessClient,
         headers
       );
@@ -154,7 +191,7 @@ export function tenantServiceBuilder(
         .filter(isDefined);
 
       const registryAttributesMap = await getRegistryAttributesMap(
-        declaredAttributes,
+        declaredAttributes.map((v) => v.id),
         attributeRegistryProcessClient,
         headers
       );
@@ -180,7 +217,7 @@ export function tenantServiceBuilder(
         .filter(isDefined);
 
       const registryAttributesMap = await getRegistryAttributesMap(
-        verifiedAttributes,
+        verifiedAttributes.map((v) => v.id),
         attributeRegistryProcessClient,
         headers
       );

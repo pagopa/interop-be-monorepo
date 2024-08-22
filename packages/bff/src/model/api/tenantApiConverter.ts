@@ -111,3 +111,52 @@ export function toBffApiVerifiedTenantAttributes(
     )
     .filter(isDefined);
 }
+
+function toBffApiTenantMail(
+  tenantMails: tenantApi.Tenant["mails"]
+): bffApi.Mail | undefined {
+  const mail = tenantMails.find(
+    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
+  );
+  return mail
+    ? {
+        address: mail.address,
+        description: mail.description,
+      }
+    : undefined;
+}
+
+export function toBffApiTenant(
+  tenant: tenantApi.Tenant,
+  certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
+  declaredAttributes: tenantApi.DeclaredTenantAttribute[],
+  verifiedAttributes: tenantApi.VerifiedTenantAttribute[],
+  registryAttributesMap: RegistryAttributesMap
+): bffApi.Tenant {
+  return {
+    id: tenant.id,
+    selfcareId: tenant.selfcareId,
+    externalId: tenant.externalId,
+    createdAt: tenant.createdAt,
+    updatedAt: tenant.updatedAt,
+    name: tenant.name,
+    features: tenant.features,
+    onboardedAt: tenant.onboardedAt,
+    subUnitType: tenant.subUnitType,
+    contactMail: toBffApiTenantMail(tenant.mails),
+    attributes: {
+      certified: toBffApiCertifiedTenantAttributes(
+        certifiedAttributes,
+        registryAttributesMap
+      ),
+      declared: toBffApiDeclaredTenantAttributes(
+        declaredAttributes,
+        registryAttributesMap
+      ),
+      verified: toBffApiVerifiedTenantAttributes(
+        verifiedAttributes,
+        registryAttributesMap
+      ),
+    },
+  };
+}
