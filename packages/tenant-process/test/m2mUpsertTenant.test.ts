@@ -64,6 +64,15 @@ describe("m2mUpsertTenant", async () => {
     vi.useRealTimers();
   });
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
+    const attribute2: Attribute = {
+      name: "an Attribute2",
+      id: generateId(),
+      kind: "Certified",
+      description: "",
+      origin: certifierId,
+      code: "CODE",
+      creationTime: new Date(),
+    };
     const mockTenant: Tenant = {
       ...getMockTenant(),
       externalId: {
@@ -86,6 +95,8 @@ describe("m2mUpsertTenant", async () => {
     };
 
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+
     await addOneTenant(mockTenant);
     const returnedTenant = await tenantService.m2mUpsertTenant(tenantSeed, {
       authData,
@@ -95,7 +106,7 @@ describe("m2mUpsertTenant", async () => {
     });
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
-      1,
+      2,
       "tenant",
       postgresDB
     );
@@ -104,7 +115,7 @@ describe("m2mUpsertTenant", async () => {
     }
     expect(writtenEvent).toMatchObject({
       stream_id: mockTenant.id,
-      version: "1",
+      version: "2",
       type: "TenantCertifiedAttributeAssigned",
     });
     const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
@@ -120,6 +131,12 @@ describe("m2mUpsertTenant", async () => {
         {
           assignmentTimestamp: new Date(),
           id: attribute.id,
+          type: "PersistentCertifiedAttribute",
+          revocationTimestamp: undefined,
+        },
+        {
+          assignmentTimestamp: new Date(),
+          id: attribute2.id,
           type: "PersistentCertifiedAttribute",
           revocationTimestamp: undefined,
         },
