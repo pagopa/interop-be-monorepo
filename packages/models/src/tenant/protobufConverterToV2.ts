@@ -88,6 +88,7 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
         declaredAttribute: {
           id: attribute.id,
           assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
+          revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
         },
       },
     }))
