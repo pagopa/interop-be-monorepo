@@ -119,6 +119,7 @@ export const createPurposeVersionErrorMapper = (
       "organizationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("purposeVersionStateConflict", () => HTTP_STATUS_CONFLICT)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

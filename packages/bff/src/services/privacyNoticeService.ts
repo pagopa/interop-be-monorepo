@@ -2,7 +2,6 @@
 
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { streamToBuffer } from "pagopa-interop-commons";
 import {
   privacyNoticeNotFoundInConfiguration,
   privacyNoticeNotFound,
@@ -142,7 +141,7 @@ export function privacyNoticeServiceBuilder(
         path,
         logger
       );
-      return streamToBuffer(bytes);
+      return Buffer.from(bytes);
     },
   };
 }

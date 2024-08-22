@@ -65,12 +65,12 @@ export type PurposeProcessServerConfig = z.infer<
 
 export const AuthorizationProcessServerConfig = z
   .object({
-    TENANT_ALLOWED_ORIGINS: z.string(),
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
+    TENANT_ALLOWED_ORIGINS: z.string(),
   })
   .transform((c) => ({
-    tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
+    tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
   }));
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
@@ -81,11 +81,13 @@ export const S3Config = z
     PRIVACY_NOTICES_CONTAINER: z.string(),
     PRIVACY_NOTICES_PATH: z.string(),
     PRIVACY_NOTICES_FILE_NAME: z.string(),
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     privacyNoticesContainer: c.PRIVACY_NOTICES_CONTAINER,
     privacyNoticesPath: c.PRIVACY_NOTICES_PATH,
     privacyNoticesFileName: c.PRIVACY_NOTICES_FILE_NAME,
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
   }));
 
 export const PrivactNoticeConfig = z
@@ -124,7 +126,6 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
-  .and(FileManagerConfig)
   .and(AllowedListConfig)
   .and(SelfCareConfig)
   .and(PrivactNoticeConfig)

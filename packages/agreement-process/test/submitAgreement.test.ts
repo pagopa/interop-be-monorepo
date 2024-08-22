@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 import { fail } from "assert";
 import { randomUUID } from "crypto";

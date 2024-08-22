@@ -1,7 +1,9 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  AgreementState,
   Attribute,
   AttributeId,
+  EService,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -18,22 +20,14 @@ import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
-  tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
+  verifiedAttributeSelfVerificationNotAllowed,
+  attributeNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-
-export function assertTenantExists(
-  tenantId: TenantId,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
 
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
@@ -42,6 +36,63 @@ export function assertVerifiedAttributeExistsInTenant(
 ): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export async function assertVerifiedAttributeOperationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  agreementStates,
+  readModelService,
+  error,
+}: {
+  producerId: TenantId;
+  consumerId: TenantId;
+  attributeId: AttributeId;
+  agreementStates: AgreementState[];
+  readModelService: ReadModelService;
+  error: Error;
+}): Promise<void> {
+  if (producerId === consumerId) {
+    throw verifiedAttributeSelfVerificationNotAllowed();
+  }
+  // Get agreements
+  const agreements = await readModelService.getAgreements({
+    consumerId,
+    producerId,
+    states: agreementStates,
+  });
+
+  // Extract descriptor IDs
+  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+
+  // Get eServices concurrently
+  const eServices = (
+    await Promise.all(
+      agreements.map((agreement) =>
+        readModelService.getEServiceById(agreement.eserviceId)
+      )
+    )
+  ).filter((eService): eService is EService => eService !== undefined);
+
+  // Find verified attribute IDs
+  const attributeIds = new Set(
+    eServices
+      .flatMap((eService) =>
+        eService.descriptors.filter((descriptor) =>
+          descriptorIds.includes(descriptor.id)
+        )
+      )
+      .flatMap((descriptor) =>
+        descriptor.attributes.verified.flatMap((attribute) =>
+          attribute.map((a) => a.id)
+        )
+      )
+  );
+  // Check if attribute is allowed
+  if (!attributeIds.has(attributeId)) {
+    throw error;
   }
 }
 
@@ -138,9 +189,16 @@ export async function getTenantKindLoadingCertifiedAttributes(
       }
     });
 
-  const attributesIds = getCertifiedAttributesIds(attributes);
-  const attrs = await readModelService.getAttributesById(attributesIds);
-  const extIds = convertAttributes(attrs);
+  const tenantAttributesIds = getCertifiedAttributesIds(attributes);
+  const retrievedAttributes = await readModelService.getAttributesById(
+    tenantAttributesIds
+  );
+  tenantAttributesIds.forEach((attributeId) => {
+    if (!retrievedAttributes.some((attr) => attr.id === attributeId)) {
+      throw attributeNotFound(attributeId);
+    }
+  });
+  const extIds = convertAttributes(retrievedAttributes);
   return getTenantKind(extIds, externalId);
 }
 
@@ -178,7 +236,7 @@ export function evaluateNewSelfcareId({
   }
 }
 
-export function getTenantCertifierId(tenant: Tenant): string {
+export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
     (f) => f.type === "PersistentCertifier"
   )?.certifierId;

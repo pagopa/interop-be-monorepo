@@ -1,9 +1,8 @@
 import {
   ApiError,
-  PurposeId,
-  makeApiProblemBuilder,
   AttributeId,
   parseErrorMessage,
+  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -14,12 +13,20 @@ export const errorCodes = {
   privacyNoticeNotFound: "0005",
   privacyNoticeVersionIsNotTheLatest: "0006",
   dynamoReadingError: "0007",
-  descriptorNotFound: "0008",
-  attributeNotExists: "0009",
-  invalidEserviceRequester: "0010",
-  missingClaim: "00011",
-  tenantLoginNotAllowed: "00012",
-  tokenVerificationFailed: "00013",
+  descriptorNotFound: "0004",
+  attributeNotExists: "0005",
+  invalidEserviceRequester: "0006",
+  missingClaim: "0007",
+  tenantLoginNotAllowed: "0008",
+  tokenVerificationFailed: "0009",
+  eServiceNotFound: "0010",
+  tenantNotFound: "0011",
+  agreementNotFound: "0012",
+  eserviceDescriptorNotFound: "0013",
+  purposeDraftVersionNotFound: "0014",
+  invalidRiskAnalysisContentType: "0015",
+  missingInterface: "0016",
+  eserviceRiskNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -48,7 +55,7 @@ export function userNotFound(
   });
 }
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
@@ -96,25 +103,59 @@ export function privacyNoticeVersionIsNotTheLatest(
   });
 }
 
-export function invalidEServiceRequester(
-  eServiceId: string,
-  requesterId: string
-): ApiError<ErrorCodes> {
+export function eServiceNotFound(eserviceId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} does not belong to producer ${requesterId}`,
-    code: "invalidEserviceRequester",
-    title: `Invalid eservice requester`,
+    detail: `EService ${eserviceId} not found`,
+    code: "eServiceNotFound",
+    title: "EService not found",
+  });
+}
+
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement of consumer ${consumerId} not found`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
   });
 }
 
 export function eserviceDescriptorNotFound(
-  eServiceId: string,
+  eserviceId: string,
   descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in Eservice ${eServiceId}`,
-    code: "descriptorNotFound",
-    title: `Descriptor not found`,
+    detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "EService descriptor not found",
+  });
+}
+
+export function purposeDraftVersionNotFound(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
+    code: "purposeDraftVersionNotFound",
+    title: "Purpose draft version not found",
+  });
+}
+
+export function invalidEServiceRequester(
+  eserviceId: string,
+  requesterId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
+    code: "invalidEserviceRequester",
+    title: `Invalid eservice requester`,
   });
 }
 
@@ -149,5 +190,40 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function invalidRiskAnalysisContentType(
+  contentType: string,
+  purposeId: string,
+  versionId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from purpose ${purposeId} and version ${versionId}`,
+    code: "invalidRiskAnalysisContentType",
+    title: "Invalid Risk Analysis content type",
+  });
+}
+
+export function missingInterface(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
+    code: "missingInterface",
+    title: "Missing interface",
+  });
+}
+
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
   });
 }
