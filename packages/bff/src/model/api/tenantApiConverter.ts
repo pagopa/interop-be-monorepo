@@ -160,3 +160,17 @@ export function toBffApiTenant(
     },
   };
 }
+
+export async function toBffApiCompactTenant(
+  tenant: tenantApi.Tenant,
+  getLogoUrl: (
+    selfcareId: tenantApi.Tenant["selfcareId"]
+  ) => Promise<bffApi.CompactTenant["logoUrl"]>
+): Promise<bffApi.CompactTenant> {
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    selfcareId: tenant.selfcareId,
+    logoUrl: await getLogoUrl(tenant.selfcareId),
+  };
+}

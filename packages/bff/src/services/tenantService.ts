@@ -1,8 +1,9 @@
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import {
   AttributeProcessClient,
+  SelfcareV2Client,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -10,6 +11,7 @@ import {
   RegistryAttributesMap,
   toBffApiCertifiedTenantAttributes,
   toBffApiCompactOrganization,
+  toBffApiCompactTenant,
   toBffApiDeclaredTenantAttributes,
   toBffApiRequesterCertifiedAttributes,
   toBffApiTenant,
@@ -34,8 +36,25 @@ async function getRegistryAttributesMap(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
-  attributeRegistryProcessClient: AttributeProcessClient
+  attributeRegistryProcessClient: AttributeProcessClient,
+  selfcareV2Client: SelfcareV2Client
 ) {
+  async function getLogoUrl(
+    selfcareId: tenantApi.Tenant["selfcareId"]
+  ): Promise<bffApi.CompactTenant["logoUrl"]> {
+    if (!selfcareId) {
+      return undefined;
+    }
+
+    const institution = await selfcareV2Client.institution.getInstitution({
+      params: {
+        id: selfcareId,
+      },
+    });
+
+    return institution.logo;
+  }
+
   return {
     async getTenant(
       tenantId: TenantId,
@@ -83,7 +102,29 @@ export function tenantServiceBuilder(
       limit: number,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenants> {
-      // TODO implement
+      const offset = 0; // This BFF query gets only the limit as parameter, offset is always 0
+      const pagedResults = await tenantProcessClient.tenant.getTenants({
+        queries: {
+          name,
+          limit,
+          offset,
+        },
+        headers,
+      });
+
+      const results = await Promise.all(
+        pagedResults.results.map((tenant) =>
+          toBffApiCompactTenant(tenant, getLogoUrl)
+        )
+      );
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: pagedResults.totalCount,
+        },
+      };
     },
     async getConsumers(
       name: string | undefined,

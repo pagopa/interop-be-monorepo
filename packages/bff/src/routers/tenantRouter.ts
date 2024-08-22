@@ -23,7 +23,8 @@ const tenantRouter = (
 
   const tenantService = tenantServiceBuilder(
     clients.tenantProcessClient,
-    clients.attributeProcessClient
+    clients.attributeProcessClient,
+    clients.selfcareV2Client
   );
 
   tenantRouter
