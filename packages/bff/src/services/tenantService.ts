@@ -269,5 +269,25 @@ export function tenantServiceBuilder(
         }
       );
     },
+    async addTenantMail(
+      tenantId: TenantId,
+      seed: bffApi.MailSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.addTenantMail(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
+    async deleteTenantMail(
+      tenantId: TenantId,
+      mailId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.deleteTenantMail(undefined, {
+        params: { tenantId, mailId },
+        headers,
+      });
+    },
   };
 }
