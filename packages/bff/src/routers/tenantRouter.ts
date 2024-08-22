@@ -253,7 +253,28 @@ const tenantRouter = (
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await tenantService.updateVerifiedAttribute(
+            req.params.tenantId,
+            req.params.attributeId,
+            req.body,
+            ctx
+          );
+
+          return res.status(204).json().end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error updating expirationDate for verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
