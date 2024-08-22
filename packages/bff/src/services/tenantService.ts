@@ -210,6 +210,16 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async verifyVerifiedAttribute(
+      tenantId: string,
+      seed: bffApi.VerifiedTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
     async revokeDeclaredAttribute(
       attributeId: AttributeId,
       { headers }: WithLogger<BffAppContext>

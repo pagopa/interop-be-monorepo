@@ -202,9 +202,27 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/tenants/:tenantId/attributes/verified", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/tenants/:tenantId/attributes/verified", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await tenantService.verifyVerifiedAttribute(
+          req.params.tenantId,
+          req.body,
+          ctx
+        );
+
+        return res.status(204).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error verifying verified attribute ${req.body.id} to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .delete(
       "/tenants/:tenantId/attributes/certified/:attributeId",
       async (req, res) => {
