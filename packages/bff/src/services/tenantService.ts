@@ -5,7 +5,7 @@ import { BffAppContext } from "../utilities/context.js";
 import {
   toBffApiCompactOrganization,
   toBffApiRequesterCertifiedAttributes,
-} from "../model/domain/apiConverter.js";
+} from "../model/api/tenantApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
