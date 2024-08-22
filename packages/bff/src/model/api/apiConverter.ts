@@ -1,15 +1,5 @@
 /* eslint-disable max-params */
 import {
-  TenantAttribute,
-  AttributeId,
-  EServiceAttribute,
-  unsafeBrandId,
-  tenantAttributeType,
-  CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
-  VerifiedTenantAttribute,
-} from "pagopa-interop-models";
-import {
   DescriptorWithOnlyAttributes,
   TenantWithOnlyAttributes,
 } from "pagopa-interop-agreement-lifecycle";
@@ -22,7 +12,17 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import { agreementApiState, catalogApiDescriptorState } from "./apiTypes.js";
+import {
+  AttributeId,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  EServiceAttribute,
+  TenantAttribute,
+  tenantAttributeType,
+  unsafeBrandId,
+  VerifiedTenantAttribute,
+} from "pagopa-interop-models";
+import { isAgreementUpgradable } from "../validators.js";
 
 export function toDescriptorWithOnlyAttributes(
   descriptor: catalogApi.EServiceDescriptor
@@ -62,25 +62,6 @@ export function toBffCatalogApiEServiceResponse(
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
 ): bffApi.CatalogEService {
-  const isUpgradable = (agreement: agreementApi.Agreement): boolean => {
-    const eserviceDescriptor = eservice.descriptors.find(
-      (e) => e.id === agreement.descriptorId
-    );
-
-    return (
-      eserviceDescriptor !== undefined &&
-      eservice.descriptors
-        .filter((d) => Number(d.version) > Number(eserviceDescriptor.version))
-        .find(
-          (d) =>
-            (d.state === catalogApiDescriptorState.PUBLISHED ||
-              d.state === catalogApiDescriptorState.SUSPENDED) &&
-            (agreement.state === agreementApiState.ACTIVE ||
-              agreement.state === agreementApiState.SUSPENDED)
-        ) !== undefined
-    );
-  };
-
   const partialEnhancedEservice = {
     id: eservice.id,
     name: eservice.name,
@@ -110,7 +91,7 @@ export function toBffCatalogApiEServiceResponse(
           agreement: {
             id: agreement.id,
             state: agreement.state,
-            canBeUpgraded: isUpgradable(agreement),
+            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
           },
         }
       : {}),

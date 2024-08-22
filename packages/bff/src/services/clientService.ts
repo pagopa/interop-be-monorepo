@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { WithLogger } from "pagopa-interop-commons";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import {
+  AuthorizationProcessClient,
+  PagoPAInteropBeClients,
+} from "../providers/clientProvider.js";
 import { userNotFound } from "../model/domain/errors.js";
 import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -16,7 +19,7 @@ export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
   selfcareUsersClient: SelfcareV2UsersClient
 ) {
-  const { authorizationProcessClient } = apiClients;
+  const { authorizationClient } = apiClients;
 
   return {
     async getClients(
@@ -39,7 +42,7 @@ export function clientServiceBuilder(
     ): Promise<authorizationApi.ClientsWithKeys> {
       logger.info(`Retrieving clients`);
 
-      return authorizationProcessClient.client.getClientsWithKeys({
+      return authorizationClient.client.getClientsWithKeys({
         queries: {
           offset,
           limit,
@@ -59,7 +62,7 @@ export function clientServiceBuilder(
     ): Promise<bffApi.Client> {
       ctx.logger.info(`Retrieve client ${clientId}`);
 
-      const client = await authorizationProcessClient.client.getClient({
+      const client = await authorizationClient.client.getClient({
         params: { clientId },
         headers: ctx.headers,
       });
@@ -72,7 +75,7 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
-      return authorizationProcessClient.client.deleteClient(undefined, {
+      return authorizationClient.client.deleteClient(undefined, {
         params: { clientId },
         headers,
       });
@@ -85,7 +88,7 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeId} from client ${clientId}`);
 
-      return authorizationProcessClient.client.removeClientPurpose(undefined, {
+      return authorizationClient.client.removeClientPurpose(undefined, {
         params: { clientId, purposeId },
         headers,
       });
@@ -98,7 +101,7 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting key ${keyId} from client ${clientId}`);
 
-      return authorizationProcessClient.client.deleteClientKeyById(undefined, {
+      return authorizationClient.client.deleteClientKeyById(undefined, {
         params: { clientId, keyId },
         headers,
       });
@@ -111,7 +114,7 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
-      return authorizationProcessClient.client.removeUser(undefined, {
+      return authorizationClient.client.removeUser(undefined, {
         params: { clientId, userId },
         headers,
       });
@@ -124,13 +127,10 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Add user ${userId} to client ${clientId}`);
 
-      const { id } = await authorizationProcessClient.client.addUser(
-        undefined,
-        {
-          params: { clientId, userId },
-          headers,
-        }
-      );
+      const { id } = await authorizationClient.client.addUser(undefined, {
+        params: { clientId, userId },
+        headers,
+      });
 
       return { id };
     },
@@ -147,7 +147,7 @@ export function clientServiceBuilder(
         toAuthorizationKeySeed(seed, userId)
       );
 
-      await authorizationProcessClient.client.createKeys(body, {
+      await authorizationClient.client.createKeys(body, {
         params: { clientId },
         headers,
       });
@@ -160,7 +160,7 @@ export function clientServiceBuilder(
     ): Promise<bffApi.PublicKey[]> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
-      const { keys } = await authorizationProcessClient.client.getClientKeys({
+      const { keys } = await authorizationClient.client.getClientKeys({
         params: { clientId },
         queries: { userIds },
         headers,
@@ -178,7 +178,7 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Adding purpose ${purpose.purposeId} to client ${clientId}`);
 
-      await authorizationProcessClient.client.addClientPurpose(purpose, {
+      await authorizationClient.client.addClientPurpose(purpose, {
         params: { clientId },
         headers,
       });
@@ -191,11 +191,10 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CompactUser[]> {
       logger.info(`Retrieving users for client ${clientId}`);
 
-      const clientUsers =
-        await authorizationProcessClient.client.getClientUsers({
-          params: { clientId },
-          headers,
-        });
+      const clientUsers = await authorizationClient.client.getClientUsers({
+        params: { clientId },
+        headers,
+      });
 
       const users = clientUsers.map(async (id) =>
         toBffApiCompactUser(
@@ -214,7 +213,7 @@ export function clientServiceBuilder(
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
-      const key = await authorizationProcessClient.client.getClientKeyById({
+      const key = await authorizationClient.client.getClientKeyById({
         params: { clientId, keyId },
         headers,
       });
@@ -228,7 +227,7 @@ export function clientServiceBuilder(
     ): Promise<bffApi.EncodedClientKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
-      const key = await authorizationProcessClient.client.getClientKeyById({
+      const key = await authorizationClient.client.getClientKeyById({
         params: { clientId, keyId },
         headers,
       });
@@ -241,7 +240,7 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating consumer client with name ${seed.name}`);
 
-      return authorizationProcessClient.client.createConsumerClient(seed, {
+      return authorizationClient.client.createConsumerClient(seed, {
         headers,
       });
     },
@@ -252,7 +251,7 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating api client with name ${seed.name}`);
 
-      return authorizationProcessClient.client.createApiClient(seed, {
+      return authorizationClient.client.createApiClient(seed, {
         headers,
       });
     },
@@ -362,3 +361,23 @@ async function decorateKey(
     isOrphan: user.id === undefined,
   };
 }
+
+export const getAllClients = async (
+  authorizationClient: AuthorizationProcessClient,
+  consumerId: string,
+  purposeId: string,
+  headers: { "X-Correlation-Id": string }
+): Promise<authorizationApi.ClientWithKeys[]> =>
+  await getAllFromPaginated(
+    async (start: number) =>
+      await authorizationClient.client.getClientsWithKeys({
+        headers,
+        queries: {
+          userIds: [],
+          consumerId,
+          purposeId,
+          limit: 50,
+          offset: start,
+        },
+      })
+  );

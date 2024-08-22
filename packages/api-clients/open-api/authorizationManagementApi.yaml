@@ -883,6 +883,9 @@ components:
       description: Models the seed for a client to be persisted
       type: object
       properties:
+        clientId:
+          type: string
+          format: uuid
         consumerId:
           type: string
           format: uuid
