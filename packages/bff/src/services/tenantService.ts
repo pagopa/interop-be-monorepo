@@ -211,7 +211,7 @@ export function tenantServiceBuilder(
       });
     },
     async verifyVerifiedAttribute(
-      tenantId: string,
+      tenantId: TenantId,
       seed: bffApi.VerifiedTenantAttributeSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -221,8 +221,8 @@ export function tenantServiceBuilder(
       });
     },
     async updateVerifiedAttribute(
-      tenantId: string,
-      attributeId: string,
+      tenantId: TenantId,
+      attributeId: AttributeId,
       seed: bffApi.UpdateVerifiedTenantAttributeSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
