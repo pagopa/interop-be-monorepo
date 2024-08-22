@@ -30,7 +30,7 @@ export const getTenantBySelfcareIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantBySelfcareIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFoundBySelfcareId", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTenantVerifiedAttributeErrorMapper = (
@@ -61,6 +61,26 @@ export const selfcareUpsertTenantErrorMapper = (
     .with("selfcareIdConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const internalAddCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRevokeCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const addCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -80,10 +100,101 @@ export const addDeclaredAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const revokeCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "attributeDoesNotBelongToCertifier",
+      "tenantIsNotACertifier",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const revokeDeclaredAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getCertifiedAttributesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceTenantDeletedErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const verifyVerifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "verifiedAttributeSelfVerificationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("attributeVerificationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const revokeVerifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "verifiedAttributeSelfRevocationNotAllowed",
+      "attributeRevocationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteTenantMailErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("mailNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalUpsertTenantErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceTenantPromotedToCertifierErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantIsAlreadyACertifier",
+      "certifierWithExistingAttributes",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
