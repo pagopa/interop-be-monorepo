@@ -1,5 +1,6 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { AttributeId, TenantId } from "pagopa-interop-models";
 import { TenantProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
@@ -84,7 +85,7 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
       };
     },
     async addCertifiedAttribute(
-      tenantId: string,
+      tenantId: TenantId,
       seed: bffApi.CertifiedTenantAttributeSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
@@ -102,7 +103,7 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
       });
     },
     async revokeDeclaredAttribute(
-      attributeId: string,
+      attributeId: AttributeId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       await tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
@@ -114,8 +115,8 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
       );
     },
     async revokeCertifiedAttribute(
-      tenantId: string,
-      attributeId: string,
+      tenantId: TenantId,
+      attributeId: AttributeId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       await tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
@@ -127,8 +128,8 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
       );
     },
     async revokeVerifiedAttribute(
-      tenantId: string,
-      attributeId: string,
+      tenantId: TenantId,
+      attributeId: AttributeId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(

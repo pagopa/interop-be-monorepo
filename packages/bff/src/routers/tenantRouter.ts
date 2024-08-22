@@ -6,6 +6,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -95,11 +96,8 @@ const tenantRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await tenantService.addCertifiedAttribute(
-          req.params.tenantId,
-          req.body,
-          ctx
-        );
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.addCertifiedAttribute(tenantId, req.body, ctx);
 
         return res.status(204).json().end();
       } catch (error) {
@@ -133,10 +131,8 @@ const tenantRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await tenantService.revokeDeclaredAttribute(
-          req.params.attributeId,
-          ctx
-        );
+        const attributeId = unsafeBrandId<AttributeId>(req.params.attributeId);
+        await tenantService.revokeDeclaredAttribute(attributeId, ctx);
 
         return res.status(204).json().end();
       } catch (error) {
@@ -164,9 +160,13 @@ const tenantRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
 
         try {
+          const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+          const attributeId = unsafeBrandId<AttributeId>(
+            req.params.attributeId
+          );
           await tenantService.revokeCertifiedAttribute(
-            req.params.tenantId,
-            req.params.attributeId,
+            tenantId,
+            attributeId,
             ctx
           );
 
@@ -192,9 +192,13 @@ const tenantRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
 
         try {
+          const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+          const attributeId = unsafeBrandId<AttributeId>(
+            req.params.attributeId
+          );
           await tenantService.revokeVerifiedAttribute(
-            req.params.tenantId,
-            req.params.attributeId,
+            tenantId,
+            attributeId,
             ctx
           );
 
