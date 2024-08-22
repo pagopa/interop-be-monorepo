@@ -1,5 +1,5 @@
-import { bffApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
+import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import {
   AttributeProcessClient,
@@ -7,10 +7,33 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
+  RegistryAttributesMap,
+  toBffApiCertifiedTenantAttributes,
   toBffApiCompactOrganization,
+  toBffApiDeclaredTenantAttributes,
   toBffApiRequesterCertifiedAttributes,
+  toBffApiVerifiedTenantAttributes,
 } from "../model/api/tenantApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
+
+async function getRegistryAttributesMap(
+  tenantAttributes:
+    | tenantApi.CertifiedTenantAttribute[]
+    | tenantApi.DeclaredTenantAttribute[]
+    | tenantApi.VerifiedTenantAttribute[],
+  attributeRegistryProcessClient: AttributeProcessClient,
+  headers: WithLogger<BffAppContext>["headers"]
+): Promise<RegistryAttributesMap> {
+  const attributeIds = tenantAttributes.map((v) => v.id);
+
+  const registryAttributes = await getAllBulkAttributes(
+    attributeRegistryProcessClient,
+    headers,
+    attributeIds
+  );
+
+  return new Map(registryAttributes.map((a) => [a.id, a]));
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
@@ -91,33 +114,83 @@ export function tenantServiceBuilder(
         },
       };
     },
-    async getTenantAttributes(
+    async getCertifiedAttributes(
       tenantId: string,
-      attributeType: bffApi.AttributeKind,
       { headers }: WithLogger<BffAppContext>
-    ) {
+    ): Promise<bffApi.CertifiedAttributesResponse> {
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
       });
 
-      const tenantAttributes = tenant.attributes
-        .map((v) =>
-          match(attributeType)
-            .with(bffApi.AttributeKind.Values.CERTIFIED, () => v.certified)
-            .with(bffApi.AttributeKind.Values.VERIFIED, () => v.verified)
-            .with(bffApi.AttributeKind.Values.DECLARED, () => v.declared)
-            .exhaustive()
-        )
+      const certifiedAttributes = tenant.attributes
+        .map((v) => v.certified)
         .filter(isDefined);
 
-      const attributeIds = tenantAttributes.map((v) => v.id);
-
-      const registryAttributes = await getAllBulkAttributes(
+      const registryAttributesMap = await getRegistryAttributesMap(
+        certifiedAttributes,
         attributeRegistryProcessClient,
-        headers,
-        attributeIds
+        headers
       );
+
+      const attributes = toBffApiCertifiedTenantAttributes(
+        certifiedAttributes,
+        registryAttributesMap
+      );
+
+      return { attributes };
+    },
+    async getDeclaredAttributes(
+      tenantId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DeclaredAttributesResponse> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const declaredAttributes = tenant.attributes
+        .map((v) => v.declared)
+        .filter(isDefined);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        declaredAttributes,
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      const attributes = toBffApiDeclaredTenantAttributes(
+        declaredAttributes,
+        registryAttributesMap
+      );
+
+      return { attributes };
+    },
+    async getVerifiedAttributes(
+      tenantId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.VerifiedAttributesResponse> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const verifiedAttributes = tenant.attributes
+        .map((v) => v.verified)
+        .filter(isDefined);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        verifiedAttributes,
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      const attributes = toBffApiVerifiedTenantAttributes(
+        verifiedAttributes,
+        registryAttributesMap
+      );
+
+      return { attributes };
     },
     async addCertifiedAttribute(
       tenantId: TenantId,
