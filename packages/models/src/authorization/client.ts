@@ -12,7 +12,6 @@ export const KeyUse = z.enum([
 export type KeyUse = z.infer<typeof KeyUse>;
 
 export const Key = z.object({
-  clientId: ClientId,
   userId: UserId,
   kid: z.string(),
   name: z.string(),

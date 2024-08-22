@@ -1,9 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
-/* eslint-disable functional/immutable-data */
 import {
   FileManagerError,
   formatDateyyyyMMddHHmmss,
@@ -103,6 +101,7 @@ describe("upgrade Agreement", () => {
   };
 
   beforeEach(async () => {
+    // eslint-disable-next-line functional/immutable-data
     selfcareV2ClientMock.getUserInfoUsingGET = vi.fn(
       async () => mockSelfcareUserResponse
     );

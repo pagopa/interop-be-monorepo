@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -14,15 +15,38 @@ const {
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "descriptorNotFound",
+      "eserviceRiskNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "eServiceNotFound",
+      "agreementNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("purposeDraftVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -51,10 +75,7 @@ export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getAgreementByIdErrorMapper = (
   error: ApiError<ErrorCodes>
-  // eslint-disable-next-line sonarjs/no-identical-functions
 ): number =>
   match(error.code)
     .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;

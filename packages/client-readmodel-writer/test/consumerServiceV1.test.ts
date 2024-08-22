@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe } from "node:test";
+import crypto from "crypto";
 import {
   getMockClient,
   getMockKey,
@@ -312,59 +313,125 @@ describe("Events V1", async () => {
       metadata: { version: 2 },
     });
   });
-  it("KeysAdded", async () => {
-    const mockClient: Client = {
-      ...getMockClient(),
-      keys: [],
-    };
-    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+  describe("KeysAdded", () => {
+    it("KeysAdded - RSA", async () => {
+      const mockClient: Client = {
+        ...getMockClient(),
+        keys: [],
+      };
+      await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
 
-    const keyId = generateId();
-    const addedKey: Key = {
-      ...getMockKey(),
-      kid: keyId,
-      clientId: mockClient.id,
-    };
+      const key = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      }).publicKey;
 
-    const updatedClient: Client = {
-      ...mockClient,
-      keys: [
-        {
-          ...addedKey,
-        },
-      ],
-    };
-    const payload: KeysAddedV1 = {
-      clientId: updatedClient.id,
-      keys: [
-        {
-          keyId,
-          value: {
-            ...toKeyV1(addedKey),
+      const base64Key = Buffer.from(
+        key.export({ type: "pkcs1", format: "pem" })
+      ).toString("base64url");
+
+      const keyId = generateId();
+
+      const addedKey: Key = {
+        ...getMockKey(),
+        kid: keyId,
+        encodedPem: base64Key,
+      };
+
+      const updatedClient: Client = {
+        ...mockClient,
+        keys: [
+          {
+            ...addedKey,
           },
-        },
-      ],
-    };
+        ],
+      };
+      const payload: KeysAddedV1 = {
+        clientId: updatedClient.id,
+        keys: [
+          {
+            keyId,
+            value: {
+              ...toKeyV1(addedKey),
+            },
+          },
+        ],
+      };
 
-    const message: AuthorizationEventEnvelopeV1 = {
-      ...mockMessage,
-      stream_id: updatedClient.id,
-      version: 2,
-      type: "KeysAdded",
-      data: payload,
-    };
+      const message: AuthorizationEventEnvelopeV1 = {
+        ...mockMessage,
+        stream_id: updatedClient.id,
+        version: 2,
+        type: "KeysAdded",
+        data: payload,
+      };
 
-    await handleMessageV1(message, clients);
+      await handleMessageV1(message, clients);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": updatedClient.id,
+      const retrievedClient = await clients.findOne({
+        "data.id": updatedClient.id,
+      });
+
+      expect(retrievedClient).toMatchObject({
+        data: toReadModelClient(updatedClient),
+        metadata: { version: 2 },
+      });
     });
 
-    expect(retrievedClient).toMatchObject({
-      data: toReadModelClient(updatedClient),
-      metadata: { version: 2 },
+    it.each(["prime256v1", "secp256k1"])("KeysAdded - EC", async (curve) => {
+      const mockClient: Client = {
+        ...getMockClient(),
+        keys: [],
+      };
+      await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+
+      const key = crypto.generateKeyPairSync("ec", {
+        namedCurve: curve,
+      }).publicKey;
+
+      const base64Key = Buffer.from(
+        key.export({ type: "spki", format: "pem" })
+      ).toString("base64url");
+
+      const addedKey: Key = {
+        ...getMockKey(),
+        encodedPem: base64Key,
+      };
+
+      const updatedClient: Client = {
+        ...mockClient,
+        keys: [],
+      };
+      const payload: KeysAddedV1 = {
+        clientId: updatedClient.id,
+        keys: [
+          {
+            keyId: generateId(),
+            value: toKeyV1(addedKey),
+          },
+        ],
+      };
+
+      const message: AuthorizationEventEnvelopeV1 = {
+        ...mockMessage,
+        stream_id: updatedClient.id,
+        version: 2,
+        type: "KeysAdded",
+        data: payload,
+      };
+
+      await handleMessageV1(message, clients);
+
+      const retrievedClient = await clients.findOne({
+        "data.id": updatedClient.id,
+      });
+
+      expect(retrievedClient).toMatchObject({
+        data: toReadModelClient(updatedClient),
+        metadata: { version: 2 },
+      });
     });
   });
+
   it("KeyDeleted", async () => {
     const mockKey: Key = getMockKey();
     const mockClient: Client = {

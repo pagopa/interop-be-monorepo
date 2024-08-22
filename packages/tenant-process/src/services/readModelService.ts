@@ -16,13 +16,14 @@ import {
   EServiceId,
   attributeKind,
   AttributeReadmodel,
+  Agreement,
+  AgreementState,
   TenantReadModel,
   genericInternalError,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
-import { attributeNotFound } from "../model/domain/errors.js";
 
 function listTenantsFilters(
   name: string | undefined
@@ -146,7 +147,7 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { attributes, eservices, tenants } = readModelRepository;
+  const { attributes, eservices, tenants, agreements } = readModelRepository;
   return {
     async getTenantsByName({
       name,
@@ -202,6 +203,19 @@ export function readModelServiceBuilder(
       selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.selfcareId": selfcareId });
+    },
+
+    async getAttributeByOriginAndCode({
+      origin,
+      code,
+    }: {
+      origin: string;
+      code: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.origin": origin,
+        "data.code": code,
+      });
     },
 
     async getConsumers({
@@ -285,39 +299,42 @@ export function readModelServiceBuilder(
         allowDiskUse: true,
       });
     },
+
     async getAttributesByExternalIds(
       externalIds: ExternalId[]
     ): Promise<Attribute[]> {
-      const fetchAttributeByExternalId = async (
-        externalId: ExternalId
-      ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, {
-          "data.origin": externalId.origin,
-          "data.code": externalId.value,
-        });
-        if (!data) {
-          throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
-        }
-        return data;
-      };
-
-      const attributesPromises = externalIds.map(fetchAttributeByExternalId);
-      return Promise.all(attributesPromises);
+      const data = await attributes
+        .find({
+          $or: externalIds.map((externalId) => ({
+            "data.origin": externalId.origin,
+            "data.code": externalId.value,
+          })),
+        })
+        .toArray();
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
-      const fetchAttributeById = async (
-        id: AttributeId
-      ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, { "data.id": id });
-        if (!data) {
-          throw attributeNotFound(id);
-        }
-        return data;
-      };
-
-      const attributePromises = attributeIds.map(fetchAttributeById);
-      return Promise.all(attributePromises);
+      const data = await attributes
+        .aggregate([{ $match: { "data.id": { $in: attributeIds } } }])
+        .toArray();
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getAttributeById(
@@ -329,13 +346,12 @@ export function readModelServiceBuilder(
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
-
       if (!data) {
         return undefined;
       } else {
-        const result = EService.safeParse(data);
+        const result = EService.safeParse(data.data);
 
         if (!result.success) {
           throw genericInternalError(
@@ -347,6 +363,35 @@ export function readModelServiceBuilder(
 
         return result.data;
       }
+    },
+
+    async getAgreements({
+      consumerId,
+      producerId,
+      states,
+    }: {
+      consumerId: TenantId;
+      producerId: TenantId;
+      states: AgreementState[];
+    }): Promise<Agreement[]> {
+      const data = await agreements
+        .find({
+          "data.consumerId": consumerId,
+          "data.producerId": producerId,
+          "data.state": { $in: states },
+        })
+        .toArray();
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse agreements item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getCertifiedAttributes({
@@ -438,6 +483,17 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+
+    async getOneCertifiedAttributeByCertifier({
+      certifierId,
+    }: {
+      certifierId: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.kind": attributeKind.certified,
+        "data.origin": certifierId,
+      });
     },
   };
 }
