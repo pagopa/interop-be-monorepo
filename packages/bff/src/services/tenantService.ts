@@ -78,6 +78,13 @@ export function tenantServiceBuilder(
         registryAttributesMap
       );
     },
+    async getTenants(
+      name: string | undefined,
+      limit: number,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Tenants> {
+      // TODO implement
+    },
     async getConsumers(
       name: string | undefined,
       offset: number,
