@@ -1,7 +1,11 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { toSetToArray, WithLogger } from "pagopa-interop-commons";
+import {
+  getAllFromPaginated,
+  toSetToArray,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   bffApi,
   catalogApi,
@@ -104,54 +108,42 @@ export const getLatestAgreement = async (
   consumerId: string,
   eservice: catalogApi.EService,
   headers: Headers
-): Promise<agreementApi.Agreement> => {
-  const getAgreementsFrom = async (
-    start: number
-  ): Promise<agreementApi.Agreements> =>
-    await agreementProcessClient.getAgreements({
-      headers: { ...headers },
-      queries: {
-        consumersIds: consumerId,
-        eservicesIds: eservice.id,
-        offset: start,
-        limit: 50,
-      },
-    });
+): Promise<agreementApi.Agreement | undefined> => {
+  const allAgreements = await getAllFromPaginated(
+    async (offset: number, limit: number) =>
+      agreementProcessClient.getAgreements({
+        headers,
+        queries: {
+          consumersIds: [consumerId],
+          eservicesIds: [eservice.id],
+          limit,
+          offset,
+        },
+      })
+  );
 
-  // Fetched all agreements in a recursive way
-  const getAgreements = async (
-    start: number
-  ): Promise<agreementApi.Agreement[]> => {
-    const agreements = (await getAgreementsFrom(start)).results;
+  return allAgreements
+    .sort((firstAgreement, secondAgreement) => {
+      if (firstAgreement.version !== secondAgreement.version) {
+        const descriptorFirstAgreement = eservice.descriptors.find(
+          (d) => d.id === firstAgreement.descriptorId
+        );
+        const descriptorSecondAgreement = eservice.descriptors.find(
+          (d) => d.id === secondAgreement.descriptorId
+        );
 
-    if (agreements.length >= 50) {
-      return agreements.concat(await getAgreements(start + 50));
-    }
-    return agreements;
-  };
-
-  const allAgreements = await getAgreements(0);
-
-  return allAgreements.sort((firstAgreement, secondAgreement) => {
-    if (firstAgreement.version !== secondAgreement.version) {
-      const descriptorFirstAgreement = eservice.descriptors.find(
-        (d) => d.id === firstAgreement.descriptorId
-      );
-      const descriptorSecondAgreement = eservice.descriptors.find(
-        (d) => d.id === secondAgreement.descriptorId
-      );
-
-      return descriptorFirstAgreement && descriptorSecondAgreement
-        ? Number(descriptorSecondAgreement.version) -
-            Number(descriptorFirstAgreement.version)
-        : 0;
-    } else {
-      return (
-        new Date(secondAgreement.createdAt).getTime() -
-        new Date(firstAgreement.createdAt).getTime()
-      );
-    }
-  })[0];
+        return descriptorFirstAgreement && descriptorSecondAgreement
+          ? Number(descriptorSecondAgreement.version) -
+              Number(descriptorFirstAgreement.version)
+          : 0;
+      } else {
+        return (
+          new Date(secondAgreement.createdAt).getTime() -
+          new Date(firstAgreement.createdAt).getTime()
+        );
+      }
+    })
+    .at(0);
 };
 
 function isUpgradable(
