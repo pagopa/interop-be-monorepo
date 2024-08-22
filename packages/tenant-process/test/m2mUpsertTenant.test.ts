@@ -106,7 +106,7 @@ describe("m2mUpsertTenant", async () => {
     });
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
-      2,
+      1,
       "tenant",
       postgresDB
     );
@@ -115,12 +115,28 @@ describe("m2mUpsertTenant", async () => {
     }
     expect(writtenEvent).toMatchObject({
       stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantCertifiedAttributeAssigned",
+    });
+
+    const writtenEvent2 = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      2,
+      "tenant",
+      postgresDB
+    );
+    if (!writtenEvent2) {
+      fail("Update failed: tenant not found in event-store");
+    }
+    expect(writtenEvent2).toMatchObject({
+      stream_id: mockTenant.id,
       version: "2",
       type: "TenantCertifiedAttributeAssigned",
     });
+
     const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
       protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
-        writtenEvent?.data
+        writtenEvent2?.data
       );
 
     const expectedTenant: Tenant = {
