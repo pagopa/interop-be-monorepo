@@ -18,6 +18,7 @@ import { getInteropBeClients } from "./providers/clientProvider.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import getAllowList from "./utilities/getAllowList.js";
 import { config } from "./config/config.js";
+import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 
 const serviceName = "bff-process";
 const fileManager = initFileManager(config);
@@ -44,5 +45,6 @@ app.use(agreementRouter(zodiosCtx));
 app.use(selfcareRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx));
 app.use(clientRouter(zodiosCtx, clients));
+app.use(privacyNoticeRouter(zodiosCtx));
 
 export default app;
