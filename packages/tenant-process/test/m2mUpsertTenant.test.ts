@@ -119,6 +119,27 @@ describe("m2mUpsertTenant", async () => {
       type: "TenantCertifiedAttributeAssigned",
     });
 
+    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+        writtenEvent?.data
+      );
+
+    const expectedTenant: Tenant = {
+      ...mockTenant,
+      kind: tenantKind.PA,
+      updatedAt: new Date(),
+      attributes: [
+        {
+          assignmentTimestamp: new Date(),
+          id: attribute.id,
+          type: "PersistentCertifiedAttribute",
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+
+    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+
     const writtenEvent2 = await readEventByStreamIdAndVersion(
       mockTenant.id,
       2,
@@ -134,12 +155,12 @@ describe("m2mUpsertTenant", async () => {
       type: "TenantCertifiedAttributeAssigned",
     });
 
-    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
+    const writtenPayload2: TenantCertifiedAttributeAssignedV2 | undefined =
       protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
         writtenEvent2?.data
       );
 
-    const expectedTenant: Tenant = {
+    const expectedTenant2: Tenant = {
       ...mockTenant,
       kind: tenantKind.PA,
       updatedAt: new Date(),
@@ -159,8 +180,8 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+    expect(writtenPayload2.tenant).toEqual(toTenantV2(expectedTenant2));
+    expect(returnedTenant).toEqual(expectedTenant2);
   });
 
   it("Should re-assign the attributes if they were revoked", async () => {
