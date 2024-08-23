@@ -12,6 +12,17 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
+  readmodelSQL:
+    volumes:
+      - ./readmodel-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    image: postgres:14
+    ports:
+      - 6002:5432
+    environment:
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    command: -c 'max_connections=512' -c 'wal_level=logical'
 
   zookeeper:
     image: quay.io/debezium/zookeeper:2.3
@@ -162,7 +173,7 @@ services:
       KMS_REGION: eu-central-1
     volumes:
       - ./local-kms-seed/seed.yaml:/init/seed.yaml
-  
+
   # HTTP server to simulate well-known JWKS endpoint
   jwks:
     image: nginx:1.27.0
@@ -170,4 +181,3 @@ services:
       - 4500:80
     volumes:
       - ./local-kms-seed/jwks.json:/usr/share/nginx/html/jwks.json
-
