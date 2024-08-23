@@ -588,18 +588,18 @@ export function catalogServiceBuilder(
         throw noDescriptorInEservice(eServiceId);
       }
 
-      const maxVersion = (
+      const retrieveLatestDescriptor = (
         descriptors: catalogApi.EServiceDescriptor[]
       ): catalogApi.EServiceDescriptor =>
         descriptors.reduce(
-          (maxVersion, curr) =>
-            parseInt(curr.version, 10) > parseInt(maxVersion.version, 10)
+          (latestDescriptor, curr) =>
+            parseInt(curr.version, 10) > parseInt(latestDescriptor.version, 10)
               ? curr
-              : maxVersion,
+              : latestDescriptor,
           descriptors[0]
         );
 
-      const previousDescriptor = maxVersion(eService.descriptors);
+      const previousDescriptor = retrieveLatestDescriptor(eService.descriptors);
 
       const cloneDocument = async (
         clonedDocumentId: string,
