@@ -33,6 +33,13 @@ import {
   keyUse,
   Key,
   AttributeKind,
+  EServiceSQL,
+  technology,
+  eserviceMode,
+  DescriptorSQL,
+  DocumentSQL,
+  documentKind,
+  DescriptorAttributeSQL,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -100,6 +107,16 @@ export const getMockEService = (
   id: eserviceId,
   producerId,
   descriptors,
+});
+
+export const getMockEServiceSQL = (): EServiceSQL => ({
+  name: "eservice - test",
+  id: generateId(),
+  created_at: new Date(),
+  producer_id: generateId(),
+  description: "description - test",
+  technology: technology.rest,
+  mode: eserviceMode.deliver,
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -236,6 +253,21 @@ export const getMockDescriptor = (): Descriptor => ({
   },
 });
 
+export const getMockDescriptorSQL = (): DescriptorSQL => ({
+  version: "1",
+  description: "description",
+  id: generateId(),
+  created_at: new Date(),
+  eservice_id: generateId(),
+  state: descriptorState.draft,
+  audience: [],
+  voucher_lifespan: 60,
+  daily_calls_per_consumer: 10,
+  daily_calls_total: 1000,
+  server_urls: [],
+  agreement_approval_policy: "Automatic",
+});
+
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
@@ -244,6 +276,26 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockDescriptorDocumentSQL = (): DocumentSQL => ({
+  path: "filePath",
+  name: "fileName",
+  id: generateId(),
+  pretty_name: "prettyName",
+  content_type: "json",
+  descriptor_id: generateId(),
+  checksum: "checksum",
+  upload_date: new Date(),
+  document_kind: documentKind.descriptorInterface,
+});
+
+export const getMockDescriptorAttributeSQL = (): DescriptorAttributeSQL => ({
+  id: generateId(),
+  descriptor_id: generateId(),
+  kind: attributeKind.certified,
+  explicit_attribute_verification: false,
+  group_set: 0,
 });
 
 export const getMockClient = (): Client => ({
