@@ -43,3 +43,32 @@ export const RiskAnalysis = z.object({
   createdAt: z.coerce.date(),
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
+
+export const EserviceRiskAnalysisSQL = z.object({
+  riskAnalysisId: RiskAnalysisId,
+  name: z.string(),
+  createdAt: z.coerce.date(),
+  riskAnalysisFormId: RiskAnalysisFormId,
+  riskAnalysisFormVersion: z.string(),
+});
+export type EserviceRiskAnalysisSQL = z.infer<typeof EserviceRiskAnalysisSQL>;
+
+export const RiskAnalysisSingleAnswerSQL = z.object({
+  id: RiskAnalysisSingleAnswerId,
+  riskAnalysisFormId: RiskAnalysisFormId,
+  key: z.string(),
+  value: z.string().optional(),
+});
+export type RiskAnalysisSingleAnswerSQL = z.infer<
+  typeof RiskAnalysisSingleAnswerSQL
+>;
+
+export const RiskAnalysisMultiAnswerSQL = z.object({
+  id: RiskAnalysisMultiAnswerId,
+  riskAnalysisFormId: RiskAnalysisFormId,
+  key: z.string(),
+  values: z.array(z.string()),
+});
+export type RiskAnalysisMultiAnswerSQL = z.infer<
+  typeof RiskAnalysisMultiAnswerSQL
+>;
