@@ -79,7 +79,7 @@ export function buildJsonConfig(
     descriptor: {
       interface: descriptor.interface && {
         prettyName: descriptor.interface.prettyName,
-        path: descriptor.interface.path,
+        path: descriptor.interface.name,
       },
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
@@ -97,21 +97,21 @@ export function buildJsonConfig(
       dailyCallsTotal: descriptor.dailyCallsTotal,
       description: descriptor.description,
       agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
-      riskAnalysis: eservice.riskAnalysis.map((ra) => ({
-        name: ra.name,
-        riskAnalysisForm: {
-          version: ra.riskAnalysisForm.version,
-          singleAnswers: ra.riskAnalysisForm.singleAnswers.map((sa) => ({
-            key: sa.key,
-            value: sa.value,
-          })),
-          multiAnswers: ra.riskAnalysisForm.multiAnswers.map((ma) => ({
-            key: ma.key,
-            values: ma.values,
-          })),
-        },
-      })),
     },
+    riskAnalysis: eservice.riskAnalysis.map((ra) => ({
+      name: ra.name,
+      riskAnalysisForm: {
+        version: ra.riskAnalysisForm.version,
+        singleAnswers: ra.riskAnalysisForm.singleAnswers.map((sa) => ({
+          key: sa.key,
+          value: sa.value,
+        })),
+        multiAnswers: ra.riskAnalysisForm.multiAnswers.map((ma) => ({
+          key: ma.key,
+          values: ma.values,
+        })),
+      },
+    })),
   };
 }
 

@@ -962,18 +962,27 @@ export function catalogServiceBuilder(
 
       const zip = new AdmZip(Buffer.from(zipFile));
 
-      const entries = zip.getEntries();
+      const entriesMap = zip.getEntries().reduce((map, entry) => {
+        map.set(entry.name, entry);
+        return map;
+      }, new Map<string, AdmZip.IZipEntry>());
 
-      const path =
-        entries.length === 1 && entries[0].isDirectory
-          ? entries[0].entryName
-          : "";
-      const jsonContent = zip.readAsText(`${path}/configuration.json`);
+      // eslint-disable-next-line no-console
+      console.log(entriesMap);
+
+      const configurationEntry = entriesMap.get("configuration.json");
+      if (!configurationEntry) {
+        throw new Error("Invalid configuration.json file");
+      }
+
+      const jsonContent = configurationEntry.getData().toString("utf8");
       const { data: importedEservice, error } = ImportedEservice.safeParse(
         JSON.parse(jsonContent)
       );
 
       if (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
         throw new Error("Invalid configuration.json file");
       }
       const docsPath = importedEservice.descriptor.docs.map((doc) =>
@@ -987,7 +996,7 @@ export function catalogServiceBuilder(
 
       if (
         descriptorInterface &&
-        zip.readFile(descriptorInterface.path) === null
+        entriesMap.get(descriptorInterface.path) === undefined
       ) {
         throw new Error("Invalid interface path");
       }
@@ -1000,7 +1009,7 @@ export function catalogServiceBuilder(
         (path: string | undefined): path is string => path !== undefined
       );
 
-      const filePaths = zip.getEntries().map((entry) => entry.entryName);
+      const filePaths = zip.getEntries().map((entry) => entry.name);
 
       const difference = filePaths.filter(
         (item) => !allowedFiles.includes(item)
@@ -1010,7 +1019,7 @@ export function catalogServiceBuilder(
       }
 
       const eserviceSeed: catalogApi.EServiceSeed = {
-        name: importedEservice.name,
+        name: importedEservice.name + "_duplicated", // TODO remove _duplicated
         description: importedEservice.description,
         technology: importedEservice.technology,
         mode: importedEservice.mode,
@@ -1026,10 +1035,45 @@ export function catalogServiceBuilder(
         },
       };
 
+      const pollEServiceById = async (
+        fetchFunc: () => Promise<catalogApi.EService>,
+        condition: (result: catalogApi.EService) => boolean,
+        maxRetries: number = 30,
+        delay: number = 200
+      ): Promise<void> => {
+        async function poll(attempt: number): Promise<void> {
+          if (attempt > maxRetries) {
+            throw new Error("Max retries reached");
+          } else {
+            try {
+              const result = await fetchFunc();
+              if (!condition(result)) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+                return poll(attempt + 1);
+              }
+            } catch (error) {
+              await new Promise((resolve) => setTimeout(resolve, delay));
+              return poll(attempt + 1);
+            }
+          }
+        }
+
+        return poll(1);
+      };
+
       const eservice = await catalogProcessClient.createEService(eserviceSeed, {
         headers: context.headers,
       });
-      // TODO poll eservice
+      await pollEServiceById(
+        () =>
+          catalogProcessClient.getEServiceById({
+            params: {
+              eServiceId: eservice.id,
+            },
+            headers: context.headers,
+          }),
+        (result) => result.descriptors.length > 0
+      );
 
       for (const riskAnalysis of importedEservice.riskAnalysis) {
         try {
@@ -1050,10 +1094,62 @@ export function catalogServiceBuilder(
             },
           });
         }
-        // TODO poll
+        await pollEServiceById(
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          () =>
+            catalogProcessClient.getEServiceById({
+              params: {
+                eServiceId: eservice.id,
+              },
+              headers: context.headers,
+            }),
+          (result) => result.riskAnalysis.length > 0
+        );
       }
 
-      // TODO validation
+      const descriptor = eservice.descriptors[0];
+      if (descriptorInterface) {
+        await verifyAndCreateImportedDoc(
+          eservice,
+          descriptor,
+          descriptorInterface,
+          "INTERFACE"
+        );
+      }
+      await pollEServiceById(
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        () =>
+          catalogProcessClient.getEServiceById({
+            params: {
+              eServiceId: eservice.id,
+            },
+            headers: context.headers,
+          }),
+        (result) =>
+          result.descriptors.some(
+            (d) => d.id === descriptor.id && d.interface !== undefined
+          )
+      );
+
+      for (const doc of importedEservice.descriptor.docs) {
+        await verifyAndCreateImportedDoc(eservice, descriptor, doc, "DOCUMENT");
+        await pollEServiceById(
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          () =>
+            catalogProcessClient.getEServiceById({
+              params: {
+                eServiceId: eservice.id,
+              },
+              headers: context.headers,
+            }),
+          (result) =>
+            result.descriptors.some(
+              (d) =>
+                d.id === descriptor.id &&
+                d.docs.some((d) => d.prettyName === doc.prettyName)
+            )
+        );
+      }
 
       return {
         id: eservice.id,
