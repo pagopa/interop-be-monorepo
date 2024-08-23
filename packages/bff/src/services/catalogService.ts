@@ -25,7 +25,7 @@ import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
-  noDescriptorInEservice,
+  missingDescriptorInClonedEservice,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -604,7 +604,7 @@ export function catalogServiceBuilder(
       );
       const eServiceDescriptorId = eService.descriptors.at(0)?.id;
       if (!eServiceDescriptorId) {
-        throw noDescriptorInEservice(eService.id);
+        throw missingDescriptorInClonedEservice(eService.id);
       }
       return { id: eService.id, descriptorId: eServiceDescriptorId };
     },

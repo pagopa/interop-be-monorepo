@@ -22,7 +22,7 @@ export const errorCodes = {
   invalidRiskAnalysisContentType: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
-  noDescriptorInEservice: "0018",
+  missingDescriptorInClonedEservice: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -184,12 +184,12 @@ export function eserviceRiskNotFound(
   });
 }
 
-export function noDescriptorInEservice(
+export function missingDescriptorInClonedEservice(
   eserviceId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No descriptor found in eservice ${eserviceId}`,
-    code: "noDescriptorInEservice",
-    title: "No descriptor in eservice",
+    detail: `Missing descriptor in cloned eService ${eserviceId}`,
+    code: "missingDescriptorInClonedEservice",
+    title: "Missing descriptor in cloned eService",
   });
 }
