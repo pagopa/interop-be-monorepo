@@ -1,9 +1,5 @@
 import { EachMessagePayload } from "kafkajs";
-import {
-  logger,
-  ReadModelRepository,
-  decodeKafkaMessage,
-} from "pagopa-interop-commons";
+import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -11,7 +7,7 @@ import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
-const { eservices } = ReadModelRepository.init(config);
+const dynamodbTable = undefined; // TO DO
 
 async function processMessage({
   message,
@@ -28,8 +24,8 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, dynamodbTable))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, dynamodbTable))
     .exhaustive();
 
   loggerInstance.info(

@@ -1,10 +1,9 @@
-import { EServiceCollection } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
-  _eservices: EServiceCollection // TO DO dynamoDB table
+  _dynamodbTable: unknown // TO DO dynamoDB table
 ): Promise<void> {
   await match(message)
     .with(
