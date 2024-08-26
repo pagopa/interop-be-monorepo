@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   getMockValidRiskAnalysis,
   writeInReadmodel,
+  toEServiceV1,
+  toDocumentV1,
+  toDescriptorV1,
 } from "pagopa-interop-commons-test";
 import {
   AttributeId,
@@ -55,11 +58,6 @@ import {
 import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import {
-  toEServiceV1,
-  toDocumentV1,
-  toDescriptorV1,
-} from "./protobufConverterToV1.js";
 import { eservices } from "./utils.js";
 
 describe("database test", async () => {
