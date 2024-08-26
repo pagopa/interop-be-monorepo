@@ -59,7 +59,8 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           getAgreementsErrorMapper,
-          ctx.logger
+          ctx.logger,
+          "Error retrieving agreements"
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -72,7 +73,12 @@ const agreementRouter = (
         const result = await agreementService.createAgreement(req.body, ctx);
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.consumerId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -102,7 +108,8 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           getAgreementByIdErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
