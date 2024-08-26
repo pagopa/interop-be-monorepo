@@ -1,7 +1,12 @@
 import nodemailer from "nodemailer";
-import { SendEmailCommand, SESv2Client } from "@aws-sdk/client-sesv2";
+import {
+  SendEmailCommand,
+  SendEmailCommandInput,
+  SESv2Client,
+} from "@aws-sdk/client-sesv2";
 import { Address } from "nodemailer/lib/mailer/index.js";
-import { AWSConfig, PecEmailManagerConfig } from "../index.js";
+import { PecEmailManagerConfig } from "../index.js";
+import { AWSSesConfig } from "../config/awsSesConfig.js";
 
 export type EmailManager = {
   send: (
@@ -52,8 +57,11 @@ export function initPecEmailManager(
   };
 }
 
-export function initSesMailManager(awsConfig: AWSConfig): EmailManager {
-  const client = new SESv2Client({ region: awsConfig.awsRegion });
+export function initSesMailManager(awsConfig: AWSSesConfig): EmailManager {
+  const client = new SESv2Client({
+    region: awsConfig.awsRegion,
+    endpoint: awsConfig.awsSesEndpoint,
+  });
 
   return {
     send: async (
@@ -62,7 +70,7 @@ export function initSesMailManager(awsConfig: AWSConfig): EmailManager {
       subject: string,
       body: string
     ): Promise<void> => {
-      const params = {
+      const params: SendEmailCommandInput = {
         Destination: {
           ToAddresses: to,
         },
