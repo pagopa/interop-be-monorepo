@@ -17,12 +17,12 @@ import {
   S3Config,
   genericLogger,
   initDB,
-  initEmailManager,
+  initPecEmailManager,
   initFileManager,
   initRedisRateLimiter,
 } from "pagopa-interop-commons";
 import axios from "axios";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -71,7 +71,7 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfigTest
+  emailManagerConfig?: PecEmailManagerConfigTest
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -83,7 +83,7 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfigTest,
+  emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -97,7 +97,7 @@ export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfigTest,
+  emailManagerConfig?: PecEmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
@@ -137,7 +137,7 @@ export async function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initEmailManager(emailManagerConfig, false);
+    emailManager = initPecEmailManager(emailManagerConfig, false);
   }
 
   if (redisRateLimiterConfig) {

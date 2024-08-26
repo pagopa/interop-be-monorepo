@@ -10,6 +10,6 @@ export * from "./fileManagerConfig.js";
 export * from "./kafkaTopicConfig.js";
 export * from "./tokenGenerationConfig.js";
 export * from "./sessionTokenGenerationConfig.js";
-export * from "./emailManagerConfig.js";
 export * from "./redisRateLimiterConfig.js";
+export * from "./pecEmailManagerConfig.js";
 export * from "./selfcareConfig.js";

@@ -28,15 +28,15 @@ import {
   redisContainer,
   TEST_REDIS_PORT,
 } from "./containerTestUtils.js";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
-    emailManagerConfig?: EmailManagerConfigTest;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
+    emailManagerConfig?: PecEmailManagerConfigTest;
   }
 }
 
@@ -55,8 +55,8 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
-  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
+  const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
 
   return async function ({
     provide,
