@@ -43,6 +43,7 @@ export const ImportedDoc = z.object({
   prettyName: z.string(),
   path: z.string(),
 });
+export type ImportedDoc = z.infer<typeof ImportedDoc>;
 
 export const ImportedDescriptor = z.object({
   interface: ImportedDoc.optional(),

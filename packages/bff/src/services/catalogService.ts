@@ -1,8 +1,8 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
+import { randomUUID } from "crypto";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -15,10 +15,12 @@ import {
   EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
+  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
+  ImportedDoc,
   ImportedEservice,
   catalogApiDescriptorState,
 } from "../model/api/apiTypes.js";
@@ -952,6 +954,7 @@ export function catalogServiceBuilder(
     importEService: async (
       fileResource: bffApi.FileResource,
       context: WithLogger<BffAppContext>
+      // eslint-disable-next-line sonarjs/cognitive-complexity
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
       const tenantId = context.authData.organizationId;
       const zipFile = await fileManager.get(
@@ -1019,7 +1022,7 @@ export function catalogServiceBuilder(
       }
 
       const eserviceSeed: catalogApi.EServiceSeed = {
-        name: importedEservice.name + "_duplicated", // TODO remove _duplicated
+        name: importedEservice.name,
         description: importedEservice.description,
         technology: importedEservice.technology,
         mode: importedEservice.mode,
@@ -1107,13 +1110,65 @@ export function catalogServiceBuilder(
         );
       }
 
+      // TODO get from PR #921
+      // eslint-disable-next-line max-params
+      const verifyAndCreateEServiceDocument = (
+        _catalogProcessClient: CatalogProcessClient,
+        _fileManager: FileManager,
+        _eService: catalogApi.EService,
+        _doc: bffApi.createEServiceDocument_Body,
+        _descriptorId: string,
+        _documentId: string,
+        _ctx: WithLogger<BffAppContext>
+      ): Promise<void> => {
+        throw new Error("Function not implemented.");
+      };
+
+      const verifyAndCreateImportedDoc = async (
+        eservice: catalogApi.EService,
+        descriptor: catalogApi.EServiceDescriptor,
+        entriesMap: Map<string, AdmZip.IZipEntry>,
+        doc: ImportedDoc,
+        docType: "INTERFACE" | "DOCUMENT",
+        context: WithLogger<BffAppContext>
+      ): Promise<void> => {
+        const entry = entriesMap.get(doc.path);
+
+        // TODO get from PR #921
+        const mimeType = "application/json";
+        if (entry === undefined) {
+          throw genericError("Invalid file");
+        }
+
+        const file = new File([entry.getData()], doc.prettyName, {
+          type: mimeType,
+        });
+
+        await verifyAndCreateEServiceDocument(
+          catalogProcessClient,
+          fileManager,
+          eservice,
+          {
+            mimeType,
+            prettyName: doc.prettyName,
+            doc: file,
+            kind: docType,
+          },
+          descriptor.id,
+          randomUUID(),
+          context
+        );
+      };
+
       const descriptor = eservice.descriptors[0];
       if (descriptorInterface) {
         await verifyAndCreateImportedDoc(
           eservice,
           descriptor,
+          entriesMap,
           descriptorInterface,
-          "INTERFACE"
+          "INTERFACE",
+          context
         );
       }
       await pollEServiceById(
@@ -1132,7 +1187,14 @@ export function catalogServiceBuilder(
       );
 
       for (const doc of importedEservice.descriptor.docs) {
-        await verifyAndCreateImportedDoc(eservice, descriptor, doc, "DOCUMENT");
+        await verifyAndCreateImportedDoc(
+          eservice,
+          descriptor,
+          entriesMap,
+          doc,
+          "DOCUMENT",
+          context
+        );
         await pollEServiceById(
           // eslint-disable-next-line sonarjs/no-identical-functions
           () =>
