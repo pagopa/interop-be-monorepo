@@ -122,7 +122,12 @@ const agreementRouter = (
         await agreementService.deleteAgreement(req.params.agreementId, ctx);
         return res.status(204).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting agreement ${req.params.agreementId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -140,7 +145,8 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           activateAgreementErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error activating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -156,7 +162,12 @@ const agreementRouter = (
         );
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error cloning agreement ${req.params.agreementId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
