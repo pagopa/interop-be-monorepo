@@ -99,7 +99,12 @@ const agreementRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving eservices from agreement filtered by eservice name ${req.query.q}, offset ${req.query.offset} and limit ${req.query.limit}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -137,7 +142,12 @@ const agreementRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving eservices from agreement filtered by eservice name ${req.query.q}, offset ${req.query.offset} and limit ${req.query.limit}`
+        );
         return res.status(errorRes.status).json(errorRes).end;
       }
     })
@@ -156,7 +166,12 @@ const agreementRouter = (
 
         return res.status(200).json(result).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving eservices from agreement filtered by eservice name ${req.query.q}, offset ${req.query.offset} and limit ${req.query.limit}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
