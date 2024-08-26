@@ -1,15 +1,15 @@
 import {
   CatalogTopicConfig,
-  ReadModelWriterConfig,
+  PlatformStateWriterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const CatalogReadModelWriterConfig =
-  ReadModelWriterConfig.and(CatalogTopicConfig);
+export const CatalogPlatformStateWriterConfig =
+  PlatformStateWriterConfig.and(CatalogTopicConfig);
 
-export type CatalogReadModelWriterConfig = z.infer<
-  typeof CatalogReadModelWriterConfig
+export type CatalogPlatformStateWriterConfig = z.infer<
+  typeof CatalogPlatformStateWriterConfig
 >;
 
-export const config: CatalogReadModelWriterConfig =
-  CatalogReadModelWriterConfig.parse(process.env);
+export const config: CatalogPlatformStateWriterConfig =
+  CatalogPlatformStateWriterConfig.parse(process.env);
