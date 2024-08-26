@@ -52,6 +52,9 @@ export * from "./authorization/authorizationReadModelAdapter.js";
 
 export * from "./user/user.js";
 
+export * from "./token-generation-readmodel/platform-states-entry.js";
+export * from "./token-generation-readmodel/token-generation-states-entry.js";
+
 // Protobuf
 export * from "./protobuf/protobuf.js";
 
