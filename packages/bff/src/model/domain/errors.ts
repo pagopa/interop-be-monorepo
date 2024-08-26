@@ -15,14 +15,14 @@ export const errorCodes = {
   missingClaim: "0008",
   tenantLoginNotAllowed: "0009",
   tokenVerificationFailed: "0010",
-  descriptorNotFound: "0004",
-  eServiceNotFound: "0010",
-  tenantNotFound: "0011",
-  agreementNotFound: "0012",
-  purposeDraftVersionNotFound: "0014",
-  invalidRiskAnalysisContentType: "0015",
-  missingInterface: "0016",
-  eserviceRiskNotFound: "0017",
+  descriptorNotFound: "0011",
+  eServiceNotFound: "0012",
+  tenantNotFound: "0013",
+  agreementNotFound: "0014",
+  purposeDraftVersionNotFound: "0015",
+  invalidRiskAnalysisContentType: "0016",
+  missingInterface: "0017",
+  eserviceRiskNotFound: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
