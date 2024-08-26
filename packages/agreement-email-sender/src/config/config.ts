@@ -3,7 +3,7 @@ import {
   PecEmailManagerConfig,
   KafkaConsumerConfig,
   ReadModelDbConfig,
-  AWSConfig,
+  AWSSesConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -29,7 +29,7 @@ export const AgreementEmailSenderConfig = KafkaConsumerConfig.and(
 )
   .and(AgreementTopicConfig)
   .and(PecEmailManagerConfig)
-  .and(AWSConfig)
+  .and(AWSSesConfig)
   .and(EmailSenderConfig);
 
 export type AgreementEmailSenderConfig = z.infer<
