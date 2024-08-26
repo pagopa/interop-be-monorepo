@@ -7,6 +7,7 @@
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
     "start:catalog-readmodel-writer": "turbo start --filter pagopa-interop-catalog-readmodel-writer",
+    "start:catalog-platformstate-writer": "turbo start --filter pagopa-interop-catalog-platformstate-writer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
     "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
     "start:agreement-email-sender": "turbo start --filter pagopa-interop-agreement-email-sender",
