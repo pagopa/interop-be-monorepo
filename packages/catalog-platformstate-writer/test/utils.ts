@@ -1,7 +1,9 @@
-// export const { cleanup, readModelRepository } = setupTestContainersVitest(
-//   inject("tokenGenerationReadModelConfig")
-// );
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { afterEach, inject } from "vitest";
 
-// afterEach(cleanup);
+export const config = inject("tokenGenerationReadModelConfig");
+export const { cleanup } = setupTestContainersVitest();
+
+afterEach(cleanup);
 
 // export const eservices = readModelRepository.eservices;
