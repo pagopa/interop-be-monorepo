@@ -291,6 +291,45 @@ export function missingDescriptorInClonedEservice(
   });
 }
 
+export function notValidDescriptor(
+  descriptorId: string,
+  state: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    code: "notValidDescriptor",
+    title: "Not valid descriptor",
+  });
+}
+
+export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "contractNotFound",
+    title: "Contract not found",
+  });
+}
+
+export function contractException(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract exception for agreement ${agreementId}`,
+    code: "contractException",
+    title: "Contract exception",
+  });
+}
+
+export function invalidContentType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
+    code: "invalidContentType",
+    title: "Invalid content type",
+  });
+}
+
 export function invalidInterfaceContentTypeDetected(
   eServiceId: string,
   contentType: string,
@@ -328,44 +367,5 @@ export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
     detail: `Error extracting info from interface file`,
     code: "interfaceExtractingInfoError",
     title: "Error extracting info from interface file",
-  });
-}
-
-export function notValidDescriptor(
-  descriptorId: string,
-  state: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
-    code: "notValidDescriptor",
-    title: "Not valid descriptor",
-  });
-}
-
-export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Contract not found for agreement ${agreementId}`,
-    code: "contractNotFound",
-    title: "Contract not found",
-  });
-}
-
-export function contractException(agreementId: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Contract exception for agreement ${agreementId}`,
-    code: "contractException",
-    title: "Contract exception",
-  });
-}
-
-export function invalidContentType(
-  contentType: string,
-  agreementId: string,
-  documentId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
-    code: "invalidContentType",
-    title: "Invalid content type",
   });
 }
