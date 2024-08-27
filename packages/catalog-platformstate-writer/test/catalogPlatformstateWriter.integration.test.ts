@@ -55,11 +55,7 @@ import {
   toDocumentV1,
   toDescriptorV1,
 } from "pagopa-interop-commons-test/index.js";
-import {
-  readAllItems,
-  readCatalogEntry,
-  writeCatalogEntry,
-} from "../src/utils.js";
+import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 
