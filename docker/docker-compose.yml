@@ -68,7 +68,7 @@ services:
       AWS_ACCESS_KEY_ID: keyid
       AWS_SECRET_ACCESS_KEY: key
     command: dynamodb create-table
-      --table-name PlatformStates
+      --table-name platform-states
       --attribute-definitions
       AttributeName=PK,AttributeType=S
       --key-schema
