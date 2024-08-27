@@ -69,7 +69,7 @@ export const postgreSQLContainer = (
  */
 export const dynamoDBContainer = (): GenericContainer =>
   new GenericContainer(TEST_DYNAMODB_IMAGE)
-    // .withCommand(["-jar DynamoDBLocal.jar -port 8000 -inMemory -sharedDb"])
+    // .withCommand(["-jar DynamoDBLocal.jar -inMemory -sharedDb"])
     .withExposedPorts(TEST_DYNAMODB_PORT);
 
 /**
