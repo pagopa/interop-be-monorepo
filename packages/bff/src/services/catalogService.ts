@@ -3,6 +3,7 @@
 /* eslint-disable functional/immutable-data */
 import AdmZip from "adm-zip";
 import { randomUUID } from "crypto";
+import mime from "mime";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -37,6 +38,7 @@ import {
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
+  invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
 } from "../model/domain/errors.js";
@@ -49,7 +51,10 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
+import {
+  createPollFunction,
+  verifyAndCreateEServiceDocument,
+} from "../utilities/eserviceDocumentUtils.js";
 import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
@@ -954,7 +959,6 @@ export function catalogServiceBuilder(
     importEService: async (
       fileResource: bffApi.FileResource,
       context: WithLogger<BffAppContext>
-      // eslint-disable-next-line sonarjs/cognitive-complexity
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
       const tenantId = context.authData.organizationId;
       const zipFile = await fileManager.get(
@@ -970,12 +974,9 @@ export function catalogServiceBuilder(
         return map;
       }, new Map<string, AdmZip.IZipEntry>());
 
-      // eslint-disable-next-line no-console
-      console.log(entriesMap);
-
       const configurationEntry = entriesMap.get("configuration.json");
       if (!configurationEntry) {
-        throw new Error("Invalid configuration.json file");
+        throw invalidZipStructure("Error reading configuration.json");
       }
 
       const jsonContent = configurationEntry.getData().toString("utf8");
@@ -984,15 +985,13 @@ export function catalogServiceBuilder(
       );
 
       if (error) {
-        // eslint-disable-next-line no-console
-        console.log(error);
-        throw new Error("Invalid configuration.json file");
+        throw invalidZipStructure("Error decoding configuration.json");
       }
       const docsPath = importedEservice.descriptor.docs.map((doc) =>
-        zip.readFile(doc.path)
+        entriesMap.get(doc.path)?.getData()
       );
-      if (docsPath.some((doc) => doc === null)) {
-        throw new Error("Invalid docs path");
+      if (docsPath.some((doc) => doc === undefined)) {
+        throw invalidZipStructure("Error reading docs");
       }
 
       const descriptorInterface = importedEservice.descriptor.interface;
@@ -1001,7 +1000,7 @@ export function catalogServiceBuilder(
         descriptorInterface &&
         entriesMap.get(descriptorInterface.path) === undefined
       ) {
-        throw new Error("Invalid interface path");
+        throw invalidZipStructure("Error reading interface");
       }
 
       const allowedFiles = [
@@ -1012,13 +1011,15 @@ export function catalogServiceBuilder(
         (path: string | undefined): path is string => path !== undefined
       );
 
-      const filePaths = zip.getEntries().map((entry) => entry.name);
+      const filePaths = Array.from(entriesMap.keys());
 
       const difference = filePaths.filter(
         (item) => !allowedFiles.includes(item)
       );
       if (difference.length > 0) {
-        throw new Error("Invalid files");
+        throw invalidZipStructure(
+          `Not allowed files found: ${difference.join(", ")}`
+        );
       }
 
       const eserviceSeed: catalogApi.EServiceSeed = {
@@ -1038,45 +1039,19 @@ export function catalogServiceBuilder(
         },
       };
 
-      const pollEServiceById = async (
-        fetchFunc: () => Promise<catalogApi.EService>,
-        condition: (result: catalogApi.EService) => boolean,
-        maxRetries: number = 30,
-        delay: number = 200
-      ): Promise<void> => {
-        async function poll(attempt: number): Promise<void> {
-          if (attempt > maxRetries) {
-            throw new Error("Max retries reached");
-          } else {
-            try {
-              const result = await fetchFunc();
-              if (!condition(result)) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-                return poll(attempt + 1);
-              }
-            } catch (error) {
-              await new Promise((resolve) => setTimeout(resolve, delay));
-              return poll(attempt + 1);
-            }
-          }
-        }
-
-        return poll(1);
-      };
+      const pollEServiceById = createPollFunction(() =>
+        catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId: eservice.id,
+          },
+          headers: context.headers,
+        })
+      );
 
       const eservice = await catalogProcessClient.createEService(eserviceSeed, {
         headers: context.headers,
       });
-      await pollEServiceById(
-        () =>
-          catalogProcessClient.getEServiceById({
-            params: {
-              eServiceId: eservice.id,
-            },
-            headers: context.headers,
-          }),
-        (result) => result.descriptors.length > 0
-      );
+      await pollEServiceById((result) => result.descriptors.length > 0);
 
       for (const riskAnalysis of importedEservice.riskAnalysis) {
         try {
@@ -1097,32 +1072,8 @@ export function catalogServiceBuilder(
             },
           });
         }
-        await pollEServiceById(
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          () =>
-            catalogProcessClient.getEServiceById({
-              params: {
-                eServiceId: eservice.id,
-              },
-              headers: context.headers,
-            }),
-          (result) => result.riskAnalysis.length > 0
-        );
+        await pollEServiceById((result) => result.riskAnalysis.length > 0);
       }
-
-      // TODO get from PR #921
-      // eslint-disable-next-line max-params
-      const verifyAndCreateEServiceDocument = (
-        _catalogProcessClient: CatalogProcessClient,
-        _fileManager: FileManager,
-        _eService: catalogApi.EService,
-        _doc: bffApi.createEServiceDocument_Body,
-        _descriptorId: string,
-        _documentId: string,
-        _ctx: WithLogger<BffAppContext>
-      ): Promise<void> => {
-        throw new Error("Function not implemented.");
-      };
 
       const verifyAndCreateImportedDoc = async (
         eservice: catalogApi.EService,
@@ -1134,8 +1085,7 @@ export function catalogServiceBuilder(
       ): Promise<void> => {
         const entry = entriesMap.get(doc.path);
 
-        // TODO get from PR #921
-        const mimeType = "application/json";
+        const mimeType = mime.getType(doc.path) || "application/octet-stream";
         if (entry === undefined) {
           throw genericError("Invalid file");
         }
@@ -1171,19 +1121,10 @@ export function catalogServiceBuilder(
           context
         );
       }
-      await pollEServiceById(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        () =>
-          catalogProcessClient.getEServiceById({
-            params: {
-              eServiceId: eservice.id,
-            },
-            headers: context.headers,
-          }),
-        (result) =>
-          result.descriptors.some(
-            (d) => d.id === descriptor.id && d.interface !== undefined
-          )
+      await pollEServiceById((result) =>
+        result.descriptors.some(
+          (d) => d.id === descriptor.id && d.interface !== undefined
+        )
       );
 
       for (const doc of importedEservice.descriptor.docs) {
@@ -1195,21 +1136,12 @@ export function catalogServiceBuilder(
           "DOCUMENT",
           context
         );
-        await pollEServiceById(
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          () =>
-            catalogProcessClient.getEServiceById({
-              params: {
-                eServiceId: eservice.id,
-              },
-              headers: context.headers,
-            }),
-          (result) =>
-            result.descriptors.some(
-              (d) =>
-                d.id === descriptor.id &&
-                d.docs.some((d) => d.prettyName === doc.prettyName)
-            )
+        await pollEServiceById((result) =>
+          result.descriptors.some(
+            (d) =>
+              d.id === descriptor.id &&
+              d.docs.some((d) => d.prettyName === doc.prettyName)
+          )
         );
       }
 

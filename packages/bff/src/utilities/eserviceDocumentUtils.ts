@@ -4,7 +4,7 @@ import { Readable } from "node:stream";
 import { XMLParser } from "fast-xml-parser";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, genericError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { z } from "zod";
@@ -236,3 +236,30 @@ async function handleEServiceDocumentProcessing(
       .otherwise(() => invalidInterfaceFileDetected(eServiceId));
   }
 }
+
+export const createPollFunction =
+  (fetchFunc: () => Promise<catalogApi.EService>) =>
+  async (
+    condition: (result: catalogApi.EService) => boolean,
+    maxRetries: number = 30,
+    delay: number = 200
+  ): Promise<void> => {
+    async function poll(attempt: number): Promise<void> {
+      if (attempt > maxRetries) {
+        throw genericError("Max retries reached");
+      } else {
+        try {
+          const result = await fetchFunc();
+          if (!condition(result)) {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return poll(attempt + 1);
+          }
+        } catch (error) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return poll(attempt + 1);
+        }
+      }
+    }
+
+    return poll(1);
+  };
