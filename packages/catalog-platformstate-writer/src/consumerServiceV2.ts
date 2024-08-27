@@ -1,9 +1,10 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
-  _dynamodbTable: unknown // TO DO dynamoDB table
+  _dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
     .with(

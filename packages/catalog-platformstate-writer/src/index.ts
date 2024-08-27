@@ -3,12 +3,16 @@ import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
-const dynamodbTable = undefined; // TO DO
-
+const dynamoDBClient = new DynamoDBClient({
+  credentials: { accessKeyId: "key", secretAccessKey: "secret" },
+  region: "eu-central-1",
+  endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
+});
 async function processMessage({
   message,
   partition,
@@ -24,8 +28,8 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, dynamodbTable))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, dynamodbTable))
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, dynamoDBClient))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, dynamoDBClient))
     .exhaustive();
 
   loggerInstance.info(
