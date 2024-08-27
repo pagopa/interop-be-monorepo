@@ -76,7 +76,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       const agreements = results.map((a) =>
-        enhanceAgreementOverview(a, clients, ctx)
+        enrichListAgreement(a, clients, ctx)
       );
       return {
         pagination: {
@@ -98,7 +98,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
   };
 }
@@ -160,7 +160,7 @@ function isUpgradable(
     );
 }
 
-async function enhanceAgreementOverview(
+async function enrichListAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
@@ -194,7 +194,7 @@ async function enhanceAgreementOverview(
   };
 }
 
-export async function enhanceAgreementDetailed(
+export async function enrichAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
