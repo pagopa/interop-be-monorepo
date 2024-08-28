@@ -11056,27 +11056,27 @@ paths:
     post:
       tags:
         - producerKeychain
-      summary: Create Keys for the specific producerKeychainId.
-      operationId: createProducerKeys
+      summary: Create key for the specific producerKeychainId.
+      operationId: createProducerKey
       requestBody:
         required: true
-        description: an array of base64 encoded PEM keys.
+        description: a base64 encoded PEM key.
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
-      description: Creates one or more keys for the corresponding producer keychain.
+              $ref: "#/components/schemas/KeySeed"
+      description: Creates a key for the corresponding producer keychain.
       parameters:
         - name: producerKeychainId
           in: path
           required: true
-          description: ID of producer keychain that the added keys MUST belong to
+          description: ID of producer keychain that the added key MUST belong to
           schema:
             type: string
             format: uuid
       responses:
         "204":
-          description: Keys created
+          description: Key created
           headers:
             "X-Rate-Limit-Limit":
               schema:
