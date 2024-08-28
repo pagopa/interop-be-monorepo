@@ -1354,7 +1354,6 @@ export function tenantServiceBuilder(
       );
       return updatedTenant;
     },
-
     async m2mRevokeCertifiedAttribute({
       organizationId,
       tenantOrigin,
