@@ -101,6 +101,6 @@ export const addOneProducerKeychain = async (
 };
 
 export const readLastAuthorizationEvent = async (
-  clientId: ClientId | ProducerKeychainId
+  id: ClientId | ProducerKeychainId
 ): Promise<ReadEvent<AuthorizationEvent>> =>
-  await readLastEventByStreamId(clientId, '"authorization"', postgresDB);
+  await readLastEventByStreamId(id, '"authorization"', postgresDB);
