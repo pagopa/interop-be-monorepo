@@ -533,9 +533,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
       if (userIds.length > 0) {
-        return client.data.keys.filter(
-          (k) => k.userId && userIds.includes(k.userId)
-        );
+        return client.data.keys.filter((k) => userIds.includes(k.userId));
       } else {
         return client.data.keys;
       }
@@ -1131,8 +1129,8 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
       if (userIds.length > 0) {
-        return producerKeychain.data.keys.filter(
-          (k) => k.userId && userIds.includes(k.userId)
+        return producerKeychain.data.keys.filter((k) =>
+          userIds.includes(k.userId)
         );
       }
       return producerKeychain.data.keys;
