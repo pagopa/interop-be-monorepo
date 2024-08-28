@@ -44,9 +44,7 @@ import {
   PlatformStatesCatalogEntry,
   RiskAnalysis,
   descriptorState,
-  eserviceMode,
   generateId,
-  technology,
   toEServiceV2,
 } from "pagopa-interop-models";
 import * as dynamodb from "@aws-sdk/client-dynamodb";
@@ -55,7 +53,10 @@ import {
   getMockValidRiskAnalysis,
   toDocumentV1,
   toDescriptorV1,
-} from "pagopa-interop-commons-test/index.js";
+  getMockDescriptor,
+  getMockEService,
+  getMockDocument,
+} from "pagopa-interop-commons-test";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
@@ -91,8 +92,8 @@ describe("database test", async () => {
     };
     await dynamoDBClient.createTable(tokenGenerationTableDefinition);
 
-    const tablesResult = await dynamoDBClient.listTables();
-    console.log(tablesResult.TableNames);
+    // const tablesResult = await dynamoDBClient.listTables();
+    // console.log(tablesResult.TableNames);
   });
   afterAll(async () => {
     const tableToDelete1: dynamodb.DeleteTableInput = {
@@ -1449,45 +1450,4 @@ describe("database test", async () => {
       expect(1).toBe(1);
     });
   });
-});
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eservice name",
-  description: "eservice description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  mode: eserviceMode.deliver,
-  riskAnalysis: [],
-});
-
-export const getMockDescriptor = (): Descriptor => ({
-  id: generateId(),
-  version: "1",
-  docs: [],
-  state: descriptorState.draft,
-  audience: [],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: ["pagopa.it"],
-  agreementApprovalPolicy: "Automatic",
-  attributes: {
-    certified: [],
-    verified: [],
-    declared: [],
-  },
-});
-
-export const getMockDocument = (): Document => ({
-  name: "fileName",
-  path: "filePath",
-  id: generateId(),
-  prettyName: "prettyName",
-  contentType: "json",
-  checksum: "checksum",
-  uploadDate: new Date(),
 });
