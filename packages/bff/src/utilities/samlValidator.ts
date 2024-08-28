@@ -132,10 +132,10 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
 
   validateSignature(saml);
 
-  if (notBeforeConditions.every((nb) => now > +new Date(nb))) {
+  if (!notBeforeConditions.every((nb) => now > +new Date(nb))) {
     throw samlNotValid("Conditions notbefore are not compliant");
   }
-  if (notOnOrAfterConditions.every((noa) => now < +new Date(noa))) {
+  if (!notOnOrAfterConditions.every((noa) => now < +new Date(noa))) {
     throw samlNotValid("Conditions NotOnOrAfter are not compliant");
   }
 
