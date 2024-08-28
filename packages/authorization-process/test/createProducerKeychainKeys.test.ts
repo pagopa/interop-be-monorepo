@@ -13,7 +13,12 @@ import {
   invalidKey,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import {
+  AuthData,
+  genericLogger,
+  calculateKid,
+  createJWK,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockKey,
@@ -32,7 +37,6 @@ import {
   organizationNotAllowedOnProducerKeychain,
   tooManyKeysPerProducerKeychain,
 } from "../src/model/domain/errors.js";
-import { calculateKid, createJWK } from "../../commons/src/auth/jwk.js";
 import {
   addOneProducerKeychain,
   authorizationService,
