@@ -27,6 +27,8 @@ type PrimaryKeyPlatformStates =
 const PlatformStatesBaseEntry = z.object({
   PK: z.string(),
   state: ItemState,
+  version: z.number(),
+  updatedAt: z.string().datetime(),
 });
 type PlatformStatesBaseEntry = z.infer<typeof PlatformStatesBaseEntry>;
 
@@ -48,7 +50,7 @@ export type PlatformStatesPurposeEntry = z.infer<
 
 export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   GSIPK_consumerId_eserviceId: z.string(),
-  GSISK_agreementTimestamp: z.string(),
+  GSISK_agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: z.string(),
 });
 export type PlatformStatesAgreementEntry = z.infer<

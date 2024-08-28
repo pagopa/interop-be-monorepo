@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ClientKind } from "../authorization/client.js";
-import { PurposeVersionId } from "../brandedIds.js";
+import { AgreementId, PurposeVersionId } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
@@ -11,6 +11,7 @@ const TokenGenerationStatesBaseEntry = z.object({
   GSIPK_clientId: z.string(),
   GSIPK_kid: z.string(),
   GSIPK_clientId_purposeId: z.string(),
+  updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
   typeof TokenGenerationStatesBaseEntry
@@ -20,6 +21,7 @@ export const TokenGenerationStatesClientPurposeEntry =
   TokenGenerationStatesBaseEntry &&
   z.object({
     GSIPK_consumerId_eserviceId: z.string(),
+    agreementId: AgreementId,
     agreementState: ItemState,
     GSIPK_eserviceId_descriptorId: z.string(),
     descriptorState: ItemState,
