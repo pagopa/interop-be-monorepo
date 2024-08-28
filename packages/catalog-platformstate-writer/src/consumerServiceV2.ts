@@ -45,6 +45,8 @@ export async function handleMessageV2(
         PK: `ESERVICEDESCRIPTOR#${eservice.id}#${descriptorId}`,
         state: descriptorStateToClientState(descriptorState),
         descriptorAudience: descriptor.audience[0],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
       };
 
       await writeCatalogEntry(catalogEntry, dynamoDBClient);
@@ -78,6 +80,8 @@ export async function handleMessageV2(
               msg.type === "EServiceDescriptorActivated"
                 ? ItemState.Enum.ACTIVE
                 : ItemState.Enum.INACTIVE,
+            version: msg.version,
+            updatedAt: new Date().toISOString(),
           };
           await writeCatalogEntry(updatedCatalogEntry, dynamoDBClient);
         }
