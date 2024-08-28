@@ -15,7 +15,7 @@ import {
   Attribute,
   Client,
   EService,
-  JWKKey,
+  ClientJWKKey,
   Purpose,
   Tenant,
 } from "pagopa-interop-models";
@@ -38,7 +38,7 @@ const readModelSchemas = {
   tenants: Tenant,
   purposes: Purpose,
   clients: Client,
-  keys: JWKKey,
+  keys: ClientJWKKey,
 } as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
