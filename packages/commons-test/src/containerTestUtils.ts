@@ -2,7 +2,6 @@ import {
   EventStoreConfig,
   ReadModelDbConfig,
   S3Config,
-  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
