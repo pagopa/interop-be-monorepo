@@ -1182,7 +1182,7 @@ export function authorizationServiceBuilder(
       logger: Logger;
     }): Promise<void> {
       logger.info(
-        `Adding eservice with id ${seed.eserviceId} to client ${producerKeychainId}`
+        `Adding eservice with id ${seed.eserviceId} to producer keychain ${producerKeychainId}`
       );
       const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
 
