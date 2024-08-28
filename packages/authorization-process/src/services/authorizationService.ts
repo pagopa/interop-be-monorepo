@@ -778,7 +778,7 @@ export function authorizationServiceBuilder(
       logger: Logger;
     }): Promise<ListResult<ProducerKeychain>> {
       logger.info(
-        `Retrieving producer keychains by name ${filters.name} , userIds ${filters.userIds}`
+        `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
       const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
         ? [authData.userId]
