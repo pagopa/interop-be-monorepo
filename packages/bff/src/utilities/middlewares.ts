@@ -3,7 +3,7 @@ import multer from "multer";
 import { ExpressContext } from "pagopa-interop-commons";
 
 // If form-data is used, the files are stored in memory and inserted in the body to make zodios work
-// Please notice this replace all data in req.body
+// Please notice this replaces all data in req.body
 export const multerMiddleware = multer({
   storage: multer.memoryStorage(),
 }).any();

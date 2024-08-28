@@ -23,7 +23,6 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
@@ -332,7 +331,7 @@ export function catalogServiceBuilder(
       descriptorId: string,
       doc: bffApi.createEServiceDocument_Body,
       ctx: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
+    ): Promise<bffApi.CreatedResource> => {
       const eService = await catalogProcessClient.getEServiceById({
         params: { eServiceId },
         headers: ctx.headers,

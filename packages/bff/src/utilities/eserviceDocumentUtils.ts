@@ -38,7 +38,11 @@ export async function verifyAndCreateEServiceDocument(
     );
   }
 
-  const serverUrls = await processFile(doc, eService.technology, eService.id);
+  const serverUrls = await handleEServiceDocumentProcessing(
+    doc,
+    eService.technology,
+    eService.id
+  );
   const filePath = await fileManager.storeBytes(
     config.s3Bucket,
     config.eserviceDocumentsPath,
@@ -187,7 +191,7 @@ function processSoapInterface(file: string) {
   return [address];
 }
 
-async function processFile(
+async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
   technology: catalogApi.EServiceTechnology,
   eServiceId: string
