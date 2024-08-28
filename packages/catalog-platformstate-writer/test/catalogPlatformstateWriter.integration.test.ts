@@ -13,7 +13,13 @@ import {
   descriptorState,
   toEServiceV2,
 } from "pagopa-interop-models";
-import * as dynamodb from "@aws-sdk/client-dynamodb";
+import {
+  CreateTableCommand,
+  CreateTableInput,
+  DeleteTableCommand,
+  DeleteTableInput,
+  DynamoDBClient,
+} from "@aws-sdk/client-dynamodb";
 import {
   toDescriptorV1,
   getMockDescriptor,
@@ -27,7 +33,7 @@ import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { config } from "./utils.js";
 
 describe("database test", async () => {
-  const dynamoDBClient = new dynamodb.DynamoDB({
+  const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
     region: "eu-central-1",
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -37,40 +43,42 @@ describe("database test", async () => {
     }`,
   });
   beforeEach(async () => {
-    const platformTableDefinition: dynamodb.CreateTableInput = {
+    const platformTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNamePlatform,
       AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
     };
-    await dynamoDBClient.createTable(platformTableDefinition);
-    const tokenGenerationTableDefinition: dynamodb.CreateTableInput = {
+    const command1 = new CreateTableCommand(platformTableDefinition);
+    await dynamoDBClient.send(command1);
+
+    const tokenGenerationTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
       AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
     };
-    await dynamoDBClient.createTable(tokenGenerationTableDefinition);
-
-    // const tablesResult = await dynamoDBClient.listTables();
-    // console.log(tablesResult.TableNames);
+    const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
+    await dynamoDBClient.send(command2);
   });
   afterEach(async () => {
-    const tableToDelete1: dynamodb.DeleteTableInput = {
+    const tableToDelete1: DeleteTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNamePlatform,
     };
-    const tableToDelete2: dynamodb.DeleteTableInput = {
+    const tableToDelete2: DeleteTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
     };
-    await dynamoDBClient.deleteTable(tableToDelete1);
-    await dynamoDBClient.deleteTable(tableToDelete2);
+    const command1 = new DeleteTableCommand(tableToDelete1);
+    await dynamoDBClient.send(command1);
+    const command2 = new DeleteTableCommand(tableToDelete2);
+    await dynamoDBClient.send(command2);
   });
   describe("Events V1", async () => {
-    it.only("EServiceDescriptorUpdated (draft -> published)", async () => {
+    it("EServiceDescriptorUpdated (draft -> published)", async () => {
       const draftDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -103,7 +111,7 @@ describe("database test", async () => {
         log_date: new Date(),
       };
       await handleMessageV1(message, dynamoDBClient);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -158,6 +166,7 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
@@ -208,6 +217,7 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
@@ -259,14 +269,14 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
-      console.log(retrievedEntry);
       expect(retrievedEntry).toBeUndefined();
     });
   });
 
-  describe.skip("Events V2", async () => {
+  describe("Events V2", async () => {
     const mockEService = getMockEService();
     it("EServiceDescriptorActivated", async () => {
       const suspendedDescriptor: Descriptor = {
