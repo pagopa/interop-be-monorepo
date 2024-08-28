@@ -1185,7 +1185,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Key"
+                $ref: "#/components/schemas/Keys"
         "400":
           description: Bad Request
           content:
