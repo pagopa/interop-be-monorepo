@@ -33,6 +33,12 @@ export const writeCatalogEntry = async (
       descriptorAudience: {
         S: catalogEntry.descriptorAudience,
       },
+      version: {
+        N: catalogEntry.version.toString(),
+      },
+      updatedAt: {
+        S: catalogEntry.updatedAt,
+      },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
