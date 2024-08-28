@@ -1,5 +1,5 @@
 import { format } from "util";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   AttributeId,
   ClonedEServiceAddedV1,
@@ -30,7 +30,13 @@ import {
   generateId,
   toEServiceV2,
 } from "pagopa-interop-models";
-import * as dynamodb from "@aws-sdk/client-dynamodb";
+import {
+  CreateTableCommand,
+  CreateTableInput,
+  DeleteTableCommand,
+  DeleteTableInput,
+  DynamoDBClient,
+} from "@aws-sdk/client-dynamodb";
 import {
   toEServiceV1,
   getMockValidRiskAnalysis,
@@ -47,7 +53,7 @@ import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { config } from "./utils.js";
 
 describe("database test", async () => {
-  const dynamoDBClient = new dynamodb.DynamoDB({
+  const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
     region: "eu-central-1",
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -56,39 +62,43 @@ describe("database test", async () => {
       config!.tokenGenerationReadModelDbPort
     }`,
   });
-  beforeAll(async () => {
-    const platformTableDefinition: dynamodb.CreateTableInput = {
+  beforeEach(async () => {
+    const platformTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNamePlatform,
       AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
     };
-    await dynamoDBClient.createTable(platformTableDefinition);
+    const command1 = new CreateTableCommand(platformTableDefinition);
+    await dynamoDBClient.send(command1);
 
-    const tokenGenerationTableDefinition: dynamodb.CreateTableInput = {
+    const tokenGenerationTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
       AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
     };
-    await dynamoDBClient.createTable(tokenGenerationTableDefinition);
+    const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
+    await dynamoDBClient.send(command2);
 
     // const tablesResult = await dynamoDBClient.listTables();
     // console.log(tablesResult.TableNames);
   });
-  afterAll(async () => {
-    const tableToDelete1: dynamodb.DeleteTableInput = {
+  afterEach(async () => {
+    const tableToDelete1: DeleteTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNamePlatform,
     };
-    const tableToDelete2: dynamodb.DeleteTableInput = {
+    const tableToDelete2: DeleteTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
     };
-    await dynamoDBClient.deleteTable(tableToDelete1);
-    await dynamoDBClient.deleteTable(tableToDelete2);
+    const command1 = new DeleteTableCommand(tableToDelete1);
+    await dynamoDBClient.send(command1);
+    const command2 = new DeleteTableCommand(tableToDelete2);
+    await dynamoDBClient.send(command2);
   });
   describe("Events V1", async () => {
     const mockEService = getMockEService();
