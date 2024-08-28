@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserId } from "../brandedIds.js";
+import { ClientId, ProducerKeychainId, UserId } from "../brandedIds.js";
 
 export const keyUse = {
   sig: "Sig",
@@ -23,7 +23,7 @@ export const Key = z.object({
 
 export type Key = z.infer<typeof Key>;
 
-export const JWKKey = z.object({
+const JWKKey = z.object({
   alg: z.string(),
   e: z.string(),
   kid: z.string(),
@@ -32,4 +32,16 @@ export const JWKKey = z.object({
   use: z.string(),
 });
 
-export type JWKKey = z.infer<typeof JWKKey>;
+type JWKKey = z.infer<typeof JWKKey>;
+
+export const ClientJWKKey = JWKKey.extend({
+  clientId: ClientId,
+});
+
+export type ClientJWKKey = z.infer<typeof ClientJWKKey>;
+
+export const ProducerJWKKey = JWKKey.extend({
+  producerKeychainId: ProducerKeychainId,
+});
+
+export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;
