@@ -198,3 +198,16 @@ export const maintenanceTenantPromotedToCertifierErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const m2mRevokeCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "tenantNotFoundByExternalId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("attributeNotFoundInTenant", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
