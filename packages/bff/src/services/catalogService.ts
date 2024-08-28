@@ -52,7 +52,7 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
-  createPollFunction,
+  createPollEService,
   verifyAndCreateEServiceDocument,
 } from "../utilities/eserviceDocumentUtils.js";
 import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
@@ -1039,7 +1039,7 @@ export function catalogServiceBuilder(
         },
       };
 
-      const pollEServiceById = createPollFunction(() =>
+      const pollEServiceById = createPollEService(() =>
         catalogProcessClient.getEServiceById({
           params: {
             eServiceId: eservice.id,

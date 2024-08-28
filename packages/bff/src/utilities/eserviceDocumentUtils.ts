@@ -237,7 +237,7 @@ async function handleEServiceDocumentProcessing(
   }
 }
 
-export const createPollFunction =
+export const createPollEService =
   (fetchFunc: () => Promise<catalogApi.EService>) =>
   async (
     condition: (result: catalogApi.EService) => boolean,
