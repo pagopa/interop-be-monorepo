@@ -1,5 +1,8 @@
 import {
+  descriptorState,
+  DescriptorState,
   genericInternalError,
+  ItemState,
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import {
@@ -94,3 +97,10 @@ export const readAllItems = async (
   const read: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
   return read;
 };
+
+export const descriptorStateToClientState = (
+  state: DescriptorState
+): ItemState =>
+  state === descriptorState.published || state === descriptorState.deprecated
+    ? ItemState.Enum.ACTIVE
+    : ItemState.Enum.INACTIVE;
