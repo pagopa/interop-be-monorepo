@@ -212,7 +212,7 @@ export const removeProducerKeychainUserErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createProducerKeychainKeysErrorMapper = (
+export const createProducerKeychainKeyErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
