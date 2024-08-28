@@ -1177,11 +1177,11 @@ paths:
     post:
       tags:
         - producerKeychain
-      summary: Create Keys for the specific producerKeychainId.
-      operationId: createProducerKeys
+      summary: Create Key for the specific producerKeychainId.
+      operationId: createProducerKey
       responses:
         "200":
-          description: Keys created
+          description: Key created
           content:
             application/json:
               schema:
@@ -1216,8 +1216,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
-      description: Creates one or more keys for the corresponding producer keychain.
+              $ref: "#/components/schemas/KeySeed"
+      description: Create key for the corresponding producer keychain.
       parameters:
         - name: producerKeychainId
           in: path
