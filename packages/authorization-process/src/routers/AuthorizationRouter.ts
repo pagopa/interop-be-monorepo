@@ -51,7 +51,7 @@ import {
   createProducerKeychainErrorMapper,
   getProducerKeychainsErrorMapper,
   deleteProducerKeychainErrorMapper,
-  createProducerKeychainKeysErrorMapper,
+  createProducerKeychainKeyErrorMapper,
   deleteProducerKeychainKeyByIdErrorMapper,
   getProducerKeychainKeysErrorMapper,
   getProducerKeychainUsersErrorMapper,
@@ -809,10 +809,10 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const producerKeychain =
-            await authorizationService.createProducerKeychainKeys({
+            await authorizationService.createProducerKeychainKey({
               producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
               authData: req.ctx.authData,
-              keysSeeds: req.body,
+              keySeed: req.body,
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
@@ -825,7 +825,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createProducerKeychainKeysErrorMapper,
+            createProducerKeychainKeyErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
