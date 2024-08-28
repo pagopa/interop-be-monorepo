@@ -297,7 +297,7 @@ export function readModelServiceBuilder(
         "data.producerId": { $eq: producerId },
       };
 
-      const purposeIdFilter: ReadModelFilter<ProducerKeychain> = eserviceId
+      const eserviceIdFilter: ReadModelFilter<ProducerKeychain> = eserviceId
         ? {
             "data.eservices": { $eq: eserviceId },
           }
@@ -309,7 +309,7 @@ export function readModelServiceBuilder(
             ...nameFilter,
             ...userIdsFilter,
             ...producerIdFilter,
-            ...purposeIdFilter,
+            ...eserviceIdFilter,
           } satisfies ReadModelFilter<ProducerKeychain>,
         },
         {
