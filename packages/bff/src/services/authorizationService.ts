@@ -12,7 +12,9 @@ import {
   SELFCARE_ID_CLAIM,
   SessionClaims,
   USER_ROLES,
+  UID,
   decodeJwtToken,
+  userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
@@ -26,8 +28,6 @@ import {
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
-const SUPPORT_ROLE = "support";
-const UID = "uid";
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -108,7 +108,7 @@ export function authorizationServiceBuilder(
       name: tenant.name,
       roles: [
         {
-          role: SUPPORT_ROLE,
+          role: userRoles.SUPPORT_ROLE,
         },
       ],
     };
@@ -120,7 +120,7 @@ export function authorizationServiceBuilder(
 
     return {
       ...buildJwtCustomClaims(
-        SUPPORT_ROLE,
+        userRoles.SUPPORT_ROLE,
         tenant.id,
         selfcareId,
         tenant.externalId.origin,

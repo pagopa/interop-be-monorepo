@@ -57,22 +57,22 @@ const authorizationRouter = (
       }
     })
     .post("/support", async (req, res) => {
-      const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
       const { correlationId, logger } = fromAppContext(req.ctx);
 
       try {
+        const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
         const jwt = await authorizationService.samlLoginCallback(
           correlationId,
           saml
         );
         return res.redirect(
           302,
-          `${config.saml2CallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
+          `${config.samlCallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
         );
       } catch (error) {
         logger.error(`Error calling support SAML - ${error}`);
         makeApiProblem(error, emptyErrorMapper, logger);
-        return res.redirect(302, config.saml2CallbackErrorUrl);
+        return res.redirect(302, config.samlCallbackErrorUrl);
       }
     });
 
