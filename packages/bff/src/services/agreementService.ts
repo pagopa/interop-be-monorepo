@@ -31,9 +31,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ) {
-      logger.info(`Creating agreement with seed ${JSON.stringify(payload)}`);
+      logger.info(
+        `Creating agreement with consumerId ${authData.organizationId} eserviceId ${payload.eserviceId} descriptorId ${payload.descriptorId}`
+      );
       return await agreementProcessClient.createAgreement(payload, {
         headers,
       });
