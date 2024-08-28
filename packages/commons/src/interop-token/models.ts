@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { UIAuthToken } from "../auth/authData.js";
 
 export const ORGANIZATION = "organization";
 export const UID = "uid";
@@ -40,15 +39,11 @@ export type InteropToken = {
   serialized: string;
 };
 
-const Organization = z.union([
-  UIAuthToken.shape.organization.transform((o) => o.id),
-  z.object({
-    id: z.string(),
-    name: z.string(),
-    roles: z.array(z.object({ role: z.string() })),
-  }),
-]);
-
+const Organization = z.object({
+  id: z.string(),
+  name: z.string(),
+  roles: z.array(z.object({ role: z.string() })),
+});
 export const SessionClaims = z.object({
   [UID]: z.string(),
   [ORGANIZATION]: Organization,
