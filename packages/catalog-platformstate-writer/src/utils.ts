@@ -37,7 +37,7 @@ export const writeCatalogEntry = async (
         S: catalogEntry.descriptorAudience,
       },
     },
-    TableName: config.tokenGenerationReadModelTableName,
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -51,7 +51,7 @@ export const readCatalogEntry = async (
     Key: {
       PK: { S: primaryKey },
     },
-    TableName: config.tokenGenerationReadModelTableName,
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const command = new GetItemCommand(input);
   const data: GetItemCommandOutput = await dynamoDBClient.send(command);
@@ -81,7 +81,7 @@ export const deleteCatalogEntry = async (
     Key: {
       PK: { S: primaryKey },
     },
-    TableName: config.tokenGenerationReadModelTableName,
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
@@ -91,7 +91,7 @@ export const readAllItems = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<ScanCommandOutput> => {
   const readInput: ScanInput = {
-    TableName: config.tokenGenerationReadModelTableName,
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const commandQuery = new ScanCommand(readInput);
   const read: ScanCommandOutput = await dynamoDBClient.send(commandQuery);

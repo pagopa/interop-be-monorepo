@@ -2,6 +2,7 @@ import {
   EventStoreConfig,
   ReadModelDbConfig,
   S3Config,
+  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -10,6 +11,9 @@ export const TEST_MONGO_DB_IMAGE = "mongo:4.0";
 
 export const TEST_POSTGRES_DB_PORT = 5432;
 export const TEST_POSTGRES_DB_IMAGE = "postgres:14";
+
+export const TEST_DYNAMODB_PORT = 8000;
+export const TEST_DYNAMODB_IMAGE = "amazon/dynamodb-local:latest";
 
 export const TEST_MINIO_PORT = 9000;
 export const TEST_MINIO_IMAGE =
@@ -56,6 +60,17 @@ export const postgreSQLContainer = (
       },
     ])
     .withExposedPorts(TEST_POSTGRES_DB_PORT);
+
+/**
+ * Starts a DynamoDB container for testing purposes.
+ *
+ * @param config - The configuration for the DynamoDB container.
+ * @returns A promise that resolves to the started test container.
+ */
+export const dynamoDBContainer = (): GenericContainer =>
+  new GenericContainer(TEST_DYNAMODB_IMAGE)
+    // .withCommand(["-jar DynamoDBLocal.jar -inMemory -sharedDb"])
+    .withExposedPorts(TEST_DYNAMODB_PORT);
 
 /**
  * Starts a MinIO container for testing purposes.

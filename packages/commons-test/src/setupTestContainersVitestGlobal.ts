@@ -13,6 +13,7 @@ import {
   LoggerConfig,
   ReadModelDbConfig,
   S3Config,
+  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import {
   TEST_MINIO_PORT,
@@ -24,12 +25,15 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
+  dynamoDBContainer,
+  TEST_DYNAMODB_PORT,
 } from "./containerTestUtils.js";
 import { EmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    tokenGenerationReadModelConfig?: TokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
     emailManagerConfig?: EmailManagerConfigTest;
@@ -52,6 +56,8 @@ export function setupTestContainersVitestGlobal() {
     .and(LoggerConfig)
     .safeParse(process.env);
   const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
+  const tokenGenerationReadModelConfig =
+    TokenGenerationReadModelDbConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -60,6 +66,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
+    let startedDynamoDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -124,11 +131,24 @@ export function setupTestContainersVitestGlobal() {
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 
+    // Setting up the DynamoDB container if the config is provided
+    if (tokenGenerationReadModelConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+      tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbPort =
+        startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT);
+
+      provide(
+        "tokenGenerationReadModelConfig",
+        tokenGenerationReadModelConfig.data
+      );
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
+      await startedDynamoDbContainer?.stop();
     };
   };
 }

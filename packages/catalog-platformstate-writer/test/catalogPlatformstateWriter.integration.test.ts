@@ -1,11 +1,5 @@
-import { describe, expect, it } from "vitest";
-import {
-  getMockValidRiskAnalysis,
-  writeInReadmodel,
-  toEServiceV1,
-  toDocumentV1,
-  toDescriptorV1,
-} from "pagopa-interop-commons-test";
+import { format } from "util";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   AttributeId,
   ClonedEServiceAddedV1,
@@ -38,7 +32,6 @@ import {
   EServiceDraftDescriptorDeletedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceEventEnvelope,
-  EServiceReadModel,
   EServiceRiskAnalysisAddedV1,
   EServiceRiskAnalysisAddedV2,
   EServiceRiskAnalysisDeletedV1,
@@ -47,22 +40,88 @@ import {
   EServiceWithDescriptorsDeletedV1,
   EserviceAttributes,
   MovedAttributesFromEserviceToDescriptorsV1,
+  PlatformStatesCatalogEntry,
   RiskAnalysis,
   descriptorState,
   eserviceMode,
   generateId,
   technology,
   toEServiceV2,
-  toReadModelEService,
 } from "pagopa-interop-models";
-import { format } from "date-fns";
+import * as dynamodb from "@aws-sdk/client-dynamodb";
+import {
+  toEServiceV1,
+  getMockValidRiskAnalysis,
+  toDocumentV1,
+  toDescriptorV1,
+} from "pagopa-interop-commons-test/index.js";
+import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { eservices } from "./utils.js";
+
+import { config } from "./utils.js";
 
 describe("database test", async () => {
+  const dynamoDBClient = new dynamodb.DynamoDB({
+    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
+    region: "eu-central-1",
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    endpoint: `http://${config!.tokenGenerationReadModelDbHost}:${
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      config!.tokenGenerationReadModelDbPort
+    }`,
+  });
+  beforeAll(async () => {
+    const platformTableDefinition: dynamodb.CreateTableInput = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      TableName: config!.tokenGenerationReadModelTableNamePlatform,
+      AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
+      KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDBClient.createTable(platformTableDefinition);
+
+    const tokenGenerationTableDefinition: dynamodb.CreateTableInput = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
+      AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
+      KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDBClient.createTable(tokenGenerationTableDefinition);
+
+    const tablesResult = await dynamoDBClient.listTables();
+    console.log(tablesResult.TableNames);
+  });
+  afterAll(async () => {
+    const tableToDelete1: dynamodb.DeleteTableInput = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      TableName: config!.tokenGenerationReadModelTableNamePlatform,
+    };
+    const tableToDelete2: dynamodb.DeleteTableInput = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
+    };
+    await dynamoDBClient.deleteTable(tableToDelete1);
+    await dynamoDBClient.deleteTable(tableToDelete2);
+  });
   describe("Events V1", async () => {
     const mockEService = getMockEService();
+    it("sample", async () => {
+      const key = `ESERVICEDESCRIPTOR#${generateId()}#${generateId()}`;
+
+      const catalogEntry: PlatformStatesCatalogEntry = {
+        PK: key,
+        state: "ACTIVE",
+        descriptorAudience: "pagopa.it",
+      };
+      await writeCatalogEntry(catalogEntry, dynamoDBClient);
+
+      const result = await readCatalogEntry(key, dynamoDBClient);
+
+      // const resultFetchAll = await readAllItems(dynamoDBClient);
+      expect(result).toEqual(catalogEntry);
+    });
 
     it("EServiceAdded", async () => {
       const payload: EServiceAddedV1 = {
@@ -77,18 +136,18 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
     });
 
     it("ClonedEServiceAdded", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(mockEService),
+      //   eservices,
+      //   1
+      // );
 
       const date = new Date();
       const clonedEService: EService = {
@@ -113,18 +172,18 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
     });
 
     it("EServiceUpdated", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(mockEService),
+      //   eservices,
+      //   1
+      // );
 
       const updatedEService: EService = {
         ...mockEService,
@@ -142,18 +201,18 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
     });
 
     it("EServiceRiskAnalysisAdded", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(mockEService),
+      //   eservices,
+      //   1
+      // );
 
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
@@ -173,7 +232,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -197,12 +256,12 @@ describe("database test", async () => {
         state: descriptorState.draft,
         attributes,
       };
-      const eservice: EService = {
-        ...mockEService,
-        attributes,
-        descriptors: [descriptor],
-      };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // const eservice: EService = {
+      //   ...mockEService,
+      //   attributes,
+      //   descriptors: [descriptor],
+      // };
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
       const updatedDescriptor = {
         ...descriptor,
         attributes,
@@ -224,7 +283,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -239,7 +298,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -258,7 +317,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -275,7 +334,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -298,14 +357,14 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
     });
 
     it("EServiceDeleted", async () => {
-      await writeInReadmodel(toReadModelEService(mockEService), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(mockEService), eservices, 1);
 
       const payload: EServiceDeletedV1 = {
         eserviceId: mockEService.id,
@@ -319,7 +378,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -337,7 +396,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const payload: EServiceDocumentAddedV1 = {
           eserviceId: eservice.id,
@@ -355,7 +414,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, eservices);
+        await handleMessageV1(message, dynamoDBClient);
 
         // TO DO
         expect(1).toBe(1);
@@ -372,7 +431,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const payload: EServiceDocumentAddedV1 = {
           eserviceId: eservice.id,
@@ -390,7 +449,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, eservices);
+        await handleMessageV1(message, dynamoDBClient);
 
         // TO DO
         expect(1).toBe(1);
@@ -409,7 +468,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const payload: EServiceDocumentDeletedV1 = {
           eserviceId: eservice.id,
@@ -426,7 +485,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, eservices);
+        await handleMessageV1(message, dynamoDBClient);
 
         // TO DO
         expect(1).toBe(1);
@@ -443,7 +502,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const payload: EServiceDocumentDeletedV1 = {
           eserviceId: eservice.id,
@@ -460,7 +519,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, eservices);
+        await handleMessageV1(message, dynamoDBClient);
 
         // TO DO
         expect(1).toBe(1);
@@ -476,7 +535,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const payload: EServiceDescriptorAddedV1 = {
         eserviceId: eservice.id,
@@ -491,7 +550,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -507,7 +566,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -528,7 +587,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -536,12 +595,12 @@ describe("database test", async () => {
 
     it("EServiceRiskAnalysisDeleted", async () => {
       const riskAnalysis = getMockValidRiskAnalysis("PA");
-      const eservice: EService = {
-        ...mockEService,
-        riskAnalysis: [riskAnalysis],
-      };
+      // const eservice: EService = {
+      //   ...mockEService,
+      //   riskAnalysis: [riskAnalysis],
+      // };
 
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...mockEService,
@@ -560,7 +619,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, eservices);
+      await handleMessageV1(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -570,7 +629,7 @@ describe("database test", async () => {
   describe("Events V2", async () => {
     const mockEService = getMockEService();
     it("EServiceDeleted", async () => {
-      await writeInReadmodel(toReadModelEService(mockEService), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(mockEService), eservices, 1);
 
       const payload: EServiceDeletedV2 = {
         eserviceId: mockEService.id,
@@ -584,7 +643,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -603,18 +662,18 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
     });
 
     it("DraftEServiceUpdated", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(mockEService),
+      //   eservices,
+      //   1
+      // );
 
       const updatedEService: EService = {
         ...mockEService,
@@ -632,7 +691,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -649,11 +708,11 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [sourceDescriptor],
       };
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(sourceEService),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(sourceEService),
+      //   eservices,
+      //   1
+      // );
 
       const date = new Date();
       const clonedEService: EService = {
@@ -687,7 +746,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -702,7 +761,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -721,7 +780,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -736,7 +795,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -755,7 +814,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -771,7 +830,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedDraftDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -794,7 +853,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -811,7 +870,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedPublishedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -835,7 +894,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -853,7 +912,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [suspendedDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const publishedDescriptor: Descriptor = {
         ...suspendedDescriptor,
@@ -878,7 +937,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -895,7 +954,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const archivedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -919,7 +978,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -935,7 +994,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -959,7 +1018,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -976,7 +1035,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const suspendedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -1000,7 +1059,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1017,7 +1076,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
       const updatedEService: EService = {
         ...eservice,
         descriptors: [{ ...draftDescriptor, interface: descriptorInterface }],
@@ -1036,7 +1095,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1053,7 +1112,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1073,7 +1132,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1090,7 +1149,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedInterface: Document = {
         ...descriptorInterface,
@@ -1114,7 +1173,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1131,7 +1190,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -1155,7 +1214,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1172,7 +1231,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1195,7 +1254,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1212,7 +1271,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1233,18 +1292,18 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
     });
 
     it("EServiceRiskAnalysisAdded", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(mockEService),
+      //   eservices,
+      //   1
+      // );
 
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
@@ -1264,7 +1323,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1276,11 +1335,11 @@ describe("database test", async () => {
         ...mockEService,
         riskAnalysis: [mockRiskAnalysis],
       };
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(eservice),
-        eservices,
-        1
-      );
+      // await writeInReadmodel<EServiceReadModel>(
+      //   toReadModelEService(eservice),
+      //   eservices,
+      //   1
+      // );
 
       const updatedRiskAnalysis: RiskAnalysis = {
         ...mockRiskAnalysis,
@@ -1312,7 +1371,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
@@ -1320,12 +1379,12 @@ describe("database test", async () => {
 
     it("EServiceRiskAnalysisDeleted", async () => {
       const riskAnalysis = getMockValidRiskAnalysis("PA");
-      const eservice: EService = {
-        ...mockEService,
-        riskAnalysis: [riskAnalysis],
-      };
+      // const eservice: EService = {
+      //   ...mockEService,
+      //   riskAnalysis: [riskAnalysis],
+      // };
 
-      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...mockEService,
@@ -1344,7 +1403,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eservices);
+      await handleMessageV2(message, dynamoDBClient);
 
       // TO DO
       expect(1).toBe(1);
