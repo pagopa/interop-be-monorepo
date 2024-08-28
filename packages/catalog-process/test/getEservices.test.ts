@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   TenantId,
   EService,
@@ -22,7 +23,6 @@ import {
   getMockDocument,
   getMockAgreement,
   getMockEServiceAttributes,
-  getMockTenant,
 } from "./utils.js";
 
 describe("get eservices", () => {
