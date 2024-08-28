@@ -13,7 +13,12 @@ import {
   invalidKey,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import {
+  AuthData,
+  genericLogger,
+  calculateKid,
+  createJWK,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockKey,
@@ -32,7 +37,6 @@ import {
   organizationNotAllowedOnProducerKeychain,
   tooManyKeysPerProducerKeychain,
 } from "../src/model/domain/errors.js";
-import { calculateKid, createJWK } from "../../commons/src/auth/jwk.js";
 import {
   addOneProducerKeychain,
   authorizationService,
@@ -40,7 +44,7 @@ import {
   selfcareV2Client,
 } from "./utils.js";
 
-describe("createProducerKeychainKeys", () => {
+describe("createProducerKeychainKey", () => {
   const producerId: TenantId = generateId();
   const userId: UserId = generateId();
 
@@ -67,8 +71,6 @@ describe("createProducerKeychainKeys", () => {
     key: base64Key,
     alg: "",
   };
-
-  const keysSeeds: authorizationApi.KeysSeed = [keySeed];
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
@@ -111,10 +113,10 @@ describe("createProducerKeychainKeys", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     const producerKeychain =
-      await authorizationService.createProducerKeychainKeys({
+      await authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       });
@@ -161,10 +163,10 @@ describe("createProducerKeychainKeys", () => {
     await addOneProducerKeychain(getMockProducerKeychain());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -180,10 +182,10 @@ describe("createProducerKeychainKeys", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: notProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -200,10 +202,10 @@ describe("createProducerKeychainKeys", () => {
     mockSelfcareV2ClientCall([]);
 
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -227,17 +229,17 @@ describe("createProducerKeychainKeys", () => {
     await addOneProducerKeychain(producerKeychainWith30Keys);
 
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: producerKeychainWith30Keys.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(
       tooManyKeysPerProducerKeychain(
         producerKeychainWith30Keys.id,
-        producerKeychainWith30Keys.keys.length + keysSeeds.length
+        producerKeychainWith30Keys.keys.length + 1
       )
     );
   });
@@ -250,10 +252,10 @@ describe("createProducerKeychainKeys", () => {
     await addOneProducerKeychain(noUsersProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: noUsersProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -277,15 +279,13 @@ describe("createProducerKeychainKeys", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeedByPrivateKey];
-
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed: keySeedByPrivateKey,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -305,10 +305,10 @@ describe("createProducerKeychainKeys", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: producerKeychainWithDuplicateKey.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -336,10 +336,10 @@ describe("createProducerKeychainKeys", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: producerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -361,15 +361,13 @@ describe("createProducerKeychainKeys", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -383,15 +381,13 @@ describe("createProducerKeychainKeys", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKeys({
+      authorizationService.createProducerKeychainKey({
         producerKeychainId: mockProducerKeychain.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })

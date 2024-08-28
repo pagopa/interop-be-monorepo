@@ -536,9 +536,7 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
       if (userIds.length > 0) {
-        return client.data.keys.filter(
-          (k) => k.userId && userIds.includes(k.userId)
-        );
+        return client.data.keys.filter((k) => userIds.includes(k.userId));
       } else {
         return client.data.keys;
       }
@@ -787,7 +785,7 @@ export function authorizationServiceBuilder(
       logger: Logger;
     }): Promise<ListResult<ProducerKeychain>> {
       logger.info(
-        `Retrieving producer keychains by name ${filters.name} , userIds ${filters.userIds}`
+        `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
       const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
         ? [authData.userId]
@@ -973,16 +971,16 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async createProducerKeychainKeys({
+    async createProducerKeychainKey({
       producerKeychainId,
       authData,
-      keysSeeds,
+      keySeed,
       correlationId,
       logger,
     }: {
       producerKeychainId: ProducerKeychainId;
       authData: AuthData;
-      keysSeeds: authorizationApi.KeysSeed;
+      keySeed: authorizationApi.KeySeed;
       correlationId: string;
       logger: Logger;
     }): Promise<ProducerKeychain> {
@@ -997,7 +995,7 @@ export function authorizationServiceBuilder(
       );
       assertProducerKeychainKeysCountIsBelowThreshold(
         producerKeychainId,
-        producerKeychain.data.keys.length + keysSeeds.length
+        producerKeychain.data.keys.length + 1
       );
 
       if (!producerKeychain.data.users.includes(authData.userId)) {
@@ -1012,14 +1010,12 @@ export function authorizationServiceBuilder(
         userIdToCheck: authData.userId,
       });
 
-      if (keysSeeds.length !== 1) {
-        throw genericInternalError("Wrong number of keys");
-      }
-      const keySeed = keysSeeds[0];
       const jwk = createJWK(keySeed.key);
+
       if (jwk.kty !== "RSA") {
         throw invalidKey(keySeed.key, "Not an RSA key");
       }
+
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -1136,8 +1132,8 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
       if (userIds.length > 0) {
-        return producerKeychain.data.keys.filter(
-          (k) => k.userId && userIds.includes(k.userId)
+        return producerKeychain.data.keys.filter((k) =>
+          userIds.includes(k.userId)
         );
       }
       return producerKeychain.data.keys;

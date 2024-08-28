@@ -203,7 +203,7 @@ export function tooManyKeysPerProducerKeychain(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Keys count (${size}) for the producer keychain ${producerKeychainId} exceed maximum allowed value`,
+    detail: `Keys count (${size}) for the producer keychain ${producerKeychainId} exceeds maximum allowed value`,
     code: "tooManyKeysPerProducerKeychain",
     title: "Too many Keys per producer keychain",
   });

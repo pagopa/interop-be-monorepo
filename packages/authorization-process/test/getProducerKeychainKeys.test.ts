@@ -106,7 +106,7 @@ describe("getProducerKeychainKeys", async () => {
       producerKeychainNotFound(unsafeBrandId(producerKeychainId))
     );
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the consumer", async () => {
+  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
     const organizationId = generateId();
     await expect(
