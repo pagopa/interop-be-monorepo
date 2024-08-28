@@ -39,6 +39,7 @@ import {
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   EserviceAttributes,
+  ItemState,
   MovedAttributesFromEserviceToDescriptorsV1,
   PlatformStatesCatalogEntry,
   RiskAnalysis,
@@ -903,6 +904,7 @@ describe("database test", async () => {
     it("EServiceDescriptorActivated", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
+        audience: ["pagopa.it"],
         interface: getMockDocument(),
         state: descriptorState.suspended,
         publishedAt: new Date(),
@@ -937,15 +939,27 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
+      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const previousStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: ItemState.Enum.INACTIVE,
+        descriptorAudience: publishedDescriptor.audience[0],
+      };
+      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV2(message, dynamoDBClient);
 
-      // TO DO
-      expect(1).toBe(1);
+      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+      const expectedEntry: PlatformStatesCatalogEntry = {
+        ...previousStateEntry,
+        state: ItemState.Enum.ACTIVE,
+      };
+      expect(retrievedEntry).toEqual(expectedEntry);
     });
 
-    it("EServiceDescriptorArchived", async () => {
+    it.only("EServiceDescriptorArchived", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
+        audience: ["pagopa.it"],
         interface: getMockDocument(),
         state: descriptorState.published,
         publishedAt: new Date(),
@@ -978,15 +992,23 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
+      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const previousStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: ItemState.Enum.INACTIVE,
+        descriptorAudience: publishedDescriptor.audience[0],
+      };
+      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV2(message, dynamoDBClient);
 
-      // TO DO
-      expect(1).toBe(1);
+      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+      expect(retrievedEntry).toBeUndefined();
     });
 
     it("EServiceDescriptorPublished", async () => {
       const draftDescriptor: Descriptor = {
         ...getMockDescriptor(),
+        audience: ["pagopa.it"],
         interface: getMockDocument(),
         state: descriptorState.draft,
       };
@@ -1020,13 +1042,20 @@ describe("database test", async () => {
       };
       await handleMessageV2(message, dynamoDBClient);
 
-      // TO DO
-      expect(1).toBe(1);
+      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+      const expectedEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: ItemState.Enum.ACTIVE,
+        descriptorAudience: publishedDescriptor.audience[0],
+      };
+      expect(retrievedEntry).toEqual(expectedEntry);
     });
 
     it("EServiceDescriptorSuspended", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
+        audience: ["pagopa.it"],
         interface: getMockDocument(),
         state: descriptorState.published,
         publishedAt: new Date(),
@@ -1059,10 +1088,21 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
+      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const previousStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: ItemState.Enum.ACTIVE,
+        descriptorAudience: publishedDescriptor.audience[0],
+      };
+      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV2(message, dynamoDBClient);
 
-      // TO DO
-      expect(1).toBe(1);
+      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+      const expectedEntry: PlatformStatesCatalogEntry = {
+        ...previousStateEntry,
+        state: ItemState.Enum.INACTIVE,
+      };
+      expect(retrievedEntry).toEqual(expectedEntry);
     });
 
     it("EServiceDescriptorInterfaceAdded", async () => {
