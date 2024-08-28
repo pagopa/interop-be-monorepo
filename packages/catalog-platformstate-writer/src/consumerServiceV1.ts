@@ -36,14 +36,14 @@ export async function handleMessageV1(
           descriptorState.published,
           descriptorState.suspended,
           async () => {
-            console.log(descriptor.state);
             const catalogEntry: PlatformStatesCatalogEntry = {
               // TODO: change with the PK type
               PK: `ESERVICEDESCRIPTOR#${eserviceId}#${descriptor.id}`,
               state: descriptorStateToClientState(descriptor.state),
               descriptorAudience: descriptor.audience[0],
+              version: msg.version,
+              updatedAt: new Date().toISOString(),
             };
-            console.log(catalogEntry);
             await writeCatalogEntry(catalogEntry, dynamoDBClient);
           }
         )
