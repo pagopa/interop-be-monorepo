@@ -1,4 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   Descriptor,
   EService,
@@ -77,6 +86,14 @@ describe("database test", async () => {
     const command2 = new DeleteTableCommand(tableToDelete2);
     await dynamoDBClient.send(command2);
   });
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   describe("Events V1", async () => {
     it("EServiceDescriptorUpdated (draft -> published)", async () => {
       const draftDescriptor: Descriptor = {
@@ -119,6 +136,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.ACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 2,
+        updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
     });
@@ -163,6 +182,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.INACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 1,
+        updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
@@ -214,6 +235,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.ACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 1,
+        updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
@@ -266,6 +289,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.INACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 1,
+        updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
@@ -321,6 +346,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.INACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 1,
+        updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV2(message, dynamoDBClient);
@@ -329,6 +356,8 @@ describe("database test", async () => {
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
         state: ItemState.Enum.ACTIVE,
+        version: 2,
+        updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
     });
@@ -374,6 +403,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.INACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 1,
+        updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV2(message, dynamoDBClient);
@@ -425,6 +456,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.ACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 2,
+        updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
     });
@@ -470,6 +503,8 @@ describe("database test", async () => {
         PK: primaryKey,
         state: ItemState.Enum.ACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
+        version: 1,
+        updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV2(message, dynamoDBClient);
@@ -478,6 +513,8 @@ describe("database test", async () => {
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
         state: ItemState.Enum.INACTIVE,
+        version: 2,
+        updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
     });
