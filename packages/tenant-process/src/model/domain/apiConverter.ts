@@ -122,5 +122,7 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     updatedAt: tenant.updatedAt?.toJSON(),
     mails: tenant.mails.map(toApiMail),
     name: tenant.name,
+    onboardedAt: tenant.onboardedAt?.toJSON(),
+    subUnitType: tenant.subUnitType,
   };
 }
