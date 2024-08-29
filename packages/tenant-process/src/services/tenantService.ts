@@ -71,7 +71,6 @@ import {
   assertVerifiedAttributeExistsInTenant,
   assertResourceAllowed,
   evaluateNewSelfcareId,
-  getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
@@ -343,7 +342,6 @@ export function tenantServiceBuilder(
           features: [],
           mails: [],
           selfcareId: tenantSeed.selfcareId,
-          kind: getTenantKind([], tenantSeed.externalId),
           onboardedAt: new Date(),
           createdAt: new Date(),
         };
@@ -477,7 +475,7 @@ export function tenantServiceBuilder(
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          tenantKind,
+          targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
@@ -629,7 +627,7 @@ export function tenantServiceBuilder(
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          tenantKind,
+          targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
@@ -874,7 +872,7 @@ export function tenantServiceBuilder(
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          tenantKind,
+          tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
@@ -959,7 +957,7 @@ export function tenantServiceBuilder(
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          tenantKind,
+          tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
@@ -1284,7 +1282,7 @@ export function tenantServiceBuilder(
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           existingTenant.metadata.version + events.length,
-          tenantKind,
+          existingTenant.data.kind,
           tenantWithUpdatedKind,
           correlationId
         );
@@ -1390,7 +1388,7 @@ export function tenantServiceBuilder(
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           existingTenant.metadata.version + events.length,
-          tenantKind,
+          existingTenant.data.kind,
           tenantWithUpdatedKind,
           correlationId
         );
@@ -1402,6 +1400,7 @@ export function tenantServiceBuilder(
 
       return tenantWithUpdatedKind;
     },
+
     async addCertifierId(
       {
         tenantId,
@@ -1541,8 +1540,7 @@ export function tenantServiceBuilder(
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantWithAttributeRevoked.kind!,
+          tenantWithAttributeRevoked.kind,
           tenantWithUpdatedKind,
           correlationId
         );
