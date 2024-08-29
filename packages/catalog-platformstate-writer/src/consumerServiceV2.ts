@@ -15,7 +15,7 @@ import {
   descriptorStateToClientState,
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
-  readTokenStateEntryByEserviceIdAndDescriptorId,
+  readTokenStateEntryByEServiceIdAndDescriptorId,
   updateDescriptorState,
   writeCatalogEntry,
 } from "./utils.js";
@@ -94,20 +94,22 @@ export async function handleMessageV2(
 
           // token-generation-states
           const eserviceId_descriptorId = `${eservice.id}#${descriptorId}`;
-          const result = await readTokenStateEntryByEserviceIdAndDescriptorId(
+          const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
             eserviceId_descriptorId,
             dynamoDBClient
           );
 
           if (result) {
-            await updateDescriptorState(
-              dynamoDBClient,
-              result.PK,
-              updatedCatalogEntry.state
-            );
+            for (const entry of result) {
+              await updateDescriptorState(
+                dynamoDBClient,
+                entry.PK,
+                updatedCatalogEntry.state
+              );
+            }
           } else {
             throw genericInternalError(
-              `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
+              `Unable to find token generation state entries with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
             );
           }
         }

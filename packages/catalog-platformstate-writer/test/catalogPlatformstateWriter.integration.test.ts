@@ -44,7 +44,6 @@ import {
 import {
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
-  readTokenStateEntryByEserviceIdAndDescriptorId,
   sleep,
   writeCatalogEntry,
   writeTokenStateEntry,
@@ -85,6 +84,7 @@ describe("database test", async () => {
       BillingMode: "PAY_PER_REQUEST",
       GlobalSecondaryIndexes: [
         {
+          // TODO: change index name
           IndexName: "gsiIndex",
           KeySchema: [
             {
@@ -184,31 +184,55 @@ describe("database test", async () => {
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
-      // TODO: add kid type
-      const tokenStateEntryPK = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
+      // TODO: replace last generateId() with kid
+      const tokenStateEntryPK1 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
       const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
-      const previousTokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-        PK: tokenStateEntryPK,
-        descriptorState: ItemState.Enum.INACTIVE,
-        descriptorAudience: publishedDescriptor.audience[0],
-        updatedAt: new Date().toISOString(),
-        consumerId: generateId(),
-        agreementId: generateId(),
-        purposeVersionId: generateId(),
-        GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-        clientKind: clientKind.consumer,
-        publicKey: "PEM",
-        GSIPK_clientId: generateId(),
-        GSIPK_kid: "KID",
-        GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-        agreementState: "ACTIVE",
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        GSIPK_purposeId: generateId(),
-        purposeState: itemState.inactive,
-      };
-      await writeTokenStateEntry(previousTokenStateEntry, dynamoDBClient);
-      await sleep(1000, mockDate);
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          PK: tokenStateEntryPK1,
+          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorAudience: publishedDescriptor.audience[0],
+          updatedAt: new Date().toISOString(),
+          consumerId: generateId(),
+          agreementId: generateId(),
+          purposeVersionId: generateId(),
+          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
+          clientKind: clientKind.consumer,
+          publicKey: "PEM",
+          GSIPK_clientId: generateId(),
+          GSIPK_kid: "KID",
+          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
+          agreementState: "ACTIVE",
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          GSIPK_purposeId: generateId(),
+          purposeState: itemState.inactive,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
+      const tokenStateEntryPK2 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          PK: tokenStateEntryPK2,
+          descriptorState: ItemState.Enum.ACTIVE,
+          descriptorAudience: publishedDescriptor.audience[0],
+          updatedAt: new Date().toISOString(),
+          consumerId: generateId(),
+          agreementId: generateId(),
+          purposeVersionId: generateId(),
+          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
+          clientKind: clientKind.consumer,
+          publicKey: "PEM",
+          GSIPK_clientId: generateId(),
+          GSIPK_kid: "KID",
+          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
+          agreementState: "ACTIVE",
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          GSIPK_purposeId: generateId(),
+          purposeState: itemState.inactive,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+      await sleep(1000, mockDate);
       await handleMessageV2(message, dynamoDBClient);
 
       // platform-states
@@ -225,20 +249,35 @@ describe("database test", async () => {
       expect(retrievedCatalogEntry).toEqual(expectedCatalogEntry);
 
       // token-generation-states
-      const retrievedTokenStateEntry =
-        await readTokenStateEntryByEserviceIdAndDescriptorId(
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByEserviceIdAndDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      const expectedTokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...previousTokenStateEntry,
-        descriptorState: ItemState.Enum.ACTIVE,
-        updatedAt: new Date().toISOString(),
-      };
-      expect(retrievedTokenStateEntry).toEqual(expectedTokenStateEntry);
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          descriptorState: ItemState.Enum.ACTIVE,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          descriptorState: ItemState.Enum.ACTIVE,
+          updatedAt: new Date().toISOString(),
+        };
+
+      // TODO: this works, but arrayContaining must have the exact objects
+      // expect.arrayContaining([expectedTokenStateEntry2, expectedTokenStateEntry2]) also passes the test
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry2,
+          expectedTokenStateEntry1,
+        ])
+      );
     });
 
-    it.only("EServiceDescriptorArchived", async () => {
+    it("EServiceDescriptorArchived", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],

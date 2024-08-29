@@ -215,7 +215,7 @@ export const writeTokenStateEntry = async (
   console.log("write token state", await dynamoDBClient.send(command));
 };
 
-export const readTokenStateEntryByEserviceIdAndDescriptorId = async (
+export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
   eserviceId_descriptorId: string,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesClientPurposeEntry | undefined> => {
