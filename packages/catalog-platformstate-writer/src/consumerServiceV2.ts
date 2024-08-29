@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  descriptorState,
   DescriptorState,
   EServiceEventEnvelopeV2,
   fromEServiceDescriptorStateV2,
@@ -13,6 +14,7 @@ import {
   deleteCatalogEntry,
   descriptorStateToClientState,
   readCatalogEntry,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
   readTokenStateEntryByEserviceIdAndDescriptorId,
   updateDescriptorState,
   writeCatalogEntry,
@@ -121,6 +123,28 @@ export async function handleMessageV2(
 
       const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${msg.data.descriptorId}`;
       await deleteCatalogEntry(primaryKey, dynamoDBClient);
+
+      // token-generation-states
+      const descriptorId = msg.data.descriptorId;
+      const eserviceId_descriptorId = `${eservice.id}#${descriptorId}`;
+      const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
+        eserviceId_descriptorId,
+        dynamoDBClient
+      );
+
+      if (result) {
+        for (const entry of result) {
+          await updateDescriptorState(
+            dynamoDBClient,
+            entry.PK,
+            descriptorStateToClientState(descriptorState.archived)
+          );
+        }
+      } else {
+        throw genericInternalError(
+          `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
+        );
+      }
     })
     .with(
       { type: "EServiceDeleted" },

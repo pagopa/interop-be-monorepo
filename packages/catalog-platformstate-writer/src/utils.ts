@@ -26,6 +26,7 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { z } from "zod";
 import { config } from "./config/config.js";
 
 export const writeCatalogEntry = async (
@@ -235,15 +236,6 @@ export const readTokenStateEntryByEserviceIdAndDescriptorId = async (
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
   console.log("data.Items ", data);
 
-  // const input: GetItemInput = {
-  //   Key: {
-  //     GSIPK_eserviceId_descriptorId: { S: eserviceId_descriptorId },
-  //   },
-  //   TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-  // };
-  // const command = new GetItemCommand(input);
-  // const data: GetItemCommandOutput = await dynamoDBClient.send(command);
-
   if (!data.Items) {
     return undefined;
   } else {
@@ -259,6 +251,47 @@ export const readTokenStateEntryByEserviceIdAndDescriptorId = async (
       );
     }
     return tokenStateEntry.data;
+  }
+};
+
+export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
+  eserviceId_descriptorId: string,
+  dynamoDBClient: DynamoDBClient
+): Promise<TokenGenerationStatesClientPurposeEntry[] | undefined> => {
+  console.log("eserviceId_descriptorId ", eserviceId_descriptorId);
+  const input: QueryInput = {
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    IndexName: "gsiIndex", // Use the name of your Global Secondary Index
+    KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsi_value`,
+    ExpressionAttributeValues: {
+      ":gsi_value": { S: eserviceId_descriptorId },
+    },
+    // ExpressionAttributeNames: {
+    //   "#gsi": "GSIPK_eserviceId_descriptorId",
+    // },
+    ScanIndexForward: false,
+  };
+  const command = new QueryCommand(input);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+  console.log("data.Items ", data);
+
+  if (!data.Items) {
+    return undefined;
+  } else {
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+    const tokenStateEntries = z
+      .array(TokenGenerationStatesClientPurposeEntry)
+      .safeParse(unmarshalledItems);
+
+    if (!tokenStateEntries.success) {
+      throw genericInternalError(
+        `Unable to parse token state entry item: result ${JSON.stringify(
+          tokenStateEntries
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return tokenStateEntries.data;
   }
 };
 
