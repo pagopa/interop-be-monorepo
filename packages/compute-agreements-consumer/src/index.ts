@@ -7,10 +7,10 @@ import {
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import {
-  fromTenantV2,
   missingKafkaMessageDataError,
   TenantEvent,
   unsafeBrandId,
+  fromTenantV2,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";

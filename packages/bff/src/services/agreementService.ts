@@ -26,24 +26,18 @@ export const getLatestAgreement = async (
 
   return allAgreements
     .sort((firstAgreement, secondAgreement) => {
-      if (firstAgreement.version !== secondAgreement.version) {
-        const descriptorFirstAgreement = eservice.descriptors.find(
-          (d) => d.id === firstAgreement.descriptorId
-        );
-        const descriptorSecondAgreement = eservice.descriptors.find(
-          (d) => d.id === secondAgreement.descriptorId
-        );
+      // TODO check version missing
+      const descriptorFirstAgreement = eservice.descriptors.find(
+        (d) => d.id === firstAgreement.descriptorId
+      );
+      const descriptorSecondAgreement = eservice.descriptors.find(
+        (d) => d.id === secondAgreement.descriptorId
+      );
 
-        return descriptorFirstAgreement && descriptorSecondAgreement
-          ? Number(descriptorSecondAgreement.version) -
-              Number(descriptorFirstAgreement.version)
-          : 0;
-      } else {
-        return (
-          new Date(secondAgreement.createdAt).getTime() -
-          new Date(firstAgreement.createdAt).getTime()
-        );
-      }
+      return descriptorFirstAgreement && descriptorSecondAgreement
+        ? Number(descriptorSecondAgreement.version) -
+            Number(descriptorFirstAgreement.version)
+        : 0;
     })
     .at(0);
 };
