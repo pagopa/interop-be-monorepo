@@ -27,6 +27,7 @@ export const errorCodes = {
   invalidInterfaceFileDetected: "0019",
   openapiVersionNotRecognized: "0020",
   interfaceExtractingInfoError: "0021",
+  agreementDescriptorNotFound: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
