@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
-import { generateId, Tenant } from "pagopa-interop-models";
+import { Tenant } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import { tenantNotFoundBySelfcareId } from "../src/model/domain/errors.js";

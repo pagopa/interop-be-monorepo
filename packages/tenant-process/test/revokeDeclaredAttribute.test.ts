@@ -10,6 +10,7 @@ import {
   toTenantV2,
   AttributeId,
   TenantDeclaredAttributeRevokedV2,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -103,7 +104,7 @@ describe("revokeDeclaredAttribute", async () => {
       attributes: [
         {
           id: attributeId,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
