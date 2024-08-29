@@ -10,6 +10,7 @@ import {
   TenantVerifiedAttributeExpirationUpdatedV2,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   expirationDateCannotBeInThePast,
@@ -19,14 +20,13 @@ import {
 import {
   addOneTenant,
   currentDate,
-  getMockAuthData,
   getMockCertifiedTenantAttribute,
-  getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
   tenantService,
 } from "./utils.js";
+
 describe("updateTenantVerifiedAttribute", async () => {
   const correlationId = generateId();
   const expirationDate = new Date(

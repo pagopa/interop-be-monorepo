@@ -10,6 +10,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   expirationDateNotFoundInVerifier,
@@ -20,11 +21,11 @@ import {
   currentDate,
   addOneTenant,
   tenantService,
-  getMockTenant,
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
   readLastTenantEvent,
 } from "./utils.js";
+
 describe("updateVerifiedAttributeExtensionDate", async () => {
   const correlationId = generateId();
   const expirationDate = new Date(
