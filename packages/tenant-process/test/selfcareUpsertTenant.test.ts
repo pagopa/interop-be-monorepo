@@ -7,7 +7,6 @@ import {
   protobufDecoder,
   operationForbidden,
   tenantKind,
-  TenantId,
   unsafeBrandId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
@@ -29,14 +28,6 @@ import {
 describe("selfcareUpsertTenant", async () => {
   const mockTenant = getMockTenant();
   const correlationId = generateId();
-  const tenantSeed = {
-    externalId: {
-      origin: "IPA",
-      value: "123456",
-    },
-    name: "A tenant",
-    selfcareId: generateId(),
-  };
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -59,9 +50,8 @@ describe("selfcareUpsertTenant", async () => {
       name: "A tenant",
       selfcareId,
     };
-    const mockAuthData = getMockAuthData(mockTenant.id);
     await tenantService.selfcareUpsertTenant(tenantSeed, {
-      authData: mockAuthData,
+      authData: getMockAuthData(mockTenant.id),
       correlationId,
       serviceName: "",
       logger: genericLogger,
@@ -88,8 +78,7 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it("Should create a tenant by the upsert if it does not exist", async () => {
-    const mockAuthData = getMockAuthData();
+  it("Should create a tenant if it does not exist", async () => {
     const tenantSeed = {
       externalId: {
         origin: "Nothing",
@@ -99,7 +88,7 @@ describe("selfcareUpsertTenant", async () => {
       selfcareId: generateId(),
     };
     const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
-      authData: mockAuthData,
+      authData: getMockAuthData(),
       correlationId,
       serviceName: "",
       logger: genericLogger,
@@ -119,52 +108,61 @@ describe("selfcareUpsertTenant", async () => {
     ).parse(writtenEvent.data);
 
     const expectedTenant: Tenant = {
-      ...mockTenant,
       externalId: tenantSeed.externalId,
       id: unsafeBrandId(id),
       kind: getTenantKind([], tenantSeed.externalId),
       selfcareId: tenantSeed.selfcareId,
       onboardedAt: new Date(),
       createdAt: new Date(),
+      name: tenantSeed.name,
+      attributes: [],
+      features: [],
+      mails: [],
     };
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
   });
-  it("Should throw operation forbidden if role isn't internal", async () => {
+  it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
     await addOneTenant(mockTenant);
-    const mockAuthData = getMockAuthData(generateId<TenantId>());
-
+    const tenantSeed: tenantApi.SelfcareTenantSeed = {
+      externalId: {
+        origin: "IPA",
+        value: mockTenant.externalId.value,
+      },
+      name: "A tenant",
+      selfcareId: mockTenant.selfcareId!,
+    };
     expect(
       tenantService.selfcareUpsertTenant(tenantSeed, {
-        authData: mockAuthData,
+        authData: getMockAuthData(),
         correlationId,
         serviceName: "",
         logger: genericLogger,
       })
     ).rejects.toThrowError(operationForbidden);
   });
-  it("Should throw selfcareIdConflict error if the given and existing selfcareId differs", async () => {
-    const tenant: Tenant = {
-      ...mockTenant,
-      selfcareId: generateId(),
-    };
-    await addOneTenant(tenant);
+  it("should throw selfcareIdConflict error if the given and existing selfcareId differ", async () => {
+    const mockTenant = getMockTenant();
+    await addOneTenant(mockTenant);
     const newTenantSeed = {
-      ...tenantSeed,
+      name: mockTenant.name,
+      externalId: {
+        origin: "IPA",
+        value: mockTenant.externalId.value,
+      },
       selfcareId: generateId(),
     };
-    const mockAuthData = getMockAuthData(tenant.id);
     expect(
       tenantService.selfcareUpsertTenant(newTenantSeed, {
-        authData: mockAuthData,
+        authData: getMockAuthData(mockTenant.id),
         correlationId,
         serviceName: "",
         logger: genericLogger,
       })
     ).rejects.toThrowError(
       selfcareIdConflict({
-        tenantId: tenant.id,
-        existingSelfcareId: tenant.selfcareId!,
+        tenantId: mockTenant.id,
+        existingSelfcareId: mockTenant.selfcareId!,
         newSelfcareId: newTenantSeed.selfcareId,
       })
     );

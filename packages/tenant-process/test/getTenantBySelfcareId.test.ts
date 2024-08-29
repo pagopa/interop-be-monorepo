@@ -1,33 +1,42 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
 import { generateId, Tenant } from "pagopa-interop-models";
-import { addOneTenant, getMockTenant, readModelService } from "./utils.js";
+import { genericLogger } from "pagopa-interop-commons";
+import { tenantBySelfcareIdNotFound } from "../src/model/domain/errors.js";
+import { addOneTenant, getMockTenant, tenantService } from "./utils.js";
 
 describe("getTenantBySelfcareId", () => {
   const tenant1: Tenant = {
     ...getMockTenant(),
     id: generateId(),
-    name: "A tenant1",
+    name: "Tenant 1",
   };
   const tenant2: Tenant = {
     ...getMockTenant(),
     id: generateId(),
-    name: "A tenant2",
+    name: "Tenant 2",
+  };
+  const tenant3: Tenant = {
+    ...getMockTenant(),
+    id: generateId(),
+    name: "Tenant 3",
   };
 
   it("should get the tenant by selfcareId", async () => {
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
-    const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      tenant1.selfcareId!
+    await addOneTenant(tenant3);
+    const returnedTenant = await tenantService.getTenantBySelfcareId(
+      tenant1.selfcareId!,
+      genericLogger
     );
-    expect(tenantBySelfcareId?.data).toEqual(tenant1);
+    expect(returnedTenant).toEqual(tenant1);
   });
-  it("should not get the tenant by selfcareId if it isn't in DB", async () => {
-    const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      tenant1.selfcareId!
-    );
-    expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
+  it("should throw tenantNotFoundBySelfcareId if the tenant isn't in DB", async () => {
+    await addOneTenant(tenant2);
+    expect(
+      tenantService.getTenantBySelfcareId(tenant1.selfcareId!, genericLogger)
+    ).rejects.toThrowError(tenantBySelfcareIdNotFound(tenant1.selfcareId!));
   });
 });

@@ -1,35 +1,38 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
-import { generateId, Tenant } from "pagopa-interop-models";
-import { addOneTenant, getMockTenant, readModelService } from "./utils.js";
+import { Tenant } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
+import { tenantNotFound } from "../src/model/domain/errors.js";
+import { addOneTenant, getMockTenant, tenantService } from "./utils.js";
 
 describe("getTenantById", () => {
-  const mockTenant = getMockTenant();
-
   const tenant1: Tenant = {
-    ...mockTenant,
-    id: generateId(),
-    name: "A tenant1",
+    ...getMockTenant(),
+    name: "Tenant 1",
   };
   const tenant2: Tenant = {
-    ...mockTenant,
-    id: generateId(),
-    name: "A tenant2",
+    ...getMockTenant(),
+    name: "Tenant 2",
   };
   const tenant3: Tenant = {
-    ...mockTenant,
-    id: generateId(),
-    name: "A tenant3",
+    ...getMockTenant(),
+    name: "Tenant 3",
   };
 
   it("should get the tenant by ID", async () => {
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
     await addOneTenant(tenant3);
-    const tenantById = await readModelService.getTenantById(tenant1.id);
-    expect(tenantById?.data).toEqual(tenant1);
+    const returnedTenant = await tenantService.getTenantById(
+      tenant1.id,
+      genericLogger
+    );
+    expect(returnedTenant).toEqual(tenant1);
   });
-  it("should not get the tenant by ID if it isn't in DB", async () => {
-    const tenantById = await readModelService.getTenantById(tenant1.id);
-    expect(tenantById?.data.id).toBeUndefined();
+  it("should throw tenantNotFound if the tenant isn't in DB", async () => {
+    await addOneTenant(tenant2);
+    expect(
+      tenantService.getTenantById(tenant1.id, genericLogger)
+    ).rejects.toThrowError(tenantNotFound(tenant1.id));
   });
 });

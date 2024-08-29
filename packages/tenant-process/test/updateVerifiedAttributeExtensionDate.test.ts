@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import { genericLogger } from "pagopa-interop-commons";
-import {
-  getMockAuthData,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test/index.js";
+import { getMockAuthData } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   protobufDecoder,
@@ -26,19 +23,18 @@ import {
   getMockTenant,
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
-  postgresDB,
+  readLastTenantEvent,
 } from "./utils.js";
-
 describe("updateVerifiedAttributeExtensionDate", async () => {
-  const mockTenant = getMockTenant();
-  const mockVerifiedBy = getMockVerifiedBy();
-  const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+  const correlationId = generateId();
   const expirationDate = new Date(
     currentDate.setDate(currentDate.getDate() + 1)
   );
 
+  const mockVerifiedBy = getMockVerifiedBy();
+  const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const tenant: Tenant = {
-    ...mockTenant,
+    ...getMockTenant(),
     attributes: [
       {
         ...mockVerifiedTenantAttribute,
@@ -53,41 +49,33 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     ],
     name: "A Tenant",
   };
-
   const attributeId = tenant.attributes.map((a) => a.id)[0];
   const verifierId = mockVerifiedBy.id;
-  it("Should update the extensionDate", async () => {
+  it("should update the extensionDate", async () => {
     const extensionDate = new Date(
       currentDate.getTime() +
         (expirationDate.getTime() - mockVerifiedBy.verificationDate.getTime())
     );
 
     await addOneTenant(tenant);
-    const returnedTenant =
-      await tenantService.updateVerifiedAttributeExtensionDate(
-        tenant.id,
-        attributeId,
-        verifierId,
-        {
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-          authData: getMockAuthData(),
-        }
-      );
-    const writtenEvent = await readLastEventByStreamId(
+    await tenantService.updateVerifiedAttributeExtensionDate(
       tenant.id,
-      "tenant",
-      postgresDB
+      attributeId,
+      verifierId,
+      {
+        correlationId,
+        logger: genericLogger,
+        serviceName: "",
+        authData: getMockAuthData(),
+      }
     );
+    const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
       fail("Creation fails: tenant not found in event-store");
     }
-    expect(writtenEvent).toMatchObject({
-      stream_id: tenant.id,
-      version: "1",
-      type: "TenantVerifiedAttributeExtensionUpdated",
-    });
+    expect(writtenEvent.stream_id).toBe(tenant.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("TenantVerifiedAttributeExtensionUpdated");
     const writtenPayload:
       | TenantVerifiedAttributeExtensionUpdatedV2
       | undefined = protobufDecoder(
@@ -111,9 +99,8 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
   });
-  it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+  it("should throw tenantNotFound when tenant doesn't exist", async () => {
     const correlationId = generateId();
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
@@ -130,11 +117,11 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
 
-  it("Should throw expirationDateNotFoundInVerifier", async () => {
+  it("should throw expirationDateNotFoundInVerifier", async () => {
     const expirationDate = undefined;
 
     const updatedTenantWithoutExpirationDate: Tenant = {
-      ...mockTenant,
+      ...getMockTenant(),
       attributes: [
         {
           ...mockVerifiedTenantAttribute,
@@ -173,12 +160,13 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       )
     );
   });
-  it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+  it("should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+    const mockTenant: Tenant = { ...getMockTenant(), attributes: [] };
     await addOneTenant(mockTenant);
     const correlationId = generateId();
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
-        tenant.id,
+        mockTenant.id,
         attributeId,
         verifierId,
         {
@@ -192,7 +180,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
     );
   });
-  it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+  it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
     await addOneTenant(tenant);
     const verifierId = generateId();
     const correlationId = generateId();
