@@ -9,16 +9,26 @@ import {
   vi,
 } from "vitest";
 import {
+  ClientId,
   Descriptor,
+  DescriptorId,
   EService,
   EServiceDescriptorActivatedV2,
   EServiceDescriptorArchivedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
   EServiceEventEnvelope,
+  EServiceId,
   ItemState,
   PlatformStatesCatalogEntry,
+  PurposeId,
+  TenantId,
+  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesClientPurposeEntry,
+  clientKind,
   descriptorState,
+  generateId,
+  itemState,
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
@@ -33,7 +43,13 @@ import {
   getMockEService,
   getMockDocument,
 } from "pagopa-interop-commons-test";
-import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
+import {
+  readCatalogEntry,
+  readTokenStateEntryByEserviceIdAndDescriptorId,
+  sleep,
+  writeCatalogEntry,
+  writeTokenStateEntry,
+} from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 
 import { config } from "./utils.js";
@@ -62,12 +78,35 @@ describe("database test", async () => {
     const tokenGenerationTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
-      AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
+      AttributeDefinitions: [
+        { AttributeName: "PK", AttributeType: "S" },
+        { AttributeName: "GSIPK_eserviceId_descriptorId", AttributeType: "S" },
+      ],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "gsiIndex",
+          KeySchema: [
+            {
+              AttributeName: "GSIPK_eserviceId_descriptorId",
+              KeyType: "HASH",
+            },
+          ],
+          Projection: {
+            NonKeyAttributes: [],
+            ProjectionType: "ALL",
+          },
+          // ProvisionedThroughput: {
+          //   ReadCapacityUnits: 5,
+          //   WriteCapacityUnits: 5,
+          // },
+        },
+      ],
     };
     const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
-    await dynamoDBClient.send(command2);
+    const result = await dynamoDBClient.send(command2);
+    console.log(result);
 
     // const tablesResult = await dynamoDBClient.listTables();
     // console.log(tablesResult.TableNames);
@@ -86,9 +125,10 @@ describe("database test", async () => {
     const command2 = new DeleteTableCommand(tableToDelete2);
     await dynamoDBClient.send(command2);
   });
+  const mockDate = new Date();
   beforeAll(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+    vi.setSystemTime(mockDate);
   });
   afterAll(() => {
     vi.useRealTimers();
@@ -96,7 +136,7 @@ describe("database test", async () => {
 
   describe("Events V2", async () => {
     const mockEService = getMockEService();
-    it("EServiceDescriptorActivated", async () => {
+    it.only("EServiceDescriptorActivated", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -134,25 +174,67 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const catalogEntryPrimaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKey,
+        PK: catalogEntryPrimaryKey,
         state: ItemState.Enum.INACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const eserviceId_descriptorId = `${generateId<EServiceId>()}#${generateId<DescriptorId>()}`;
+      const previousTokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        PK: catalogEntryPrimaryKey,
+        descriptorState: ItemState.Enum.INACTIVE,
+        descriptorAudience: publishedDescriptor.audience[0],
+        updatedAt: new Date().toISOString(),
+        consumerId: generateId(),
+        agreementId: generateId(),
+        purposeVersionId: generateId(),
+        GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
+        clientKind: clientKind.consumer,
+        publicKey: "PEM",
+        GSIPK_clientId: generateId(),
+        GSIPK_kid: "KID",
+        GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
+        agreementState: "ACTIVE",
+        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        GSIPK_purposeId: generateId(),
+        purposeState: itemState.inactive,
+      };
+      await writeTokenStateEntry(previousTokenStateEntry, dynamoDBClient);
+      await sleep(1000, mockDate);
+
       await handleMessageV2(message, dynamoDBClient);
 
-      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
-      const expectedEntry: PlatformStatesCatalogEntry = {
+      // platform-states
+      const retrievedCatalogEntry = await readCatalogEntry(
+        catalogEntryPrimaryKey,
+        dynamoDBClient
+      );
+      const expectedCatalogEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
         state: ItemState.Enum.ACTIVE,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      expect(retrievedEntry).toEqual(expectedEntry);
+      expect(retrievedCatalogEntry).toEqual(expectedCatalogEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntry =
+        await readTokenStateEntryByEserviceIdAndDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+        ...previousTokenStateEntry,
+        descriptorState: ItemState.Enum.ACTIVE,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedTokenStateEntry).toEqual(expectedTokenStateEntry);
     });
 
     it("EServiceDescriptorArchived", async () => {

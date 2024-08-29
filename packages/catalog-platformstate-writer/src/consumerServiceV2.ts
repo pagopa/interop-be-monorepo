@@ -3,6 +3,7 @@ import {
   DescriptorState,
   EServiceEventEnvelopeV2,
   fromEServiceDescriptorStateV2,
+  fromEServiceV2,
   genericInternalError,
   ItemState,
   PlatformStatesCatalogEntry,
@@ -12,6 +13,8 @@ import {
   deleteCatalogEntry,
   descriptorStateToClientState,
   readCatalogEntry,
+  readTokenStateEntryByEserviceIdAndDescriptorId,
+  updateDescriptorState,
   writeCatalogEntry,
 } from "./utils.js";
 
@@ -57,15 +60,17 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorSuspended" },
       async (msg) => {
-        const eservice = msg.data.eservice;
-        if (!eservice) {
+        const eserviceV2 = msg.data.eservice;
+        if (!eserviceV2) {
           throw genericInternalError(
             `EService not found in message data for event ${msg.type}`
           );
         }
 
+        const eservice = fromEServiceV2(eserviceV2);
+        const descriptorId = msg.data.descriptorId;
         // TODO: change with the PK type
-        const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${msg.data.descriptorId}`;
+        const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${descriptorId}`;
         // TODO: remove read?
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
@@ -84,9 +89,26 @@ export async function handleMessageV2(
             updatedAt: new Date().toISOString(),
           };
           await writeCatalogEntry(updatedCatalogEntry, dynamoDBClient);
-        }
 
-        // TODO: Add token-generation-states part
+          // token-generation-states
+          const eserviceId_descriptorId = `${eservice.id}#${descriptorId}`;
+          const result = await readTokenStateEntryByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+
+          if (result) {
+            await updateDescriptorState(
+              dynamoDBClient,
+              result.PK,
+              updatedCatalogEntry.state
+            );
+          } else {
+            throw genericInternalError(
+              `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
+            );
+          }
+        }
       }
     )
     .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
