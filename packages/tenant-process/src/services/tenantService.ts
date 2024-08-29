@@ -1400,6 +1400,112 @@ export function tenantServiceBuilder(
 
       return tenantWithUpdatedKind;
     },
+    async m2mUpsertTenant(
+      m2mTenantSeed: tenantApi.M2MTenantSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Tenant> {
+      logger.info(
+        `Updating tenant with external id ${m2mTenantSeed.externalId} via m2m request`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const certifierId = retrieveCertifierId(requesterTenant.data);
+
+      const existingTenant = await retrieveTenantByExternalId({
+        tenantOrigin: m2mTenantSeed.externalId.origin,
+        tenantExternalId: m2mTenantSeed.externalId.value,
+        readModelService,
+      });
+
+      const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
+        (externalId) =>
+          ({
+            value: externalId.code,
+            origin: certifierId,
+          } satisfies ExternalId)
+      );
+
+      const existingAttributes =
+        await readModelService.getAttributesByExternalIds(
+          attributesExternalIds
+        );
+
+      attributesExternalIds.forEach((attributeToAssign) => {
+        if (
+          !existingAttributes.some(
+            (attr) =>
+              attr?.origin === attributeToAssign.origin &&
+              attr?.code === attributeToAssign.value
+          )
+        ) {
+          throw attributeNotFound(
+            `${attributeToAssign.origin}/${attributeToAssign.value}`
+          );
+        }
+      });
+      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
+        (
+          accumulator: {
+            events: Array<CreateEvent<TenantEvent>>;
+            tenantWithNewAttributes: Tenant;
+          },
+          attribute: Attribute,
+          index
+        ) => {
+          const tenantWithNewAttribute = assignCertifiedAttribute({
+            targetTenant: accumulator.tenantWithNewAttributes,
+            attribute,
+          });
+
+          const version = existingTenant.metadata.version + index;
+          const attributeAssignmentEvent =
+            toCreateEventTenantCertifiedAttributeAssigned(
+              version,
+              tenantWithNewAttribute,
+              attribute.id,
+              correlationId
+            );
+          return {
+            events: [...accumulator.events, attributeAssignmentEvent],
+            tenantWithNewAttributes: tenantWithNewAttribute,
+          };
+        },
+        {
+          events: [],
+          tenantWithNewAttributes: existingTenant.data,
+        }
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttributes.attributes,
+        m2mTenantSeed.externalId
+      );
+
+      const tenantWithUpdatedKind: Tenant = {
+        ...tenantWithNewAttributes,
+        kind: tenantKind,
+      };
+
+      if (existingTenant.data.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          existingTenant.metadata.version + events.length,
+          tenantKind,
+          tenantWithUpdatedKind,
+          correlationId
+        );
+
+        await repository.createEvents([...events, tenantKindUpdatedEvent]);
+      } else {
+        await repository.createEvents([...events]);
+      }
+
+      return tenantWithUpdatedKind;
+    },
     async addCertifierId(
       {
         tenantId,
