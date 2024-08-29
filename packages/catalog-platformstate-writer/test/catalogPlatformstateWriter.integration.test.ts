@@ -174,7 +174,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const catalogEntryPrimaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const catalogEntryPrimaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: ItemState.Enum.INACTIVE,
@@ -185,7 +185,7 @@ describe("database test", async () => {
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
-      const eserviceId_descriptorId = `${generateId<EServiceId>()}#${generateId<DescriptorId>()}`;
+      const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
       const previousTokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
         PK: catalogEntryPrimaryKey,
         descriptorState: ItemState.Enum.INACTIVE,
