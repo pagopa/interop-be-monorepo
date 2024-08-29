@@ -35,7 +35,7 @@ import {
   getMockEService,
   getMockDocument,
 } from "pagopa-interop-commons-test";
-import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
+import { readCatalogEntry, sleep, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 
@@ -86,9 +86,10 @@ describe("database test", async () => {
     const command2 = new DeleteTableCommand(tableToDelete2);
     await dynamoDBClient.send(command2);
   });
+  const mockDate = new Date();
   beforeAll(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+    vi.setSystemTime(mockDate);
   });
   afterAll(() => {
     vi.useRealTimers();
@@ -128,7 +129,7 @@ describe("database test", async () => {
         log_date: new Date(),
       };
       await handleMessageV1(message, dynamoDBClient);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000, mockDate);
 
       const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -187,12 +188,13 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000, mockDate);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
         state: ItemState.Enum.ACTIVE,
+        version: 2,
       };
       expect(retrievedEntry).toEqual(expectedEntry);
     });
@@ -240,12 +242,13 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000, mockDate);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
         state: ItemState.Enum.INACTIVE,
+        version: 2,
       };
       expect(retrievedEntry).toEqual(expectedEntry);
     });
@@ -294,7 +297,7 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000, mockDate);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       expect(retrievedEntry).toBeUndefined();

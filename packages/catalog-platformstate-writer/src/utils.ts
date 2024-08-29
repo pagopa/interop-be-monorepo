@@ -19,6 +19,7 @@ import {
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { vi } from "vitest";
 import { config } from "./config/config.js";
 
 export const writeCatalogEntry = async (
@@ -110,3 +111,11 @@ export const descriptorStateToClientState = (
   state === descriptorState.published || state === descriptorState.deprecated
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
+
+export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
+  new Promise((resolve) => {
+    vi.useRealTimers();
+    setTimeout(resolve, ms);
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+  });
