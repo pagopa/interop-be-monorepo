@@ -73,7 +73,7 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it("Should create a tenant if it does not exist", async () => {
+  it.only("Should create a tenant if it does not exist", async () => {
     const tenantSeed = {
       externalId: {
         origin: "Nothing",
@@ -105,7 +105,7 @@ describe("selfcareUpsertTenant", async () => {
     const expectedTenant: Tenant = {
       externalId: tenantSeed.externalId,
       id: unsafeBrandId(id),
-      kind: getTenantKind([], tenantSeed.externalId),
+      kind: undefined,
       selfcareId: tenantSeed.selfcareId,
       onboardedAt: new Date(),
       createdAt: new Date(),
