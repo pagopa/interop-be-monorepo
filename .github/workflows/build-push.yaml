@@ -65,6 +65,8 @@ jobs:
             dockerfile_path: packages/purpose-outbound-writer
           - image_name: tenant-outbound-writer
             dockerfile_path: packages/tenant-outbound-writer
+          - image_name: compute-agreements-consumer
+            dockerfile_path: packages/compute-agreements-consumer
 
     steps:
       - name: Checkout repository

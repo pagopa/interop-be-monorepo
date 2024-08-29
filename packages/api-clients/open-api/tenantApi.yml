@@ -65,6 +65,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already assigned to Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       requestBody:
         content:
           application/json:
@@ -850,6 +862,40 @@ paths:
               required:
                 - currentVersion
         required: true
+  /maintenance/tenants/{tenantId}/certifier:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      operationId: addCerifierId
+      description: Add a certifierId to Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifierPromotionPayload"
+        required: true
+      responses:
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1086,7 +1132,6 @@ components:
         - name
         - attributeId
         - attributeName
-
     CertifiedAttributes:
       type: object
       properties:
@@ -1330,6 +1375,14 @@ components:
       required:
         - kind
         - address
+    CertifierPromotionPayload:
+      description: Certifier promotion payload
+      type: object
+      properties:
+        certifierId:
+          type: string
+      required:
+        - certifierId
     Problem:
       properties:
         type:

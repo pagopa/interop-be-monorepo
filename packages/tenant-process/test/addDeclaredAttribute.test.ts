@@ -5,6 +5,7 @@ import {
   writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -26,7 +27,6 @@ import {
 import {
   addOneTenant,
   attributes,
-  getMockTenant,
   postgresDB,
   tenantService,
 } from "./utils.js";

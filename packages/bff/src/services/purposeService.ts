@@ -23,7 +23,7 @@ import {
 } from "../model/domain/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
-import { isUpgradable } from "../model/modelMappingUtils.js";
+import { isAgreementUpgradable } from "../model/validators.js";
 import { config } from "../config/config.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
@@ -195,7 +195,7 @@ export function purposeServiceBuilder(
         agreement: {
           id: latestAgreement.id,
           state: latestAgreement.state,
-          canBeUpgraded: isUpgradable(eservice, latestAgreement),
+          canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
         },
         currentVersion,
         versions: purpose.versions,

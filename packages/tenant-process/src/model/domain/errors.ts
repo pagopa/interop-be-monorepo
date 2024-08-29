@@ -12,7 +12,7 @@ export const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
-  tenantBySelfcareIdNotFound: "0006",
+  tenantNotFoundBySelfcareId: "0006",
   operationForbidden: "0007",
   selfcareIdConflict: "0008",
   verifiedAttributeNotFoundInTenant: "0009",
@@ -29,6 +29,10 @@ export const errorCodes = {
   attributeAlreadyRevoked: "0020",
   attributeRevocationNotAllowed: "0021",
   verifiedAttributeSelfRevocationNotAllowed: "0022",
+  tenantIsAlreadyACertifier: "0023",
+  certifierWithExistingAttributes: "0024",
+  attributeNotFoundInTenant: "0025",
+  tenantNotFoundByExternalId: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -83,14 +87,14 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantFromExternalIdNotFound(
+export function tenantNotFoundByExternalId(
   origin: string,
   code: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with externalId ${origin}/${code} not found`,
-    code: "tenantNotFound",
-    title: "Tenant not found",
+    code: "tenantNotFoundByExternalId",
+    title: "Tenant not found by externalId",
   });
 }
 
@@ -159,13 +163,13 @@ export function organizationNotFoundInVerifiers(
   });
 }
 
-export function tenantBySelfcareIdNotFound(
+export function tenantNotFoundBySelfcareId(
   selfcareId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found`,
-    code: "tenantBySelfcareIdNotFound",
-    title: "Tenant with selfcareId not found",
+    code: "tenantNotFoundBySelfcareId",
+    title: "Tenant not found by selfcareId",
   });
 }
 
@@ -253,5 +257,38 @@ export function mailAlreadyExists(): ApiError<ErrorCodes> {
     detail: `mail already exists`,
     code: "mailAlreadyExists",
     title: "Mail already exists",
+  });
+}
+
+export function tenantIsAlreadyACertifier(
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
+    code: "tenantIsAlreadyACertifier",
+    title: "Tenant is already a certifier",
+  });
+}
+
+export function certifierWithExistingAttributes(
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} with certifierId ${certifierId} has already created attributes`,
+    code: "certifierWithExistingAttributes",
+    title: "Certifier with existing attributes",
+  });
+}
+
+export function attributeNotFoundInTenant(
+  attributeId: AttributeId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: "attributeNotFoundInTenant",
+    title: "Attribute not found in tenant",
   });
 }
