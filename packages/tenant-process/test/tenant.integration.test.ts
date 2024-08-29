@@ -38,7 +38,6 @@ import {
   tenantNotFoundBySelfcareId,
   tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
-import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -64,9 +63,8 @@ describe("Integration tests", () => {
       const correlationId = generateId();
 
       it("should update the tenant if it exists", async () => {
-        const mockTenant = getMockTenant();
+        const mockTenant = { ...getMockTenant(), kind: tenantKind.PA };
         await addOneTenant(mockTenant);
-        const kind = tenantKind.PA;
         const selfcareId = mockTenant.selfcareId!;
         const tenantSeed: tenantApi.SelfcareTenantSeed = {
           externalId: {
@@ -101,7 +99,6 @@ describe("Integration tests", () => {
         const updatedTenant: Tenant = {
           ...mockTenant,
           selfcareId,
-          kind,
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
 
@@ -141,7 +138,7 @@ describe("Integration tests", () => {
         const expectedTenant: Tenant = {
           externalId: tenantSeed.externalId,
           id: unsafeBrandId(id),
-          kind: getTenantKind([], tenantSeed.externalId),
+          kind: undefined,
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(),
           createdAt: new Date(),
