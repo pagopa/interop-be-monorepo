@@ -27,6 +27,10 @@ export const errorCodes = {
   invalidRiskAnalysisContentType: "0019",
   missingInterface: "0020",
   eserviceRiskNotFound: "0021",
+  invalidInterfaceContentTypeDetected: "0022",
+  invalidInterfaceFileDetected: "0023",
+  openapiVersionNotRecognized: "0024",
+  interfaceExtractingInfoError: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -204,5 +208,45 @@ export function eserviceRiskNotFound(
     detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
     code: "eserviceRiskNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  eServiceId: string,
+  contentType: string,
+  technology: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
+  });
+}
+
+export function invalidInterfaceFileDetected(
+  eServiceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} is invalid`,
+    code: "invalidInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
   });
 }

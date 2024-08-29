@@ -17,6 +17,10 @@ import purposeRouter from "./routers/purposeRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import getAllowList from "./utilities/getAllowList.js";
+import {
+  fromFilesToBodyMiddleware,
+  multerMiddleware,
+} from "./utilities/middlewares.js";
 
 const serviceName = "bff-process";
 const fileManager = initFileManager(config);
@@ -30,13 +34,15 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+app.use(multerMiddleware);
+app.use(fromFilesToBodyMiddleware);
 app.use(contextMiddleware(serviceName, true));
 app.use(healthRouter);
 app.use(authorizationRouter(zodiosCtx, clients, allowList));
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
 app.use(genericRouter(zodiosCtx));
-app.use(catalogRouter(zodiosCtx, clients));
+app.use(catalogRouter(zodiosCtx, clients, fileManager));
 app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));
