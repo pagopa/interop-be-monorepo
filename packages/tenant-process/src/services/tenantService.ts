@@ -1539,8 +1539,7 @@ export function tenantServiceBuilder(
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantWithAttributeRevoked.kind!,
+          tenantWithAttributeRevoked.kind,
           tenantWithUpdatedKind,
           correlationId
         );
