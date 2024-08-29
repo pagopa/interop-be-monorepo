@@ -17,9 +17,9 @@ import {
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorUpdatedV1,
   EServiceEventEnvelope,
-  ItemState,
   PlatformStatesCatalogEntry,
   descriptorState,
+  itemState,
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
@@ -135,7 +135,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -181,7 +181,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -193,7 +193,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         version: 2,
       };
       expect(retrievedEntry).toEqual(expectedEntry);
@@ -235,7 +235,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -247,7 +247,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         version: 2,
       };
       expect(retrievedEntry).toEqual(expectedEntry);
@@ -290,7 +290,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -347,7 +347,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -358,7 +358,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
@@ -404,7 +404,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -457,7 +457,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -504,7 +504,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -515,7 +515,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         version: 2,
         updatedAt: new Date().toISOString(),
       };

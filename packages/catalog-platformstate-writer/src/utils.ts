@@ -2,6 +2,7 @@ import {
   descriptorState,
   DescriptorState,
   genericInternalError,
+  itemState,
   ItemState,
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
@@ -109,8 +110,8 @@ export const descriptorStateToClientState = (
   state: DescriptorState
 ): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
-    ? ItemState.Enum.ACTIVE
-    : ItemState.Enum.INACTIVE;
+    ? itemState.active
+    : itemState.inactive;
 
 export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
   new Promise((resolve) => {
