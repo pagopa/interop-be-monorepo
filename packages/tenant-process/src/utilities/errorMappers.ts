@@ -187,6 +187,15 @@ export const internalUpsertTenantErrorMapper = (
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const m2mUpsertTenantErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const maintenanceTenantPromotedToCertifierErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
