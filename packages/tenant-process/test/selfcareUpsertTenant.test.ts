@@ -17,7 +17,6 @@ import { genericLogger } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
-import { getTenantKind } from "../src/services/validators.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
 describe("selfcareUpsertTenant", async () => {
@@ -35,7 +34,6 @@ describe("selfcareUpsertTenant", async () => {
 
   it("Should update the tenant if it exists", async () => {
     await addOneTenant(mockTenant);
-    const kind = tenantKind.PA;
     const selfcareId = mockTenant.selfcareId!;
     const tenantSeed: tenantApi.SelfcareTenantSeed = {
       externalId: {
@@ -67,13 +65,13 @@ describe("selfcareUpsertTenant", async () => {
     const updatedTenant: Tenant = {
       ...mockTenant,
       selfcareId,
-      kind,
+      kind: tenantKind.PA,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it.only("Should create a tenant if it does not exist", async () => {
+  it("Should create a tenant if it does not exist", async () => {
     const tenantSeed = {
       externalId: {
         origin: "Nothing",
