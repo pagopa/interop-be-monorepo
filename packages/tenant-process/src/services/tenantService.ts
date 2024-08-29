@@ -58,6 +58,7 @@ import {
   certifierWithExistingAttributes,
   mailAlreadyExists,
   mailNotFound,
+  tenantIsNotACertifier,
   tenantNotFoundByExternalId,
   tenantNotFoundBySelfcareId,
   tenantNotFound,
@@ -1195,7 +1196,6 @@ export function tenantServiceBuilder(
       }
       return tenant.data;
     },
-
     async internalUpsertTenant(
       internalTenantSeed: tenantApi.InternalTenantSeed,
       { correlationId, logger }: WithLogger<AppContext>
@@ -1296,7 +1296,6 @@ export function tenantServiceBuilder(
 
       return tenantWithUpdatedKind;
     },
-
     async m2mUpsertTenant(
       m2mTenantSeed: tenantApi.M2MTenantSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
@@ -1460,6 +1459,101 @@ export function tenantServiceBuilder(
         )
       );
       return updatedTenant;
+    },
+    async m2mRevokeCertifiedAttribute({
+      organizationId,
+      tenantOrigin,
+      tenantExternalId,
+      attributeExternalId,
+      correlationId,
+      logger,
+    }: {
+      organizationId: TenantId;
+      tenantOrigin: string;
+      tenantExternalId: string;
+      attributeExternalId: string;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Revoking certified attribute ${attributeExternalId} to tenant (${tenantOrigin}/${tenantExternalId}) via m2m request`
+      );
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const certifierId = requesterTenant.data.features.find(
+        (f) => f.type === "PersistentCertifier"
+      )?.certifierId;
+
+      if (!certifierId) {
+        throw tenantIsNotACertifier(requesterTenant.data.id);
+      }
+      const targetTenant = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
+      });
+
+      const attributeToRevoke = await retrieveCertifiedAttribute({
+        attributeOrigin: certifierId,
+        attributeExternalId,
+        readModelService,
+      });
+
+      const attributePreviouslyAssigned = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedTenantAttribute =>
+          attr.type === tenantAttributeType.CERTIFIED &&
+          attr.id === attributeToRevoke.id
+      );
+
+      if (!attributePreviouslyAssigned) {
+        throw attributeNotFoundInTenant(
+          attributeToRevoke.id,
+          targetTenant.data.id
+        );
+      }
+
+      const tenantWithAttributeRevoked = await revokeCertifiedAttribute(
+        targetTenant.data,
+        attributeToRevoke.id
+      );
+
+      const attributeAssignmentEvent =
+        toCreateEventTenantCertifiedAttributeRevoked(
+          targetTenant.metadata.version,
+          tenantWithAttributeRevoked,
+          attributeToRevoke.id,
+          correlationId
+        );
+
+      const updatedTenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithAttributeRevoked.attributes,
+        tenantWithAttributeRevoked.externalId
+      );
+
+      if (updatedTenantKind !== tenantWithAttributeRevoked.kind) {
+        const tenantWithUpdatedKind: Tenant = {
+          ...tenantWithAttributeRevoked,
+          kind: updatedTenantKind,
+        };
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          tenantWithAttributeRevoked.kind!,
+          tenantWithUpdatedKind,
+          correlationId
+        );
+
+        await repository.createEvents([
+          attributeAssignmentEvent,
+          tenantKindUpdatedEvent,
+        ]);
+      } else {
+        await repository.createEvent(attributeAssignmentEvent);
+      }
     },
   };
 }
