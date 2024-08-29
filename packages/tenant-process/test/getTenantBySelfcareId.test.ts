@@ -10,17 +10,14 @@ import { addOneTenant, tenantService } from "./utils.js";
 describe("getTenantBySelfcareId", () => {
   const tenant1: Tenant = {
     ...getMockTenant(),
-    id: generateId(),
     name: "Tenant 1",
   };
   const tenant2: Tenant = {
     ...getMockTenant(),
-    id: generateId(),
     name: "Tenant 2",
   };
   const tenant3: Tenant = {
     ...getMockTenant(),
-    id: generateId(),
     name: "Tenant 3",
   };
 
