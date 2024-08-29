@@ -184,9 +184,11 @@ describe("database test", async () => {
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
+      // TODO: add kid type
+      const tokenStateEntryPK = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
       const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
       const previousTokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-        PK: catalogEntryPrimaryKey,
+        PK: tokenStateEntryPK,
         descriptorState: ItemState.Enum.INACTIVE,
         descriptorAudience: publishedDescriptor.audience[0],
         updatedAt: new Date().toISOString(),
