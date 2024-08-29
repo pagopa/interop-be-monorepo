@@ -2,8 +2,9 @@
 import { describe, expect, it } from "vitest";
 import { Tenant } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
-import { tenantBySelfcareIdNotFound } from "../src/model/domain/errors.js";
-import { addOneTenant, getMockTenant, tenantService } from "./utils.js";
+import { getMockTenant } from "pagopa-interop-commons-test";
+import { tenantNotFoundByExternalId } from "../src/model/domain/errors.js";
+import { addOneTenant, tenantService } from "./utils.js";
 
 describe("getTenantByExternalId", () => {
   const tenant1: Tenant = {
@@ -43,8 +44,9 @@ describe("getTenantByExternalId", () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      tenantBySelfcareIdNotFound(
-        `${tenant1.externalId.origin} - ${tenant1.externalId.value}`
+      tenantNotFoundByExternalId(
+        tenant1.externalId.origin,
+        tenant1.externalId.value
       )
     );
   });

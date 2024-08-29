@@ -3,8 +3,9 @@
 import { describe, expect, it } from "vitest";
 import { generateId, Tenant } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
-import { tenantBySelfcareIdNotFound } from "../src/model/domain/errors.js";
-import { addOneTenant, getMockTenant, tenantService } from "./utils.js";
+import { getMockTenant } from "pagopa-interop-commons-test";
+import { tenantNotFoundBySelfcareId } from "../src/model/domain/errors.js";
+import { addOneTenant, tenantService } from "./utils.js";
 
 describe("getTenantBySelfcareId", () => {
   const tenant1: Tenant = {
@@ -37,6 +38,6 @@ describe("getTenantBySelfcareId", () => {
     await addOneTenant(tenant2);
     expect(
       tenantService.getTenantBySelfcareId(tenant1.selfcareId!, genericLogger)
-    ).rejects.toThrowError(tenantBySelfcareIdNotFound(tenant1.selfcareId!));
+    ).rejects.toThrowError(tenantNotFoundBySelfcareId(tenant1.selfcareId!));
   });
 });

@@ -6,13 +6,11 @@ import {
   descriptorState,
 } from "pagopa-interop-models";
 import {
-  addOneEService,
-  addOneTenant,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
-  readModelService,
-} from "./utils.js";
+} from "pagopa-interop-commons-test";
+import { addOneEService, addOneTenant, readModelService } from "./utils.js";
 
 describe("getProducers", () => {
   const tenant1: Tenant = {

@@ -6,13 +6,15 @@ import {
   descriptorState,
 } from "pagopa-interop-models";
 import {
+  getMockTenant,
+  getMockEService,
+  getMockDescriptor,
+} from "pagopa-interop-commons-test";
+import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   getMockAgreement,
-  getMockDescriptor,
-  getMockEService,
-  getMockTenant,
   readModelService,
 } from "./utils.js";
 

@@ -15,15 +15,10 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
 import { getTenantKind } from "../src/services/validators.js";
-import {
-  addOneTenant,
-  getMockAuthData,
-  getMockTenant,
-  readLastTenantEvent,
-  tenantService,
-} from "./utils.js";
+import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
 describe("selfcareUpsertTenant", async () => {
   const mockTenant = getMockTenant();
