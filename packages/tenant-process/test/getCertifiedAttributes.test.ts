@@ -7,18 +7,14 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   getMockAttribute,
+  getMockTenant,
   getMockCertifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
   tenantIsNotACertifier,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  addOneAttribute,
-  addOneTenant,
-  tenantService,
-  getMockTenant,
-} from "./utils.js";
+import { addOneAttribute, addOneTenant, tenantService } from "./utils.js";
 
 describe("getCertifiedAttributes", () => {
   it("should get certified attributes certified by the passed certifier id", async () => {
