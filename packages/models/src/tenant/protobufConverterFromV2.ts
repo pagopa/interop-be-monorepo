@@ -105,6 +105,9 @@ export const fromTenantAttributesV2 = (
         assignmentTimestamp: bigIntToDate(
           certifiedAttribute.assignmentTimestamp
         ),
+        revocationTimestamp: bigIntToDate(
+          certifiedAttribute.revocationTimestamp
+        ),
         type: tenantAttributeType.CERTIFIED,
       };
     case "verifiedAttribute":
@@ -124,6 +127,9 @@ export const fromTenantAttributesV2 = (
         id: unsafeBrandId(declaredAttribute.id),
         assignmentTimestamp: bigIntToDate(
           declaredAttribute.assignmentTimestamp
+        ),
+        revocationTimestamp: bigIntToDate(
+          declaredAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.DECLARED,
       };
