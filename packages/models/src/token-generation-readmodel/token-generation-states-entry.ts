@@ -8,15 +8,21 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
+import {
+  TokenGenerationStatesClientKidPurposePK,
+  TokenGenerationStatesClientKidPK,
+  GSIPKConsumerIdEServiceId,
+  GSIPKEServiceIdDescriptorId,
+  GSIPKClientIdPurposeId,
+} from "./dynamoDB-keys.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
-  PK: z.string(),
   consumerId: TenantId,
   clientKind: ClientKind,
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
   GSIPK_kid: z.string(),
-  GSIPK_clientId_purposeId: z.string(),
+  GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
   updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
@@ -25,10 +31,11 @@ type TokenGenerationStatesBaseEntry = z.infer<
 
 export const TokenGenerationStatesClientPurposeEntry =
   TokenGenerationStatesBaseEntry.extend({
-    GSIPK_consumerId_eserviceId: z.string(),
+    PK: TokenGenerationStatesClientKidPurposePK,
+    GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
     agreementId: AgreementId,
     agreementState: ItemState,
-    GSIPK_eserviceId_descriptorId: z.string(),
+    GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
     descriptorState: ItemState,
     descriptorAudience: z.string(),
     GSIPK_purposeId: PurposeId,
@@ -39,7 +46,10 @@ export type TokenGenerationStatesClientPurposeEntry = z.infer<
   typeof TokenGenerationStatesClientPurposeEntry
 >;
 
-export const TokenGenerationStatesClientEntry = TokenGenerationStatesBaseEntry;
+export const TokenGenerationStatesClientEntry =
+  TokenGenerationStatesBaseEntry.extend({
+    PK: TokenGenerationStatesClientKidPK,
+  });
 export type TokenGenerationStatesClientEntry = z.infer<
   typeof TokenGenerationStatesClientPurposeEntry
 >;

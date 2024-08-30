@@ -38,6 +38,11 @@ import {
   ClientId,
   PurposeId,
   TokenGenerationStatesClientPurposeEntry,
+  makeGSIPKConsumerIdEServiceId,
+  makeGSIPKClientIdPurposeId,
+  makeGSIPKEServiceIdDescriptorId,
+  TokenGenerationStatesClientKidPurposePK,
+  makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -291,24 +296,39 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const getMockTokenStatesClientPurposeEntry =
-  // TODO: change string with tokenStateEntryPK type
-  (tokenStateEntryPK?: string): TokenGenerationStatesClientPurposeEntry => ({
-    PK: tokenStateEntryPK || generateId(),
-    descriptorState: itemState.inactive,
-    descriptorAudience: "pagopa.it",
-    updatedAt: new Date().toISOString(),
-    consumerId: generateId(),
-    agreementId: generateId(),
-    purposeVersionId: generateId(),
-    GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-    clientKind: clientKind.consumer,
-    publicKey: "PEM",
-    GSIPK_clientId: generateId(),
-    GSIPK_kid: "KID",
-    GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-    agreementState: "ACTIVE",
-    GSIPK_eserviceId_descriptorId: `${generateId<EServiceId>()}#${generateId<DescriptorId>()}`,
-    GSIPK_purposeId: generateId(),
-    purposeState: itemState.inactive,
-  });
+export const getMockTokenStatesClientPurposeEntry = (
+  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
+): TokenGenerationStatesClientPurposeEntry => ({
+  PK:
+    tokenStateEntryPK ||
+    makeTokenGenerationStatesClientKidPurposePK({
+      clientId: generateId(),
+      kid: generateId(),
+      purposeId: generateId(),
+    }),
+  descriptorState: itemState.inactive,
+  descriptorAudience: "pagopa.it",
+  updatedAt: new Date().toISOString(),
+  consumerId: generateId(),
+  agreementId: generateId(),
+  purposeVersionId: generateId(),
+  GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+    consumerId: generateId<TenantId>(),
+    eserviceId: generateId<EServiceId>(),
+  }),
+  clientKind: clientKind.consumer,
+  publicKey: "PEM",
+  GSIPK_clientId: generateId(),
+  GSIPK_kid: "KID",
+  GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+    clientId: generateId<ClientId>(),
+    purposeId: generateId<PurposeId>(),
+  }),
+  agreementState: "ACTIVE",
+  GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+    eserviceId: generateId<EServiceId>(),
+    descriptorId: generateId<DescriptorId>(),
+  }),
+  GSIPK_purposeId: generateId(),
+  purposeState: itemState.inactive,
+});
