@@ -1354,6 +1354,7 @@ components:
           type: string
           maxLength: 250
       required:
+        - id
         - kind
         - address
         - createdAt
