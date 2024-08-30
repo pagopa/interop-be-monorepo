@@ -34,6 +34,10 @@ import {
   Key,
   technology,
   AttributeKind,
+  itemState,
+  ClientId,
+  PurposeId,
+  TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -286,3 +290,25 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   },
   selfcareId: generateId(),
 });
+
+export const getMockTokenStatesClientPurposeEntry =
+  // TODO: change string with tokenStateEntryPK type
+  (tokenStateEntryPK?: string): TokenGenerationStatesClientPurposeEntry => ({
+    PK: tokenStateEntryPK || generateId(),
+    descriptorState: itemState.inactive,
+    descriptorAudience: "pagopa.it",
+    updatedAt: new Date().toISOString(),
+    consumerId: generateId(),
+    agreementId: generateId(),
+    purposeVersionId: generateId(),
+    GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
+    clientKind: clientKind.consumer,
+    publicKey: "PEM",
+    GSIPK_clientId: generateId(),
+    GSIPK_kid: "KID",
+    GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
+    agreementState: "ACTIVE",
+    GSIPK_eserviceId_descriptorId: `${generateId<EServiceId>()}#${generateId<DescriptorId>()}`,
+    GSIPK_purposeId: generateId(),
+    purposeState: itemState.inactive,
+  });

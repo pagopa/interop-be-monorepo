@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   afterAll,
   afterEach,
@@ -18,7 +19,6 @@ import {
   EServiceDescriptorSuspendedV2,
   EServiceEventEnvelope,
   EServiceId,
-  ItemState,
   PlatformStatesCatalogEntry,
   PurposeId,
   TenantId,
@@ -27,6 +27,7 @@ import {
   descriptorState,
   generateId,
   itemState,
+  makePlatformStatesEServiceDescriptorPK,
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
@@ -40,6 +41,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
 import {
   readCatalogEntry,
@@ -173,7 +175,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const catalogEntryPrimaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
+      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK(
+        eservice.id,
+        publishedDescriptor.id
+      );
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.inactive,
@@ -189,46 +194,20 @@ describe("database test", async () => {
       const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
-          PK: tokenStateEntryPK1,
-          descriptorState: itemState.inactive,
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
-          updatedAt: new Date().toISOString(),
-          consumerId: generateId(),
-          agreementId: generateId(),
-          purposeVersionId: generateId(),
-          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-          clientKind: clientKind.consumer,
-          publicKey: "PEM",
-          GSIPK_clientId: generateId(),
-          GSIPK_kid: "KID",
-          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-          agreementState: "ACTIVE",
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          GSIPK_purposeId: generateId(),
-          purposeState: itemState.inactive,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
-          PK: tokenStateEntryPK2,
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
-          updatedAt: new Date().toISOString(),
-          consumerId: generateId(),
-          agreementId: generateId(),
-          purposeVersionId: generateId(),
-          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-          clientKind: clientKind.consumer,
-          publicKey: "PEM",
-          GSIPK_clientId: generateId(),
-          GSIPK_kid: "KID",
-          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-          agreementState: "ACTIVE",
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          GSIPK_purposeId: generateId(),
-          purposeState: itemState.inactive,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
@@ -313,7 +292,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
@@ -434,7 +416,10 @@ describe("database test", async () => {
       };
       await handleMessageV2(message, dynamoDBClient);
 
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
@@ -482,7 +467,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,

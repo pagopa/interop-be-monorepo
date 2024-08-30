@@ -1,13 +1,14 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  DescriptorId,
   descriptorState,
-  DescriptorState,
   EServiceEventEnvelopeV2,
-  fromEServiceDescriptorStateV2,
   fromEServiceV2,
   genericInternalError,
   itemState,
+  makePlatformStatesEServiceDescriptorPK,
   PlatformStatesCatalogEntry,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -26,12 +27,14 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "EServiceDescriptorPublished" }, async (msg) => {
       const descriptorId = msg.data.descriptorId;
-      const eservice = msg.data.eservice;
-      if (!eservice) {
+      const eserviceV2 = msg.data.eservice;
+      if (!eserviceV2) {
         throw genericInternalError(
           `EService not found in message data for event ${msg.type}`
         );
       }
+
+      const eservice = fromEServiceV2(eserviceV2);
 
       const descriptor = eservice.descriptors.find(
         (d) => d.id === descriptorId
@@ -41,13 +44,9 @@ export async function handleMessageV2(
           `Unable to find descriptor with id ${descriptorId}`
         );
       }
-      const descriptorState: DescriptorState = fromEServiceDescriptorStateV2(
-        descriptor.state
-      );
       const catalogEntry: PlatformStatesCatalogEntry = {
-        // TODO: change with the PK type
-        PK: `ESERVICEDESCRIPTOR#${eservice.id}#${descriptorId}`,
-        state: descriptorStateToClientState(descriptorState),
+        PK: makePlatformStatesEServiceDescriptorPK(eservice.id, descriptor.id),
+        state: descriptorStateToClientState(descriptor.state),
         descriptorAudience: descriptor.audience[0],
         version: msg.version,
         updatedAt: new Date().toISOString(),
@@ -70,8 +69,10 @@ export async function handleMessageV2(
 
         const eservice = fromEServiceV2(eserviceV2);
         const descriptorId = msg.data.descriptorId;
-        // TODO: change with the PK type
-        const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${descriptorId}`;
+        const primaryKey = makePlatformStatesEServiceDescriptorPK(
+          eservice.id,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         // TODO: remove read?
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
@@ -115,14 +116,18 @@ export async function handleMessageV2(
       }
     )
     .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
-      const eservice = msg.data.eservice;
-      if (!eservice) {
+      const eserviceV2 = msg.data.eservice;
+      if (!eserviceV2) {
         throw genericInternalError(
           `EService not found in message data for event ${msg.type}`
         );
       }
+      const eservice = fromEServiceV2(eserviceV2);
 
-      const primaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${msg.data.descriptorId}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        eservice.id,
+        unsafeBrandId<DescriptorId>(msg.data.descriptorId)
+      );
       await deleteCatalogEntry(primaryKey, dynamoDBClient);
 
       // token-generation-states
