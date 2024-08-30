@@ -1340,6 +1340,8 @@ components:
       description: A specific kind of mail
       type: object
       properties:
+        id:
+          type: string
         kind:
           $ref: "#/components/schemas/MailKind"
         address:
