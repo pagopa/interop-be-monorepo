@@ -44,8 +44,22 @@ export async function handleMessageV2(
           `Unable to find descriptor with id ${descriptorId}`
         );
       }
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        eservice.id,
+        descriptor.id
+      );
+      const existingCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+
+      // Stops processing if the message is older than the catalog entry
+      if (existingCatalogEntry && existingCatalogEntry.version > msg.version) {
+        return;
+      }
+
       const catalogEntry: PlatformStatesCatalogEntry = {
-        PK: makePlatformStatesEServiceDescriptorPK(eservice.id, descriptor.id),
+        PK: primaryKey,
         state: descriptorStateToClientState(descriptor.state),
         descriptorAudience: descriptor.audience[0],
         version: msg.version,
@@ -73,7 +87,6 @@ export async function handleMessageV2(
           eservice.id,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        // TODO: remove read?
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
         if (!catalogEntry) {
@@ -81,6 +94,11 @@ export async function handleMessageV2(
             `Unable to find catalog entry with PK ${primaryKey}`
           );
         } else {
+          // Stops processing if the message is older than the catalog entry
+          if (catalogEntry.version > msg.version) {
+            return;
+          }
+
           const updatedCatalogEntry: PlatformStatesCatalogEntry = {
             ...catalogEntry,
             state:

@@ -137,7 +137,7 @@ describe("database test", async () => {
 
   describe("Events V2", async () => {
     const mockEService = getMockEService();
-    it.only("EServiceDescriptorActivated", async () => {
+    it("EServiceDescriptorActivated", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -248,6 +248,7 @@ describe("database test", async () => {
 
       // TODO: this works, but arrayContaining must have the exact objects
       // expect.arrayContaining([expectedTokenStateEntry2, expectedTokenStateEntry2]) also passes the test
+      expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
         expect.arrayContaining([
           expectedTokenStateEntry2,
@@ -429,6 +430,61 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
+    });
+
+    // TODO: add test with incoming version 1 and previous entry version 1?
+    it.only("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+      const draftDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        audience: ["pagopa.it"],
+        interface: getMockDocument(),
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [draftDescriptor],
+      };
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+
+      const publishedDescriptor: Descriptor = {
+        ...draftDescriptor,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const updatedEService: EService = {
+        ...eservice,
+        descriptors: [publishedDescriptor],
+      };
+      const payload: EServiceDescriptorPublishedV2 = {
+        eservice: toEServiceV2(updatedEService),
+        descriptorId: publishedDescriptor.id,
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 1,
+        type: "EServiceDescriptorPublished",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
+      const previousStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.active,
+        descriptorAudience: publishedDescriptor.audience[0],
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+      expect(retrievedEntry).toEqual(previousStateEntry);
     });
 
     it("EServiceDescriptorSuspended", async () => {
