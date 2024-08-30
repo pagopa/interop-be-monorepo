@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -54,23 +55,29 @@ import {
   writeTokenStateEntry,
 } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-
 import { config } from "./utils.js";
 
 describe("database test", async () => {
+  if (!config) {
+    fail();
+  }
   const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
     region: "eu-central-1",
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    endpoint: `http://${config!.tokenGenerationReadModelDbHost}:${
+    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      config!.tokenGenerationReadModelDbPort
+      config.tokenGenerationReadModelDbPort
     }`,
   });
   beforeEach(async () => {
+    if (!config) {
+      // to do: why is this needed?
+      fail();
+    }
     const platformTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      TableName: config!.tokenGenerationReadModelTableNamePlatform,
+      TableName: config.tokenGenerationReadModelTableNamePlatform,
       AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
@@ -80,7 +87,7 @@ describe("database test", async () => {
 
     const tokenGenerationTableDefinition: CreateTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       AttributeDefinitions: [
         { AttributeName: "PK", AttributeType: "S" },
         { AttributeName: "GSIPK_eserviceId_descriptorId", AttributeType: "S" },
@@ -116,13 +123,16 @@ describe("database test", async () => {
     // console.log(tablesResult.TableNames);
   });
   afterEach(async () => {
+    if (!config) {
+      fail();
+    }
     const tableToDelete1: DeleteTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      TableName: config!.tokenGenerationReadModelTableNamePlatform,
+      TableName: config.tokenGenerationReadModelTableNamePlatform,
     };
     const tableToDelete2: DeleteTableInput = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     };
     const command1 = new DeleteTableCommand(tableToDelete1);
     await dynamoDBClient.send(command1);
@@ -387,10 +397,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK(
-        eservice.id,
-        publishedDescriptor.id
-      );
+      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.inactive,
@@ -505,10 +515,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
@@ -629,10 +639,10 @@ describe("database test", async () => {
       };
       await handleMessageV2(message, dynamoDBClient);
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
@@ -681,10 +691,10 @@ describe("database test", async () => {
         log_date: new Date(),
       };
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,
@@ -735,10 +745,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,
