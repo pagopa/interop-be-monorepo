@@ -151,13 +151,14 @@ export async function handleMessageV2(
       // token-generation-states
       const descriptorId = msg.data.descriptorId;
       const eserviceId_descriptorId = `${eservice.id}#${descriptorId}`;
-      const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
-        eserviceId_descriptorId,
-        dynamoDBClient
-      );
+      const entriesToUpdate =
+        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
 
-      if (result) {
-        for (const entry of result) {
+      if (entriesToUpdate) {
+        for (const entry of entriesToUpdate) {
           await updateDescriptorState(
             dynamoDBClient,
             entry.PK,
