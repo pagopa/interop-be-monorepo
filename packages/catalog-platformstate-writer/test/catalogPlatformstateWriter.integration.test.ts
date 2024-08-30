@@ -291,7 +291,7 @@ describe("database test", async () => {
       };
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
-        descriptorId: publishedDescriptor.id,
+        descriptorId: suspendedDescriptor.id,
       });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,

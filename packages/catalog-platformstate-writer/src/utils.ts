@@ -6,7 +6,6 @@ import {
   genericInternalError,
   itemState,
   ItemState,
-  itemState,
   PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
@@ -148,6 +147,43 @@ export const updateDescriptorState = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const updateDescriptorStateInPlatformStatesEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: string,
+  state: ItemState,
+  version: number
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":newState": {
+        S: state,
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    ExpressionAttributeNames: {
+      "#descriptorState": "state",
+    },
+    UpdateExpression:
+      "SET #descriptorState = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "ALL_NEW",
+  };
+  const command = new UpdateItemCommand(input);
+  console.log(command);
+  const a = await dynamoDBClient.send(command);
+  console.log(a);
 };
 
 export const writeTokenStateEntry = async (
