@@ -44,10 +44,13 @@ export type PlatformStatesEServiceDescriptorPK = z.infer<
   typeof PlatformStatesEServiceDescriptorPK
 >;
 
-export const makePlatformStatesEServiceDescriptorPK = (
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId
-): PlatformStatesEServiceDescriptorPK =>
+export const makePlatformStatesEServiceDescriptorPK = ({
+  eserviceId,
+  descriptorId,
+}: {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+}): PlatformStatesEServiceDescriptorPK =>
   `ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}` as PlatformStatesEServiceDescriptorPK;
 export const PlatformStatesAgreementPK = z
   .string()
@@ -71,6 +74,21 @@ export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 export const makePlatformStatesClientPK = (
   clientId: ClientId
 ): PlatformStatesClientPK => `CLIENT#${clientId}` as PlatformStatesClientPK;
+
+export const PlatformStatesGSIPKConsumerIdEServiceId = z
+  .string()
+  .brand(`tenantId#eserviceId`);
+export type PlatformStatesGSIPKConsumerIdEServiceId = z.infer<
+  typeof PlatformStatesGSIPKConsumerIdEServiceId
+>;
+export const makePlatformStatesGSIPKConsumerIdEServiceId = ({
+  consumerId,
+  eserviceId,
+}: {
+  consumerId: TenantId;
+  eserviceId: EServiceId;
+}): PlatformStatesGSIPKConsumerIdEServiceId =>
+  `${consumerId}#${eserviceId}` as PlatformStatesGSIPKConsumerIdEServiceId;
 
 const PlatformStatesBaseEntry = z.object({
   state: ItemState,
