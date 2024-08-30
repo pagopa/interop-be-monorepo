@@ -446,7 +446,7 @@ describe("database test", async () => {
     });
 
     // TODO: add test with incoming version 1 and previous entry version 1?
-    it.only("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+    it("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
       const draftDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
