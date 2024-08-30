@@ -10,7 +10,10 @@ describe("test", () => {
   it("makePlatformStatesEServiceDescriptorPK", () => {
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
-    const PK = makePlatformStatesEServiceDescriptorPK(eserviceId, descriptorId);
+    const PK = makePlatformStatesEServiceDescriptorPK({
+      eserviceId,
+      descriptorId,
+    });
     expect(PK).toEqual(`ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}`);
   });
 });
