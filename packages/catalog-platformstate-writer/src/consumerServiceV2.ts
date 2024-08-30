@@ -15,7 +15,6 @@ import {
   descriptorStateToClientState,
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
-  readTokenStateEntryByEServiceIdAndDescriptorId,
   updateDescriptorState,
   writeCatalogEntry,
 } from "./utils.js";

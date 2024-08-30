@@ -347,7 +347,7 @@ describe("database test", async () => {
 
   describe("Events V2", async () => {
     const mockEService = getMockEService();
-    it.only("EServiceDescriptorActivated", async () => {
+    it("EServiceDescriptorActivated", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
