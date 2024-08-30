@@ -417,7 +417,7 @@ describe("database test", async () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          descriptorState: itemState.active,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
@@ -427,7 +427,7 @@ describe("database test", async () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          descriptorState: itemState.active,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
@@ -532,7 +532,7 @@ describe("database test", async () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 1",
-          descriptorState: itemState.inactive,
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -554,7 +554,7 @@ describe("database test", async () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 2",
-          descriptorState: itemState.inactive,
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -595,11 +595,14 @@ describe("database test", async () => {
         {
           ...previousTokenStateEntry2,
           descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
         };
-      expect(retrievedTokenStateEntries).toEqual([
-        expectedTokenStateEntry2,
-        expectedTokenStateEntry1, // To do: understand how these are sorted
-      ]);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
     });
 
     it("EServiceDescriptorPublished", async () => {
@@ -655,7 +658,7 @@ describe("database test", async () => {
     });
 
     // TODO: add test with incoming version 1 and previous entry version 1?
-    it.only("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+    it("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
       const draftDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -757,6 +760,30 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      // TODO: replace last generateId() with kid
+      const tokenStateEntryPK1 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
+      const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          descriptorState: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          descriptorState: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
       await handleMessageV2(message, dynamoDBClient);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -767,6 +794,33 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry2,
+          expectedTokenStateEntry1,
+        ])
+      );
     });
   });
 });
