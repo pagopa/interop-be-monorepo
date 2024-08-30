@@ -19,16 +19,14 @@ import {
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
   EServiceEventEnvelope,
-  EServiceId,
   PlatformStatesCatalogEntry,
-  PurposeId,
-  TenantId,
   TokenGenerationStatesClientPurposeEntry,
-  clientKind,
   descriptorState,
   generateId,
   itemState,
+  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  makeTokenGenerationStatesClientKidPK,
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
@@ -199,9 +197,14 @@ describe("database test", async () => {
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
-      // TODO: replace last generateId() with kid
-      const tokenStateEntryPK1 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
-      const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
@@ -211,7 +214,10 @@ describe("database test", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-      const tokenStateEntryPK2 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
@@ -316,48 +322,33 @@ describe("database test", async () => {
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
-      const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
-          PK: "TO DO client kid purpose 1",
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
-          updatedAt: new Date().toISOString(),
-          consumerId: generateId(),
-          agreementId: generateId(),
-          purposeVersionId: generateId(),
-          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-          clientKind: clientKind.consumer,
-          publicKey: "PEM",
-          GSIPK_clientId: generateId(),
-          GSIPK_kid: "KID",
-          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-          agreementState: "ACTIVE",
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          GSIPK_purposeId: generateId(),
-          purposeState: itemState.inactive,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
-          PK: "TO DO client kid purpose 2",
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
-          updatedAt: new Date().toISOString(),
-          consumerId: generateId(),
-          agreementId: generateId(),
-          purposeVersionId: generateId(),
-          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-          clientKind: clientKind.consumer,
-          publicKey: "PEM",
-          GSIPK_clientId: generateId(),
-          GSIPK_kid: "KID",
-          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-          agreementState: "ACTIVE",
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          GSIPK_purposeId: generateId(),
-          purposeState: itemState.inactive,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
       await sleep(1000, mockDate);
@@ -551,8 +542,14 @@ describe("database test", async () => {
 
       // token-generation-states
       // TODO: replace last generateId() with kid
-      const tokenStateEntryPK1 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
-      const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
@@ -562,7 +559,10 @@ describe("database test", async () => {
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-      const tokenStateEntryPK2 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
