@@ -176,7 +176,7 @@ describe("database test", async () => {
       const catalogEntryPrimaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -190,7 +190,7 @@ describe("database test", async () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           PK: tokenStateEntryPK1,
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -213,7 +213,7 @@ describe("database test", async () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           PK: tokenStateEntryPK2,
-          descriptorState: ItemState.Enum.ACTIVE,
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -242,7 +242,7 @@ describe("database test", async () => {
       );
       const expectedCatalogEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
@@ -257,13 +257,13 @@ describe("database test", async () => {
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
-          descriptorState: ItemState.Enum.ACTIVE,
+          descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
-          descriptorState: ItemState.Enum.ACTIVE,
+          descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
 
@@ -316,7 +316,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -327,7 +327,7 @@ describe("database test", async () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 1",
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -349,7 +349,7 @@ describe("database test", async () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 2",
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -383,13 +383,13 @@ describe("database test", async () => {
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
         };
       expect(retrievedTokenStateEntries).toEqual([
         expectedTokenStateEntry2,
@@ -438,7 +438,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -485,7 +485,7 @@ describe("database test", async () => {
       const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
-        state: ItemState.Enum.ACTIVE,
+        state: itemState.active,
         descriptorAudience: publishedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -496,7 +496,7 @@ describe("database test", async () => {
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         ...previousStateEntry,
-        state: ItemState.Enum.INACTIVE,
+        state: itemState.inactive,
         version: 2,
         updatedAt: new Date().toISOString(),
       };

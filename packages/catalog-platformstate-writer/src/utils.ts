@@ -3,6 +3,7 @@ import {
   descriptorState,
   DescriptorState,
   genericInternalError,
+  itemState,
   ItemState,
   PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
@@ -116,8 +117,8 @@ export const descriptorStateToClientState = (
   state: DescriptorState
 ): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
-    ? ItemState.Enum.ACTIVE
-    : ItemState.Enum.INACTIVE;
+    ? itemState.active
+    : itemState.inactive;
 
 export const updateDescriptorState = async (
   dynamoDBClient: DynamoDBClient,

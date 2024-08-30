@@ -6,7 +6,7 @@ import {
   fromEServiceDescriptorStateV2,
   fromEServiceV2,
   genericInternalError,
-  ItemState,
+  itemState,
   PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -15,7 +15,6 @@ import {
   descriptorStateToClientState,
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
-  readTokenStateEntryByEServiceIdAndDescriptorId,
   updateDescriptorState,
   writeCatalogEntry,
 } from "./utils.js";
@@ -85,8 +84,8 @@ export async function handleMessageV2(
             ...catalogEntry,
             state:
               msg.type === "EServiceDescriptorActivated"
-                ? ItemState.Enum.ACTIVE
-                : ItemState.Enum.INACTIVE,
+                ? itemState.active
+                : itemState.inactive,
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };
