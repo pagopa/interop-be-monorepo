@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { randomUUID } from "crypto";
+import { FileManager } from "pagopa-interop-commons";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  getAllFromPaginated,
   WithLogger,
   formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  RiskAnalysisId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -16,17 +23,21 @@ import {
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
 
-import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
+import {
+  eserviceDescriptorNotFound,
+  eserviceRiskNotFound,
+} from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
+import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
   TenantProcessClient,
 } from "../providers/clientProvider.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -118,6 +129,20 @@ export const retrieveEserviceDescriptor = (
   return descriptor;
 };
 
+const retrieveRiskAnalysis = (
+  eservice: catalogApi.EService,
+  riskAnalysisId: string
+): catalogApi.EServiceRiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra) => ra.id === riskAnalysisId
+  );
+
+  if (!riskAnalysis) {
+    throw eserviceRiskNotFound(eservice.id, riskAnalysisId);
+  }
+  return riskAnalysis;
+};
+
 const getAttributeIds = (
   descriptor: catalogApi.EServiceDescriptor
 ): string[] => [
@@ -154,7 +179,8 @@ export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: AttributeProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -299,6 +325,33 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    createEServiceDocument: async (
+      eServiceId: string,
+      descriptorId: string,
+      doc: bffApi.createEServiceDocument_Body,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      const eService = await catalogProcessClient.getEServiceById({
+        params: { eServiceId },
+        headers: ctx.headers,
+      });
+
+      retrieveEserviceDescriptor(eService, unsafeBrandId(descriptorId));
+
+      const documentId = randomUUID();
+
+      await verifyAndCreateEServiceDocument(
+        catalogProcessClient,
+        fileManager,
+        eService,
+        doc,
+        descriptorId,
+        documentId,
+        ctx
+      );
+
+      return { id: documentId };
     },
     getProducerEServices: async (
       eserviceName: string | undefined,
@@ -489,6 +542,65 @@ export function catalogServiceBuilder(
         filename,
         file: Buffer.from(buildCsv(consumers)),
       };
+    },
+    updateEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      riskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.updateRiskAnalysis(riskAnalysisSeed, {
+        headers: context.headers,
+        params: {
+          eServiceId: eserviceId,
+          riskAnalysisId,
+        },
+      }),
+    deleteEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.deleteRiskAnalysis(undefined, {
+        headers: context.headers,
+        params: {
+          eServiceId: eserviceId,
+          riskAnalysisId,
+        },
+      }),
+    addRiskAnalysisToEService: async (
+      eserviceId: EServiceId,
+      riskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.createRiskAnalysis(
+        {
+          name: riskAnalysisSeed.name,
+          riskAnalysisForm: riskAnalysisSeed.riskAnalysisForm,
+        },
+        {
+          headers: context.headers,
+          params: {
+            eServiceId: eserviceId,
+          },
+        }
+      ),
+    getEServiceRiskAnalysis: async (
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceRiskAnalysis> => {
+      const eservice: catalogApi.EService =
+        await catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId: eserviceId,
+          },
+          headers: context.headers,
+        });
+
+      const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
+
+      return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
     },
   };
 }

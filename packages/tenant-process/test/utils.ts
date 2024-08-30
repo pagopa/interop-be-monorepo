@@ -1,26 +1,24 @@
-import { AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   CertifiedTenantAttribute,
-  Descriptor,
-  DescriptorId,
   EService,
-  EServiceId,
   Tenant,
   TenantEvent,
   TenantId,
   TenantRevoker,
   TenantVerifier,
   VerifiedTenantAttribute,
-  agreementState,
-  descriptorState,
   generateId,
-  technology,
   tenantAttributeType,
   toReadModelEService,
   toReadModelTenant,
   toReadModelAgreement,
   toTenantV2,
+  Attribute,
+  toReadModelAttribute,
+  EServiceId,
+  DescriptorId,
+  agreementState,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -66,22 +64,6 @@ export const writeTenantInEventstore = async (
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
 
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  selfcareId: generateId(),
-  onboardedAt: new Date(),
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-  kind: "PA",
-});
-
 export const currentDate = new Date();
 
 export const getMockVerifiedBy = (): TenantVerifier => ({
@@ -110,49 +92,6 @@ export const getMockCertifiedTenantAttribute =
     type: tenantAttributeType.CERTIFIED,
     revocationTimestamp: undefined,
   });
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eService name",
-  description: "eService description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  attributes: undefined,
-  riskAnalysis: [],
-  mode: "Deliver",
-});
-
-export const getMockDescriptor = (): Descriptor => ({
-  id: generateId(),
-  version: "0",
-  docs: [],
-  state: descriptorState.draft,
-  audience: [],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: [],
-  agreementApprovalPolicy: "Automatic",
-  attributes: {
-    certified: [],
-    verified: [],
-    declared: [],
-  },
-});
 
 export const getMockAgreement = ({
   eserviceId,
@@ -193,6 +132,10 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
