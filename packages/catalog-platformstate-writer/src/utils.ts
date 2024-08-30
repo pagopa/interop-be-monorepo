@@ -262,13 +262,10 @@ export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     IndexName: "gsiIndex", // Use the name of your Global Secondary Index
-    KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsi_value`,
+    KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":gsi_value": { S: eserviceId_descriptorId },
+      ":gsiValue": { S: eserviceId_descriptorId },
     },
-    // ExpressionAttributeNames: {
-    //   "#gsi": "GSIPK_eserviceId_descriptorId",
-    // },
     ScanIndexForward: false,
   };
   const command = new QueryCommand(input);

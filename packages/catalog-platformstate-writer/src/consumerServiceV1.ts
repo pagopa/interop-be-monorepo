@@ -35,7 +35,10 @@ export async function handleMessageV1(
         );
       }
       const descriptor = fromDescriptorV1(descriptorV1);
-
+      const eserviceDescriptorPK = makePlatformStatesEServiceDescriptorPK({
+        eserviceId,
+        descriptorId: descriptor.id,
+      });
       match(descriptor.state)
         .with(descriptorState.published, async () => {
           // steps:
@@ -43,10 +46,7 @@ export async function handleMessageV1(
           // fare query su platform states e vedere se c'è
           // se non c'è sono in draft, e continuo questa esecuzione
           // se c'è (presumibilmente come inactive) allora era suspended e sono nel caso sotto (sospensione e riattivazione hanno stesso handler)
-          const eserviceDescriptorPK = makePlatformStatesEServiceDescriptorPK({
-            eserviceId,
-            descriptorId: descriptor.id,
-          });
+
           const existingCatalogEntry = await readCatalogEntry(
             eserviceDescriptorPK,
             dynamoDBClient
@@ -77,17 +77,12 @@ export async function handleMessageV1(
           }
         })
         .with(descriptorState.suspended, async () => {
-          const catalogEntry: PlatformStatesCatalogEntry = {
-            PK: makePlatformStatesEServiceDescriptorPK({
-              eserviceId,
-              descriptorId: descriptor.id,
-            }),
-            state: descriptorStateToClientState(descriptor.state),
-            descriptorAudience: descriptor.audience[0],
-            version: msg.version,
-            updatedAt: new Date().toISOString(),
-          };
-          await writeCatalogEntry(catalogEntry, dynamoDBClient);
+          await updateDescriptorStateInPlatformStatesEntry(
+            dynamoDBClient,
+            eserviceDescriptorPK,
+            descriptorStateToClientState(descriptor.state),
+            msg.version
+          );
 
           // TO DO token-generation-states part
         })
