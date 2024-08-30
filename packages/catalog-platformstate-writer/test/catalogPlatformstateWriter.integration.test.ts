@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   afterAll,
   afterEach,
@@ -19,7 +20,6 @@ import {
   EServiceDescriptorUpdatedV1,
   EServiceEventEnvelope,
   EServiceId,
-  ItemState,
   PlatformStatesCatalogEntry,
   PurposeId,
   TenantId,
@@ -28,6 +28,7 @@ import {
   descriptorState,
   generateId,
   itemState,
+  makePlatformStatesEServiceDescriptorPK,
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
@@ -42,6 +43,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
@@ -385,7 +387,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const catalogEntryPrimaryKey = `ESERVICEDESCRIPTOR#${eservice.id}#${publishedDescriptor.id}`;
+      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK(
+        eservice.id,
+        publishedDescriptor.id
+      );
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.inactive,
@@ -401,46 +406,20 @@ describe("database test", async () => {
       const eserviceId_descriptorId = `${eservice.id}#${publishedDescriptor.id}`;
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
-          PK: tokenStateEntryPK1,
-          descriptorState: ItemState.Enum.INACTIVE,
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
-          updatedAt: new Date().toISOString(),
-          consumerId: generateId(),
-          agreementId: generateId(),
-          purposeVersionId: generateId(),
-          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-          clientKind: clientKind.consumer,
-          publicKey: "PEM",
-          GSIPK_clientId: generateId(),
-          GSIPK_kid: "KID",
-          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-          agreementState: "ACTIVE",
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          GSIPK_purposeId: generateId(),
-          purposeState: itemState.inactive,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = `CLIENTKID#${generateId<ClientId>()}#${generateId()}`;
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
-          PK: tokenStateEntryPK2,
-          descriptorState: ItemState.Enum.ACTIVE,
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
-          updatedAt: new Date().toISOString(),
-          consumerId: generateId(),
-          agreementId: generateId(),
-          purposeVersionId: generateId(),
-          GSIPK_consumerId_eserviceId: `${generateId<TenantId>()}#${generateId<EServiceId>()}`,
-          clientKind: clientKind.consumer,
-          publicKey: "PEM",
-          GSIPK_clientId: generateId(),
-          GSIPK_kid: "KID",
-          GSIPK_clientId_purposeId: `${generateId<ClientId>()}#${generateId<PurposeId>()}`,
-          agreementState: "ACTIVE",
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          GSIPK_purposeId: generateId(),
-          purposeState: itemState.inactive,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
@@ -469,18 +448,19 @@ describe("database test", async () => {
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
-          descriptorState: ItemState.Enum.ACTIVE,
+          descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
-          descriptorState: ItemState.Enum.ACTIVE,
+          descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
 
       // TODO: this works, but arrayContaining must have the exact objects
       // expect.arrayContaining([expectedTokenStateEntry2, expectedTokenStateEntry2]) also passes the test
+      expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
         expect.arrayContaining([
           expectedTokenStateEntry2,
@@ -525,7 +505,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
@@ -539,7 +522,7 @@ describe("database test", async () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 1",
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -561,7 +544,7 @@ describe("database test", async () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 2",
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -595,13 +578,13 @@ describe("database test", async () => {
       const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry1,
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...previousTokenStateEntry2,
-          descriptorState: ItemState.Enum.INACTIVE,
+          descriptorState: itemState.inactive,
         };
       expect(retrievedTokenStateEntries).toEqual([
         expectedTokenStateEntry2,
@@ -646,7 +629,10 @@ describe("database test", async () => {
       };
       await handleMessageV2(message, dynamoDBClient);
 
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
@@ -656,6 +642,61 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       expect(retrievedEntry).toEqual(expectedEntry);
+    });
+
+    // TODO: add test with incoming version 1 and previous entry version 1?
+    it.only("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+      const draftDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        audience: ["pagopa.it"],
+        interface: getMockDocument(),
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [draftDescriptor],
+      };
+      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+
+      const publishedDescriptor: Descriptor = {
+        ...draftDescriptor,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const updatedEService: EService = {
+        ...eservice,
+        descriptors: [publishedDescriptor],
+      };
+      const payload: EServiceDescriptorPublishedV2 = {
+        eservice: toEServiceV2(updatedEService),
+        descriptorId: publishedDescriptor.id,
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 1,
+        type: "EServiceDescriptorPublished",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
+      const previousStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.active,
+        descriptorAudience: publishedDescriptor.audience[0],
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+      await handleMessageV2(message, dynamoDBClient);
+
+      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+      expect(retrievedEntry).toEqual(previousStateEntry);
     });
 
     it("EServiceDescriptorSuspended", async () => {
@@ -694,7 +735,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = `ESERVICEDESCRIPTOR#${updatedEService.id}#${publishedDescriptor.id}`;
+      const primaryKey = makePlatformStatesEServiceDescriptorPK(
+        updatedEService.id,
+        publishedDescriptor.id
+      );
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,

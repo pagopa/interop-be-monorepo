@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
 import { vi } from "vitest";
 import {
   descriptorState,
   DescriptorState,
   genericInternalError,
+  itemState,
   ItemState,
   itemState,
   PlatformStatesCatalogEntry,
