@@ -44,10 +44,10 @@ export async function handleMessageV2(
           `Unable to find descriptor with id ${descriptorId}`
         );
       }
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        eservice.id,
-        descriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
       const existingCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -83,10 +83,10 @@ export async function handleMessageV2(
 
         const eservice = fromEServiceV2(eserviceV2);
         const descriptorId = msg.data.descriptorId;
-        const primaryKey = makePlatformStatesEServiceDescriptorPK(
-          eservice.id,
-          unsafeBrandId<DescriptorId>(descriptorId)
-        );
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
+        });
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
         if (!catalogEntry) {
@@ -142,10 +142,10 @@ export async function handleMessageV2(
       }
       const eservice = fromEServiceV2(eserviceV2);
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        eservice.id,
-        unsafeBrandId<DescriptorId>(msg.data.descriptorId)
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+      });
       await deleteCatalogEntry(primaryKey, dynamoDBClient);
 
       // token-generation-states

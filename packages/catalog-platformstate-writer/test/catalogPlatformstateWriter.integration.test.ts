@@ -175,10 +175,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK(
-        eservice.id,
-        publishedDescriptor.id
-      );
+      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.inactive,
@@ -293,10 +293,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
@@ -417,10 +417,10 @@ describe("database test", async () => {
       };
       await handleMessageV2(message, dynamoDBClient);
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       const expectedEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
@@ -469,10 +469,10 @@ describe("database test", async () => {
         log_date: new Date(),
       };
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,
@@ -523,10 +523,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const primaryKey = makePlatformStatesEServiceDescriptorPK(
-        updatedEService.id,
-        publishedDescriptor.id
-      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: updatedEService.id,
+        descriptorId: publishedDescriptor.id,
+      });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,
