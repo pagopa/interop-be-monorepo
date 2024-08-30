@@ -1,13 +1,17 @@
 import { z } from "zod";
 import {
-  AgreementId,
-  ClientId,
-  DescriptorId,
   EServiceId,
   PurposeId,
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
+import {
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesPurposePK,
+  PlatformStatesAgreementPK,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesClientPK,
+} from "./dynamoDB-keys.js";
 
 export const itemState = {
   active: "ACTIVE",
@@ -37,59 +41,6 @@ const f: PlatformStatesEServiceDescriptorPK = `test#test#test`; // WRONG
 We don't check the structure of the ids because they are treated as strings
 */
 
-export const PlatformStatesEServiceDescriptorPK = z
-  .string()
-  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
-export type PlatformStatesEServiceDescriptorPK = z.infer<
-  typeof PlatformStatesEServiceDescriptorPK
->;
-
-export const makePlatformStatesEServiceDescriptorPK = ({
-  eserviceId,
-  descriptorId,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-}): PlatformStatesEServiceDescriptorPK =>
-  `ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}` as PlatformStatesEServiceDescriptorPK;
-export const PlatformStatesAgreementPK = z
-  .string()
-  .brand(`AGREEMENT#agreementId`);
-export type PlatformStatesAgreementPK = z.infer<
-  typeof PlatformStatesAgreementPK
->;
-export const makePlatformStatesAgreementPK = (
-  agreementId: AgreementId
-): PlatformStatesAgreementPK =>
-  `AGREEMENT#${agreementId}` as PlatformStatesAgreementPK;
-
-export const PlatformStatesPurposePK = z.string().brand(`PURPOSE#purposeId`);
-export type PlatformStatesPurposePK = z.infer<typeof PlatformStatesPurposePK>;
-export const makePlatformStatesPurposePK = (
-  purposeId: PurposeId
-): PlatformStatesPurposePK => `PURPOSE#${purposeId}` as PlatformStatesPurposePK;
-
-export const PlatformStatesClientPK = z.string().brand(`CLIENT#clientId`);
-export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
-export const makePlatformStatesClientPK = (
-  clientId: ClientId
-): PlatformStatesClientPK => `CLIENT#${clientId}` as PlatformStatesClientPK;
-
-export const PlatformStatesGSIPKConsumerIdEServiceId = z
-  .string()
-  .brand(`tenantId#eserviceId`);
-export type PlatformStatesGSIPKConsumerIdEServiceId = z.infer<
-  typeof PlatformStatesGSIPKConsumerIdEServiceId
->;
-export const makePlatformStatesGSIPKConsumerIdEServiceId = ({
-  consumerId,
-  eserviceId,
-}: {
-  consumerId: TenantId;
-  eserviceId: EServiceId;
-}): PlatformStatesGSIPKConsumerIdEServiceId =>
-  `${consumerId}#${eserviceId}` as PlatformStatesGSIPKConsumerIdEServiceId;
-
 const PlatformStatesBaseEntry = z.object({
   state: ItemState,
   version: z.number(),
@@ -117,7 +68,7 @@ export type PlatformStatesPurposeEntry = z.infer<
 
 export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesAgreementPK,
-  GSIPK_consumerId_eserviceId: z.string(),
+  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   GSISK_agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: z.string(),
 });
