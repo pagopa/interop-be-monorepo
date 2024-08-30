@@ -320,7 +320,7 @@ describe("database test", async () => {
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 1",
-          descriptorState: itemState.inactive,
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -342,7 +342,7 @@ describe("database test", async () => {
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           PK: "TO DO client kid purpose 2",
-          descriptorState: itemState.inactive,
+          descriptorState: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
           updatedAt: new Date().toISOString(),
           consumerId: generateId(),
@@ -383,11 +383,14 @@ describe("database test", async () => {
         {
           ...previousTokenStateEntry2,
           descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
         };
-      expect(retrievedTokenStateEntries).toEqual([
-        expectedTokenStateEntry2,
-        expectedTokenStateEntry1, // To do: understand how these are sorted
-      ]);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
     });
 
     it("EServiceDescriptorPublished", async () => {
