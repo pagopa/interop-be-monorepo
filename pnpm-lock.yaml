@@ -1778,8 +1778,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.3
-        version: 1.0.3
+        specifier: 1.0.4
+        version: 1.0.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4373,6 +4373,14 @@ packages:
 
   /@pagopa/interop-outbound-models@1.0.3:
     resolution: {integrity: sha512-ENUWBjKnUIHKzchN7cvs2s/uS0yWW8suoUh+/Ziw+DJQus7jz89DCMa7PMhl6gLijGm8PM3QcNqyP2V6qm5/Eg==}
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+    dev: false
+
+  /@pagopa/interop-outbound-models@1.0.4:
+    resolution: {integrity: sha512-oSJTeVeMecVYKSceV4ku5w7LFbc7SHFfr8AQF9z3fvi5EStuhmnpVBTA/k/1Wvi58tHgAS3vgKRREchtxsm0Bw==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
