@@ -65,7 +65,16 @@ export async function handleMessageV1(
             };
             await writeCatalogEntry(catalogEntry, dynamoDBClient);
 
-            // TO DO token-generation-states
+            // token-generation-states
+            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+              eserviceId,
+              descriptorId: descriptor.id,
+            });
+            await updateDescriptorStateInTokenGenerationStatesTable(
+              eserviceId_descriptorId,
+              descriptor.state,
+              dynamoDBClient
+            );
           } else {
             // activation from suspended
 
