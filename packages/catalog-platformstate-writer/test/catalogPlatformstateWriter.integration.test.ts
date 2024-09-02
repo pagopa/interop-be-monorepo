@@ -244,6 +244,38 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          descriptorState: itemState.inactive,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          descriptorState: itemState.inactive,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
       await handleMessageV1(message, dynamoDBClient);
       await sleep(1000, mockDate);
 
@@ -254,6 +286,32 @@ describe("database test", async () => {
         version: 2,
       };
       expect(retrievedEntry).toEqual(expectedEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          descriptorState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          descriptorState: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+      console.log(previousTokenStateEntry1, previousTokenStateEntry2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
     });
 
     it("EServiceDescriptorUpdated (published -> suspended)", async () => {
@@ -301,6 +359,37 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          descriptorState: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          descriptorState: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
       await handleMessageV1(message, dynamoDBClient);
       await sleep(1000, mockDate);
 
@@ -311,9 +400,33 @@ describe("database test", async () => {
         version: 2,
       };
       expect(retrievedEntry).toEqual(expectedEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
     });
 
-    // descriptorState.published for archiving
     it("EServiceDescriptorUpdated (published -> archived)", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -359,11 +472,68 @@ describe("database test", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: publishedDescriptor.id,
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          descriptorState: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: generateId<ClientId>(),
+        kid: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          descriptorState: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
       await handleMessageV1(message, dynamoDBClient);
       await sleep(1000, mockDate);
 
       const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       expect(retrievedEntry).toBeUndefined();
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          descriptorState: itemState.inactive,
+          updatedAt: new Date().toISOString(),
+        };
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
     });
   });
 
