@@ -5,7 +5,6 @@ import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
   genericInternalError,
-  itemState,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesCatalogEntry,
@@ -16,8 +15,7 @@ import {
   deleteCatalogEntry,
   descriptorStateToClientState,
   readCatalogEntry,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  updateDescriptorState,
+  updateEntriesInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "./utils.js";
 
@@ -84,6 +82,14 @@ export async function handleMessageV2(
 
         const eservice = fromEServiceV2(eserviceV2);
         const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === descriptorId
+        );
+        if (!descriptor) {
+          throw genericInternalError(
+            `Unable to find descriptor with id ${descriptorId}`
+          );
+        }
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
           descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
@@ -102,10 +108,7 @@ export async function handleMessageV2(
 
           const updatedCatalogEntry: PlatformStatesCatalogEntry = {
             ...catalogEntry,
-            state:
-              msg.type === "EServiceDescriptorActivated"
-                ? itemState.active
-                : itemState.inactive,
+            state: descriptorStateToClientState(descriptor.state),
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };
@@ -116,24 +119,11 @@ export async function handleMessageV2(
             eserviceId: eservice.id,
             descriptorId,
           });
-          const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          await updateEntriesInTokenGenerationStatesTable(
             eserviceId_descriptorId,
+            descriptor.state,
             dynamoDBClient
           );
-
-          if (result) {
-            for (const entry of result) {
-              await updateDescriptorState(
-                dynamoDBClient,
-                entry.PK,
-                updatedCatalogEntry.state
-              );
-            }
-          } else {
-            throw genericInternalError(
-              `Unable to find token generation state entries with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
-            );
-          }
         }
       }
     )
@@ -158,25 +148,11 @@ export async function handleMessageV2(
         eserviceId: eservice.id,
         descriptorId,
       });
-      const entriesToUpdate =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
-
-      if (entriesToUpdate) {
-        for (const entry of entriesToUpdate) {
-          await updateDescriptorState(
-            dynamoDBClient,
-            entry.PK,
-            descriptorStateToClientState(descriptorState.archived)
-          );
-        }
-      } else {
-        throw genericInternalError(
-          `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
-        );
-      }
+      await updateEntriesInTokenGenerationStatesTable(
+        eserviceId_descriptorId,
+        descriptorState.archived,
+        dynamoDBClient
+      );
     })
     .with(
       { type: "EServiceDeleted" },
