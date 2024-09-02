@@ -32,6 +32,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
+// TO DO scrivere test per vedere se funziona come upsert o solo come update
 export const writeCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient
@@ -122,6 +123,7 @@ export const descriptorStateToClientState = (
     ? itemState.active
     : itemState.inactive;
 
+// TO DO scrivere test per vedere se funziona come upsert o solo come update
 export const updateDescriptorState = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: string,
@@ -148,6 +150,43 @@ export const updateDescriptorState = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const updateDescriptorStateInPlatformStatesEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: string,
+  state: ItemState,
+  version: number
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":newState": {
+        S: state,
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    ExpressionAttributeNames: {
+      "#state": "state",
+    },
+    UpdateExpression:
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "ALL_NEW",
+  };
+  const command = new UpdateItemCommand(input);
+  console.log(command);
+  const a = await dynamoDBClient.send(command);
+  console.log(a);
 };
 
 export const writeTokenStateEntry = async (
