@@ -16,6 +16,7 @@ import {
   Attribute,
   toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -132,7 +133,7 @@ describe("m2mUpsertTenant", async () => {
         {
           assignmentTimestamp: new Date(),
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
       ],
@@ -168,13 +169,13 @@ describe("m2mUpsertTenant", async () => {
         {
           assignmentTimestamp: new Date(),
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
         {
           assignmentTimestamp: new Date(),
           id: attribute2.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
       ],
@@ -231,13 +232,13 @@ describe("m2mUpsertTenant", async () => {
       ...mockTenant,
       attributes: [
         {
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           id: attribute.id,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },
         {
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           id: attribute2.id,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
@@ -276,13 +277,13 @@ describe("m2mUpsertTenant", async () => {
         {
           assignmentTimestamp: new Date(),
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
         {
           assignmentTimestamp: new Date(),
           id: attribute2.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
       ],
@@ -318,7 +319,7 @@ describe("m2mUpsertTenant", async () => {
       attributes: [
         {
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
           revocationTimestamp: undefined,
         },

@@ -103,6 +103,7 @@ export function toApiMailKind(kind: TenantMailKind): tenantApi.MailKind {
 
 export function toApiMail(mail: TenantMail): tenantApi.Mail {
   return {
+    id: mail.id,
     kind: toApiMailKind(mail.kind),
     address: mail.address,
     createdAt: mail.createdAt.toJSON(),
