@@ -4,6 +4,7 @@ import {
   descriptorState,
   DescriptorState,
   genericInternalError,
+  GSIPKEServiceIdDescriptorId,
   itemState,
   ItemState,
   PlatformStatesCatalogEntry,
@@ -218,7 +219,7 @@ export const writeTokenStateEntry = async (
 };
 
 export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
-  eserviceId_descriptorId: string,
+  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesClientPurposeEntry | undefined> => {
   console.log("eserviceId_descriptorId ", eserviceId_descriptorId);
@@ -257,7 +258,7 @@ export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
 };
 
 export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
-  eserviceId_descriptorId: string,
+  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesClientPurposeEntry[] | undefined> => {
   console.log("eserviceId_descriptorId ", eserviceId_descriptorId);
