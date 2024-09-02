@@ -1,11 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  Descriptor,
   DescriptorId,
   descriptorState,
+  EService,
   EServiceEventEnvelopeV2,
+  EServiceV2,
   fromEServiceV2,
   genericInternalError,
-  itemState,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesCatalogEntry,
@@ -16,8 +18,8 @@ import {
   deleteCatalogEntry,
   descriptorStateToClientState,
   readCatalogEntry,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  updateDescriptorState,
+  updateDescriptorStateInPlatformStatesEntry,
+  updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "./utils.js";
 
@@ -27,66 +29,109 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with({ type: "EServiceDescriptorPublished" }, async (msg) => {
-      const descriptorId = msg.data.descriptorId;
-      const eserviceV2 = msg.data.eservice;
-      if (!eserviceV2) {
-        throw genericInternalError(
-          `EService not found in message data for event ${msg.type}`
-        );
-      }
-
-      const eservice = fromEServiceV2(eserviceV2);
-
-      const descriptor = eservice.descriptors.find(
-        (d) => d.id === descriptorId
+      const { eservice, descriptor } = parseEServiceAndDescriptor(
+        msg.data.eservice,
+        unsafeBrandId(msg.data.descriptorId)
       );
-      if (!descriptor) {
-        throw genericInternalError(
-          `Unable to find descriptor with id ${descriptorId}`
+      const previousDescriptor = eservice.descriptors.find(
+        (d) => d.version === (Number(descriptor.version) - 1).toString()
+      );
+
+      // flow for current descriptor
+      {
+        const primaryKeyCurrent = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        });
+        const existingCatalogEntryCurrent = await readCatalogEntry(
+          primaryKeyCurrent,
+          dynamoDBClient
+        );
+        if (
+          existingCatalogEntryCurrent &&
+          existingCatalogEntryCurrent.version > msg.version
+        ) {
+          // Stops processing if the message is older than the catalog entry
+          return;
+        }
+
+        const catalogEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKeyCurrent,
+          state: descriptorStateToClientState(descriptor.state),
+          descriptorAudience: descriptor.audience[0],
+          version: msg.version,
+          updatedAt: new Date().toISOString(),
+        };
+
+        await writeCatalogEntry(catalogEntry, dynamoDBClient);
+
+        // token-generation-states
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptor.state,
+          dynamoDBClient
         );
       }
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+
+      // flow for previous descriptor
+
+      if (!previousDescriptor) {
+        return Promise.resolve();
+      }
+      const primaryKeyPrevious = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
       });
-      const existingCatalogEntry = await readCatalogEntry(
-        primaryKey,
+      const existingCatalogEntryPrevious = await readCatalogEntry(
+        primaryKeyPrevious,
         dynamoDBClient
       );
-
-      // Stops processing if the message is older than the catalog entry
-      if (existingCatalogEntry && existingCatalogEntry.version > msg.version) {
-        return;
+      if (
+        existingCatalogEntryPrevious &&
+        existingCatalogEntryPrevious.version > msg.version
+      ) {
+        return Promise.resolve();
       }
 
-      const catalogEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKey,
-        state: descriptorStateToClientState(descriptor.state),
-        descriptorAudience: descriptor.audience[0],
-        version: msg.version,
-        updatedAt: new Date().toISOString(),
-      };
+      if (!existingCatalogEntryPrevious) {
+        throw genericInternalError(
+          `Unable to find catalog entry with PK ${primaryKeyPrevious}`
+        );
+      }
 
-      await writeCatalogEntry(catalogEntry, dynamoDBClient);
+      await updateDescriptorStateInPlatformStatesEntry(
+        dynamoDBClient,
+        primaryKeyPrevious,
+        descriptorStateToClientState(previousDescriptor.state),
+        msg.version
+      );
 
-      // TODO: Add token-generation-states part
+      // token-generation-states
+      const eserviceId_descriptorId_previous = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: previousDescriptor.id,
+      });
+      await updateDescriptorStateInTokenGenerationStatesTable(
+        eserviceId_descriptorId_previous,
+        descriptor.state,
+        dynamoDBClient
+      );
     })
     .with(
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorSuspended" },
       async (msg) => {
-        const eserviceV2 = msg.data.eservice;
-        if (!eserviceV2) {
-          throw genericInternalError(
-            `EService not found in message data for event ${msg.type}`
-          );
-        }
-
-        const eservice = fromEServiceV2(eserviceV2);
-        const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
+        const { eservice, descriptor } = parseEServiceAndDescriptor(
+          msg.data.eservice,
+          unsafeBrandId(msg.data.descriptorId)
+        );
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
-          descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
+          descriptorId: descriptor.id,
         });
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
@@ -100,40 +145,23 @@ export async function handleMessageV2(
             return;
           }
 
-          const updatedCatalogEntry: PlatformStatesCatalogEntry = {
-            ...catalogEntry,
-            state:
-              msg.type === "EServiceDescriptorActivated"
-                ? itemState.active
-                : itemState.inactive,
-            version: msg.version,
-            updatedAt: new Date().toISOString(),
-          };
-          await writeCatalogEntry(updatedCatalogEntry, dynamoDBClient);
+          await updateDescriptorStateInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKey,
+            descriptorStateToClientState(descriptor.state),
+            msg.version
+          );
 
           // token-generation-states
           const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
-            descriptorId,
+            descriptorId: descriptor.id,
           });
-          const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
+          await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
+            descriptor.state,
             dynamoDBClient
           );
-
-          if (result) {
-            for (const entry of result) {
-              await updateDescriptorState(
-                dynamoDBClient,
-                entry.PK,
-                updatedCatalogEntry.state
-              );
-            }
-          } else {
-            throw genericInternalError(
-              `Unable to find token generation state entries with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
-            );
-          }
         }
       }
     )
@@ -158,25 +186,11 @@ export async function handleMessageV2(
         eserviceId: eservice.id,
         descriptorId,
       });
-      const entriesToUpdate =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
-
-      if (entriesToUpdate) {
-        for (const entry of entriesToUpdate) {
-          await updateDescriptorState(
-            dynamoDBClient,
-            entry.PK,
-            descriptorStateToClientState(descriptorState.archived)
-          );
-        }
-      } else {
-        throw genericInternalError(
-          `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
-        );
-      }
+      await updateDescriptorStateInTokenGenerationStatesTable(
+        eserviceId_descriptorId,
+        descriptorState.archived,
+        dynamoDBClient
+      );
     })
     .with(
       { type: "EServiceDeleted" },
@@ -201,3 +215,22 @@ export async function handleMessageV2(
     )
     .exhaustive();
 }
+
+export const parseEServiceAndDescriptor = (
+  eserviceV2: EServiceV2 | undefined,
+  descriptorId: DescriptorId
+): { eservice: EService; descriptor: Descriptor } => {
+  if (!eserviceV2) {
+    throw genericInternalError(`EService not found in message data`);
+  }
+
+  const eservice = fromEServiceV2(eserviceV2);
+
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+  if (!descriptor) {
+    throw genericInternalError(
+      `Unable to find descriptor with id ${descriptorId}`
+    );
+  }
+  return { eservice, descriptor };
+};

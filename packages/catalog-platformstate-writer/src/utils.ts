@@ -32,6 +32,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
+// TO DO scrivere test per vedere se funziona come upsert o solo come update
 export const writeCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient
@@ -122,6 +123,7 @@ export const descriptorStateToClientState = (
     ? itemState.active
     : itemState.inactive;
 
+// TO DO scrivere test per vedere se funziona come upsert o solo come update
 export const updateDescriptorState = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: string,
@@ -340,7 +342,7 @@ export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
     vi.setSystemTime(mockDate);
   });
 
-export const updateEntriesInTokenGenerationStatesTable = async (
+export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: DescriptorState,
   dynamoDBClient: DynamoDBClient
