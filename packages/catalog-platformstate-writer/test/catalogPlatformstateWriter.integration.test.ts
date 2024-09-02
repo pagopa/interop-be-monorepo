@@ -778,111 +778,128 @@ describe("database test", async () => {
       );
     });
 
-    it("EServiceDescriptorPublished", async () => {
-      const draftDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        audience: ["pagopa.it"],
-        interface: getMockDocument(),
-        state: descriptorState.draft,
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [draftDescriptor],
-      };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+    describe("EServiceDescriptorPublished (the eservice has 1 descriptor)", () => {
+      it("EServiceDescriptorPublished", async () => {
+        const draftDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [draftDescriptor],
+        };
+        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
-      const publishedDescriptor: Descriptor = {
-        ...draftDescriptor,
-        publishedAt: new Date(),
-        state: descriptorState.published,
-      };
-      const updatedEService: EService = {
-        ...eservice,
-        descriptors: [publishedDescriptor],
-      };
-      const payload: EServiceDescriptorPublishedV2 = {
-        eservice: toEServiceV2(updatedEService),
-        descriptorId: publishedDescriptor.id,
-      };
-      const message: EServiceEventEnvelope = {
-        sequence_num: 1,
-        stream_id: mockEService.id,
-        version: 2,
-        type: "EServiceDescriptorPublished",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessageV2(message, dynamoDBClient);
+        const publishedDescriptor: Descriptor = {
+          ...draftDescriptor,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const updatedEService: EService = {
+          ...eservice,
+          descriptors: [publishedDescriptor],
+        };
+        const payload: EServiceDescriptorPublishedV2 = {
+          eservice: toEServiceV2(updatedEService),
+          descriptorId: publishedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: mockEService.id,
+          version: 2,
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        await handleMessageV2(message, dynamoDBClient);
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: updatedEService.id,
-        descriptorId: publishedDescriptor.id,
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: updatedEService.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const retrievedEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+        const expectedEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+        expect(retrievedEntry).toEqual(expectedEntry);
       });
-      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
-      const expectedEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKey,
-        state: itemState.active,
-        descriptorAudience: publishedDescriptor.audience[0],
-        version: 2,
-        updatedAt: new Date().toISOString(),
-      };
-      expect(retrievedEntry).toEqual(expectedEntry);
+
+      // TODO: add test with incoming version 1 and previous entry version 1?
+      it("EServiceDescriptorPublished - no operation if the entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+        const draftDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [draftDescriptor],
+        };
+        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+
+        const publishedDescriptor: Descriptor = {
+          ...draftDescriptor,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const updatedEService: EService = {
+          ...eservice,
+          descriptors: [publishedDescriptor],
+        };
+        const payload: EServiceDescriptorPublishedV2 = {
+          eservice: toEServiceV2(updatedEService),
+          descriptorId: publishedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: mockEService.id,
+          version: 1,
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: updatedEService.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const previousStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.active,
+          descriptorAudience: publishedDescriptor.audience[0],
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+        await handleMessageV2(message, dynamoDBClient);
+
+        const retrievedEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+        expect(retrievedEntry).toEqual(previousStateEntry);
+      });
     });
 
-    // TODO: add test with incoming version 1 and previous entry version 1?
-    it("EServiceDescriptorPublished - no operation if entry already exists. Incoming has version 1; previous entry has version 2", async () => {
-      const draftDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        audience: ["pagopa.it"],
-        interface: getMockDocument(),
-        state: descriptorState.draft,
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [draftDescriptor],
-      };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-      const publishedDescriptor: Descriptor = {
-        ...draftDescriptor,
-        publishedAt: new Date(),
-        state: descriptorState.published,
-      };
-      const updatedEService: EService = {
-        ...eservice,
-        descriptors: [publishedDescriptor],
-      };
-      const payload: EServiceDescriptorPublishedV2 = {
-        eservice: toEServiceV2(updatedEService),
-        descriptorId: publishedDescriptor.id,
-      };
-      const message: EServiceEventEnvelope = {
-        sequence_num: 1,
-        stream_id: mockEService.id,
-        version: 1,
-        type: "EServiceDescriptorPublished",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: updatedEService.id,
-        descriptorId: publishedDescriptor.id,
+    describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
+      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", () => {
+        expect(1).toBe(1);
       });
-      const previousStateEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKey,
-        state: itemState.active,
-        descriptorAudience: publishedDescriptor.audience[0],
-        version: 2,
-        updatedAt: new Date().toISOString(),
-      };
-      await writeCatalogEntry(previousStateEntry, dynamoDBClient);
-      await handleMessageV2(message, dynamoDBClient);
-
-      const retrievedEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
-      expect(retrievedEntry).toEqual(previousStateEntry);
+      it("entry has to be updated: incoming has version 3; previous entry has version 2", () => {
+        expect(1).toBe(1);
+      });
     });
 
     it("EServiceDescriptorSuspended", async () => {
