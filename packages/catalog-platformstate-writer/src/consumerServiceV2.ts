@@ -6,6 +6,7 @@ import {
   fromEServiceV2,
   genericInternalError,
   itemState,
+  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesCatalogEntry,
   unsafeBrandId,
@@ -82,7 +83,7 @@ export async function handleMessageV2(
         }
 
         const eservice = fromEServiceV2(eserviceV2);
-        const descriptorId = msg.data.descriptorId;
+        const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
           descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
@@ -111,7 +112,10 @@ export async function handleMessageV2(
           await writeCatalogEntry(updatedCatalogEntry, dynamoDBClient);
 
           // token-generation-states
-          const eserviceId_descriptorId = `${eservice.id}#${descriptorId}`;
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId,
+          });
           const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
             eserviceId_descriptorId,
             dynamoDBClient
@@ -149,8 +153,11 @@ export async function handleMessageV2(
       await deleteCatalogEntry(primaryKey, dynamoDBClient);
 
       // token-generation-states
-      const descriptorId = msg.data.descriptorId;
-      const eserviceId_descriptorId = `${eservice.id}#${descriptorId}`;
+      const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId,
+      });
       const entriesToUpdate =
         await readTokenStateEntriesByEserviceIdAndDescriptorId(
           eserviceId_descriptorId,
