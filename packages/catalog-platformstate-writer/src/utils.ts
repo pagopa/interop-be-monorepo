@@ -345,7 +345,7 @@ export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
     vi.setSystemTime(mockDate);
   });
 
-export const updateEntriesInTokenGenerationStatesTable = async (
+export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   descriptorState: DescriptorState,
   dynamoDBClient: DynamoDBClient
