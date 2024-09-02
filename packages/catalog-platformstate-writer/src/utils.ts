@@ -339,3 +339,29 @@ export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
     vi.useFakeTimers();
     vi.setSystemTime(mockDate);
   });
+
+export const updateEntriesInTokenGenerationStatesTable = async (
+  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+  descriptorState: DescriptorState,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const entriesToUpdate =
+    await readTokenStateEntriesByEserviceIdAndDescriptorId(
+      eserviceId_descriptorId,
+      dynamoDBClient
+    );
+
+  if (entriesToUpdate) {
+    for (const entry of entriesToUpdate) {
+      await updateDescriptorState(
+        dynamoDBClient,
+        entry.PK,
+        descriptorStateToClientState(descriptorState)
+      );
+    }
+  } else {
+    throw genericInternalError(
+      `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
+    );
+  }
+};

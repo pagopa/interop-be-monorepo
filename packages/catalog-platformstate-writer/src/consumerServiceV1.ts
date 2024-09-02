@@ -5,6 +5,7 @@ import {
   EServiceId,
   fromDescriptorV1,
   genericInternalError,
+  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesCatalogEntry,
   unsafeBrandId,
@@ -15,6 +16,7 @@ import {
   descriptorStateToClientState,
   readCatalogEntry,
   updateDescriptorStateInPlatformStatesEntry,
+  updateEntriesInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "./utils.js";
 
@@ -63,9 +65,11 @@ export async function handleMessageV1(
             };
             await writeCatalogEntry(catalogEntry, dynamoDBClient);
 
-            // TO DO token-generation-states part
+            // TO DO token-generation-states
           } else {
             // activation from suspended
+
+            // platform-states
             await updateDescriptorStateInPlatformStatesEntry(
               dynamoDBClient,
               existingCatalogEntry.PK,
@@ -73,10 +77,20 @@ export async function handleMessageV1(
               msg.version
             );
 
-            // TO DO token-generation-states part
+            // token-generation-states
+            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+              eserviceId,
+              descriptorId: descriptor.id,
+            });
+            await updateEntriesInTokenGenerationStatesTable(
+              eserviceId_descriptorId,
+              descriptor.state,
+              dynamoDBClient
+            );
           }
         })
         .with(descriptorState.suspended, async () => {
+          // platform-states
           await updateDescriptorStateInPlatformStatesEntry(
             dynamoDBClient,
             eserviceDescriptorPK,
@@ -84,10 +98,19 @@ export async function handleMessageV1(
             msg.version
           );
 
-          // TO DO token-generation-states part
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId,
+            descriptorId: descriptor.id,
+          });
+          await updateEntriesInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.state,
+            dynamoDBClient
+          );
         })
         .with(descriptorState.archived, async () => {
-          const eserviceId = msg.data.eserviceId;
+          const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
           const descriptorV1 = msg.data.eserviceDescriptor;
           if (!descriptorV1) {
             throw genericInternalError(
@@ -96,8 +119,20 @@ export async function handleMessageV1(
           }
           const descriptor = fromDescriptorV1(descriptorV1);
 
+          // platform-states
           const primaryKey = `ESERVICEDESCRIPTOR#${eserviceId}#${descriptor.id}`;
           await deleteCatalogEntry(primaryKey, dynamoDBClient);
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId,
+            descriptorId: descriptor.id,
+          });
+          await updateEntriesInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.state,
+            dynamoDBClient
+          );
         })
         .with(descriptorState.draft, descriptorState.deprecated, () =>
           Promise.resolve()
