@@ -55,6 +55,8 @@ export async function handleMessageV2(
           return;
         }
 
+        // no previous entry or entry has to be updated
+
         const catalogEntry: PlatformStatesCatalogEntry = {
           PK: primaryKeyCurrent,
           state: descriptorStateToClientState(descriptor.state),
