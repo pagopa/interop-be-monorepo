@@ -173,10 +173,10 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
       },
     },
     ExpressionAttributeNames: {
-      "#descriptorState": "state",
+      "#state": "state",
     },
     UpdateExpression:
-      "SET #descriptorState = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "ALL_NEW",
   };
