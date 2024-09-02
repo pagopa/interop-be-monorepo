@@ -53,6 +53,48 @@ export async function handleMessageV2(
         ) {
           // Stops processing if the message is older than the catalog entry
           return;
+        } else if (
+          existingCatalogEntryCurrent &&
+          existingCatalogEntryCurrent.version <= msg.version
+        ) {
+          await updateDescriptorStateInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKeyCurrent,
+            descriptorStateToClientState(descriptor.state),
+            msg.version
+          );
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.state,
+            dynamoDBClient
+          );
+        } else {
+          const catalogEntry: PlatformStatesCatalogEntry = {
+            PK: primaryKeyCurrent,
+            state: descriptorStateToClientState(descriptor.state),
+            descriptorAudience: descriptor.audience[0],
+            version: msg.version,
+            updatedAt: new Date().toISOString(),
+          };
+
+          await writeCatalogEntry(catalogEntry, dynamoDBClient);
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.state,
+            dynamoDBClient
+          );
         }
 
         // no previous entry or entry has to be updated
@@ -97,31 +139,35 @@ export async function handleMessageV2(
         existingCatalogEntryPrevious.version > msg.version
       ) {
         return Promise.resolve();
-      }
-
-      if (!existingCatalogEntryPrevious) {
-        throw genericInternalError(
-          `Unable to find catalog entry with PK ${primaryKeyPrevious}`
+      } else if (
+        existingCatalogEntryPrevious &&
+        existingCatalogEntryPrevious.version <= msg.version
+      ) {
+        await updateDescriptorStateInPlatformStatesEntry(
+          dynamoDBClient,
+          primaryKeyPrevious,
+          descriptorStateToClientState(previousDescriptor.state),
+          msg.version
         );
+
+        // token-generation-states
+        const eserviceId_descriptorId_previous =
+          makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: previousDescriptor.id,
+          });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId_previous,
+          descriptor.state,
+          dynamoDBClient
+        );
+      } else {
+        if (!existingCatalogEntryPrevious) {
+          throw genericInternalError(
+            `Unable to find catalog entry with PK ${primaryKeyPrevious}`
+          );
+        }
       }
-
-      await updateDescriptorStateInPlatformStatesEntry(
-        dynamoDBClient,
-        primaryKeyPrevious,
-        descriptorStateToClientState(previousDescriptor.state),
-        msg.version
-      );
-
-      // token-generation-states
-      const eserviceId_descriptorId_previous = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: eservice.id,
-        descriptorId: previousDescriptor.id,
-      });
-      await updateDescriptorStateInTokenGenerationStatesTable(
-        eserviceId_descriptorId_previous,
-        descriptor.state,
-        dynamoDBClient
-      );
     })
     .with(
       { type: "EServiceDescriptorActivated" },
