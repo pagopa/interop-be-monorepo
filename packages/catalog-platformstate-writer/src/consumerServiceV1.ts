@@ -16,7 +16,7 @@ import {
   descriptorStateToClientState,
   readCatalogEntry,
   updateDescriptorStateInPlatformStatesEntry,
-  updateEntriesInTokenGenerationStatesTable,
+  updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "./utils.js";
 
@@ -82,7 +82,7 @@ export async function handleMessageV1(
               eserviceId,
               descriptorId: descriptor.id,
             });
-            await updateEntriesInTokenGenerationStatesTable(
+            await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
               descriptor.state,
               dynamoDBClient
@@ -103,7 +103,7 @@ export async function handleMessageV1(
             eserviceId,
             descriptorId: descriptor.id,
           });
-          await updateEntriesInTokenGenerationStatesTable(
+          await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
             descriptor.state,
             dynamoDBClient
@@ -128,7 +128,7 @@ export async function handleMessageV1(
             eserviceId,
             descriptorId: descriptor.id,
           });
-          await updateEntriesInTokenGenerationStatesTable(
+          await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
             descriptor.state,
             dynamoDBClient
