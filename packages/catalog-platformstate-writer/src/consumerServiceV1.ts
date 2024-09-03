@@ -136,7 +136,10 @@ export async function handleMessageV1(
           const descriptor = fromDescriptorV1(descriptorV1);
 
           // platform-states
-          const primaryKey = `ESERVICEDESCRIPTOR#${eserviceId}#${descriptor.id}`;
+          const primaryKey = makePlatformStatesEServiceDescriptorPK({
+            eserviceId,
+            descriptorId: descriptor.id,
+          });
           await deleteCatalogEntry(primaryKey, dynamoDBClient);
 
           // token-generation-states
