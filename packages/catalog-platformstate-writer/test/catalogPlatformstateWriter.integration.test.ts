@@ -784,7 +784,7 @@ describe("database test", async () => {
     });
 
     describe("EServiceDescriptorPublished (the eservice has 1 descriptor)", () => {
-      it("EServiceDescriptorPublished", async () => {
+      it("no previous entry", async () => {
         const draftDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -840,7 +840,7 @@ describe("database test", async () => {
       });
 
       // TODO: add test with incoming version 1 and previous entry version 1?
-      it("EServiceDescriptorPublished - no operation if the entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+      it("no operation if the entry already exists. Incoming has version 1; previous entry has version 2", async () => {
         const draftDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -896,13 +896,21 @@ describe("database test", async () => {
         );
         expect(retrievedEntry).toEqual(previousStateEntry);
       });
+      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+        expect(1).toBe(1);
+      });
     });
 
     describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
+      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additinal checks are added
       it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", () => {
         expect(1).toBe(1);
       });
       it("entry has to be updated: incoming has version 3; previous entry has version 2", () => {
+        expect(1).toBe(1);
+      });
+      it("no previous entry", () => {
+        // to do throw error
         expect(1).toBe(1);
       });
     });
