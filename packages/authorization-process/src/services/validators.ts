@@ -1,7 +1,10 @@
 import { userRoles } from "pagopa-interop-commons";
 import {
   Client,
+  ClientId,
+  EService,
   ProducerKeychain,
+  ProducerKeychainId,
   Purpose,
   TenantId,
   UserId,
@@ -12,7 +15,11 @@ import {
   organizationNotAllowedOnPurpose,
   organizationNotAllowedOnClient,
   organizationNotAllowedOnProducerKeychain,
+  tooManyKeysPerClient,
+  tooManyKeysPerProducerKeychain,
+  organizationNotAllowedOnEService,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
@@ -68,5 +75,32 @@ export const assertOrganizationIsProducerKeychainProducer = (
       organizationId,
       producerKeychain.id
     );
+  }
+};
+
+export const assertClientKeysCountIsBelowThreshold = (
+  clientId: ClientId,
+  size: number
+): void => {
+  if (size > config.maxKeysPerClient) {
+    throw tooManyKeysPerClient(clientId, size);
+  }
+};
+
+export const assertProducerKeychainKeysCountIsBelowThreshold = (
+  producerKeychainId: ProducerKeychainId,
+  size: number
+): void => {
+  if (size > config.maxKeysPerProducerKeychain) {
+    throw tooManyKeysPerProducerKeychain(producerKeychainId, size);
+  }
+};
+
+export const assertOrganizationIsEServiceProducer = (
+  organizationId: TenantId,
+  eservice: EService
+): void => {
+  if (organizationId !== eservice.producerId) {
+    throw organizationNotAllowedOnEService(organizationId, eservice.id);
   }
 };

@@ -253,7 +253,7 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getKeyByKid(kid: string): Promise<Key | undefined> {
+    async getClientKeyByKid(kid: string): Promise<Key | undefined> {
       const data = await clients.findOne(
         { "data.keys.kid": { $eq: kid } },
         {
@@ -380,6 +380,27 @@ export function readModelServiceBuilder(
         }
         return result.data;
       }
+    },
+
+    async getProducerKeychainKeyByKid(kid: string): Promise<Key | undefined> {
+      const data = await producerKeychains.findOne(
+        { "data.keys.kid": { $eq: kid } },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = ProducerKeychain.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse producer keychain item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data.keys.find((k) => k.kid === kid);
+      }
+      return undefined;
     },
   };
 }
