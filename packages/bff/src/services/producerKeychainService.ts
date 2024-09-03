@@ -134,13 +134,10 @@ export function producerKeychainServiceBuilder(
         userId
       );
 
-      await authorizationProcessClient.producerKeychain.createProducerKey(
-        body,
-        {
-          params: { producerKeychainId },
-          headers,
-        }
-      );
+      await authorizationClient.producerKeychain.createProducerKey(body, {
+        params: { producerKeychainId },
+        headers,
+      });
     },
     async getProducerKeys(
       producerKeychainId: string,
@@ -152,7 +149,7 @@ export function producerKeychainServiceBuilder(
       const selfcareId = authData.selfcareId;
 
       const { keys } =
-        await authorizationProcessClient.producerKeychain.getProducerKeys({
+        await authorizationClient.producerKeychain.getProducerKeys({
           params: { producerKeychainId },
           queries: { userIds },
           headers,
@@ -174,11 +171,12 @@ export function producerKeychainServiceBuilder(
 
       const selfcareId = authData.selfcareId;
 
-      const key =
-        await authorizationProcessClient.producerKeychain.getProducerKeyById({
+      const key = await authorizationClient.producerKeychain.getProducerKeyById(
+        {
           params: { producerKeychainId, keyId },
           headers,
-        });
+        }
+      );
       return decorateKey(selfcareUsersClient, key, selfcareId);
     },
     async deleteProducerKeyById(
@@ -190,7 +188,7 @@ export function producerKeychainServiceBuilder(
         `Deleting key ${keyId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationProcessClient.producerKeychain.deleteProducerKeyById(
+      return authorizationClient.producerKeychain.deleteProducerKeyById(
         undefined,
         {
           params: { producerKeychainId, keyId },
@@ -209,16 +207,15 @@ export function producerKeychainServiceBuilder(
       const selfcareId = authData.selfcareId;
 
       const producerKeychainUsers =
-        await authorizationProcessClient.producerKeychain.getProducerKeychainUsers(
-          {
-            params: { producerKeychainId },
-            headers,
-          }
-        );
+        await authorizationClient.producerKeychain.getProducerKeychainUsers({
+          params: { producerKeychainId },
+          headers,
+        });
 
       const users = producerKeychainUsers.map(async (id) =>
         toBffApiCompactUser(
-          await getSelfcareUserById(selfcareUsersClient, id, selfcareId)
+          await getSelfcareUserById(selfcareUsersClient, id, selfcareId),
+          id
         )
       );
       return Promise.all(users);
@@ -233,7 +230,7 @@ export function producerKeychainServiceBuilder(
       );
 
       const { id } =
-        await authorizationProcessClient.producerKeychain.addProducerKeychainUser(
+        await authorizationClient.producerKeychain.addProducerKeychainUser(
           undefined,
           {
             params: { producerKeychainId, userId },
@@ -252,7 +249,7 @@ export function producerKeychainServiceBuilder(
         `Removing user ${userId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationProcessClient.producerKeychain.removeProducerKeychainUser(
+      return authorizationClient.producerKeychain.removeProducerKeychainUser(
         undefined,
         {
           params: { producerKeychainId, userId },
@@ -312,7 +309,6 @@ async function enhanceEService(
   return {
     id: eservice.id,
     name: eservice.name,
-    // TODO: check if this is needed
     producer: {
       id: producer.id,
       name: producer.name,
@@ -321,7 +317,6 @@ async function enhanceEService(
   };
 }
 
-// TODO: move to separate file
 async function getSelfcareUserById(
   selfcareClient: SelfcareV2UsersClient,
   userId: string,
@@ -349,7 +344,7 @@ async function decorateKey(
   );
 
   return {
-    user: toBffApiCompactUser(user),
+    user: toBffApiCompactUser(user, key.userId),
     name: key.name,
     keyId: key.kid,
     createdAt: key.createdAt,
