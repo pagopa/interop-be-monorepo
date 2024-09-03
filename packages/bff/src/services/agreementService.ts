@@ -114,7 +114,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async suspendAgreement(
@@ -130,7 +130,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async rejectAgreement(
@@ -144,7 +144,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async archiveAgreement(
@@ -172,7 +172,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async upgradeAgreement(
@@ -188,7 +188,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
   };
 }
