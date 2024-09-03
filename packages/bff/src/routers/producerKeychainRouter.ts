@@ -5,13 +5,20 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  selfcareV2UsersClientBuilder,
+} from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
+import {
+  emptyErrorMapper,
+  getProducerKeychainUsersErrorMapper,
+} from "../utilities/errorMappers.js";
 import { toBffApiCompactProducerKeychain } from "../model/api/apiConverter.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
+import { config } from "../config/config.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -21,8 +28,10 @@ const producerKeychainRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const producerKeychainService =
-    producerKeychainServiceBuilder(processClients);
+  const producerKeychainService = producerKeychainServiceBuilder(
+    processClients,
+    selfcareV2UsersClientBuilder(config)
+  );
 
   producerKeychainRouter
     .get("/producerKeychains", async (req, res) => {
@@ -141,30 +150,131 @@ const producerKeychainRouter = (
         }
       }
     )
-    .post("/producerKeychains/:producerKeychainId/keys", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/producerKeychains/:producerKeychainId/keys", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/producerKeychains/:producerKeychainId/keys", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await producerKeychainService.createProducerKey(
+          ctx.authData.userId,
+          req.params.producerKeychainId,
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .get("/producerKeychains/:producerKeychainId/keys", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const keys = await producerKeychainService.getProducerKeys(
+          req.params.producerKeychainId,
+          req.query.userIds,
+          ctx
+        );
+
+        return res.status(200).json({ keys }).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const key = await producerKeychainService.getProducerKeyById(
+            req.params.producerKeychainId,
+            req.params.keyId,
+            ctx
+          );
+
+          return res.status(200).json(key).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await producerKeychainService.deleteProducerKeyById(
+            req.params.producerKeychainId,
+            req.params.keyId,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
-    .get("/producerKeychains/:producerKeychainId/users", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/producerKeychains/:producerKeychainId/users", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const users = await producerKeychainService.getProducerKeychainUsers(
+          req.params.producerKeychainId,
+          ctx
+        );
+
+        return res.status(200).json(users).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerKeychainUsersErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post(
       "/producerKeychains/:producerKeychainId/users/:userId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const createdUser =
+            await producerKeychainService.addProducerKeychainUser(
+              req.params.userId,
+              req.params.producerKeychainId,
+              ctx
+            );
+
+          return res.status(200).json(createdUser);
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/producerKeychains/:producerKeychainId/users/:userId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await producerKeychainService.removeProducerKeychainUser(
+            req.params.producerKeychainId,
+            req.params.userId,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return producerKeychainRouter;
