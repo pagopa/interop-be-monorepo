@@ -31,9 +31,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ) {
-      logger.info(`Creating agreement with seed ${JSON.stringify(payload)}`);
+      logger.info(
+        `Creating agreement with consumerId ${authData.organizationId} eserviceId ${payload.eserviceId} descriptorId ${payload.descriptorId}`
+      );
       return await agreementProcessClient.createAgreement(payload, {
         headers,
       });
@@ -76,7 +78,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       const agreements = results.map((a) =>
-        enhanceAgreementOverview(a, clients, ctx)
+        enrichListAgreement(a, clients, ctx)
       );
       return {
         pagination: {
@@ -98,7 +100,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async submitAgreement(
@@ -248,7 +250,7 @@ function isUpgradable(
     );
 }
 
-async function enhanceAgreementOverview(
+async function enrichListAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
@@ -282,7 +284,7 @@ async function enhanceAgreementOverview(
   };
 }
 
-export async function enhanceAgreementDetailed(
+export async function enrichAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
