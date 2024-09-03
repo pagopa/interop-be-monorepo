@@ -22,14 +22,14 @@ import { toBffApiCompactClient } from "../model/api/apiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
-  processClients: PagoPAInteropBeClients
+  interopBeClients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const clientRouter = ctx.router(bffApi.clientsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
   const clientService = clientServiceBuilder(
-    processClients,
+    interopBeClients,
     selfcareV2UsersClientBuilder(config)
   );
 
