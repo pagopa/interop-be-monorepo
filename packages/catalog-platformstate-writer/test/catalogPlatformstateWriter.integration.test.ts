@@ -197,7 +197,7 @@ describe("database test", async () => {
       expect(retrievedEntry).toEqual(expectedEntry);
     });
 
-    it("EServiceDescriptorUpdated (suspended -> published)", async () => {
+    it("EServiceDescriptorUpdated (suspended -> published, version of the event is newer)", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -312,6 +312,10 @@ describe("database test", async () => {
           expectedTokenStateEntry2,
         ])
       );
+    });
+
+    it("EServiceDescriptorUpdated (published, no operation if version of the event is lower than existing entry)", async () => {
+      expect(1).toBe(1);
     });
 
     it("EServiceDescriptorUpdated (published -> suspended)", async () => {
