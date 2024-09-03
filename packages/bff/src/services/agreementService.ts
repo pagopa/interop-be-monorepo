@@ -194,6 +194,21 @@ export function agreementServiceBuilder(
 
       return Buffer.from(documentBytes);
     },
+
+    async removeConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing consumer document with id ${documentId} from agreement ${agreementId}`
+      );
+
+      await agreementProcessClient.removeAgreementConsumerDocument(undefined, {
+        params: { agreementId, documentId },
+        headers,
+      });
+    },
   };
 }
 

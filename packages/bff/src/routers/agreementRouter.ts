@@ -13,6 +13,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import {
   emptyErrorMapper,
   getAgreementByIdErrorMapper,
+  getAgreementContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
@@ -174,7 +175,27 @@ const agreementRouter = (
 
     .delete(
       "/agreements/:agreementId/consumer-documents/:documentId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await agreementService.removeConsumerDocument(
+            req.params.agreementId,
+            req.params.documentId,
+            ctx
+          );
+
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error deleting consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/agreements/:agreementId/contract", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -189,7 +210,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getAgreementContractErrorMapper,
           ctx.logger,
           `Error downloading contract for agreement ${req.params.agreementId}`
         );
