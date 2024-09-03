@@ -142,6 +142,26 @@ export function agreementServiceBuilder(
 
       return documentContent;
     },
+
+    async getAgreementConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      const documentSeed =
+        await agreementProcessClient.getAgreementConsumerDocument({
+          params: { agreementId, documentId },
+          headers,
+        });
+
+      const documentBytes = await fileManager.get(
+        config.consumerDocumentsContainer,
+        documentSeed.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
   };
 }
 

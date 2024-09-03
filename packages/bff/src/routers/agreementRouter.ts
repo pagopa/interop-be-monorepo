@@ -146,10 +146,32 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
+
     .get(
       "/agreements/:agreementId/consumer-documents/:documentId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await agreementService.getAgreementConsumerDocument(
+            req.params.agreementId,
+            req.params.documentId,
+            ctx
+          );
+
+          return res.status(200).send(result).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error downloading contract for agreement ${req.params.agreementId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
+
     .delete(
       "/agreements/:agreementId/consumer-documents/:documentId",
       async (_req, res) => res.status(501).send()
