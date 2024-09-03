@@ -5,6 +5,7 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  FileManager,
 } from "pagopa-interop-commons";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
@@ -18,13 +19,14 @@ import { agreementServiceBuilder } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(bffApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const agreementService = agreementServiceBuilder(clients);
+  const agreementService = agreementServiceBuilder(clients, fileManager);
 
   agreementRouter
     .get("/agreements", async (req, res) => {
@@ -123,9 +125,27 @@ const agreementRouter = (
     .post("/agreements/:agreementId/clone", async (_req, res) =>
       res.status(501).send()
     )
-    .post("/agreements/:agreementId/consumer-documents", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/agreements/:agreementId/consumer-documents", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.addAgreementConsumerDocument(
+          req.params.agreementId,
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error adding consumer document to agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/agreements/:agreementId/consumer-documents/:documentId",
       async (_req, res) => res.status(501).send()

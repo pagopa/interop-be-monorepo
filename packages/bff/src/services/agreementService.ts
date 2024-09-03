@@ -1,7 +1,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { randomUUID } from "crypto";
 import {
+  FileManager,
   getAllFromPaginated,
   toSetToArray,
   WithLogger,
@@ -23,10 +25,14 @@ import {
   toCompactEservice,
   toCompactDescriptor,
 } from "../model/api/apiConverter.js";
+import { config } from "../config/config.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
-export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
+export function agreementServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const { agreementProcessClient } = clients;
   return {
     async createAgreement(
@@ -101,6 +107,40 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async addAgreementConsumerDocument(
+      agreementId: string,
+      doc: bffApi.addAgreementConsumerDocument_Body,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      const documentPath = `${config.consumerDocumentsPath}/${agreementId}`;
+      const documentContent = Buffer.from(await doc.doc.arrayBuffer());
+      const documentId = randomUUID();
+
+      await fileManager.storeBytes(
+        config.consumerDocumentsContainer,
+        documentPath,
+        documentId,
+        doc.doc.name,
+        documentContent,
+        logger
+      );
+
+      const seed: agreementApi.DocumentSeed = {
+        id: documentId,
+        prettyName: doc.prettyName,
+        name: doc.doc.name,
+        contentType: doc.doc.type,
+        path: documentPath,
+      };
+
+      await agreementProcessClient.addAgreementConsumerDocument(seed, {
+        params: { agreementId },
+        headers,
+      });
+
+      return documentContent;
     },
   };
 }
