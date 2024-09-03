@@ -10559,7 +10559,7 @@ paths:
             format: uuid
         - name: eserviceId
           in: query
-          description: ID of e-service that MUST be related to the Client
+          description: ID of e-service that MUST be related to the Producer Keychain
           schema:
             type: string
             format: uuid
@@ -10749,7 +10749,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: Client not found
+          description: Producer Keychain not found
           content:
             application/json:
               schema:
@@ -10835,7 +10835,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: Client not found
+          description: Producer Keychain not found
           content:
             application/json:
               schema:
@@ -11281,7 +11281,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: Client id not found
+          description: Producer Keychain id not found
           content:
             application/json:
               schema:
@@ -11401,7 +11401,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: Client id not found
+          description: Producer Keychain id not found
           content:
             application/json:
               schema:
@@ -11788,7 +11788,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: Client not found
+          description: Producer Keychain not found
           content:
             application/json:
               schema:
