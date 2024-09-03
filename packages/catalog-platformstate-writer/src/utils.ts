@@ -23,9 +23,6 @@ import {
   QueryCommand,
   QueryCommandOutput,
   QueryInput,
-  ScanCommand,
-  ScanCommandOutput,
-  ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
@@ -39,6 +36,7 @@ export const writeCatalogEntry = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: catalogEntry.PK,
@@ -106,6 +104,7 @@ export const deleteCatalogEntry = async (
   await dynamoDBClient.send(command);
 };
 
+/*
 export const readAllItems = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<ScanCommandOutput> => {
@@ -116,6 +115,7 @@ export const readAllItems = async (
   const read: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
   return read;
 };
+*/
 
 export const descriptorStateToClientState = (
   state: DescriptorState
@@ -124,35 +124,6 @@ export const descriptorStateToClientState = (
     ? itemState.active
     : itemState.inactive;
 
-// TO DO scrivere test per vedere se funziona come upsert o solo come update
-export const updateDescriptorState = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesEServiceDescriptorPK,
-  state: ItemState
-): Promise<void> => {
-  const input: UpdateItemInput = {
-    Key: {
-      PK: {
-        S: primaryKey,
-      },
-    },
-    ExpressionAttributeValues: {
-      ":newState": {
-        S: state,
-      },
-      ":newUpdateAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    UpdateExpression:
-      "SET descriptorState = :newState, updatedAt = :newUpdateAt",
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    ReturnValues: "ALL_NEW",
-  };
-  const command = new UpdateItemCommand(input);
-  await dynamoDBClient.send(command);
-};
-
 export const updateDescriptorStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK,
@@ -160,6 +131,7 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
   version: number
 ): Promise<void> => {
   const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
     Key: {
       PK: {
         S: primaryKey,
@@ -193,6 +165,7 @@ export const writeTokenStateEntry = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: tokenStateEntry.PK,
@@ -252,6 +225,7 @@ export const writeTokenStateEntry = async (
   await dynamoDBClient.send(command);
 };
 
+/*
 export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
@@ -285,11 +259,12 @@ export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
     return tokenStateEntry.data;
   }
 };
+*/
 
 export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[] | undefined> => {
+): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     IndexName: "gsiIndex", // Use the name of your Global Secondary Index
@@ -307,7 +282,9 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   // console.log("data.Items ", data);
 
   if (!data.Items) {
-    return undefined;
+    throw genericInternalError(
+      `Unable to read token state entries: result ${JSON.stringify(data)} `
+    );
   } else {
     const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
@@ -345,17 +322,28 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       dynamoDBClient
     );
 
-  if (entriesToUpdate) {
-    for (const entry of entriesToUpdate) {
-      await updateDescriptorState(
-        dynamoDBClient,
-        entry.PK,
-        descriptorStateToClientState(descriptorState)
-      );
-    }
-  } else {
-    throw genericInternalError(
-      `Unable to find token generation state entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}`
-    );
+  for (const entry of entriesToUpdate) {
+    const input: UpdateItemInput = {
+      ConditionExpression: "attribute_exists(PK)",
+      Key: {
+        PK: {
+          S: entry.PK,
+        },
+      },
+      ExpressionAttributeValues: {
+        ":newState": {
+          S: descriptorStateToClientState(descriptorState),
+        },
+        ":newUpdateAt": {
+          S: new Date().toISOString(),
+        },
+      },
+      UpdateExpression:
+        "SET descriptorState = :newState, updatedAt = :newUpdateAt",
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "ALL_NEW",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
   }
 };
