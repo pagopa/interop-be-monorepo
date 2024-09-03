@@ -10,7 +10,6 @@ import {
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
-import { userNotFound } from "../model/domain/errors.js";
 import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 
 export function producerKeychainServiceBuilder(
@@ -328,7 +327,7 @@ async function getSelfcareUserById(
       queries: { institutionId: selfcareId },
     });
   } catch (error) {
-    throw userNotFound(userId, selfcareId);
+    return {};
   }
 }
 
