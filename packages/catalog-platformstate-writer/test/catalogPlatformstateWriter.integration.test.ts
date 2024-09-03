@@ -55,7 +55,7 @@ import {
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { config } from "./utils.js";
 
-describe("database test", async () => {
+describe("integration tests", async () => {
   if (!config) {
     fail();
   }
@@ -114,8 +114,8 @@ describe("database test", async () => {
       ],
     };
     const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
-    const result = await dynamoDBClient.send(command2);
-    console.log(result);
+    await dynamoDBClient.send(command2);
+    // console.log(result);
 
     // const tablesResult = await dynamoDBClient.listTables();
     // console.log(tablesResult.TableNames);
@@ -542,43 +542,122 @@ describe("database test", async () => {
   });
 
   describe("Events V2", async () => {
-    const mockEService = getMockEService();
     describe("EServiceDescriptorActivated", () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", () => {
-        expect(1).toBe(1);
-      });
-      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
-        const suspendedDescriptor: Descriptor = {
+      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+        const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
           interface: getMockDocument(),
-          state: descriptorState.suspended,
+          state: descriptorState.published,
           publishedAt: new Date(),
-          suspendedAt: new Date(),
         };
         const eservice: EService = {
-          ...mockEService,
-          descriptors: [suspendedDescriptor],
-        };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-        const publishedDescriptor: Descriptor = {
-          ...suspendedDescriptor,
-          publishedAt: new Date(),
-          suspendedAt: new Date(),
-          state: descriptorState.published,
-        };
-        const updatedEService: EService = {
-          ...eservice,
+          ...getMockEService(),
           descriptors: [publishedDescriptor],
         };
         const payload: EServiceDescriptorActivatedV2 = {
-          eservice: toEServiceV2(updatedEService),
+          eservice: toEServiceV2(eservice),
           descriptorId: publishedDescriptor.id,
         };
         const message: EServiceEventEnvelope = {
           sequence_num: 1,
-          stream_id: mockEService.id,
+          stream_id: eservice.id,
+          version: 1,
+          type: "EServiceDescriptorActivated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const previousStateEntry: PlatformStatesCatalogEntry = {
+          PK: catalogEntryPrimaryKey,
+          state: itemState.inactive,
+          descriptorAudience: publishedDescriptor.audience[0],
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            descriptorState: itemState.inactive,
+            descriptorAudience: publishedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            descriptorState: itemState.inactive,
+            descriptorAudience: publishedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+        await sleep(1000, mockDate);
+        await handleMessageV2(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedCatalogEntry = await readCatalogEntry(
+          catalogEntryPrimaryKey,
+          dynamoDBClient
+        );
+
+        expect(retrievedCatalogEntry).toEqual(previousStateEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
+      });
+      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+        const publishedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.published,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [publishedDescriptor],
+        };
+
+        const payload: EServiceDescriptorActivatedV2 = {
+          eservice: toEServiceV2(eservice),
+          descriptorId: publishedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorActivated",
           event_version: 2,
@@ -677,35 +756,26 @@ describe("database test", async () => {
     });
 
     it("EServiceDescriptorArchived", async () => {
-      const publishedDescriptor: Descriptor = {
+      const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
         interface: getMockDocument(),
-        state: descriptorState.published,
+        state: descriptorState.archived,
         publishedAt: new Date(),
+        archivedAt: new Date(),
       };
       const eservice: EService = {
-        ...mockEService,
-        descriptors: [publishedDescriptor],
-      };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-      const archivedDescriptor: Descriptor = {
-        ...publishedDescriptor,
-        archivedAt: new Date(),
-        state: descriptorState.archived,
-      };
-      const updatedEService: EService = {
-        ...eservice,
+        ...getMockEService(),
         descriptors: [archivedDescriptor],
       };
+
       const payload: EServiceDescriptorArchivedV2 = {
-        eservice: toEServiceV2(updatedEService),
+        eservice: toEServiceV2(eservice),
         descriptorId: archivedDescriptor.id,
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
-        stream_id: mockEService.id,
+        stream_id: eservice.id,
         version: 2,
         type: "EServiceDescriptorArchived",
         event_version: 2,
@@ -713,13 +783,13 @@ describe("database test", async () => {
         log_date: new Date(),
       };
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: updatedEService.id,
-        descriptorId: publishedDescriptor.id,
+        eserviceId: eservice.id,
+        descriptorId: archivedDescriptor.id,
       });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: publishedDescriptor.audience[0],
+        descriptorAudience: archivedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -727,7 +797,7 @@ describe("database test", async () => {
 
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
-        descriptorId: publishedDescriptor.id,
+        descriptorId: archivedDescriptor.id,
       });
       const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
@@ -741,7 +811,7 @@ describe("database test", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: archivedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -750,7 +820,7 @@ describe("database test", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: archivedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -789,44 +859,38 @@ describe("database test", async () => {
 
     describe("EServiceDescriptorPublished (the eservice has 1 descriptor)", () => {
       it("no previous entry", async () => {
-        const draftDescriptor: Descriptor = {
+        const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
           interface: getMockDocument(),
-          state: descriptorState.draft,
+          state: descriptorState.published,
+          publishedAt: new Date(),
         };
         const eservice: EService = {
-          ...mockEService,
-          descriptors: [draftDescriptor],
-        };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-        const publishedDescriptor: Descriptor = {
-          ...draftDescriptor,
-          publishedAt: new Date(),
-          state: descriptorState.published,
-        };
-        const updatedEService: EService = {
-          ...eservice,
+          ...getMockEService(),
           descriptors: [publishedDescriptor],
         };
+
         const payload: EServiceDescriptorPublishedV2 = {
-          eservice: toEServiceV2(updatedEService),
+          eservice: toEServiceV2(eservice),
           descriptorId: publishedDescriptor.id,
         };
         const message: EServiceEventEnvelope = {
           sequence_num: 1,
-          stream_id: mockEService.id,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorPublished",
           event_version: 2,
           data: payload,
           log_date: new Date(),
         };
+
+        // TO DO token-generation-states? If the descriptor was draft, there were no entries in token-generation-states
+
         await handleMessageV2(message, dynamoDBClient);
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
-          eserviceId: updatedEService.id,
+          eserviceId: eservice.id,
           descriptorId: publishedDescriptor.id,
         });
         const retrievedEntry = await readCatalogEntry(
@@ -845,34 +909,25 @@ describe("database test", async () => {
 
       // TODO: add test with incoming version 1 and previous entry version 1?
       it("no operation if the entry already exists. Incoming has version 1; previous entry has version 2", async () => {
-        const draftDescriptor: Descriptor = {
+        const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
           interface: getMockDocument(),
-          state: descriptorState.draft,
+          state: descriptorState.published,
+          publishedAt: new Date(),
         };
         const eservice: EService = {
-          ...mockEService,
-          descriptors: [draftDescriptor],
-        };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-        const publishedDescriptor: Descriptor = {
-          ...draftDescriptor,
-          publishedAt: new Date(),
-          state: descriptorState.published,
-        };
-        const updatedEService: EService = {
-          ...eservice,
+          ...getMockEService(),
           descriptors: [publishedDescriptor],
         };
+
         const payload: EServiceDescriptorPublishedV2 = {
-          eservice: toEServiceV2(updatedEService),
+          eservice: toEServiceV2(eservice),
           descriptorId: publishedDescriptor.id,
         };
         const message: EServiceEventEnvelope = {
           sequence_num: 1,
-          stream_id: mockEService.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceDescriptorPublished",
           event_version: 2,
@@ -881,7 +936,7 @@ describe("database test", async () => {
         };
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
-          eserviceId: updatedEService.id,
+          eserviceId: eservice.id,
           descriptorId: publishedDescriptor.id,
         });
         const previousStateEntry: PlatformStatesCatalogEntry = {
@@ -901,22 +956,6 @@ describe("database test", async () => {
         expect(retrievedEntry).toEqual(previousStateEntry);
       });
       it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
-        expect(1).toBe(1);
-      });
-    });
-
-    describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
-      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additinal checks are added
-      it("entry has to be deleted", () => {
-        expect(1).toBe(1);
-      });
-    });
-
-    describe("EServiceDescriptorSuspended", () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", () => {
-        expect(1).toBe(1);
-      });
-      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -925,27 +964,266 @@ describe("database test", async () => {
           publishedAt: new Date(),
         };
         const eservice: EService = {
-          ...mockEService,
+          ...getMockEService(),
           descriptors: [publishedDescriptor],
         };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
-        const suspendedDescriptor: Descriptor = {
-          ...publishedDescriptor,
-          suspendedAt: new Date(),
-          state: descriptorState.suspended,
+        const payload: EServiceDescriptorArchivedV2 = {
+          eservice: toEServiceV2(eservice),
+          descriptorId: publishedDescriptor.id,
         };
-        const updatedEService: EService = {
-          ...eservice,
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: eservice.id,
+          version: 3,
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const previousStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.inactive,
+          descriptorAudience: publishedDescriptor.audience[0],
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            descriptorState: itemState.inactive,
+            descriptorAudience: publishedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            descriptorState: itemState.inactive,
+            descriptorAudience: publishedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+        await sleep(1000, mockDate);
+
+        await handleMessageV2(message, dynamoDBClient);
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            descriptorState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            descriptorState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry2,
+            expectedTokenStateEntry1,
+          ])
+        );
+      });
+    });
+
+    describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
+      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additinal checks are added
+      it("entry has to be deleted", async () => {
+        const archivedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: descriptorState.archived,
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          version: "1",
+          publishedAt: new Date(),
+          archivedAt: new Date(),
+        };
+        const publishedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          archivedAt: new Date(),
+          state: descriptorState.published,
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          version: "2",
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [archivedDescriptor, publishedDescriptor],
+        };
+        const payload: EServiceDescriptorPublishedV2 = {
+          eservice: toEServiceV2(eservice),
+          descriptorId: publishedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: eservice.id,
+          version: 2,
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(message, dynamoDBClient);
+
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const retrievedEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+        expect(retrievedEntry).toBeUndefined();
+      });
+    });
+
+    describe("EServiceDescriptorSuspended", () => {
+      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+        const suspendedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.suspended,
+          publishedAt: new Date(),
+          suspendedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
           descriptors: [suspendedDescriptor],
         };
+
         const payload: EServiceDescriptorSuspendedV2 = {
-          eservice: toEServiceV2(updatedEService),
+          eservice: toEServiceV2(eservice),
           descriptorId: suspendedDescriptor.id,
         };
         const message: EServiceEventEnvelope = {
           sequence_num: 1,
-          stream_id: mockEService.id,
+          stream_id: eservice.id,
+          version: 1,
+          type: "EServiceDescriptorSuspended",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: suspendedDescriptor.id,
+        });
+        const previousStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.active,
+          descriptorAudience: suspendedDescriptor.audience[0],
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        // TODO: replace last generateId() with kid
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: suspendedDescriptor.id,
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            descriptorState: itemState.active,
+            descriptorAudience: suspendedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            descriptorState: itemState.active,
+            descriptorAudience: suspendedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+        await handleMessageV2(message, dynamoDBClient);
+
+        const retrievedEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+
+        expect(retrievedEntry).toEqual(previousStateEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry2,
+            previousTokenStateEntry1,
+          ])
+        );
+      });
+      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+        const suspendedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.suspended,
+          publishedAt: new Date(),
+          suspendedAt: new Date(),
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [suspendedDescriptor],
+        };
+        const payload: EServiceDescriptorSuspendedV2 = {
+          eservice: toEServiceV2(eservice),
+          descriptorId: suspendedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorSuspended",
           event_version: 2,
@@ -953,13 +1231,13 @@ describe("database test", async () => {
           log_date: new Date(),
         };
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
-          eserviceId: updatedEService.id,
-          descriptorId: publishedDescriptor.id,
+          eserviceId: eservice.id,
+          descriptorId: suspendedDescriptor.id,
         });
         const previousStateEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience[0],
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -973,13 +1251,13 @@ describe("database test", async () => {
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
-          descriptorId: publishedDescriptor.id,
+          descriptorId: suspendedDescriptor.id,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             descriptorState: itemState.active,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: suspendedDescriptor.audience[0],
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -992,7 +1270,7 @@ describe("database test", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             descriptorState: itemState.active,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: suspendedDescriptor.audience[0],
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
