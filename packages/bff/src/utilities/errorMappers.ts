@@ -72,3 +72,11 @@ export const getClientUsersErrorMapper = (
   match(error.code)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getProducerKeychainUsersErrorMapper = (
+  error: ApiError<ErrorCodes>
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): number =>
+  match(error.code)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
