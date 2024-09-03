@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { randomUUID } from "crypto";
+import { match } from "ts-pattern";
 import {
   FileManager,
   getAllFromPaginated,
@@ -20,7 +21,11 @@ import {
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { agreementDescriptorNotFound } from "../model/domain/errors.js";
+import {
+  agreementDescriptorNotFound,
+  contractException,
+  contractNotFound,
+} from "../model/domain/errors.js";
 import {
   toCompactEservice,
   toCompactDescriptor,
@@ -157,6 +162,33 @@ export function agreementServiceBuilder(
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
         documentSeed.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
+
+    async getAgreementContract(
+      agreementId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Retrieving contract for agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers,
+      });
+
+      if (!agreement.contract) {
+        match(agreement.state).with("ACTIVE", "SUSPENDED", "ARCHIVED", () => {
+          throw contractException(agreementId);
+        });
+        throw contractNotFound(agreementId);
+      }
+
+      const documentBytes = await fileManager.get(
+        config.consumerDocumentsContainer,
+        agreement.contract.path,
         logger
       );
 

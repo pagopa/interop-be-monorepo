@@ -28,6 +28,8 @@ export const errorCodes = {
   openapiVersionNotRecognized: "0020",
   interfaceExtractingInfoError: "0021",
   agreementDescriptorNotFound: "0022",
+  contractNotFound: "0023",
+  contractException: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -239,5 +241,21 @@ export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
     detail: `Error extracting info from interface file`,
     code: "interfaceExtractingInfoError",
     title: "Error extracting info from interface file",
+  });
+}
+
+export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "contractNotFound",
+    title: "Contract not found",
+  });
+}
+
+export function contractException(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract exception for agreement ${agreementId}`,
+    code: "contractException",
+    title: "Contract exception",
   });
 }
