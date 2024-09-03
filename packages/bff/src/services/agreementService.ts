@@ -23,6 +23,7 @@ import {
   toCompactEservice,
   toCompactDescriptor,
 } from "../model/api/apiConverter.js";
+import { isAgreementUpgradable } from "../model/validators.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
@@ -148,20 +149,6 @@ export const getLatestAgreement = async (
     .at(0);
 };
 
-function isUpgradable(
-  descriptor: catalogApi.EServiceDescriptor,
-  agreement: agreementApi.Agreement,
-  descriptors: catalogApi.EServiceDescriptor[]
-): boolean {
-  return descriptors
-    .filter((d) => Number(d.version) > Number(descriptor.version))
-    .some(
-      (d) =>
-        (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
-        (agreement.state === "ACTIVE" || agreement.state === "SUSPENDED")
-    );
-}
-
 async function enrichListAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
@@ -185,11 +172,7 @@ async function enrichListAgreement(
     },
     eservice: toCompactEservice(eservice, producer),
     descriptor: toCompactDescriptor(currentDescriptor),
-    canBeUpgraded: isUpgradable(
-      currentDescriptor,
-      agreement,
-      eservice.descriptors
-    ),
+    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
