@@ -48,22 +48,29 @@ export async function handleMessageV1(
           // fare query su platform states e vedere se c'è
           // se non c'è sono in draft, e continuo questa esecuzione
           // se c'è (presumibilmente come inactive) allora era suspended e sono nel caso sotto (sospensione e riattivazione hanno stesso handler)
-
           const existingCatalogEntry = await readCatalogEntry(
             eserviceDescriptorPK,
             dynamoDBClient
           );
 
-          if (!existingCatalogEntry) {
-            // the descriptor was draft so there was not an entry in platform-states
-            const catalogEntry: PlatformStatesCatalogEntry = {
-              PK: eserviceDescriptorPK,
-              state: descriptorStateToClientState(descriptor.state),
-              descriptorAudience: descriptor.audience[0],
-              version: msg.version,
-              updatedAt: new Date().toISOString(),
-            };
-            await writeCatalogEntry(catalogEntry, dynamoDBClient);
+          if (
+            existingCatalogEntry &&
+            existingCatalogEntry.version > msg.version
+          ) {
+            return Promise.resolve();
+            // Stops processing if the message is older than the catalog entry
+          } else if (
+            existingCatalogEntry &&
+            existingCatalogEntry.version <= msg.version
+          ) {
+            // suspended->published
+
+            await updateDescriptorStateInPlatformStatesEntry(
+              dynamoDBClient,
+              eserviceDescriptorPK,
+              descriptorStateToClientState(descriptor.state),
+              msg.version
+            );
 
             // token-generation-states
             const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
@@ -76,15 +83,15 @@ export async function handleMessageV1(
               dynamoDBClient
             );
           } else {
-            // activation from suspended
+            const catalogEntry: PlatformStatesCatalogEntry = {
+              PK: eserviceDescriptorPK,
+              state: descriptorStateToClientState(descriptor.state),
+              descriptorAudience: descriptor.audience[0],
+              version: msg.version,
+              updatedAt: new Date().toISOString(),
+            };
 
-            // platform-states
-            await updateDescriptorStateInPlatformStatesEntry(
-              dynamoDBClient,
-              existingCatalogEntry.PK,
-              descriptorStateToClientState(descriptor.state),
-              msg.version
-            );
+            await writeCatalogEntry(catalogEntry, dynamoDBClient);
 
             // token-generation-states
             const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
