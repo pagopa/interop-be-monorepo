@@ -1,4 +1,3 @@
-/* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -92,6 +91,7 @@ describe("activate agreement", () => {
     id: generateId(),
   };
 
+  // eslint-disable-next-line functional/no-let
   let mockSelfcareUserResponseWithMissingInfo: selfcareV2ClientApi.UserResponse =
     mockSelfcareUserResponse;
   while (

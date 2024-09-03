@@ -34,7 +34,12 @@ async function processMessage({
 
   if (outboundEvent) {
     await producer.send({
-      messages: [{ value: encodeOutboundEServiceEvent(outboundEvent) }],
+      messages: [
+        {
+          key: outboundEvent.stream_id,
+          value: encodeOutboundEServiceEvent(outboundEvent),
+        },
+      ],
     });
   }
 
