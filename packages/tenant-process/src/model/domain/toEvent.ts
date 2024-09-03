@@ -100,7 +100,7 @@ export const toCreateEventTenantCertifiedAttributeAssigned = (
 
 export const toCreateEventTenantKindUpdated = (
   version: number,
-  oldKind: TenantKind,
+  oldKind: TenantKind | undefined,
   updatedTenant: Tenant,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
@@ -110,7 +110,26 @@ export const toCreateEventTenantKindUpdated = (
     type: "TenantKindUpdated",
     event_version: 2,
     data: {
-      oldKind: toTenantKindV2(oldKind),
+      oldKind: oldKind ? toTenantKindV2(oldKind) : undefined,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedAttributeRevoked = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedAttributeRevoked",
+    event_version: 2,
+    data: {
+      attributeId,
       tenant: toTenantV2(updatedTenant),
     },
   },
@@ -173,6 +192,25 @@ export const toCreateEventTenantVerifiedAttributeAssigned = (
   correlationId,
 });
 
+export const toCreateEventTenantVerifiedAttributeRevoked = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantVerifiedAttributeRevoked",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventTenantDeclaredAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
@@ -225,6 +263,23 @@ export const toCreateEventTenantMailAdded = (
     data: {
       mailId,
       tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventMaintenanceTenantPromotedToCertifier = (
+  version: number,
+  tenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantPromotedToCertifier",
+    data: {
+      tenant: toTenantV2(tenant),
     },
   },
   correlationId,

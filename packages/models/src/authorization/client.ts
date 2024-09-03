@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ClientId, PurposeId, TenantId, UserId } from "../brandedIds.js";
-import { JWKKey, Key } from "./key.js";
+import { Key } from "./key.js";
 
 export const clientKind = {
   consumer: "Consumer",
@@ -11,12 +11,6 @@ export const ClientKind = z.enum([
   ...Object.values(clientKind).slice(1),
 ]);
 export type ClientKind = z.infer<typeof ClientKind>;
-
-export const ClientJWKKey = JWKKey.extend({
-  clientId: ClientId,
-});
-
-export type ClientJWKKey = z.infer<typeof ClientJWKKey>;
 
 export const Client = z.object({
   id: ClientId,

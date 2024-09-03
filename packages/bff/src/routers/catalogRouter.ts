@@ -1,22 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
+  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
-import { fromBffAppContext } from "../utilities/context.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -25,7 +26,8 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
-  }: PagoPAInteropBeClients
+  }: PagoPAInteropBeClients,
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -35,7 +37,8 @@ const catalogRouter = (
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
-    attributeProcessClient
+    attributeProcessClient,
+    fileManager
   );
 
   catalogRouter
@@ -56,7 +59,28 @@ const catalogRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers/eservices", async (_req, res) => res.status(501).send())
+    .get("/producers/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getProducerEServices(
+          req.query.q,
+          req.query.consumersIds,
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          "Error retrieving Producer EServices"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/producers/eservices/:eserviceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -69,7 +93,8 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving producer eservice ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -99,12 +124,53 @@ const catalogRouter = (
     )
     .get(
       "/catalog/eservices/:eserviceId/descriptor/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const response = await catalogService.getCatalogEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.status(200).json(response).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error retrieving descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId} from catalog`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post("/eservices", async (_req, res) => res.status(501).send())
-    .get("/eservices/:eServiceId/consumers", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/eservices/:eServiceId/consumers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getEServiceConsumers(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+
+        return res
+          .header(
+            "Content-Disposition",
+            `attachment; filename=${response.filename}`
+          )
+          .header("Content-Type", "application/octet-stream")
+          .send(response.file);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          `Error getting consumers of eservice ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
       async (_req, res) => res.status(501).send()
@@ -134,7 +200,21 @@ const catalogRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const resp = await catalogService.createEServiceDocument(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.body,
+            ctx
+          );
+          return res.status(200).json(resp).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
@@ -156,14 +236,31 @@ const catalogRouter = (
       res.status(501).send()
     )
     .put("/eservices/:eServiceId", async (_req, res) => res.status(501).send())
-    .post("/eservices/:eServiceId/riskAnalysis", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.addRiskAnalysisToEService(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/eservices/:eServiceId/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const id = await catalogService.updateEServiceDescription(
-          ctx.headers,
+          ctx,
           unsafeBrandId(req.params.eServiceId),
           req.body
         );
@@ -180,16 +277,80 @@ const catalogRouter = (
     })
     .get(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const riskAnalysis = await catalogService.getEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+
+          return res.status(200).json(riskAnalysis).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error retrieving risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.updateEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error updating risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.deleteEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/export/eservices/:eserviceId/descriptors/:descriptorId",
       async (_req, res) => res.status(501).send()
-    );
+    )
+    .get("/import/eservices/presignedUrl", async (_req, res) =>
+      res.status(501).send()
+    )
+    .post("/import/eservices", async (_req, res) => res.status(501).send());
 
   return catalogRouter;
 };

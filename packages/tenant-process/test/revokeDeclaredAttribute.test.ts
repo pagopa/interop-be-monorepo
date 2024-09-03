@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockTenant,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   Tenant,
@@ -8,6 +10,7 @@ import {
   toTenantV2,
   AttributeId,
   TenantDeclaredAttributeRevokedV2,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -15,12 +18,7 @@ import {
   tenantNotFound,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  addOneTenant,
-  getMockTenant,
-  postgresDB,
-  tenantService,
-} from "./utils.js";
+import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("revokeDeclaredAttribute", async () => {
   const attributeId: AttributeId = generateId();
@@ -106,7 +104,7 @@ describe("revokeDeclaredAttribute", async () => {
       attributes: [
         {
           id: attributeId,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
