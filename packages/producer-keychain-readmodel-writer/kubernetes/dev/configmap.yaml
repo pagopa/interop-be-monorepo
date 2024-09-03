@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interop-be-producer-keychain-readmodel-writer
+  namespace: dev-refactor
+data:
+  KAFKA_CLIENT_ID: "dev-pagopa-interop-producer-keychain"
+  KAFKA_GROUP_ID: "producer-keychain-readmodel-writer"
+  KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"
+  AUTHORIZATION_TOPIC: "event-store.dev-refactor_authz.events"
