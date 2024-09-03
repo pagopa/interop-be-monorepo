@@ -60,7 +60,7 @@ describe("updateTenantVerifiedAttribute", async () => {
   const verifierId = mockVerifiedBy.id;
   it("should update the expirationDate", async () => {
     await addOneTenant(tenant);
-    await tenantService.updateTenantVerifiedAttribute(
+    const returnedTenant = await tenantService.updateTenantVerifiedAttribute(
       {
         verifierId,
         tenantId: tenant.id,
@@ -100,6 +100,7 @@ describe("updateTenantVerifiedAttribute", async () => {
     };
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
   });
   it("should throw tenantNotFound when tenant doesn't exist", async () => {
     expect(

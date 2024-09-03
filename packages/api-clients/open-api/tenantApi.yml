@@ -1340,6 +1340,8 @@ components:
       description: A specific kind of mail
       type: object
       properties:
+        id:
+          type: string
         kind:
           $ref: "#/components/schemas/MailKind"
         address:
@@ -1352,6 +1354,7 @@ components:
           type: string
           maxLength: 250
       required:
+        - id
         - kind
         - address
         - createdAt

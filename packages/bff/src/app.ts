@@ -21,6 +21,7 @@ import {
   fromFilesToBodyMiddleware,
   multerMiddleware,
 } from "./utilities/middlewares.js";
+import clientRouter from "./routers/clientRouter.js";
 
 const serviceName = "bff-process";
 const fileManager = initFileManager(config);
@@ -48,5 +49,6 @@ app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx));
 app.use(selfcareRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx));
+app.use(clientRouter(zodiosCtx, clients));
 
 export default app;

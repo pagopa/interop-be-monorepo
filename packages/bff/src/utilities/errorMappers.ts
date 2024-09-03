@@ -65,3 +65,10 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getClientUsersErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

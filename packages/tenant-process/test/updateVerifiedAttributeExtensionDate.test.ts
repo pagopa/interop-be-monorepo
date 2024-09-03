@@ -59,17 +59,18 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     );
 
     await addOneTenant(tenant);
-    await tenantService.updateVerifiedAttributeExtensionDate(
-      tenant.id,
-      attributeId,
-      verifierId,
-      {
-        correlationId,
-        logger: genericLogger,
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
-    );
+    const returnedTenant =
+      await tenantService.updateVerifiedAttributeExtensionDate(
+        tenant.id,
+        attributeId,
+        verifierId,
+        {
+          correlationId,
+          logger: genericLogger,
+          serviceName: "",
+          authData: getMockAuthData(),
+        }
+      );
     const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
       fail("Creation fails: tenant not found in event-store");
@@ -100,6 +101,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(returnedTenant).toEqual(updatedTenant);
   });
   it("should throw tenantNotFound when tenant doesn't exist", async () => {
     const correlationId = generateId();

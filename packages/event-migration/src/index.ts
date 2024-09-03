@@ -26,7 +26,7 @@ import {
 } from "pg-promise/typescript/pg-subset.js";
 import { match } from "ts-pattern";
 import { z } from "zod";
-import { connectToReadModel } from "./read-models-migration-check.js";
+import { connectToReadModel } from "./utils.js";
 
 const Config = z
   .object({
