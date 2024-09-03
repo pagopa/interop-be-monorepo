@@ -2,6 +2,7 @@ import { userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
+  EService,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
@@ -16,6 +17,7 @@ import {
   organizationNotAllowedOnProducerKeychain,
   tooManyKeysPerClient,
   tooManyKeysPerProducerKeychain,
+  organizationNotAllowedOnEService,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 
@@ -91,5 +93,14 @@ export const assertProducerKeychainKeysCountIsBelowThreshold = (
 ): void => {
   if (size > config.maxKeysPerProducerKeychain) {
     throw tooManyKeysPerProducerKeychain(producerKeychainId, size);
+  }
+};
+
+export const assertOrganizationIsEServiceProducer = (
+  organizationId: TenantId,
+  eservice: EService
+): void => {
+  if (organizationId !== eservice.producerId) {
+    throw organizationNotAllowedOnEService(organizationId, eservice.id);
   }
 };

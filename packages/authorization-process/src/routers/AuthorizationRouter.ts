@@ -58,6 +58,8 @@ import {
   getProducerKeychainUsersErrorMapper,
   addProducerKeychainUserErrorMapper,
   removeProducerKeychainUserErrorMapper,
+  removeProducerKeychainEServiceErrorMapper,
+  addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -921,12 +923,50 @@ const authorizationRouter = (
     .post(
       "/producerKeychains/:producerKeychainId/eservices",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.addProducerKeychainEService({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            seed: req.body,
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addPurposeKeychainEServiceErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/producerKeychains/:producerKeychainId/eservices/:eserviceId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeProducerKeychainEService({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            eserviceIdToRemove: unsafeBrandId(req.params.eserviceId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeProducerKeychainEServiceErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   const tokenGenerationRouter = ctx.router(
