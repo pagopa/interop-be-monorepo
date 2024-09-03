@@ -8,6 +8,7 @@ import {
   itemState,
   ItemState,
   PlatformStatesCatalogEntry,
+  PlatformStatesEServiceDescriptorPK,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import {
@@ -62,7 +63,7 @@ export const writeCatalogEntry = async (
 };
 
 export const readCatalogEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesCatalogEntry | undefined> => {
   const input: GetItemInput = {
@@ -92,7 +93,7 @@ export const readCatalogEntry = async (
 };
 
 export const deleteCatalogEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: DeleteItemInput = {
@@ -126,7 +127,7 @@ export const descriptorStateToClientState = (
 // TO DO scrivere test per vedere se funziona come upsert o solo come update
 export const updateDescriptorState = async (
   dynamoDBClient: DynamoDBClient,
-  primaryKey: string,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
   state: ItemState
 ): Promise<void> => {
   const input: UpdateItemInput = {
@@ -154,7 +155,7 @@ export const updateDescriptorState = async (
 
 export const updateDescriptorStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
-  primaryKey: string,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
   state: ItemState,
   version: number
 ): Promise<void> => {
