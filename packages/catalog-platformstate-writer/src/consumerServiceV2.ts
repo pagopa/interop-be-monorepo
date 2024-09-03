@@ -130,6 +130,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorSuspended" },
       async (msg) => {
+        // TODO: add version check
         const { eservice, descriptor } = parseEServiceAndDescriptor(
           msg.data.eservice,
           unsafeBrandId(msg.data.descriptorId)
@@ -171,6 +172,7 @@ export async function handleMessageV2(
       }
     )
     .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
+      // TODO: add version check
       const eserviceV2 = msg.data.eservice;
       if (!eserviceV2) {
         throw genericInternalError(
