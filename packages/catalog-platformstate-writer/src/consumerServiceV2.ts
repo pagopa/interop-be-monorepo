@@ -96,59 +96,22 @@ export async function handleMessageV2(
             dynamoDBClient
           );
         }
-
-        // no previous entry or entry has to be updated
-
-        const catalogEntry: PlatformStatesCatalogEntry = {
-          PK: primaryKeyCurrent,
-          state: descriptorStateToClientState(descriptor.state),
-          descriptorAudience: descriptor.audience[0],
-          version: msg.version,
-          updatedAt: new Date().toISOString(),
-        };
-
-        await writeCatalogEntry(catalogEntry, dynamoDBClient);
-
-        // token-generation-states
-        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        });
-        await updateDescriptorStateInTokenGenerationStatesTable(
-          eserviceId_descriptorId,
-          descriptor.state,
-          dynamoDBClient
-        );
       }
 
       // flow for previous descriptor
 
-      if (!previousDescriptor) {
-        return Promise.resolve();
-      }
-      const primaryKeyPrevious = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-      });
-      const existingCatalogEntryPrevious = await readCatalogEntry(
-        primaryKeyPrevious,
-        dynamoDBClient
-      );
       if (
-        existingCatalogEntryPrevious &&
-        existingCatalogEntryPrevious.version > msg.version
+        !previousDescriptor ||
+        previousDescriptor.state !== descriptorState.archived
       ) {
         return Promise.resolve();
-      } else if (
-        existingCatalogEntryPrevious &&
-        existingCatalogEntryPrevious.version <= msg.version
-      ) {
-        await updateDescriptorStateInPlatformStatesEntry(
-          dynamoDBClient,
-          primaryKeyPrevious,
-          descriptorStateToClientState(previousDescriptor.state),
-          msg.version
-        );
+      } else {
+        const primaryKeyPrevious = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        });
+
+        await deleteCatalogEntry(primaryKeyPrevious, dynamoDBClient);
 
         // token-generation-states
         const eserviceId_descriptorId_previous =
@@ -161,12 +124,6 @@ export async function handleMessageV2(
           descriptor.state,
           dynamoDBClient
         );
-      } else {
-        if (!existingCatalogEntryPrevious) {
-          throw genericInternalError(
-            `Unable to find catalog entry with PK ${primaryKeyPrevious}`
-          );
-        }
       }
     })
     .with(
