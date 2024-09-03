@@ -30,7 +30,7 @@
     "vitest": "1.6.0"
   },
   "dependencies": {
-    "@pagopa/interop-outbound-models": "1.0.0",
+    "@pagopa/interop-outbound-models": "1.0.4",
     "@protobuf-ts/runtime": "2.9.4",
     "connection-string": "4.4.0",
     "dotenv-flow": "4.1.0",
