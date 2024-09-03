@@ -25,14 +25,14 @@ import {
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
 } from "./containerTestUtils.js";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
-    emailManagerConfig?: EmailManagerConfigTest;
+    emailManagerConfig?: PecEmailManagerConfigTest;
   }
 }
 
@@ -51,7 +51,7 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
-  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
+  const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
 
   return async function ({
     provide,

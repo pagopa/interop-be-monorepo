@@ -4,13 +4,13 @@ import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
+  selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
-import { userNotFound } from "../model/domain/errors.js";
 import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
@@ -331,14 +331,14 @@ async function getSelfcareUserById(
   selfcareClient: SelfcareV2UsersClient,
   userId: string,
   selfcareId: string
-) {
+): Promise<selfcareV2ClientApi.UserResponse> {
   try {
     return selfcareClient.getUserInfoUsingGET({
       params: { id: userId },
       queries: { institutionId: selfcareId },
     });
   } catch (error) {
-    throw userNotFound(userId, selfcareId);
+    return {};
   }
 }
 
