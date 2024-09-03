@@ -16,6 +16,7 @@ import {
   Key,
   ClientKind,
   ProducerKeychain,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -252,7 +253,7 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getKeyByKid(kid: string): Promise<Key | undefined> {
+    async getClientKeyByKid(kid: string): Promise<Key | undefined> {
       const data = await clients.findOne(
         { "data.keys.kid": { $eq: kid } },
         {
@@ -350,6 +351,56 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+
+    async getProducerKeychainById(
+      id: ProducerKeychainId
+    ): Promise<WithMetadata<ProducerKeychain> | undefined> {
+      const data = await producerKeychains.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            data: ProducerKeychain,
+            metadata: z.object({ version: z.number() }),
+          })
+          .safeParse(data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse producer keychain item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+    },
+
+    async getProducerKeychainKeyByKid(kid: string): Promise<Key | undefined> {
+      const data = await producerKeychains.findOne(
+        { "data.keys.kid": { $eq: kid } },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = ProducerKeychain.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse producer keychain item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data.keys.find((k) => k.kid === kid);
+      }
+      return undefined;
     },
   };
 }
