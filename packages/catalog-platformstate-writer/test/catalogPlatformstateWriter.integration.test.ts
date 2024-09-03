@@ -903,14 +903,7 @@ describe("database test", async () => {
 
     describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
       // these tests start with the basic flow for the current descriptor (simple write operation). Then, additinal checks are added
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", () => {
-        expect(1).toBe(1);
-      });
-      it("entry has to be updated: incoming has version 3; previous entry has version 2", () => {
-        expect(1).toBe(1);
-      });
-      it("no previous entry", () => {
-        // to do throw error
+      it("entry has to be deleted", () => {
         expect(1).toBe(1);
       });
     });
