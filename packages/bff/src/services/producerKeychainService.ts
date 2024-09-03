@@ -164,7 +164,6 @@ async function enhanceEService(
   return {
     id: eservice.id,
     name: eservice.name,
-    // TODO: check if this is needed
     producer: {
       id: producer.id,
       name: producer.name,
