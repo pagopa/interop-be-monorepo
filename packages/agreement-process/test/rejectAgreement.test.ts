@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
