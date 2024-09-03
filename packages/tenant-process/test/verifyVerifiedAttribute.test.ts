@@ -1,5 +1,3 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   generateId,
@@ -25,6 +23,9 @@ import {
   writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
+  getMockDescriptor,
+  getMockEService,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
@@ -36,9 +37,6 @@ import {
 import {
   addOneTenant,
   getMockAgreement,
-  getMockTenant,
-  getMockDescriptor,
-  getMockEService,
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
   getMockRevokedBy,
@@ -50,8 +48,8 @@ import {
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
-  const targetTenant: Tenant = getMockTenant();
-  const requesterTenant: Tenant = getMockTenant();
+  const targetTenant = getMockTenant();
+  const requesterTenant = getMockTenant();
   const tenantAttributeSeed: tenantApi.VerifiedTenantAttributeSeed = {
     id: generateId(),
   };

@@ -15,11 +15,11 @@ import {
   S3Config,
   genericLogger,
   initDB,
-  initEmailManager,
+  initPecEmailManager,
   initFileManager,
 } from "pagopa-interop-commons";
 import axios from "axios";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -68,7 +68,7 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfigTest
+  emailManagerConfig?: PecEmailManagerConfigTest
 ): {
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -80,7 +80,7 @@ export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
-  emailManagerConfig?: EmailManagerConfigTest
+  emailManagerConfig?: PecEmailManagerConfigTest
 ): {
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -116,7 +116,7 @@ export function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initEmailManager(emailManagerConfig, false);
+    emailManager = initPecEmailManager(emailManagerConfig, false);
   }
 
   return {
