@@ -14,7 +14,7 @@ export const errorCodes = {
   clientNotFound: "0001",
   organizationNotAllowedOnClient: "0002",
   clientUserIdNotFound: "0003",
-  keyNotFound: "0004",
+  clientKeyNotFound: "0004",
   userNotAllowedOnClient: "0005",
   purposeNotFound: "0006",
   userWithoutSecurityPrivileges: "0007",
@@ -32,6 +32,11 @@ export const errorCodes = {
   organizationNotAllowedOnProducerKeychain: "0019",
   producerKeychainUserAlreadyAssigned: "0020",
   producerKeychainUserIdNotFound: "0021",
+  tooManyKeysPerProducerKeychain: "0022",
+  userNotAllowedOnProducerKeychain: "0023",
+  producerKeyNotFound: "0024",
+  organizationNotAllowedOnEService: "0025",
+  eserviceAlreadyLinkedToProducerKeychain: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -68,13 +73,13 @@ export function clientUserIdNotFound(
   });
 }
 
-export function keyNotFound(
+export function clientKeyNotFound(
   keyId: string,
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Key ${keyId} not found in client ${clientId}`,
-    code: "keyNotFound",
+    code: "clientKeyNotFound",
     title: "Key not found",
   });
 }
@@ -193,6 +198,17 @@ export function tooManyKeysPerClient(
   });
 }
 
+export function tooManyKeysPerProducerKeychain(
+  producerKeychainId: ProducerKeychainId,
+  size: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Keys count (${size}) for the producer keychain ${producerKeychainId} exceeds maximum allowed value`,
+    code: "tooManyKeysPerProducerKeychain",
+    title: "Too many Keys per producer keychain",
+  });
+}
+
 export function userNotFound(
   userId: UserId,
   selfcareId: string
@@ -233,6 +249,28 @@ export function organizationNotAllowedOnProducerKeychain(
   });
 }
 
+export function userNotAllowedOnProducerKeychain(
+  userId: UserId,
+  producerKeychain: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is not allowed on producer keychain ${producerKeychain}`,
+    code: "userNotAllowedOnProducerKeychain",
+    title: "User not allowed on producer keychain",
+  });
+}
+
+export function producerKeyNotFound(
+  keyId: string,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key ${keyId} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeyNotFound",
+    title: "Key not found",
+  });
+}
+
 export function producerKeychainUserAlreadyAssigned(
   producerKeychainId: ProducerKeychainId,
   userId: UserId
@@ -252,5 +290,27 @@ export function producerKeychainUserIdNotFound(
     detail: `User ${userId} not found in producer keychain ${producerKeychainId}`,
     code: "producerKeychainUserIdNotFound",
     title: "User id not found in producer keychain",
+  });
+}
+
+export function organizationNotAllowedOnEService(
+  organizationId: TenantId,
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed on e-service ${eserviceId}`,
+    code: "organizationNotAllowedOnEService",
+    title: "Organization not allowed on e-service",
+  });
+}
+
+export function eserviceAlreadyLinkedToProducerKeychain(
+  eserviceId: EServiceId,
+  producerKeychainId: ProducerKeychainId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is already linked to producer keychain ${producerKeychainId}`,
+    code: "eserviceAlreadyLinkedToProducerKeychain",
+    title: "EService already linked to producer keychain",
   });
 }
