@@ -184,9 +184,7 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
     ReturnValues: "ALL_NEW",
   };
   const command = new UpdateItemCommand(input);
-  console.log(command);
-  const a = await dynamoDBClient.send(command);
-  console.log(a);
+  await dynamoDBClient.send(command);
 };
 
 export const writeTokenStateEntry = async (
@@ -250,18 +248,13 @@ export const writeTokenStateEntry = async (
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
-  console.log(
-    "tokenStateEntry.GSIPK_eserviceId_descriptorId ",
-    tokenStateEntry.GSIPK_eserviceId_descriptorId
-  );
-  console.log("write token state", await dynamoDBClient.send(command));
+  await dynamoDBClient.send(command);
 };
 
 export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesClientPurposeEntry | undefined> => {
-  console.log("eserviceId_descriptorId ", eserviceId_descriptorId);
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     IndexName: "gsiIndex", // Use the name of your Global Secondary Index
@@ -276,7 +269,6 @@ export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
-  console.log("data.Items ", data);
 
   if (!data.Items) {
     return undefined;
@@ -300,7 +292,6 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesClientPurposeEntry[] | undefined> => {
-  console.log("eserviceId_descriptorId ", eserviceId_descriptorId);
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     IndexName: "gsiIndex", // Use the name of your Global Secondary Index
@@ -315,7 +306,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
-  console.log("data.Items ", data);
+  // console.log("data.Items ", data);
 
   if (!data.Items) {
     return undefined;
