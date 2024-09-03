@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   AuthorizationEventV2,
   Client,
+  EServiceId,
   ProducerKeychain,
   PurposeId,
   UserId,
@@ -205,6 +206,132 @@ export function toCreateEventProducerKeychainDeleted(
       data: {
         producerKeychain: toProducerKeychainV2(producerKeychain),
         producerKeychainId: producerKeychain.id,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainUserAdded(
+  userId: UserId,
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainUserAdded",
+      event_version: 2,
+      data: {
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+        userId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainUserDeleted(
+  producerKeychain: ProducerKeychain,
+  userId: UserId,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainUserDeleted",
+      event_version: 2,
+      data: {
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+        userId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainKeyAdded(
+  kid: string,
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainKeyAdded",
+      event_version: 2,
+      data: {
+        kid,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainKeyDeleted(
+  producerKeychain: ProducerKeychain,
+  keyId: string,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainKeyDeleted",
+      event_version: 2,
+      data: {
+        kid: keyId,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainEServiceAdded(
+  eserviceId: EServiceId,
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainEServiceAdded",
+      event_version: 2,
+      data: {
+        eserviceId,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainEServiceRemoved(
+  producerKeychain: ProducerKeychain,
+  eserviceId: EServiceId,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainEServiceRemoved",
+      event_version: 2,
+      data: {
+        eserviceId,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },
     correlationId,
