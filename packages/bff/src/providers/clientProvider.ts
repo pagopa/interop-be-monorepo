@@ -43,7 +43,7 @@ export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
-  authorizationProcessClient: AuthorizationProcessClient;
+  authorizationClient: AuthorizationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -62,7 +62,7 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.attributeRegistryUrl
     ),
     purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
-    authorizationProcessClient: {
+    authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
       producerKeychain: authorizationApi.createProducerKeychainApiClient(
         config.authorizationUrl

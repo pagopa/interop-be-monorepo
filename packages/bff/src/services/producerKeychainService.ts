@@ -17,7 +17,7 @@ export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients,
   selfcareUsersClient: SelfcareV2UsersClient
 ) {
-  const { authorizationProcessClient } = apiClients;
+  const { authorizationClient } = apiClients;
 
   return {
     async getProducerKeychains(
@@ -38,7 +38,7 @@ export function producerKeychainServiceBuilder(
     ): Promise<authorizationApi.ProducerKeychains> {
       logger.info(`Retrieving producer keychains`);
 
-      return authorizationProcessClient.producerKeychain.getProducerKeychains({
+      return authorizationClient.producerKeychain.getProducerKeychains({
         queries: {
           offset,
           limit,
@@ -56,12 +56,9 @@ export function producerKeychainServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating producer keychain with name ${seed.name}`);
 
-      return authorizationProcessClient.producerKeychain.createProducerKeychain(
-        seed,
-        {
-          headers,
-        }
-      );
+      return authorizationClient.producerKeychain.createProducerKeychain(seed, {
+        headers,
+      });
     },
     async getProducerKeychainById(
       producerKeychainId: string,
@@ -70,7 +67,7 @@ export function producerKeychainServiceBuilder(
       ctx.logger.info(`Retrieve producer keychain ${producerKeychainId}`);
 
       const producerKeychain =
-        await authorizationProcessClient.producerKeychain.getProducerKeychain({
+        await authorizationClient.producerKeychain.getProducerKeychain({
           params: { producerKeychainId },
           headers: ctx.headers,
         });
@@ -82,7 +79,7 @@ export function producerKeychainServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting producer keychain ${producerKeychainId}`);
 
-      return authorizationProcessClient.producerKeychain.deleteProducerKeychain(
+      return authorizationClient.producerKeychain.deleteProducerKeychain(
         undefined,
         {
           params: { producerKeychainId },
@@ -99,7 +96,7 @@ export function producerKeychainServiceBuilder(
         `Adding e-service ${eservice.eserviceId} to producer keychain ${producerKeychainId}`
       );
 
-      await authorizationProcessClient.producerKeychain.addProducerKeychainEService(
+      await authorizationClient.producerKeychain.addProducerKeychainEService(
         eservice,
         {
           params: { producerKeychainId },
@@ -116,7 +113,7 @@ export function producerKeychainServiceBuilder(
         `Removing e-service ${eserviceId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationProcessClient.producerKeychain.removeProducerKeychainEService(
+      return authorizationClient.producerKeychain.removeProducerKeychainEService(
         undefined,
         {
           params: { producerKeychainId, eserviceId },

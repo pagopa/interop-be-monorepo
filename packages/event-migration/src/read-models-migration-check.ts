@@ -6,8 +6,7 @@
  */
 
 import { z } from "zod";
-import { ReadModelDbConfig } from "pagopa-interop-commons";
-import { MongoClient, Db } from "mongodb";
+import { Db } from "mongodb";
 import isEqual from "lodash.isequal";
 import { diff } from "json-diff";
 import {
@@ -15,10 +14,11 @@ import {
   Attribute,
   Client,
   EService,
-  JWKKey,
+  ClientJWKKey,
   Purpose,
   Tenant,
 } from "pagopa-interop-models";
+import { connectToReadModel } from "./utils.js";
 
 const Collection = z.enum([
   "agreements",
@@ -38,7 +38,7 @@ const readModelSchemas = {
   tenants: Tenant,
   purposes: Purpose,
   clients: Client,
-  keys: JWKKey,
+  keys: ClientJWKKey,
 } as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
@@ -136,18 +136,6 @@ async function main(): Promise<void> {
   }
 
   console.log("No differences found");
-}
-
-function connectToReadModel({
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-}: ReadModelDbConfig): MongoClient {
-  const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-  return new MongoClient(mongoDBConnectionURI, {
-    retryWrites: false,
-  });
 }
 
 export async function compareReadModelsCollection<

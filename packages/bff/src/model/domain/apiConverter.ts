@@ -91,6 +91,14 @@ export const toApiSelfcareUser = (
       throw selfcareEntityNotFilled("UserResource", "unknown");
     });
 
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
+
 export const toApiAttributeProcessSeed = (
   seed: bffApi.AttributeSeed
 ): attributeRegistryApi.CertifiedAttributeSeed => ({
