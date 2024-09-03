@@ -1,12 +1,13 @@
-import { z } from "zod";
 import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  S3Config,
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -33,9 +34,11 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -65,14 +68,13 @@ export type PurposeProcessServerConfig = z.infer<
 
 export const AuthorizationProcessServerConfig = z
   .object({
-    TENANT_ALLOWED_ORIGINS: z.string(),
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
+    TENANT_ALLOWED_ORIGINS: z.string(),
   })
   .transform((c) => ({
-    tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
+    tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
   }));
-
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
@@ -89,16 +91,29 @@ export const AllowedListConfig = z
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
 
+export const S3RiskAnalysisConfig = z
+  .object({
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+  }));
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
+  .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig);
+  .and(SelfCareConfig)
+  .and(S3RiskAnalysisConfig)
+  .and(S3Config)
+  .and(PurposeProcessServerConfig);
+
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
