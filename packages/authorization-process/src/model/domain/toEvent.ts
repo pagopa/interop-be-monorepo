@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   AuthorizationEventV2,
   Client,
+  EServiceId,
   ProducerKeychain,
   PurposeId,
   UserId,
@@ -288,6 +289,48 @@ export function toCreateEventProducerKeychainKeyDeleted(
       event_version: 2,
       data: {
         kid: keyId,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainEServiceAdded(
+  eserviceId: EServiceId,
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainEServiceAdded",
+      event_version: 2,
+      data: {
+        eserviceId,
+        producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainEServiceRemoved(
+  producerKeychain: ProducerKeychain,
+  eserviceId: EServiceId,
+  version: number,
+  correlationId: string
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainEServiceRemoved",
+      event_version: 2,
+      data: {
+        eserviceId,
         producerKeychain: toProducerKeychainV2(producerKeychain),
       },
     },

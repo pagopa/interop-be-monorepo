@@ -257,3 +257,47 @@ export const getProducerKeychainKeysErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getProducerKeychainKeyErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "producerKeychainNotFound",
+      "producerKeyNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addPurposeKeychainEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "producerKeychainNotFound",
+      "eserviceNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("eserviceAlreadyLinkedToProducerKeychain", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      "organizationNotAllowedOnEService",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeProducerKeychainEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "organizationNotAllowedOnProducerKeychain",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
