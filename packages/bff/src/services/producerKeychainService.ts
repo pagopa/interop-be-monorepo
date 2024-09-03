@@ -155,7 +155,6 @@ export function producerKeychainServiceBuilder(
         });
 
       return Promise.all(
-        // TODO: selfcareId?
         keys.map((k) => decorateKey(selfcareUsersClient, k, selfcareId))
       );
     },
