@@ -106,6 +106,7 @@ export async function handleMessageV1(
           }
         })
         .with(descriptorState.suspended, async () => {
+          // TODO: add version check
           // platform-states
           await updateDescriptorStateInPlatformStatesEntry(
             dynamoDBClient,
@@ -126,6 +127,7 @@ export async function handleMessageV1(
           );
         })
         .with(descriptorState.archived, async () => {
+          // TODO: add version check
           const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
           const descriptorV1 = msg.data.eserviceDescriptor;
           if (!descriptorV1) {
