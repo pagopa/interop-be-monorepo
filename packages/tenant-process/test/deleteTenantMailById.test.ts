@@ -10,14 +10,12 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test";
-import { mailNotFound, tenantNotFound } from "../src/model/domain/errors.js";
 import {
-  addOneTenant,
   getMockTenant,
-  postgresDB,
-  tenantService,
-} from "./utils.js";
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import { mailNotFound, tenantNotFound } from "../src/model/domain/errors.js";
+import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("deleteTenantMailById", async () => {
   const mailId = generateId();

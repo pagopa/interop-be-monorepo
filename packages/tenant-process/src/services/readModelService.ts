@@ -24,7 +24,6 @@ import {
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
-import { attributeNotFound } from "../model/domain/errors.js";
 
 function listTenantsFilters(
   name: string | undefined
@@ -206,6 +205,19 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.selfcareId": selfcareId });
     },
 
+    async getAttributeByOriginAndCode({
+      origin,
+      code,
+    }: {
+      origin: string;
+      code: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.origin": origin,
+        "data.code": code,
+      });
+    },
+
     async getConsumers({
       consumerName,
       producerId,
@@ -287,39 +299,42 @@ export function readModelServiceBuilder(
         allowDiskUse: true,
       });
     },
+
     async getAttributesByExternalIds(
       externalIds: ExternalId[]
     ): Promise<Attribute[]> {
-      const fetchAttributeByExternalId = async (
-        externalId: ExternalId
-      ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, {
-          "data.origin": externalId.origin,
-          "data.code": externalId.value,
-        });
-        if (!data) {
-          throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
-        }
-        return data;
-      };
-
-      const attributesPromises = externalIds.map(fetchAttributeByExternalId);
-      return Promise.all(attributesPromises);
+      const data = await attributes
+        .find({
+          $or: externalIds.map((externalId) => ({
+            "data.origin": externalId.origin,
+            "data.code": externalId.value,
+          })),
+        })
+        .toArray();
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
-      const fetchAttributeById = async (
-        id: AttributeId
-      ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, { "data.id": id });
-        if (!data) {
-          throw attributeNotFound(id);
-        }
-        return data;
-      };
-
-      const attributePromises = attributeIds.map(fetchAttributeById);
-      return Promise.all(attributePromises);
+      const data = await attributes
+        .aggregate([{ $match: { "data.id": { $in: attributeIds } } }])
+        .toArray();
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getAttributeById(
@@ -450,7 +465,9 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(tenantApi.CertifiedAttribute).safeParse(data);
+      const result = z
+        .array(tenantApi.CertifiedAttribute.strip()) // "strip" used to remove "lowerName" field
+        .safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
@@ -468,6 +485,17 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+
+    async getOneCertifiedAttributeByCertifier({
+      certifierId,
+    }: {
+      certifierId: string;
+    }): Promise<Attribute | undefined> {
+      return getAttribute(attributes, {
+        "data.kind": attributeKind.certified,
+        "data.origin": certifierId,
+      });
     },
   };
 }

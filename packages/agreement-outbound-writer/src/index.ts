@@ -33,7 +33,12 @@ async function processMessage({
     .exhaustive();
 
   await producer.send({
-    messages: [{ value: encodeOutboundAgreementEvent(outboundEvent) }],
+    messages: [
+      {
+        key: outboundEvent.stream_id,
+        value: encodeOutboundAgreementEvent(outboundEvent),
+      },
+    ],
   });
 
   loggerInstance.info(
