@@ -7,6 +7,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
+import { SelfcareId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
@@ -333,7 +334,7 @@ async function getSelfcareUserById(
 async function decorateKey(
   selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
-  selfcareId: string
+  selfcareId: SelfcareId
 ): Promise<bffApi.PublicKey> {
   const user = await getSelfcareUserById(
     selfcareClient,
