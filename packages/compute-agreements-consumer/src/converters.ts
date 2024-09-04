@@ -9,13 +9,13 @@ import {
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 
-function toApiCompactTenantCertifiedVerifiedAttribute(
+function toApiCompactTenantCertifiedDeclaredAttribute(
   attr: CertifiedTenantAttribute
 ): agreementApi.CertifiedTenantAttribute;
-function toApiCompactTenantCertifiedVerifiedAttribute(
+function toApiCompactTenantCertifiedDeclaredAttribute(
   attr: DeclaredTenantAttribute
 ): agreementApi.DeclaredTenantAttribute;
-function toApiCompactTenantCertifiedVerifiedAttribute(
+function toApiCompactTenantCertifiedDeclaredAttribute(
   attr: CertifiedTenantAttribute | DeclaredTenantAttribute
 ):
   | agreementApi.CertifiedTenantAttribute
@@ -56,11 +56,11 @@ function toCompactTenantAttribute(
     .returnType<agreementApi.TenantAttribute>()
     .with(
       { type: tenantAttributeType.CERTIFIED },
-      toApiCompactTenantCertifiedVerifiedAttribute
+      toApiCompactTenantCertifiedDeclaredAttribute
     )
     .with(
       { type: tenantAttributeType.DECLARED },
-      toApiCompactTenantCertifiedVerifiedAttribute
+      toApiCompactTenantCertifiedDeclaredAttribute
     )
     .with(
       { type: tenantAttributeType.VERIFIED },
