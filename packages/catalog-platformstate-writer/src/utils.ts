@@ -324,7 +324,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
 
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(PK)",
+      ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
       Key: {
         PK: {
           S: entry.PK,
