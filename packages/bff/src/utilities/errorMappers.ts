@@ -70,14 +70,20 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "agreementDescriptorNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementByIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "agreementDescriptorNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const activateAgreementErrorMapper = (

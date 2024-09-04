@@ -14,7 +14,6 @@ import {
   Tenant,
   toTenantV2,
   Attribute,
-  unsafeBrandId,
   toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
   tenantAttributeType,
@@ -24,6 +23,8 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
+  tenantIsNotACertifier,
+  tenantNotFound,
   tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
@@ -34,8 +35,9 @@ import {
   postgresDB,
 } from "./utils.js";
 
-describe("internalUpsertTenant", async () => {
-  const tenantSeed: tenantApi.InternalTenantSeed = {
+describe("m2mUpsertTenant", async () => {
+  const certifierId = generateId();
+  const tenantSeed: tenantApi.M2MTenantSeed = {
     externalId: {
       origin: "IPA",
       value: "123456",
@@ -44,12 +46,12 @@ describe("internalUpsertTenant", async () => {
     certifiedAttributes: [{ origin: "ORIGIN", code: "CODE" }],
   };
 
-  const attribute1: Attribute = {
+  const attribute: Attribute = {
     name: "an Attribute",
     id: generateId(),
     kind: "Certified",
     description: "",
-    origin: "ORIGIN",
+    origin: certifierId,
     code: "CODE",
     creationTime: new Date(),
   };
@@ -63,6 +65,15 @@ describe("internalUpsertTenant", async () => {
     vi.useRealTimers();
   });
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
+    const attribute2: Attribute = {
+      name: "an Attribute2",
+      id: generateId(),
+      kind: "Certified",
+      description: "",
+      origin: certifierId,
+      code: "CODE",
+      creationTime: new Date(),
+    };
     const mockTenant: Tenant = {
       ...getMockTenant(),
       externalId: {
@@ -70,25 +81,30 @@ describe("internalUpsertTenant", async () => {
         value: "123456",
       },
       kind: tenantKind.PA,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId,
+        },
+      ],
     };
 
     const authData: AuthData = {
       ...getMockAuthData(),
       organizationId: mockTenant.id,
-      userRoles: ["internal"],
+      userRoles: ["m2m"],
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+
     await addOneTenant(mockTenant);
-    const returnedTenant = await tenantService.internalUpsertTenant(
-      tenantSeed,
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedTenant = await tenantService.m2mUpsertTenant(tenantSeed, {
+      authData,
+      correlationId: generateId(),
+      serviceName: "",
+      logger: genericLogger,
+    });
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
       1,
@@ -103,6 +119,7 @@ describe("internalUpsertTenant", async () => {
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
     });
+
     const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
       protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
         writtenEvent?.data
@@ -115,7 +132,7 @@ describe("internalUpsertTenant", async () => {
       attributes: [
         {
           assignmentTimestamp: new Date(),
-          id: attribute1.id,
+          id: attribute.id,
           type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
@@ -123,7 +140,49 @@ describe("internalUpsertTenant", async () => {
     };
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+
+    const writtenEvent2 = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      2,
+      "tenant",
+      postgresDB
+    );
+    if (!writtenEvent2) {
+      fail("Update failed: tenant not found in event-store");
+    }
+    expect(writtenEvent2).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "2",
+      type: "TenantCertifiedAttributeAssigned",
+    });
+
+    const writtenPayload2: TenantCertifiedAttributeAssignedV2 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+        writtenEvent2?.data
+      );
+
+    const expectedTenant2: Tenant = {
+      ...mockTenant,
+      kind: tenantKind.PA,
+      updatedAt: new Date(),
+      attributes: [
+        {
+          assignmentTimestamp: new Date(),
+          id: attribute.id,
+          type: tenantAttributeType.CERTIFIED,
+          revocationTimestamp: undefined,
+        },
+        {
+          assignmentTimestamp: new Date(),
+          id: attribute2.id,
+          type: tenantAttributeType.CERTIFIED,
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+
+    expect(writtenPayload2.tenant).toEqual(toTenantV2(expectedTenant2));
+    expect(returnedTenant).toEqual(expectedTenant2);
   });
 
   it("Should re-assign the attributes if they were revoked", async () => {
@@ -134,18 +193,25 @@ describe("internalUpsertTenant", async () => {
         value: "123456",
       },
       kind: tenantKind.PA,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId,
+        },
+      ],
     };
 
     const authData: AuthData = {
       ...getMockAuthData(),
       organizationId: mockTenant.id,
-      userRoles: ["internal"],
+      userRoles: ["m2m"],
     };
-    const tenantSeed2: tenantApi.InternalTenantSeed = {
+
+    const tenantSeed2: tenantApi.M2MTenantSeed = {
       ...tenantSeed,
       certifiedAttributes: [
         ...tenantSeed.certifiedAttributes,
-        { origin: "ORIGIN 2", code: "CODE 2" },
+        { origin: certifierId, code: "CODE 2" },
       ],
     };
 
@@ -154,12 +220,12 @@ describe("internalUpsertTenant", async () => {
       id: generateId(),
       kind: "Certified",
       description: "",
-      origin: "ORIGIN 2",
+      origin: certifierId,
       code: "CODE 2",
       creationTime: new Date(),
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
 
     const tenant: Tenant = {
@@ -167,7 +233,7 @@ describe("internalUpsertTenant", async () => {
       attributes: [
         {
           type: tenantAttributeType.CERTIFIED,
-          id: attribute1.id,
+          id: attribute.id,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },
@@ -182,17 +248,14 @@ describe("internalUpsertTenant", async () => {
 
     await addOneTenant(tenant);
 
-    const returnedTenant = await tenantService.internalUpsertTenant(
-      tenantSeed2,
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedTenant = await tenantService.m2mUpsertTenant(tenantSeed2, {
+      authData,
+      correlationId: generateId(),
+      serviceName: "",
+      logger: genericLogger,
+    });
 
-    const writtenEvent = await readLastTenantEvent(mockTenant.id);
+    const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
       fail("Update failed: tenant not found in event-store");
     }
@@ -213,7 +276,7 @@ describe("internalUpsertTenant", async () => {
       attributes: [
         {
           assignmentTimestamp: new Date(),
-          id: attribute1.id,
+          id: attribute.id,
           type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
@@ -230,46 +293,6 @@ describe("internalUpsertTenant", async () => {
     expect(returnedTenant).toEqual(expectedTenant);
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
-    const tenantAlreadyAssigned: Tenant = {
-      ...getMockTenant(),
-      attributes: [
-        {
-          id: attribute1.id,
-          type: tenantAttributeType.CERTIFIED,
-          assignmentTimestamp: new Date(),
-          revocationTimestamp: undefined,
-        },
-      ],
-      externalId: {
-        origin: "IPA",
-        value: "123456",
-      },
-      kind: tenantKind.PA,
-    };
-
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: tenantAlreadyAssigned.id,
-      userRoles: ["internal"],
-    };
-
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
-    await addOneTenant(tenantAlreadyAssigned);
-    expect(
-      tenantService.internalUpsertTenant(tenantSeed, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      certifiedAttributeAlreadyAssigned(
-        unsafeBrandId(attribute1.id),
-        unsafeBrandId(tenantAlreadyAssigned.id)
-      )
-    );
-  });
-  it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
       externalId: {
@@ -277,16 +300,98 @@ describe("internalUpsertTenant", async () => {
         value: "123456",
       },
       kind: tenantKind.PA,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId,
+        },
+      ],
     };
 
     const authData: AuthData = {
       ...getMockAuthData(),
       organizationId: mockTenant.id,
-      userRoles: ["internal"],
+      userRoles: ["m2m"],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+
+    const tenantAlreadyAssigned: Tenant = {
+      ...mockTenant,
+      attributes: [
+        {
+          id: attribute.id,
+          type: tenantAttributeType.CERTIFIED,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+
+    await addOneTenant(tenantAlreadyAssigned);
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     expect(
-      tenantService.internalUpsertTenant(tenantSeed, {
+      tenantService.m2mUpsertTenant(tenantSeed, {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      certifiedAttributeAlreadyAssigned(attribute.id, tenantAlreadyAssigned.id)
+    );
+  });
+  it("Should throw tenantNotFound if the requester doesn't exist", async () => {
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      organizationId: getMockTenant().id,
+      userRoles: ["m2m"],
+    };
+
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    expect(
+      tenantService.m2mUpsertTenant(tenantSeed, {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantNotFound(authData.organizationId));
+  });
+  it("Should throw tenantNotFound if the tenant by externalId doesn't exist", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId,
+        },
+      ],
+    };
+
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      organizationId: mockTenant.id,
+      userRoles: ["m2m"],
+    };
+
+    await addOneTenant(mockTenant);
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+
+    const tenantSeed: tenantApi.M2MTenantSeed = {
+      externalId: {
+        origin: "NOT ORIGIN",
+        value: "NOT CODE",
+      },
+      name: "A tenant",
+      certifiedAttributes: [{ origin: "NOT ORIGIN", code: "NOT CODE" }],
+    };
+
+    expect(
+      tenantService.m2mUpsertTenant(tenantSeed, {
         authData,
         correlationId: generateId(),
         serviceName: "",
@@ -294,8 +399,8 @@ describe("internalUpsertTenant", async () => {
       })
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
-        mockTenant.externalId.origin,
-        mockTenant.externalId.value
+        tenantSeed.externalId.origin,
+        tenantSeed.externalId.value
       )
     );
   });
@@ -307,17 +412,23 @@ describe("internalUpsertTenant", async () => {
         value: "123456",
       },
       kind: tenantKind.PA,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId,
+        },
+      ],
     };
 
     const authData: AuthData = {
       ...getMockAuthData(),
       organizationId: mockTenant.id,
-      userRoles: ["internal"],
+      userRoles: ["m2m"],
     };
-    await addOneTenant(mockTenant);
 
+    await addOneTenant(mockTenant);
     expect(
-      tenantService.internalUpsertTenant(tenantSeed, {
+      tenantService.m2mUpsertTenant(tenantSeed, {
         authData,
         correlationId: generateId(),
         serviceName: "",
@@ -325,8 +436,26 @@ describe("internalUpsertTenant", async () => {
       })
     ).rejects.toThrowError(
       attributeNotFound(
-        `${tenantSeed.certifiedAttributes[0].origin}/${tenantSeed.certifiedAttributes[0].code}`
+        `${certifierId}/${tenantSeed.certifiedAttributes[0].code}`
       )
     );
+  });
+  it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
+    const tenant: Tenant = getMockTenant();
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      organizationId: tenant.id,
+      userRoles: ["m2m"],
+    };
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneTenant(tenant);
+    expect(
+      tenantService.m2mUpsertTenant(tenantSeed, {
+        authData,
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
 });
