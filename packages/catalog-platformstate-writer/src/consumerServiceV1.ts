@@ -57,8 +57,8 @@ export async function handleMessageV1(
             existingCatalogEntry &&
             existingCatalogEntry.version > msg.version
           ) {
-            return Promise.resolve();
             // Stops processing if the message is older than the catalog entry
+            return Promise.resolve();
           } else if (
             existingCatalogEntry &&
             existingCatalogEntry.version <= msg.version
@@ -107,27 +107,45 @@ export async function handleMessageV1(
         })
         .with(descriptorState.suspended, async () => {
           // TODO: add version check
-          // platform-states
-          await updateDescriptorStateInPlatformStatesEntry(
-            dynamoDBClient,
+          const existingCatalogEntry = await readCatalogEntry(
             eserviceDescriptorPK,
-            descriptorStateToClientState(descriptor.state),
-            msg.version
-          );
-
-          // token-generation-states
-          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-            eserviceId,
-            descriptorId: descriptor.id,
-          });
-          await updateDescriptorStateInTokenGenerationStatesTable(
-            eserviceId_descriptorId,
-            descriptor.state,
             dynamoDBClient
           );
+
+          if (!existingCatalogEntry) {
+            console.log("!existingCatalogEntry");
+            throw new Error("EServiceDescriptor not found in catalog");
+            // throw genericInternalError(
+            //   `EServiceDescriptor not found in catalog for event ${msg.type}`
+            // );
+          } else if (
+            existingCatalogEntry &&
+            existingCatalogEntry.version > msg.version
+          ) {
+            // Stops processing if the message is older than the catalog entry
+            return Promise.resolve();
+          } else {
+            // platform-states
+            await updateDescriptorStateInPlatformStatesEntry(
+              dynamoDBClient,
+              eserviceDescriptorPK,
+              descriptorStateToClientState(descriptor.state),
+              msg.version
+            );
+
+            // token-generation-states
+            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+              eserviceId,
+              descriptorId: descriptor.id,
+            });
+            await updateDescriptorStateInTokenGenerationStatesTable(
+              eserviceId_descriptorId,
+              descriptor.state,
+              dynamoDBClient
+            );
+          }
         })
         .with(descriptorState.archived, async () => {
-          // TODO: add version check
           const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
           const descriptorV1 = msg.data.eserviceDescriptor;
           if (!descriptorV1) {
