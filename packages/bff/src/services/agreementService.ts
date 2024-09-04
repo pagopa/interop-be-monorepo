@@ -27,6 +27,7 @@ import {
   toCompactEservice,
   toCompactDescriptor,
 } from "../model/api/apiConverter.js";
+import { isAgreementUpgradable } from "../model/validators.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
@@ -35,9 +36,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ) {
-      logger.info(`Creating agreement with seed ${JSON.stringify(payload)}`);
+      logger.info(
+        `Creating agreement with consumerId ${authData.organizationId} eserviceId ${payload.eserviceId} descriptorId ${payload.descriptorId}`
+      );
       return await agreementProcessClient.createAgreement(payload, {
         headers,
       });
@@ -80,7 +83,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       const agreements = results.map((a) =>
-        enhanceAgreementOverview(a, clients, ctx)
+        enrichListAgreement(a, clients, ctx)
       );
       return {
         pagination: {
@@ -102,7 +105,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers: ctx.headers,
       });
 
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async getAgreementsEserviceProducers(
@@ -292,21 +295,7 @@ export const getLatestAgreement = async (
     .at(0);
 };
 
-function isUpgradable(
-  descriptor: catalogApi.EServiceDescriptor,
-  agreement: agreementApi.Agreement,
-  descriptors: catalogApi.EServiceDescriptor[]
-): boolean {
-  return descriptors
-    .filter((d) => Number(d.version) > Number(descriptor.version))
-    .some(
-      (d) =>
-        (d.state === "PUBLISHED" || d.state === "SUSPENDED") &&
-        (agreement.state === "ACTIVE" || agreement.state === "SUSPENDED")
-    );
-}
-
-async function enhanceAgreementOverview(
+async function enrichListAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
@@ -329,18 +318,14 @@ async function enhanceAgreementOverview(
     },
     eservice: toCompactEservice(eservice, producer),
     descriptor: toCompactDescriptor(currentDescriptor),
-    canBeUpgraded: isUpgradable(
-      currentDescriptor,
-      agreement,
-      eservice.descriptors
-    ),
+    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
   };
 }
 
-export async function enhanceAgreementDetailed(
+export async function enrichAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
