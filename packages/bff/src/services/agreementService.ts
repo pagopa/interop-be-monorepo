@@ -25,6 +25,7 @@ import {
   agreementDescriptorNotFound,
   contractException,
   contractNotFound,
+  invalidContentType,
 } from "../model/domain/errors.js";
 import {
   toCompactEservice,
@@ -159,6 +160,8 @@ export function agreementServiceBuilder(
           params: { agreementId, documentId },
           headers,
         });
+
+      parseMediaType(documentSeed.contentType, agreementId, documentId);
 
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
@@ -455,4 +458,27 @@ export function getCurrentDescriptor(
     throw agreementDescriptorNotFound(agreement.id);
   }
   return descriptor;
+}
+
+function parseMediaType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): void {
+  // Content types from: https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes
+  const contentTypes = [
+    "NoContentType",
+    "application/grpc+proto",
+    "application/json",
+    "application/octet-stream",
+    "application/x-www-form-urlencoded",
+    "text/csv(UTF-8)",
+    "text/html(UTF-8)",
+    "text/plain(UTF-8)",
+    "text/xml(UTF-8)",
+  ];
+
+  if (!contentTypes.includes(contentType)) {
+    throw invalidContentType(contentType, agreementId, documentId);
+  }
 }

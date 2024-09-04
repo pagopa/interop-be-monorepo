@@ -30,6 +30,7 @@ export const errorCodes = {
   agreementDescriptorNotFound: "0022",
   contractNotFound: "0023",
   contractException: "0024",
+  invalidContentType: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -257,5 +258,17 @@ export function contractException(agreementId: string): ApiError<ErrorCodes> {
     detail: `Contract exception for agreement ${agreementId}`,
     code: "contractException",
     title: "Contract exception",
+  });
+}
+
+export function invalidContentType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
+    code: "invalidContentType",
+    title: "Invalid content type",
   });
 }

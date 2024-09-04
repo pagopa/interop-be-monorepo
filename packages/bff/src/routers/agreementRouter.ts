@@ -13,6 +13,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import {
   emptyErrorMapper,
   getAgreementByIdErrorMapper,
+  getAgreementConsumerDocumentErrorMapper,
   getAgreementContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -164,7 +165,7 @@ const agreementRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getAgreementConsumerDocumentErrorMapper,
             ctx.logger,
             `Error downloading contract for agreement ${req.params.agreementId}`
           );
