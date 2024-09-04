@@ -232,7 +232,7 @@ export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
 ): Promise<TokenGenerationStatesClientPurposeEntry | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    IndexName: "gsiIndex", // Use the name of your Global Secondary Index
+    IndexName: "GSIPK_eserviceId_descriptorId", // Use the name of your Global Secondary Index
     KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
     ExpressionAttributeValues: {
       ":gsiValue": { S: eserviceId_descriptorId },
@@ -267,7 +267,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
 ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    IndexName: "gsiIndex", // Use the name of your Global Secondary Index
+    IndexName: "GSIPK_eserviceId_descriptorId", // Use the name of your Global Secondary Index
     KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsi_value`,
     ExpressionAttributeValues: {
       ":gsi_value": { S: eserviceId_descriptorId },
@@ -324,7 +324,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
 
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(PK)",
+      ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
       Key: {
         PK: {
           S: entry.PK,

@@ -25,6 +25,7 @@ import {
   TokenGenerationStatesClientPurposeEntry,
   descriptorState,
   generateId,
+  genericInternalError,
   itemState,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
@@ -38,6 +39,9 @@ import {
   DeleteTableCommand,
   DeleteTableInput,
   DynamoDBClient,
+  ScanCommand,
+  ScanCommandOutput,
+  ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import {
   toDescriptorV1,
@@ -46,13 +50,17 @@ import {
   getMockDocument,
   getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { z } from "zod";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
+  deleteCatalogEntry,
   descriptorStateToClientState,
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
   sleep,
   updateDescriptorStateInPlatformStatesEntry,
+  updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
   writeTokenStateEntry,
 } from "../src/utils.js";
@@ -99,7 +107,7 @@ describe("integration tests", async () => {
       GlobalSecondaryIndexes: [
         {
           // TODO: change index name
-          IndexName: "gsiIndex",
+          IndexName: "GSIPK_eserviceId_descriptorId",
           KeySchema: [
             {
               AttributeName: "GSIPK_eserviceId_descriptorId",
@@ -171,7 +179,37 @@ describe("integration tests", async () => {
       });
 
       it("should update state if previous entry exists", async () => {
-        expect(1).toBe(1);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.inactive,
+          descriptorAudience: "pagopa.it",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+        expect(
+          await readCatalogEntry(primaryKey, dynamoDBClient)
+        ).toBeUndefined();
+        await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+        await updateDescriptorStateInPlatformStatesEntry(
+          dynamoDBClient,
+          primaryKey,
+          itemState.active,
+          2
+        );
+
+        const result = await readCatalogEntry(primaryKey, dynamoDBClient);
+        const expectedCatalogEntry: PlatformStatesCatalogEntry = {
+          ...previousCatalogStateEntry,
+          state: itemState.active,
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+
+        expect(result).toEqual(expectedCatalogEntry);
       });
     });
 
@@ -181,41 +219,106 @@ describe("integration tests", async () => {
           eserviceId: generateId(),
           descriptorId: generateId(),
         });
-        const previousStateEntry: PlatformStatesCatalogEntry = {
+        const catalogEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.inactive,
           descriptorAudience: "pagopa.it",
           version: 1,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(previousStateEntry, dynamoDBClient);
+        await writeCatalogEntry(catalogEntry, dynamoDBClient);
         expect(
-          writeCatalogEntry(previousStateEntry, dynamoDBClient)
+          writeCatalogEntry(catalogEntry, dynamoDBClient)
         ).rejects.toThrowError(ConditionalCheckFailedException);
       });
 
       it("should write if previous entry doesn't exist", async () => {
-        expect(1).toBe(1);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const catalogStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.inactive,
+          descriptorAudience: "pagopa.it",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+        expect(
+          await readCatalogEntry(primaryKey, dynamoDBClient)
+        ).toBeUndefined();
+        await writeCatalogEntry(catalogStateEntry, dynamoDBClient);
+        const expectedCatalogEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+
+        expect(expectedCatalogEntry).toEqual(catalogStateEntry);
       });
     });
 
     describe("readCatalogEntry", async () => {
       it("should return undefined if entry doesn't exist", async () => {
-        expect(1).toBe(1);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+        expect(catalogEntry).toBeUndefined();
       });
 
       it("should return entry if it exists", async () => {
-        expect(1).toBe(1);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.inactive,
+          descriptorAudience: "pagopa.it",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+        const expectedCatalogEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+
+        expect(expectedCatalogEntry).toEqual(previousCatalogStateEntry);
       });
     });
 
     describe("deleteCatalogEntry", async () => {
       it("should not throw error if previous entry doesn't exist", async () => {
-        expect(1).toBe(1);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        expect(
+          deleteCatalogEntry(primaryKey, dynamoDBClient)
+        ).resolves.not.toThrowError();
       });
 
       it("should delete the entry if it exists", async () => {
-        expect(1).toBe(1);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
+          PK: primaryKey,
+          state: itemState.inactive,
+          descriptorAudience: "pagopa.it",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+        await deleteCatalogEntry(primaryKey, dynamoDBClient);
+        const expectedCatalogEntry = await readCatalogEntry(
+          primaryKey,
+          dynamoDBClient
+        );
+        expect(expectedCatalogEntry).toBeUndefined();
       });
     });
 
@@ -239,17 +342,60 @@ describe("integration tests", async () => {
     // token-generation-states
     describe("writeTokenStateEntry", async () => {
       it("should throw error if previous entry exists", async () => {
-        expect(1).toBe(1);
+        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId(),
+          kid: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: "pagopa.it",
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+        await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+        expect(
+          writeTokenStateEntry(tokenStateEntry, dynamoDBClient)
+        ).rejects.toThrowError(ConditionalCheckFailedException);
       });
 
       it("should write if previous entry doesn't exist", async () => {
-        expect(1).toBe(1);
+        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId(),
+          kid: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const previousTokenStateEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+        expect(previousTokenStateEntries).toEqual([]);
+        const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: "pagopa.it",
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+        await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+        const expectedTokenStateEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+
+        expect(expectedTokenStateEntries).toEqual([tokenStateEntry]);
       });
     });
 
     describe("readTokenStateEntriesByEserviceIdAndDescriptorId", async () => {
-      // TODO: undefined?
-      it("should return empty string if entries do not exist", async () => {
+      it("should return empty array if entries do not exist", async () => {
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
           descriptorId: generateId(),
@@ -303,12 +449,86 @@ describe("integration tests", async () => {
     });
 
     describe("updateDescriptorStateInTokenGenerationStatesTable", async () => {
-      it("should throw error if previous entry doesn't exist", async () => {
-        expect(1).toBe(1);
+      it("should do nothing if previous entry doesn't exist", async () => {
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
+        expect(tokenStateEntries).toEqual([]);
+        expect(
+          updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptorState.archived,
+            dynamoDBClient
+          )
+        ).resolves.not.toThrowError();
+        const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
+          dynamoDBClient
+        );
+        expect(tokenStateEntriesAfterUpdate).toEqual([]);
       });
 
-      it("should update state if previous entry exists", async () => {
-        expect(1).toBe(1);
+      it("should update state if previous entries exist", async () => {
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            descriptorState: itemState.inactive,
+            descriptorAudience: "pagopa.it",
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+          clientId: generateId<ClientId>(),
+          kid: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            descriptorState: itemState.inactive,
+            descriptorAudience: "pagopa.it",
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptorState.published,
+          dynamoDBClient
+        );
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            descriptorState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            descriptorState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry2,
+            expectedTokenStateEntry1,
+          ])
+        );
       });
     });
   });
@@ -1321,7 +1541,7 @@ describe("integration tests", async () => {
     });
 
     describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
-      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additinal checks are added
+      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additional checks are added
       it("entry has to be deleted", async () => {
         const archivedDescriptor: Descriptor = {
           ...getMockDescriptor(),
@@ -1586,3 +1806,38 @@ describe("integration tests", async () => {
     });
   });
 });
+
+const readAllTokenStateItems = async (
+  dynamoDBClient: DynamoDBClient
+): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  if (!config) {
+    fail();
+  }
+
+  const readInput: ScanInput = {
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+  };
+  const commandQuery = new ScanCommand(readInput);
+  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+  if (!data.Items) {
+    throw genericInternalError(
+      `Unable to read token state entries: result ${JSON.stringify(data)} `
+    );
+  } else {
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+    const tokenStateEntries = z
+      .array(TokenGenerationStatesClientPurposeEntry)
+      .safeParse(unmarshalledItems);
+
+    if (!tokenStateEntries.success) {
+      throw genericInternalError(
+        `Unable to parse token state entry item: result ${JSON.stringify(
+          tokenStateEntries
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return tokenStateEntries.data;
+  }
+};
