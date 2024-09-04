@@ -1007,7 +1007,7 @@ describe("integration tests", async () => {
     });
 
     describe("EServiceDescriptorPublished (the previous descriptor becomes archived)", () => {
-      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additinal checks are added
+      // these tests start with the basic flow for the current descriptor (simple write operation). Then, additional checks are added
       it("entry has to be deleted", async () => {
         const archivedDescriptor: Descriptor = {
           ...getMockDescriptor(),
