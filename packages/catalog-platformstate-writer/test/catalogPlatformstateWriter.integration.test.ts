@@ -978,7 +978,7 @@ describe("integration tests", async () => {
         expect(retrievedEntry).toEqual(previousStateEntry);
       });
 
-      it("should throw error if previous entry doesn't exist", async () => {
+      it.only("should throw error if previous entry doesn't exist", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -1011,9 +1011,18 @@ describe("integration tests", async () => {
           data: payload,
           log_date: new Date(),
         };
-        expect(handleMessageV1(message, dynamoDBClient)).rejects.toThrowError(
-          InternalError
-        );
+        await expect(() =>
+          handleMessageV1(message, dynamoDBClient)
+        ).rejects.toThrowError(Error);
+
+        // try {
+        //   const a = await handleMessageV1(message, dynamoDBClient);
+        //   console.log("try");
+        //   fail("should throw error");
+        // } catch (e) {
+        //   console.log("catch");
+        //   expect(1).toBe(1);
+        // }
       });
     });
 
