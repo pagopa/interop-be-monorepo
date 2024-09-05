@@ -114,9 +114,7 @@ export const readAllItems = async (
 };
 */
 
-export const descriptorStateToClientState = (
-  state: DescriptorState
-): ItemState =>
+export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;
@@ -317,7 +315,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       },
       ExpressionAttributeValues: {
         ":newState": {
-          S: descriptorStateToClientState(descriptorState),
+          S: descriptorStateToItemState(descriptorState),
         },
         ":newUpdateAt": {
           S: new Date().toISOString(),
