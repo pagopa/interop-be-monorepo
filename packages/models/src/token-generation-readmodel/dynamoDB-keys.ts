@@ -91,7 +91,7 @@ export const makeTokenGenerationStatesClientKidPK = ({
   clientId: ClientId;
   kid: string;
 }): TokenGenerationStatesClientKidPK =>
-  `CLIENTKIDPURPOSE#${clientId}#${kid}` as TokenGenerationStatesClientKidPK;
+  `CLIENTKID#${clientId}#${kid}` as TokenGenerationStatesClientKidPK;
 
 export const GSIPKEServiceIdDescriptorId = z
   .string()
