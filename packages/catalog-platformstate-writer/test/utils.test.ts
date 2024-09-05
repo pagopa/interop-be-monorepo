@@ -30,7 +30,7 @@ describe("test", () => {
     expect(GSI).toEqual(`${eserviceId}#${descriptorId}`);
   });
 
-  it("makePK token", () => {
+  it("makeTokenGenerationStatesClientKidPK", () => {
     const clientId = generateId<ClientId>();
     const kid = `kid ${Math.random()}`;
     const GSI = makeTokenGenerationStatesClientKidPK({
