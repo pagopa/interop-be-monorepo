@@ -6,15 +6,15 @@ setGlobalConfig({
   method: true,
   url: true,
   params: true,
-  data: true,
   status: true,
   statusText: true,
+  data: false,
   headers: false,
-  prefixText: "Zodios Axios Logger",
 });
 
 export function configureAxiosLogInterceptors(
-  axiosInstance: AxiosInstance
+  axiosInstance: AxiosInstance,
+  prefixText: string
 ): void {
   axiosInstance.interceptors.response.use(
     (response: AxiosResponse): AxiosResponse =>
@@ -22,6 +22,7 @@ export function configureAxiosLogInterceptors(
         response as Parameters<typeof AxiosLogger.responseLogger>[0],
         {
           logger: genericLogger.info,
+          prefixText,
         }
       ) as AxiosResponse,
     (error: AxiosError): Promise<AxiosError> =>
@@ -29,6 +30,7 @@ export function configureAxiosLogInterceptors(
         error as Parameters<typeof AxiosLogger.errorLogger>[0],
         {
           logger: genericLogger.error,
+          prefixText,
         }
       ) as Promise<AxiosError>
   );
