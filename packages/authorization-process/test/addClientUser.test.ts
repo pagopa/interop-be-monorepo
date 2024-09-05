@@ -20,7 +20,7 @@ import {
   clientNotFound,
   organizationNotAllowedOnClient,
   userWithoutSecurityPrivileges,
-  userAlreadyAssigned,
+  clientUserAlreadyAssigned,
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -47,7 +47,7 @@ const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
   surname: "surname_test",
 };
 
-describe("addUser", () => {
+describe("addClientUser", () => {
   it("should write on event-store when adding a user to a client", async () => {
     const consumerId: TenantId = generateId();
     const userIdToAdd: UserId = generateId();
@@ -63,7 +63,7 @@ describe("addUser", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.addUser(
+    await authorizationService.addClientUser(
       {
         clientId: mockClient.id,
         userId: userIdToAdd,
@@ -105,7 +105,7 @@ describe("addUser", () => {
     await addOneClient(getMockClient());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId: userIdToAdd,
@@ -116,7 +116,7 @@ describe("addUser", () => {
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw userAlreadyAssigned if the user already exists in the client", async () => {
+  it("should throw clientUserAlreadyAssigned if the user already exists in the client", async () => {
     const consumerId: TenantId = generateId();
     const userId: UserId = generateId();
 
@@ -130,7 +130,7 @@ describe("addUser", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId,
@@ -139,7 +139,7 @@ describe("addUser", () => {
         generateId(),
         genericLogger
       )
-    ).rejects.toThrowError(userAlreadyAssigned(mockClient.id, userId));
+    ).rejects.toThrowError(clientUserAlreadyAssigned(mockClient.id, userId));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     const userIdToAdd: UserId = generateId();
@@ -154,7 +154,7 @@ describe("addUser", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId: userIdToAdd,
@@ -192,7 +192,7 @@ describe("addUser", () => {
     mockSelfcareV2ClientCall([]);
 
     expect(
-      authorizationService.addUser(
+      authorizationService.addClientUser(
         {
           clientId: mockClient.id,
           userId: generateId(),
