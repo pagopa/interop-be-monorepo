@@ -15,6 +15,8 @@ import {
   agreementState,
   Key,
   ClientKind,
+  ProducerKeychain,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -26,11 +28,19 @@ export type GetClientsFilters = {
   kind?: ClientKind;
 };
 
+export type GetProducerKeychainsFilters = {
+  name?: string;
+  userIds: UserId[];
+  producerId: TenantId;
+  eserviceId: EServiceId | undefined;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { agreements, clients, eservices, purposes } = readModelRepository;
+  const { agreements, clients, eservices, purposes, producerKeychains } =
+    readModelRepository;
 
   return {
     async getClientById(
@@ -243,7 +253,7 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getKeyByKid(kid: string): Promise<Key | undefined> {
+    async getClientKeyByKid(kid: string): Promise<Key | undefined> {
       const data = await clients.findOne(
         { "data.keys.kid": { $eq: kid } },
         {
@@ -255,6 +265,135 @@ export function readModelServiceBuilder(
         if (!result.success) {
           throw genericInternalError(
             `Unable to parse client item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data.keys.find((k) => k.kid === kid);
+      }
+      return undefined;
+    },
+    async getProducerKeychains(
+      filters: GetProducerKeychainsFilters,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<ProducerKeychain>> {
+      const { name, userIds, producerId, eserviceId } = filters;
+
+      const nameFilter: ReadModelFilter<ProducerKeychain> = name
+        ? {
+            "data.name": {
+              $regex: ReadModelRepository.escapeRegExp(name),
+              $options: "i",
+            },
+          }
+        : {};
+
+      const userIdsFilter: ReadModelFilter<ProducerKeychain> =
+        ReadModelRepository.arrayToFilter(userIds, {
+          $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
+        });
+
+      const producerIdFilter: ReadModelFilter<ProducerKeychain> = {
+        "data.producerId": { $eq: producerId },
+      };
+
+      const eserviceIdFilter: ReadModelFilter<ProducerKeychain> = eserviceId
+        ? {
+            "data.eservices": { $eq: eserviceId },
+          }
+        : {};
+
+      const aggregationPipeline = [
+        {
+          $match: {
+            ...nameFilter,
+            ...userIdsFilter,
+            ...producerIdFilter,
+            ...eserviceIdFilter,
+          } satisfies ReadModelFilter<ProducerKeychain>,
+        },
+        {
+          $project: {
+            data: 1,
+            computedColumn: { $toLower: ["$data.name"] },
+          },
+        },
+      ];
+
+      const data = await producerKeychains
+        .aggregate(
+          [
+            ...aggregationPipeline,
+            { $skip: offset },
+            { $limit: limit },
+            { $sort: { computedColumn: 1 } },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z
+        .array(ProducerKeychain)
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse client items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          producerKeychains,
+          aggregationPipeline,
+          false
+        ),
+      };
+    },
+
+    async getProducerKeychainById(
+      id: ProducerKeychainId
+    ): Promise<WithMetadata<ProducerKeychain> | undefined> {
+      const data = await producerKeychains.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            data: ProducerKeychain,
+            metadata: z.object({ version: z.number() }),
+          })
+          .safeParse(data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse producer keychain item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+    },
+
+    async getProducerKeychainKeyByKid(kid: string): Promise<Key | undefined> {
+      const data = await producerKeychains.findOne(
+        { "data.keys.kid": { $eq: kid } },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = ProducerKeychain.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse producer keychain item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
