@@ -8,13 +8,15 @@ import {
   ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM,
   ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM,
   ORGANIZATION_ID_CLAIM,
+  RateLimiter,
+  RateLimiterStatus,
   SELFCARE_ID_CLAIM,
   SessionClaims,
   USER_ROLES,
   decodeJwtToken,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { genericError } from "pagopa-interop-models";
+import { genericError, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import {
   missingClaim,
   tenantLoginNotAllowed,
@@ -23,11 +25,25 @@ import {
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { config } from "../config/config.js";
 
+type GetSessionTokenReturnType =
+  | {
+      limitReached: true;
+      sessionToken: undefined;
+      rateLimitedTenantId: TenantId;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    }
+  | {
+      limitReached: false;
+      sessionToken: string;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    };
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   interopTokenGenerator: InteropTokenGenerator,
   tenantProcessClient: PagoPAInteropBeClients["tenantProcessClient"],
-  allowList: string[]
+  allowList: string[],
+  rateLimiter: RateLimiter
 ) {
   const readJwt = async (
     identityToken: string,
@@ -99,7 +115,7 @@ export function authorizationServiceBuilder(
       correlationId: string,
       identityToken: string,
       logger: Logger
-    ): Promise<string> => {
+    ): Promise<GetSessionTokenReturnType> => {
       logger.info("Received session token exchange request");
 
       const { sessionClaims, roles, selfcareId } = await readJwt(
@@ -120,7 +136,7 @@ export function authorizationServiceBuilder(
           params: { selfcareId },
           headers,
         });
-      const tenantId = tenantBySelfcareId.id;
+      const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
@@ -128,6 +144,18 @@ export function authorizationServiceBuilder(
       });
 
       assertTenantAllowed(selfcareId, tenant.externalId.origin);
+
+      const { limitReached, ...rateLimiterStatus } =
+        await rateLimiter.rateLimitByOrganization(tenantId, logger);
+
+      if (limitReached) {
+        return {
+          limitReached: true,
+          sessionToken: undefined,
+          rateLimitedTenantId: tenantId,
+          rateLimiterStatus,
+        };
+      }
 
       const customClaims = buildJwtCustomClaims(
         roles,
@@ -142,7 +170,12 @@ export function authorizationServiceBuilder(
           ...sessionClaims,
           ...customClaims,
         });
-      return sessionToken;
+
+      return {
+        limitReached: false,
+        sessionToken,
+        rateLimiterStatus,
+      };
     },
   };
 }

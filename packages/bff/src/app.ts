@@ -54,7 +54,7 @@ app.use(contextMiddleware(serviceName, true));
 
 // Unauthenticated routes
 app.use(healthRouter);
-app.use(authorizationRouter(zodiosCtx, clients, allowList));
+app.use(authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter));
 
 app.use(authenticationMiddleware);
 
