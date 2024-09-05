@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-console */
 import { fail } from "assert";
 import {
   afterAll,
@@ -124,10 +123,6 @@ describe("integration tests", async () => {
     };
     const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
     await dynamoDBClient.send(command2);
-    // console.log(result);
-
-    // const tablesResult = await dynamoDBClient.listTables();
-    // console.log(tablesResult.TableNames);
   });
   afterEach(async () => {
     if (!config) {
@@ -686,7 +681,6 @@ describe("integration tests", async () => {
           descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
-      console.log(previousTokenStateEntry1, previousTokenStateEntry2);
       expect(retrievedTokenStateEntries).toEqual(
         expect.arrayContaining([
           expectedTokenStateEntry1,
@@ -783,7 +777,6 @@ describe("integration tests", async () => {
           eserviceId_descriptorId,
           dynamoDBClient
         );
-      console.log(previousTokenStateEntry1, previousTokenStateEntry2);
       expect(retrievedTokenStateEntries).toEqual(
         expect.arrayContaining([
           previousTokenStateEntry1,

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   descriptorState,
   DescriptorState,
@@ -278,7 +277,6 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
-  // console.log("data.Items ", data);
 
   if (!data.Items) {
     throw genericInternalError(
