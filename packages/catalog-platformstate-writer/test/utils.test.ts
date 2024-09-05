@@ -6,6 +6,7 @@ import {
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPK,
+  makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
@@ -35,9 +36,10 @@ describe("test", () => {
     const clientId = generateId<ClientId>();
     const kid = `kid ${Math.random()}`;
     const purposeId = generateId<PurposeId>();
-    const GSI = makeTokenGenerationStatesClientKidPK({
+    const GSI = makeTokenGenerationStatesClientKidPurposePK({
       clientId,
       kid,
+      purposeId,
     });
     expect(GSI).toEqual(`CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}`);
   });
