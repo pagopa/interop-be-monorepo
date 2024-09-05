@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { vi } from "vitest";
 import {
   descriptorState,
   DescriptorState,
@@ -301,6 +302,14 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
     return tokenStateEntries.data;
   }
 };
+
+export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
+  new Promise((resolve) => {
+    vi.useRealTimers();
+    setTimeout(resolve, ms);
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+  });
 
 export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
