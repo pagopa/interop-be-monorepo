@@ -22,7 +22,7 @@ import {
 
 import { config } from "./config/config.js";
 
-const sesEmailManager = initSesMailManager({ awsRegion: config.awsRegion });
+const sesEmailManager = initSesMailManager(config);
 const pecEmailManager = initPecEmailManager({
   smtpAddress: config.smtpAddress,
   smtpPort: config.smtpPort,
