@@ -58,14 +58,13 @@ import {
   descriptorStateToClientState,
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
-  sleep,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
   writeTokenStateEntry,
 } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { config } from "./utils.js";
+import { config, sleep } from "./utils.js";
 
 describe("integration tests", async () => {
   if (!config) {
