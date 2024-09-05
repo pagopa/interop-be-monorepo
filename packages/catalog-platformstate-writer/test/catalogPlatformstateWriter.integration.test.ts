@@ -29,7 +29,7 @@ import {
   itemState,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
-  makeTokenGenerationStatesClientKidPK,
+  makeTokenGenerationStatesClientKidPurposePK,
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
@@ -340,9 +340,10 @@ describe("integration tests", async () => {
     // token-generation-states
     describe("writeTokenStateEntry", async () => {
       it("should throw error if previous entry exists", async () => {
-        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -361,9 +362,10 @@ describe("integration tests", async () => {
       });
 
       it("should write if previous entry doesn't exist", async () => {
-        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -406,9 +408,10 @@ describe("integration tests", async () => {
       });
 
       it("should return entries if they exist", async () => {
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -422,9 +425,10 @@ describe("integration tests", async () => {
         };
         await writeTokenStateEntry(tokenStateEntry1, dynamoDBClient);
 
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry = {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
@@ -468,9 +472,10 @@ describe("integration tests", async () => {
       });
 
       it("should update state if previous entries exist", async () => {
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -485,9 +490,10 @@ describe("integration tests", async () => {
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1121,9 +1127,10 @@ describe("integration tests", async () => {
         await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1138,9 +1145,10 @@ describe("integration tests", async () => {
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1217,9 +1225,10 @@ describe("integration tests", async () => {
         await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1234,9 +1243,10 @@ describe("integration tests", async () => {
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1338,13 +1348,15 @@ describe("integration tests", async () => {
         eserviceId: eservice.id,
         descriptorId: archivedDescriptor.id,
       });
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId<ClientId>(),
         kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
       });
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId<ClientId>(),
         kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
       });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1536,13 +1548,15 @@ describe("integration tests", async () => {
           eserviceId: eservice.id,
           descriptorId: publishedDescriptor.id,
         });
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1687,9 +1701,10 @@ describe("integration tests", async () => {
         await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1704,9 +1719,10 @@ describe("integration tests", async () => {
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1782,9 +1798,10 @@ describe("integration tests", async () => {
         await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1799,9 +1816,10 @@ describe("integration tests", async () => {
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId<ClientId>(),
           kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
