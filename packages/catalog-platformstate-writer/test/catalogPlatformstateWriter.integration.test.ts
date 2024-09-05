@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-console */
 import { fail } from "assert";
 import {
   afterAll,
