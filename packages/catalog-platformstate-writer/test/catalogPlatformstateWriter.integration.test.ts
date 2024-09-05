@@ -11,7 +11,6 @@ import {
   vi,
 } from "vitest";
 import {
-  ClientId,
   Descriptor,
   EService,
   EServiceDescriptorActivatedV2,
