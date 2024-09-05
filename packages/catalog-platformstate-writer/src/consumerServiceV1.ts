@@ -41,7 +41,7 @@ export async function handleMessageV1(
         eserviceId,
         descriptorId: descriptor.id,
       });
-      match(descriptor.state)
+      await match(descriptor.state)
         .with(descriptorState.published, async () => {
           // steps:
           // capire se siamo in (draft -> published) o (suspened -> published)
@@ -175,7 +175,8 @@ export async function handleMessageV1(
         })
         .with(descriptorState.draft, descriptorState.deprecated, () =>
           Promise.resolve()
-        );
+        )
+        .exhaustive();
     })
     .with(
       { type: "EServiceAdded" },
