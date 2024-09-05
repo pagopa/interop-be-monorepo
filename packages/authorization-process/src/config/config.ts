@@ -13,9 +13,11 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
     z
       .object({
         MAX_KEYS_PER_CLIENT: z.coerce.number(),
+        MAX_KEYS_PER_PRODUCER_KEYCHAIN: z.coerce.number(),
       })
       .transform((c) => ({
         maxKeysPerClient: c.MAX_KEYS_PER_CLIENT,
+        maxKeysPerProducerKeychain: c.MAX_KEYS_PER_PRODUCER_KEYCHAIN,
       }))
   );
 
