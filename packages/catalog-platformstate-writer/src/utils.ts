@@ -29,7 +29,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 import { config } from "./config/config.js";
 
-// TO DO scrivere test per vedere se funziona come upsert o solo come update
 export const writeCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient
@@ -271,14 +270,10 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
     ExpressionAttributeValues: {
       ":gsi_value": { S: eserviceId_descriptorId },
     },
-    // ExpressionAttributeNames: {
-    //   "#gsi": "GSIPK_eserviceId_descriptorId",
-    // },
     ScanIndexForward: false,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
-  // console.log("data.Items ", data);
 
   if (!data.Items) {
     throw genericInternalError(
