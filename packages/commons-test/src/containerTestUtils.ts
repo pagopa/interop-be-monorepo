@@ -66,8 +66,8 @@ export const postgreSQLContainer = (
 export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
-      MINIO_ROOT_USER: "test-aws-key",
-      MINIO_ROOT_PASSWORD: "test-aws-secret",
+      MINIO_ROOT_USER: "testawskey",
+      MINIO_ROOT_PASSWORD: "testawssecret",
       MINIO_SITE_REGION: "eu-central-1",
     })
     .withEntrypoint(["sh", "-c"])
