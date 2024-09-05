@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import crypto from "crypto";
 import { Readable } from "node:stream";
+import { randomUUID } from "crypto";
+import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
+import mime from "mime";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
+import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
 import { ApiError, genericError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { z } from "zod";
 import { config } from "../config/config.js";
+import { ImportedDoc } from "../model/api/apiTypes.js";
 import {
   ErrorCodes,
   interfaceExtractingInfoError,
@@ -127,6 +130,44 @@ function parseOpenApi(
   }
 }
 
+export const verifyAndCreateImportedDoc = async (
+  catalogProcessClient: CatalogProcessClient,
+  fileManager: FileManager,
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor,
+  entriesMap: Map<string, AdmZip.IZipEntry>,
+  doc: ImportedDoc,
+  docType: "INTERFACE" | "DOCUMENT",
+  context: WithLogger<BffAppContext>
+  // eslint-disable-next-line max-params
+): Promise<void> => {
+  const entry = entriesMap.get(doc.path);
+
+  const mimeType = mime.getType(doc.path) || "application/octet-stream";
+  if (entry === undefined) {
+    throw genericError("Invalid file");
+  }
+
+  const file = new File([entry.getData()], doc.prettyName, {
+    type: mimeType,
+  });
+
+  await verifyAndCreateEServiceDocument(
+    catalogProcessClient,
+    fileManager,
+    eservice,
+    {
+      mimeType,
+      prettyName: doc.prettyName,
+      doc: file,
+      kind: docType,
+    },
+    descriptor.id,
+    randomUUID(),
+    context
+  );
+};
+
 function handleOpenApiV2(openApi: Record<string, unknown>) {
   const { data: host, error: hostError } = z.string().safeParse(openApi.host);
   const { error: pathsError } = z.array(z.object({})).safeParse(openApi.paths);
@@ -196,12 +237,13 @@ function processSoapInterface(file: string) {
 async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
   technology: catalogApi.EServiceTechnology,
-  eServiceId: string
+  eServiceId: string,
+  logger: Logger
 ) {
   const file = await doc.doc.text();
   try {
     return match({
-      fileType: getFileType(doc.doc.name),
+      fileType: getFileType(doc.doc.name, eServiceId, logger),
       technology,
       kind: doc.kind,
     })
@@ -236,30 +278,3 @@ async function handleEServiceDocumentProcessing(
       .otherwise(() => invalidInterfaceFileDetected(eServiceId));
   }
 }
-
-export const createPollEService =
-  (fetchFunc: () => Promise<catalogApi.EService>) =>
-  async (
-    condition: (result: catalogApi.EService) => boolean,
-    maxRetries: number = 30,
-    delay: number = 200
-  ): Promise<void> => {
-    async function poll(attempt: number): Promise<void> {
-      if (attempt > maxRetries) {
-        throw genericError("Max retries reached");
-      } else {
-        try {
-          const result = await fetchFunc();
-          if (!condition(result)) {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            return poll(attempt + 1);
-          }
-        } catch (error) {
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          return poll(attempt + 1);
-        }
-      }
-    }
-
-    return poll(1);
-  };

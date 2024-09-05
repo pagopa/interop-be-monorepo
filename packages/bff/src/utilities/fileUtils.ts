@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
+import { Readable } from "stream";
+import crypto from "crypto";
 import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -203,4 +205,22 @@ export async function createDescriptorDocumentZipFile(
   );
 
   return zip.toBuffer();
+}
+
+export async function calculateChecksum(stream: Readable): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash("sha256");
+
+    stream.on("data", (data) => {
+      hash.update(data);
+    });
+
+    stream.on("end", () => {
+      resolve(hash.digest("hex"));
+    });
+
+    stream.on("error", (err) => {
+      reject(err);
+    });
+  });
 }

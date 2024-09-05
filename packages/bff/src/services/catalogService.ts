@@ -3,11 +3,11 @@
 /* eslint-disable functional/immutable-data */
 import AdmZip from "adm-zip";
 import { randomUUID } from "crypto";
-import mime from "mime";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   FileManager,
   WithLogger,
+  createPollingByCondition,
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
 } from "pagopa-interop-commons";
@@ -16,12 +16,10 @@ import {
   EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
-  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
-  ImportedDoc,
   ImportedEservice,
   catalogApiDescriptorState,
 } from "../model/api/apiTypes.js";
@@ -51,10 +49,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import {
-  createPollEService,
-  verifyAndCreateEServiceDocument,
-} from "../utilities/eserviceDocumentUtils.js";
+import { verifyAndCreateImportedDoc } from "../utilities/eserviceDocumentUtils.js";
 import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
@@ -1039,7 +1034,7 @@ export function catalogServiceBuilder(
         },
       };
 
-      const pollEServiceById = createPollEService(() =>
+      const pollEServiceById = createPollingByCondition(() =>
         catalogProcessClient.getEServiceById({
           params: {
             eServiceId: eservice.id,
@@ -1075,44 +1070,11 @@ export function catalogServiceBuilder(
         await pollEServiceById((result) => result.riskAnalysis.length > 0);
       }
 
-      const verifyAndCreateImportedDoc = async (
-        eservice: catalogApi.EService,
-        descriptor: catalogApi.EServiceDescriptor,
-        entriesMap: Map<string, AdmZip.IZipEntry>,
-        doc: ImportedDoc,
-        docType: "INTERFACE" | "DOCUMENT",
-        context: WithLogger<BffAppContext>
-      ): Promise<void> => {
-        const entry = entriesMap.get(doc.path);
-
-        const mimeType = mime.getType(doc.path) || "application/octet-stream";
-        if (entry === undefined) {
-          throw genericError("Invalid file");
-        }
-
-        const file = new File([entry.getData()], doc.prettyName, {
-          type: mimeType,
-        });
-
-        await verifyAndCreateEServiceDocument(
-          catalogProcessClient,
-          fileManager,
-          eservice,
-          {
-            mimeType,
-            prettyName: doc.prettyName,
-            doc: file,
-            kind: docType,
-          },
-          descriptor.id,
-          randomUUID(),
-          context
-        );
-      };
-
       const descriptor = eservice.descriptors[0];
       if (descriptorInterface) {
         await verifyAndCreateImportedDoc(
+          catalogProcessClient,
+          fileManager,
           eservice,
           descriptor,
           entriesMap,
@@ -1129,6 +1091,8 @@ export function catalogServiceBuilder(
 
       for (const doc of importedEservice.descriptor.docs) {
         await verifyAndCreateImportedDoc(
+          catalogProcessClient,
+          fileManager,
           eservice,
           descriptor,
           entriesMap,
