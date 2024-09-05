@@ -53,6 +53,10 @@ export function randomBoolean(): boolean {
   return Math.random() < 0.5;
 }
 
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
