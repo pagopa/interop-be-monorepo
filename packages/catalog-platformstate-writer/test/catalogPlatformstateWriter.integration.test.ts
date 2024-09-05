@@ -105,7 +105,6 @@ describe("integration tests", async () => {
       BillingMode: "PAY_PER_REQUEST",
       GlobalSecondaryIndexes: [
         {
-          // TODO: change index name
           IndexName: "GSIPK_eserviceId_descriptorId",
           KeySchema: [
             {
@@ -343,7 +342,7 @@ describe("integration tests", async () => {
       it("should throw error if previous entry exists", async () => {
         const tokenStateEntryPK = makeTokenGenerationStatesClientKidPK({
           clientId: generateId(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -364,7 +363,7 @@ describe("integration tests", async () => {
       it("should write if previous entry doesn't exist", async () => {
         const tokenStateEntryPK = makeTokenGenerationStatesClientKidPK({
           clientId: generateId(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -409,7 +408,7 @@ describe("integration tests", async () => {
       it("should return entries if they exist", async () => {
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -425,7 +424,7 @@ describe("integration tests", async () => {
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry = {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
@@ -471,7 +470,7 @@ describe("integration tests", async () => {
       it("should update state if previous entries exist", async () => {
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: generateId(),
@@ -488,7 +487,7 @@ describe("integration tests", async () => {
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -534,23 +533,16 @@ describe("integration tests", async () => {
 
   describe("Events V1", async () => {
     it("EServiceDescriptorUpdated (draft -> published)", async () => {
-      const draftDescriptor: Descriptor = {
+      const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
         interface: getMockDocument(),
-        state: descriptorState.draft,
+        publishedAt: new Date(),
+        state: descriptorState.published,
       };
       const eservice: EService = {
         ...getMockEService(),
-        descriptors: [draftDescriptor],
-      };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-      // TODO: remove draftDescriptor
-      const publishedDescriptor: Descriptor = {
-        ...draftDescriptor,
-        publishedAt: new Date(),
-        state: descriptorState.published,
+        descriptors: [publishedDescriptor],
       };
 
       const payload: EServiceDescriptorUpdatedV1 = {
@@ -585,25 +577,17 @@ describe("integration tests", async () => {
     });
 
     it("EServiceDescriptorUpdated (suspended -> published, version of the event is newer)", async () => {
-      const suspendedDescriptor: Descriptor = {
+      const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
         interface: getMockDocument(),
-        state: descriptorState.suspended,
         publishedAt: new Date(),
-        suspendedAt: new Date(),
+        suspendedAt: undefined,
+        state: descriptorState.published,
       };
       const eservice: EService = {
         ...getMockEService(),
-        descriptors: [suspendedDescriptor],
-      };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-      const publishedDescriptor: Descriptor = {
-        ...suspendedDescriptor,
-        publishedAt: new Date(),
-        suspendedAt: new Date(),
-        state: descriptorState.published,
+        descriptors: [publishedDescriptor],
       };
 
       const payload: EServiceDescriptorUpdatedV1 = {
@@ -635,7 +619,7 @@ describe("integration tests", async () => {
       // token-generation-states
       const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
@@ -652,7 +636,7 @@ describe("integration tests", async () => {
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -705,27 +689,22 @@ describe("integration tests", async () => {
     });
 
     it("EServiceDescriptorUpdated (published, no operation if version of the event is lower than existing entry)", async () => {
-      console.log(
-        "EServiceDescriptorUpdated (published, no operation if version of the event is lower than existing entry)"
-      );
-      const previousDescriptor: Descriptor = {
+      const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
         interface: getMockDocument(),
-        // previous state could be anything
         state: descriptorState.published,
         publishedAt: new Date(),
         suspendedAt: new Date(),
       };
       const eservice: EService = {
         ...getMockEService(),
-        descriptors: [previousDescriptor],
+        descriptors: [publishedDescriptor],
       };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const payload: EServiceDescriptorUpdatedV1 = {
         eserviceId: eservice.id,
-        eserviceDescriptor: toDescriptorV1(previousDescriptor),
+        eserviceDescriptor: toDescriptorV1(publishedDescriptor),
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
@@ -738,12 +717,12 @@ describe("integration tests", async () => {
       };
       const catalogPrimaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
-        descriptorId: previousDescriptor.id,
+        descriptorId: publishedDescriptor.id,
       });
       const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogPrimaryKey,
         state: itemState.inactive,
-        descriptorAudience: previousDescriptor.audience[0],
+        descriptorAudience: publishedDescriptor.audience[0],
         version: 2,
         updatedAt: new Date().toISOString(),
       };
@@ -752,30 +731,30 @@ describe("integration tests", async () => {
       // token-generation-states
       const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
-        descriptorId: previousDescriptor.id,
+        descriptorId: publishedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
-          descriptorAudience: previousDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
-          descriptorAudience: previousDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -806,23 +785,18 @@ describe("integration tests", async () => {
 
     describe("EServiceDescriptorUpdated (published -> suspended)", () => {
       it("should perform the update if msg.version >= existing version", async () => {
-        const publishedDescriptor: Descriptor = {
+        const suspendedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
           interface: getMockDocument(),
-          state: descriptorState.published,
           publishedAt: new Date(),
-        };
-        const eservice: EService = {
-          ...getMockEService(),
-          descriptors: [publishedDescriptor],
-        };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-        const suspendedDescriptor: Descriptor = {
-          ...publishedDescriptor,
           suspendedAt: new Date(),
           state: descriptorState.suspended,
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [suspendedDescriptor],
         };
 
         const payload: EServiceDescriptorUpdatedV1 = {
@@ -845,7 +819,7 @@ describe("integration tests", async () => {
         const previousStateEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience[0],
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -854,30 +828,30 @@ describe("integration tests", async () => {
         // token-generation-states
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
-          descriptorId: publishedDescriptor.id,
+          descriptorId: suspendedDescriptor.id,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             descriptorState: itemState.active,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: suspendedDescriptor.audience[0],
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             descriptorState: itemState.active,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: suspendedDescriptor.audience[0],
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -922,23 +896,17 @@ describe("integration tests", async () => {
       });
 
       it("should do nothing if msg.version < existing version", async () => {
-        const publishedDescriptor: Descriptor = {
+        const suspendedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
           interface: getMockDocument(),
-          state: descriptorState.published,
           publishedAt: new Date(),
+          suspendedAt: new Date(),
+          state: descriptorState.suspended,
         };
         const eservice: EService = {
           ...getMockEService(),
-          descriptors: [publishedDescriptor],
-        };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-        const suspendedDescriptor: Descriptor = {
-          ...publishedDescriptor,
-          suspendedAt: new Date(),
-          state: descriptorState.suspended,
+          descriptors: [suspendedDescriptor],
         };
 
         const payload: EServiceDescriptorUpdatedV1 = {
@@ -961,7 +929,7 @@ describe("integration tests", async () => {
         const previousStateEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience[0],
           version: 3,
           updatedAt: new Date().toISOString(),
         };
@@ -977,23 +945,18 @@ describe("integration tests", async () => {
       });
 
       it("should throw error if previous entry doesn't exist", async () => {
-        const publishedDescriptor: Descriptor = {
+        const suspendedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
           interface: getMockDocument(),
-          state: descriptorState.published,
           publishedAt: new Date(),
-        };
-        const eservice: EService = {
-          ...getMockEService(),
-          descriptors: [publishedDescriptor],
-        };
-        // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-        const suspendedDescriptor: Descriptor = {
-          ...publishedDescriptor,
           suspendedAt: new Date(),
           state: descriptorState.suspended,
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [suspendedDescriptor],
         };
 
         const payload: EServiceDescriptorUpdatedV1 = {
@@ -1014,25 +977,19 @@ describe("integration tests", async () => {
     });
 
     it("EServiceDescriptorUpdated (published -> archived)", async () => {
-      const publishedDescriptor: Descriptor = {
+      const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
         interface: getMockDocument(),
-        state: descriptorState.published,
         publishedAt: new Date(),
-      };
-      const eservice: EService = {
-        ...getMockEService(),
-        descriptors: [publishedDescriptor],
-      };
-      // await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-
-      const archivedDescriptor: Descriptor = {
-        ...publishedDescriptor,
         archivedAt: new Date(),
         state: descriptorState.archived,
       };
 
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [archivedDescriptor],
+      };
       const payload: EServiceDescriptorUpdatedV1 = {
         eserviceId: eservice.id,
         eserviceDescriptor: toDescriptorV1(archivedDescriptor),
@@ -1048,12 +1005,12 @@ describe("integration tests", async () => {
       };
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
-        descriptorId: publishedDescriptor.id,
+        descriptorId: archivedDescriptor.id,
       });
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: publishedDescriptor.audience[0],
+        descriptorAudience: archivedDescriptor.audience[0],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -1062,30 +1019,30 @@ describe("integration tests", async () => {
       // token-generation-states
       const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
-        descriptorId: publishedDescriptor.id,
+        descriptorId: archivedDescriptor.id,
       });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: archivedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: archivedDescriptor.audience[0],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -1166,7 +1123,7 @@ describe("integration tests", async () => {
         // token-generation-states
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1183,7 +1140,7 @@ describe("integration tests", async () => {
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1262,7 +1219,7 @@ describe("integration tests", async () => {
         // token-generation-states
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1279,7 +1236,7 @@ describe("integration tests", async () => {
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1383,11 +1340,11 @@ describe("integration tests", async () => {
       });
       const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
         clientId: generateId<ClientId>(),
-        kid: generateId(),
+        kid: `kid ${Math.random()}`,
       });
       const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1581,11 +1538,11 @@ describe("integration tests", async () => {
         });
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1730,10 +1687,9 @@ describe("integration tests", async () => {
         await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        // TODO: replace last generateId() with kid
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1750,7 +1706,7 @@ describe("integration tests", async () => {
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1826,10 +1782,9 @@ describe("integration tests", async () => {
         await writeCatalogEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        // TODO: replace last generateId() with kid
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
@@ -1846,7 +1801,7 @@ describe("integration tests", async () => {
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPK({
           clientId: generateId<ClientId>(),
-          kid: generateId(),
+          kid: `kid ${Math.random()}`,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {

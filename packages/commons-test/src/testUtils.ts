@@ -303,7 +303,7 @@ export const getMockTokenStatesClientPurposeEntry = (
     tokenStateEntryPK ||
     makeTokenGenerationStatesClientKidPurposePK({
       clientId: generateId(),
-      kid: generateId(),
+      kid: `kid ${Math.random()}`,
       purposeId: generateId(),
     }),
   descriptorState: itemState.inactive,
