@@ -15,11 +15,3 @@ export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
   });
 
 // export const eservices = readModelRepository.eservices;
-
-export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
-  new Promise((resolve) => {
-    vi.useRealTimers();
-    setTimeout(resolve, ms);
-    vi.useFakeTimers();
-    vi.setSystemTime(mockDate);
-  });
