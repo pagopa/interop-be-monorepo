@@ -125,7 +125,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         }
       );
-      return enhanceAgreementDetailed(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, ctx);
     },
 
     async cloneAgreement(
