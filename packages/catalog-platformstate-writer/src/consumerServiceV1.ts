@@ -25,9 +25,6 @@ export async function handleMessageV1(
   dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
-    // EServiceDescriptorPublished -> EServiceDescriptorUpdated
-    // EServiceDescriptorActivated,EServiceDescriptorSuspended -> EServiceDescriptorUpdated
-    // EServiceDescriptorArchived -> EServiceDescriptorUpdated
     .with({ type: "EServiceDescriptorUpdated" }, async (msg) => {
       const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
       const descriptorV1 = msg.data.eserviceDescriptor;
@@ -43,11 +40,6 @@ export async function handleMessageV1(
       });
       await match(descriptor.state)
         .with(descriptorState.published, async () => {
-          // steps:
-          // capire se siamo in (draft -> published) o (suspened -> published)
-          // fare query su platform states e vedere se c'è
-          // se non c'è sono in draft, e continuo questa esecuzione
-          // se c'è (presumibilmente come inactive) allora era suspended e sono nel caso sotto (sospensione e riattivazione hanno stesso handler)
           const existingCatalogEntry = await readCatalogEntry(
             eserviceDescriptorPK,
             dynamoDBClient
@@ -106,7 +98,6 @@ export async function handleMessageV1(
           }
         })
         .with(descriptorState.suspended, async () => {
-          // TODO: add version check
           const existingCatalogEntry = await readCatalogEntry(
             eserviceDescriptorPK,
             dynamoDBClient
