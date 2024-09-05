@@ -1,7 +1,7 @@
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { mockClient } from "aws-sdk-client-mock";
 import { describe, it, expect, beforeEach } from "vitest";
-import { initSesMailManager } from "pagopa-interop-commons";
+import { AWSSesConfig, initSesMailManager } from "pagopa-interop-commons";
 
 const sesMock = mockClient(SESv2Client);
 
@@ -14,8 +14,11 @@ describe("initSesMailManager", () => {
     // Setup the mock to return a successful response
     sesMock.on(SendEmailCommand).resolves({});
 
-    const awsConfig = { awsRegion: "us-east-1" };
-    const emailManager = initSesMailManager(awsConfig);
+    const awsSesConfig: AWSSesConfig = {
+      awsRegion: "eu-central-1",
+      awsSesEndpoint: undefined,
+    };
+    const emailManager = initSesMailManager(awsSesConfig);
 
     const from = "test@example.com";
     const to = ["recipient@example.com"];

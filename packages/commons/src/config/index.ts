@@ -1,4 +1,5 @@
 export * from "./awsConfig.js";
+export * from "./awsSesConfig.js";
 export * from "./loggerConfig.js";
 export * from "./httpServiceConfig.js";
 export * from "./consumerServiceConfig.js";

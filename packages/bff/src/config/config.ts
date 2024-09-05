@@ -1,13 +1,14 @@
-import { z } from "zod";
 import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  S3Config,
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -34,9 +35,11 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -89,7 +92,7 @@ export const AllowedListConfig = z
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
 
-export const S3Config = z
+export const S3RiskAnalysisConfig = z
   .object({
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
@@ -101,6 +104,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
+  .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
@@ -109,7 +113,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
   .and(SelfCareConfig)
-  .and(S3Config);
+  .and(S3RiskAnalysisConfig)
+  .and(S3Config)
+  .and(PurposeProcessServerConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

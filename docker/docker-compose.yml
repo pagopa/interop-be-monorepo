@@ -171,6 +171,12 @@ services:
     volumes:
       - ./local-kms-seed/jwks.json:/usr/share/nginx/html/jwks.json
 
+  ses-mock:
+    image: node:20
+    ports:
+      - 8005:8005
+    command: "/bin/bash -c 'npm install -g aws-ses-v2-local; aws-ses-v2-local --port=8005 --host=0.0.0.0'"
+
   # Redis local cache database used by the RateLimiter
   redis:
     image: 'redis:7.2.5-alpine3.20'

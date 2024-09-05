@@ -14,6 +14,8 @@ import {
   toReadModelTenant,
   toReadModelAgreement,
   toTenantV2,
+  Attribute,
+  toReadModelAttribute,
   EServiceId,
   DescriptorId,
   agreementState,
@@ -130,6 +132,10 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
