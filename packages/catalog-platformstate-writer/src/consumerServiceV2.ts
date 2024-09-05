@@ -52,7 +52,6 @@ export async function handleMessageV2(
           existingCatalogEntryCurrent.version > msg.version
         ) {
           // Stops processing if the message is older than the catalog entry
-          // TODO: return or return promise
           return;
         } else if (
           existingCatalogEntryCurrent &&
