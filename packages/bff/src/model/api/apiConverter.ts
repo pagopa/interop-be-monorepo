@@ -5,11 +5,14 @@ import {
   TenantWithOnlyAttributes,
 } from "pagopa-interop-agreement-lifecycle";
 import {
-  catalogApi,
+  authorizationApi,
   bffApi,
+  catalogApi,
+  selfcareV2ClientApi,
   tenantApi,
   agreementApi,
 } from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
 import {
   EServiceAttribute,
   unsafeBrandId,
@@ -175,3 +178,34 @@ export function toCompactDescriptor(
     version: descriptor.version,
   };
 }
+export const toBffApiCompactClient = (
+  input: authorizationApi.ClientWithKeys
+): bffApi.CompactClient => ({
+  hasKeys: input.keys.length > 0,
+  id: input.client.id,
+  name: input.client.name,
+});
+
+export const toBffApiCompactUser = (
+  input: selfcareV2ClientApi.UserResponse,
+  userId: string
+): bffApi.CompactUser =>
+  match(input)
+    .with({ name: P.nullish, surname: P.nullish }, () => ({
+      userId,
+      name: "Utente",
+      familyName: userId,
+    }))
+    .otherwise((ur) => ({
+      userId,
+      name: ur.name ?? "",
+      familyName: ur.surname ?? "",
+    }));
+
+export const toBffApiCompactProducerKeychain = (
+  input: authorizationApi.ProducerKeychain
+): bffApi.CompactProducerKeychain => ({
+  hasKeys: input.keys.length > 0,
+  id: input.id,
+  name: input.name,
+});
