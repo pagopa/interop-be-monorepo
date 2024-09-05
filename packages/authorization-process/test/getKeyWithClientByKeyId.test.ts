@@ -6,7 +6,10 @@ import { Client } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { clientNotFound, keyNotFound } from "../src/model/domain/errors.js";
+import {
+  clientNotFound,
+  clientKeyNotFound,
+} from "../src/model/domain/errors.js";
 import { clientToApiClient } from "../src/model/domain/apiConverter.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
@@ -61,7 +64,7 @@ describe("getKeyWithClientByKeyId", async () => {
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw keyNotFound if the key doesn't exist", async () => {
+  it("should throw clientKeyNotFound if the key doesn't exist", async () => {
     const mockKey = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
@@ -75,6 +78,6 @@ describe("getKeyWithClientByKeyId", async () => {
         kid: mockKey.kid,
         logger: genericLogger,
       })
-    ).rejects.toThrowError(keyNotFound(mockKey.kid, mockClient.id));
+    ).rejects.toThrowError(clientKeyNotFound(mockKey.kid, mockClient.id));
   });
 });
