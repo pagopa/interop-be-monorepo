@@ -36,21 +36,21 @@ describe("test", () => {
     const clientId = generateId<ClientId>();
     const kid = `kid ${Math.random()}`;
     const purposeId = generateId<PurposeId>();
-    const GSI = makeTokenGenerationStatesClientKidPurposePK({
+    const PK = makeTokenGenerationStatesClientKidPurposePK({
       clientId,
       kid,
       purposeId,
     });
-    expect(GSI).toEqual(`CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}`);
+    expect(PK).toEqual(`CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}`);
   });
 
   it("makeTokenGenerationStatesClientKidPK", () => {
     const clientId = generateId<ClientId>();
     const kid = `kid ${Math.random()}`;
-    const GSI = makeTokenGenerationStatesClientKidPK({
+    const PK = makeTokenGenerationStatesClientKidPK({
       clientId,
       kid,
     });
-    expect(GSI).toEqual(`CLIENTKID#${clientId}#${kid}`);
+    expect(PK).toEqual(`CLIENTKID#${clientId}#${kid}`);
   });
 });
