@@ -3,6 +3,7 @@ syntax = "proto3";
 package authorization.v2;
 
 import "v2/authorization/client.proto";
+import "v2/authorization/producer-keychain.proto";
 
 message ClientAddedV2 {
   ClientV2 client = 1;
@@ -41,4 +42,43 @@ message ClientPurposeAddedV2 {
 message ClientPurposeRemovedV2 {
   string purposeId = 1;
   ClientV2 client = 2;
+}
+
+message ProducerKeychainAddedV2 {
+  ProducerKeychainV2 producerKeychain = 1;
+}
+
+message ProducerKeychainDeletedV2 {
+  string producerKeychainId = 1;
+  ProducerKeychainV2 producerKeychain = 2;
+}
+
+message ProducerKeychainKeyAddedV2 {
+  string kid = 1;
+  ProducerKeychainV2 producerKeychain = 2;
+}
+
+message ProducerKeychainKeyDeletedV2 {
+  string kid = 1;
+  ProducerKeychainV2 producerKeychain = 2;
+}
+
+message ProducerKeychainUserAddedV2 {
+  string userId = 1;
+  ProducerKeychainV2 producerKeychain = 2;
+}
+
+message ProducerKeychainUserDeletedV2 {
+  string userId = 1;
+  ProducerKeychainV2 producerKeychain = 2;
+}
+
+message ProducerKeychainEServiceAddedV2 {
+  string eserviceId = 1;
+  ProducerKeychainV2 producerKeychain = 2;
+}
+
+message ProducerKeychainEServiceRemovedV2 {
+  string eserviceId = 1;
+  ProducerKeychainV2 producerKeychain = 2;
 }

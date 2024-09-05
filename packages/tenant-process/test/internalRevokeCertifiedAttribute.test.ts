@@ -16,6 +16,7 @@ import {
   TenantCertifiedAttributeRevokedV2,
   toReadModelAttribute,
   Attribute,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -103,7 +104,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
       attributes: [
         {
           id: unsafeBrandId(mockAttribute.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },
