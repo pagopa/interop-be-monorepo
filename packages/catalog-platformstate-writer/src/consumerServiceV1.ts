@@ -113,11 +113,9 @@ export async function handleMessageV1(
           );
 
           if (!existingCatalogEntry) {
-            console.log("!existingCatalogEntry");
-            throw new Error("EServiceDescriptor not found in catalog");
-            // throw genericInternalError(
-            //   `EServiceDescriptor not found in catalog for event ${msg.type}`
-            // );
+            throw genericInternalError(
+              `EServiceDescriptor not found in catalog for event ${msg.type}`
+            );
           } else if (
             existingCatalogEntry &&
             existingCatalogEntry.version > msg.version

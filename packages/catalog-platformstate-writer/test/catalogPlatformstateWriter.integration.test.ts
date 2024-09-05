@@ -21,7 +21,6 @@ import {
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorUpdatedV1,
   EServiceEventEnvelope,
-  InternalError,
   PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
   descriptorState,
@@ -978,7 +977,7 @@ describe("integration tests", async () => {
         expect(retrievedEntry).toEqual(previousStateEntry);
       });
 
-      it.only("should throw error if previous entry doesn't exist", async () => {
+      it("should throw error if previous entry doesn't exist", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -1011,18 +1010,7 @@ describe("integration tests", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await expect(() =>
-          handleMessageV1(message, dynamoDBClient)
-        ).rejects.toThrowError(Error);
-
-        // try {
-        //   const a = await handleMessageV1(message, dynamoDBClient);
-        //   console.log("try");
-        //   fail("should throw error");
-        // } catch (e) {
-        //   console.log("catch");
-        //   expect(1).toBe(1);
-        // }
+        expect(handleMessageV1(message, dynamoDBClient)).rejects.toThrowError();
       });
     });
 
