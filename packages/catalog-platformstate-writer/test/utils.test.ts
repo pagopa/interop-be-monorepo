@@ -1,9 +1,11 @@
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   generateId,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  makeTokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -26,5 +28,15 @@ describe("test", () => {
       descriptorId,
     });
     expect(GSI).toEqual(`${eserviceId}#${descriptorId}`);
+  });
+
+  it("makePK token", () => {
+    const clientId = generateId<ClientId>();
+    const kid = `kid ${Math.random()}`;
+    const GSI = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid,
+    });
+    expect(GSI).toEqual(`CLIENTKID#${clientId}#${kid}`);
   });
 });
