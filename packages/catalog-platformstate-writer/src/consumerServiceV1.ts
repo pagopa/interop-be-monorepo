@@ -41,125 +41,34 @@ export async function handleMessageV1(
         eserviceId,
         descriptorId: descriptor.id,
       });
-      switch (descriptor.state) {
-        case descriptorState.published: {
-          // steps:
-          // capire se siamo in (draft -> published) o (suspened -> published)
-          // fare query su platform states e vedere se c'è
-          // se non c'è sono in draft, e continuo questa esecuzione
-          // se c'è (presumibilmente come inactive) allora era suspended e sono nel caso sotto (sospensione e riattivazione hanno stesso handler)
-          const existingCatalogEntry = await readCatalogEntry(
+      if (descriptor.state === descriptorState.published) {
+        // steps:
+        // capire se siamo in (draft -> published) o (suspened -> published)
+        // fare query su platform states e vedere se c'è
+        // se non c'è sono in draft, e continuo questa esecuzione
+        // se c'è (presumibilmente come inactive) allora era suspended e sono nel caso sotto (sospensione e riattivazione hanno stesso handler)
+        const existingCatalogEntry = await readCatalogEntry(
+          eserviceDescriptorPK,
+          dynamoDBClient
+        );
+
+        if (
+          existingCatalogEntry &&
+          existingCatalogEntry.version > msg.version
+        ) {
+          // Stops processing if the message is older than the catalog entry
+          return Promise.resolve();
+        } else if (
+          existingCatalogEntry &&
+          existingCatalogEntry.version <= msg.version
+        ) {
+          // suspended->published
+          await updateDescriptorStateInPlatformStatesEntry(
+            dynamoDBClient,
             eserviceDescriptorPK,
-            dynamoDBClient
+            descriptorStateToClientState(descriptor.state),
+            msg.version
           );
-
-          if (
-            existingCatalogEntry &&
-            existingCatalogEntry.version > msg.version
-          ) {
-            // Stops processing if the message is older than the catalog entry
-            return Promise.resolve();
-          } else if (
-            existingCatalogEntry &&
-            existingCatalogEntry.version <= msg.version
-          ) {
-            // suspended->published
-            await updateDescriptorStateInPlatformStatesEntry(
-              dynamoDBClient,
-              eserviceDescriptorPK,
-              descriptorStateToClientState(descriptor.state),
-              msg.version
-            );
-
-            // token-generation-states
-            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-              eserviceId,
-              descriptorId: descriptor.id,
-            });
-            await updateDescriptorStateInTokenGenerationStatesTable(
-              eserviceId_descriptorId,
-              descriptor.state,
-              dynamoDBClient
-            );
-          } else {
-            const catalogEntry: PlatformStatesCatalogEntry = {
-              PK: eserviceDescriptorPK,
-              state: descriptorStateToClientState(descriptor.state),
-              descriptorAudience: descriptor.audience[0],
-              version: msg.version,
-              updatedAt: new Date().toISOString(),
-            };
-
-            await writeCatalogEntry(catalogEntry, dynamoDBClient);
-
-            // token-generation-states
-            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-              eserviceId,
-              descriptorId: descriptor.id,
-            });
-            await updateDescriptorStateInTokenGenerationStatesTable(
-              eserviceId_descriptorId,
-              descriptor.state,
-              dynamoDBClient
-            );
-          }
-          break;
-        }
-        case descriptorState.suspended: {
-          // TODO: add version check
-          const existingCatalogEntry = await readCatalogEntry(
-            eserviceDescriptorPK,
-            dynamoDBClient
-          );
-
-          if (!existingCatalogEntry) {
-            throw genericInternalError(
-              `EServiceDescriptor not found in catalog for event ${msg.type}`
-            );
-          } else if (
-            existingCatalogEntry &&
-            existingCatalogEntry.version > msg.version
-          ) {
-            // Stops processing if the message is older than the catalog entry
-            return Promise.resolve();
-          } else {
-            // platform-states
-            await updateDescriptorStateInPlatformStatesEntry(
-              dynamoDBClient,
-              eserviceDescriptorPK,
-              descriptorStateToClientState(descriptor.state),
-              msg.version
-            );
-
-            // token-generation-states
-            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-              eserviceId,
-              descriptorId: descriptor.id,
-            });
-            await updateDescriptorStateInTokenGenerationStatesTable(
-              eserviceId_descriptorId,
-              descriptor.state,
-              dynamoDBClient
-            );
-          }
-          break;
-        }
-        case descriptorState.archived: {
-          const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
-          const descriptorV1 = msg.data.eserviceDescriptor;
-          if (!descriptorV1) {
-            throw genericInternalError(
-              `EServiceDescriptor not found in message data for event ${msg.type}`
-            );
-          }
-          const descriptor = fromDescriptorV1(descriptorV1);
-
-          // platform-states
-          const primaryKey = makePlatformStatesEServiceDescriptorPK({
-            eserviceId,
-            descriptorId: descriptor.id,
-          });
-          await deleteCatalogEntry(primaryKey, dynamoDBClient);
 
           // token-generation-states
           const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
@@ -171,11 +80,94 @@ export async function handleMessageV1(
             descriptor.state,
             dynamoDBClient
           );
-          break;
+        } else {
+          const catalogEntry: PlatformStatesCatalogEntry = {
+            PK: eserviceDescriptorPK,
+            state: descriptorStateToClientState(descriptor.state),
+            descriptorAudience: descriptor.audience[0],
+            version: msg.version,
+            updatedAt: new Date().toISOString(),
+          };
+
+          await writeCatalogEntry(catalogEntry, dynamoDBClient);
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.state,
+            dynamoDBClient
+          );
         }
-        default: {
+      } else if (descriptor.state === descriptorState.suspended) {
+        // TODO: add version check
+        const existingCatalogEntry = await readCatalogEntry(
+          eserviceDescriptorPK,
+          dynamoDBClient
+        );
+
+        if (!existingCatalogEntry) {
+          throw genericInternalError(
+            `EServiceDescriptor not found in catalog for event ${msg.type}`
+          );
+        } else if (
+          existingCatalogEntry &&
+          existingCatalogEntry.version > msg.version
+        ) {
+          // Stops processing if the message is older than the catalog entry
           return Promise.resolve();
+        } else {
+          // platform-states
+          await updateDescriptorStateInPlatformStatesEntry(
+            dynamoDBClient,
+            eserviceDescriptorPK,
+            descriptorStateToClientState(descriptor.state),
+            msg.version
+          );
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptor.state,
+            dynamoDBClient
+          );
         }
+      } else if (descriptor.state === descriptorState.archived) {
+        const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
+        const descriptorV1 = msg.data.eserviceDescriptor;
+        if (!descriptorV1) {
+          throw genericInternalError(
+            `EServiceDescriptor not found in message data for event ${msg.type}`
+          );
+        }
+        const descriptor = fromDescriptorV1(descriptorV1);
+
+        // platform-states
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId,
+          descriptorId: descriptor.id,
+        });
+        await deleteCatalogEntry(primaryKey, dynamoDBClient);
+
+        // token-generation-states
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId,
+          descriptorId: descriptor.id,
+        });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptor.state,
+          dynamoDBClient
+        );
+      } else {
+        return Promise.resolve();
       }
     })
     .with(
