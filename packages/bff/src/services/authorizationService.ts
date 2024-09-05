@@ -30,6 +30,8 @@ import {
 import { SAMLResponse } from "../model/types.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 
+const SUPPORT_LEVELS = ["L2", "L3"];
+const SUPPORT_LEVEL_NAME = "supportLevel";
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
