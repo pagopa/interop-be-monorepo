@@ -964,8 +964,10 @@ export function catalogServiceBuilder(
 
       const zip = new AdmZip(Buffer.from(zipFile));
 
+      const rootFolderName = fileResource.filename.replace(".zip", "");
+
       const entriesMap = zip.getEntries().reduce((map, entry) => {
-        map.set(entry.name, entry);
+        map.set(entry.entryName.replace(rootFolderName + "/", ""), entry);
         return map;
       }, new Map<string, AdmZip.IZipEntry>());
 
@@ -1000,6 +1002,7 @@ export function catalogServiceBuilder(
 
       const allowedFiles = [
         "configuration.json",
+        "documents/",
         importedEservice.descriptor.interface?.path,
         ...importedEservice.descriptor.docs.map((doc) => doc.path),
       ].filter(
