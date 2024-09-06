@@ -56,10 +56,14 @@ import {
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
-  writeTokenStateEntry,
 } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { config, sleep } from "./utils.js";
+import {
+  config,
+  readAllTokenStateItems,
+  sleep,
+  writeTokenStateEntry,
+} from "./utils.js";
 
 describe("integration tests", async () => {
   if (!config) {
@@ -1095,13 +1099,15 @@ describe("integration tests", async () => {
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
-          descriptorId: publishedDescriptor.id,
+          descriptorId: archivedDescriptor.id,
         });
         const retrievedEntry = await readCatalogEntry(
           primaryKey,
           dynamoDBClient
         );
         expect(retrievedEntry).toBeUndefined();
+
+        // TO DO token-generation-states
       });
     });
 
@@ -1320,38 +1326,3 @@ describe("integration tests", async () => {
     });
   });
 });
-
-const readAllTokenStateItems = async (
-  dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-  if (!config) {
-    fail();
-  }
-
-  const readInput: ScanInput = {
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-  };
-  const commandQuery = new ScanCommand(readInput);
-  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
-
-  if (!data.Items) {
-    throw genericInternalError(
-      `Unable to read token state entries: result ${JSON.stringify(data)} `
-    );
-  } else {
-    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
-
-    const tokenStateEntries = z
-      .array(TokenGenerationStatesClientPurposeEntry)
-      .safeParse(unmarshalledItems);
-
-    if (!tokenStateEntries.success) {
-      throw genericInternalError(
-        `Unable to parse token state entry item: result ${JSON.stringify(
-          tokenStateEntries
-        )} - data ${JSON.stringify(data)} `
-      );
-    }
-    return tokenStateEntries.data;
-  }
-};

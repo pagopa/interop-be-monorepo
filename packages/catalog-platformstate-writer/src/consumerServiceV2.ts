@@ -38,7 +38,7 @@ export async function handleMessageV2(
       );
 
       // flow for current descriptor
-      {
+      const processCurrentDescriptor = async (): Promise<void> => {
         const primaryKeyCurrent = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
@@ -52,7 +52,7 @@ export async function handleMessageV2(
           existingCatalogEntryCurrent.version > msg.version
         ) {
           // Stops processing if the message is older than the catalog entry
-          return;
+          return Promise.resolve();
         } else if (
           existingCatalogEntryCurrent &&
           existingCatalogEntryCurrent.version <= msg.version
@@ -96,7 +96,9 @@ export async function handleMessageV2(
             dynamoDBClient
           );
         }
-      }
+      };
+
+      await processCurrentDescriptor();
 
       // flow for previous descriptor
 
@@ -108,7 +110,7 @@ export async function handleMessageV2(
       } else {
         const primaryKeyPrevious = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
-          descriptorId: descriptor.id,
+          descriptorId: previousDescriptor.id,
         });
 
         await deleteCatalogEntry(primaryKeyPrevious, dynamoDBClient);
