@@ -1,0 +1,10 @@
+{
+  "TableName": "platform-states",
+  "AttributeDefinitions": [{ "AttributeName": "PK", "AttributeType": "S" }],
+  "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 10,
+    "WriteCapacityUnits": 5
+  },
+  "BillingMode": "PAY_PER_REQUEST"
+}
