@@ -7,9 +7,11 @@ export const { cleanup, postgresDB } = await setupTestContainersVitest(
   inject("eventStoreConfig")
 );
 
-export async function getLastEventByKid(kid: string): Promise<unknown> {
+export async function getLastEventByKid(
+  kid: string
+): Promise<{ event_id: number; kid: string; event_type: "ADDED" | "DELETED" }> {
   return postgresDB.one(
-    `SELECT * FROM ${config.eventStoreDbName}.producer_keys_events WHERE kid = $1 ORDER BY sequence_num DESC LIMIT 1`,
+    `SELECT * FROM ${config.eventStoreDbSchema}.producer_keys_events WHERE kid = $1 ORDER BY event_id DESC LIMIT 1`,
     [kid]
   );
 }

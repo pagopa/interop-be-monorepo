@@ -9,9 +9,10 @@ import {
   ProducerKeychainId,
   ProducerKeychain,
   ProducerKeychainKeyAddedV2,
+  ProducerKeychainKeyDeletedV2,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/producerKeyConsumerServiceV2.js";
 import { getLastEventByKid, postgresDB } from "./utils.js";
 
@@ -56,51 +57,42 @@ describe("Events V2", () => {
     await handleMessageV2(message, postgresDB);
 
     const retrievedKey = await getLastEventByKid(mockKey.kid);
-    console.log(retrievedKey);
+    expect(retrievedKey.kid).toEqual(mockKey.kid);
+    expect(retrievedKey.event_type).toEqual("ADDED");
   });
-  // it("ProducerKeychainKeyDeleted", async () => {
-  //   const producerKeychainId: ProducerKeychainId = generateId();
-  //   const mockKey: Key = {
-  //     ...getMockKey(),
-  //     encodedPem: base64Key,
-  //   };
-  //   const producerKeychainJWKKey = keyToProducerJWKKey(
-  //     mockKey,
-  //     producerKeychainId
-  //   );
-  //   const mockProducerKeychain: ProducerKeychain = {
-  //     ...getMockProducerKeychain(),
-  //     id: producerKeychainId,
-  //     keys: [mockKey],
-  //   };
-  //   await writeInReadmodel(producerKeychainJWKKey, producerKeys);
+  it("ProducerKeychainKeyDeleted", async () => {
+    const producerKeychainId: ProducerKeychainId = generateId();
+    const mockKey = {
+      ...getMockKey(),
+      producerKeychainId,
+      encodedPem: base64Key,
+    };
 
-  //   const updatedProducerKeychain = {
-  //     ...mockProducerKeychain,
-  //     producerKeys: [],
-  //   };
+    const mockProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      id: producerKeychainId,
+      keys: [mockKey],
+    };
 
-  //   const payload: ProducerKeychainKeyDeletedV2 = {
-  //     producerKeychain: toProducerKeychainV2(updatedProducerKeychain),
-  //     kid: mockKey.kid,
-  //   };
+    const payload: ProducerKeychainKeyDeletedV2 = {
+      producerKeychain: toProducerKeychainV2(mockProducerKeychain),
+      kid: mockKey.kid,
+    };
 
-  //   const message: AuthorizationEventEnvelopeV2 = {
-  //     sequence_num: 1,
-  //     stream_id: mockProducerKeychain.id,
-  //     version: 1,
-  //     type: "ProducerKeychainKeyDeleted",
-  //     event_version: 2,
-  //     data: payload,
-  //     log_date: new Date(),
-  //   };
+    const message: AuthorizationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockProducerKeychain.id,
+      version: 1,
+      type: "ProducerKeychainKeyDeleted",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+    };
 
-  //   await handleMessageV2(message, producerKeys);
+    await handleMessageV2(message, postgresDB);
 
-  //   const retrievedKey = await producerKeys.findOne({
-  //     "data.kid": mockKey.kid,
-  //   });
-
-  //   expect(retrievedKey).toBeNull();
-  // });
+    const retrievedKey = await getLastEventByKid(mockKey.kid);
+    expect(retrievedKey.kid).toEqual(mockKey.kid);
+    expect(retrievedKey.event_type).toEqual("DELETED");
+  });
 });
