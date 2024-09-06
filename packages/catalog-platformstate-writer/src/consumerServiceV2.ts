@@ -142,16 +142,9 @@ export async function handleMessageV2(
         });
         const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
-        if (!catalogEntry) {
-          throw genericInternalError(
-            `Unable to find catalog entry with PK ${primaryKey}`
-          );
+        if (!catalogEntry || catalogEntry.version > msg.version) {
+          return Promise.resolve();
         } else {
-          // Stops processing if the message is older than the catalog entry
-          if (catalogEntry.version > msg.version) {
-            return;
-          }
-
           await updateDescriptorStateInPlatformStatesEntry(
             dynamoDBClient,
             primaryKey,
