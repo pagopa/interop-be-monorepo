@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
   DynamoDBClient,
@@ -43,10 +45,10 @@ export const writeTokenStateEntry = async (
         S: tokenStateEntry.PK,
       },
       descriptorState: {
-        S: tokenStateEntry.descriptorState,
+        S: tokenStateEntry.descriptorState!,
       },
       descriptorAudience: {
-        S: tokenStateEntry.descriptorAudience,
+        S: tokenStateEntry.descriptorAudience!,
       },
       updatedAt: {
         S: tokenStateEntry.updatedAt,
@@ -55,13 +57,13 @@ export const writeTokenStateEntry = async (
         S: tokenStateEntry.consumerId,
       },
       agreementId: {
-        S: tokenStateEntry.agreementId,
+        S: tokenStateEntry.agreementId!,
       },
       purposeVersionId: {
-        S: tokenStateEntry.purposeVersionId,
+        S: tokenStateEntry.purposeVersionId!,
       },
       GSIPK_consumerId_eserviceId: {
-        S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+        S: tokenStateEntry.GSIPK_consumerId_eserviceId!,
       },
       clientKind: {
         S: tokenStateEntry.clientKind,
@@ -76,19 +78,19 @@ export const writeTokenStateEntry = async (
         S: tokenStateEntry.GSIPK_kid,
       },
       GSIPK_clientId_purposeId: {
-        S: tokenStateEntry.GSIPK_clientId_purposeId,
+        S: tokenStateEntry.GSIPK_clientId_purposeId!,
       },
       agreementState: {
-        S: tokenStateEntry.agreementState,
+        S: tokenStateEntry.agreementState!,
       },
       GSIPK_eserviceId_descriptorId: {
-        S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+        S: tokenStateEntry.GSIPK_eserviceId_descriptorId!,
       },
       GSIPK_purposeId: {
-        S: tokenStateEntry.GSIPK_purposeId,
+        S: tokenStateEntry.GSIPK_purposeId!,
       },
       purposeState: {
-        S: tokenStateEntry.purposeState,
+        S: tokenStateEntry.purposeState!,
       },
     },
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,

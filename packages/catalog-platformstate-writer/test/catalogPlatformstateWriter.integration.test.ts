@@ -22,7 +22,6 @@ import {
   TokenGenerationStatesClientPurposeEntry,
   descriptorState,
   generateId,
-  genericInternalError,
   itemState,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
@@ -36,9 +35,6 @@ import {
   DeleteTableCommand,
   DeleteTableInput,
   DynamoDBClient,
-  ScanCommand,
-  ScanCommandOutput,
-  ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import {
   getMockDescriptor,
@@ -46,8 +42,6 @@ import {
   getMockDocument,
   getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { z } from "zod";
 import {
   deleteCatalogEntry,
   descriptorStateToClientState,
