@@ -102,19 +102,6 @@ export const deleteCatalogEntry = async (
   await dynamoDBClient.send(command);
 };
 
-/*
-export const readAllItems = async (
-  dynamoDBClient: DynamoDBClient
-): Promise<ScanCommandOutput> => {
-  const readInput: ScanInput = {
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-  };
-  const commandQuery = new ScanCommand(readInput);
-  const read: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
-  return read;
-};
-*/
-
 export const descriptorStateToClientState = (
   state: DescriptorState
 ): ItemState =>
