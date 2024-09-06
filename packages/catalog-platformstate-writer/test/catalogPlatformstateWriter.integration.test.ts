@@ -23,7 +23,6 @@ import {
   TokenGenerationStatesClientPurposeEntry,
   descriptorState,
   generateId,
-  genericInternalError,
   itemState,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
@@ -37,9 +36,6 @@ import {
   DeleteTableCommand,
   DeleteTableInput,
   DynamoDBClient,
-  ScanCommand,
-  ScanCommandOutput,
-  ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import {
   toDescriptorV1,
@@ -48,8 +44,6 @@ import {
   getMockDocument,
   getMockTokenStatesClientPurposeEntry,
 } from "pagopa-interop-commons-test";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { z } from "zod";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   deleteCatalogEntry,
@@ -59,10 +53,14 @@ import {
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
-  writeTokenStateEntry,
 } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { config, sleep } from "./utils.js";
+import {
+  config,
+  readAllTokenStateItems,
+  sleep,
+  writeTokenStateEntry,
+} from "./utils.js";
 
 describe("integration tests", async () => {
   if (!config) {
@@ -1302,6 +1300,80 @@ describe("integration tests", async () => {
           ])
         );
       });
+      it("should not throw error if entry doesn't exist", async () => {
+        const publishedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.published,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [publishedDescriptor],
+        };
+
+        const payload: EServiceDescriptorActivatedV2 = {
+          eservice: toEServiceV2(eservice),
+          descriptorId: publishedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: eservice.id,
+          version: 2,
+          type: "EServiceDescriptorActivated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: publishedDescriptor.id,
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            descriptorState: itemState.inactive,
+            descriptorAudience: publishedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            descriptorState: itemState.inactive,
+            descriptorAudience: publishedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+        await sleep(1000, mockDate);
+        await handleMessageV2(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedCatalogEntry = await readCatalogEntry(
+          catalogEntryPrimaryKey,
+          dynamoDBClient
+        );
+        expect(retrievedCatalogEntry).toBeUndefined();
+      });
     });
 
     it("EServiceDescriptorArchived", async () => {
@@ -1649,13 +1721,15 @@ describe("integration tests", async () => {
 
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
-          descriptorId: publishedDescriptor.id,
+          descriptorId: archivedDescriptor.id,
         });
         const retrievedEntry = await readCatalogEntry(
           primaryKey,
           dynamoDBClient
         );
         expect(retrievedEntry).toBeUndefined();
+
+        // TO DO token-generation-states
       });
     });
 
@@ -1871,41 +1945,81 @@ describe("integration tests", async () => {
           ])
         );
       });
+      it("should not throw error if entry doesn't exist", async () => {
+        const suspendedDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          audience: ["pagopa.it"],
+          interface: getMockDocument(),
+          state: descriptorState.suspended,
+          publishedAt: new Date(),
+          suspendedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [suspendedDescriptor],
+        };
+
+        const payload: EServiceDescriptorActivatedV2 = {
+          eservice: toEServiceV2(eservice),
+          descriptorId: suspendedDescriptor.id,
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: eservice.id,
+          version: 2,
+          type: "EServiceDescriptorActivated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: suspendedDescriptor.id,
+        });
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: suspendedDescriptor.id,
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            descriptorState: itemState.inactive,
+            descriptorAudience: suspendedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            descriptorState: itemState.inactive,
+            descriptorAudience: suspendedDescriptor.audience[0],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+        await sleep(1000, mockDate);
+        await handleMessageV2(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedCatalogEntry = await readCatalogEntry(
+          catalogEntryPrimaryKey,
+          dynamoDBClient
+        );
+        expect(retrievedCatalogEntry).toBeUndefined();
+      });
     });
   });
 });
-
-const readAllTokenStateItems = async (
-  dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
-  if (!config) {
-    fail();
-  }
-
-  const readInput: ScanInput = {
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-  };
-  const commandQuery = new ScanCommand(readInput);
-  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
-
-  if (!data.Items) {
-    throw genericInternalError(
-      `Unable to read token state entries: result ${JSON.stringify(data)} `
-    );
-  } else {
-    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
-
-    const tokenStateEntries = z
-      .array(TokenGenerationStatesClientPurposeEntry)
-      .safeParse(unmarshalledItems);
-
-    if (!tokenStateEntries.success) {
-      throw genericInternalError(
-        `Unable to parse token state entry item: result ${JSON.stringify(
-          tokenStateEntries
-        )} - data ${JSON.stringify(data)} `
-      );
-    }
-    return tokenStateEntries.data;
-  }
-};

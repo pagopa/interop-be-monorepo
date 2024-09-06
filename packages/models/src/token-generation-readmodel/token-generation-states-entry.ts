@@ -31,7 +31,6 @@ const TokenGenerationStatesBaseEntry = z.object({
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
   GSIPK_kid: z.string(),
-  GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
   updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
@@ -41,15 +40,16 @@ type TokenGenerationStatesBaseEntry = z.infer<
 export const TokenGenerationStatesClientPurposeEntry =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPurposePK,
-    GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
-    agreementId: AgreementId,
-    agreementState: ItemState,
-    GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
-    descriptorState: ItemState,
-    descriptorAudience: z.string(),
-    GSIPK_purposeId: PurposeId,
-    purposeState: ItemState,
-    purposeVersionId: PurposeVersionId,
+    GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId.optional(),
+    agreementId: AgreementId.optional(),
+    agreementState: ItemState.optional(),
+    GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId.optional(),
+    descriptorState: ItemState.optional(),
+    descriptorAudience: z.string().optional(),
+    GSIPK_purposeId: PurposeId.optional(),
+    purposeState: ItemState.optional(),
+    purposeVersionId: PurposeVersionId.optional(),
+    GSIPK_clientId_purposeId: GSIPKClientIdPurposeId.optional(),
   });
 export type TokenGenerationStatesClientPurposeEntry = z.infer<
   typeof TokenGenerationStatesClientPurposeEntry

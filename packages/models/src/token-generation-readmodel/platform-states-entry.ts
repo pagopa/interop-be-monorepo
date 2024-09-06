@@ -23,24 +23,6 @@ export const ItemState = z.enum([
 ]);
 export type ItemState = z.infer<typeof ItemState>;
 
-/*
-export const PlatformStatesEServiceDescriptorPK = z.literal(
-  `ESERVICEDESCRIPTOR#${EServiceId}#${DescriptorId}`
-);
-export type PlatformStatesEServiceDescriptorPK = z.infer<
-  typeof PlatformStatesEServiceDescriptorPK
->;
-
-const a: PlatformStatesEServiceDescriptorPK = `ESERVICEDESCRIPTOR#${generateId<EServiceId>()}#${generateId<DescriptorId>()}`; // OK
-const b: PlatformStatesEServiceDescriptorPK = `ESERVICEDESCRIPTOR#${generateId()}#${generateId<DescriptorId>()}`; // OK
-const c: PlatformStatesEServiceDescriptorPK = `ESERVICEDESCRIPTOR#test#test`; // OK
-const d: PlatformStatesEServiceDescriptorPK = `ESERVICEDESCRIPTOR#test#`; // OK
-const e: PlatformStatesEServiceDescriptorPK = `ESERVICEDESCRIPTOR#test`; // WRONG
-const f: PlatformStatesEServiceDescriptorPK = `test#test#test`; // WRONG
-
-We don't check the structure of the ids because they are treated as strings
-*/
-
 const PlatformStatesBaseEntry = z.object({
   state: ItemState,
   version: z.number(),
