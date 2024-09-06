@@ -43,6 +43,7 @@ import {
   makeGSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientKidPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
+  clientKindTokenStates,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -316,7 +317,7 @@ export const getMockTokenStatesClientPurposeEntry = (
     consumerId: generateId<TenantId>(),
     eserviceId: generateId<EServiceId>(),
   }),
-  clientKind: clientKind.consumer,
+  clientKind: clientKindTokenStates.consumer,
   publicKey: "PEM",
   GSIPK_clientId: generateId(),
   GSIPK_kid: "KID",

@@ -13,7 +13,7 @@ import {
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   deleteCatalogEntry,
-  descriptorStateToClientState,
+  descriptorStateToItemState,
   readCatalogEntry,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
@@ -60,7 +60,7 @@ export async function handleMessageV1(
             await updateDescriptorStateInPlatformStatesEntry(
               dynamoDBClient,
               eserviceDescriptorPK,
-              descriptorStateToClientState(descriptor.state),
+              descriptorStateToItemState(descriptor.state),
               msg.version
             );
 
@@ -77,7 +77,7 @@ export async function handleMessageV1(
           } else {
             const catalogEntry: PlatformStatesCatalogEntry = {
               PK: eserviceDescriptorPK,
-              state: descriptorStateToClientState(descriptor.state),
+              state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience[0],
               version: msg.version,
               updatedAt: new Date().toISOString(),
@@ -118,7 +118,7 @@ export async function handleMessageV1(
             await updateDescriptorStateInPlatformStatesEntry(
               dynamoDBClient,
               eserviceDescriptorPK,
-              descriptorStateToClientState(descriptor.state),
+              descriptorStateToItemState(descriptor.state),
               msg.version
             );
 

@@ -16,7 +16,7 @@ import {
 import { match } from "ts-pattern";
 import {
   deleteCatalogEntry,
-  descriptorStateToClientState,
+  descriptorStateToItemState,
   readCatalogEntry,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
@@ -60,7 +60,7 @@ export async function handleMessageV2(
           await updateDescriptorStateInPlatformStatesEntry(
             dynamoDBClient,
             primaryKeyCurrent,
-            descriptorStateToClientState(descriptor.state),
+            descriptorStateToItemState(descriptor.state),
             msg.version
           );
 
@@ -77,7 +77,7 @@ export async function handleMessageV2(
         } else {
           const catalogEntry: PlatformStatesCatalogEntry = {
             PK: primaryKeyCurrent,
-            state: descriptorStateToClientState(descriptor.state),
+            state: descriptorStateToItemState(descriptor.state),
             descriptorAudience: descriptor.audience[0],
             version: msg.version,
             updatedAt: new Date().toISOString(),
@@ -153,7 +153,7 @@ export async function handleMessageV2(
           await updateDescriptorStateInPlatformStatesEntry(
             dynamoDBClient,
             primaryKey,
-            descriptorStateToClientState(descriptor.state),
+            descriptorStateToItemState(descriptor.state),
             msg.version
           );
 
