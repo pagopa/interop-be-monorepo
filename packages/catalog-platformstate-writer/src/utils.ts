@@ -101,19 +101,6 @@ export const deleteCatalogEntry = async (
   await dynamoDBClient.send(command);
 };
 
-/*
-export const readAllItems = async (
-  dynamoDBClient: DynamoDBClient
-): Promise<ScanCommandOutput> => {
-  const readInput: ScanInput = {
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-  };
-  const commandQuery = new ScanCommand(readInput);
-  const read: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
-  return read;
-};
-*/
-
 export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
@@ -149,112 +136,11 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
     UpdateExpression:
       "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
-    ReturnValues: "ALL_NEW",
+    ReturnValues: "NONE",
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
 };
-
-export const writeTokenStateEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
-  dynamoDBClient: DynamoDBClient
-): Promise<void> => {
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: tokenStateEntry.PK,
-      },
-      descriptorState: {
-        S: tokenStateEntry.descriptorState,
-      },
-      descriptorAudience: {
-        S: tokenStateEntry.descriptorAudience,
-      },
-      updatedAt: {
-        S: tokenStateEntry.updatedAt,
-      },
-      consumerId: {
-        S: tokenStateEntry.consumerId,
-      },
-      agreementId: {
-        S: tokenStateEntry.agreementId,
-      },
-      purposeVersionId: {
-        S: tokenStateEntry.purposeVersionId,
-      },
-      GSIPK_consumerId_eserviceId: {
-        S: tokenStateEntry.GSIPK_consumerId_eserviceId,
-      },
-      clientKind: {
-        S: tokenStateEntry.clientKind,
-      },
-      publicKey: {
-        S: tokenStateEntry.publicKey,
-      },
-      GSIPK_clientId: {
-        S: tokenStateEntry.GSIPK_clientId,
-      },
-      GSIPK_kid: {
-        S: tokenStateEntry.GSIPK_kid,
-      },
-      GSIPK_clientId_purposeId: {
-        S: tokenStateEntry.GSIPK_clientId_purposeId,
-      },
-      agreementState: {
-        S: tokenStateEntry.agreementState,
-      },
-      GSIPK_eserviceId_descriptorId: {
-        S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
-      },
-      GSIPK_purposeId: {
-        S: tokenStateEntry.GSIPK_purposeId,
-      },
-      purposeState: {
-        S: tokenStateEntry.purposeState,
-      },
-    },
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-  };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
-};
-
-/*
-export const readTokenStateEntryByEServiceIdAndDescriptorId = async (
-  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
-  dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry | undefined> => {
-  const input: QueryInput = {
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    IndexName: "GSIPK_eserviceId_descriptorId", // Use the name of your Global Secondary Index
-    KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
-    ExpressionAttributeValues: {
-      ":gsiValue": { S: eserviceId_descriptorId },
-    },
-    ScanIndexForward: false,
-  };
-  const command = new QueryCommand(input);
-  const data: QueryCommandOutput = await dynamoDBClient.send(command);
-
-  if (!data.Items) {
-    return undefined;
-  } else {
-    const unmarshalled = unmarshall(data.Items[0]);
-    const tokenStateEntry =
-      TokenGenerationStatesClientPurposeEntry.safeParse(unmarshalled);
-
-    if (!tokenStateEntry.success) {
-      throw genericInternalError(
-        `Unable to parse token state entry item: result ${JSON.stringify(
-          tokenStateEntry
-        )} - data ${JSON.stringify(data)} `
-      );
-    }
-    return tokenStateEntry.data;
-  }
-};
-*/
 
 export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
@@ -262,12 +148,11 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
 ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    IndexName: "GSIPK_eserviceId_descriptorId", // Use the name of your Global Secondary Index
-    KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsi_value`,
+    IndexName: "GSIPK_eserviceId_descriptorId",
+    KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":gsi_value": { S: eserviceId_descriptorId },
+      ":gsiValue": { S: eserviceId_descriptorId },
     },
-    ScanIndexForward: false,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
@@ -324,7 +209,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       UpdateExpression:
         "SET descriptorState = :newState, updatedAt = :newUpdateAt",
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      ReturnValues: "ALL_NEW",
+      ReturnValues: "NONE",
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
