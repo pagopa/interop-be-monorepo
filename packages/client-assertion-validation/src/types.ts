@@ -11,7 +11,7 @@ import { z } from "zod";
 
 export const ClientAssertionHeader = z.object({
   kid: z.string(),
-  alg: z.string(), // TODO Enum
+  alg: z.string(), // TODO Enum, which values?
 });
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
 
@@ -35,9 +35,9 @@ export type ClientAssertion = z.infer<typeof ClientAssertion>;
 export const Key = z.object({
   GSIPK_clientId: ClientId,
   consumerId: TenantId,
-  kidWithPurposeId: z.string(), // TO DO which field of the table is mapper to this?
+  kidWithPurposeId: z.string(), // TO DO which field of the table is mapped to this?
   publicKey: z.string().min(1),
-  algorithm: z.literal("RS256"), // no field to map from the table. Is it included extracted from publicKey field?
+  algorithm: z.literal("RS256"), // no field to map from the table. Is it extracted from publicKey field?
 });
 export type Key = z.infer<typeof Key>;
 

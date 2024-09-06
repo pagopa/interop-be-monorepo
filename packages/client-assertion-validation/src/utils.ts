@@ -1,15 +1,22 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { decode, JwtPayload, verify } from "jsonwebtoken";
+import {
+  decode,
+  JsonWebTokenError,
+  JwtPayload,
+  NotBeforeError,
+  TokenExpiredError,
+  verify,
+} from "jsonwebtoken";
 import { PurposeId } from "pagopa-interop-models";
 import { ClientAssertion, ConsumerKey, Key } from "./types.js";
-const CLIENT_ASSERTION_AUDIENCE = "";
+const CLIENT_ASSERTION_AUDIENCE = ""; // To do: env?
 
 export const validateRequestParameters = (
   request: authorizationServerApi.AccessTokenRequest
 ): boolean => {
   const expectedClientAssertionType: string =
-    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-  const expectedClientCredentialsGrantType: string = "client_credentials";
+    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // To do: env?
+  const expectedClientCredentialsGrantType: string = "client_credentials"; // To do: env?
 
   if (request.client_assertion_type !== expectedClientAssertionType) {
     throw Error(
@@ -111,22 +118,36 @@ export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
   key: Key
 ): JwtPayload => {
-  const result = verify(clientAssertionJws, b64Decode(key.publicKey), {
-    algorithms: [key.algorithm],
-  });
+  try {
+    const result = verify(clientAssertionJws, b64Decode(key.publicKey), {
+      algorithms: [key.algorithm],
+    });
 
-  // TODO Improve this
-  if (typeof result === "string") {
-    throw Error("Unexpected assertion verification result");
-  } else {
-    return result;
+    // TODO Improve this
+    if (typeof result === "string") {
+      throw Error("Unexpected assertion verification result");
+    } else {
+      return result;
+    }
+  } catch (error: unknown) {
+    if (error instanceof TokenExpiredError) {
+      console.log("TokenExpiredError");
+      throw error;
+    } else if (error instanceof JsonWebTokenError) {
+      console.log("JsonWebTokenError");
+      throw error;
+    } else if (error instanceof NotBeforeError) {
+      console.log("NotBeforeError");
+      throw error;
+    } else {
+      console.log("unknown error");
+      throw Error("unknown error");
+    }
   }
-  // TODO Handle error codes. See https://github.com/auth0/node-jsonwebtoken#errors--codes
-
-  // to do should it be a try/catch?
 };
 
 export const assertValidPlatformState = (key: ConsumerKey): void => {
+  // To do: is it ok to have these check throwing errors? So that they can be read if needed (instead of just getting false)
   if (key.agreementState !== "ACTIVE") {
     throw Error("Invalid agreement state");
   }
