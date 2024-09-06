@@ -63,7 +63,7 @@ export const makeGSIPKConsumerIdEServiceId = ({
 
 export const TokenGenerationStatesClientKidPurposePK = z
   .string()
-  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
+  .brand(`CLIENTKIDPURPOSE#clientId#kid#purposeId`);
 export type TokenGenerationStatesClientKidPurposePK = z.infer<
   typeof TokenGenerationStatesClientKidPurposePK
 >;
@@ -80,7 +80,7 @@ export const makeTokenGenerationStatesClientKidPurposePK = ({
 
 export const TokenGenerationStatesClientKidPK = z
   .string()
-  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
+  .brand(`CLIENTKID#clientId#kid`);
 export type TokenGenerationStatesClientKidPK = z.infer<
   typeof TokenGenerationStatesClientKidPK
 >;
@@ -91,7 +91,7 @@ export const makeTokenGenerationStatesClientKidPK = ({
   clientId: ClientId;
   kid: string;
 }): TokenGenerationStatesClientKidPK =>
-  `CLIENTKIDPURPOSE#${clientId}#${kid}` as TokenGenerationStatesClientKidPK;
+  `CLIENTKID#${clientId}#${kid}` as TokenGenerationStatesClientKidPK;
 
 export const GSIPKEServiceIdDescriptorId = z
   .string()

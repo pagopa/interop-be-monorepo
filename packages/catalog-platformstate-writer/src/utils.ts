@@ -11,9 +11,6 @@ import {
   GetItemInput,
   PutItemCommand,
   PutItemInput,
-  ScanCommand,
-  ScanCommandOutput,
-  ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { config } from "./config/config.js";
@@ -88,15 +85,4 @@ export const deleteCatalogEntry = async (
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
-};
-
-export const readAllItems = async (
-  dynamoDBClient: DynamoDBClient
-): Promise<ScanCommandOutput> => {
-  const readInput: ScanInput = {
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-  };
-  const commandQuery = new ScanCommand(readInput);
-  const read: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
-  return read;
 };
