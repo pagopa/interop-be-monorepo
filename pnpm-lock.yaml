@@ -379,13 +379,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
