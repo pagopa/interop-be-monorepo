@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
+  EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
   unsafeBrandId,
@@ -602,5 +603,23 @@ export function catalogServiceBuilder(
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
     },
+    updateEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      updateEServiceDescriptorDocumentSeed: bffApi.UpdateEServiceDescriptorDocumentSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceDoc> =>
+      await catalogProcessClient.updateEServiceDocumentById(
+        updateEServiceDescriptorDocumentSeed,
+        {
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+          headers: context.headers,
+        }
+      ),
   };
 }
