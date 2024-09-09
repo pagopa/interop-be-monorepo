@@ -161,7 +161,7 @@ export function agreementServiceBuilder(
           headers,
         });
 
-      parseMediaType(documentSeed.contentType, agreementId, documentId);
+      assertContentMediaType(documentSeed.contentType, agreementId, documentId);
 
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
@@ -460,7 +460,7 @@ export function getCurrentDescriptor(
   return descriptor;
 }
 
-function parseMediaType(
+function assertContentMediaType(
   contentType: string,
   agreementId: string,
   documentId: string
