@@ -1,5 +1,5 @@
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
-import { toSetToArray, WithLogger } from "pagopa-interop-commons";
+import { removeDuplicates, WithLogger } from "pagopa-interop-commons";
 import {
   AttributeProcessClient,
   CatalogProcessClient,
@@ -91,7 +91,7 @@ async function getDescriptorAttributes(
   headers: ApiGatewayAppContext["headers"],
   descriptor: NonDraftCatalogApiDescriptor
 ): Promise<apiGatewayApi.EServiceAttributes> {
-  const allDescriptorAttributesIds = toSetToArray(
+  const allDescriptorAttributesIds = removeDuplicates(
     [
       ...descriptor.attributes.certified.flat(),
       ...descriptor.attributes.verified.flat(),
