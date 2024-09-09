@@ -23,7 +23,8 @@ const tenantRouter = (
 
   const tenantService = tenantServiceBuilder(
     clients.tenantProcessClient,
-    clients.attributeProcessClient
+    clients.attributeProcessClient,
+    clients.selfcareV2Client
   );
 
   tenantRouter
@@ -305,7 +306,23 @@ const tenantRouter = (
         }
       }
     )
-    .get("/tenants/:tenantId", async (_req, res) => res.status(501).send())
+    .get("/tenants/:tenantId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        const result = await tenantService.getTenant(tenantId, ctx);
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving tenant with tenantId ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/tenants/:tenantId/mails", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -340,7 +357,30 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/tenants", async (_req, res) => res.status(501).send());
+    .get(
+      "/tenants",
+
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await tenantService.getTenants(
+            req.query.name,
+            req.query.limit,
+            ctx
+          );
+          return res.status(200).json(result).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error retrieving tenants`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    );
 
   return tenantRouter;
 };
