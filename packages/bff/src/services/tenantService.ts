@@ -210,6 +210,27 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async verifyVerifiedAttribute(
+      tenantId: TenantId,
+      seed: bffApi.VerifiedTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
+    async updateVerifiedAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      seed: bffApi.UpdateVerifiedTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.updateVerifiedAttribute(seed, {
+        params: { tenantId, attributeId },
+        headers,
+      });
+    },
     async revokeDeclaredAttribute(
       attributeId: AttributeId,
       { headers }: WithLogger<BffAppContext>
@@ -247,6 +268,26 @@ export function tenantServiceBuilder(
           headers,
         }
       );
+    },
+    async addTenantMail(
+      tenantId: TenantId,
+      seed: bffApi.MailSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.addTenantMail(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
+    async deleteTenantMail(
+      tenantId: TenantId,
+      mailId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.deleteTenantMail(undefined, {
+        params: { tenantId, mailId },
+        headers,
+      });
     },
   };
 }

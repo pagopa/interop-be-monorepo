@@ -202,9 +202,24 @@ const tenantRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .post("/tenants/:tenantId/attributes/verified", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/tenants/:tenantId/attributes/verified", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.verifyVerifiedAttribute(tenantId, req.body, ctx);
+
+        return res.status(204).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error verifying verified attribute ${req.body.id} to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .delete(
       "/tenants/:tenantId/attributes/certified/:attributeId",
       async (req, res) => {
@@ -235,7 +250,32 @@ const tenantRouter = (
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+          const attributeId = unsafeBrandId<AttributeId>(
+            req.params.attributeId
+          );
+          await tenantService.updateVerifiedAttribute(
+            tenantId,
+            attributeId,
+            req.body,
+            ctx
+          );
+
+          return res.status(204).json().end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error updating expirationDate for verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
@@ -266,12 +306,40 @@ const tenantRouter = (
       }
     )
     .get("/tenants/:tenantId", async (_req, res) => res.status(501).send())
-    .post("/tenants/:tenantId/mails", async (_req, res) =>
-      res.status(501).send()
-    )
-    .delete("/tenants/:tenantId/mails/:mailId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .post("/tenants/:tenantId/mails", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.addTenantMail(tenantId, req.body, ctx);
+        return res.status(204).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error adding mail to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .delete("/tenants/:tenantId/mails/:mailId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.deleteTenantMail(tenantId, req.params.mailId, ctx);
+        return res.status(204).json().end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting mail ${req.params.mailId} from tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get("/tenants", async (_req, res) => res.status(501).send());
 
   return tenantRouter;
