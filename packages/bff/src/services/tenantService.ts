@@ -391,15 +391,15 @@ export function enhanceTenantAttributes(
 
   const declared = tenantAttributes
     .map((attr) => getDeclaredTenantAttribute(attr, registryAttributesMap))
-    .filter((attr) => isDefined(attr));
+    .filter(isDefined);
 
   const certified = tenantAttributes
     .map((attr) => getCertifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((attr) => isDefined(attr));
+    .filter(isDefined);
 
   const verified = tenantAttributes
     .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((attr) => isDefined(attr));
+    .filter(isDefined);
 
   return {
     certified,
