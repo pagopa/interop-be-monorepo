@@ -10,6 +10,7 @@ import { config } from "../config/config.js";
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
+  tenantAttribute: ReturnType<typeof tenantApi.createTenantAttributeApiClient>;
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
 };
 
@@ -50,6 +51,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
+      tenantAttribute: tenantApi.createTenantAttributeApiClient(
+        config.tenantProcessUrl
+      ),
       selfcare: tenantApi.createSelfcareApiClient(config.tenantProcessUrl),
     },
     agreementProcessClient: agreementApi.createAgreementApiClient(
