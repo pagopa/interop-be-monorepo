@@ -6,6 +6,7 @@ import {
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -134,6 +135,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
+  .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)

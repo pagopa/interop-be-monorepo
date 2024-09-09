@@ -175,3 +175,11 @@ export const toBffApiCompactUser = (
       name: ur.name ?? "",
       familyName: ur.surname ?? "",
     }));
+
+export const toBffApiCompactProducerKeychain = (
+  input: authorizationApi.ProducerKeychain
+): bffApi.CompactProducerKeychain => ({
+  hasKeys: input.keys.length > 0,
+  id: input.id,
+  name: input.name,
+});

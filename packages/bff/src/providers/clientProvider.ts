@@ -10,6 +10,7 @@ import { config } from "../config/config.js";
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
+  tenantAttribute: ReturnType<typeof tenantApi.createTenantAttributeApiClient>;
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
 };
 
@@ -31,6 +32,9 @@ export type PurposeProcessClient = ReturnType<
 
 export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
+  producerKeychain: ReturnType<
+    typeof authorizationApi.createProducerKeychainApiClient
+  >;
   user: ReturnType<typeof authorizationApi.createUserApiClient>;
 };
 
@@ -47,6 +51,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
+      tenantAttribute: tenantApi.createTenantAttributeApiClient(
+        config.tenantProcessUrl
+      ),
       selfcare: tenantApi.createSelfcareApiClient(config.tenantProcessUrl),
     },
     agreementProcessClient: agreementApi.createAgreementApiClient(
@@ -61,6 +68,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
     authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
+      producerKeychain: authorizationApi.createProducerKeychainApiClient(
+        config.authorizationUrl
+      ),
       user: authorizationApi.createUserApiClient(config.authorizationUrl),
     },
   };
