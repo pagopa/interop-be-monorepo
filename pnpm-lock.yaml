@@ -1040,6 +1040,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
