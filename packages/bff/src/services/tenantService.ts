@@ -3,18 +3,133 @@ import {
   bffApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { WithLogger, isDefined } from "pagopa-interop-commons";
+import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { AttributeId, TenantId } from "pagopa-interop-models";
-import { TenantProcessClient } from "../providers/clientProvider.js";
+import {
+  AttributeProcessClient,
+  SelfcareV2Client,
+  TenantProcessClient,
+} from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
+  RegistryAttributesMap,
+  toBffApiCertifiedTenantAttributes,
   toBffApiCompactOrganization,
+  toBffApiCompactTenant,
+  toBffApiDeclaredTenantAttributes,
   toBffApiRequesterCertifiedAttributes,
+  toBffApiTenant,
+  toBffApiVerifiedTenantAttributes,
 } from "../model/api/tenantApiConverter.js";
+import { getAllBulkAttributes } from "./attributeService.js";
+
+async function getRegistryAttributesMap(
+  tenantAttributesIds: string[],
+  attributeRegistryProcessClient: AttributeProcessClient,
+  headers: WithLogger<BffAppContext>["headers"]
+): Promise<RegistryAttributesMap> {
+  const registryAttributes = await getAllBulkAttributes(
+    attributeRegistryProcessClient,
+    headers,
+    tenantAttributesIds
+  );
+
+  return new Map(registryAttributes.map((a) => [a.id, a]));
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
+export function tenantServiceBuilder(
+  tenantProcessClient: TenantProcessClient,
+  attributeRegistryProcessClient: AttributeProcessClient,
+  selfcareV2Client: SelfcareV2Client
+) {
+  async function getLogoUrl(
+    selfcareId: tenantApi.Tenant["selfcareId"]
+  ): Promise<bffApi.CompactTenant["logoUrl"]> {
+    if (!selfcareId) {
+      return undefined;
+    }
+
+    const institution = await selfcareV2Client.institution.getInstitution({
+      params: {
+        id: selfcareId,
+      },
+    });
+
+    return institution.logo;
+  }
+
   return {
+    async getTenant(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Tenant> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const certifiedAttributes = tenant.attributes
+        .map((v) => v.certified)
+        .filter(isDefined);
+
+      const declaredAttributes = tenant.attributes
+        .map((v) => v.declared)
+        .filter(isDefined);
+
+      const verifiedAttributes = tenant.attributes
+        .map((v) => v.verified)
+        .filter(isDefined);
+
+      const allAttributeIds = [
+        ...certifiedAttributes,
+        ...declaredAttributes,
+        ...verifiedAttributes,
+      ].map((v) => v.id);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        allAttributeIds,
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      return toBffApiTenant(
+        tenant,
+        certifiedAttributes,
+        declaredAttributes,
+        verifiedAttributes,
+        registryAttributesMap
+      );
+    },
+    async getTenants(
+      name: string | undefined,
+      limit: number,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Tenants> {
+      const offset = 0; // This BFF query gets only the limit as parameter, offset is always 0
+      const pagedResults = await tenantProcessClient.tenant.getTenants({
+        queries: {
+          name,
+          limit,
+          offset,
+        },
+        headers,
+      });
+
+      const results = await Promise.all(
+        pagedResults.results.map((tenant) =>
+          toBffApiCompactTenant(tenant, getLogoUrl)
+        )
+      );
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: pagedResults.totalCount,
+        },
+      };
+    },
     async getConsumers(
       name: string | undefined,
       offset: number,
@@ -88,6 +203,84 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
         },
       };
     },
+    async getCertifiedAttributes(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CertifiedAttributesResponse> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const certifiedAttributes = tenant.attributes
+        .map((v) => v.certified)
+        .filter(isDefined);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        certifiedAttributes.map((v) => v.id),
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      const attributes = toBffApiCertifiedTenantAttributes(
+        certifiedAttributes,
+        registryAttributesMap
+      );
+
+      return { attributes };
+    },
+    async getDeclaredAttributes(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.DeclaredAttributesResponse> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const declaredAttributes = tenant.attributes
+        .map((v) => v.declared)
+        .filter(isDefined);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        declaredAttributes.map((v) => v.id),
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      const attributes = toBffApiDeclaredTenantAttributes(
+        declaredAttributes,
+        registryAttributesMap
+      );
+
+      return { attributes };
+    },
+    async getVerifiedAttributes(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.VerifiedAttributesResponse> {
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const verifiedAttributes = tenant.attributes
+        .map((v) => v.verified)
+        .filter(isDefined);
+
+      const registryAttributesMap = await getRegistryAttributesMap(
+        verifiedAttributes.map((v) => v.id),
+        attributeRegistryProcessClient,
+        headers
+      );
+
+      const attributes = toBffApiVerifiedTenantAttributes(
+        verifiedAttributes,
+        registryAttributesMap
+      );
+
+      return { attributes };
+    },
     async addCertifiedAttribute(
       tenantId: TenantId,
       seed: bffApi.CertifiedTenantAttributeSeed,
@@ -103,6 +296,27 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       await tenantProcessClient.tenantAttribute.addDeclaredAttribute(seed, {
+        headers,
+      });
+    },
+    async verifyVerifiedAttribute(
+      tenantId: TenantId,
+      seed: bffApi.VerifiedTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
+    async updateVerifiedAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      seed: bffApi.UpdateVerifiedTenantAttributeSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.updateVerifiedAttribute(seed, {
+        params: { tenantId, attributeId },
         headers,
       });
     },
@@ -143,6 +357,26 @@ export function tenantServiceBuilder(tenantProcessClient: TenantProcessClient) {
           headers,
         }
       );
+    },
+    async addTenantMail(
+      tenantId: TenantId,
+      seed: bffApi.MailSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.addTenantMail(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
+    async deleteTenantMail(
+      tenantId: TenantId,
+      mailId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.deleteTenantMail(undefined, {
+        params: { tenantId, mailId },
+        headers,
+      });
     },
   };
 }
