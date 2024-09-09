@@ -1,5 +1,5 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { genericInternalError, JWKKey } from "pagopa-interop-models";
+import { genericInternalError, ClientJWKKey } from "pagopa-interop-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -7,14 +7,16 @@ export function readModelServiceBuilder(
 ) {
   const { keys } = readModelRepository;
   return {
-    getJWKById: async (kId: JWKKey["kid"]): Promise<JWKKey | undefined> => {
+    getJWKById: async (
+      kId: ClientJWKKey["kid"]
+    ): Promise<ClientJWKKey | undefined> => {
       const data = await keys.findOne(
         { "data.kid": kId },
         { projection: { data: true } }
       );
 
       if (data) {
-        const result = JWKKey.safeParse(data.data);
+        const result = ClientJWKKey.safeParse(data.data);
 
         if (!result.success) {
           throw genericInternalError(

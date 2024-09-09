@@ -1,6 +1,10 @@
 import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { JWKKey, operationForbidden, TenantId } from "pagopa-interop-models";
+import {
+  ClientJWKKey,
+  operationForbidden,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   CatalogProcessClient,
@@ -52,7 +56,7 @@ export function authorizationServiceBuilder(
     },
     getJWK: async (
       { logger }: WithLogger<ApiGatewayAppContext>,
-      kId: JWKKey["kid"]
+      kId: ClientJWKKey["kid"]
     ): Promise<apiGatewayApi.JWK> => {
       logger.info(`Retrieving JWK of key with kId: ${kId}`);
 
