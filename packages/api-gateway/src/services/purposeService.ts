@@ -125,10 +125,6 @@ export function purposeServiceBuilder(
         purpose.consumerId
       );
 
-      // TODO Doubt:
-      // in this case we succeed and return the agreement even if the purpose has no active version - this is what Scala does as well.
-      // Is it correct? In getPurpose and getPurposes we don't allow purposes without active versions to be returned.
-      // If we decide do the same here, we should remember to update the error mapper in the router.
       return agreements[0];
     },
   };
