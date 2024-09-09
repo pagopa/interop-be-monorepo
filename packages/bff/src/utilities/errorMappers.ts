@@ -11,6 +11,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -44,6 +45,17 @@ export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "eServiceNotFound",
+      "agreementNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeDraftVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -66,6 +78,7 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>

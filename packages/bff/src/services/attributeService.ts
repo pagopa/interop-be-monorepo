@@ -2,9 +2,29 @@
 
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import {
+  AttributeProcessClient,
+  PagoPAInteropBeClients,
+} from "../providers/clientProvider.js";
 import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
+
+export async function getAllBulkAttributes(
+  attributeProcessClient: AttributeProcessClient,
+  headers: BffAppContext["headers"],
+  attributeIds: Array<attributeRegistryApi.Attribute["id"]>
+): Promise<attributeRegistryApi.Attribute[]> {
+  return await getAllFromPaginated<attributeRegistryApi.Attribute>(
+    async (offset, limit) =>
+      await attributeProcessClient.getBulkedAttributes(attributeIds, {
+        headers,
+        queries: {
+          offset,
+          limit,
+        },
+      })
+  );
+}
 
 export function attributeServiceBuilder(
   attributeClient: PagoPAInteropBeClients["attributeProcessClient"]
