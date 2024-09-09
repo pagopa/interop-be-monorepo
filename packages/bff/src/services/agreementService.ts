@@ -79,7 +79,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       const agreements = results.map((a) =>
-        enrichListAgreement(a, clients, ctx)
+        enrichAgreementListEntry(a, clients, ctx)
       );
       return {
         pagination: {
@@ -149,7 +149,7 @@ export const getLatestAgreement = async (
     .at(0);
 };
 
-async function enrichListAgreement(
+async function enrichAgreementListEntry(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>

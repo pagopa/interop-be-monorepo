@@ -3,7 +3,7 @@ import {
   bffApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { WithLogger, isDefined } from "pagopa-interop-commons";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import { TenantProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -157,15 +157,15 @@ export function enhanceTenantAttributes(
 
   const declared = tenantAttributes
     .map((attr) => getDeclaredTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.DeclaredTenantAttribute => x !== undefined);
+    .filter((attr) => isDefined(attr));
 
   const certified = tenantAttributes
     .map((attr) => getCertifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.CertifiedTenantAttribute => x !== undefined);
+    .filter((attr) => isDefined(attr));
 
   const verified = tenantAttributes
     .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
-    .filter((x): x is bffApi.VerifiedTenantAttribute => x !== undefined);
+    .filter((attr) => isDefined(attr));
 
   return {
     certified,
