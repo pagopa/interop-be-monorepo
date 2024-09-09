@@ -3,7 +3,7 @@ import {
   tenantApi,
   apiGatewayApi,
 } from "pagopa-interop-api-clients";
-import { isDefined, toSetToArray } from "pagopa-interop-commons";
+import { isDefined, removeDuplicateObjectsById } from "pagopa-interop-commons";
 import {
   verifiedAttributeToAttributeValidityState,
   certifiedAttributeToAttributeValidityState,
@@ -15,7 +15,7 @@ export function toApiGatewayAgreementAttributes(
   tenant: tenantApi.Tenant
 ): apiGatewayApi.Attributes {
   return {
-    verified: toSetToArray(
+    verified: removeDuplicateObjectsById(
       agreement.verifiedAttributes.flatMap((attr) =>
         tenant.attributes
           .map((v) => v.verified)
@@ -24,7 +24,7 @@ export function toApiGatewayAgreementAttributes(
           .map(verifiedAttributeToAttributeValidityState)
       )
     ),
-    certified: toSetToArray(
+    certified: removeDuplicateObjectsById(
       agreement.certifiedAttributes.flatMap((attr) =>
         tenant.attributes
           .map((c) => c.certified)
@@ -33,7 +33,7 @@ export function toApiGatewayAgreementAttributes(
           .map(certifiedAttributeToAttributeValidityState)
       )
     ),
-    declared: toSetToArray(
+    declared: removeDuplicateObjectsById(
       agreement.declaredAttributes.flatMap((attr) =>
         tenant.attributes
           .map((d) => d.declared)
