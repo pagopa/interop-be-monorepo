@@ -43,7 +43,7 @@ function toApiCompactTenantVerifiedAttribute(
       id: v.id,
       extensionDate: v.extensionDate?.toISOString(),
       verificationDate: v.verificationDate.toISOString(),
-      revocationDate: v.verificationDate.toISOString(),
+      revocationDate: v.revocationDate.toISOString(),
       expirationDate: v.expirationDate?.toISOString(),
     })),
   };
@@ -54,18 +54,16 @@ function toCompactTenantAttribute(
 ): agreementApi.TenantAttribute {
   return match(attribute)
     .returnType<agreementApi.TenantAttribute>()
-    .with(
-      { type: tenantAttributeType.CERTIFIED },
-      toApiCompactTenantCertifiedDeclaredAttribute
-    )
-    .with(
-      { type: tenantAttributeType.DECLARED },
-      toApiCompactTenantCertifiedDeclaredAttribute
-    )
-    .with(
-      { type: tenantAttributeType.VERIFIED },
-      toApiCompactTenantVerifiedAttribute
-    );
+    .with({ type: tenantAttributeType.CERTIFIED }, (attr) => ({
+      certified: toApiCompactTenantCertifiedDeclaredAttribute(attr),
+    }))
+    .with({ type: tenantAttributeType.DECLARED }, (attr) => ({
+      declared: toApiCompactTenantCertifiedDeclaredAttribute(attr),
+    }))
+    .with({ type: tenantAttributeType.VERIFIED }, (attr) => ({
+      verified: toApiCompactTenantVerifiedAttribute(attr),
+    }))
+    .exhaustive();
 }
 
 export function toApiCompactTenant(tenant: Tenant): agreementApi.CompactTenant {
