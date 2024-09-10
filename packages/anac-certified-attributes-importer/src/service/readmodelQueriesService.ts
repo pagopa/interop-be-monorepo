@@ -1,5 +1,5 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { PersistentTenant } from "../model/tenantModel.js";
+import { Tenant } from "pagopa-interop-models";
 import { PersistentAttribute } from "../model/attributeModel.js";
 
 const projectUnrevokedCertifiedAttributes = {
@@ -27,7 +27,7 @@ export class ReadModelQueries {
   /**
    * Retrieve all PA tenants that matches the given IPA codes, with their unrevoked certified attribute
    */
-  public async getPATenants(ipaCodes: string[]): Promise<PersistentTenant[]> {
+  public async getPATenants(ipaCodes: string[]): Promise<Tenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -40,16 +40,14 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => PersistentTenant.parse(data))
+      .map(({ data }) => Tenant.parse(data))
       .toArray();
   }
 
   /**
    * Retrieve all non-PA tenants that matches the given tax codes, with their unrevoked certified attribute
    */
-  public async getNonPATenants(
-    taxCodes: string[]
-  ): Promise<PersistentTenant[]> {
+  public async getNonPATenants(taxCodes: string[]): Promise<Tenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -62,11 +60,11 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => PersistentTenant.parse(data))
+      .map(({ data }) => Tenant.parse(data))
       .toArray();
   }
 
-  public async getTenantById(tenantId: string): Promise<PersistentTenant> {
+  public async getTenantById(tenantId: string): Promise<Tenant> {
     const result = await this.readModelClient.tenants
       .aggregate([
         {
@@ -78,7 +76,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => PersistentTenant.parse(data))
+      .map(({ data }) => Tenant.parse(data))
       .toArray();
 
     if (result.length === 0) {
@@ -119,7 +117,7 @@ export class ReadModelQueries {
 
   public async getTenantsWithAttributes(
     attributeIds: string[]
-  ): Promise<PersistentTenant[]> {
+  ): Promise<Tenant[]> {
     return await this.readModelClient.tenants
       .aggregate([
         {
@@ -131,7 +129,7 @@ export class ReadModelQueries {
           $project: projectUnrevokedCertifiedAttributes,
         },
       ])
-      .map(({ data }) => PersistentTenant.parse(data))
+      .map(({ data }) => Tenant.parse(data))
       .toArray();
   }
 }

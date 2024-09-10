@@ -7,11 +7,11 @@ import {
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
+import { Tenant } from "pagopa-interop-models";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
 import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
 import { importAttributes } from "../src/service/processor.js";
-import { PersistentTenant } from "../src/model/tenantModel.js";
 import {
   ATTRIBUTE_ANAC_ABILITATO_ID,
   ATTRIBUTE_ANAC_INCARICATO_ID,
@@ -134,7 +134,7 @@ describe("ANAC Certified Attributes Importer", () => {
     const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
 0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,TRUE,TRUE,TRUE`;
 
-    const readModelTenants: PersistentTenant[] = [
+    const readModelTenants: Tenant[] = [
       {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
@@ -173,7 +173,7 @@ describe("ANAC Certified Attributes Importer", () => {
     const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
 0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,FALSE,FALSE,FALSE`;
 
-    const readModelTenants: PersistentTenant[] = [
+    const readModelTenants: Tenant[] = [
       {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
@@ -214,7 +214,7 @@ describe("ANAC Certified Attributes Importer", () => {
 0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,TRUE,TRUE,TRUE
 9876543210,Org name not in Tenants,gsp2@pec.it,ipa_code_456,TRUE,TRUE,TRUE`;
 
-    const readModelTenants: PersistentTenant[] = [
+    const readModelTenants: Tenant[] = [
       {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
@@ -255,7 +255,7 @@ describe("ANAC Certified Attributes Importer", () => {
 9876543210,Org name not in Tenants,gsp2@pec.it,ipa_code_456,TRUE,TRUE,TRUE
 9876543299,Org name not in Tenants,gsp3@pec.it,ipa_code_789,TRUE,TRUE,TRUE`;
 
-    const readModelTenants: PersistentTenant[] = [
+    const readModelTenants: Tenant[] = [
       {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
@@ -302,7 +302,7 @@ describe("ANAC Certified Attributes Importer", () => {
     const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
 0123456781,Org name in IPA,gsp1@pec.it,ipa_code_1,TRUE,TRUE,TRUE`;
 
-    const readModelTenants: PersistentTenant[] = [
+    const readModelTenants: Tenant[] = [
       {
         // Tenant with attributes that should be kept
         ...persistentTenant,
@@ -448,7 +448,7 @@ describe("ANAC Certified Attributes Importer", () => {
     ,Wrong "quotes" row,gsp1@pec.it,ipa_code_123,TRUE,TRUE,TRUE
     0123456789,"Org name, in IPA",gsp1@pec.it,ipa_code_123,TRUE,TRUE,TRUE`;
 
-    const readModelTenants: PersistentTenant[] = [
+    const readModelTenants: Tenant[] = [
       {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
