@@ -1,6 +1,7 @@
 import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   AgreementId,
+  ApiError,
   ClientId,
   clientKind,
   EServiceId,
@@ -8,6 +9,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { ErrorCodes } from "./errors.js";
 
 export const ClientAssertionHeader = z.object({
   kid: z.string(),
@@ -56,3 +58,13 @@ export const ApiKey = Key.extend({
   clientKind: z.literal(clientKind.api),
 });
 export type ApiKey = z.infer<typeof ApiKey>;
+
+export type ValidationResult =
+  | { errors: undefined; data: ClientAssertion }
+  | { errors: Array<ApiError<ErrorCodes>>; data: undefined };
+
+// alternatively
+export type ValidationResult2 = {
+  errors: Array<ApiError<ErrorCodes>>;
+  data?: ClientAssertion;
+};
