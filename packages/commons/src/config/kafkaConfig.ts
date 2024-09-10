@@ -29,7 +29,7 @@ export const KafkaConfig = z
       awsRegion: c.awsRegion,
       kafkaBrokers: c.KAFKA_BROKERS,
       kafkaClientId: c.KAFKA_CLIENT_ID,
-      kafkaDisableAwsIamAuth: c.KAFKA_DISABLE_AWS_IAM_AUTH === "true",
+      kafkaDisableAwsIamAuth,
       kafkaLogLevel: logLevel[c.KAFKA_LOG_LEVEL],
       kafkaReauthenticationThreshold: c.KAFKA_REAUTHENTICATION_THRESHOLD,
       kafkaBrokerConnectionString: c.KAFKA_BROKER_CONNECTION_STRING,

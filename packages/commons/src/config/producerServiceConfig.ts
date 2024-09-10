@@ -16,16 +16,28 @@ export const KafkaProducerConfig = AWSConfig.and(
       .transform((n) => n * 1000),
     PRODUCER_KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
   })
-).transform((c) => ({
-  awsRegion: c.awsRegion,
-  producerKafkaBrokers: c.PRODUCER_KAFKA_BROKERS,
-  producerKafkaClientId: c.PRODUCER_KAFKA_CLIENT_ID,
-  producerKafkaDisableAwsIamAuth:
-    c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH === "true",
-  producerKafkaLogLevel: logLevel[c.PRODUCER_KAFKA_LOG_LEVEL],
-  producerKafkaReauthenticationThreshold:
-    c.PRODUCER_KAFKA_REAUTHENTICATION_THRESHOLD,
-  producerKafkaBrokerConnectionString:
-    c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING,
-}));
+).transform((c) => {
+  const producerKafkaDisableAwsIamAuth =
+    c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH === "true";
+  if (
+    c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING &&
+    !producerKafkaDisableAwsIamAuth
+  ) {
+    throw new Error(
+      "To use a PRODUCER_KAFKA_BROKER_CONNECTION_STRING, PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH must be true"
+    );
+  }
+
+  return {
+    awsRegion: c.awsRegion,
+    producerKafkaBrokers: c.PRODUCER_KAFKA_BROKERS,
+    producerKafkaClientId: c.PRODUCER_KAFKA_CLIENT_ID,
+    producerKafkaDisableAwsIamAuth,
+    producerKafkaLogLevel: logLevel[c.PRODUCER_KAFKA_LOG_LEVEL],
+    producerKafkaReauthenticationThreshold:
+      c.PRODUCER_KAFKA_REAUTHENTICATION_THRESHOLD,
+    producerKafkaBrokerConnectionString:
+      c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING,
+  };
+});
 export type KafkaProducerConfig = z.infer<typeof KafkaProducerConfig>;

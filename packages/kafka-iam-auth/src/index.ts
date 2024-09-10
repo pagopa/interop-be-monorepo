@@ -17,7 +17,10 @@ import {
   genericLogger,
   KafkaProducerConfig,
 } from "pagopa-interop-commons";
-import { kafkaMessageProcessError } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  kafkaMessageProcessError,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
@@ -153,6 +156,12 @@ async function oauthBearerTokenProvider(
 }
 
 const initKafka = (config: InteropKafkaConfig): Kafka => {
+  if (config.kafkaBrokerConnectionString && !config.kafkaDisableAwsIamAuth) {
+    throw genericInternalError(
+      "Cannot use a kafka broker connection string when kafka AWS IAM auth is enabled"
+    );
+  }
+
   const kafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
         clientId: config.kafkaClientId,

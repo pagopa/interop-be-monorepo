@@ -2,6 +2,7 @@ import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { genericInternalError } from "pagopa-interop-models";
 import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 import { ORIGIN_IPA } from "../model/constants.js";
@@ -94,9 +95,9 @@ export function selfcareOnboardingProcessorBuilder(
           `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
         );
       } catch (err) {
-        const errorMessage = `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`;
-        loggerInstance.error(errorMessage);
-        throw new Error(errorMessage, { cause: err });
+        throw genericInternalError(
+          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
+        );
       }
     },
   };

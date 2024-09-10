@@ -1,16 +1,15 @@
 import { z } from "zod";
-import { TokenGenerationConfig } from "pagopa-interop-commons";
+import {
+  KafkaConsumerConfig,
+  TokenGenerationConfig,
+} from "pagopa-interop-commons";
 
-export const SelfcareOnboardingConsumerConfig = TokenGenerationConfig.and(
+export const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
+  TokenGenerationConfig
+).and(
   z
     .object({
-      SELFCARE_BROKER_URLS: z.string(),
-      BROKER_CONNECTION_STRING: z.string(),
-      KAFKA_CLIENT_ID: z.string(),
-      KAFKA_GROUP_ID: z.string(),
-      TOPIC_NAME: z.string(),
-
-      RESET_CONSUMER_OFFSETS: z.string().default("false"),
+      SELFCARE_TOPIC: z.string(),
 
       INTEROP_PRODUCT: z.string(),
       ALLOWED_ORIGINS: z.string(),
@@ -18,12 +17,7 @@ export const SelfcareOnboardingConsumerConfig = TokenGenerationConfig.and(
       TENANT_PROCESS_URL: z.string(),
     })
     .transform((c) => ({
-      selfcareBrokerUrls: c.SELFCARE_BROKER_URLS.split(","),
-      brokerConnectionString: c.BROKER_CONNECTION_STRING,
-      kafkaClientId: c.KAFKA_CLIENT_ID,
-      kafkaGroupId: c.KAFKA_GROUP_ID,
-      topicName: c.TOPIC_NAME,
-      resetConsumerOffsets: c.RESET_CONSUMER_OFFSETS.toLowerCase() === "true",
+      selfcareTopic: c.SELFCARE_TOPIC,
       interopProduct: c.INTEROP_PRODUCT,
       allowedOrigins: c.ALLOWED_ORIGINS.split(","),
       tenantProcessUrl: c.TENANT_PROCESS_URL,
