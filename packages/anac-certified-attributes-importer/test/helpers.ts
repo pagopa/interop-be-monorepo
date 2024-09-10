@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { SftpConfig } from "../src/config/sftpConfig.js";
 import {
-  PersistentTenant,
-  PersistentTenantAttribute,
-} from "../src/model/tenantModel.js";
+  Tenant,
+  TenantAttribute,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { SftpConfig } from "../src/config/sftpConfig.js";
 import { PersistentAttribute } from "../src/model/attributeModel.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 import {
@@ -38,12 +40,12 @@ export const downloadCSVMockGenerator =
   (csvContent: string) => (): Promise<string> =>
     Promise.resolve(csvContent);
 export const getTenantsMockGenerator =
-  (f: (codes: string[]) => PersistentTenant[]) =>
-  (codes: string[]): Promise<PersistentTenant[]> =>
+  (f: (codes: string[]) => Tenant[]) =>
+  (codes: string[]): Promise<Tenant[]> =>
     Promise.resolve(f(codes));
 export const getTenantByIdMockGenerator =
-  (f: (tenantId: string) => PersistentTenant) =>
-  (tenantId: string): Promise<PersistentTenant> =>
+  (f: (tenantId: TenantId) => Tenant) =>
+  (tenantId: TenantId): Promise<Tenant> =>
     Promise.resolve(f(tenantId));
 
 export const downloadCSVMock = downloadCSVMockGenerator(csvFileContent);
@@ -113,11 +115,14 @@ export const getAttributeByExternalIdMock = (
 export const getTenantsWithAttributesMock = (_: string[]) =>
   Promise.resolve([]);
 
-export const persistentTenant: PersistentTenant = {
-  id: "091fbea1-0c8e-411b-988f-5098b6a33ba7",
+export const persistentTenant: Tenant = {
+  id: unsafeBrandId("091fbea1-0c8e-411b-988f-5098b6a33ba7"),
   externalId: { origin: "tenantOrigin", value: "tenantValue" },
   attributes: [],
   features: [],
+  name: "tenantName",
+  createdAt: new Date(),
+  mails: [],
 };
 
 export const persistentAttribute: PersistentAttribute = {
@@ -126,8 +131,8 @@ export const persistentAttribute: PersistentAttribute = {
   code: "attributeCode",
 };
 
-export const persistentTenantAttribute: PersistentTenantAttribute = {
-  id: "7a04c906-1525-4c68-8a5b-d740d77d9c80",
+export const persistentTenantAttribute: TenantAttribute = {
+  id: unsafeBrandId("7a04c906-1525-4c68-8a5b-d740d77d9c80"),
   type: "PersistentCertifiedAttribute",
   assignmentTimestamp: new Date(),
 };

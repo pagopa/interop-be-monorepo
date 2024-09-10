@@ -1,5 +1,5 @@
+import { ExternalId } from "pagopa-interop-models";
 import { CsvRow } from "./csvRowModel.js";
-import { PersistentExternalId } from "./tenantModel.js";
 
 export type BatchParseResult = {
   processedRecordsCount: number;
@@ -8,7 +8,7 @@ export type BatchParseResult = {
 
 export type AttributeIdentifiers = {
   id: string;
-  externalId: PersistentExternalId;
+  externalId: ExternalId;
 };
 
 export type AnacAttributes = {

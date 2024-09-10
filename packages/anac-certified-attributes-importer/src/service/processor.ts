@@ -1,14 +1,13 @@
 /* eslint-disable max-params */
 import crypto from "crypto";
 import { parse } from "csv/sync";
-import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
 import { Tenant } from "pagopa-interop-models";
 import {
   ANAC_ABILITATO_CODE,
   ANAC_INCARICATO_CODE,
   ANAC_IN_CONVALIDA_CODE,
 } from "../config/constants.js";
-import { zipBy } from "../utils/helpers.js";
 import {
   AnacAttributes,
   AttributeIdentifiers,

@@ -7,7 +7,7 @@ import {
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
-import { Tenant } from "pagopa-interop-models";
+import { Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
 import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
@@ -92,7 +92,7 @@ describe("ANAC Certified Attributes Importer", () => {
     .mockImplementation(getNonPATenantsMock);
   const getTenantByIdSpy = vi
     .spyOn(readModelQueriesMock, "getTenantById")
-    .mockImplementation(getTenantByIdMock);
+    .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
   const getAttributeByExternalIdSpy = vi
     .spyOn(readModelQueriesMock, "getAttributeByExternalId")
     .mockImplementation(getAttributeByExternalIdMock);
@@ -139,7 +139,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
         ],
       },
     ];
@@ -178,8 +181,14 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_INCARICATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+          },
         ],
       },
     ];
@@ -219,7 +228,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
         ],
       },
     ];
@@ -260,7 +272,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
         ],
       },
     ];
@@ -308,9 +323,18 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_1" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_INCARICATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_IN_CONVALIDA_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+          },
         ],
       },
       {
@@ -318,7 +342,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_2" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
         ],
       },
       {
@@ -326,7 +353,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_3" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_INCARICATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+          },
         ],
       },
       {
@@ -334,7 +364,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_4" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_IN_CONVALIDA_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+          },
         ],
       },
       {
@@ -342,9 +375,18 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_5" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_INCARICATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_IN_CONVALIDA_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+          },
         ],
       },
       {
@@ -352,9 +394,18 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "ANAC", value: "0123456786" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_INCARICATO_ID },
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_IN_CONVALIDA_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+          },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+          },
         ],
       },
     ];
@@ -423,7 +474,9 @@ describe("ANAC Certified Attributes Importer", () => {
       id: tenantId,
       features: [],
     }));
-    getTenantByIdSpy.mockImplementationOnce(getTenantByIdMock);
+    getTenantByIdSpy.mockImplementationOnce((id) =>
+      getTenantByIdMock(unsafeBrandId(id))
+    );
 
     await expect(() => run()).rejects.toThrowError(
       "Tenant with id anac-tenant-id is not a certifier"
@@ -453,7 +506,10 @@ describe("ANAC Certified Attributes Importer", () => {
         ...persistentTenant,
         externalId: { origin: "IPA", value: "ipa_code_123" },
         attributes: [
-          { ...persistentTenantAttribute, id: ATTRIBUTE_ANAC_ABILITATO_ID },
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+          },
         ],
       },
     ];
