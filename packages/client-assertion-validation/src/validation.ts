@@ -1,51 +1,69 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { clientKind } from "pagopa-interop-models";
+import { ApiError, clientKind } from "pagopa-interop-models";
 import {
   verifyClientAssertionSignature,
   validateRequestParameters,
   assertValidPlatformState,
   verifyClientAssertion,
 } from "./utils.js";
-import { ApiKey, ClientAssertion, ConsumerKey } from "./types.js";
+import { ApiKey, ConsumerKey } from "./types.js";
+import { ErrorCodes } from "./errors.js";
 
 export const assertValidClientAssertion = async (
   request: authorizationServerApi.AccessTokenRequest,
   key: ConsumerKey | ApiKey // To do use just Key?
-): Promise<ClientAssertion> => {
-  validateRequestParameters(request);
+): Promise<Array<ApiError<ErrorCodes>>> => {
+  const parametersErrors = validateRequestParameters(request);
 
-  const clientAssertionJWT = verifyClientAssertion(
+  const clientAssertionErrors = verifyClientAssertion(
     request.client_assertion,
     request.client_id
   );
 
-  verifyClientAssertionSignature(request.client_assertion, key);
+  const clientAssertionSignatureErrors = verifyClientAssertionSignature(
+    request.client_assertion,
+    key
+  );
 
   if (ApiKey.safeParse(key).success) {
-    return clientAssertionJWT;
+    return [
+      ...parametersErrors,
+      ...clientAssertionErrors,
+      ...clientAssertionSignatureErrors,
+    ];
   }
 
-  match(key.clientKind)
+  return match(key.clientKind)
     .with(clientKind.api, () => {
-      if (!ApiKey.safeParse(key).success) {
-        // to do: useful?
+      const parsingErrors = !ApiKey.safeParse(key).success
+        ? [Error("parsing")]
+        : [];
 
-        throw Error("parsing");
-      }
-      return true;
+      return [
+        ...parsingErrors,
+        ...parametersErrors,
+        ...clientAssertionErrors,
+        ...clientAssertionSignatureErrors,
+      ];
     })
     .with(clientKind.consumer, () => {
+      const errors: Error[] = [];
       if (ConsumerKey.safeParse(key).success) {
         // to do: useful?
 
-        assertValidPlatformState(key as ConsumerKey);
+        // eslint-disable-next-line functional/immutable-data
+        errors.push(...assertValidPlatformState(key as ConsumerKey));
       } else {
-        throw Error("parsing");
+        // eslint-disable-next-line functional/immutable-data
+        errors.push(Error("parsing"));
       }
-      return true;
+      return [
+        ...errors,
+        ...parametersErrors,
+        ...clientAssertionErrors,
+        ...clientAssertionSignatureErrors,
+      ];
     })
     .exhaustive();
-
-  return clientAssertionJWT;
 };
