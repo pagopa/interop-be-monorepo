@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import crypto from "crypto";
 import { describe, expect, it } from "vitest";
 import { ClientId, generateId } from "pagopa-interop-models";
@@ -50,9 +51,10 @@ describe("test", () => {
         },
       };
       const jws = jwt.sign(payload, keySet.privateKey, options);
-      const errors = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(invalidAudienceFormat());
+      expect(errors![0]).toEqual(invalidAudienceFormat());
     });
 
     it("invalidAudience", () => {
@@ -60,15 +62,34 @@ describe("test", () => {
         payload: { aud: ["random"] },
         customClaims: { key: 1 },
       });
-      const errors = verifyClientAssertion(a, undefined);
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(invalidAudience());
+      expect(errors![0]).toEqual(invalidAudience());
     });
 
     it("invalidClientAssertionFormat", () => {
-      const errors = verifyClientAssertion("not a jwt", undefined);
+      const { errors } = verifyClientAssertion("not a jwt", undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(invalidClientAssertionFormat());
+      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+    });
+
+    it("invalidClientAssertionFormat", () => {
+      const { errors } = verifyClientAssertion("not.a.jwt", undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+    });
+
+    it("invalidClientAssertionFormat", () => {
+      const { errors } = verifyClientAssertion(
+        `${generateId()}.${generateId()}`,
+        undefined
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidClientAssertionFormat());
     });
 
     it.skip("unexpectedClientAssertionPayload", () => {
@@ -86,9 +107,10 @@ describe("test", () => {
       };
       const jws = jwt.sign("actualPayload", key, options);
 
-      const errors = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(unexpectedClientAssertionPayload());
+      expect(errors![0]).toEqual(unexpectedClientAssertionPayload());
     });
 
     it("jtiNotFound", () => {
@@ -96,10 +118,10 @@ describe("test", () => {
         payload: { jti: undefined },
         customClaims: { key: 1 },
       });
-      const errors = verifyClientAssertion(a, undefined);
-
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(jtiNotFound());
+      expect(errors![0]).toEqual(jtiNotFound());
     });
 
     it.skip("iatNotFound", () => {
@@ -109,10 +131,11 @@ describe("test", () => {
         payload: {},
         customClaims: { key: 1 },
       });
-      const errors = verifyClientAssertion(a, undefined);
+      const { errors } = verifyClientAssertion(a, undefined);
       // console.log(errors);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(issuedAtNotFound());
+      expect(errors![0]).toEqual(issuedAtNotFound());
       // console.log("error code: ", errors[0].code);
     });
 
@@ -136,9 +159,10 @@ describe("test", () => {
         },
       };
       const jws = jwt.sign(payload, keySet.privateKey, options);
-      const errors = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(expNotFound());
+      expect(errors![0]).toEqual(expNotFound());
     });
 
     it("issuerNotFound", () => {
@@ -146,9 +170,10 @@ describe("test", () => {
         payload: { iss: undefined },
         customClaims: {},
       });
-      const errors = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(issuerNotFound());
+      expect(errors![0]).toEqual(issuerNotFound());
     });
 
     it("subjectNotFound", () => {
@@ -156,9 +181,10 @@ describe("test", () => {
         payload: { sub: undefined },
         customClaims: {},
       });
-      const errors = verifyClientAssertion(jws, undefined);
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(subjectNotFound());
+      expect(errors![0]).toEqual(subjectNotFound());
     });
 
     it("invalidSubject", () => {
@@ -167,9 +193,10 @@ describe("test", () => {
         payload: { sub: subject },
         customClaims: {},
       });
-      const errors = verifyClientAssertion(jws, generateId<ClientId>());
+      const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(invalidSubject(subject));
+      expect(errors![0]).toEqual(invalidSubject(subject));
     });
 
     it("invalidPurposeIdClaimFormat", () => {
@@ -178,10 +205,10 @@ describe("test", () => {
         payload: {},
         customClaims: { purposeId: notPurposeId },
       });
-      const errors = verifyClientAssertion(jws, undefined);
-
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(invalidPurposeIdClaimFormat(notPurposeId));
+      expect(errors![0]).toEqual(invalidPurposeIdClaimFormat(notPurposeId));
     });
   });
 
