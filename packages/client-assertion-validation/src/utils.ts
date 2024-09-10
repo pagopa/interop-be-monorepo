@@ -25,6 +25,13 @@ import {
   invalidSubject,
   invalidPurposeIdClaimFormat,
   kidNotFound,
+  inactiveAgreement,
+  inactiveEService,
+  tokenExpiredError,
+  jsonWebTokenError,
+  notBeforeError,
+  clientAssertionSignatureVerificationFailure,
+  invalidClientAssertionSignatureType,
 } from "./errors.js";
 const CLIENT_ASSERTION_AUDIENCE = "DEFAULT_AUDIENCE"; // To do: env?
 
@@ -171,23 +178,23 @@ export const verifyClientAssertionSignature = (
 
     // TODO Improve this
     if (typeof result === "string") {
-      return [Error("Unexpected assertion verification result")];
+      return [invalidClientAssertionSignatureType(typeof result)];
     } else {
       return [];
     }
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
       console.log("TokenExpiredError");
-      return [error];
+      return [tokenExpiredError()];
     } else if (error instanceof JsonWebTokenError) {
       console.log("JsonWebTokenError");
-      return [error];
+      return [jsonWebTokenError()];
     } else if (error instanceof NotBeforeError) {
       console.log("NotBeforeError");
-      return [error];
+      return [notBeforeError()];
     } else {
       console.log("unknown error");
-      return [Error("unknown error")];
+      return [clientAssertionSignatureVerificationFailure()];
     }
   }
 };
@@ -198,13 +205,13 @@ export const assertValidPlatformState = (
   // To do: is it ok to have these check throwing errors? So that they can be read if needed (instead of just getting false)
   const errors: Array<ApiError<ErrorCodes>> = [];
   if (key.agreementState !== "ACTIVE") {
-    errors.push(Error("Invalid agreement state"));
+    errors.push(inactiveAgreement());
   }
   if (key.descriptorState !== "ACTIVE") {
-    errors.push(Error("Invalid eservice state"));
+    errors.push(inactiveEService());
   }
   if (key.purposeState !== "ACTIVE") {
-    errors.push(Error("Invalid purpose state"));
+    errors.push(inactiveEService());
   }
   return errors;
 };

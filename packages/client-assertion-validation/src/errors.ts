@@ -18,11 +18,66 @@ export const errorCodes = {
   invalidSubject: "0015",
   invalidPurposeIdClaimFormat: "0016",
   kidNotFound: "0017",
+  invalidClientAssertionSignatureType: "0018",
+  tokenExpiredError: "0019",
+  jsonWebTokenError: "0020",
+  notBeforeError: "0021",
+  inactivePurpose: "0022",
+  inactiveAgreement: "0023",
+  inactiveEService: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 // TODO: make api problem?
+
+// TODO: missing errors:
+// - InvalidClientIdFormat
+// - ClientAssertionParseFailed
+// - ClientAssertionInvalidClaims
+// - InvalidSubjectFormat
+// - InvalidPurposeIdFormat
+// - InvalidHashLength
+// - InvalidHashAlgorithm
+// - AlgorithmNotFound
+// - ExpirationNotFound
+// - DigestClaimNotFound
+// - InvalidDigestClaims
+// - PublicKeyParseFailed
+// - ClientAssertionVerificationError
+// - InvalidClientAssertionSignature
+// - PurposeIdNotProvided ????
+// - PurposeNotFound
+// - AlgorithmNotAllowed
+// - InvalidAudienceFormat (for audience claim)
+// - InvalidDigestFormat
+// - InvalidKidFormat
+
+export function clientAssertionValidationFailure(
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client assertion validation failed: ${details}`,
+    code: "clientAssertionValidationFailure",
+    title: "Client assertion validation failed",
+  });
+}
+
+export function clientAssertionSignatureVerificationFailure(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client assertion signature verification failed`,
+    code: "clientAssertionSignatureVerificationFailure",
+    title: "Client assertion signature verification failed",
+  });
+}
+
+export function platformStateVerificationFailure(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Platform state verification failed`,
+    code: "platformStateVerificationFailure",
+    title: "Platform state verification failed",
+  });
+}
 
 export function invalidAssertionType(
   assertionType: string
@@ -138,28 +193,62 @@ export function kidNotFound(): ApiError<ErrorCodes> {
   });
 }
 
-export function clientAssertionValidationFailure(
-  details: string
+export function invalidClientAssertionSignatureType(
+  clientAssertionSignatureType: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failed: ${details}`,
-    code: "clientAssertionValidationFailure",
-    title: "Client assertion validation failed",
+    detail: `Client assertion signature's type not valid: ${clientAssertionSignatureType}`,
+    code: "invalidClientAssertionSignatureType",
+    title: "Token expired in client assertion signature validation",
   });
 }
 
-export function clientAssertionSignatureVerificationFailure(): ApiError<ErrorCodes> {
+export function tokenExpiredError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature verification failed`,
-    code: "clientAssertionSignatureVerificationFailure",
-    title: "Client assertion signature verification failed",
+    detail: "Token expired in client assertion signature validation",
+    code: "tokenExpiredError",
+    title: "Token expired in client assertion signature validation",
   });
 }
 
-export function platformStateVerificationFailure(): ApiError<ErrorCodes> {
+export function jsonWebTokenError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Platform state verification failed`,
-    code: "platformStateVerificationFailure",
-    title: "Platform state verification failed",
+    detail: "Invalid JWT format in client assertion signature validation",
+    code: "jsonWebTokenError",
+    title: "Invalid JWT format in client assertion signature validation",
+  });
+}
+
+export function notBeforeError(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Current time is before not before time in client assertion signature validation",
+    code: "notBeforeError",
+    title:
+      "Current time is before not before time in client assertion signature validation",
+  });
+}
+
+export function inactivePurpose(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Purpose is not active",
+    code: "inactivePurpose",
+    title: "Purpose is not active",
+  });
+}
+
+export function inactiveEService(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "E-Service is not active",
+    code: "inactiveEService",
+    title: "E-Service is not active",
+  });
+}
+
+export function inactiveAgreement(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Agreement is not active",
+    code: "inactiveAgreement",
+    title: "Agreement is not active",
   });
 }
