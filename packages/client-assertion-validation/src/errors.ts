@@ -131,65 +131,67 @@ export function unexpectedClientAssertionPayload(): ApiError<ErrorCodes> {
 
 export function jtiNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `jti not found in client assertion`,
     code: "jtiNotFound",
-    title: "JTI not found in client assertion",
+    title: "jti not found",
   });
 }
 
 export function issuedAtNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `iat not found in client assertion`,
     code: "issuedAtNotFound",
-    title: "IAT not found in client assertion",
+    title: "iat not found",
   });
 }
 
 export function expNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `exp not found in client assertion`,
     code: "expNotFound",
-    title: "EXP not found in client assertion",
+    title: "exp not found",
   });
 }
 
 export function issuerNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `Issuer not found in client assertion`,
     code: "issuerNotFound",
-    title: "ISS not found in client assertion",
+    title: "iss not found",
   });
 }
 
 export function subjectNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `Subject not found in client assertion`,
     code: "subjectNotFound",
-    title: "Subject not found in client assertion",
+    title: "Subject not found",
   });
 }
 
-export function invalidSubject(): ApiError<ErrorCodes> {
+export function invalidSubject(subject?: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `Subject claim value ${subject} does not correspond to provided client_id parameter`,
     code: "invalidSubject",
-    title: "Subject not found in client assertion",
+    title: "Invalid subject",
   });
 }
 
-export function invalidPurposeIdClaimFormat(): ApiError<ErrorCodes> {
+export function invalidPurposeIdClaimFormat(
+  purposeId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `Purpose Id claim ${purposeId} is not a valid UUID`,
     code: "invalidPurposeIdClaimFormat",
-    title: "Subject not found in client assertion",
+    title: "Invalid purposeId claim format",
   });
 }
 
 export function kidNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: `kid not found in client assertion`,
     code: "kidNotFound",
-    title: "KID not found in client assertion",
+    title: "kid not found",
   });
 }
 
