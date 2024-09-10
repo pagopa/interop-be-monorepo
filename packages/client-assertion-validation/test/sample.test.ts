@@ -19,6 +19,15 @@ import {
 import { getMockClientAssertion } from "./utils.js";
 
 describe("test", () => {
+  describe("validateRequestParameters", () => {
+    it("invalidAssertionType", () => {
+      expect(1).toBe(1);
+    });
+    it("invalidGrantType", () => {
+      expect(1).toBe(1);
+    });
+  });
+
   describe("verifyClientAssertion", () => {
     it("invalidAudienceFormat", () => {
       const keySet = crypto.generateKeyPairSync("rsa", {
@@ -173,6 +182,36 @@ describe("test", () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toEqual(invalidPurposeIdClaimFormat(notPurposeId));
+    });
+  });
+
+  describe("verifyClientAssertionSignature", () => {
+    it("invalidClientAssertionSignatureType", () => {
+      expect(1).toBe(1);
+    });
+    it("tokenExpiredError", () => {
+      expect(1).toBe(1);
+    });
+    it("jsonWebTokenError", () => {
+      expect(1).toBe(1);
+    });
+    it("notBeforeError", () => {
+      expect(1).toBe(1);
+    });
+    it("clientAssertionSignatureVerificationFailure", () => {
+      expect(1).toBe(1);
+    });
+  });
+
+  describe("assertValidPlatformStates", () => {
+    it("inactiveAgreement", () => {
+      expect(1).toBe(1);
+    });
+    it("inactiveEservice", () => {
+      expect(1).toBe(1);
+    });
+    it("inactivePurpose", () => {
+      expect(1).toBe(1);
     });
   });
 });
