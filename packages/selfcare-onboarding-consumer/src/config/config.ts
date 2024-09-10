@@ -11,8 +11,6 @@ export const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
     .object({
       SELFCARE_TOPIC: z.string(),
 
-      RESET_CONSUMER_OFFSETS: z.string().default("false"),
-
       INTEROP_PRODUCT: z.string(),
       ALLOWED_ORIGINS: z.string(),
 
@@ -20,7 +18,6 @@ export const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
     })
     .transform((c) => ({
       selfcareTopic: c.SELFCARE_TOPIC,
-      resetConsumerOffsets: c.RESET_CONSUMER_OFFSETS.toLowerCase() === "true",
       interopProduct: c.INTEROP_PRODUCT,
       allowedOrigins: c.ALLOWED_ORIGINS.split(","),
       tenantProcessUrl: c.TENANT_PROCESS_URL,

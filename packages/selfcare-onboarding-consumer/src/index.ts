@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 import { tenantProcessClientBuilder } from "./clients/tenantProcessClient.js";
-import { selfcareOnboardingProcessorBuilder } from "./services/processor.js";
+import { selfcareOnboardingProcessorBuilder } from "./services/selfcareOnboardingProcessor.js";
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);

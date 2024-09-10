@@ -111,6 +111,28 @@ const kafkaCommitMessageOffsets = async (
   );
 };
 
+export async function resetPartitionsOffsets(
+  topics: string[],
+  kafka: Kafka,
+  consumer: Consumer
+): Promise<void> {
+  const admin = kafka.admin();
+
+  await admin.connect();
+
+  const fetchedTopics = await admin.fetchTopicMetadata({ topics });
+  fetchedTopics.topics.forEach((t) =>
+    t.partitions.forEach((p) =>
+      consumer.seek({
+        topic: t.name,
+        partition: p.partitionId,
+        offset: "-2",
+      })
+    )
+  );
+  await admin.disconnect();
+}
+
 async function oauthBearerTokenProvider(
   region: string,
   logger: Logger
@@ -144,11 +166,17 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         logLevel: config.kafkaLogLevel,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
-        sasl: {
-          mechanism: "oauthbearer",
-          oauthBearerProvider: () =>
-            oauthBearerTokenProvider(config.awsRegion, genericLogger),
-        },
+        sasl: !config.kafkaBrokerConnectionString
+          ? {
+              mechanism: "oauthbearer",
+              oauthBearerProvider: () =>
+                oauthBearerTokenProvider(config.awsRegion, genericLogger),
+            }
+          : {
+              mechanism: "plain",
+              username: "$ConnectionString",
+              password: config.kafkaBrokerConnectionString,
+            },
       };
 
   return new Kafka({
@@ -207,6 +235,10 @@ const initConsumer = async (
     },
   });
 
+  if (config.resetConsumerOffsets) {
+    await resetPartitionsOffsets(topics, kafka, consumer);
+  }
+
   consumerKafkaEventsListener(consumer);
   errorEventsListener(consumer);
 
@@ -262,6 +294,7 @@ export const initProducer = async (
       kafkaReauthenticationThreshold:
         config.producerKafkaReauthenticationThreshold,
       awsRegion: config.awsRegion,
+      kafkaBrokerConnectionString: config.producerKafkaBrokerConnectionString,
     });
 
     const producer = kafka.producer({
