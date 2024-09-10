@@ -33,7 +33,7 @@ import {
   clientAssertionSignatureVerificationFailure,
   invalidClientAssertionSignatureType,
 } from "./errors.js";
-const CLIENT_ASSERTION_AUDIENCE = "DEFAULT_AUDIENCE"; // To do: env?
+const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // To do: env?
 
 export const validateRequestParameters = (
   request: authorizationServerApi.AccessTokenRequest
@@ -44,17 +44,10 @@ export const validateRequestParameters = (
 
   const errors: Array<ApiError<ErrorCodes>> = [];
   if (request.client_assertion_type !== expectedClientAssertionType) {
-    // throw Error(
-    //   `Unexpected client assertion type. Received ${request.client_assertion_type}`
-    // );
     // eslint-disable-next-line functional/immutable-data
     errors.push(invalidAssertionType(request.client_assertion_type));
   }
   if (request.grant_type !== expectedClientCredentialsGrantType) {
-    // clientAssertionValidationFailure(
-    //   `Unexpected client assertion type. Received ${request.client_assertion_type}`
-    // );
-    // throw Error(`Unexpected grant type. Received ${request.grant_type}`);
     // eslint-disable-next-line functional/immutable-data
     errors.push(invalidGrantType(request.grant_type));
   }
@@ -65,10 +58,10 @@ export const validateRequestParameters = (
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Array<ApiError<ErrorCodes>> => {
   const decoded = decode(clientAssertionJws, { complete: true, json: true });
 
-  console.log("decoded ", decoded);
   const validateAudience = (
     aud: string | string[] | undefined
   ): {
@@ -80,8 +73,6 @@ export const verifyClientAssertion = (
     }
 
     if (!Array.isArray(aud)) {
-      // To do: how to test this if the aud type is string[]
-      // throw Error("Audience must be an array");
       return {
         audienceErrors: [invalidAudienceFormat()],
         validatedAudience: [], // to do check fallback value []
@@ -89,7 +80,6 @@ export const verifyClientAssertion = (
     } else {
       if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
         return { audienceErrors: [invalidAudience()], validatedAudience: [] }; // to do check fallback value []
-        // throw Error("Unexpected client assertion audience");
       }
       return { audienceErrors: [], validatedAudience: aud };
     }
@@ -123,14 +113,14 @@ export const verifyClientAssertion = (
       }
 
       if (clientId && decoded.payload.sub !== clientId) {
-        errors.push(invalidSubject());
+        errors.push(invalidSubject(decoded.payload.sub));
       }
 
       if (
         decoded.payload.purposeId &&
         !PurposeId.safeParse(decoded.payload.purposeId).success
       ) {
-        errors.push(invalidPurposeIdClaimFormat());
+        errors.push(invalidPurposeIdClaimFormat(decoded.payload.purposeId));
       }
 
       const { audienceErrors } = validateAudience(decoded.payload.aud);
