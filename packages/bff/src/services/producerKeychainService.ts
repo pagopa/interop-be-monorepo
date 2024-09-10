@@ -122,17 +122,13 @@ export function producerKeychainServiceBuilder(
       );
     },
     async createProducerKey(
-      userId: string,
       producerKeychainId: string,
       keySeed: bffApi.KeySeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Create keys for producer keychain ${producerKeychainId}`);
 
-      const body: authorizationApi.KeySeed = toAuthorizationKeySeed(
-        keySeed,
-        userId
-      );
+      const body: authorizationApi.KeySeed = toAuthorizationKeySeed(keySeed);
 
       await authorizationClient.producerKeychain.createProducerKey(body, {
         params: { producerKeychainId },

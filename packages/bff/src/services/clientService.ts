@@ -136,7 +136,6 @@ export function clientServiceBuilder(
     },
 
     async createKeys(
-      userId: string,
       clientId: string,
       keySeed: bffApi.KeysSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -144,7 +143,7 @@ export function clientServiceBuilder(
       logger.info(`Create keys for client ${clientId}`);
 
       const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
-        toAuthorizationKeySeed(seed, userId)
+        toAuthorizationKeySeed(seed)
       );
 
       await authorizationClient.client.createKeys(body, {
