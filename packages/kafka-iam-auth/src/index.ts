@@ -158,7 +158,14 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         clientId: config.kafkaClientId,
         brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
-        ssl: false,
+        ssl: config.kafkaBrokerConnectionString ? true : false,
+        sasl: config.kafkaBrokerConnectionString
+          ? {
+              mechanism: "plain",
+              username: "$ConnectionString",
+              password: config.kafkaBrokerConnectionString,
+            }
+          : undefined,
       }
     : {
         clientId: config.kafkaClientId,
@@ -166,17 +173,11 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         logLevel: config.kafkaLogLevel,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
-        sasl: !config.kafkaBrokerConnectionString
-          ? {
-              mechanism: "oauthbearer",
-              oauthBearerProvider: () =>
-                oauthBearerTokenProvider(config.awsRegion, genericLogger),
-            }
-          : {
-              mechanism: "plain",
-              username: "$ConnectionString",
-              password: config.kafkaBrokerConnectionString,
-            },
+        sasl: {
+          mechanism: "oauthbearer",
+          oauthBearerProvider: () =>
+            oauthBearerTokenProvider(config.awsRegion, genericLogger),
+        },
       };
 
   return new Kafka({

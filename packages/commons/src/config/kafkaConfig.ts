@@ -17,13 +17,22 @@ export const KafkaConfig = z
     KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
   })
   .and(AWSConfig)
-  .transform((c) => ({
-    awsRegion: c.awsRegion,
-    kafkaBrokers: c.KAFKA_BROKERS,
-    kafkaClientId: c.KAFKA_CLIENT_ID,
-    kafkaDisableAwsIamAuth: c.KAFKA_DISABLE_AWS_IAM_AUTH === "true",
-    kafkaLogLevel: logLevel[c.KAFKA_LOG_LEVEL],
-    kafkaReauthenticationThreshold: c.KAFKA_REAUTHENTICATION_THRESHOLD,
-    kafkaBrokerConnectionString: c.KAFKA_BROKER_CONNECTION_STRING,
-  }));
+  .transform((c) => {
+    const kafkaDisableAwsIamAuth = c.KAFKA_DISABLE_AWS_IAM_AUTH === "true";
+    if (c.KAFKA_BROKER_CONNECTION_STRING && !kafkaDisableAwsIamAuth) {
+      throw new Error(
+        "To use a KAFKA_BROKER_CONNECTION_STRING, KAFKA_DISABLE_AWS_IAM_AUTH must be true"
+      );
+    }
+
+    return {
+      awsRegion: c.awsRegion,
+      kafkaBrokers: c.KAFKA_BROKERS,
+      kafkaClientId: c.KAFKA_CLIENT_ID,
+      kafkaDisableAwsIamAuth: c.KAFKA_DISABLE_AWS_IAM_AUTH === "true",
+      kafkaLogLevel: logLevel[c.KAFKA_LOG_LEVEL],
+      kafkaReauthenticationThreshold: c.KAFKA_REAUTHENTICATION_THRESHOLD,
+      kafkaBrokerConnectionString: c.KAFKA_BROKER_CONNECTION_STRING,
+    };
+  });
 export type KafkaConfig = z.infer<typeof KafkaConfig>;
