@@ -65,9 +65,10 @@ async function main(): Promise<void> {
       logger.info("> Checking if it is a new version...");
 
       // We check if there is a new version by checking if the history bucket already has one of the versioned paths.
-      const versionedBucketContentList =
-        // await historyBucketClient.getBucketContentList();
-        await fileManager.listFiles(config.HISTORY_STORAGE_BUCKET, logger);
+      const versionedBucketContentList = await fileManager.listFiles(
+        config.HISTORY_STORAGE_BUCKET,
+        logger
+      );
       const isNewVersion = !versionedContentBucketPaths.some((bucketPath) =>
         versionedBucketContentList.includes(bucketPath)
       );
