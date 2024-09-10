@@ -99,6 +99,7 @@ export class DynamoDbTableClient<
       ExpressionAttributeValues: marshall(
         Object.entries(updatedObj).reduce<Record<string, AttributeValue>>(
           (acc, [key, value]) => {
+            // eslint-disable-next-line functional/immutable-data
             acc[`:${key}`] = value as AttributeValue;
             return acc;
           },
