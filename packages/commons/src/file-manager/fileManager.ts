@@ -36,6 +36,12 @@ export type FileManager = {
     fileContent: Buffer,
     logger: Logger
   ) => Promise<string>;
+  storeBytesByPath: (
+    bucket: string,
+    path: string,
+    fileContent: Buffer,
+    logger: Logger
+  ) => Promise<string>;
   get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
 };
@@ -161,6 +167,26 @@ export function initFileManager(
         return key;
       } catch (error) {
         throw fileManagerStoreBytesError(key, bucket, error);
+      }
+    },
+    storeBytesByPath: async (
+      bucket: string,
+      path: string,
+      fileContent: Buffer,
+      logger: Logger
+    ): Promise<string> => {
+      logger.info(`Storing file ${path} in bucket ${bucket}`);
+      try {
+        await client.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: path,
+            Body: fileContent,
+          })
+        );
+        return path;
+      } catch (error) {
+        throw fileManagerStoreBytesError(path, bucket, error);
       }
     },
   };

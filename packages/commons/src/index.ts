@@ -25,3 +25,4 @@ export * from "./auth/jwk.js";
 export * from "./auth/converters.js";
 export * from "./email-manager/index.js";
 export * from "./rate-limiter/index.js";
+export * from "./dynamodb/index.js";
