@@ -34,6 +34,7 @@ import {
   Key,
   technology,
   AttributeKind,
+  ProducerKeychain,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -50,6 +51,10 @@ export function randomArrayItem<T>(array: T[]): T {
 
 export function randomBoolean(): boolean {
   return Math.random() < 0.5;
+}
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const getRandomAuthData = (
@@ -262,6 +267,17 @@ export const getMockClient = (): Client => ({
   description: "Client description",
   users: [],
   kind: clientKind.consumer,
+  createdAt: new Date(),
+  keys: [],
+});
+
+export const getMockProducerKeychain = (): ProducerKeychain => ({
+  id: generateId(),
+  producerId: generateId(),
+  name: "Test producer keychain",
+  eservices: [],
+  description: "producer keychain description",
+  users: [],
   createdAt: new Date(),
   keys: [],
 });
