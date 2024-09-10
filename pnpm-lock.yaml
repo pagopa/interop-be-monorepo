@@ -1092,9 +1092,6 @@ importers:
 
   packages/commons:
     dependencies:
-      '@aws-sdk/client-dynamodb':
-        specifier: 3.648.0
-        version: 3.648.0
       '@aws-sdk/client-kms':
         specifier: 3.600.0
         version: 3.600.0
@@ -1104,9 +1101,6 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 3.620.1
         version: 3.620.1
-      '@aws-sdk/util-dynamodb':
-        specifier: 3.648.0
-        version: 3.648.0(@aws-sdk/client-dynamodb@3.648.0)
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
@@ -1643,6 +1637,12 @@ importers:
 
   packages/one-trust-notices:
     dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.648.0
+        version: 3.648.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.648.0
+        version: 3.648.0(@aws-sdk/client-dynamodb@3.648.0)
       axios:
         specifier: ^1.7.4
         version: 1.7.4

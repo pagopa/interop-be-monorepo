@@ -1,11 +1,7 @@
 /* eslint-disable no-console */
 
-import {
-  genericLogger,
-  initFileManager,
-  DynamoDbTableClient,
-} from "pagopa-interop-commons";
-import { html2json } from "./services/html-2-json.service.js";
+import { genericLogger, initFileManager } from "pagopa-interop-commons";
+import { html2json } from "./services/html-2-json.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 
 import { config } from "./config/config.js";
@@ -18,7 +14,8 @@ import {
 } from "./utils/utils.js";
 import { resolveError } from "./utils/errors.js";
 import { ONE_TRUST_NOTICES } from "./utils/consts.js";
-import { OneTrustClient } from "./services/one-trust.service.js";
+import { OneTrustClient } from "./services/one-trust.js";
+import { DynamoDbTableClient } from "./services/storage.js";
 
 const logger = genericLogger;
 const fileManager = initFileManager(config);
