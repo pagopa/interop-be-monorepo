@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
@@ -8,7 +9,12 @@ import {
   verify,
 } from "jsonwebtoken";
 import { ApiError, PurposeId } from "pagopa-interop-models";
-import { ConsumerKey, Key } from "./types.js";
+import {
+  ClientAssertion,
+  ConsumerKey,
+  Key,
+  ValidationResult,
+} from "./types.js";
 import {
   ErrorCodes,
   expNotFound,
@@ -27,6 +33,7 @@ import {
   kidNotFound,
   inactiveAgreement,
   inactiveEService,
+  inactivePurpose,
   tokenExpiredError,
   jsonWebTokenError,
   notBeforeError,
@@ -34,20 +41,19 @@ import {
   invalidClientAssertionSignatureType,
 } from "./errors.js";
 const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // To do: env?
+const EXPECTED_CLIENT_ASSERTION_TYPE =
+  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // To do: env?
+const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // To do: env?
 
 export const validateRequestParameters = (
   request: authorizationServerApi.AccessTokenRequest
 ): Array<ApiError<ErrorCodes>> => {
-  const expectedClientAssertionType: string =
-    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // To do: env?
-  const expectedClientCredentialsGrantType: string = "client_credentials"; // To do: env?
-
   const errors: Array<ApiError<ErrorCodes>> = [];
-  if (request.client_assertion_type !== expectedClientAssertionType) {
+  if (request.client_assertion_type !== EXPECTED_CLIENT_ASSERTION_TYPE) {
     // eslint-disable-next-line functional/immutable-data
     errors.push(invalidAssertionType(request.client_assertion_type));
   }
-  if (request.grant_type !== expectedClientCredentialsGrantType) {
+  if (request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE) {
     // eslint-disable-next-line functional/immutable-data
     errors.push(invalidGrantType(request.grant_type));
   }
@@ -55,42 +61,44 @@ export const validateRequestParameters = (
   return errors;
 };
 
+const validateAudience = (
+  aud: string | string[] | undefined
+): {
+  audienceErrors: Array<ApiError<ErrorCodes>>;
+  validatedAudience: string[];
+} => {
+  if (aud === CLIENT_ASSERTION_AUDIENCE) {
+    return { audienceErrors: [], validatedAudience: [aud] };
+  }
+
+  if (!Array.isArray(aud)) {
+    return {
+      audienceErrors: [invalidAudienceFormat()],
+      validatedAudience: [], // to do check fallback value []
+    };
+  } else {
+    if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
+      return { audienceErrors: [invalidAudience()], validatedAudience: [] }; // to do check fallback value []
+    }
+    return { audienceErrors: [], validatedAudience: aud };
+  }
+};
+
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
   // eslint-disable-next-line sonarjs/cognitive-complexity
-): Array<ApiError<ErrorCodes>> => {
+): ValidationResult => {
   const decoded = decode(clientAssertionJws, { complete: true, json: true });
-
-  const validateAudience = (
-    aud: string | string[] | undefined
-  ): {
-    audienceErrors: Array<ApiError<ErrorCodes>>;
-    validatedAudience: string[];
-  } => {
-    if (aud === CLIENT_ASSERTION_AUDIENCE) {
-      return { audienceErrors: [], validatedAudience: [aud] };
-    }
-
-    if (!Array.isArray(aud)) {
-      return {
-        audienceErrors: [invalidAudienceFormat()],
-        validatedAudience: [], // to do check fallback value []
-      };
-    } else {
-      if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
-        return { audienceErrors: [invalidAudience()], validatedAudience: [] }; // to do check fallback value []
-      }
-      return { audienceErrors: [], validatedAudience: aud };
-    }
-  };
 
   const errors: Array<ApiError<ErrorCodes>> = [];
   if (!decoded) {
     errors.push(invalidClientAssertionFormat());
+    return { errors, data: undefined };
   } else {
     if (typeof decoded.payload === "string") {
       errors.push(unexpectedClientAssertionPayload()); // To do: how to test?
+      return { errors, data: undefined };
     } else {
       if (!decoded.payload.jti) {
         errors.push(jtiNotFound());
@@ -123,34 +131,36 @@ export const verifyClientAssertion = (
         errors.push(invalidPurposeIdClaimFormat(decoded.payload.purposeId));
       }
 
-      const { audienceErrors } = validateAudience(decoded.payload.aud);
+      if (!decoded.header.kid) {
+        errors.push(kidNotFound());
+      }
 
+      const { audienceErrors, validatedAudience } = validateAudience(
+        decoded.payload.aud
+      );
       errors.push(...audienceErrors);
-    }
 
-    if (!decoded.header.kid) {
-      errors.push(kidNotFound());
-    }
+      const result: ClientAssertion = {
+        header: {
+          kid: decoded.header.kid!,
+          alg: decoded.header.alg,
+        },
+        payload: {
+          sub: decoded.payload.sub!,
+          purposeId: decoded.payload.purposeId,
+          jti: decoded.payload.jti!,
+          iat: decoded.payload.iat!,
+          iss: decoded.payload.iss!,
+          aud: validatedAudience,
+          exp: decoded.payload.exp!, // TODO Check unit of measure
+        },
+      };
 
-    // This will return a Client Assertion
-    // return {
-    //   header: {
-    //     kid: decoded.header.kid,
-    //     alg: decoded.header.alg,
-    //   },
-    //   payload: {
-    //     sub: decoded.payload.sub,
-    //     purposeId: decoded.payload.purposeId,
-    //     jti: decoded.payload.jti,
-    //     iat: decoded.payload.iat,
-    //     iss: decoded.payload.iss,
-    //     aud: validatedAudience,
-    //     exp: decoded.payload.exp, // TODO Check unit of measure
-    //   },
-    // };
+      return errors.length === 0
+        ? { errors: undefined, data: result }
+        : { errors, data: undefined };
+    }
   }
-
-  return errors;
 };
 
 export const b64Decode = (str: string): string =>
@@ -160,7 +170,7 @@ export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
   key: Key
 ): Array<ApiError<ErrorCodes>> => {
-  // should this return a JwtPayload?
+  // todo: should this return a JwtPayload? Probably not
   try {
     const result = verify(clientAssertionJws, b64Decode(key.publicKey), {
       algorithms: [key.algorithm],
@@ -201,7 +211,7 @@ export const assertValidPlatformState = (
     errors.push(inactiveEService());
   }
   if (key.purposeState !== "ACTIVE") {
-    errors.push(inactiveEService());
+    errors.push(inactivePurpose());
   }
   return errors;
 };

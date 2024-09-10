@@ -12,24 +12,24 @@ import { ErrorCodes } from "./errors.js";
 
 export const assertValidClientAssertion = async (
   request: authorizationServerApi.AccessTokenRequest,
-  key: ConsumerKey | ApiKey // To do use just Key?
+  key: ConsumerKey | ApiKey // Todo use just Key?
 ): Promise<Array<ApiError<ErrorCodes>>> => {
   const parametersErrors = validateRequestParameters(request);
 
-  const clientAssertionErrors = verifyClientAssertion(
-    request.client_assertion,
-    request.client_id
-  );
+  const { errors: clientAssertionVerificationErrors, data: jwt } =
+    verifyClientAssertion(request.client_assertion, request.client_id);
 
   const clientAssertionSignatureErrors = verifyClientAssertionSignature(
     request.client_assertion,
     key
   );
 
+  // todo exit here if there are any errors so far?
+
   if (ApiKey.safeParse(key).success) {
     return [
       ...parametersErrors,
-      ...clientAssertionErrors,
+      ...(clientAssertionVerificationErrors || []),
       ...clientAssertionSignatureErrors,
     ];
   }
@@ -43,7 +43,7 @@ export const assertValidClientAssertion = async (
       return [
         ...parsingErrors,
         ...parametersErrors,
-        ...clientAssertionErrors,
+        ...(clientAssertionVerificationErrors || []),
         ...clientAssertionSignatureErrors,
       ];
     })
@@ -61,7 +61,7 @@ export const assertValidClientAssertion = async (
       return [
         ...errors,
         ...parametersErrors,
-        ...clientAssertionErrors,
+        ...(clientAssertionVerificationErrors || []),
         ...clientAssertionSignatureErrors,
       ];
     })
