@@ -1,3 +1,6 @@
+/* eslint-disable functional/immutable-data */
+/* eslint-disable fp/no-delete */
+
 import h2j from "html2json";
 import isEmpty from "lodash/isEmpty.js";
 

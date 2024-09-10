@@ -59,7 +59,6 @@ export function remapOneTrustNoticeVersionToDynamoDBSchemaUpdateObject(
   oneTrustNoticeVersion: OneTrustNoticeVersion
 ): Omit<OneTrustNoticeDBSchema, "privacyNoticeId"> {
   const {
-    id: _privacyNoticeId,
     createdDate,
     lastPublishedDate,
     version: { id: versionId, publishedDate, ...versionRest },
