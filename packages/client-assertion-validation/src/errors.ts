@@ -32,26 +32,24 @@ export type ErrorCodes = keyof typeof errorCodes;
 // TODO: make api problem?
 
 // TODO: missing errors:
-// - InvalidClientIdFormat
-// - ClientAssertionParseFailed
-// - ClientAssertionInvalidClaims
-// - InvalidSubjectFormat
-// - InvalidPurposeIdFormat
-// - InvalidHashLength
-// - InvalidHashAlgorithm
-// - AlgorithmNotFound
-// - ExpirationNotFound
-// - DigestClaimNotFound
-// - InvalidDigestClaims
-// - PublicKeyParseFailed
-// - ClientAssertionVerificationError
-// - InvalidClientAssertionSignature
-// - PurposeIdNotProvided ????
-// - PurposeNotFound
-// - AlgorithmNotAllowed
-// - InvalidAudienceFormat (for audience claim)
-// - InvalidDigestFormat
-// - InvalidKidFormat
+// - InvalidClientIdFormat -> check on uuid
+// - ClientAssertionParseFailed -> already handled in invalidClientAssertionFormat
+// - ClientAssertionInvalidClaims -> should be covered by individual checks
+// - InvalidSubjectFormat -> check on uuid of subject claim
+// - InvalidPurposeIdFormat -> check on uuid of purposeId claim
+// - DigestClaimNotFound -> check if custom claim digest exists
+// - InvalidDigestClaims -> check if digest has {alg, value}
+// - InvalidDigestFormat -> probably overlapping with previous
+// - InvalidHashLength -> check on the length of digest.value (digest is a custom claim)
+// - InvalidHashAlgorithm -> check if digest.alg is sha256
+// - AlgorithmNotFound -> check if header.alg is present
+// - AlgorithmNotAllowed -> check if (header.alg === RSA)
+// - PublicKeyParseFailed -> out of scope for this module
+// - ClientAssertionVerificationError -> maybe too generic
+// - InvalidClientAssertionSignature -> maybe already covered by existing cases
+// - PurposeIdNotProvided -> based on entry type (Api client doesn't need purposeId)
+// - PurposeNotFound -> related to previous, check if there is a purpose entry for that purposeId (in platform states)
+// - InvalidKidFormat -> Verify that kid does not contain special characters
 
 export function clientAssertionValidationFailure(
   details: string
