@@ -59,7 +59,8 @@ const privacyNoticeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPrivacyNoticeErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving privacy notices for consentType ${req.params.consentType}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -84,7 +85,8 @@ const privacyNoticeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPrivacyNoticeErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error accepting privacy notices for consentType ${req.params.consentType}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -106,7 +108,8 @@ const privacyNoticeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPrivacyNoticeErrorMapper,
-          ctx.logger
+          ctx.logger,
+          `Error retrieving privacy notices content for consentType ${req.params.consentType}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
