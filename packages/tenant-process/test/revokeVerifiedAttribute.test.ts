@@ -277,7 +277,7 @@ describe("revokeVerifiedAttribute", async () => {
       attributes: [
         {
           ...verifiedAttribute,
-          verifiedBy: [{ ...getMockVerifiedBy() }],
+          verifiedBy: [{ ...getMockVerifiedBy(), id: revokerTenant.id }],
           revokedBy: [{ ...getMockRevokedBy(), id: revokerTenant.id }],
         },
       ],
