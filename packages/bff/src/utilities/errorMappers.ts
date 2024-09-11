@@ -99,6 +99,13 @@ export const getAgreementByIdErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const activateAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getClientUsersErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
