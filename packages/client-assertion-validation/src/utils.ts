@@ -237,7 +237,7 @@ const validateAlgorithm = (alg?: string): FlexibleValidationResult<string> => {
       data: undefined,
     };
   }
-  if (alg !== ALLOWED_ALGORITHM) {
+  if (alg === ALLOWED_ALGORITHM) {
     return {
       errors: undefined,
       data: alg,
