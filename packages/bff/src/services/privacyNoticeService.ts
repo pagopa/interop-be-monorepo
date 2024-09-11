@@ -24,17 +24,17 @@ export function privacyNoticeServiceBuilder(
     ): Promise<bffApi.PrivacyNotice> {
       logger.info(`Retrieving privacy notice for consentType ${consentType}`);
 
-      const privacyNoticeId = consentTypeMap.get(consentType);
-      if (!privacyNoticeId) {
-        throw privacyNoticeNotFoundInConfiguration(consentType);
-      }
-      const latest = await privacyNoticeStorage.getLatestVersion(
+      const privacyNoticeId = retrievePrivacyNoticeId(
+        consentType,
+        consentTypeMap
+      );
+
+      const latest = await retrieveLatestPrivacyNoticeVersion(
+        consentType,
         privacyNoticeId,
+        privacyNoticeStorage,
         logger
       );
-      if (!latest) {
-        throw privacyNoticeNotFound(consentType);
-      }
 
       const userPrivacyNotice = await privacyNoticeStorage.getByUserId(
         privacyNoticeId,
@@ -72,18 +72,17 @@ export function privacyNoticeServiceBuilder(
     ): Promise<void> {
       logger.info(`Accept privacy notices for consentType ${consentType}`);
 
-      const privacyNoticeId = consentTypeMap.get(consentType);
-      if (!privacyNoticeId) {
-        throw privacyNoticeNotFoundInConfiguration(consentType);
-      }
+      const privacyNoticeId = retrievePrivacyNoticeId(
+        consentType,
+        consentTypeMap
+      );
 
-      const latest = await privacyNoticeStorage.getLatestVersion(
+      const latest = await retrieveLatestPrivacyNoticeVersion(
+        consentType,
         privacyNoticeId,
+        privacyNoticeStorage,
         logger
       );
-      if (!latest) {
-        throw privacyNoticeNotFound(consentType);
-      }
 
       if (latest.privacyNoticeVersion.versionId !== seed.latestVersionId) {
         throw privacyNoticeVersionIsNotTheLatest(seed.latestVersionId);
@@ -95,7 +94,9 @@ export function privacyNoticeServiceBuilder(
         logger
       );
 
-      if (userPrivacyNotice?.version.versionId === seed.latestVersionId) {
+      if (
+        userPrivacyNotice?.versionNumber === latest.privacyNoticeVersion.version
+      ) {
         return;
       }
 
@@ -122,18 +123,17 @@ export function privacyNoticeServiceBuilder(
         `Retrieving privacy notice content for consentType ${consentType}`
       );
 
-      const privacyNoticeId = consentTypeMap.get(consentType);
-      if (!privacyNoticeId) {
-        throw privacyNoticeNotFoundInConfiguration(consentType);
-      }
+      const privacyNoticeId = retrievePrivacyNoticeId(
+        consentType,
+        consentTypeMap
+      );
 
-      const latest = await privacyNoticeStorage.getLatestVersion(
+      const latest = await retrieveLatestPrivacyNoticeVersion(
+        consentType,
         privacyNoticeId,
+        privacyNoticeStorage,
         logger
       );
-      if (!latest) {
-        throw privacyNoticeNotFound(consentType);
-      }
 
       const path = `${config.privacyNoticesPath}/${latest.privacyNoticeVersion.versionId}/it/${config.privacyNoticesFileName}`;
       const bytes = await fileManager.get(
@@ -144,4 +144,32 @@ export function privacyNoticeServiceBuilder(
       return Buffer.from(bytes);
     },
   };
+}
+
+function retrievePrivacyNoticeId(
+  consentType: bffApi.ConsentType,
+  consentTypeMap: Map<bffApi.ConsentType, string>
+) {
+  const privacyNoticeId = consentTypeMap.get(consentType);
+  if (!privacyNoticeId) {
+    throw privacyNoticeNotFoundInConfiguration(consentType);
+  }
+  return privacyNoticeId;
+}
+
+async function retrieveLatestPrivacyNoticeVersion(
+  consentType: bffApi.ConsentType,
+  privacyNoticeId: string,
+  privacyNoticeStorage: PrivacyNoticeStorage,
+  logger: Logger
+) {
+  const latest = await privacyNoticeStorage.getLatestVersion(
+    privacyNoticeId,
+    logger
+  );
+
+  if (!latest) {
+    throw privacyNoticeNotFound(consentType);
+  }
+  return latest;
 }
