@@ -25,7 +25,6 @@ import {
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
