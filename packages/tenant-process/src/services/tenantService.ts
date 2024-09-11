@@ -71,7 +71,6 @@ import {
   assertVerifiedAttributeExistsInTenant,
   assertResourceAllowed,
   evaluateNewSelfcareId,
-  getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
@@ -343,7 +342,6 @@ export function tenantServiceBuilder(
           features: [],
           mails: [],
           selfcareId: tenantSeed.selfcareId,
-          kind: getTenantKind([], tenantSeed.externalId),
           onboardedAt: new Date(),
           createdAt: new Date(),
         };
@@ -477,7 +475,7 @@ export function tenantServiceBuilder(
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          tenantKind,
+          targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
@@ -629,7 +627,7 @@ export function tenantServiceBuilder(
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          tenantKind,
+          targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
@@ -874,7 +872,7 @@ export function tenantServiceBuilder(
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          tenantKind,
+          tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
@@ -959,7 +957,7 @@ export function tenantServiceBuilder(
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           tenantToModify.metadata.version + 1,
-          tenantKind,
+          tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
@@ -1284,7 +1282,7 @@ export function tenantServiceBuilder(
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           existingTenant.metadata.version + events.length,
-          tenantKind,
+          existingTenant.data.kind,
           tenantWithUpdatedKind,
           correlationId
         );
@@ -1296,6 +1294,113 @@ export function tenantServiceBuilder(
 
       return tenantWithUpdatedKind;
     },
+    async m2mUpsertTenant(
+      m2mTenantSeed: tenantApi.M2MTenantSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Tenant> {
+      logger.info(
+        `Updating tenant with external id ${m2mTenantSeed.externalId} via m2m request`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const certifierId = retrieveCertifierId(requesterTenant.data);
+
+      const existingTenant = await retrieveTenantByExternalId({
+        tenantOrigin: m2mTenantSeed.externalId.origin,
+        tenantExternalId: m2mTenantSeed.externalId.value,
+        readModelService,
+      });
+
+      const attributesExternalIds = m2mTenantSeed.certifiedAttributes.map(
+        (externalId) =>
+          ({
+            value: externalId.code,
+            origin: certifierId,
+          } satisfies ExternalId)
+      );
+
+      const existingAttributes =
+        await readModelService.getAttributesByExternalIds(
+          attributesExternalIds
+        );
+
+      attributesExternalIds.forEach((attributeToAssign) => {
+        if (
+          !existingAttributes.some(
+            (attr) =>
+              attr?.origin === attributeToAssign.origin &&
+              attr?.code === attributeToAssign.value
+          )
+        ) {
+          throw attributeNotFound(
+            `${attributeToAssign.origin}/${attributeToAssign.value}`
+          );
+        }
+      });
+      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
+        (
+          accumulator: {
+            events: Array<CreateEvent<TenantEvent>>;
+            tenantWithNewAttributes: Tenant;
+          },
+          attribute: Attribute,
+          index
+        ) => {
+          const tenantWithNewAttribute = assignCertifiedAttribute({
+            targetTenant: accumulator.tenantWithNewAttributes,
+            attribute,
+          });
+
+          const version = existingTenant.metadata.version + index;
+          const attributeAssignmentEvent =
+            toCreateEventTenantCertifiedAttributeAssigned(
+              version,
+              tenantWithNewAttribute,
+              attribute.id,
+              correlationId
+            );
+          return {
+            events: [...accumulator.events, attributeAssignmentEvent],
+            tenantWithNewAttributes: tenantWithNewAttribute,
+          };
+        },
+        {
+          events: [],
+          tenantWithNewAttributes: existingTenant.data,
+        }
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttributes.attributes,
+        m2mTenantSeed.externalId
+      );
+
+      const tenantWithUpdatedKind: Tenant = {
+        ...tenantWithNewAttributes,
+        kind: tenantKind,
+      };
+
+      if (existingTenant.data.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          existingTenant.metadata.version + events.length,
+          existingTenant.data.kind,
+          tenantWithUpdatedKind,
+          correlationId
+        );
+
+        await repository.createEvents([...events, tenantKindUpdatedEvent]);
+      } else {
+        await repository.createEvents([...events]);
+      }
+
+      return tenantWithUpdatedKind;
+    },
+
     async addCertifierId(
       {
         tenantId,
@@ -1435,8 +1540,7 @@ export function tenantServiceBuilder(
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
           targetTenant.metadata.version + 1,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenantWithAttributeRevoked.kind!,
+          tenantWithAttributeRevoked.kind,
           tenantWithUpdatedKind,
           correlationId
         );

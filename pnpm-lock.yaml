@@ -52,8 +52,8 @@ importers:
         specifier: 9.0.8
         version: 9.0.8
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -169,13 +169,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -321,10 +321,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       axios-logger:
         specifier: 2.8.1
         version: 2.8.1
@@ -375,17 +375,75 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
 
-  packages/attribute-registry-process:
+  packages/api-gateway:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.19.2
+        version: 4.19.2
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/attribute-registry-process:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -522,13 +580,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -601,10 +659,10 @@ importers:
         version: 2.9.4
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -668,13 +726,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -682,8 +740,8 @@ importers:
         specifier: 4.19.2
         version: 4.19.2
       fast-xml-parser:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.4.1
+        version: 4.4.1
       multer:
         specifier: 1.4.5-lts.1
         version: 1.4.5-lts.1
@@ -826,13 +884,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1045,13 +1103,13 @@ importers:
         version: 3.620.1
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -1088,6 +1146,12 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      rate-limiter-flexible:
+        specifier: 5.0.3
+        version: 5.0.3
+      redis:
+        specifier: 4.6.15
+        version: 4.6.15
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -1157,13 +1221,13 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       aws-sdk-client-mock:
         specifier: 4.0.1
         version: 4.0.1
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1251,7 +1315,7 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1571,6 +1635,177 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/producer-key-events-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/producer-key-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/producer-keychain-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
@@ -1642,13 +1877,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1778,8 +2013,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.0.3
-        version: 1.0.3
+        specifier: 1.0.4
+        version: 1.0.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1849,13 +2084,13 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.7.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8)
       axios:
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -4229,6 +4464,14 @@ packages:
       zod: 3.23.8
     dev: false
 
+  /@pagopa/interop-outbound-models@1.0.4:
+    resolution: {integrity: sha512-oSJTeVeMecVYKSceV4ku5w7LFbc7SHFfr8AQF9z3fvi5EStuhmnpVBTA/k/1Wvi58tHgAS3vgKRREchtxsm0Bw==}
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+    dev: false
+
   /@pkgjs/parseargs@0.11.0:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -4283,6 +4526,55 @@ packages:
       yargs: 17.7.2
     transitivePeerDependencies:
       - supports-color
+
+  /@redis/bloom@1.2.0(@redis/client@1.5.17):
+    resolution: {integrity: sha512-HG2DFjYKbpNmVXsa0keLHp/3leGJz1mjh09f2RLGGLQZzSHpkmZWuwJbAvo3QcRY8p80m5+ZdXZdYOSBLlp7Cg==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.17
+    dev: false
+
+  /@redis/client@1.5.17:
+    resolution: {integrity: sha512-IPvU9A31qRCZ7lds/x+ksuK/UMndd0EASveAvCvEtFFKIZjZ+m/a4a0L7S28KEWoR5ka8526hlSghDo4Hrc2Hg==}
+    engines: {node: '>=14'}
+    dependencies:
+      cluster-key-slot: 1.1.2
+      generic-pool: 3.9.0
+      yallist: 4.0.0
+    dev: false
+
+  /@redis/graph@1.1.1(@redis/client@1.5.17):
+    resolution: {integrity: sha512-FEMTcTHZozZciLRl6GiiIB4zGm5z5F3F6a6FZCyrfxdKOhFlGkiAqlexWMBzCi4DcRoyiOsuLfW+cjlGWyExOw==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.17
+    dev: false
+
+  /@redis/json@1.0.6(@redis/client@1.5.17):
+    resolution: {integrity: sha512-rcZO3bfQbm2zPRpqo82XbW8zg4G/w4W3tI7X8Mqleq9goQjAGLL7q/1n1ZX4dXEAmORVZ4s1+uKLaUOg7LrUhw==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.17
+    dev: false
+
+  /@redis/search@1.1.6(@redis/client@1.5.17):
+    resolution: {integrity: sha512-mZXCxbTYKBQ3M2lZnEddwEAks0Kc7nauire8q20oA0oA/LoA+E/b5Y5KZn232ztPb1FkIGqo12vh3Lf+Vw5iTw==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.17
+    dev: false
+
+  /@redis/time-series@1.0.5(@redis/client@1.5.17):
+    resolution: {integrity: sha512-IFjIgTusQym2B5IZJG3XKr5llka7ey84fw/NOYqESP5WUfQs9zz1ww/9+qoz4ka/S6KcGBodzlCeZ5UImKbscg==}
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.5.17
+    dev: false
 
   /@rollup/rollup-android-arm-eabi@4.18.1:
     resolution: {integrity: sha512-lncuC4aHicncmbORnx+dUaAgzee9cm/PbIqgWz1PpXuwc+sa1Ct83tnqUDy/GFKleLiN7ZIeytM6KJ4cAn1SxA==}
@@ -5519,13 +5811,13 @@ packages:
       pretty-format: 29.7.0
     dev: true
 
-  /@zodios/core@10.9.6(axios@1.7.2)(zod@3.23.8):
+  /@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
       axios: ^0.x || ^1.0.0
       zod: ^3.x
     dependencies:
-      axios: 1.7.2
+      axios: 1.7.4
       zod: 3.23.8
 
   /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.23.8):
@@ -5535,7 +5827,7 @@ packages:
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.7.2)(zod@3.23.8)
+      '@zodios/core': 10.9.6(axios@1.7.4)(zod@3.23.8)
       express: 4.19.2
       zod: 3.23.8
     dev: false
@@ -5882,8 +6174,8 @@ packages:
       dateformat: 3.0.3
     dev: false
 
-  /axios@1.7.2:
-    resolution: {integrity: sha512-2A8QhOMrbomlDuiLeK9XibIBzuHeRcqqNOHp0Cyp5EoJ1IFDh+XZH3A6BkXtv0K4gFGCI0Y4BM7B1wOEi0Rmgw==}
+  /axios@1.7.4:
+    resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
@@ -6134,6 +6426,11 @@ packages:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       wrap-ansi: 7.0.0
+
+  /cluster-key-slot@1.1.2:
+    resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
+    engines: {node: '>=0.10.0'}
+    dev: false
 
   /color-convert@1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
@@ -7255,8 +7552,8 @@ packages:
     dependencies:
       strnum: 1.0.5
 
-  /fast-xml-parser@4.4.0:
-    resolution: {integrity: sha512-kLY3jFlwIYwBNDojclKsNAC12sfD6NwW74QB2CoNGPvtVxjliYehVunB3HYyNi+n4Tt1dAcgwYvmKF/Z18flqg==}
+  /fast-xml-parser@4.4.1:
+    resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
     hasBin: true
     dependencies:
       strnum: 1.0.5
@@ -7424,6 +7721,11 @@ packages:
   /functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
     dev: true
+
+  /generic-pool@3.9.0:
+    resolution: {integrity: sha512-hymDOu5B53XvN4QT9dBmZxPX4CWhBPPLguTZ9MMFeFa/Kg0xWVfylOVNlJji/E7yTZWFd/q9GO5TxDLq156D7g==}
+    engines: {node: '>= 4'}
+    dev: false
 
   /gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
@@ -8648,8 +8950,8 @@ packages:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(axios@1.7.2)(zod@3.23.8)
-      axios: 1.7.2
+      '@zodios/core': 10.9.6(axios@1.7.4)(zod@3.23.8)
+      axios: 1.7.4
       cac: 6.7.14
       handlebars: 4.7.8
       openapi-types: 12.1.3
@@ -9106,6 +9408,10 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
+  /rate-limiter-flexible@5.0.3:
+    resolution: {integrity: sha512-lWx2y8NBVlTOLPyqs+6y7dxfEpT6YFqKy3MzWbCy95sTTOhOuxufP2QvRyOHpfXpB9OUJPbVLybw3z3AVAS5fA==}
+    dev: false
+
   /raw-body@2.5.2:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
     engines: {node: '>= 0.8'}
@@ -9148,6 +9454,17 @@ packages:
     dependencies:
       minimatch: 5.1.6
     dev: true
+
+  /redis@4.6.15:
+    resolution: {integrity: sha512-2NtuOpMW3tnYzBw6S8mbXSX7RPzvVFCA2wFJq9oErushO2UeBkxObk+uvo7gv7n0rhWeOj/IzrHO8TjcFlRSOg==}
+    dependencies:
+      '@redis/bloom': 1.2.0(@redis/client@1.5.17)
+      '@redis/client': 1.5.17
+      '@redis/graph': 1.1.1(@redis/client@1.5.17)
+      '@redis/json': 1.0.6(@redis/client@1.5.17)
+      '@redis/search': 1.1.6(@redis/client@1.5.17)
+      '@redis/time-series': 1.0.5(@redis/client@1.5.17)
+    dev: false
 
   /reflect.getprototypeof@1.0.6:
     resolution: {integrity: sha512-fmfw4XgoDke3kdI6h4xcUz1dG8uaiv5q9gcEwLS4Pnth2kxT+GZ7YehS1JTMGBQmtV7Y4GFGbs2re2NqhdozUg==}

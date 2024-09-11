@@ -84,7 +84,7 @@ export class InteropTokenGenerator {
       kid: this.config.generatedKid,
     };
 
-    const duration = jwtDuration || this.config.generatedSecondsDuration;
+    const duration = jwtDuration ?? this.config.generatedSecondsDuration;
 
     const payload: SessionJwtPayload = {
       jti: crypto.randomUUID(),

@@ -75,7 +75,7 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
         "Audience",
         "AttributeValue",
         "Transform",
-      ].indexOf(name) !== -1,
+      ].includes(name),
   }).parse(samlResponse);
 
   const { success, data: saml, error } = SAMLResponse.safeParse(xml);
@@ -128,14 +128,14 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
   if (attributes.length === 0) {
     throw samlNotValid("Missing Attributes");
   }
-  const now = +new Date();
+  const now = new Date();
 
   validateSignature(saml);
 
-  if (!notBeforeConditions.every((nb) => now > +new Date(nb))) {
+  if (!notBeforeConditions.every((nb) => now > new Date(nb))) {
     throw samlNotValid("Conditions notbefore are not compliant");
   }
-  if (!notOnOrAfterConditions.every((noa) => now < +new Date(noa))) {
+  if (!notOnOrAfterConditions.every((noa) => now < new Date(noa))) {
     throw samlNotValid("Conditions NotOnOrAfter are not compliant");
   }
 

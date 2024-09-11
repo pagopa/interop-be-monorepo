@@ -10,6 +10,8 @@ import {
   ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM,
   ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM,
   ORGANIZATION_ID_CLAIM,
+  RateLimiter,
+  RateLimiterStatus,
   SELFCARE_ID_CLAIM,
   SessionClaims,
   USER_ROLES,
@@ -19,6 +21,7 @@ import {
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { genericError } from "pagopa-interop-models";
+import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import {
   missingClaim,
@@ -29,16 +32,31 @@ import {
 } from "../model/domain/errors.js";
 import { SAMLResponse } from "../model/types.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_LEVELS = ["L2", "L3"];
 const SUPPORT_LEVEL_NAME = "supportLevel";
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
+type GetSessionTokenReturnType =
+  | {
+      limitReached: true;
+      sessionToken: undefined;
+      rateLimitedTenantId: TenantId;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    }
+  | {
+      limitReached: false;
+      sessionToken: string;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    };
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   interopTokenGenerator: InteropTokenGenerator,
   tenantProcessClient: PagoPAInteropBeClients["tenantProcessClient"],
-  allowList: string[]
+  allowList: string[],
+  rateLimiter: RateLimiter
 ) {
   const readJwt = async (
     identityToken: string,
@@ -271,7 +289,7 @@ export function authorizationServiceBuilder(
       correlationId: string,
       identityToken: string,
       logger: Logger
-    ): Promise<string> => {
+    ): Promise<GetSessionTokenReturnType> => {
       logger.info("Received session token exchange request");
 
       const { sessionClaims, roles, selfcareId } = await readJwt(
@@ -292,7 +310,7 @@ export function authorizationServiceBuilder(
           params: { selfcareId },
           headers,
         });
-      const tenantId = tenantBySelfcareId.id;
+      const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
@@ -300,6 +318,18 @@ export function authorizationServiceBuilder(
       });
 
       assertTenantAllowed(selfcareId, tenant.externalId.origin);
+
+      const { limitReached, ...rateLimiterStatus } =
+        await rateLimiter.rateLimitByOrganization(tenantId, logger);
+
+      if (limitReached) {
+        return {
+          limitReached: true,
+          sessionToken: undefined,
+          rateLimitedTenantId: tenantId,
+          rateLimiterStatus,
+        };
+      }
 
       const customClaims = buildJwtCustomClaims(
         roles,
@@ -314,6 +344,45 @@ export function authorizationServiceBuilder(
           ...sessionClaims,
           ...customClaims,
         });
+
+      return {
+        limitReached: false,
+        sessionToken,
+        rateLimiterStatus,
+      };
+    },
+    samlLoginCallback: async (
+      correlationId: string,
+      samlResponse: string
+    ): Promise<string> => {
+      validateSamlResponse(samlResponse);
+
+      const { serialized } =
+        await interopTokenGenerator.generateInternalToken();
+
+      const headers = {
+        "X-Correlation-Id": correlationId,
+        Authorization: `Bearer ${serialized}`,
+      };
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: config.pagoPaTenantId },
+        headers,
+      });
+
+      const selfcareId = tenant.selfcareId;
+      if (!selfcareId) {
+        throw missingSelfcareId(config.pagoPaTenantId);
+      }
+
+      const claims = buildSupportClaims(selfcareId, tenant);
+
+      const { serialized: sessionToken } =
+        await interopTokenGenerator.generateSessionToken(
+          claims,
+          config.supportLandingJwtDuration
+        );
+
       return sessionToken;
     },
     generateJwtFromSaml: async (
