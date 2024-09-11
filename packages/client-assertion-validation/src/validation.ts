@@ -1,19 +1,18 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { ApiError, clientKind } from "pagopa-interop-models";
+import { clientKind } from "pagopa-interop-models";
 import {
   verifyClientAssertionSignature,
   validateRequestParameters,
   assertValidPlatformState,
   verifyClientAssertion,
 } from "./utils.js";
-import { ApiKey, ConsumerKey } from "./types.js";
-import { ErrorCodes } from "./errors.js";
+import { ApiKey, ConsumerKey, ValidationResult } from "./types.js";
 
 export const assertValidClientAssertion = async (
   request: authorizationServerApi.AccessTokenRequest,
   key: ConsumerKey | ApiKey // Todo use just Key?
-): Promise<Array<ApiError<ErrorCodes>>> => {
+): Promise<ValidationResult> => {
   const parametersErrors = validateRequestParameters(request);
 
   const { errors: clientAssertionVerificationErrors, data: jwt } =
@@ -25,27 +24,33 @@ export const assertValidClientAssertion = async (
   );
 
   // todo exit here if there are any errors so far?
-
-  if (ApiKey.safeParse(key).success) {
-    return [
-      ...parametersErrors,
-      ...(clientAssertionVerificationErrors || []),
-      ...clientAssertionSignatureErrors,
-    ];
+  if (
+    parametersErrors ||
+    clientAssertionVerificationErrors ||
+    clientAssertionSignatureErrors
+  ) {
+    return {
+      data: undefined,
+      errors: [
+        ...(parametersErrors || []),
+        ...(clientAssertionVerificationErrors || []),
+        ...(clientAssertionSignatureErrors || []),
+      ],
+    };
   }
 
+  if (ApiKey.safeParse(key).success) {
+    return { data: jwt, errors: undefined };
+  }
+
+  // todo complete the part below
   return match(key.clientKind)
     .with(clientKind.api, () => {
       const parsingErrors = !ApiKey.safeParse(key).success
         ? [Error("parsing")]
         : [];
 
-      return [
-        ...parsingErrors,
-        ...parametersErrors,
-        ...(clientAssertionVerificationErrors || []),
-        ...clientAssertionSignatureErrors,
-      ];
+      return [...parsingErrors];
     })
     .with(clientKind.consumer, () => {
       const errors: Error[] = [];
@@ -58,12 +63,7 @@ export const assertValidClientAssertion = async (
         // eslint-disable-next-line functional/immutable-data
         errors.push(Error("parsing"));
       }
-      return [
-        ...errors,
-        ...parametersErrors,
-        ...(clientAssertionVerificationErrors || []),
-        ...clientAssertionSignatureErrors,
-      ];
+      return [...errors];
     })
     .exhaustive();
 };

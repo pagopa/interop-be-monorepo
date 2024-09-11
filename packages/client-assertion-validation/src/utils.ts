@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/immutable-data */
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   decode,
@@ -8,10 +6,11 @@ import {
   TokenExpiredError,
   verify,
 } from "jsonwebtoken";
-import { ApiError, PurposeId } from "pagopa-interop-models";
+import { ApiError, PurposeId, unsafeBrandId } from "pagopa-interop-models";
 import {
   ClientAssertion,
   ConsumerKey,
+  FlexibleValidationResult,
   Key,
   ValidationResult,
 } from "./types.js";
@@ -47,120 +46,232 @@ const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // To do: e
 
 export const validateRequestParameters = (
   request: authorizationServerApi.AccessTokenRequest
-): Array<ApiError<ErrorCodes>> => {
-  const errors: Array<ApiError<ErrorCodes>> = [];
-  if (request.client_assertion_type !== EXPECTED_CLIENT_ASSERTION_TYPE) {
-    // eslint-disable-next-line functional/immutable-data
-    errors.push(invalidAssertionType(request.client_assertion_type));
-  }
-  if (request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE) {
-    // eslint-disable-next-line functional/immutable-data
-    errors.push(invalidGrantType(request.grant_type));
-  }
+): Array<ApiError<ErrorCodes>> | undefined => {
+  const assertionTypeError =
+    request.client_assertion_type !== EXPECTED_CLIENT_ASSERTION_TYPE
+      ? invalidAssertionType(request.client_assertion_type)
+      : undefined;
 
-  return errors;
+  const grantTypeError =
+    request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE
+      ? invalidGrantType(request.grant_type)
+      : undefined;
+
+  if (!assertionTypeError && !grantTypeError) {
+    return undefined;
+  }
+  return [assertionTypeError, grantTypeError].filter((e) => e !== undefined);
+};
+
+const validateJti = (jti?: string): FlexibleValidationResult<string> => {
+  if (!jti) {
+    return {
+      errors: [jtiNotFound()],
+      data: undefined,
+    };
+  } else {
+    return {
+      errors: undefined,
+      data: jti,
+    };
+  }
+};
+
+const validateIat = (iat?: number): FlexibleValidationResult<number> => {
+  if (!iat) {
+    return {
+      errors: [issuedAtNotFound()],
+      data: undefined,
+    };
+  } else {
+    return {
+      errors: undefined,
+      data: iat,
+    };
+  }
+};
+
+const validateExp = (exp?: number): FlexibleValidationResult<number> => {
+  if (!exp) {
+    return {
+      errors: [expNotFound()],
+      data: undefined,
+    };
+  } else {
+    return {
+      errors: undefined,
+      data: exp,
+    };
+  }
+};
+
+const validateIss = (iss?: string): FlexibleValidationResult<string> => {
+  if (!iss) {
+    return {
+      errors: [issuerNotFound()],
+      data: undefined,
+    };
+  } else {
+    return {
+      errors: undefined,
+      data: iss,
+    };
+  }
+};
+
+const validateSub = (
+  sub?: string,
+  clientId?: string
+): FlexibleValidationResult<string> => {
+  if (!sub) {
+    return {
+      errors: [subjectNotFound()],
+      data: undefined,
+    };
+  } else {
+    if (clientId && sub !== clientId) {
+      // Todo add check on clientId as ClientId type
+      return {
+        errors: [invalidSubject()],
+        data: undefined,
+      };
+    }
+    return {
+      errors: undefined,
+      data: sub,
+    };
+  }
+};
+
+const validatePurposeId = (
+  purposeId?: string
+): FlexibleValidationResult<PurposeId | undefined> => {
+  if (purposeId && !PurposeId.safeParse(purposeId).success) {
+    return {
+      errors: [invalidPurposeIdClaimFormat(purposeId)],
+      data: undefined,
+    };
+  } else {
+    return {
+      errors: undefined,
+      data: purposeId ? unsafeBrandId<PurposeId>(purposeId) : undefined,
+    };
+  }
+};
+
+const validateKid = (kid?: string): FlexibleValidationResult<string> => {
+  if (!kid) {
+    return {
+      errors: [kidNotFound()],
+      data: undefined,
+    };
+  } else {
+    return {
+      errors: undefined,
+      data: kid,
+    };
+  }
 };
 
 const validateAudience = (
   aud: string | string[] | undefined
-): {
-  audienceErrors: Array<ApiError<ErrorCodes>>;
-  validatedAudience: string[];
-} => {
+): FlexibleValidationResult<string[]> => {
   if (aud === CLIENT_ASSERTION_AUDIENCE) {
-    return { audienceErrors: [], validatedAudience: [aud] };
+    return { errors: undefined, data: [aud] };
   }
 
   if (!Array.isArray(aud)) {
     return {
-      audienceErrors: [invalidAudienceFormat()],
-      validatedAudience: [], // to do check fallback value []
+      errors: [invalidAudienceFormat()],
+      data: undefined,
     };
   } else {
     if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
-      return { audienceErrors: [invalidAudience()], validatedAudience: [] }; // to do check fallback value []
+      return { errors: [invalidAudience()], data: undefined };
     }
-    return { audienceErrors: [], validatedAudience: aud };
+    return { errors: undefined, data: aud };
   }
 };
 
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
-  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): ValidationResult => {
   const decoded = decode(clientAssertionJws, { complete: true, json: true });
 
-  const errors: Array<ApiError<ErrorCodes>> = [];
   if (!decoded) {
-    errors.push(invalidClientAssertionFormat());
-    return { errors, data: undefined };
-  } else {
-    if (typeof decoded.payload === "string") {
-      errors.push(unexpectedClientAssertionPayload()); // To do: how to test?
-      return { errors, data: undefined };
-    } else {
-      if (!decoded.payload.jti) {
-        errors.push(jtiNotFound());
-      }
-
-      if (!decoded.payload.iat) {
-        errors.push(issuedAtNotFound());
-      }
-
-      if (!decoded.payload.exp) {
-        errors.push(expNotFound());
-      }
-
-      if (!decoded.payload.iss) {
-        errors.push(issuerNotFound());
-      }
-
-      if (!decoded.payload.sub) {
-        errors.push(subjectNotFound());
-      }
-
-      if (clientId && decoded.payload.sub !== clientId) {
-        errors.push(invalidSubject(decoded.payload.sub));
-      }
-
-      if (
-        decoded.payload.purposeId &&
-        !PurposeId.safeParse(decoded.payload.purposeId).success
-      ) {
-        errors.push(invalidPurposeIdClaimFormat(decoded.payload.purposeId));
-      }
-
-      if (!decoded.header.kid) {
-        errors.push(kidNotFound());
-      }
-
-      const { audienceErrors, validatedAudience } = validateAudience(
-        decoded.payload.aud
-      );
-      errors.push(...audienceErrors);
-
-      const result: ClientAssertion = {
-        header: {
-          kid: decoded.header.kid!,
-          alg: decoded.header.alg,
-        },
-        payload: {
-          sub: decoded.payload.sub!,
-          purposeId: decoded.payload.purposeId,
-          jti: decoded.payload.jti!,
-          iat: decoded.payload.iat!,
-          iss: decoded.payload.iss!,
-          aud: validatedAudience,
-          exp: decoded.payload.exp!, // TODO Check unit of measure
-        },
-      };
-
-      return errors.length === 0
-        ? { errors: undefined, data: result }
-        : { errors, data: undefined };
-    }
+    return { errors: [invalidClientAssertionFormat()], data: undefined };
   }
+
+  if (typeof decoded.payload === "string") {
+    return { errors: [unexpectedClientAssertionPayload()], data: undefined };
+  }
+
+  const { errors: jtiErrors, data: validatedJti } = validateJti(
+    decoded.payload.jti
+  );
+  const { errors: iatErrors, data: validatedIat } = validateIat(
+    decoded.payload.iat
+  );
+  const { errors: expErrors, data: validatedExp } = validateExp(
+    decoded.payload.exp
+  );
+  const { errors: issErrors, data: validatedIss } = validateIss(
+    decoded.payload.iss
+  );
+  const { errors: subErrors, data: validatedSub } = validateSub(
+    decoded.payload.iss,
+    clientId
+  );
+  const { errors: purposeIdErrors, data: validatedPurposeId } =
+    validatePurposeId(decoded.payload.purposeId);
+  const { errors: kidErrors, data: validatedKid } = validateKid(
+    decoded.payload.kid
+  );
+  const { errors: audErrors, data: validatedAud } = validateAudience(
+    decoded.payload.aud
+  );
+
+  if (
+    !jtiErrors &&
+    !iatErrors &&
+    !expErrors &&
+    !issErrors &&
+    !subErrors &&
+    !purposeIdErrors &&
+    !kidErrors &&
+    !audErrors
+  ) {
+    const result: ClientAssertion = {
+      header: {
+        kid: validatedKid,
+        alg: decoded.header.alg,
+      },
+      payload: {
+        sub: validatedSub,
+        purposeId: validatedPurposeId,
+        jti: validatedJti,
+        iat: validatedIat,
+        iss: validatedIss,
+        aud: validatedAud,
+        exp: validatedExp, // TODO Check unit of measure
+      },
+    };
+    return { errors: undefined, data: result };
+  }
+  return {
+    errors: [
+      ...(jtiErrors || []),
+      ...(iatErrors || []),
+      ...(expErrors || []),
+      ...(issErrors || []),
+      ...(subErrors || []),
+      ...(purposeIdErrors || []),
+      ...(kidErrors || []),
+      ...(audErrors || []),
+    ],
+    data: undefined,
+  };
 };
 
 export const b64Decode = (str: string): string =>
@@ -169,7 +280,7 @@ export const b64Decode = (str: string): string =>
 export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
   key: Key
-): Array<ApiError<ErrorCodes>> => {
+): Array<ApiError<ErrorCodes>> | undefined => {
   // todo: should this return a JwtPayload? Probably not
   try {
     const result = verify(clientAssertionJws, b64Decode(key.publicKey), {
@@ -180,19 +291,23 @@ export const verifyClientAssertionSignature = (
     if (typeof result === "string") {
       return [invalidClientAssertionSignatureType(typeof result)];
     } else {
-      return [];
+      return undefined;
     }
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
+      // eslint-disable-next-line no-console
       console.log("TokenExpiredError");
       return [tokenExpiredError()];
     } else if (error instanceof JsonWebTokenError) {
+      // eslint-disable-next-line no-console
       console.log("JsonWebTokenError");
       return [jsonWebTokenError()];
     } else if (error instanceof NotBeforeError) {
+      // eslint-disable-next-line no-console
       console.log("NotBeforeError");
       return [notBeforeError()];
     } else {
+      // eslint-disable-next-line no-console
       console.log("unknown error");
       return [clientAssertionSignatureVerificationFailure()];
     }
@@ -203,15 +318,16 @@ export const assertValidPlatformState = (
   key: ConsumerKey
 ): Array<ApiError<ErrorCodes>> => {
   // To do: is it ok to have these check throwing errors? So that they can be read if needed (instead of just getting false)
-  const errors: Array<ApiError<ErrorCodes>> = [];
-  if (key.agreementState !== "ACTIVE") {
-    errors.push(inactiveAgreement());
-  }
-  if (key.descriptorState !== "ACTIVE") {
-    errors.push(inactiveEService());
-  }
-  if (key.purposeState !== "ACTIVE") {
-    errors.push(inactivePurpose());
-  }
-  return errors;
+  const agreementError =
+    key.agreementState !== "ACTIVE" ? inactiveAgreement() : undefined;
+
+  const descriptorError =
+    key.descriptorState !== "ACTIVE" ? inactiveEService() : undefined;
+
+  const purposeError =
+    key.purposeState !== "ACTIVE" ? inactivePurpose() : undefined;
+
+  return [agreementError, descriptorError, purposeError].filter(
+    (e) => e !== undefined
+  );
 };

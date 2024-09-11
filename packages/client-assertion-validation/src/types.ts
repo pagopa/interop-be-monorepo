@@ -63,6 +63,10 @@ export type ValidationResult =
   | { errors: undefined; data: ClientAssertion }
   | { errors: Array<ApiError<ErrorCodes>>; data: undefined };
 
+export type FlexibleValidationResult<T> =
+  | { errors: undefined; data: T }
+  | { errors: Array<ApiError<ErrorCodes>>; data: undefined };
+
 // alternatively
 export type ValidationResult2 = {
   errors: Array<ApiError<ErrorCodes>>;
