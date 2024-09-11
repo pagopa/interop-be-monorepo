@@ -116,13 +116,13 @@ export function toTenantAttribute(
     type: tenantAttributeType.VERIFIED,
     assignmentTimestamp: new Date(att.verified.assignmentTimestamp),
     verifiedBy: att.verified.verifiedBy.map((v) => ({
-      id: v.id,
+      id: unsafeBrandId(v.id),
       verificationDate: new Date(v.verificationDate),
       expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
       extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
     })),
     revokedBy: att.verified.revokedBy.map((r) => ({
-      id: r.id,
+      id: unsafeBrandId(r.id),
       verificationDate: new Date(r.verificationDate),
       revocationDate: new Date(r.revocationDate),
       expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,

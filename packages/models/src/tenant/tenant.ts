@@ -46,7 +46,7 @@ export const TenantAttributeType = z.enum([
 export type TenantAttributeType = z.infer<typeof TenantAttributeType>;
 
 export const TenantVerifier = z.object({
-  id: z.string(),
+  id: TenantId,
   verificationDate: z.coerce.date(),
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
@@ -56,7 +56,7 @@ export type TenantVerifier = z.infer<typeof TenantVerifier>;
 export const TenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
-  id: z.string().uuid(),
+  id: TenantId,
   revocationDate: z.coerce.date(),
   verificationDate: z.coerce.date(),
 });
