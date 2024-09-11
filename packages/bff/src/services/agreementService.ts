@@ -20,6 +20,10 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
 import {
+  toCompactEserviceLight,
+  toCompactOrganization,
+} from "../model/api/apiConverter.js";
+import {
   toCompactEservice,
   toCompactDescriptor,
 } from "../model/api/apiConverter.js";
@@ -137,6 +141,148 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
       return { id: agreement.id };
+    },
+
+    async getAgreementsEserviceProducers(
+      {
+        offset,
+        limit,
+        requesterId,
+        states,
+        eServiceName,
+      }: {
+        offset: number;
+        limit: number;
+        requesterId: string;
+        states: agreementApi.AgreementState[];
+        eServiceName?: string;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactEServicesLight> {
+      logger.info(
+        `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+      );
+
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const eservices = await agreementProcessClient.getAgreementEServices({
+        queries: {
+          offset,
+          limit,
+          eServiceName,
+          producersIds: [requesterId],
+          states,
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservices.totalCount,
+        },
+        results: eservices.results.map((e) => toCompactEserviceLight(e)),
+      };
+    },
+
+    async getAgreementsEserviceConsumers(
+      offset: number,
+      limit: number,
+      requesterId: string,
+      eServiceName: string | undefined,
+      { headers, logger }: WithLogger<BffAppContext>
+    ) {
+      logger.info(
+        `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+      );
+
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const eservices = await agreementProcessClient.getAgreementEServices({
+        queries: {
+          offset,
+          limit,
+          eServiceName,
+          consumersIds: [requesterId],
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservices.totalCount,
+        },
+        results: eservices.results.map((e) => toCompactEserviceLight(e)),
+      };
+    },
+
+    async getAgreementProducers(
+      offset: number,
+      limit: number,
+      producerName: string | undefined,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      logger.info(`Retrieving agreement producers`);
+
+      if (producerName && producerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const producers = await agreementProcessClient.getAgreementProducers({
+        queries: {
+          offset,
+          limit,
+          producerName,
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: producers.totalCount,
+        },
+        results: producers.results.map((p) => toCompactOrganization(p)),
+      };
+    },
+
+    async getAgreementConsumers(
+      offset: number,
+      limit: number,
+      consumerName: string | undefined,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      logger.info(`Retrieving agreement consumers`);
+
+      if (consumerName && consumerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const consumers = await agreementProcessClient.getAgreementConsumers({
+        queries: {
+          offset,
+          limit,
+          consumerName,
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: consumers.totalCount,
+        },
+        results: consumers.results.map((c) => toCompactOrganization(c)),
+      };
     },
   };
 }
@@ -384,3 +530,12 @@ export function getCurrentDescriptor(
   }
   return descriptor;
 }
+
+const emptyPagination = (offset: number, limit: number) => ({
+  pagination: {
+    limit,
+    offset,
+    totalCount: 0,
+  },
+  results: [],
+});
