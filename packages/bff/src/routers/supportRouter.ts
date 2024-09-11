@@ -15,6 +15,7 @@ import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { emptyErrorMapper } from "../utilities/errorMappers.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const supportRouter = (
   ctx: ZodiosContext,
@@ -35,17 +36,18 @@ const supportRouter = (
 
   supportRouter.post("/session/saml2/tokens", async (req, res) => {
     const { tenantId, saml2 } = req.params;
-    const samlDecoded = Buffer.from(saml2, "base64").toString();
-    const { correlationId, logger } = fromAppContext(req.ctx);
+    const ctx = fromBffAppContext(req.ctx, req.headers);
+
     try {
-      const jwt = await authorizationService.generateJwtFromSaml(
-        correlationId,
+      const samlDecoded = Buffer.from(saml2, "base64").toString();
+      const jwt = await authorizationService.getSaml2Token(
         samlDecoded,
-        tenantId
+        tenantId,
+        ctx
       );
       return res.status(200).send({ session_token: jwt });
     } catch (error) {
-      makeApiProblem(error, emptyErrorMapper, logger);
+      makeApiProblem(error, emptyErrorMapper, ctx.logger);
       return res.status(500).send();
     }
   });

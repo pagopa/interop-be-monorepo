@@ -5,7 +5,6 @@ import {
   ExpressContext,
   InteropTokenGenerator,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
   RateLimiter,
   rateLimiterHeadersFromStatus,
@@ -19,6 +18,7 @@ import {
   sessionTokenErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const authorizationRouter = (
   ctx: ZodiosContext,
@@ -41,13 +41,12 @@ const authorizationRouter = (
   authorizationRouter
     .post("/session/tokens", async (req, res) => {
       const { identity_token: identityToken } = req.body;
-      const { correlationId, logger } = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const result = await authorizationService.getSessionToken(
-          correlationId,
           identityToken,
-          logger
+          ctx
         );
 
         const headers = rateLimiterHeadersFromStatus(result.rateLimiterStatus);
@@ -62,7 +61,7 @@ const authorizationRouter = (
         const err = makeApiProblem(
           error,
           sessionTokenErrorMapper,
-          logger,
+          ctx.logger,
           "Error creating a session token"
         );
 
@@ -70,23 +69,19 @@ const authorizationRouter = (
       }
     })
     .post("/support", async (req, res) => {
-      const { correlationId, logger } = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
 
-        const jwt = await authorizationService.generateJwtFromSaml(
-          correlationId,
-          saml,
-          config.pagoPaTenantId
-        );
+        const jwt = await authorizationService.samlLoginCallback(saml, ctx);
         return res.redirect(
           302,
           `${config.samlCallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
         );
       } catch (error) {
-        logger.error(`Error calling support SAML - ${error}`);
-        makeApiProblem(error, emptyErrorMapper, logger);
+        ctx.logger.error(`Error calling support SAML - ${error}`);
+        makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.redirect(302, config.samlCallbackErrorUrl);
       }
     });

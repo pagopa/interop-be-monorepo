@@ -15,6 +15,7 @@ import {
   SessionClaims,
   UID,
   USER_ROLES,
+  WithLogger,
   decodeJwtToken,
   userRoles,
   verifyJwtToken,
@@ -29,6 +30,7 @@ import {
 } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
+import { BffAppContext } from "../utilities/context.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
@@ -146,11 +148,21 @@ export function authorizationServiceBuilder(
     };
   };
 
+  const retrieveSupportClaims = (
+    tenant: tenantApi.Tenant
+  ): ReturnType<typeof buildSupportClaims> => {
+    const selfcareId = tenant.selfcareId;
+    if (!selfcareId) {
+      throw missingSelfcareId(config.pagoPaTenantId);
+    }
+
+    return buildSupportClaims(selfcareId, tenant);
+  };
+
   return {
     getSessionToken: async (
-      correlationId: string,
       identityToken: string,
-      logger: Logger
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<GetSessionTokenReturnType> => {
       logger.info("Received session token exchange request");
 
@@ -162,15 +174,13 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const headers = {
-        "X-Correlation-Id": correlationId,
-        Authorization: `Bearer ${serialized}`,
-      };
-
       const tenantBySelfcareId =
         await tenantProcessClient.selfcare.getTenantBySelfcareId({
           params: { selfcareId },
-          headers,
+          headers: {
+            ...headers,
+            Authorization: `Bearer ${serialized}`,
+          },
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
@@ -214,70 +224,50 @@ export function authorizationServiceBuilder(
       };
     },
     samlLoginCallback: async (
-      correlationId: string,
-      samlResponse: string
+      samlResponse: string,
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<string> => {
+      logger.info("Calling Support SAML");
+
       validateSamlResponse(samlResponse);
 
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const headers = {
-        "X-Correlation-Id": correlationId,
-        Authorization: `Bearer ${serialized}`,
-      };
-
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: config.pagoPaTenantId },
-        headers,
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${serialized}`,
+        },
       });
-
-      const selfcareId = tenant.selfcareId;
-      if (!selfcareId) {
-        throw missingSelfcareId(config.pagoPaTenantId);
-      }
-
-      const claims = buildSupportClaims(selfcareId, tenant);
 
       const { serialized: sessionToken } =
         await interopTokenGenerator.generateSessionToken(
-          claims,
+          retrieveSupportClaims(tenant),
           config.supportLandingJwtDuration
         );
 
       return sessionToken;
     },
-    generateJwtFromSaml: async (
-      correlationId: string,
+    getSaml2Token: async (
       samlResponse: string,
-      tenantId: string
+      tenantId: string,
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<string> => {
+      logger.info("Calling get SAML2 token");
+
       validateSamlResponse(samlResponse);
 
-      const { serialized } =
-        await interopTokenGenerator.generateInternalToken();
-
-      const headers = {
-        "X-Correlation-Id": correlationId,
-        Authorization: `Bearer ${serialized}`,
-      };
-
       const tenant = await tenantProcessClient.tenant.getTenant({
-        params: { id: config.pagoPaTenantId },
+        params: { id: tenantId },
         headers,
       });
 
-      const selfcareId = tenant.selfcareId;
-      if (!selfcareId) {
-        throw missingSelfcareId(tenantId);
-      }
-
-      const claims = buildSupportClaims(selfcareId, tenant);
-
       const { serialized: sessionToken } =
         await interopTokenGenerator.generateSessionToken(
-          claims,
-          config.supportLandingJwtDuration
+          retrieveSupportClaims(tenant),
+          config.supportJwtDuration
         );
 
       return sessionToken;
