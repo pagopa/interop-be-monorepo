@@ -184,9 +184,13 @@ export function agreementServiceBuilder(
       });
 
       if (!agreement.contract) {
-        match(agreement.state).with("ACTIVE", "SUSPENDED", "ARCHIVED", () => {
+        if (
+          agreement.state === "ACTIVE" ||
+          agreement.state === "SUSPENDED" ||
+          agreement.state === "ARCHIVED"
+        ) {
           throw contractException(agreementId);
-        });
+        }
         throw contractNotFound(agreementId);
       }
 
