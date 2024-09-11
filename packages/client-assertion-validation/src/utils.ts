@@ -145,33 +145,34 @@ const validateSub = (
       errors: [subjectNotFound()],
       data: undefined,
     };
-  } else {
-    if (clientId) {
-      const clientIdError = !ClientId.safeParse(clientId).success
-        ? invalidClientIdFormat(clientId)
-        : undefined;
-      const invalidSubFormatError = !ClientId.safeParse(sub).success
-        ? invalidSubjectFormat(sub)
-        : undefined;
-      // TODO: clientId undefined OK?
-      const invalidSubError =
-        sub !== clientId ? invalidSubject(sub) : undefined;
-      if (clientIdError || invalidSubFormatError || invalidSubError) {
-        return {
-          errors: [
-            clientIdError,
-            invalidSubFormatError,
-            invalidSubError,
-          ].filter((e) => e !== undefined),
-          data: undefined,
-        };
-      }
-    }
-    return {
-      errors: undefined,
-      data: sub,
-    };
   }
+  if (clientId) {
+    const clientIdError = !ClientId.safeParse(clientId).success
+      ? invalidClientIdFormat(clientId)
+      : undefined;
+    const invalidSubFormatError = !ClientId.safeParse(sub).success
+      ? invalidSubjectFormat(sub)
+      : undefined;
+    if (clientIdError || invalidSubFormatError) {
+      return {
+        errors: [clientIdError, invalidSubFormatError].filter(
+          (e) => e !== undefined
+        ),
+        data: undefined,
+      };
+    }
+    // TODO: clientId undefined OK?
+    if (sub !== clientId) {
+      return {
+        errors: [invalidSubject(sub)],
+        data: undefined,
+      };
+    }
+  }
+  return {
+    errors: undefined,
+    data: sub,
+  };
 };
 
 const validatePurposeId = (
