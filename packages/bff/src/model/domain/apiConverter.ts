@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
-import { PrivacyNoticeKind } from "./types.js";
 
 export const toApiSelfcareInstitution = (
   input: selfcareV2ClientApi.InstitutionResource
@@ -120,9 +119,3 @@ export function toAuthorizationKeySeed(
     createdAt: new Date().toISOString(),
   };
 }
-
-export const fromApiConsentType = (type: "TOS" | "PP"): PrivacyNoticeKind =>
-  match(type)
-    .with("TOS", () => PrivacyNoticeKind.TOS)
-    .with("PP", () => PrivacyNoticeKind.PP)
-    .exhaustive();

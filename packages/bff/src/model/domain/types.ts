@@ -1,3 +1,5 @@
+import { bffApi } from "pagopa-interop-api-clients";
+
 export type PrivacyNotice = {
   privacyNoticeId: string;
   createdDate: string;
@@ -27,11 +29,6 @@ export type UserPrivacyNotice = {
 
 export type UserPrivacyNoticeVersion = {
   versionId: string;
-  kind: PrivacyNoticeKind;
+  kind: bffApi.ConsentType;
   version: number;
 };
-
-export enum PrivacyNoticeKind {
-  TOS = "TOS",
-  PP = "PP",
-}

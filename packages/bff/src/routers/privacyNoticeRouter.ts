@@ -9,11 +9,9 @@ import {
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { bffApi } from "pagopa-interop-api-clients";
-import { fromApiConsentType } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { privacyNoticeServiceBuilder } from "../services/privacyNoticeService.js";
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
-import { PrivacyNoticeKind } from "../model/domain/types.js";
 import { privacyNoticeStorageServiceBuilder } from "../services/privacyNoticeStorage.js";
 import { config } from "../config/config.js";
 
@@ -24,9 +22,9 @@ const privacyNoticeRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const consentTypeMap: Map<PrivacyNoticeKind, string> = new Map([
-    [PrivacyNoticeKind.PP, config.privacyNoticesPpUuid],
-    [PrivacyNoticeKind.TOS, config.privacyNoticesTosUuid],
+  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
+    [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
+    [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
   ]);
   const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
     new DynamoDBClient(),
@@ -45,9 +43,8 @@ const privacyNoticeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const { consentType: consentTypeParam } = req.params;
+        const { consentType } = req.params;
         const { userId } = ctx.authData;
-        const consentType = fromApiConsentType(consentTypeParam);
 
         const notice = await privacyNoticeService.getPrivacyNotice(
           consentType,
@@ -70,9 +67,8 @@ const privacyNoticeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const { consentType: consentTypeParam } = req.params;
+        const { consentType } = req.params;
         const { userId } = ctx.authData;
-        const consentType = fromApiConsentType(consentTypeParam);
 
         await privacyNoticeService.acceptPrivacyNotice(
           consentType,
@@ -96,8 +92,7 @@ const privacyNoticeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const { consentType: consentTypeParam } = req.params;
-        const consentType = fromApiConsentType(consentTypeParam);
+        const { consentType } = req.params;
 
         const file = await privacyNoticeService.getPrivacyNoticeContent(
           consentType,

@@ -7,18 +7,18 @@ import {
   privacyNoticeNotFound,
   privacyNoticeVersionIsNotTheLatest,
 } from "../model/domain/errors.js";
-import { PrivacyNoticeKind, UserPrivacyNotice } from "../model/domain/types.js";
+import { UserPrivacyNotice } from "../model/domain/types.js";
 import { config } from "../config/config.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
 
 export function privacyNoticeServiceBuilder(
   privacyNoticeStorage: PrivacyNoticeStorage,
   fileManager: FileManager,
-  consentTypeMap: Map<PrivacyNoticeKind, string>
+  consentTypeMap: Map<bffApi.ConsentType, string>
 ) {
   return {
     async getPrivacyNotice(
-      consentType: PrivacyNoticeKind,
+      consentType: bffApi.ConsentType,
       userId: string,
       logger: Logger
     ): Promise<bffApi.PrivacyNotice> {
@@ -65,7 +65,7 @@ export function privacyNoticeServiceBuilder(
     },
 
     async acceptPrivacyNotice(
-      consentType: PrivacyNoticeKind,
+      consentType: bffApi.ConsentType,
       userId: string,
       seed: bffApi.PrivacyNoticeSeed,
       logger: Logger
@@ -115,7 +115,7 @@ export function privacyNoticeServiceBuilder(
     },
 
     async getPrivacyNoticeContent(
-      consentType: PrivacyNoticeKind,
+      consentType: bffApi.ConsentType,
       logger: Logger
     ): Promise<Buffer> {
       logger.info(
