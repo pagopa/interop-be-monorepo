@@ -3,7 +3,7 @@
 
 import {
   getAllFromPaginated,
-  toSetToArray,
+  removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -379,7 +379,7 @@ export async function enrichAgreement(
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
-  const allAttributesIds = toSetToArray([
+  const allAttributesIds = removeDuplicates([
     ...activeDescriptorAttributes,
     ...tenantAttributesIds(consumer),
   ]);
