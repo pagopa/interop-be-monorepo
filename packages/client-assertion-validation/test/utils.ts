@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import * as jwt from "jsonwebtoken";
 import {
   ClientId,
@@ -63,3 +64,17 @@ export const getMockConsumerKey = (): ConsumerKey => ({
   eServiceId: generateId(),
   descriptorState: itemState.active,
 });
+
+export const getMockAccessTokenRequest =
+  (): authorizationServerApi.AccessTokenRequest => ({
+    client_id: generateId<ClientId>(),
+    // TODO: change to env variable
+    client_assertion_type:
+      "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    client_assertion: getMockClientAssertion({
+      customHeader: {},
+      payload: {},
+      customClaims: {},
+    }),
+    grant_type: "client_credentials",
+  });

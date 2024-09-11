@@ -221,9 +221,9 @@ export function tokenExpiredError(): ApiError<ErrorCodes> {
   });
 }
 
-export function jsonWebTokenError(): ApiError<ErrorCodes> {
+export function jsonWebTokenError(errorMessage: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Invalid JWT format in client assertion signature validation",
+    detail: `Invalid JWT format in client assertion signature validation. Reason: ${errorMessage}`,
     code: "jsonWebTokenError",
     title: "Invalid JWT format",
   });

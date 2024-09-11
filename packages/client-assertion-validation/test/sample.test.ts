@@ -10,7 +10,9 @@ import {
 import * as jwt from "jsonwebtoken";
 import {
   assertValidPlatformState,
+  validateRequestParameters,
   verifyClientAssertion,
+  verifyClientAssertionSignature,
 } from "../src/utils.js";
 import {
   algorithmNotAllowed,
@@ -21,6 +23,7 @@ import {
   inactiveAgreement,
   inactiveEService,
   inactivePurpose,
+  invalidAssertionType,
   invalidAudience,
   invalidAudienceFormat,
   invalidClientAssertionFormat,
@@ -33,26 +36,48 @@ import {
   invalidSubjectFormat,
   issuedAtNotFound,
   issuerNotFound,
+  jsonWebTokenError,
   jtiNotFound,
   notBeforeError,
   subjectNotFound,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
+  invalidDigestFormat,
+  purposeIdNotProvided,
 } from "../src/errors.js";
 import { ConsumerKey } from "../src/types.js";
-import { invalidDigestFormat, purposeIdNotProvided } from "../dist/errors.js";
-import { getMockClientAssertion, getMockConsumerKey } from "./utils.js";
+import {
+  getMockAccessTokenRequest,
+  getMockClientAssertion,
+  getMockConsumerKey,
+} from "./utils.js";
 
 describe("test", () => {
   describe("validateRequestParameters", () => {
     it("invalidAssertionType", () => {
-      // todo
-      expect(1).toBe(1);
+      const wrongAssertionType = "something-wrong";
+      const request = {
+        ...getMockAccessTokenRequest(),
+        client_assertion_type: wrongAssertionType,
+      };
+      const errors = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
     });
-    it("invalidGrantType", () => {
-      // todo
-      expect(1).toBe(1);
-    });
+    // it("invalidGrantType", () => {
+    //   // todo
+    //   const wrongGrantType = "something-wrong";
+    //   const request = {
+    //     ...getMockAccessTokenRequest(),
+    //     grant_type: wrongGrantType,
+    //   };
+    //   // TODO: mock already checks grant type
+    //   const errors = validateRequestParameters(request);
+    //   expect(errors).toBeDefined();
+    //   expect(errors).toHaveLength(1);
+    //   expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
+    // });
   });
 
   const value64chars =
@@ -163,11 +188,9 @@ describe("test", () => {
         customClaims: { key: 1 },
       });
       const { errors } = verifyClientAssertion(a, undefined);
-      // console.log(errors);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(issuedAtNotFound());
-      // console.log("error code: ", errors[0].code);
     });
 
     it("expNotFound", () => {
@@ -405,11 +428,6 @@ describe("test", () => {
       expect(errors![0]).toEqual(purposeIdNotProvided());
     });
 
-    it.skip("PurposeNotFound", () => {
-      // todo
-      expect(1).toBe(1);
-    });
-
     it("InvalidKidFormat", () => {
       const jws = getMockClientAssertion({
         customHeader: { kid: "not-a-valid-kid" },
@@ -453,8 +471,11 @@ describe("test", () => {
       expect(errors![0]).toEqual(tokenExpiredError());
     });
     it("jsonWebTokenError", () => {
-      // todo
-      expect(1).toBe(1);
+      const mockKey = getMockConsumerKey();
+      const errors = verifyClientAssertionSignature("not-a-valid-jws", mockKey);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].title).toEqual(jsonWebTokenError("").title);
     });
     it("notBeforeError", () => {
       // todo why does it fail?

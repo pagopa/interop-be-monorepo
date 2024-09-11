@@ -69,6 +69,7 @@ export const validateRequestParameters = (
       ? invalidAssertionType(request.client_assertion_type)
       : undefined;
 
+  // TODO: this might be useless because authorizationServerApi.AccessTokenRequest has the string hard coded
   const grantTypeError =
     request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE
       ? invalidGrantType(request.grant_type)
@@ -401,20 +402,13 @@ export const verifyClientAssertionSignature = (
     }
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
-      // eslint-disable-next-line no-console
-      console.log("TokenExpiredError");
       return [tokenExpiredError()];
     } else if (error instanceof JsonWebTokenError) {
-      // eslint-disable-next-line no-console
-      console.log("JsonWebTokenError");
-      return [jsonWebTokenError()];
+      // TODO: this might overlap with invalidClientAssertionFormat raised inside invalidClientAssertionFormat
+      return [jsonWebTokenError(error.message)];
     } else if (error instanceof NotBeforeError) {
-      // eslint-disable-next-line no-console
-      console.log("NotBeforeError");
       return [notBeforeError()];
     } else {
-      // eslint-disable-next-line no-console
-      console.log("unknown error");
       return [clientAssertionSignatureVerificationFailure()];
     }
   }
