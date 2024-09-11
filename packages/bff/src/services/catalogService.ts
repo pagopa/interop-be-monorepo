@@ -606,12 +606,19 @@ export function catalogServiceBuilder(
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
     },
-    getEServiceDocumentById: async (): Promise<{
-      contentType: string;
-      document: Buffer;
-    }> => {
+    getEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<{ contentType: string; document: Buffer }> => {
       const { path, contentType } =
         await catalogProcessClient.getEServiceDocumentById({
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
           headers: ctx.headers,
         });
 
