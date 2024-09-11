@@ -88,8 +88,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
-
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidAudience());
     });
@@ -152,7 +150,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(jtiNotFound());
     });
@@ -199,7 +196,6 @@ describe("test", () => {
       const jws = jwt.sign(payload, keySet.privateKey, options);
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(expNotFound());
     });
@@ -234,7 +230,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(subjectNotFound());
     });
@@ -347,7 +342,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidHashLength("SHA256"));
     });
@@ -377,7 +371,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(algorithmNotFound());
     });
@@ -408,7 +401,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(purposeIdNotProvided());
     });
@@ -428,7 +420,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidKidFormat());
     });
@@ -458,7 +449,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(tokenExpiredError());
     });
@@ -491,7 +481,6 @@ describe("test", () => {
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
-      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
     });
