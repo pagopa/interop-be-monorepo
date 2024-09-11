@@ -41,9 +41,9 @@ export const getMockClientAssertion = ({
 
   const options: jwt.SignOptions = {
     header: {
-      ...customHeader,
-      kid: generateId(),
+      kid: "todo",
       alg: "RS256",
+      ...customHeader,
     },
   };
   return jwt.sign(actualPayload, keySet.privateKey, options);
