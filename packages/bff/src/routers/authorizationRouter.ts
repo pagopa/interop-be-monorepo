@@ -7,7 +7,10 @@ import {
   ZodiosContext,
   fromAppContext,
   zodiosValidationErrorToApiProblem,
+  RateLimiter,
+  rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
+import { tooManyRequestsError } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
@@ -20,7 +23,8 @@ import { config } from "../config/config.js";
 const authorizationRouter = (
   ctx: ZodiosContext,
   { tenantProcessClient }: PagoPAInteropBeClients,
-  allowList: string[]
+  allowList: string[],
+  rateLimiter: RateLimiter
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const authorizationRouter = ctx.router(bffApi.authorizationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -30,7 +34,8 @@ const authorizationRouter = (
   const authorizationService = authorizationServiceBuilder(
     interopTokenGenerator,
     tenantProcessClient,
-    allowList
+    allowList,
+    rateLimiter
   );
 
   authorizationRouter
@@ -39,12 +44,20 @@ const authorizationRouter = (
       const { correlationId, logger } = fromAppContext(req.ctx);
 
       try {
-        const session_token = await authorizationService.getSessionToken(
+        const result = await authorizationService.getSessionToken(
           correlationId,
           identityToken,
           logger
         );
-        return res.status(200).send({ session_token });
+
+        const headers = rateLimiterHeadersFromStatus(result.rateLimiterStatus);
+        res.set(headers);
+
+        if (result.limitReached) {
+          throw tooManyRequestsError(result.rateLimitedTenantId);
+        }
+
+        return res.status(200).send({ session_token: result.sessionToken });
       } catch (error) {
         const err = makeApiProblem(
           error,

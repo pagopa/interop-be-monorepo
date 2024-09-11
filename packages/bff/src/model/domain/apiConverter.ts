@@ -2,8 +2,8 @@ import { createHash } from "crypto";
 import {
   bffApi,
   attributeRegistryApi,
-  authorizationApi,
   selfcareV2ClientApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 import { selfcareEntityNotFilled } from "./errors.js";
@@ -105,3 +105,17 @@ export const toApiAttributeProcessSeed = (
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
+
+export function toAuthorizationKeySeed(
+  seed: bffApi.KeySeed,
+  userId: string
+): authorizationApi.KeySeed {
+  return {
+    userId,
+    key: seed.key,
+    use: seed.use,
+    alg: seed.alg,
+    name: seed.name,
+    createdAt: new Date().toISOString(),
+  };
+}

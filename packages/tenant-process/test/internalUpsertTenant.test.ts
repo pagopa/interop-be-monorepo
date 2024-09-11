@@ -17,6 +17,7 @@ import {
   unsafeBrandId,
   toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -115,7 +116,7 @@ describe("internalUpsertTenant", async () => {
         {
           assignmentTimestamp: new Date(),
           id: attribute1.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
       ],
@@ -165,13 +166,13 @@ describe("internalUpsertTenant", async () => {
       ...mockTenant,
       attributes: [
         {
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           id: attribute1.id,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },
         {
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           id: attribute2.id,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
@@ -213,13 +214,13 @@ describe("internalUpsertTenant", async () => {
         {
           assignmentTimestamp: new Date(),
           id: attribute1.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
         {
           assignmentTimestamp: new Date(),
           id: attribute2.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           revocationTimestamp: undefined,
         },
       ],
@@ -234,7 +235,7 @@ describe("internalUpsertTenant", async () => {
       attributes: [
         {
           id: attribute1.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
           revocationTimestamp: undefined,
         },

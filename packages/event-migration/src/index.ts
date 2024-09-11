@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
-import { keyToJWKKey, decodeBase64ToPem } from "pagopa-interop-commons";
+import { keyToClientJWKKey, decodeBase64ToPem } from "pagopa-interop-commons";
 import {
   AgreementEventV1,
   AttributeEvent,
@@ -26,7 +26,7 @@ import {
 } from "pg-promise/typescript/pg-subset.js";
 import { match } from "ts-pattern";
 import { z } from "zod";
-import { connectToReadModel } from "./read-models-migration-check.js";
+import { connectToReadModel } from "./utils.js";
 
 const Config = z
   .object({
@@ -417,7 +417,7 @@ for (const event of originalEvents) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const key = fromKeyV1(keyEntryV1.value!);
                 try {
-                  keyToJWKKey(key, unsafeBrandId(id));
+                  keyToClientJWKKey(key, unsafeBrandId(id));
                   return keyEntryV1;
                 } catch (error) {
                   const decodedPem = decodeBase64ToPem(key.encodedPem);

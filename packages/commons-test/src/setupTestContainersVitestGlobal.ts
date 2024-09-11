@@ -12,6 +12,7 @@ import {
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  RedisRateLimiterConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import {
@@ -24,6 +25,8 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
+  redisContainer,
+  TEST_REDIS_PORT,
 } from "./containerTestUtils.js";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
@@ -32,6 +35,7 @@ declare module "vitest" {
     readModelConfig?: ReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
   }
 }
@@ -51,6 +55,7 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
+  const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
 
   return async function ({
@@ -60,6 +65,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
+    let startedRedisContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -124,11 +130,19 @@ export function setupTestContainersVitestGlobal() {
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 
+    if (redisRateLimiterConfig.success) {
+      startedRedisContainer = await redisContainer().start();
+      redisRateLimiterConfig.data.rateLimiterRedisPort =
+        startedRedisContainer.getMappedPort(TEST_REDIS_PORT);
+      provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
+      await startedRedisContainer?.stop();
     };
   };
 }

@@ -7,6 +7,29 @@ import {
 
 export const errorCodes = {
   purposeNotFound: "0001",
+  userNotFound: "0002",
+  selfcareEntityNotFilled: "0003",
+  descriptorNotFound: "0004",
+  attributeNotExists: "0005",
+  invalidEserviceRequester: "0006",
+  missingClaim: "0007",
+  tenantLoginNotAllowed: "0008",
+  tokenVerificationFailed: "0009",
+  eServiceNotFound: "0010",
+  tenantNotFound: "0011",
+  agreementNotFound: "0012",
+  eserviceDescriptorNotFound: "0013",
+  purposeDraftVersionNotFound: "0014",
+  invalidRiskAnalysisContentType: "0015",
+  missingInterface: "0016",
+  eserviceRiskNotFound: "0017",
+  noDescriptorInEservice: "0018",
+  missingDescriptorInClonedEservice: "0019",
+  invalidInterfaceContentTypeDetected: "0020",
+  invalidInterfaceFileDetected: "0021",
+  openapiVersionNotRecognized: "0022",
+  interfaceExtractingInfoError: "0023",
+  agreementDescriptorNotFound: "0024",
   missingClaim: "0002",
   tenantLoginNotAllowed: "0003",
   tokenVerificationFailed: "0004",
@@ -67,6 +90,16 @@ export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function agreementDescriptorNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor of agreement ${agreementId} not found`,
+    code: "agreementDescriptorNotFound",
+    title: "Agreement descriptor not found",
   });
 }
 
@@ -208,6 +241,26 @@ export function eserviceRiskNotFound(
     detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
     code: "eserviceRiskNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function noDescriptorInEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No descriptor found in Eservice ${eserviceId}`,
+    code: "noDescriptorInEservice",
+    title: "No descriptor found in Eservice",
+  });
+}
+
+export function missingDescriptorInClonedEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing descriptor in cloned eService ${eserviceId}`,
+    code: "missingDescriptorInClonedEservice",
+    title: "Missing descriptor in cloned eService",
   });
 }
 
