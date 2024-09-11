@@ -1,14 +1,19 @@
 import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { AgreementProcessClient } from "../clients/clientsProvider.js";
+import {
+  AgreementProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
+import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
-  agreementProcessClient: AgreementProcessClient
+  agreementProcessClient: AgreementProcessClient,
+  tenantProcessClient: TenantProcessClient
 ) {
   return {
     getAgreements: async (
@@ -56,6 +61,29 @@ export function agreementServiceBuilder(
       });
 
       return toApiGatewayAgreementIfNotDraft(agreement);
+    },
+
+    getAgreementAttributes: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      agreementId: agreementApi.Agreement["id"]
+    ): Promise<apiGatewayApi.Attributes> => {
+      logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        headers,
+        params: {
+          agreementId,
+        },
+      });
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: agreement.consumerId,
+        },
+      });
+
+      return toApiGatewayAgreementAttributes(agreement, tenant);
     },
   };
 }
