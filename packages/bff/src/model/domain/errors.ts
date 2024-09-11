@@ -1,4 +1,4 @@
-import { constants } from "node:http2";
+import { constants } from "http2";
 import {
   ApiError,
   AttributeId,
@@ -31,6 +31,12 @@ export const errorCodes = {
   contractNotFound: "0023",
   contractException: "0024",
   invalidContentType: "0025",
+  noDescriptorInEservice: "0018",
+  missingDescriptorInClonedEservice: "0019",
+  unknownTenantOrigin: "0020",
+  invalidJwtClaim: "0021",
+  samlNotValid: "0022",
+  missingSelfcareId: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -170,6 +176,22 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
   });
 }
 
+export function samlNotValid(message: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error while validating saml -> ${message}`,
+    code: "samlNotValid",
+    title: "SAML not valid",
+  });
+}
+
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
+  });
+}
+
 export function invalidRiskAnalysisContentType(
   contentType: string,
   purposeId: string,
@@ -202,6 +224,26 @@ export function eserviceRiskNotFound(
     detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
     code: "eserviceRiskNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function noDescriptorInEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No descriptor found in Eservice ${eserviceId}`,
+    code: "noDescriptorInEservice",
+    title: "No descriptor found in Eservice",
+  });
+}
+
+export function missingDescriptorInClonedEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing descriptor in cloned eService ${eserviceId}`,
+    code: "missingDescriptorInClonedEservice",
+    title: "Missing descriptor in cloned eService",
   });
 }
 

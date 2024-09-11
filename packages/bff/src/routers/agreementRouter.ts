@@ -11,6 +11,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
+  activateAgreementErrorMapper,
   emptyErrorMapper,
   getAgreementByIdErrorMapper,
   getAgreementConsumerDocumentErrorMapper,
@@ -118,15 +119,30 @@ const agreementRouter = (
       }
     })
 
-    .delete("/agreements/:agreementId", async (_req, res) =>
-      res.status(501).send()
-    )
+    .delete("/agreements/:agreementId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await agreementService.deleteAgreement(req.params.agreementId, ctx);
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
     .post("/agreements/:agreementId/activate", async (_req, res) =>
       res.status(501).send()
     )
     .post("/agreements/:agreementId/clone", async (_req, res) =>
       res.status(501).send()
     )
+
     .post("/agreements/:agreementId/consumer-documents", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -148,6 +164,50 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
+
+    .post("/agreements/:agreementId/activate", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.activateAgreement(
+          req.params.agreementId,
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          activateAgreementErrorMapper,
+          ctx.logger,
+          `Error activating agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/agreements/:agreementId/clone", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.cloneAgreement(
+          req.params.agreementId,
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error cloning agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .post("/agreements/:agreementId/consumer-documents", async (_req, res) =>
+      res.status(501).send()
+    )
 
     .get(
       "/agreements/:agreementId/consumer-documents/:documentId",

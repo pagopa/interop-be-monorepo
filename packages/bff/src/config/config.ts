@@ -75,10 +75,20 @@ export const AuthorizationProcessServerConfig = z
   .object({
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
     TENANT_ALLOWED_ORIGINS: z.string(),
+    SAML_AUDIENCE: z.string(),
+    PAGOPA_TENANT_ID: z.string(),
+    SAML_CALLBACK_URL: z.string().url(),
+    SAML_CALLBACK_ERROR_URL: z.string().url(),
+    SUPPORT_LANDING_TOKEN_DURATION_SECONDS: z.coerce.number().default(300),
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
+    samlAudience: c.SAML_AUDIENCE,
+    pagoPaTenantId: c.PAGOPA_TENANT_ID,
+    samlCallbackUrl: c.SAML_CALLBACK_URL,
+    samlCallbackErrorUrl: c.SAML_CALLBACK_ERROR_URL,
+    supportLandingJwtDuration: c.SUPPORT_LANDING_TOKEN_DURATION_SECONDS,
   }));
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
@@ -115,6 +125,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
+  .and(S3RiskAnalysisConfig)
   .and(AllowedListConfig)
   .and(SelfCareConfig)
   .and(S3RiskAnalysisConfig)
