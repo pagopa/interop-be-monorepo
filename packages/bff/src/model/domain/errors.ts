@@ -23,11 +23,13 @@ export const errorCodes = {
   invalidRiskAnalysisContentType: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
-  invalidInterfaceContentTypeDetected: "0018",
-  invalidInterfaceFileDetected: "0019",
-  openapiVersionNotRecognized: "0020",
-  interfaceExtractingInfoError: "0021",
-  agreementDescriptorNotFound: "0022",
+  noDescriptorInEservice: "0018",
+  missingDescriptorInClonedEservice: "0019",
+  invalidInterfaceContentTypeDetected: "0020",
+  invalidInterfaceFileDetected: "0021",
+  openapiVersionNotRecognized: "0022",
+  interfaceExtractingInfoError: "0023",
+  agreementDescriptorNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -199,6 +201,26 @@ export function eserviceRiskNotFound(
     detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
     code: "eserviceRiskNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function noDescriptorInEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No descriptor found in Eservice ${eserviceId}`,
+    code: "noDescriptorInEservice",
+    title: "No descriptor found in Eservice",
+  });
+}
+
+export function missingDescriptorInClonedEservice(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing descriptor in cloned eService ${eserviceId}`,
+    code: "missingDescriptorInClonedEservice",
+    title: "Missing descriptor in cloned eService",
   });
 }
 

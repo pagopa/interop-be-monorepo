@@ -1,6 +1,8 @@
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
 import qs from "qs";
+import { configureAxiosLogInterceptors } from "../axiosLogInterceptors.js";
+import { AxiosInstance } from "axios";
 
 {{#each schemas}}
 export const {{@key}} = {{{this}}};
@@ -88,7 +90,7 @@ export const {{@key}}Endpoints = makeApi([
 export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}", {{/if}}{{@key}}Endpoints);
 
 export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions) {
-    return new Zodios(baseUrl, {{@key}}Endpoints, {
+		const zodiosClient = new Zodios(baseUrl, {{@key}}Endpoints, {
 			...options,
 			validate: false,
 			axiosConfig: {
@@ -99,6 +101,12 @@ export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: Zo
 				paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
 			},
 		});
+
+		configureAxiosLogInterceptors(
+			zodiosClient.axios as AxiosInstance,
+			"{{pascalcase @root.options.apiClientName}} {{pascalcase @key}} Client"
+		);
+		return zodiosClient;
 }
 
 {{/each}}
