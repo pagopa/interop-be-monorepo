@@ -13,20 +13,19 @@ import {
   RateLimiterStatus,
   SELFCARE_ID_CLAIM,
   SessionClaims,
-  USER_ROLES,
   UID,
+  USER_ROLES,
   decodeJwtToken,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { genericError } from "pagopa-interop-models";
+import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
 import { config } from "../config/config.js";
-import { genericError, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import {
   missingClaim,
+  missingSelfcareId,
   tenantLoginNotAllowed,
   tokenVerificationFailed,
-  missingSelfcareId,
 } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
