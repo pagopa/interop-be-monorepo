@@ -6,9 +6,15 @@ import {
   TokenExpiredError,
   verify,
 } from "jsonwebtoken";
-import { ApiError, PurposeId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  ApiError,
+  ClientId,
+  PurposeId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   ClientAssertion,
+  ClientAssertionDigest,
   ConsumerKey,
   FlexibleValidationResult,
   Key,
@@ -38,11 +44,22 @@ import {
   notBeforeError,
   clientAssertionSignatureVerificationFailure,
   invalidClientAssertionSignatureType,
+  invalidClientIdFormat,
+  invalidSubjectFormat,
+  algorithmNotFound,
+  algorithmNotAllowed,
+  digestClaimNotFound,
+  invalidDigestFormat,
+  invalidHashLength,
+  invalidHashAlgorithm,
+  invalidKidFormat,
 } from "./errors.js";
 const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // To do: env?
 const EXPECTED_CLIENT_ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // To do: env?
 const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // To do: env?
+const ALLOWED_ALGORITHM = "RS256";
+const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
 export const validateRequestParameters = (
   request: authorizationServerApi.AccessTokenRequest
@@ -129,12 +146,26 @@ const validateSub = (
       data: undefined,
     };
   } else {
-    if (clientId && sub !== clientId) {
-      // Todo add check on clientId as ClientId type
-      return {
-        errors: [invalidSubject(sub)],
-        data: undefined,
-      };
+    if (clientId) {
+      const clientIdError = !ClientId.safeParse(clientId).success
+        ? invalidClientIdFormat(clientId)
+        : undefined;
+      const invalidSubFormatError = !ClientId.safeParse(sub).success
+        ? invalidSubjectFormat(sub)
+        : undefined;
+      // TODO: clientId undefined OK?
+      const invalidSubError =
+        sub !== clientId ? invalidSubject(sub) : undefined;
+      if (clientIdError || invalidSubFormatError || invalidSubError) {
+        return {
+          errors: [
+            clientIdError,
+            invalidSubFormatError,
+            invalidSubError,
+          ].filter((e) => e !== undefined),
+          data: undefined,
+        };
+      }
     }
     return {
       errors: undefined,
@@ -165,12 +196,18 @@ const validateKid = (kid?: string): FlexibleValidationResult<string> => {
       errors: [kidNotFound()],
       data: undefined,
     };
-  } else {
+  }
+  const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
+  if (alphanumericRegex.test(kid)) {
     return {
       errors: undefined,
       data: kid,
     };
   }
+  return {
+    errors: [invalidKidFormat()],
+    data: undefined,
+  };
 };
 
 const validateAudience = (
@@ -193,6 +230,63 @@ const validateAudience = (
   }
 };
 
+const validateAlgorithm = (alg?: string): FlexibleValidationResult<string> => {
+  if (!alg) {
+    return {
+      errors: [algorithmNotFound()],
+      data: undefined,
+    };
+  }
+  if (alg !== ALLOWED_ALGORITHM) {
+    return {
+      errors: undefined,
+      data: alg,
+    };
+  }
+  return {
+    errors: [algorithmNotAllowed(alg)],
+    data: undefined,
+  };
+};
+
+const validateDigest = (
+  digest?: object
+): FlexibleValidationResult<ClientAssertionDigest> => {
+  if (!digest) {
+    return {
+      errors: [digestClaimNotFound()],
+      data: undefined,
+    };
+  }
+  const result = ClientAssertionDigest.safeParse(digest);
+  if (!result.success) {
+    return {
+      errors: [invalidDigestFormat()],
+      data: undefined,
+    };
+  }
+  const validatedDigest = result.data;
+  const digestLengthError =
+    validatedDigest.value.length !== 64
+      ? invalidHashLength(validatedDigest.alg)
+      : undefined;
+  const digestAlgError =
+    validatedDigest.alg !== ALLOWED_DIGEST_ALGORITHM
+      ? invalidHashAlgorithm()
+      : undefined;
+  if (!digestLengthError && !digestAlgError) {
+    return {
+      errors: undefined,
+      data: result.data,
+    };
+  }
+  return {
+    errors: [digestLengthError, digestAlgError].filter((e) => e !== undefined),
+    data: undefined,
+  };
+};
+
+// eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
@@ -231,6 +325,12 @@ export const verifyClientAssertion = (
   const { errors: audErrors, data: validatedAud } = validateAudience(
     decoded.payload.aud
   );
+  const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
+    decoded.header.alg
+  );
+  const { errors: digestErrors, data: validatedDigest } = validateDigest(
+    decoded.payload.digest
+  );
 
   if (
     !jtiErrors &&
@@ -240,12 +340,14 @@ export const verifyClientAssertion = (
     !subErrors &&
     !purposeIdErrors &&
     !kidErrors &&
-    !audErrors
+    !audErrors &&
+    !algErrors &&
+    !digestErrors
   ) {
     const result: ClientAssertion = {
       header: {
         kid: validatedKid,
-        alg: decoded.header.alg,
+        alg: validatedAlg,
       },
       payload: {
         sub: validatedSub,
@@ -255,6 +357,7 @@ export const verifyClientAssertion = (
         iss: validatedIss,
         aud: validatedAud,
         exp: validatedExp, // TODO Check unit of measure
+        digest: validatedDigest,
       },
     };
     return { errors: undefined, data: result };
@@ -269,6 +372,8 @@ export const verifyClientAssertion = (
       ...(purposeIdErrors || []),
       ...(kidErrors || []),
       ...(audErrors || []),
+      ...(algErrors || []),
+      ...(digestErrors || []),
     ],
     data: undefined,
   };

@@ -25,6 +25,16 @@ export const errorCodes = {
   inactivePurpose: "0022",
   inactiveAgreement: "0023",
   inactiveEService: "0024",
+  invalidClientIdFormat: "0025",
+  invalidSubjectFormat: "0026",
+  digestClaimNotFound: "0027",
+  invalidDigestFormat: "0028",
+  invalidHashLength: "0029",
+  invalidHashAlgorithm: "0030",
+  algorithmNotFound: "0031",
+  algorithmNotAllowed: "0032",
+  purposeIdNotProvided: "0033",
+  invalidKidFormat: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -33,22 +43,22 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 // TODO: missing errors:
 // - InvalidClientIdFormat -> check on uuid
-// - ClientAssertionParseFailed -> already handled in invalidClientAssertionFormat
-// - ClientAssertionInvalidClaims -> should be covered by individual checks
+// - ClientAssertionParseFailed -> already handled in invalidClientAssertionFormat      X
+// - ClientAssertionInvalidClaims -> should be covered by individual checks     ?
 // - InvalidSubjectFormat -> check on uuid of subject claim
 // - InvalidPurposeIdFormat -> check on uuid of purposeId claim (already covered by invalidPurposeIdClaimFormat?)
 // - DigestClaimNotFound -> check if custom claim digest exists
-// - InvalidDigestClaims -> check if digest has {alg, value}
-// - InvalidDigestFormat -> probably overlapping with previous
+// - InvalidDigestClaims -> check if digest has only {alg, value} keys      X we aren't discriminating from safeParse output
+// - InvalidDigestFormat -> probably overlapping with previous. Check if digest is a JSON or a map        ? // TODO: check if map works with safeParse
 // - InvalidHashLength -> check on the length of digest.value (digest is a custom claim)
 // - InvalidHashAlgorithm -> check if digest.alg is sha256
 // - AlgorithmNotFound -> check if header.alg is present
-// - AlgorithmNotAllowed -> check if (header.alg === RSA)
-// - PublicKeyParseFailed -> out of scope for this module
-// - ClientAssertionVerificationError -> maybe too generic
-// - InvalidClientAssertionSignature -> maybe already covered by existing cases
-// - PurposeIdNotProvided -> based on entry type (Api client doesn't need purposeId)
-// - PurposeNotFound -> related to previous, check if there is a purpose entry for that purposeId (in platform states)
+// - AlgorithmNotAllowed -> check if (header.alg === RS256)
+// - PublicKeyParseFailed -> out of scope for this module     X
+// - ClientAssertionVerificationError -> maybe too generic      X
+// - InvalidClientAssertionSignature -> maybe already covered by existing cases     X
+// - PurposeIdNotProvided -> based on entry type (Api client doesn't need purposeId)      // TODO: where to put this error?
+// - PurposeNotFound -> related to previous, check if there is a purpose entry for that purposeId (in platform states)      needed in this package?
 // - InvalidKidFormat -> Verify that kid does not contain special characters
 
 export function clientAssertionValidationFailure(
@@ -249,5 +259,85 @@ export function inactiveAgreement(): ApiError<ErrorCodes> {
     detail: "Agreement is not active",
     code: "inactiveAgreement",
     title: "Agreement is not active",
+  });
+}
+
+export function invalidClientIdFormat(clientId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client id ${clientId} is not a valid UUID`,
+    code: "invalidClientIdFormat",
+    title: "Invalid client id format",
+  });
+}
+
+export function invalidSubjectFormat(subject: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Subject claim ${subject} is not a valid UUID`,
+    code: "invalidSubjectFormat",
+    title: "Invalid subject format",
+  });
+}
+
+export function digestClaimNotFound(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Digest claim not found`,
+    code: "digestClaimNotFound",
+    title: "Digest claim not found",
+  });
+}
+
+export function invalidDigestFormat(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Invalid format for digest claim",
+    code: "invalidDigestFormat",
+    title: "Invalid digest format",
+  });
+}
+
+export function invalidHashLength(alg: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid hash length for algorithm ${alg}`,
+    code: "invalidHashLength",
+    title: "Invalid hash length",
+  });
+}
+
+export function invalidHashAlgorithm(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Invalid hash algorithm",
+    code: "invalidHashAlgorithm",
+    title: "Invalid hash algorithm",
+  });
+}
+
+export function algorithmNotFound(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "ALG not found in client assertion",
+    code: "algorithmNotFound",
+    title: "ALG not found",
+  });
+}
+
+export function algorithmNotAllowed(algorithm: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Algorithm ${algorithm} is not allowed`,
+    code: "algorithmNotAllowed",
+    title: "ALG not allowed",
+  });
+}
+
+export function purposeIdNotProvided(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Claim purposeId does not exist in this assertion",
+    code: "purposeIdNotProvided",
+    title: "Purpose Id not provided",
+  });
+}
+
+export function invalidKidFormat(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Unexpected format for kid",
+    code: "invalidKidFormat",
+    title: "Invalid KID format",
   });
 }

@@ -11,6 +11,12 @@ import {
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
 
+export const ClientAssertionDigest = z.object({
+  alg: z.string(),
+  value: z.string(),
+});
+export type ClientAssertionDigest = z.infer<typeof ClientAssertionDigest>;
+
 export const ClientAssertionHeader = z.object({
   kid: z.string(),
   alg: z.string(), // TODO Enum, which values?
@@ -24,6 +30,7 @@ export const ClientAssertionPayload = z.object({
   iss: z.string(),
   aud: z.array(z.string()),
   exp: z.number(),
+  digest: ClientAssertionDigest,
   purposeId: PurposeId.optional(),
 });
 export type ClientAssertionPayload = z.infer<typeof ClientAssertionPayload>;
