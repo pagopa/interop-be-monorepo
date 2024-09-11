@@ -28,6 +28,7 @@ import {
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
+  missingDescriptorInClonedEservice,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -602,6 +603,42 @@ export function catalogServiceBuilder(
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+    },
+    deleteEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      await catalogProcessClient.deleteEServiceDocumentById(undefined, {
+        params: {
+          eServiceId,
+          descriptorId,
+          documentId,
+        },
+        headers: ctx.headers,
+      });
+    },
+    cloneEServiceByDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const eService = await catalogProcessClient.cloneEServiceByDescriptor(
+        undefined,
+        {
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+          headers: ctx.headers,
+        }
+      );
+      const eServiceDescriptorId = eService.descriptors.at(0)?.id;
+      if (!eServiceDescriptorId) {
+        throw missingDescriptorInClonedEservice(eService.id);
+      }
+      return { id: eService.id, descriptorId: eServiceDescriptorId };
     },
     activateDescriptor: async (
       eServiceId: EServiceId,
