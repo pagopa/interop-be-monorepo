@@ -83,7 +83,7 @@ export function invalidAssertionType(
   return new ApiError({
     detail: `Assertion type not valid: ${assertionType}`,
     code: "invalidAssertionType",
-    title: "Client assertion validation failed",
+    title: "Assertion type not valid",
   });
 }
 
@@ -91,7 +91,7 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Grant type not valid: ${grantType}`,
     code: "invalidGrantType",
-    title: "Client assertion validation failed",
+    title: "Grant type not valid",
   });
 }
 
@@ -99,15 +99,15 @@ export function invalidAudienceFormat(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Audience must be an array`,
     code: "invalidAudienceFormat",
-    title: "Client assertion validation failed",
+    title: "Invalid audience format",
   });
 }
 
 export function invalidAudience(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unexpected client assertion audience`,
+    detail: "Unexpected client assertion audience",
     code: "invalidAudience",
-    title: "Client assertion validation failed",
+    title: "Invalid audience",
   });
 }
 
@@ -121,33 +121,33 @@ export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
 
 export function unexpectedClientAssertionPayload(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid format for Client assertion`,
+    detail: "Unexpected client assertion payload",
     code: "unexpectedClientAssertionPayload",
-    title: "Invalid format for Client assertion",
+    title: "Invalid client assertion payload",
   });
 }
 
 export function jtiNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `jti not found in client assertion`,
+    detail: `JTI not found in client assertion`,
     code: "jtiNotFound",
-    title: "jti not found",
+    title: "JTI not found",
   });
 }
 
 export function issuedAtNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `iat not found in client assertion`,
+    detail: `IAT not found in client assertion`,
     code: "issuedAtNotFound",
-    title: "iat not found",
+    title: "IAT not found",
   });
 }
 
 export function expNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `exp not found in client assertion`,
+    detail: `EXP not found in client assertion`,
     code: "expNotFound",
-    title: "exp not found",
+    title: "EXP not found",
   });
 }
 
@@ -155,13 +155,13 @@ export function issuerNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Issuer not found in client assertion`,
     code: "issuerNotFound",
-    title: "iss not found",
+    title: "ISS not found",
   });
 }
 
 export function subjectNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Subject not found in client assertion`,
+    detail: "Subject not found in client assertion",
     code: "subjectNotFound",
     title: "Subject not found",
   });
@@ -187,9 +187,9 @@ export function invalidPurposeIdClaimFormat(
 
 export function kidNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `kid not found in client assertion`,
+    detail: `KID not found in client assertion`,
     code: "kidNotFound",
-    title: "kid not found",
+    title: "KID not found",
   });
 }
 
@@ -207,7 +207,7 @@ export function tokenExpiredError(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "Token expired in client assertion signature validation",
     code: "tokenExpiredError",
-    title: "Token expired in client assertion signature validation",
+    title: "Token expired",
   });
 }
 
@@ -215,7 +215,7 @@ export function jsonWebTokenError(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "Invalid JWT format in client assertion signature validation",
     code: "jsonWebTokenError",
-    title: "Invalid JWT format in client assertion signature validation",
+    title: "Invalid JWT format",
   });
 }
 
@@ -224,8 +224,7 @@ export function notBeforeError(): ApiError<ErrorCodes> {
     detail:
       "Current time is before not before time in client assertion signature validation",
     code: "notBeforeError",
-    title:
-      "Current time is before not before time in client assertion signature validation",
+    title: "Current time is before not before time",
   });
 }
 
