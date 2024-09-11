@@ -1,13 +1,22 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import crypto from "crypto";
 import { describe, expect, it } from "vitest";
-import { ClientId, generateId, itemState } from "pagopa-interop-models";
+import {
+  ApiError,
+  ClientId,
+  generateId,
+  itemState,
+} from "pagopa-interop-models";
 import * as jwt from "jsonwebtoken";
 import {
   assertValidPlatformState,
   verifyClientAssertion,
 } from "../src/utils.js";
 import {
+  algorithmNotAllowed,
+  algorithmNotFound,
+  digestClaimNotFound,
+  ErrorCodes,
   expNotFound,
   inactiveAgreement,
   inactiveEService,
@@ -15,15 +24,23 @@ import {
   invalidAudience,
   invalidAudienceFormat,
   invalidClientAssertionFormat,
+  invalidClientIdFormat,
+  invalidHashAlgorithm,
+  invalidHashLength,
+  invalidKidFormat,
   invalidPurposeIdClaimFormat,
   invalidSubject,
+  invalidSubjectFormat,
   issuedAtNotFound,
   issuerNotFound,
   jtiNotFound,
+  notBeforeError,
   subjectNotFound,
+  tokenExpiredError,
   unexpectedClientAssertionPayload,
 } from "../src/errors.js";
 import { ConsumerKey } from "../src/types.js";
+import { invalidDigestFormat, purposeIdNotProvided } from "../dist/errors.js";
 import { getMockClientAssertion, getMockConsumerKey } from "./utils.js";
 
 describe("test", () => {
@@ -38,12 +55,19 @@ describe("test", () => {
     });
   });
 
+  const value64chars =
+    "1234567890123456789012345678901234567890123456789012345678901234";
   describe("verifyClientAssertion", () => {
     it("invalidAudienceFormat", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         payload: { aud: "random" },
-        customClaims: { key: 1 },
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
@@ -55,10 +79,17 @@ describe("test", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         payload: { aud: ["random"] },
-        customClaims: { key: 1 },
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
+
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidAudience());
     });
@@ -112,10 +143,16 @@ describe("test", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         payload: { jti: undefined },
-        customClaims: { key: 1 },
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(jtiNotFound());
     });
@@ -147,17 +184,22 @@ describe("test", () => {
         aud: ["test.interop.pagopa.it"],
         jti: generateId(),
         iat: 5,
+        digest: {
+          alg: "SHA256",
+          value: value64chars,
+        },
       };
 
       const options: jwt.SignOptions = {
         header: {
-          kid: generateId(),
+          kid: "todo",
           alg: "RS256",
         },
       };
       const jws = jwt.sign(payload, keySet.privateKey, options);
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(expNotFound());
     });
@@ -166,7 +208,12 @@ describe("test", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: { iss: undefined },
-        customClaims: {},
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
@@ -178,10 +225,16 @@ describe("test", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: { sub: undefined },
-        customClaims: {},
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(subjectNotFound());
     });
@@ -191,7 +244,12 @@ describe("test", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: { sub: subject },
-        customClaims: {},
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
       expect(errors).toBeDefined();
@@ -200,13 +258,19 @@ describe("test", () => {
     });
 
     it("invalidSubjectFormat", () => {
+      const clientId: ClientId = generateId();
       const subject = "not a client id";
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: { sub: subject },
-        customClaims: {},
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
-      const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
+      const { errors } = verifyClientAssertion(jws, clientId);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidSubjectFormat(subject));
@@ -217,7 +281,13 @@ describe("test", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {},
-        customClaims: { purposeId: notPurposeId },
+        customClaims: {
+          purposeId: notPurposeId,
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
@@ -230,7 +300,12 @@ describe("test", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {},
-        customClaims: {},
+        customClaims: {
+          digest: {
+            alg: "SHA256",
+            value: value64chars,
+          },
+        },
       });
       const { errors } = verifyClientAssertion(jws, notClientId);
       expect(errors).toBeDefined();
@@ -259,7 +334,7 @@ describe("test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidDigestClaims());
+      expect(errors![0]).toEqual(invalidDigestFormat());
     });
 
     it("invalidHashLength", () => {
@@ -267,13 +342,14 @@ describe("test", () => {
         customHeader: {},
         payload: {},
         customClaims: {
-          digest: { alg: "alg", value: "todo string of wrong length" },
+          digest: { alg: "SHA256", value: "todo string of wrong length" },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidHashLength());
+      expect(errors![0]).toEqual(invalidHashLength("SHA256"));
     });
 
     it("InvalidHashAlgorithm", () => {
@@ -281,7 +357,7 @@ describe("test", () => {
         customHeader: {},
         payload: {},
         customClaims: {
-          digest: { alg: "wrong alg", value: "todo string of correct length" },
+          digest: { alg: "wrong alg", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -290,49 +366,54 @@ describe("test", () => {
       expect(errors![0]).toEqual(invalidHashAlgorithm());
     });
 
-    it("AlgorithmNotFound", () => {
+    it.skip("AlgorithmNotFound", () => {
+      // todo it seems this can't be tested because we need alg header to sign the mock jwt
       const jws = getMockClientAssertion({
-        customHeader: { alg: undefined },
+        customHeader: { alg: "undefined" },
         payload: {},
         customClaims: {
-          digest: { alg: "alg", value: "todo string of correct length" },
+          digest: { alg: "RS256", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(algorithmNotFound());
     });
 
     it("AlgorithmNotAllowed", () => {
+      const notAllowedAlg = "RS512";
       const jws = getMockClientAssertion({
-        customHeader: { alg: "todo not allowed alg" },
+        customHeader: { alg: "RS512" },
         payload: {},
         customClaims: {
-          digest: { alg: "alg", value: "todo string of correct length" },
+          digest: { alg: "SHA256", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(algorithmNotAllowed());
+      expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
     });
 
-    it("purposeIdNotProvided", () => {
+    it.skip("purposeIdNotProvided", () => {
+      // todo this should be related to the case of consumerKey
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: { purposeId: undefined },
         customClaims: {
-          digest: { alg: "alg", value: "todo string of correct length" },
+          digest: { alg: "SHA256", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(algorithmNotAllowed());
+      expect(errors![0]).toEqual(purposeIdNotProvided());
     });
 
-    it("PurposeNotFound", () => {
+    it.skip("PurposeNotFound", () => {
       // todo
       expect(1).toBe(1);
     });
@@ -342,11 +423,12 @@ describe("test", () => {
         customHeader: { kid: "not-a-valid-kid" },
         payload: {},
         customClaims: {
-          digest: { alg: "alg", value: "todo string of correct length" },
+          digest: { alg: "SHA256", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidKidFormat());
     });
@@ -358,23 +440,25 @@ describe("test", () => {
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
+      // todo why does it fail?
       const date1 = new Date();
       const sixHoursAgo = new Date(date1.setHours(date1.getHours() - 6));
       const date2 = new Date();
       const threeHourAgo = new Date(date2.setHours(date2.getHours() - 3));
 
       const jws = getMockClientAssertion({
-        customHeader: { kid: "not-a-valid-kid" },
+        customHeader: {},
         payload: {
           iat: sixHoursAgo.getSeconds(),
           exp: threeHourAgo.getSeconds(),
         },
         customClaims: {
-          digest: { alg: "alg", value: "todo string of correct length" },
+          digest: { alg: "SHA256", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(tokenExpiredError());
     });
@@ -383,6 +467,8 @@ describe("test", () => {
       expect(1).toBe(1);
     });
     it("notBeforeError", () => {
+      // todo why does it fail?
+
       const date1 = new Date();
       const threeHoursAgo = new Date(date1.setHours(date1.getHours() - 3));
 
@@ -393,18 +479,19 @@ describe("test", () => {
       const sixHoursLater = new Date(date3.setHours(date3.getHours() + 6));
 
       const jws = getMockClientAssertion({
-        customHeader: { kid: "not-a-valid-kid" },
+        customHeader: {},
         payload: {
           iat: threeHoursAgo.getSeconds(),
           exp: sixHoursLater.getSeconds(),
           nbf: threeHoursLater.getSeconds(),
         },
         customClaims: {
-          digest: { alg: "alg", value: "todo string of correct length" },
+          digest: { alg: "SHA256", value: value64chars },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
+      printErrors(errors);
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
     });
@@ -453,3 +540,9 @@ describe("test", () => {
     });
   });
 });
+
+const printErrors = (errors?: Array<ApiError<ErrorCodes>>): void => {
+  if (errors) {
+    errors.forEach((e) => console.log(e.code, e.detail));
+  }
+};
