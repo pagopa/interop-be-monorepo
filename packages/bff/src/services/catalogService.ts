@@ -16,6 +16,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
+import { config } from "../config/config.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -25,12 +26,11 @@ import {
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
-  noDescriptorInEservice,
   missingDescriptorInClonedEservice,
+  noDescriptorInEservice,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -41,7 +41,6 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { config } from "../config/config.js";
 import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
@@ -818,5 +817,4 @@ export function catalogServiceBuilder(
         }
       ),
   };
-}
 }

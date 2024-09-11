@@ -113,8 +113,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
   .and(SelfCareConfig)
+  .and(S3RiskAnalysisConfig)
   .and(S3Config)
-  .and(S3RiskAnalysisConfig);
   .and(PurposeProcessServerConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
