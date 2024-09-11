@@ -44,6 +44,12 @@ export type FileManager = {
     },
     logger: Logger
   ) => Promise<string>;
+  storeBytesByPath: (
+    bucket: string,
+    path: string,
+    fileContent: Buffer,
+    logger: Logger
+  ) => Promise<string>;
   get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
   generateGetPresignedUrl: (
@@ -210,6 +216,26 @@ export function initFileManager(
       const key: string = buildS3Key(path, undefined, fileName);
       const command = new PutObjectCommand({ Bucket: bucketName, Key: key });
       return getSignedUrl(client, command, { expiresIn: durationInMinutes });
+    },
+    storeBytesByPath: async (
+      bucket: string,
+      path: string,
+      fileContent: Buffer,
+      logger: Logger
+    ): Promise<string> => {
+      logger.info(`Storing file ${path} in bucket ${bucket}`);
+      try {
+        await client.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: path,
+            Body: fileContent,
+          })
+        );
+        return path;
+      } catch (error) {
+        throw fileManagerStoreBytesError(path, bucket, error);
+      }
     },
   };
 }
