@@ -7,14 +7,12 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
-import { tenantNotFound } from "../src/model/domain/errors.js";
 import {
-  addOneTenant,
   getMockTenant,
-  postgresDB,
-  tenantService,
-} from "./utils.js";
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import { tenantNotFound } from "../src/model/domain/errors.js";
+import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("maintenanceTenantDelete", async () => {
   it("should write on event-store for the deletion of a tenant", async () => {
