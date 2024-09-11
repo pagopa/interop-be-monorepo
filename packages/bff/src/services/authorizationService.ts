@@ -14,13 +14,12 @@ import {
   RateLimiterStatus,
   SELFCARE_ID_CLAIM,
   SessionClaims,
-  USER_ROLES,
   UID,
+  USER_ROLES,
   decodeJwtToken,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { genericError } from "pagopa-interop-models";
 import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import {
@@ -32,7 +31,6 @@ import {
 } from "../model/domain/errors.js";
 import { SAMLResponse } from "../model/types.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_LEVELS = ["L2", "L3"];
 const SUPPORT_LEVEL_NAME = "supportLevel";
