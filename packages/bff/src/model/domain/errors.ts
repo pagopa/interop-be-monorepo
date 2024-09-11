@@ -14,24 +14,25 @@ export const errorCodes = {
   privacyNoticeNotFound: "0005",
   privacyNoticeVersionIsNotTheLatest: "0006",
   dynamoReadingError: "0007",
-  descriptorNotFound: "0004",
-  attributeNotExists: "0005",
-  invalidEserviceRequester: "0006",
-  missingClaim: "0007",
-  tenantLoginNotAllowed: "0008",
-  tokenVerificationFailed: "0009",
-  eServiceNotFound: "0010",
-  tenantNotFound: "0011",
-  agreementNotFound: "0012",
-  eserviceDescriptorNotFound: "0013",
-  purposeDraftVersionNotFound: "0014",
-  invalidRiskAnalysisContentType: "0015",
-  missingInterface: "0016",
-  eserviceRiskNotFound: "0017",
-  invalidInterfaceContentTypeDetected: "0018",
-  invalidInterfaceFileDetected: "0019",
-  openapiVersionNotRecognized: "0020",
-  interfaceExtractingInfoError: "0021",
+  descriptorNotFound: "0008",
+  attributeNotExists: "0009",
+  invalidEserviceRequester: "0010",
+  missingClaim: "0011",
+  tenantLoginNotAllowed: "0012",
+  tokenVerificationFailed: "0013",
+  eServiceNotFound: "0014",
+  tenantNotFound: "0015",
+  agreementNotFound: "0016",
+  eserviceDescriptorNotFound: "0017",
+  purposeDraftVersionNotFound: "0018",
+  invalidRiskAnalysisContentType: "0019",
+  missingInterface: "0020",
+  eserviceRiskNotFound: "0021",
+  invalidInterfaceContentTypeDetected: "0022",
+  invalidInterfaceFileDetected: "0023",
+  openapiVersionNotRecognized: "0024",
+  interfaceExtractingInfoError: "0025",
+  agreementDescriptorNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -108,6 +109,16 @@ export function privacyNoticeVersionIsNotTheLatest(
     detail: `PrivacyNotice version ${versionId} not found`,
     code: "privacyNoticeVersionIsNotTheLatest",
     title: "Privacy Notice version is not the latest",
+  });
+}
+
+export function agreementDescriptorNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor of agreement ${agreementId} not found`,
+    code: "agreementDescriptorNotFound",
+    title: "Agreement descriptor not found",
   });
 }
 
