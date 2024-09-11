@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { randomUUID } from "crypto";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
+  FileManager,
   WithLogger,
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
@@ -11,7 +13,10 @@ import {
   EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
+import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -20,7 +25,6 @@ import {
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   eserviceDescriptorNotFound,
@@ -36,6 +40,7 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -177,7 +182,8 @@ export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: AttributeProcessClient,
+  fileManager: FileManager
 ) {
   return {
     getCatalog: async (
@@ -322,6 +328,33 @@ export function catalogServiceBuilder(
       return {
         id: updatedEservice.id,
       };
+    },
+    createEServiceDocument: async (
+      eServiceId: string,
+      descriptorId: string,
+      doc: bffApi.createEServiceDocument_Body,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      const eService = await catalogProcessClient.getEServiceById({
+        params: { eServiceId },
+        headers: ctx.headers,
+      });
+
+      retrieveEserviceDescriptor(eService, unsafeBrandId(descriptorId));
+
+      const documentId = randomUUID();
+
+      await verifyAndCreateEServiceDocument(
+        catalogProcessClient,
+        fileManager,
+        eService,
+        doc,
+        descriptorId,
+        documentId,
+        ctx
+      );
+
+      return { id: documentId };
     },
     getProducerEServices: async (
       eserviceName: string | undefined,
@@ -608,5 +641,72 @@ export function catalogServiceBuilder(
       }
       return { id: eService.id, descriptorId: eServiceDescriptorId };
     },
+    activateDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.activateDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      }),
+    updateDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: string,
+      seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<CreatedResource> =>
+      await catalogProcessClient.updateDescriptor(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      }),
+    publishDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.publishDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      }),
+    suspendDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.suspendDescriptor(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      }),
+    updateEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      updateEServiceDescriptorDocumentSeed: bffApi.UpdateEServiceDescriptorDocumentSeed,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceDoc> =>
+      await catalogProcessClient.updateEServiceDocumentById(
+        updateEServiceDescriptorDocumentSeed,
+        {
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+          headers: context.headers,
+        }
+      ),
   };
 }

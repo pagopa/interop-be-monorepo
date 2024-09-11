@@ -1,3 +1,4 @@
+import { constants } from "node:http2";
 import {
   ApiError,
   AttributeId,
@@ -23,11 +24,18 @@ export const errorCodes = {
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
   missingDescriptorInClonedEservice: "0018",
+  invalidInterfaceContentTypeDetected: "0019",
+  invalidInterfaceFileDetected: "0020",
+  openapiVersionNotRecognized: "0021",
+  interfaceExtractingInfoError: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export const emptyErrorMapper = (): number =>
+  constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export function selfcareEntityNotFilled(
   className: string,
@@ -191,5 +199,45 @@ export function missingDescriptorInClonedEservice(
     detail: `Missing descriptor in cloned eService ${eserviceId}`,
     code: "missingDescriptorInClonedEservice",
     title: "Missing descriptor in cloned eService",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  eServiceId: string,
+  contentType: string,
+  technology: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
+  });
+}
+
+export function invalidInterfaceFileDetected(
+  eServiceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} is invalid`,
+    code: "invalidInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
   });
 }

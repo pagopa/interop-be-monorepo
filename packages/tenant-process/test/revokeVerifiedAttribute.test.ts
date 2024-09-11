@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   generateId,
@@ -20,6 +19,9 @@ import {
   writeInReadmodel,
   readLastEventByStreamId,
   getMockAuthData,
+  getMockDescriptor,
+  getMockTenant,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -31,9 +33,6 @@ import {
 import {
   addOneTenant,
   getMockAgreement,
-  getMockTenant,
-  getMockEService,
-  getMockDescriptor,
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
   getMockRevokedBy,
@@ -44,8 +43,8 @@ import {
 } from "./utils.js";
 
 describe("revokeVerifiedAttribute", async () => {
-  const targetTenant: Tenant = getMockTenant();
-  const revokerTenant: Tenant = getMockTenant();
+  const targetTenant = getMockTenant();
+  const revokerTenant = getMockTenant();
   const authData = getMockAuthData(revokerTenant.id);
   const verifiedAttribute = getMockVerifiedTenantAttribute();
   const descriptor: Descriptor = {
