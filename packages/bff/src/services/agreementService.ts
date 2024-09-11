@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { randomUUID } from "crypto";
-import { match } from "ts-pattern";
 import {
   FileManager,
   getAllFromPaginated,
@@ -121,6 +120,8 @@ export function agreementServiceBuilder(
       doc: bffApi.addAgreementConsumerDocument_Body,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
+      logger.info(`Adding consumer document to agreement ${agreementId}`);
+
       const documentPath = `${config.consumerDocumentsPath}/${agreementId}`;
       const documentContent = Buffer.from(await doc.doc.arrayBuffer());
       const documentId = randomUUID();
@@ -155,17 +156,21 @@ export function agreementServiceBuilder(
       documentId: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
-      const documentSeed =
+      logger.info(
+        `Retrieving consumer document ${documentId} from agreement ${agreementId}`
+      );
+
+      const document =
         await agreementProcessClient.getAgreementConsumerDocument({
           params: { agreementId, documentId },
           headers,
         });
 
-      assertContentMediaType(documentSeed.contentType, agreementId, documentId);
+      assertContentMediaType(document.contentType, agreementId, documentId);
 
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
-        documentSeed.path,
+        document.path,
         logger
       );
 
@@ -471,7 +476,6 @@ function assertContentMediaType(
 ): void {
   // Content types from: https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes
   const contentTypes = [
-    "NoContentType",
     "application/grpc+proto",
     "application/json",
     "application/octet-stream",
