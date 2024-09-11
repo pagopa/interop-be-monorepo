@@ -132,7 +132,7 @@ const validateSub = (
     if (clientId && sub !== clientId) {
       // Todo add check on clientId as ClientId type
       return {
-        errors: [invalidSubject()],
+        errors: [invalidSubject(sub)],
         data: undefined,
       };
     }
@@ -220,13 +220,13 @@ export const verifyClientAssertion = (
     decoded.payload.iss
   );
   const { errors: subErrors, data: validatedSub } = validateSub(
-    decoded.payload.iss,
+    decoded.payload.sub,
     clientId
   );
   const { errors: purposeIdErrors, data: validatedPurposeId } =
     validatePurposeId(decoded.payload.purposeId);
   const { errors: kidErrors, data: validatedKid } = validateKid(
-    decoded.payload.kid
+    decoded.header.kid
   );
   const { errors: audErrors, data: validatedAud } = validateAudience(
     decoded.payload.aud
