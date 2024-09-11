@@ -76,7 +76,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.consumerId}`
+          `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.descriptorId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
