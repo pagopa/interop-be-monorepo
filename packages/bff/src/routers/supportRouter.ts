@@ -3,6 +3,7 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   InteropTokenGenerator,
+  RateLimiter,
   ZodiosContext,
   fromAppContext,
   zodiosValidationErrorToApiProblem,
@@ -17,7 +18,8 @@ import { emptyErrorMapper } from "../utilities/errorMappers.js";
 
 const supportRouter = (
   ctx: ZodiosContext,
-  { tenantProcessClient }: PagoPAInteropBeClients
+  { tenantProcessClient }: PagoPAInteropBeClients,
+  rateLimiter: RateLimiter
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const supportRouter = ctx.router(bffApi.supportApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -27,7 +29,8 @@ const supportRouter = (
   const authorizationService = authorizationServiceBuilder(
     interopTokenGenerator,
     tenantProcessClient,
-    config.tenantAllowedOrigins
+    config.tenantAllowedOrigins,
+    rateLimiter
   );
 
   supportRouter.post("/session/saml2/tokens", async (req, res) => {
