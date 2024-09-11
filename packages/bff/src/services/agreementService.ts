@@ -226,6 +226,93 @@ export function agreementServiceBuilder(
         headers,
       });
     },
+    async submitAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementSubmissionPayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Submitting agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.submitAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async suspendAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Suspending agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.suspendAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async rejectAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementRejectionPayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Rejecting agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.rejectAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async archiveAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<void> {
+      ctx.logger.info(`Archiving agreement ${agreementId}`);
+      await agreementProcessClient.archiveAgreement(undefined, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+    },
+
+    async updateAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementUpdatePayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Updating agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.updateAgreementById(
+        payload,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async upgradeAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Upgrading agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.upgradeAgreementById(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
     async deleteAgreement(
       agreementId: string,
       { headers }: WithLogger<BffAppContext>
