@@ -19,6 +19,7 @@ export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "descriptorNotFound",
       "eserviceRiskNotFound",
+      "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -78,6 +79,24 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "agreementDescriptorNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getAgreementByIdErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "agreementDescriptorNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientUsersErrorMapper = (
