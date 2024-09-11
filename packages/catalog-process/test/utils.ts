@@ -42,7 +42,7 @@ import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
@@ -213,19 +213,6 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
-});
-
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
 });
 
 export const getMockAgreement = ({

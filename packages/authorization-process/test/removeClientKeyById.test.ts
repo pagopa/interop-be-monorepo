@@ -18,7 +18,7 @@ import { genericLogger, userRoles } from "pagopa-interop-commons";
 import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   clientNotFound,
-  keyNotFound,
+  clientKeyNotFound,
   organizationNotAllowedOnClient,
   userNotAllowedOnClient,
 } from "../src/model/domain/errors.js";
@@ -135,7 +135,7 @@ describe("remove client key", () => {
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw keyNotFound if the key doesn't exist in that client", async () => {
+  it("should throw clientKeyNotFound if the key doesn't exist in that client", async () => {
     const mockConsumer = getMockTenant();
     const notExistingKeyId = generateId();
     const keyToNotRemove = getMockKey();
@@ -156,7 +156,7 @@ describe("remove client key", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(keyNotFound(notExistingKeyId, mockClient.id));
+    ).rejects.toThrowError(clientKeyNotFound(notExistingKeyId, mockClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     const mockConsumer1 = getMockTenant();

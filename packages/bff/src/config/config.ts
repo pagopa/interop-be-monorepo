@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   APIEndpoint,
   CommonHTTPServiceConfig,
@@ -7,7 +6,9 @@ import {
   SelfCareConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -103,7 +104,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
+  .and(SelfCareConfig)
   .and(PurposeProcessServerConfig)
+  .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
@@ -112,6 +115,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SelfCareConfig)
   .and(S3Config)
   .and(S3RiskAnalysisConfig);
+  .and(PurposeProcessServerConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
