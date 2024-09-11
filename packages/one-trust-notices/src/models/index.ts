@@ -1,2 +1,2 @@
-export * from "./dynamo-db.models.js";
-export * from "./one-trust.models.js";
+export * from "./dynamodbModels.js";
+export * from "./oneTrustModels.js";
