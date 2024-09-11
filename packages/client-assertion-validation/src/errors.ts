@@ -36,7 +36,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 // - ClientAssertionParseFailed -> already handled in invalidClientAssertionFormat
 // - ClientAssertionInvalidClaims -> should be covered by individual checks
 // - InvalidSubjectFormat -> check on uuid of subject claim
-// - InvalidPurposeIdFormat -> check on uuid of purposeId claim
+// - InvalidPurposeIdFormat -> check on uuid of purposeId claim (already covered by invalidPurposeIdClaimFormat?)
 // - DigestClaimNotFound -> check if custom claim digest exists
 // - InvalidDigestClaims -> check if digest has {alg, value}
 // - InvalidDigestFormat -> probably overlapping with previous
