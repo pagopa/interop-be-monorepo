@@ -194,9 +194,9 @@ export function agreementServiceBuilder(
 
       if (!agreement.contract) {
         if (
-          agreement.state === "ACTIVE" ||
-          agreement.state === "SUSPENDED" ||
-          agreement.state === "ARCHIVED"
+          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
+          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
         ) {
           throw contractException(agreementId);
         }
