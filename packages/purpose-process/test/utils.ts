@@ -33,7 +33,7 @@ import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
