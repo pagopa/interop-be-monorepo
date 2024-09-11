@@ -101,8 +101,6 @@ describe("ANAC Certified Attributes Importer", () => {
     .mockImplementation(getTenantsWithAttributesMock);
 
   beforeAll(() => {
-    // vitest.spyOn(console, "log").mockImplementation(genericLogger);
-    // vitest.spyOn(console, "error").mockImplementation(genericLogger);
     vitest.clearAllMocks();
   });
 
