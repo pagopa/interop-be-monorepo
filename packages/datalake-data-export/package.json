@@ -1,0 +1,38 @@
+{
+  "name": "datalake-data-export",
+  "version": "1.0.0",
+  "description": "Data Lake Data Export",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "20.14.6",
+    "@pagopa/eslint-config": "3.0.0",
+    "pagopa-interop-commons-test": "workspace:*",
+    "prettier": "2.8.8",
+    "testcontainers": "10.9.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5",
+    "vitest": "0.34.1"
+  },
+  "dependencies": {
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "dotenv-flow": "4.1.0",
+    "date-fns": "3.6.0",
+    "mongodb": "6.7.0",
+    "zod": "3.23.8"
+  }
+}
