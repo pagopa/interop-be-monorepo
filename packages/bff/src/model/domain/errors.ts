@@ -28,6 +28,7 @@ export const errorCodes = {
   invalidInterfaceFileDetected: "0020",
   openapiVersionNotRecognized: "0021",
   interfaceExtractingInfoError: "0022",
+  agreementDescriptorNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -64,6 +65,16 @@ export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function agreementDescriptorNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor of agreement ${agreementId} not found`,
+    code: "agreementDescriptorNotFound",
+    title: "Agreement descriptor not found",
   });
 }
 
