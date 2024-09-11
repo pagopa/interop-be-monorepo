@@ -1,17 +1,25 @@
 import crypto from "crypto";
 import * as jwt from "jsonwebtoken";
-import { ClientId, generateId } from "pagopa-interop-models";
-import { ClientAssertionPayload } from ".././src/types";
+import {
+  ClientId,
+  generateId,
+  itemState,
+  PurposeId,
+  TenantId,
+} from "pagopa-interop-models";
+import { ClientAssertionHeader, ConsumerKey } from ".././src/types";
 
 export const getMockClientAssertion = ({
+  customHeader,
   payload,
   customClaims,
 }: {
-  payload: Partial<ClientAssertionPayload>;
+  customHeader: Partial<ClientAssertionHeader>;
+  payload: Partial<jwt.JwtPayload>;
   customClaims: { [k: string]: unknown };
 }): string => {
   const clientId = generateId<ClientId>();
-  const defaultPayload = {
+  const defaultPayload: jwt.JwtPayload = {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it"],
@@ -33,9 +41,25 @@ export const getMockClientAssertion = ({
 
   const options: jwt.SignOptions = {
     header: {
+      ...customHeader,
       kid: generateId(),
       alg: "RS256",
     },
   };
   return jwt.sign(actualPayload, keySet.privateKey, options);
 };
+
+export const getMockConsumerKey = (): ConsumerKey => ({
+  GSIPK_clientId: generateId<ClientId>(),
+  consumerId: generateId<TenantId>(),
+  kidWithPurposeId: "",
+  publicKey: "todo",
+  algorithm: "RS256",
+  clientKind: "Consumer",
+  GSIPK_purposeId: generateId<PurposeId>(),
+  purposeState: itemState.active,
+  agreementId: generateId(),
+  agreementState: itemState.active,
+  eServiceId: generateId(),
+  descriptorState: itemState.active,
+});
