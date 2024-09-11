@@ -1,7 +1,8 @@
 import {
-  AWSConfig,
-  EventStoreConfig,
+  FileManagerConfig,
+  LoggerConfig,
   MongoDBConfig,
+  ReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -10,12 +11,13 @@ export const DatalakeStorageConfig = z
     DATALAKE_STORAGE_BUCKET: z.string(),
   })
   .transform((c) => ({
-    storageBucket: c.DATALAKE_STORAGE_BUCKET,
+    dataLakeStorageBucket: c.DATALAKE_STORAGE_BUCKET,
   }));
 export type DatalakeStorageConfig = z.infer<typeof DatalakeExporterConfig>;
 
-export const DatalakeExporterConfig = DatalakeStorageConfig.and(AWSConfig)
-  .and(EventStoreConfig)
+export const DatalakeExporterConfig = DatalakeStorageConfig.and(LoggerConfig)
+  .and(FileManagerConfig)
+  .and(ReadModelDbConfig)
   .and(MongoDBConfig);
 
 export type DatalakeExporterConfig = z.infer<typeof DatalakeExporterConfig>;
