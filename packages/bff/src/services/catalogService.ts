@@ -606,6 +606,26 @@ export function catalogServiceBuilder(
 
       return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
     },
+    getEServiceDocumentById: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<{ contentType: string; document: Buffer }> => {
+      const { path, contentType } =
+        await catalogProcessClient.getEServiceDocumentById({
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+          headers: ctx.headers,
+        });
+
+      const stream = await fileManager.get(config.s3Bucket, path, ctx.logger);
+
+      return { contentType, document: Buffer.from(stream) };
+    },
     createDescriptor: async (
       eServiceId: string,
       { headers, logger }: WithLogger<BffAppContext>

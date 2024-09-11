@@ -1,4 +1,4 @@
-import { constants } from "node:http2";
+import { constants } from "http2";
 import {
   ApiError,
   AttributeId,
@@ -35,6 +35,10 @@ export const errorCodes = {
   agreementDescriptorNotFound: "0026",
   noDescriptorInEservice: "0027",
   missingDescriptorInClonedEservice: "0028",
+  unknownTenantOrigin: "0029",
+  invalidJwtClaim: "0030",
+  samlNotValid: "0031",
+  missingSelfcareId: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -211,6 +215,22 @@ export function tokenVerificationFailed(): ApiError<ErrorCodes> {
     detail: "Token verification failed",
     code: "tokenVerificationFailed",
     title: "Token verification failed",
+  });
+}
+
+export function samlNotValid(message: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error while validating saml -> ${message}`,
+    code: "samlNotValid",
+    title: "SAML not valid",
+  });
+}
+
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
   });
 }
 

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -331,7 +332,25 @@ const catalogRouter = (
     )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { contentType, document } =
+            await catalogService.getEServiceDocumentById(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+          return res
+            .header(constants.HTTP2_HEADER_CONTENT_TYPE, contentType)
+            .status(200)
+            .end(document);
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
