@@ -1,34 +1,39 @@
 import { bffApi } from "pagopa-interop-api-clients";
+import { z } from "zod";
 
-export type PrivacyNotice = {
-  privacyNoticeId: string;
-  createdDate: string;
-  lastPublishedDate: string;
-  organizationId: string;
-  responsibleUserId?: string;
-  privacyNoticeVersion: PrivacyNoticeVersion;
-  persistedAt: string;
-};
+export const PrivacyNoticeVersion = z.object({
+  versionId: z.string(),
+  name: z.string(),
+  publishedDate: z.string(),
+  status: z.string(),
+  version: z.number(),
+});
+export type PrivacyNoticeVersion = z.infer<typeof PrivacyNoticeVersion>;
 
-export type PrivacyNoticeVersion = {
-  versionId: string;
-  name: string;
-  publishedDate: string;
-  status: string;
-  version: number;
-};
+export const PrivacyNotice = z.object({
+  privacyNoticeId: z.string(),
+  createdDate: z.string(),
+  lastPublishedDate: z.string(),
+  organizationId: z.string(),
+  responsibleUserId: z.string().optional(),
+  privacyNoticeVersion: PrivacyNoticeVersion,
+  persistedAt: z.string(),
+});
+export type PrivacyNotice = z.infer<typeof PrivacyNotice>;
 
-export type UserPrivacyNotice = {
-  pnIdWithUserId: string;
-  versionNumber: number;
-  privacyNoticeId: string;
-  userId: string;
-  acceptedAt: string;
-  version: UserPrivacyNoticeVersion;
-};
+export const UserPrivacyNoticeVersion = z.object({
+  versionId: z.string(),
+  kind: bffApi.ConsentType,
+  version: z.number(),
+});
+export type UserPrivacyNoticeVersion = z.infer<typeof UserPrivacyNoticeVersion>;
 
-export type UserPrivacyNoticeVersion = {
-  versionId: string;
-  kind: bffApi.ConsentType;
-  version: number;
-};
+export const UserPrivacyNotice = z.object({
+  pnIdWithUserId: z.string(),
+  versionNumber: z.number(),
+  privacyNoticeId: z.string(),
+  userId: z.string(),
+  acceptedAt: z.string(),
+  version: UserPrivacyNoticeVersion,
+});
+export type UserPrivacyNotice = z.infer<typeof UserPrivacyNotice>;

@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { Logger } from "pagopa-interop-commons";
+import { genericInternalError } from "pagopa-interop-models";
 import { dynamoReadingError } from "../model/domain/errors.js";
 import { PrivacyNotice, UserPrivacyNotice } from "../model/domain/types.js";
 
@@ -28,12 +29,14 @@ export function privacyNoticeStorageServiceBuilder(
           TableName: privacyNoticesTableName,
           Key: { privacyNoticeId: { S: id } },
         });
-        const result = await db.send(command);
+        const item = await db.send(command);
 
-        if (result.Item === undefined) {
+        if (item.Item === undefined) {
           return null;
         }
-        return unmarshall(result.Item) as PrivacyNotice;
+
+        const privacyNotice = unmarshall(item.Item);
+        return parsePrivacyNotice(privacyNotice);
       } catch (error) {
         throw dynamoReadingError(error);
       }
@@ -60,8 +63,8 @@ export function privacyNoticeStorageServiceBuilder(
           return null;
         }
 
-        const items = result.Items.map(
-          (item) => unmarshall(item) as UserPrivacyNotice
+        const items = result.Items.map((item) =>
+          parseUserPrivacyNotice(unmarshall(item))
         );
 
         return items.reduce(
@@ -94,3 +97,25 @@ export function privacyNoticeStorageServiceBuilder(
 export type PrivacyNoticeStorage = ReturnType<
   typeof privacyNoticeStorageServiceBuilder
 >;
+
+function parsePrivacyNotice(input: unknown): PrivacyNotice {
+  const result = PrivacyNotice.safeParse(input);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse PrivacyNotice: ${result.error.message}`
+    );
+  }
+  return result.data;
+}
+
+function parseUserPrivacyNotice(input: unknown): UserPrivacyNotice {
+  const result = UserPrivacyNotice.safeParse(input);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse UserPrivacyNotice: ${result.error.message}`
+    );
+  }
+  return result.data;
+}
