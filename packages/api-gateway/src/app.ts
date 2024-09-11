@@ -18,7 +18,7 @@ const clients = getInteropBeClients();
 const app = zodiosCtx.app();
 
 const redisRateLimiter = await initRedisRateLimiter({
-  limiterGroup: "API-GATEWAY",
+  limiterGroup: "API_GW",
   maxRequests: config.rateLimiterMaxRequests,
   rateInterval: config.rateLimiterRateInterval,
   burstPercentage: config.rateLimiterBurstPercentage,
