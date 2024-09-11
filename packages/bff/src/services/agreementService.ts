@@ -108,6 +108,41 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       return enrichAgreement(agreement, clients, ctx);
     },
 
+    async deleteAgreement(
+      agreementId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return await agreementProcessClient.deleteAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+    },
+
+    async activateAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      const agreement = await agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async cloneAgreement(
+      agreementId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      const agreement = await agreementProcessClient.cloneAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+      return { id: agreement.id };
+    },
+
     async getAgreementsEserviceProducers(
       {
         offset,
