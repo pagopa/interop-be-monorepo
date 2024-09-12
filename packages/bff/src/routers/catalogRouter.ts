@@ -580,9 +580,25 @@ const catalogRouter = (
         }
       }
     )
-    .get("/import/eservices/presignedUrl", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/import/eservices/presignedUrl", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.generatePutPresignedUrl(
+          req.query.fileName,
+          ctx
+        );
+
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          "Error getting eservice import presigned url"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/import/eservices", async (_req, res) => res.status(501).send());
 
   return catalogRouter;

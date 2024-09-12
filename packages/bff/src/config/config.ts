@@ -120,7 +120,20 @@ export const ExportFileConfig = z
   }));
 export type ExportFileConfig = z.infer<typeof ExportFileConfig>;
 
-export const S3RiskAnalysisConfig = z
+export const ImportFileConfig = z
+  .object({
+    IMPORT_ESERVICE_CONTAINER: z.string(),
+    IMPORT_ESERVICE_PATH: z.string(),
+    PRESIGNED_URL_PUT_DURATION_MINUTES: z.coerce.number(),
+  })
+  .transform((c) => ({
+    importEserviceContainer: c.IMPORT_ESERVICE_CONTAINER,
+    importEservicePath: c.IMPORT_ESERVICE_PATH,
+    presignedUrlPutDurationMinutes: c.PRESIGNED_URL_PUT_DURATION_MINUTES,
+  }));
+export type ImportFileConfig = z.infer<typeof ImportFileConfig>;
+
+export const RiskAnalysisDocumentConfig = z
   .object({
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
@@ -139,10 +152,11 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
-  .and(S3RiskAnalysisConfig)
   .and(AllowedListConfig)
   .and(S3Config)
-  .and(ExportFileConfig);
+  .and(RiskAnalysisDocumentConfig)
+  .and(ExportFileConfig)
+  .and(ImportFileConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
