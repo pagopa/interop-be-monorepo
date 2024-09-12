@@ -1,4 +1,8 @@
-import { WithLogger, FileManager, toSetToArray } from "pagopa-interop-commons";
+import {
+  WithLogger,
+  FileManager,
+  removeDuplicates,
+} from "pagopa-interop-commons";
 import {
   EServiceId,
   PurposeId,
@@ -186,10 +190,13 @@ export function purposeServiceBuilder(
   ): Promise<bffApi.Purposes> => {
     const distinctFilters = {
       ...filters,
-      eseviceIds: filters.eservicesIds && toSetToArray(filters.eservicesIds),
-      consumersIds: filters.consumersIds && toSetToArray(filters.consumersIds),
-      producersIds: filters.producersIds && toSetToArray(filters.producersIds),
-      states: filters.states && toSetToArray(filters.states),
+      eseviceIds:
+        filters.eservicesIds && removeDuplicates(filters.eservicesIds),
+      consumersIds:
+        filters.consumersIds && removeDuplicates(filters.consumersIds),
+      producersIds:
+        filters.producersIds && removeDuplicates(filters.producersIds),
+      states: filters.states && removeDuplicates(filters.states),
     };
 
     const purposes = await purposeProcessClient.getPurposes({
@@ -202,7 +209,7 @@ export function purposeServiceBuilder(
     });
 
     const eservices = await Promise.all(
-      toSetToArray(purposes.results.map((p) => p.eserviceId)).map(
+      removeDuplicates(purposes.results.map((p) => p.eserviceId)).map(
         (eServiceId) =>
           catalogProcessClient.getEServiceById({
             params: {
@@ -221,10 +228,10 @@ export function purposeServiceBuilder(
         headers,
       });
     const consumers = await Promise.all(
-      toSetToArray(purposes.results.map((p) => p.consumerId)).map(getTenant)
+      removeDuplicates(purposes.results.map((p) => p.consumerId)).map(getTenant)
     );
     const producers = await Promise.all(
-      toSetToArray(eservices.map((e) => e.producerId)).map(getTenant)
+      removeDuplicates(eservices.map((e) => e.producerId)).map(getTenant)
     );
 
     const results = await Promise.all(

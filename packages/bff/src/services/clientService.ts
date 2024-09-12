@@ -155,7 +155,7 @@ export function clientServiceBuilder(
     async getClientKeys(
       clientId: string,
       userIds: string[],
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey[]> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
@@ -166,7 +166,9 @@ export function clientServiceBuilder(
       });
 
       return Promise.all(
-        keys.map((k) => decorateKey(selfcareUsersClient, k, clientId))
+        keys.map((k) =>
+          decorateKey(selfcareUsersClient, k, authData.selfcareId)
+        )
       );
     },
 

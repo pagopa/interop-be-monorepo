@@ -123,3 +123,16 @@ export function attributeServiceBuilder(
 }
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
+
+export async function getBulkAttributes(
+  ids: string[],
+  attributeProcess: PagoPAInteropBeClients["attributeProcessClient"],
+  { headers }: WithLogger<BffAppContext>
+): Promise<attributeRegistryApi.Attribute[]> {
+  return getAllFromPaginated((offset, limit) =>
+    attributeProcess.getBulkedAttributes(ids, {
+      queries: { offset, limit },
+      headers,
+    })
+  );
+}

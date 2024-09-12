@@ -78,6 +78,7 @@ const main = async () => {
         shouldExportAllTypes: true,
         groupStrategy: "tag",
         strictObjects: true,
+        apiClientName: fileName,
       },
     });
   }
