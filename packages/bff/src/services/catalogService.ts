@@ -927,5 +927,22 @@ export function catalogServiceBuilder(
         url,
       };
     },
+    generatePutPresignedUrl: async (
+      filename: string,
+      { authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.FileResource> => {
+      const path = `${bffConfig.importEservicePath}/${authData.organizationId}`;
+      const url = await fileManager.generatePutPresignedUrl(
+        bffConfig.importEserviceContainer,
+        path,
+        filename,
+        bffConfig.presignedUrlPutDurationMinutes
+      );
+
+      return {
+        filename,
+        url,
+      };
+    },
   };
 }
