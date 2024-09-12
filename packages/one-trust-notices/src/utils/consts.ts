@@ -5,11 +5,11 @@ export const ONE_TRUST_NOTICES = [
   {
     name: "Terms of service",
     type: "tos",
-    id: config.PRIVACY_NOTICES_UPDATER_TERMS_OF_SERVICE_UUID,
+    id: config.privacyNoticesUpdaterTermsOfServiceUuid,
   },
   {
     name: "Privacy policy",
     type: "pp",
-    id: config.PRIVACY_NOTICES_UPDATER_PRIVACY_POLICY_UUID,
+    id: config.privacyNoticesUpdaterPrivacyPolicyUuid,
   },
 ] as const;

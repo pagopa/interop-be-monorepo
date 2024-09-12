@@ -21,8 +21,8 @@ const logger = genericLogger;
 const fileManager = initFileManager(config);
 
 const dynamoDbTableClient = new DynamoDbTableClient<OneTrustNoticeDBSchema>(
-  config.PRIVACY_NOTICES_DYNAMO_TABLE_NAME,
-  config.AWS_REGION
+  config.privacyNoticesDynamoTableName,
+  config.awsRegion
 );
 
 async function main(): Promise<void> {
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
           // Get the active version of the notice...
           oneTrustClient.getNoticeActiveVersion(oneTrustNotice.id),
           // ... and the localized content for each language.
-          ...config.LANGS.map((lang) =>
+          ...config.langs.map((lang) =>
             oneTrustClient.getNoticeContent(oneTrustNotice.id, lang)
           ),
         ]);
@@ -53,9 +53,9 @@ async function main(): Promise<void> {
       // Generate the bucket paths for each language.
       const versionedContentBucketPaths = localizedNoticeContents.map(
         (noticeContent, index) =>
-          getVersionedNoticeBucketPath(config.LANGS[index], noticeContent)
+          getVersionedNoticeBucketPath(config.langs[index], noticeContent)
       );
-      const latestContentBucketPaths = config.LANGS.map((lang) =>
+      const latestContentBucketPaths = config.langs.map((lang) =>
         getLatestNoticeBucketPath(lang, oneTrustNotice.type)
       );
 
@@ -63,7 +63,7 @@ async function main(): Promise<void> {
 
       // We check if there is a new version by checking if the history bucket already has one of the versioned paths.
       const versionedBucketContentList = await fileManager.listFiles(
-        config.HISTORY_STORAGE_BUCKET,
+        config.historyStorageBucket,
         logger
       );
       const isNewVersion = !versionedContentBucketPaths.some((bucketPath) =>
@@ -73,12 +73,12 @@ async function main(): Promise<void> {
       if (isNewVersion) {
         logger.info(`\nNew version found!`);
         logger.info(
-          `> Uploading to ${config.HISTORY_STORAGE_BUCKET} bucket...\n`
+          `> Uploading to ${config.historyStorageBucket} bucket...\n`
         );
         await Promise.all(
           localizedNoticeContentResponses.map((noticeContentResponse, index) =>
             fileManager.storeBytesByPath(
-              config.HISTORY_STORAGE_BUCKET,
+              config.historyStorageBucket,
               versionedContentBucketPaths[index],
               Buffer.from(JSON.stringify(noticeContentResponse)),
               logger
@@ -90,7 +90,7 @@ async function main(): Promise<void> {
       }
 
       logger.info(
-        `> Uploading notice content to ${config.CONTENT_STORAGE_BUCKET} bucket...`
+        `> Uploading notice content to ${config.contentStorageBucket} bucket...`
       );
 
       const jsonHtmlNodes = localizedNoticeContents.map(({ content }) =>
@@ -100,7 +100,7 @@ async function main(): Promise<void> {
       await Promise.all([
         ...jsonHtmlNodes.map((jsonHtmlNode, index) =>
           fileManager.storeBytesByPath(
-            config.CONTENT_STORAGE_BUCKET,
+            config.contentStorageBucket,
             versionedContentBucketPaths[index],
             Buffer.from(JSON.stringify(jsonHtmlNode)),
             logger
@@ -108,7 +108,7 @@ async function main(): Promise<void> {
         ),
         ...jsonHtmlNodes.map((jsonHtmlNode, index) =>
           fileManager.storeBytesByPath(
-            config.CONTENT_STORAGE_BUCKET,
+            config.contentStorageBucket,
             latestContentBucketPaths[index],
             Buffer.from(JSON.stringify(jsonHtmlNode)),
             logger

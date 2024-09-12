@@ -26,8 +26,8 @@ export class OneTrustClient {
    */
   public static async connect(): Promise<OneTrustClient> {
     const form = toFormData({
-      client_id: config.ONETRUST_CLIENT_ID,
-      client_secret: config.ONETRUST_CLIENT_SECRET,
+      client_id: config.onetrustClientId,
+      client_secret: config.onetrustClientSecret,
       grant_type: "client_credentials",
     });
     try {
