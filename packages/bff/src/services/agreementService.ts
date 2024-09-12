@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -20,6 +21,7 @@ import {
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
+import { isAgreementUpgradable } from "../model/validators.js";
 import {
   agreementDescriptorNotFound,
   contractException,
@@ -27,15 +29,12 @@ import {
   invalidContentType,
 } from "../model/domain/errors.js";
 import {
+  toCompactDescriptor,
+  toCompactEservice,
   toCompactEserviceLight,
   toCompactOrganization,
-} from "../model/api/apiConverter.js";
-import {
-  toCompactEservice,
-  toCompactDescriptor,
-} from "../model/api/apiConverter.js";
+} from "../model/api/converters/catalogClientApiConverter.js";
 import { config } from "../config/config.js";
-import { isAgreementUpgradable } from "../model/validators.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
@@ -132,11 +131,13 @@ export function agreementServiceBuilder(
       const documentId = randomUUID();
 
       await fileManager.storeBytes(
-        config.consumerDocumentsContainer,
-        documentPath,
-        documentId,
-        doc.doc.name,
-        documentContent,
+        {
+          bucket: config.consumerDocumentsContainer,
+          path: documentPath,
+          resourceId: documentId,
+          name: doc.doc.name,
+          content: documentContent,
+        },
         logger
       );
 
