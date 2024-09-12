@@ -60,7 +60,9 @@ import {
 describe("validation test", () => {
   describe("validateRequestParameters", () => {
     it("success request parameters", () => {
-      expect(1).toBe(1);
+      const request = getMockAccessTokenRequest();
+      const errors = validateRequestParameters(request);
+      expect(errors).toBeUndefined();
     });
 
     it("invalidAssertionType", () => {
@@ -90,7 +92,13 @@ describe("validation test", () => {
 
   describe("verifyClientAssertion", () => {
     it("success client assertion", () => {
-      expect(1).toBe(1);
+      const a = getMockClientAssertion({
+        customHeader: {},
+        payload: {},
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeUndefined();
     });
 
     it("invalidAudienceFormat", () => {
@@ -390,7 +398,34 @@ describe("validation test", () => {
 
   describe("verifyClientAssertionSignature", () => {
     it("success client assertion signature", () => {
-      expect(1).toBe(1);
+      const threeHourLater = new Date();
+      threeHourLater.setHours(threeHourLater.getHours() + 3);
+
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const jws = getMockClientAssertion({
+        customHeader: {},
+        payload: {
+          iat: new Date().getTime() / 1000,
+          exp: threeHourLater.getTime() / 1000,
+        },
+        customClaims: {},
+        keySet,
+      });
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+      };
+      const errors = verifyClientAssertionSignature(jws, mockConsumerKey);
+      expect(errors).toBeUndefined();
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
@@ -484,7 +519,16 @@ describe("validation test", () => {
 
   describe("validatePlatformState", () => {
     it("success", () => {
-      expect(1).toBe(1);
+      const mockKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        agreementState: itemState.active,
+        descriptorState: itemState.active,
+        purposeState: itemState.active,
+      };
+      validatePlatformState(mockKey);
+      const errors = validatePlatformState(mockKey);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(0);
     });
 
     it("inactiveAgreement", () => {
