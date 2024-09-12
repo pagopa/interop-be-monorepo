@@ -61,7 +61,7 @@ export const splitEserviceIntoObjectsSQL = (
             group.map(
               (attribute) =>
                 ({
-                  id: attribute.id,
+                  attribute_id: attribute.id,
                   descriptor_id: currentDescriptor.id,
                   explicit_attribute_verification:
                     attribute.explicitAttributeVerification,
@@ -74,7 +74,7 @@ export const splitEserviceIntoObjectsSQL = (
             group.map(
               (attribute) =>
                 ({
-                  id: attribute.id,
+                  attribute_id: attribute.id,
                   descriptor_id: currentDescriptor.id,
                   explicit_attribute_verification:
                     attribute.explicitAttributeVerification,
@@ -87,7 +87,7 @@ export const splitEserviceIntoObjectsSQL = (
             group.map(
               (attribute) =>
                 ({
-                  id: attribute.id,
+                  attribute_id: attribute.id,
                   descriptor_id: currentDescriptor.id,
                   explicit_attribute_verification:
                     attribute.explicitAttributeVerification,
