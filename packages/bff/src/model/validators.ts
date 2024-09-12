@@ -16,16 +16,6 @@ import {
   catalogApiDescriptorState,
 } from "./api/apiTypes.js";
 
-export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
-  descriptor: catalogApi.EServiceDescriptor | undefined,
-  tenant: tenantApi.Tenant
-): boolean =>
-  descriptor !== undefined &&
-  certifiedAttributesSatisfied(
-    toDescriptorWithOnlyAttributes(descriptor),
-    toTenantWithOnlyAttributes(tenant)
-  );
-
 export function isRequesterEserviceProducer(
   requesterId: string,
   eservice: catalogApi.EService
@@ -82,9 +72,9 @@ export function hasCertifiedAttributes(
 ): boolean {
   return (
     descriptor !== undefined &&
-    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-      descriptor,
-      requesterTenant
+    certifiedAttributesSatisfied(
+      toDescriptorWithOnlyAttributes(descriptor),
+      toTenantWithOnlyAttributes(requesterTenant)
     )
   );
 }

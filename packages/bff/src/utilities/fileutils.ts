@@ -5,10 +5,10 @@ import path from "path";
 import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { genericError } from "pagopa-interop-models";
+import { DescriptorId, genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/domain/errors.js";
-import { retrieveEserviceDescriptor } from "../model/modelMappingUtils.js";
 import { verifyExportEligibility } from "../model/validators.js";
+import { retrieveEserviceDescriptor } from "../services/catalogService.js";
 /* 
   FileDocumentsRegistry is a map that contains the following information:
   - occurrences: a map that contains the number of occurrences of a document name
@@ -143,7 +143,7 @@ export async function createDescriptorDocumentZipFile(
   logger: Logger,
   zipFolderName: string,
   eservice: catalogApi.EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): Promise<Uint8Array> {
   const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
   verifyExportEligibility(descriptor);
