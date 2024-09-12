@@ -36,6 +36,7 @@ import {
 } from "../model/api/apiConverter.js";
 import { config } from "../config/config.js";
 import { isAgreementUpgradable } from "../model/validators.js";
+import { contentTypes } from "../utilities/mimeTypes.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
@@ -756,18 +757,6 @@ function assertContentMediaType(
   agreementId: string,
   documentId: string
 ): void {
-  // Content types from: https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes
-  const contentTypes = [
-    "application/grpc+proto",
-    "application/json",
-    "application/octet-stream",
-    "application/x-www-form-urlencoded",
-    "text/csv(UTF-8)",
-    "text/html(UTF-8)",
-    "text/plain(UTF-8)",
-    "text/xml(UTF-8)",
-  ];
-
   if (!contentTypes.includes(contentType)) {
     throw invalidContentType(contentType, agreementId, documentId);
   }
