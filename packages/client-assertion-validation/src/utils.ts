@@ -9,7 +9,7 @@ import {
 import {
   ApiError,
   ClientId,
-  clientKind,
+  clientKindTokenStates,
   PurposeId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -437,18 +437,19 @@ export const validatePlatformState = (
 };
 
 export const validateClientKindAndPlatformState = (
-  key: ApiKey,
+  key: ApiKey | ConsumerKey,
   jwt: ClientAssertion
 ): ValidationResult =>
   match(key.clientKind)
-    .with(clientKind.api, () => {
-      console.log("key", key);
-      console.log("safeParse", ApiKey.safeParse(key).success);
-      return !ApiKey.safeParse(key).success
-        ? { errors: [unexpectedKeyType(clientKind.api)], data: undefined }
-        : { data: jwt, errors: undefined };
-    })
-    .with(clientKind.consumer, () => {
+    .with(clientKindTokenStates.api, () =>
+      !ApiKey.safeParse(key).success
+        ? {
+            errors: [unexpectedKeyType(clientKindTokenStates.api)],
+            data: undefined,
+          }
+        : { data: jwt, errors: undefined }
+    )
+    .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
         const platformStateErrors = validatePlatformState(key as ConsumerKey);
         if (platformStateErrors.length === 0) {
@@ -457,7 +458,7 @@ export const validateClientKindAndPlatformState = (
         return { errors: platformStateErrors, data: undefined };
       }
       return {
-        errors: [unexpectedKeyType(clientKind.consumer)],
+        errors: [unexpectedKeyType(clientKindTokenStates.consumer)],
         data: undefined,
       };
     })

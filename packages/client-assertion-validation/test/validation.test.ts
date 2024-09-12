@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ApiError,
   ClientId,
-  clientKind,
+  clientKindTokenStates,
   generateId,
   itemState,
 } from "pagopa-interop-models";
@@ -52,6 +52,7 @@ import {
 import { ConsumerKey } from "../src/types.js";
 import {
   getMockAccessTokenRequest,
+  getMockApiKey,
   getMockClientAssertion,
   getMockConsumerKey,
   value64chars,
@@ -539,10 +540,10 @@ describe("validation test", () => {
   });
 
   describe("validateClientKindAndPlatformState", () => {
-    it.only("unexpectedKeyType (consumerKey and clientKind.api)", () => {
+    it("unexpectedKeyType (consumerKey and clientKind.api)", () => {
       const mockConsumerKey = {
         ...getMockConsumerKey(),
-        clientKind: clientKind.api,
+        clientKind: clientKindTokenStates.api,
       };
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
@@ -555,30 +556,104 @@ describe("validation test", () => {
       if (!mockClientAssertion) {
         fail();
       }
-      const { data, errors } = validateClientKindAndPlatformState(
+      const { errors } = validateClientKindAndPlatformState(
         mockConsumerKey,
         mockClientAssertion
       );
-      console.log("data", data);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(unexpectedKeyType(mockConsumerKey.clientKind));
     });
 
-    it.only("unexpectedKeyType (apiKey and clientKind.consumer)", () => {
-      expect(1).toBe(1);
+    it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
+      const mockApiKey = {
+        ...getMockApiKey(),
+        clientKind: clientKindTokenStates.consumer,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          payload: {},
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        // FIX
+        mockApiKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(unexpectedKeyType(mockApiKey.clientKind));
     });
 
-    it.only("success (consumerKey and clientKind.consumer; valid platform states)", () => {
-      expect(1).toBe(1);
+    it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
+      const mockConsumerKey = getMockConsumerKey();
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          payload: {},
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeUndefined();
     });
 
-    it.only("inactiveEService (consumerKey and clientKind.consumer; invalid platform states)", () => {
-      expect(1).toBe(1);
+    it("inactiveEService (consumerKey and clientKindTokenStates.consumer; invalid platform states)", () => {
+      const mockConsumerKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        descriptorState: itemState.inactive,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          payload: {},
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(inactiveEService());
     });
 
-    it.only("unexpectedKeyType (apiKey and clientKind.api)", () => {
-      expect(1).toBe(1);
+    it("success (apiKey and clientKindTokenStates.api)", () => {
+      const mockApiKey = getMockApiKey();
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          payload: {},
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockApiKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeUndefined();
     });
   });
 });

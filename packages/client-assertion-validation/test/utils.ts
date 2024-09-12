@@ -3,12 +3,13 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import * as jwt from "jsonwebtoken";
 import {
   ClientId,
+  clientKindTokenStates,
   generateId,
   itemState,
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
-import { ClientAssertionHeader, ConsumerKey } from ".././src/types";
+import { ApiKey, ClientAssertionHeader, ConsumerKey } from ".././src/types";
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
 
@@ -66,13 +67,22 @@ export const getMockConsumerKey = (): ConsumerKey => ({
   kidWithPurposeId: "",
   publicKey: "TODO",
   algorithm: "RS256",
-  clientKind: "Consumer",
+  clientKind: clientKindTokenStates.consumer,
   GSIPK_purposeId: generateId<PurposeId>(),
   purposeState: itemState.active,
   agreementId: generateId(),
   agreementState: itemState.active,
   eServiceId: generateId(),
   descriptorState: itemState.active,
+});
+
+export const getMockApiKey = (): ApiKey => ({
+  GSIPK_clientId: generateId<ClientId>(),
+  consumerId: generateId<TenantId>(),
+  kidWithPurposeId: "",
+  publicKey: "TODO",
+  algorithm: "RS256",
+  clientKind: clientKindTokenStates.api,
 });
 
 export const getMockAccessTokenRequest =

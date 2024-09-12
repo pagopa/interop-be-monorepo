@@ -7,7 +7,7 @@ import {
 } from "./utils.js";
 import { ApiKey, ConsumerKey, ValidationResult } from "./types.js";
 
-export const assertValidClientAssertion = async (
+export const validateClientAssertion = async (
   request: authorizationServerApi.AccessTokenRequest,
   key: ConsumerKey | ApiKey // TODO use just Key?
 ): Promise<ValidationResult> => {

@@ -1,4 +1,4 @@
-import { ApiError, ClientKind } from "pagopa-interop-models";
+import { ApiError, ClientKindTokenStates } from "pagopa-interop-models";
 
 export const errorCodes = {
   clientAssertionValidationFailure: "0001",
@@ -342,7 +342,7 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
 }
 
 export function unexpectedKeyType(
-  clientKind: ClientKind
+  clientKind: ClientKindTokenStates
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Key doesn't correspond to client kind: ${clientKind}`,
