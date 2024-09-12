@@ -5,7 +5,6 @@ import {
   InteropTokenGenerator,
   RateLimiter,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -47,7 +46,12 @@ const supportRouter = (
       );
       return res.status(200).send({ session_token: jwt });
     } catch (error) {
-      makeApiProblem(error, emptyErrorMapper, ctx.logger);
+      makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx.logger,
+        "Error creating a session token"
+      );
       return res.status(500).send();
     }
   });

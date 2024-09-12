@@ -13,10 +13,7 @@ import { tooManyRequestsError } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import {
-  emptyErrorMapper,
-  sessionTokenErrorMapper,
-} from "../utilities/errorMappers.js";
+import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
@@ -81,7 +78,6 @@ const authorizationRouter = (
         );
       } catch (error) {
         ctx.logger.error(`Error calling support SAML - ${error}`);
-        makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.redirect(302, config.samlCallbackErrorUrl);
       }
     });
