@@ -174,19 +174,21 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
+      const internalHeaders = {
+        ...headers,
+        Authorization: `Bearer ${serialized}`,
+      };
+
       const tenantBySelfcareId =
         await tenantProcessClient.selfcare.getTenantBySelfcareId({
           params: { selfcareId },
-          headers: {
-            ...headers,
-            Authorization: `Bearer ${serialized}`,
-          },
+          headers: internalHeaders,
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
-        headers,
+        headers: internalHeaders,
       });
 
       assertTenantAllowed(selfcareId, tenant.externalId.origin);
