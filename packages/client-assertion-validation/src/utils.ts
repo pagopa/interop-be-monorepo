@@ -57,6 +57,7 @@ import {
   invalidHashAlgorithm,
   invalidKidFormat,
   unexpectedKeyType,
+  purposeIdNotProvided,
 } from "./errors.js";
 const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // TODO: env?
 const EXPECTED_CLIENT_ASSERTION_TYPE =
@@ -456,10 +457,15 @@ export const validateClientKindAndPlatformState = (
     .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
         const platformStateErrors = validatePlatformState(key as ConsumerKey);
-        if (platformStateErrors.length === 0) {
-          return { data: jwt, errors: undefined };
-        }
-        return { errors: platformStateErrors, data: undefined };
+        const purposeIdError = jwt.payload.purposeId
+          ? undefined
+          : purposeIdNotProvided();
+        return {
+          errors: [...platformStateErrors, purposeIdError].filter(
+            (e) => e !== undefined
+          ) as Array<ApiError<ErrorCodes>>,
+          data: undefined,
+        };
       }
       return {
         errors: [unexpectedKeyType(clientKindTokenStates.consumer)],
