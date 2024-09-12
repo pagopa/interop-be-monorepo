@@ -14,10 +14,12 @@ export const getMockClientAssertion = ({
   customHeader,
   payload,
   customClaims,
+  keySet,
 }: {
   customHeader: Partial<ClientAssertionHeader>;
   payload: Partial<jwt.JwtPayload>;
   customClaims: { [k: string]: unknown };
+  keySet?: crypto.KeyPairKeyObjectResult;
 }): string => {
   const clientId = generateId<ClientId>();
   const defaultPayload: jwt.JwtPayload = {
@@ -35,11 +37,6 @@ export const getMockClientAssertion = ({
     ...payload,
     ...customClaims,
   };
-
-  const keySet = crypto.generateKeyPairSync("rsa", {
-    modulusLength: 2048,
-  });
-
   const options: jwt.SignOptions = {
     header: {
       kid: "todo",
@@ -47,6 +44,14 @@ export const getMockClientAssertion = ({
       ...customHeader,
     },
   };
+
+  if (!keySet) {
+    const keySet = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
+    return jwt.sign(actualPayload, keySet.privateKey, options);
+  }
+
   return jwt.sign(actualPayload, keySet.privateKey, options);
 };
 
@@ -66,15 +71,22 @@ export const getMockConsumerKey = (): ConsumerKey => ({
 });
 
 export const getMockAccessTokenRequest =
-  (): authorizationServerApi.AccessTokenRequest => ({
-    client_id: generateId<ClientId>(),
-    // TODO: change to env variable
-    client_assertion_type:
-      "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    client_assertion: getMockClientAssertion({
-      customHeader: {},
-      payload: {},
-      customClaims: {},
-    }),
-    grant_type: "client_credentials",
-  });
+  (): authorizationServerApi.AccessTokenRequest => {
+    const keySet = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
+
+    return {
+      client_id: generateId<ClientId>(),
+      // TODO: change to env variable
+      client_assertion_type:
+        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      client_assertion: getMockClientAssertion({
+        customHeader: {},
+        payload: {},
+        customClaims: {},
+        keySet,
+      }),
+      grant_type: "client_credentials",
+    };
+  };

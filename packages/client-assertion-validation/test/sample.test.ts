@@ -80,8 +80,8 @@ describe("test", () => {
     // });
   });
 
-  const value64chars =
-    "1234567890123456789012345678901234567890123456789012345678901234";
+  const value64chars = crypto.randomBytes(64).toString("ascii");
+
   describe("verifyClientAssertion", () => {
     it("invalidAudienceFormat", () => {
       const a = getMockClientAssertion({
@@ -450,22 +450,39 @@ describe("test", () => {
     });
     it("tokenExpiredError", () => {
       // todo why does it fail?
-      const date1 = new Date();
-      const sixHoursAgo = new Date(date1.setHours(date1.getHours() - 6));
-      const date2 = new Date();
-      const threeHourAgo = new Date(date2.setHours(date2.getHours() - 3));
+      const sixHoursAgo = new Date();
+      sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+      const threeHourAgo = new Date();
+      threeHourAgo.setHours(threeHourAgo.getHours() - 3);
+
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
 
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {
-          iat: sixHoursAgo.getSeconds(),
-          exp: threeHourAgo.getSeconds(),
+          iat: sixHoursAgo.getTime() / 1000,
+          exp: threeHourAgo.getTime() / 1000,
         },
         customClaims: {
           digest: { alg: "SHA256", value: value64chars },
         },
+        keySet,
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      // TODO: how to get string from keySet.publicKey
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+      };
+      const errors = verifyClientAssertionSignature(jws, mockConsumerKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(tokenExpiredError());
@@ -480,27 +497,40 @@ describe("test", () => {
     it("notBeforeError", () => {
       // todo why does it fail?
 
-      const date1 = new Date();
-      const threeHoursAgo = new Date(date1.setHours(date1.getHours() - 3));
+      const threeHoursAgo = new Date();
+      threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
 
-      const date2 = new Date();
-      const threeHoursLater = new Date(date2.setHours(date2.getHours() + 3));
+      const threeHoursLater = new Date();
+      threeHoursLater.setHours(threeHoursLater.getHours() + 3);
 
-      const date3 = new Date();
-      const sixHoursLater = new Date(date3.setHours(date3.getHours() + 6));
+      const sixHoursLater = new Date();
+      sixHoursLater.setHours(sixHoursLater.getHours() + 6);
 
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {
-          iat: threeHoursAgo.getSeconds(),
-          exp: sixHoursLater.getSeconds(),
-          nbf: threeHoursLater.getSeconds(),
+          iat: threeHoursAgo.getTime() / 1000,
+          exp: sixHoursLater.getTime() / 1000,
+          nbf: threeHoursLater.getTime() / 1000,
         },
         customClaims: {
           digest: { alg: "SHA256", value: value64chars },
         },
+        keySet,
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
+      const publicKey = keySet.publicKey.export({
+        type: "pkcs1",
+        format: "pem",
+      }) as string;
+      const mockConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+      };
+
+      const errors = verifyClientAssertionSignature(jws, mockConsumerKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());

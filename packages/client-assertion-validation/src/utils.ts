@@ -381,8 +381,8 @@ export const verifyClientAssertion = (
   };
 };
 
-export const b64Decode = (str: string): string =>
-  Buffer.from(str, "base64").toString("binary");
+// export const b64Decode = (str: string): string =>
+//   Buffer.from(str, "base64").toString("binary");
 
 export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
@@ -390,7 +390,7 @@ export const verifyClientAssertionSignature = (
 ): Array<ApiError<ErrorCodes>> | undefined => {
   // todo: should this return a JwtPayload? Probably not
   try {
-    const result = verify(clientAssertionJws, b64Decode(key.publicKey), {
+    const result = verify(clientAssertionJws, key.publicKey, {
       algorithms: [key.algorithm],
     });
 
@@ -403,11 +403,11 @@ export const verifyClientAssertionSignature = (
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
       return [tokenExpiredError()];
-    } else if (error instanceof JsonWebTokenError) {
-      // TODO: this might overlap with invalidClientAssertionFormat raised inside invalidClientAssertionFormat
-      return [jsonWebTokenError(error.message)];
     } else if (error instanceof NotBeforeError) {
       return [notBeforeError()];
+    } else if (error instanceof JsonWebTokenError) {
+      // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
+      return [jsonWebTokenError(error.message)];
     } else {
       return [clientAssertionSignatureVerificationFailure()];
     }
