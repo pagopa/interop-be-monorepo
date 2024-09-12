@@ -153,6 +153,40 @@ export function toTenantWithOnlyAttributes(
   };
 }
 
+export function toCatalogCreateEServiceSeed(
+  eServiceSeed: bffApi.EServiceSeed
+): catalogApi.EServiceSeed {
+  return {
+    ...eServiceSeed,
+    descriptor: {
+      audience: [],
+      voucherLifespan: 60,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1,
+      agreementApprovalPolicy:
+        catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
+    },
+  };
+}
+
+export function toCompactEserviceLight(
+  eservice: agreementApi.CompactEService
+): bffApi.CompactEServiceLight {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+  };
+}
+
+export function toCompactOrganization(
+  organization: agreementApi.CompactOrganization
+): bffApi.CompactOrganization {
+  return {
+    id: organization.id,
+    name: organization.name,
+  };
+}
+
 export function toCompactEservice(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant

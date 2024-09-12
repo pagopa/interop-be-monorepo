@@ -3,7 +3,7 @@
 
 import {
   getAllFromPaginated,
-  toSetToArray,
+  removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -19,6 +19,10 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { agreementDescriptorNotFound } from "../model/domain/errors.js";
+import {
+  toCompactEserviceLight,
+  toCompactOrganization,
+} from "../model/api/apiConverter.js";
 import {
   toCompactEservice,
   toCompactDescriptor,
@@ -103,6 +107,270 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return enrichAgreement(agreement, clients, ctx);
     },
+
+    async submitAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementSubmissionPayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Submitting agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.submitAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async suspendAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Suspending agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.suspendAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async rejectAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementRejectionPayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Rejecting agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.rejectAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async archiveAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<void> {
+      ctx.logger.info(`Archiving agreement ${agreementId}`);
+      await agreementProcessClient.archiveAgreement(undefined, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
+    },
+
+    async updateAgreement(
+      agreementId: string,
+      payload: bffApi.AgreementUpdatePayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Updating agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.updateAgreementById(
+        payload,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async upgradeAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Upgrading agreement ${agreementId}`);
+      const agreement = await agreementProcessClient.upgradeAgreementById(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async deleteAgreement(
+      agreementId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      return await agreementProcessClient.deleteAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+    },
+
+    async activateAgreement(
+      agreementId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      const agreement = await agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+
+    async cloneAgreement(
+      agreementId: string,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      const agreement = await agreementProcessClient.cloneAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+      return { id: agreement.id };
+    },
+
+    async getAgreementsEserviceProducers(
+      {
+        offset,
+        limit,
+        requesterId,
+        states,
+        eServiceName,
+      }: {
+        offset: number;
+        limit: number;
+        requesterId: string;
+        states: agreementApi.AgreementState[];
+        eServiceName?: string;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactEServicesLight> {
+      logger.info(
+        `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+      );
+
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const eservices = await agreementProcessClient.getAgreementEServices({
+        queries: {
+          offset,
+          limit,
+          eServiceName,
+          producersIds: [requesterId],
+          states,
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservices.totalCount,
+        },
+        results: eservices.results.map((e) => toCompactEserviceLight(e)),
+      };
+    },
+
+    async getAgreementsEserviceConsumers(
+      offset: number,
+      limit: number,
+      requesterId: string,
+      eServiceName: string | undefined,
+      { headers, logger }: WithLogger<BffAppContext>
+    ) {
+      logger.info(
+        `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+      );
+
+      if (eServiceName && eServiceName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const eservices = await agreementProcessClient.getAgreementEServices({
+        queries: {
+          offset,
+          limit,
+          eServiceName,
+          consumersIds: [requesterId],
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservices.totalCount,
+        },
+        results: eservices.results.map((e) => toCompactEserviceLight(e)),
+      };
+    },
+
+    async getAgreementProducers(
+      offset: number,
+      limit: number,
+      producerName: string | undefined,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      logger.info(`Retrieving agreement producers`);
+
+      if (producerName && producerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const producers = await agreementProcessClient.getAgreementProducers({
+        queries: {
+          offset,
+          limit,
+          producerName,
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: producers.totalCount,
+        },
+        results: producers.results.map((p) => toCompactOrganization(p)),
+      };
+    },
+
+    async getAgreementConsumers(
+      offset: number,
+      limit: number,
+      consumerName: string | undefined,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      logger.info(`Retrieving agreement consumers`);
+
+      if (consumerName && consumerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
+      const consumers = await agreementProcessClient.getAgreementConsumers({
+        queries: {
+          offset,
+          limit,
+          consumerName,
+        },
+        headers,
+      });
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: consumers.totalCount,
+        },
+        results: consumers.results.map((c) => toCompactOrganization(c)),
+      };
+    },
   };
 }
 
@@ -125,28 +393,43 @@ export const getLatestAgreement = async (
       })
   );
 
-  return allAgreements
-    .sort((firstAgreement, secondAgreement) => {
-      if (firstAgreement.version !== secondAgreement.version) {
-        const descriptorFirstAgreement = eservice.descriptors.find(
-          (d) => d.id === firstAgreement.descriptorId
-        );
-        const descriptorSecondAgreement = eservice.descriptors.find(
-          (d) => d.id === secondAgreement.descriptorId
-        );
+  type AgreementAndDescriptor = {
+    agreement: agreementApi.Agreement;
+    descriptor: catalogApi.EServiceDescriptor;
+  };
 
-        return descriptorFirstAgreement && descriptorSecondAgreement
-          ? Number(descriptorSecondAgreement.version) -
-              Number(descriptorFirstAgreement.version)
-          : 0;
+  const agreementAndDescriptor = allAgreements.reduce<AgreementAndDescriptor[]>(
+    (acc, agreement) => {
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (descriptor) {
+        acc.push({ agreement, descriptor });
+      }
+      return acc;
+    },
+    []
+  );
+
+  return agreementAndDescriptor
+    .sort((first, second) => {
+      const descriptorFirstAgreement = first.descriptor;
+      const descriptorSecondAgreement = second.descriptor;
+      if (
+        descriptorFirstAgreement.version !== descriptorSecondAgreement.version
+      ) {
+        return (
+          Number(descriptorSecondAgreement.version) -
+          Number(descriptorFirstAgreement.version)
+        );
       } else {
         return (
-          new Date(secondAgreement.createdAt).getTime() -
-          new Date(firstAgreement.createdAt).getTime()
+          new Date(second.agreement.createdAt).getTime() -
+          new Date(first.agreement.createdAt).getTime()
         );
       }
     })
-    .at(0);
+    .at(0)?.agreement;
 };
 
 async function enrichAgreementListEntry(
@@ -198,7 +481,7 @@ export async function enrichAgreement(
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
-  const allAttributesIds = toSetToArray([
+  const allAttributesIds = removeDuplicates([
     ...activeDescriptorAttributes,
     ...tenantAttributesIds(consumer),
   ]);
@@ -349,3 +632,12 @@ export function getCurrentDescriptor(
   }
   return descriptor;
 }
+
+const emptyPagination = (offset: number, limit: number) => ({
+  pagination: {
+    limit,
+    offset,
+    totalCount: 0,
+  },
+  results: [],
+});
