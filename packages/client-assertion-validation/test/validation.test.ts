@@ -7,6 +7,7 @@ import {
   clientKindTokenStates,
   generateId,
   itemState,
+  PurposeId,
 } from "pagopa-interop-models";
 import * as jwt from "jsonwebtoken";
 import {
@@ -374,19 +375,6 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
     });
 
-    it.skip("purposeIdNotProvided", () => {
-      // TODO this should be related to the case of consumerKey
-      const jws = getMockClientAssertion({
-        customHeader: {},
-        payload: { purposeId: undefined },
-        customClaims: {},
-      });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(purposeIdNotProvided());
-    });
-
     it("InvalidKidFormat", () => {
       const jws = getMockClientAssertion({
         customHeader: { kid: "not-a-valid-kid" },
@@ -594,7 +582,7 @@ describe("validation test", () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: {},
+          payload: { purposeId: generateId<PurposeId>() },
           customClaims: {},
         }),
         undefined
@@ -617,7 +605,7 @@ describe("validation test", () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: {},
+          payload: { purposeId: generateId<PurposeId>() },
           customClaims: {},
         }),
         undefined
@@ -652,6 +640,29 @@ describe("validation test", () => {
         mockClientAssertion
       );
       expect(errors).toBeUndefined();
+    });
+
+    it("purposeIdNotProvided", () => {
+      // TODO this should be related to the case of consumerKey
+      const mockConsumerKey = getMockConsumerKey();
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          payload: { purposeId: undefined },
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(purposeIdNotProvided());
     });
   });
 });
