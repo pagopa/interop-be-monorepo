@@ -7,6 +7,8 @@ import {
   DescriptorSQL,
   documentKind,
   EServiceAttribute,
+  EServiceSQL,
+  EService,
 } from "pagopa-interop-models";
 
 export const documentSQLtoDocument = (input: DocumentSQL): Document => {
@@ -53,7 +55,7 @@ export const descriptorSQLtoDescriptor = (
   const certifiedAttrMap = new Map<number, EServiceAttribute[]>();
   certifiedAttributesSQL.forEach((current) => {
     const currentAttribute: EServiceAttribute = {
-      id: current.id,
+      id: current.attribute_id,
       explicitAttributeVerification: current.explicit_attribute_verification,
     };
     const group = certifiedAttrMap.get(current.group_set);
@@ -93,4 +95,31 @@ export const descriptorSQLtoDescriptor = (
   };
   // console.log(d);
   return d;
+};
+
+export const eserviceSQLtoEservice = (
+  eserviceSQL: EServiceSQL,
+  descriptorsSQL: DescriptorSQL[],
+  documentsSQL: DocumentSQL[],
+  attributesSQL: DescriptorAttributeSQL[]
+): EService => {
+  const descriptors = descriptorsSQL.map((descriptor) =>
+    descriptorSQLtoDescriptor(
+      descriptor,
+      documentsSQL.filter((d) => d.descriptor_id === descriptor.id),
+      attributesSQL.filter((a) => a.descriptor_id === descriptor.id)
+    )
+  );
+  const eservice: EService = {
+    name: eserviceSQL.name,
+    id: eserviceSQL.id,
+    createdAt: eserviceSQL.created_at || undefined,
+    producerId: eserviceSQL.producer_id,
+    description: eserviceSQL.description,
+    technology: eserviceSQL.technology,
+    descriptors,
+    riskAnalysis: [],
+    mode: eserviceSQL.mode,
+  };
+  return eservice;
 };
