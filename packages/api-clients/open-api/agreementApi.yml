@@ -858,6 +858,7 @@ components:
   schemas:
     AgreementPayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement creation.
       properties:
         eserviceId:
@@ -871,6 +872,7 @@ components:
         - descriptorId
     AgreementSubmissionPayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement creation.
       properties:
         consumerNotes:
@@ -878,6 +880,7 @@ components:
           maxLength: 1000
     Agreement:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -951,6 +954,7 @@ components:
       description: business representation of an agreement
     AgreementRejectionPayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement rejection.
       properties:
         reason:
@@ -961,6 +965,7 @@ components:
         - reason
     AgreementUpdatePayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement update.
       properties:
         consumerNotes:
@@ -971,6 +976,7 @@ components:
     VerifiedAttribute:
       title: VerifiedAttribute
       type: object
+      additionalProperties: false
       description: represents the details of a verified attribute bound to the agreement.
       properties:
         id:
@@ -982,6 +988,7 @@ components:
     CertifiedAttribute:
       title: CertifiedAttribute
       type: object
+      additionalProperties: false
       description: represents the details of a certified attribute bound to the agreement.
       properties:
         id:
@@ -993,6 +1000,7 @@ components:
     DeclaredAttribute:
       title: DeclaredAttribute
       type: object
+      additionalProperties: false
       description: represents the details of a declared attribute bound to the agreement.
       properties:
         id:
@@ -1003,6 +1011,7 @@ components:
         - id
     ComputeAgreementStatePayload:
       type: object
+      additionalProperties: false
       properties:
         attributeId:
           type: string
@@ -1015,6 +1024,7 @@ components:
     CompactTenant:
       description: Tenant model
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1028,6 +1038,7 @@ components:
         - attributes
     TenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         declared:
           $ref: "#/components/schemas/DeclaredTenantAttribute"
@@ -1037,6 +1048,7 @@ components:
           $ref: "#/components/schemas/VerifiedTenantAttribute"
     DeclaredTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1052,6 +1064,7 @@ components:
         - assignmentTimestamp
     CertifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1067,6 +1080,7 @@ components:
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1089,6 +1103,7 @@ components:
         - revokedBy
     TenantVerifier:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1107,6 +1122,7 @@ components:
         - verificationDate
     TenantRevoker:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1129,6 +1145,7 @@ components:
         - revocationDate
     Agreements:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1153,6 +1170,7 @@ components:
         - REJECTED
     DocumentSeed:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1177,6 +1195,7 @@ components:
           type: string
     Document:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1201,6 +1220,7 @@ components:
           type: string
     CompactEServices:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1214,6 +1234,7 @@ components:
         - totalCount
     CompactEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1225,6 +1246,7 @@ components:
           type: string
     CompactOrganization:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1236,6 +1258,7 @@ components:
           type: string
     CompactOrganizations:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array

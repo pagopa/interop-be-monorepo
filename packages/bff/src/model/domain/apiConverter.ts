@@ -107,15 +107,12 @@ export const toApiAttributeProcessSeed = (
 });
 
 export function toAuthorizationKeySeed(
-  seed: bffApi.KeySeed,
-  userId: string
+  seed: bffApi.KeySeed
 ): authorizationApi.KeySeed {
   return {
-    userId,
     key: seed.key,
     use: seed.use,
     alg: seed.alg,
     name: seed.name,
-    createdAt: new Date().toISOString(),
   };
 }

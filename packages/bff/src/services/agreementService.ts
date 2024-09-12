@@ -393,28 +393,43 @@ export const getLatestAgreement = async (
       })
   );
 
-  return allAgreements
-    .sort((firstAgreement, secondAgreement) => {
-      if (firstAgreement.version !== secondAgreement.version) {
-        const descriptorFirstAgreement = eservice.descriptors.find(
-          (d) => d.id === firstAgreement.descriptorId
-        );
-        const descriptorSecondAgreement = eservice.descriptors.find(
-          (d) => d.id === secondAgreement.descriptorId
-        );
+  type AgreementAndDescriptor = {
+    agreement: agreementApi.Agreement;
+    descriptor: catalogApi.EServiceDescriptor;
+  };
 
-        return descriptorFirstAgreement && descriptorSecondAgreement
-          ? Number(descriptorSecondAgreement.version) -
-              Number(descriptorFirstAgreement.version)
-          : 0;
+  const agreementAndDescriptor = allAgreements.reduce<AgreementAndDescriptor[]>(
+    (acc, agreement) => {
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (descriptor) {
+        acc.push({ agreement, descriptor });
+      }
+      return acc;
+    },
+    []
+  );
+
+  return agreementAndDescriptor
+    .sort((first, second) => {
+      const descriptorFirstAgreement = first.descriptor;
+      const descriptorSecondAgreement = second.descriptor;
+      if (
+        descriptorFirstAgreement.version !== descriptorSecondAgreement.version
+      ) {
+        return (
+          Number(descriptorSecondAgreement.version) -
+          Number(descriptorFirstAgreement.version)
+        );
       } else {
         return (
-          new Date(secondAgreement.createdAt).getTime() -
-          new Date(firstAgreement.createdAt).getTime()
+          new Date(second.agreement.createdAt).getTime() -
+          new Date(first.agreement.createdAt).getTime()
         );
       }
     })
-    .at(0);
+    .at(0)?.agreement;
 };
 
 async function enrichAgreementListEntry(

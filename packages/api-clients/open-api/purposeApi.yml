@@ -740,6 +740,7 @@ components:
   schemas:
     RejectPurposeVersionPayload:
       type: object
+      additionalProperties: false
       description: models the reject payload for this purpose version.
       properties:
         rejectionReason:
@@ -757,6 +758,7 @@ components:
         - GSP
     RiskAnalysisFormConfigResponse:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -769,6 +771,7 @@ components:
         - questions
     FormConfigQuestionResponse:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -812,12 +815,14 @@ components:
         - defaultValue
     ValidationOptionResponse:
       type: object
+      additionalProperties: false
       properties:
         maxLength:
           type: integer
           format: int32
     HideOptionResponse:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -828,6 +833,7 @@ components:
         - value
     LabeledValueResponse:
       type: object
+      additionalProperties: false
       properties:
         label:
           $ref: "#/components/schemas/LocalizedTextResponse"
@@ -838,6 +844,7 @@ components:
         - value
     LocalizedTextResponse:
       type: object
+      additionalProperties: false
       properties:
         it:
           type: string
@@ -855,6 +862,7 @@ components:
         - FREETEXT
     DependencyResponse:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -865,6 +873,7 @@ components:
         - value
     Agreement:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -887,6 +896,7 @@ components:
         - REJECTED
     Client:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -902,6 +912,7 @@ components:
         $ref: "#/components/schemas/Client"
     EService:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -919,6 +930,7 @@ components:
         - descriptor
     EServiceDescriptor:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -946,6 +958,7 @@ components:
         - ARCHIVED
     Organization:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -957,6 +970,7 @@ components:
         - name
     Purpose:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1006,6 +1020,7 @@ components:
       description: business representation of a purpose
     Purposes:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1019,6 +1034,7 @@ components:
         - totalCount
     PurposeUpdateContent:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose update.
       properties:
         title:
@@ -1047,6 +1063,7 @@ components:
         - dailyCalls
     ReversePurposeUpdateContent:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose update.
       properties:
         title:
@@ -1073,6 +1090,7 @@ components:
         - dailyCalls
     PurposeVersion:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1118,6 +1136,7 @@ components:
         - REJECTED
     PurposeVersionDocument:
       type: object
+      additionalProperties: false
       required:
         - id
         - contentType
@@ -1136,6 +1155,7 @@ components:
           format: date-time
     PurposeCloneSeed:
       type: object
+      additionalProperties: false
       properties:
         eserviceId:
           type: string
@@ -1144,6 +1164,7 @@ components:
         - eserviceId
     EServicePurposeSeed:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
         eServiceId:
@@ -1180,6 +1201,7 @@ components:
         - dailyCalls
     PurposeSeed:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
         eserviceId:
@@ -1214,6 +1236,7 @@ components:
         - dailyCalls
     PurposeVersionSeed:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose version creation.
       required:
         - dailyCalls
@@ -1225,6 +1248,7 @@ components:
           minimum: 0
     RiskAnalysisForm:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -1245,6 +1269,7 @@ components:
         - answers
     RiskAnalysisFormSeed:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
