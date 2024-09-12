@@ -460,6 +460,10 @@ export const validateClientKindAndPlatformState = (
         const purposeIdError = jwt.payload.purposeId
           ? undefined
           : purposeIdNotProvided();
+
+        if (platformStateErrors.length === 0 && !purposeIdError) {
+          return { errors: undefined, data: jwt };
+        }
         return {
           errors: [...platformStateErrors, purposeIdError].filter(
             (e) => e !== undefined
