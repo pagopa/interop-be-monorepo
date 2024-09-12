@@ -15,9 +15,9 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { config } from "../config/config.js";
+import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -27,7 +27,6 @@ import {
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
 } from "../model/api/converters/catalogClientApiConverter.js";
-import { eserviceDescriptorNotFound } from "../model/domain/errors.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -36,8 +35,6 @@ import {
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
-import { eserviceRiskNotFound } from "../model/domain/errors.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
