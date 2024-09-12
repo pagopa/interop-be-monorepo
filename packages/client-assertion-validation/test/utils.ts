@@ -9,7 +9,7 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
-import { ApiKey, ClientAssertionHeader, ConsumerKey } from ".././src/types";
+import { ApiKey, ClientAssertionHeader, ConsumerKey } from ".././src/types.js";
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
 
