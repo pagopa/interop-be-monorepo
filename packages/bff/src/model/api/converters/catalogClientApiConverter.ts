@@ -13,7 +13,7 @@ import { attributeNotExists } from "../../domain/errors.js";
 import {
   getLatestActiveDescriptor,
   getNotDraftDescriptor,
-  getTenantEmail,
+  getLatestTenantContactEmail,
 } from "../../modelMappingUtils.js";
 import {
   catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
@@ -125,7 +125,7 @@ export function toBffCatalogDescriptorEService(
       ),
     isSubscribed: isAgreementSubscribed(agreement),
     activeDescriptor: getLatestActiveDescriptor(eservice),
-    mail: getTenantEmail(producerTenant),
+    mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
@@ -210,7 +210,7 @@ export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.ProducerDescriptorEService {
-  const producerMail = getTenantEmail(producer);
+  const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter(
