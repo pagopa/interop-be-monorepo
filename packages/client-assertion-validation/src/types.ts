@@ -76,16 +76,16 @@ export const ApiKey = Key.extend({
 }).strict();
 export type ApiKey = z.infer<typeof ApiKey>;
 
-export type ValidationResult =
-  | { errors: undefined; data: ClientAssertion }
-  | { errors: Array<ApiError<ErrorCodes>>; data: undefined };
+export type ValidationResult<T> = SuccessfulValidation<T> | FailedValidation;
 
-export type FlexibleValidationResult<T> =
-  | { errors: undefined; data: T }
-  | { errors: Array<ApiError<ErrorCodes>>; data: undefined };
-
-// alternatively
-export type ValidationResult2 = {
+export type SuccessfulValidation<T> = { errors: undefined; data: T };
+export type FailedValidation = {
   errors: Array<ApiError<ErrorCodes>>;
-  data?: ClientAssertion;
+  data: undefined;
 };
+
+// // alternatively
+// export type ValidationResult2 = {
+//   errors: Array<ApiError<ErrorCodes>>;
+//   data?: ClientAssertion;
+// };

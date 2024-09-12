@@ -5,12 +5,17 @@ import {
   verifyClientAssertion,
   validateClientKindAndPlatformState,
 } from "./utils.js";
-import { ApiKey, ConsumerKey, ValidationResult } from "./types.js";
+import {
+  ApiKey,
+  ClientAssertion,
+  ConsumerKey,
+  ValidationResult,
+} from "./types.js";
 
 export const validateClientAssertion = async (
   request: authorizationServerApi.AccessTokenRequest,
   key: ConsumerKey | ApiKey // TODO use just Key?
-): Promise<ValidationResult> => {
+): Promise<ValidationResult<ClientAssertion>> => {
   const parametersErrors = validateRequestParameters(request);
 
   const { errors: clientAssertionVerificationErrors, data: jwt } =

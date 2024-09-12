@@ -19,9 +19,10 @@ import {
   ClientAssertion,
   ClientAssertionDigest,
   ConsumerKey,
-  FlexibleValidationResult,
-  Key,
+  FailedValidation,
   ValidationResult,
+  Key,
+  SuccessfulValidation,
 } from "./types.js";
 import {
   ErrorCodes,
@@ -88,71 +89,44 @@ export const validateRequestParameters = (
   ) as Array<ApiError<ErrorCodes>>;
 };
 
-const validateJti = (jti?: string): FlexibleValidationResult<string> => {
+const validateJti = (jti?: string): ValidationResult<string> => {
   if (!jti) {
-    return {
-      errors: [jtiNotFound()],
-      data: undefined,
-    };
+    return failedValidation([jtiNotFound()]);
   } else {
-    return {
-      errors: undefined,
-      data: jti,
-    };
+    return successfulValidation(jti);
   }
 };
 
-const validateIat = (iat?: number): FlexibleValidationResult<number> => {
+const validateIat = (iat?: number): ValidationResult<number> => {
   if (!iat) {
-    return {
-      errors: [issuedAtNotFound()],
-      data: undefined,
-    };
+    return failedValidation([issuedAtNotFound()]);
   } else {
-    return {
-      errors: undefined,
-      data: iat,
-    };
+    return successfulValidation(iat);
   }
 };
 
-const validateExp = (exp?: number): FlexibleValidationResult<number> => {
+const validateExp = (exp?: number): ValidationResult<number> => {
   if (!exp) {
-    return {
-      errors: [expNotFound()],
-      data: undefined,
-    };
+    return failedValidation([expNotFound()]);
   } else {
-    return {
-      errors: undefined,
-      data: exp,
-    };
+    return successfulValidation(exp);
   }
 };
 
-const validateIss = (iss?: string): FlexibleValidationResult<string> => {
+const validateIss = (iss?: string): ValidationResult<string> => {
   if (!iss) {
-    return {
-      errors: [issuerNotFound()],
-      data: undefined,
-    };
+    return failedValidation([issuerNotFound()]);
   } else {
-    return {
-      errors: undefined,
-      data: iss,
-    };
+    return successfulValidation(iss);
   }
 };
 
 const validateSub = (
   sub?: string,
   clientId?: string
-): FlexibleValidationResult<string> => {
+): ValidationResult<string> => {
   if (!sub) {
-    return {
-      errors: [subjectNotFound()],
-      data: undefined,
-    };
+    return failedValidation([subjectNotFound()]);
   }
   if (clientId) {
     const clientIdError = !ClientId.safeParse(clientId).success
@@ -162,117 +136,76 @@ const validateSub = (
       ? invalidSubjectFormat(sub)
       : undefined;
     if (clientIdError || invalidSubFormatError) {
-      return {
-        errors: [clientIdError, invalidSubFormatError].filter(
-          (e) => e !== undefined
-        ) as Array<ApiError<ErrorCodes>>,
-        data: undefined,
-      };
+      return failedValidation([clientIdError, invalidSubFormatError]);
     }
     // TODO: clientId undefined OK?
     if (sub !== clientId) {
-      return {
-        errors: [invalidSubject(sub)],
-        data: undefined,
-      };
+      return failedValidation([invalidSubject(sub)]);
     }
   }
-  return {
-    errors: undefined,
-    data: sub,
-  };
+  return successfulValidation(sub);
 };
 
 const validatePurposeId = (
   purposeId?: string
-): FlexibleValidationResult<PurposeId | undefined> => {
+): ValidationResult<PurposeId | undefined> => {
   if (purposeId && !PurposeId.safeParse(purposeId).success) {
-    return {
-      errors: [invalidPurposeIdClaimFormat(purposeId)],
-      data: undefined,
-    };
+    return failedValidation([invalidPurposeIdClaimFormat(purposeId)]);
   } else {
-    return {
-      errors: undefined,
-      data: purposeId ? unsafeBrandId<PurposeId>(purposeId) : undefined,
-    };
+    const validatedPurposeId = purposeId
+      ? unsafeBrandId<PurposeId>(purposeId)
+      : undefined;
+    return successfulValidation(validatedPurposeId);
   }
 };
 
-const validateKid = (kid?: string): FlexibleValidationResult<string> => {
+const validateKid = (kid?: string): ValidationResult<string> => {
   if (!kid) {
-    return {
-      errors: [kidNotFound()],
-      data: undefined,
-    };
+    return failedValidation([kidNotFound()]);
   }
   const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
   if (alphanumericRegex.test(kid)) {
-    return {
-      errors: undefined,
-      data: kid,
-    };
+    return successfulValidation(kid);
   }
-  return {
-    errors: [invalidKidFormat()],
-    data: undefined,
-  };
+  return failedValidation([invalidKidFormat()]);
 };
 
 const validateAudience = (
   aud: string | string[] | undefined
-): FlexibleValidationResult<string[]> => {
+): ValidationResult<string[]> => {
   if (aud === CLIENT_ASSERTION_AUDIENCE) {
-    return { errors: undefined, data: [aud] };
+    return successfulValidation([aud]);
   }
 
   if (!Array.isArray(aud)) {
-    return {
-      errors: [invalidAudienceFormat()],
-      data: undefined,
-    };
+    return failedValidation([invalidAudienceFormat()]);
   } else {
     if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
-      return { errors: [invalidAudience()], data: undefined };
+      return failedValidation([invalidAudience()]);
     }
-    return { errors: undefined, data: aud };
+    return successfulValidation(aud);
   }
 };
 
-const validateAlgorithm = (alg?: string): FlexibleValidationResult<string> => {
+const validateAlgorithm = (alg?: string): ValidationResult<string> => {
   if (!alg) {
-    return {
-      errors: [algorithmNotFound()],
-      data: undefined,
-    };
+    return failedValidation([algorithmNotFound()]);
   }
   if (alg === ALLOWED_ALGORITHM) {
-    return {
-      errors: undefined,
-      data: alg,
-    };
+    return successfulValidation(alg);
   }
-  return {
-    errors: [algorithmNotAllowed(alg)],
-    data: undefined,
-  };
+  return failedValidation([algorithmNotAllowed(alg)]);
 };
 
 const validateDigest = (
   digest?: object
-): FlexibleValidationResult<ClientAssertionDigest> => {
+): ValidationResult<ClientAssertionDigest> => {
   if (!digest) {
-    return {
-      errors: [digestClaimNotFound()],
-      data: undefined,
-    };
+    return failedValidation([digestClaimNotFound()]);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return {
-      errors: [invalidDigestFormat()],
-      data: undefined,
-    };
+    return failedValidation([invalidDigestFormat()]);
   }
   const validatedDigest = result.data;
   const digestLengthError =
@@ -284,32 +217,24 @@ const validateDigest = (
       ? invalidHashAlgorithm()
       : undefined;
   if (!digestLengthError && !digestAlgError) {
-    return {
-      errors: undefined,
-      data: result.data,
-    };
+    return successfulValidation(result.data);
   }
-  return {
-    errors: [digestLengthError, digestAlgError].filter(
-      (e) => e !== undefined
-    ) as Array<ApiError<ErrorCodes>>,
-    data: undefined,
-  };
+  return failedValidation([digestLengthError, digestAlgError]);
 };
 
 // eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
-): ValidationResult => {
+): ValidationResult<ClientAssertion> => {
   try {
     const decoded = decode(clientAssertionJws, { complete: true, json: true });
     if (!decoded) {
-      return { errors: [invalidClientAssertionFormat()], data: undefined };
+      return failedValidation([invalidClientAssertionFormat()]);
     }
 
     if (typeof decoded.payload === "string") {
-      return { errors: [unexpectedClientAssertionPayload()], data: undefined };
+      return failedValidation([unexpectedClientAssertionPayload()]);
     }
 
     const { errors: jtiErrors, data: validatedJti } = validateJti(
@@ -370,25 +295,22 @@ export const verifyClientAssertion = (
           digest: validatedDigest,
         },
       };
-      return { errors: undefined, data: result };
+      return successfulValidation(result);
     }
-    return {
-      errors: [
-        ...(jtiErrors || []),
-        ...(iatErrors || []),
-        ...(expErrors || []),
-        ...(issErrors || []),
-        ...(subErrors || []),
-        ...(purposeIdErrors || []),
-        ...(kidErrors || []),
-        ...(audErrors || []),
-        ...(algErrors || []),
-        ...(digestErrors || []),
-      ],
-      data: undefined,
-    };
+    return failedValidation([
+      ...(jtiErrors || []),
+      ...(iatErrors || []),
+      ...(expErrors || []),
+      ...(issErrors || []),
+      ...(subErrors || []),
+      ...(purposeIdErrors || []),
+      ...(kidErrors || []),
+      ...(audErrors || []),
+      ...(algErrors || []),
+      ...(digestErrors || []),
+    ]);
   } catch (error) {
-    return { errors: [unexpectedClientAssertionPayload()], data: undefined };
+    return failedValidation([unexpectedClientAssertionPayload()]);
   }
 };
 
@@ -444,15 +366,12 @@ export const validatePlatformState = (
 export const validateClientKindAndPlatformState = (
   key: ApiKey | ConsumerKey,
   jwt: ClientAssertion
-): ValidationResult =>
+): ValidationResult<ClientAssertion> =>
   match(key.clientKind)
     .with(clientKindTokenStates.api, () =>
       ApiKey.safeParse(key).success
-        ? { data: jwt, errors: undefined }
-        : {
-            errors: [unexpectedKeyType(clientKindTokenStates.api)],
-            data: undefined,
-          }
+        ? successfulValidation(jwt)
+        : failedValidation([unexpectedKeyType(clientKindTokenStates.api)])
     )
     .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
@@ -462,18 +381,24 @@ export const validateClientKindAndPlatformState = (
           : purposeIdNotProvided();
 
         if (platformStateErrors.length === 0 && !purposeIdError) {
-          return { errors: undefined, data: jwt };
+          return successfulValidation(jwt);
         }
-        return {
-          errors: [...platformStateErrors, purposeIdError].filter(
-            (e) => e !== undefined
-          ) as Array<ApiError<ErrorCodes>>,
-          data: undefined,
-        };
+        return failedValidation([...platformStateErrors, purposeIdError]);
       }
-      return {
-        errors: [unexpectedKeyType(clientKindTokenStates.consumer)],
-        data: undefined,
-      };
+      return failedValidation([
+        unexpectedKeyType(clientKindTokenStates.consumer),
+      ]);
     })
     .exhaustive();
+
+const successfulValidation = <T>(result: T): SuccessfulValidation<T> => ({
+  data: result,
+  errors: undefined,
+});
+
+const failedValidation = (
+  errors: Array<ApiError<ErrorCodes> | undefined>
+): FailedValidation => ({
+  data: undefined,
+  errors: errors.filter((e) => e !== undefined) as Array<ApiError<ErrorCodes>>,
+});
