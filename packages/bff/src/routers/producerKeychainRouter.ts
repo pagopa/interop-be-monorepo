@@ -16,9 +16,9 @@ import {
   emptyErrorMapper,
   getProducerKeychainUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactProducerKeychain } from "../model/api/apiConverter.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
+import { toBffApiCompactProducerKeychain } from "../model/api/converters/catalogClientApiConverter.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,

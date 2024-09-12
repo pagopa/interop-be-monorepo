@@ -24,9 +24,13 @@ export type TenantProcessServerConfig = z.infer<
 export const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
+    CONSUMER_DOCUMENTS_PATH: z.string(),
+    CONSUMER_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
+    consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
+    consumerDocumentsContainer: c.CONSUMER_DOCUMENTS_CONTAINER,
   }));
 export type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
@@ -103,6 +107,18 @@ export const AllowedListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
+export const ExportFileConfig = z
+  .object({
+    EXPORT_ESERVICE_CONTAINER: z.string(),
+    EXPORT_ESERVICE_PATH: z.string(),
+    PRESIGNED_URL_GET_DURATION_MINUTES: z.coerce.number(),
+  })
+  .transform((c) => ({
+    exportEserviceContainer: c.EXPORT_ESERVICE_CONTAINER,
+    exportEservicePath: c.EXPORT_ESERVICE_PATH,
+    presignedUrlGetDurationMinutes: c.PRESIGNED_URL_GET_DURATION_MINUTES,
+  }));
+export type ExportFileConfig = z.infer<typeof ExportFileConfig>;
 
 export const S3RiskAnalysisConfig = z
   .object({
@@ -125,10 +141,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FileManagerConfig)
   .and(S3RiskAnalysisConfig)
   .and(AllowedListConfig)
-  .and(SelfCareConfig)
-  .and(S3RiskAnalysisConfig)
   .and(S3Config)
-  .and(PurposeProcessServerConfig);
+  .and(ExportFileConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
