@@ -153,6 +153,22 @@ export function toTenantWithOnlyAttributes(
   };
 }
 
+export function toCatalogCreateEServiceSeed(
+  eServiceSeed: bffApi.EServiceSeed
+): catalogApi.EServiceSeed {
+  return {
+    ...eServiceSeed,
+    descriptor: {
+      audience: [],
+      voucherLifespan: 60,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1,
+      agreementApprovalPolicy:
+        catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
+    },
+  };
+}
+
 export function toCompactEserviceLight(
   eservice: agreementApi.CompactEService
 ): bffApi.CompactEServiceLight {
