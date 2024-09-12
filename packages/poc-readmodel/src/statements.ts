@@ -47,7 +47,7 @@ export const prepareInsertDescriptor = (
       descriptorSQL.state,
       descriptorSQL.audience,
       descriptorSQL.voucher_lifespan,
-      descriptorSQL.daily_calls_total,
+      descriptorSQL.daily_calls_per_consumer,
       descriptorSQL.daily_calls_total,
       descriptorSQL.agreement_approval_policy,
       descriptorSQL.created_at,
@@ -92,6 +92,13 @@ export const prepareReadDocumentsByDescriptorId = (id: DescriptorId): any =>
     values: [id],
   });
 
+export const prepareReadDocumentsByEserviceId = (id: EServiceId): any =>
+  new pgPromise.PreparedStatement({
+    name: "read-documents-by-eservice-id",
+    text: "SELECT * FROM readmodel.document WHERE document.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
+    values: [id],
+  });
+
 export const prepareInsertDescriptorAttribute = (
   attributeSQL: DescriptorAttributeSQL
 ): pgPromise.PreparedStatement =>
@@ -99,10 +106,28 @@ export const prepareInsertDescriptorAttribute = (
     name: "insert-descriptor-attribute",
     text: "INSERT INTO readmodel.descriptor_attribute(attribute_id, descriptor_id, explicit_attribute_verification, kind, group_set) VALUES($1, $2, $3, $4, $5)",
     values: [
-      attributeSQL.id,
+      attributeSQL.attribute_id,
       attributeSQL.descriptor_id,
       attributeSQL.explicit_attribute_verification,
       attributeSQL.kind,
       attributeSQL.group_set,
     ],
+  });
+
+export const prepareReadDescriptorAttributeByDescriptorId = (
+  id: DescriptorId
+): any =>
+  new pgPromise.PreparedStatement({
+    name: "read-descriptor-attributes",
+    text: "SELECT * FROM readmodel.descriptor_attribute WHERE descriptor_id = $1",
+    values: [id],
+  });
+
+export const prepareReadDescriptorAttributeByEserviceId = (
+  id: EServiceId
+): any =>
+  new pgPromise.PreparedStatement({
+    name: "read-descriptor-attributes-by-eservice-id",
+    text: "SELECT * FROM readmodel.descriptor_attribute as attribute WHERE attribute.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
+    values: [id],
   });
