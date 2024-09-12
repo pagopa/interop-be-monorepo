@@ -44,11 +44,13 @@ export async function verifyAndCreateEServiceDocument(
     eService.id
   );
   const filePath = await fileManager.storeBytes(
-    config.s3Bucket,
-    config.eserviceDocumentsPath,
-    documentId,
-    doc.doc.name,
-    Buffer.from(await doc.doc.arrayBuffer()),
+    {
+      bucket: config.s3Bucket,
+      path: config.eserviceDocumentsPath,
+      resourceId: documentId,
+      name: doc.doc.name,
+      content: Buffer.from(await doc.doc.arrayBuffer()),
+    },
     ctx.logger
   );
 

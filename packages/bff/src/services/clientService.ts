@@ -11,9 +11,9 @@ import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
-import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
+import { toBffApiCompactUser } from "../model/api/converters/catalogClientApiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
