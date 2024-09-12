@@ -1,4 +1,4 @@
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, ClientKind } from "pagopa-interop-models";
 
 export const errorCodes = {
   clientAssertionValidationFailure: "0001",
@@ -35,11 +35,10 @@ export const errorCodes = {
   algorithmNotAllowed: "0032",
   purposeIdNotProvided: "0033",
   invalidKidFormat: "0034",
+  unexpectedKeyType: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
-
-// TODO: make api problem?
 
 // TODO: missing errors:
 // - InvalidClientIdFormat -> check on uuid
@@ -48,8 +47,8 @@ export type ErrorCodes = keyof typeof errorCodes;
 // - InvalidSubjectFormat -> check on uuid of subject claim
 // - InvalidPurposeIdFormat -> check on uuid of purposeId claim (already covered by invalidPurposeIdClaimFormat?)
 // - DigestClaimNotFound -> check if custom claim digest exists
-// - InvalidDigestClaims -> check if digest has only {alg, value} keys      X we aren't discriminating from safeParse output
-// - InvalidDigestFormat -> probably overlapping with previous. Check if digest is a JSON or a map        ? // TODO: check if map works with safeParse
+// - InvalidDigestClaims -> check if digest has only {alg, value} keys      X we aren't discriminating between different safeParse errors
+// - InvalidDigestFormat -> check object shape
 // - InvalidHashLength -> check on the length of digest.value (digest is a custom claim)
 // - InvalidHashAlgorithm -> check if digest.alg is sha256
 // - AlgorithmNotFound -> check if header.alg is present
@@ -339,5 +338,15 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
     detail: "Unexpected format for kid",
     code: "invalidKidFormat",
     title: "Invalid KID format",
+  });
+}
+
+export function unexpectedKeyType(
+  clientKind: ClientKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key doesn't correspond to client kind: ${clientKind}`,
+    code: "unexpectedKeyType",
+    title: "Unexpected key type",
   });
 }

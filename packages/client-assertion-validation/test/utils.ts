@@ -10,6 +10,8 @@ import {
 } from "pagopa-interop-models";
 import { ClientAssertionHeader, ConsumerKey } from ".././src/types";
 
+export const value64chars = crypto.randomBytes(32).toString("hex");
+
 export const getMockClientAssertion = ({
   customHeader,
   payload,
@@ -29,7 +31,10 @@ export const getMockClientAssertion = ({
     exp: 60,
     jti: generateId(),
     iat: 5,
-    // ...customClaims, // TO DO: how many custom claims? Examples?
+    digest: {
+      alg: "SHA256",
+      value: value64chars,
+    },
   };
 
   const actualPayload = {
@@ -39,7 +44,7 @@ export const getMockClientAssertion = ({
   };
   const options: jwt.SignOptions = {
     header: {
-      kid: "todo",
+      kid: "TODO",
       alg: "RS256",
       ...customHeader,
     },
@@ -59,7 +64,7 @@ export const getMockConsumerKey = (): ConsumerKey => ({
   GSIPK_clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
   kidWithPurposeId: "",
-  publicKey: "todo",
+  publicKey: "TODO",
   algorithm: "RS256",
   clientKind: "Consumer",
   GSIPK_purposeId: generateId<PurposeId>(),

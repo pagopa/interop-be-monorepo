@@ -44,7 +44,7 @@ export type ClientAssertion = z.infer<typeof ClientAssertion>;
 export const Key = z.object({
   GSIPK_clientId: ClientId,
   consumerId: TenantId,
-  kidWithPurposeId: z.string(), // TO DO which field of the table is mapped to this?
+  kidWithPurposeId: z.string(), // TODO which field of the table is mapped to this?
   publicKey: z.string().min(1),
   algorithm: z.literal("RS256"), // no field to map from the table. Is it extracted from publicKey field?
 });
@@ -52,7 +52,7 @@ export type Key = z.infer<typeof Key>;
 
 export const ConsumerKey = Key.extend({
   clientKind: z.literal(clientKind.consumer),
-  GSIPK_purposeId: PurposeId, // to do is this naming ok?
+  GSIPK_purposeId: PurposeId, // TODO is this naming ok?
   purposeState: authorizationManagementApi.ClientComponentState,
   agreementId: AgreementId,
   agreementState: authorizationManagementApi.ClientComponentState,

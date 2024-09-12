@@ -9,10 +9,13 @@ import {
 import {
   ApiError,
   ClientId,
+  clientKind,
   PurposeId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
+  ApiKey,
   ClientAssertion,
   ClientAssertionDigest,
   ConsumerKey,
@@ -53,11 +56,12 @@ import {
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
+  unexpectedKeyType,
 } from "./errors.js";
-const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // To do: env?
+const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // TODO: env?
 const EXPECTED_CLIENT_ASSERTION_TYPE =
-  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // To do: env?
-const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // To do: env?
+  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
+const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
 const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
@@ -293,92 +297,94 @@ export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
 ): ValidationResult => {
-  const decoded = decode(clientAssertionJws, { complete: true, json: true });
+  try {
+    const decoded = decode(clientAssertionJws, { complete: true, json: true });
+    if (!decoded) {
+      return { errors: [invalidClientAssertionFormat()], data: undefined };
+    }
 
-  if (!decoded) {
-    return { errors: [invalidClientAssertionFormat()], data: undefined };
-  }
+    if (typeof decoded.payload === "string") {
+      return { errors: [unexpectedClientAssertionPayload()], data: undefined };
+    }
 
-  if (typeof decoded.payload === "string") {
+    const { errors: jtiErrors, data: validatedJti } = validateJti(
+      decoded.payload.jti
+    );
+    const { errors: iatErrors, data: validatedIat } = validateIat(
+      decoded.payload.iat
+    );
+    const { errors: expErrors, data: validatedExp } = validateExp(
+      decoded.payload.exp
+    );
+    const { errors: issErrors, data: validatedIss } = validateIss(
+      decoded.payload.iss
+    );
+    const { errors: subErrors, data: validatedSub } = validateSub(
+      decoded.payload.sub,
+      clientId
+    );
+    const { errors: purposeIdErrors, data: validatedPurposeId } =
+      validatePurposeId(decoded.payload.purposeId);
+    const { errors: kidErrors, data: validatedKid } = validateKid(
+      decoded.header.kid
+    );
+    const { errors: audErrors, data: validatedAud } = validateAudience(
+      decoded.payload.aud
+    );
+    const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
+      decoded.header.alg
+    );
+    const { errors: digestErrors, data: validatedDigest } = validateDigest(
+      decoded.payload.digest
+    );
+    if (
+      !jtiErrors &&
+      !iatErrors &&
+      !expErrors &&
+      !issErrors &&
+      !subErrors &&
+      !purposeIdErrors &&
+      !kidErrors &&
+      !audErrors &&
+      !algErrors &&
+      !digestErrors
+    ) {
+      const result: ClientAssertion = {
+        header: {
+          kid: validatedKid,
+          alg: validatedAlg,
+        },
+        payload: {
+          sub: validatedSub,
+          purposeId: validatedPurposeId,
+          jti: validatedJti,
+          iat: validatedIat,
+          iss: validatedIss,
+          aud: validatedAud,
+          exp: validatedExp,
+          digest: validatedDigest,
+        },
+      };
+      return { errors: undefined, data: result };
+    }
+    return {
+      errors: [
+        ...(jtiErrors || []),
+        ...(iatErrors || []),
+        ...(expErrors || []),
+        ...(issErrors || []),
+        ...(subErrors || []),
+        ...(purposeIdErrors || []),
+        ...(kidErrors || []),
+        ...(audErrors || []),
+        ...(algErrors || []),
+        ...(digestErrors || []),
+      ],
+      data: undefined,
+    };
+  } catch (error) {
     return { errors: [unexpectedClientAssertionPayload()], data: undefined };
   }
-
-  const { errors: jtiErrors, data: validatedJti } = validateJti(
-    decoded.payload.jti
-  );
-  const { errors: iatErrors, data: validatedIat } = validateIat(
-    decoded.payload.iat
-  );
-  const { errors: expErrors, data: validatedExp } = validateExp(
-    decoded.payload.exp
-  );
-  const { errors: issErrors, data: validatedIss } = validateIss(
-    decoded.payload.iss
-  );
-  const { errors: subErrors, data: validatedSub } = validateSub(
-    decoded.payload.sub,
-    clientId
-  );
-  const { errors: purposeIdErrors, data: validatedPurposeId } =
-    validatePurposeId(decoded.payload.purposeId);
-  const { errors: kidErrors, data: validatedKid } = validateKid(
-    decoded.header.kid
-  );
-  const { errors: audErrors, data: validatedAud } = validateAudience(
-    decoded.payload.aud
-  );
-  const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
-    decoded.header.alg
-  );
-  const { errors: digestErrors, data: validatedDigest } = validateDigest(
-    decoded.payload.digest
-  );
-
-  if (
-    !jtiErrors &&
-    !iatErrors &&
-    !expErrors &&
-    !issErrors &&
-    !subErrors &&
-    !purposeIdErrors &&
-    !kidErrors &&
-    !audErrors &&
-    !algErrors &&
-    !digestErrors
-  ) {
-    const result: ClientAssertion = {
-      header: {
-        kid: validatedKid,
-        alg: validatedAlg,
-      },
-      payload: {
-        sub: validatedSub,
-        purposeId: validatedPurposeId,
-        jti: validatedJti,
-        iat: validatedIat,
-        iss: validatedIss,
-        aud: validatedAud,
-        exp: validatedExp, // TODO Check unit of measure
-        digest: validatedDigest,
-      },
-    };
-    return { errors: undefined, data: result };
-  }
-  return {
-    errors: [
-      ...(jtiErrors || []),
-      ...(iatErrors || []),
-      ...(expErrors || []),
-      ...(issErrors || []),
-      ...(subErrors || []),
-      ...(purposeIdErrors || []),
-      ...(kidErrors || []),
-      ...(audErrors || []),
-      ...(algErrors || []),
-      ...(digestErrors || []),
-    ],
-    data: undefined,
-  };
 };
 
 // export const b64Decode = (str: string): string =>
@@ -388,13 +394,12 @@ export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
   key: Key
 ): Array<ApiError<ErrorCodes>> | undefined => {
-  // todo: should this return a JwtPayload? Probably not
   try {
     const result = verify(clientAssertionJws, key.publicKey, {
       algorithms: [key.algorithm],
     });
 
-    // TODO Improve this
+    // TODO: no idea when result is a string
     if (typeof result === "string") {
       return [invalidClientAssertionSignatureType(typeof result)];
     } else {
@@ -414,10 +419,9 @@ export const verifyClientAssertionSignature = (
   }
 };
 
-export const assertValidPlatformState = (
+export const validatePlatformState = (
   key: ConsumerKey
 ): Array<ApiError<ErrorCodes>> => {
-  // To do: is it ok to have these check throwing errors? So that they can be read if needed (instead of just getting false)
   const agreementError =
     key.agreementState !== "ACTIVE" ? inactiveAgreement() : undefined;
 
@@ -431,3 +435,30 @@ export const assertValidPlatformState = (
     (e) => e !== undefined
   );
 };
+
+export const validateClientKindAndPlatformState = (
+  key: ApiKey,
+  jwt: ClientAssertion
+): ValidationResult =>
+  match(key.clientKind)
+    .with(clientKind.api, () => {
+      console.log("key", key);
+      console.log("safeParse", ApiKey.safeParse(key).success);
+      return !ApiKey.safeParse(key).success
+        ? { errors: [unexpectedKeyType(clientKind.api)], data: undefined }
+        : { data: jwt, errors: undefined };
+    })
+    .with(clientKind.consumer, () => {
+      if (ConsumerKey.safeParse(key).success) {
+        const platformStateErrors = validatePlatformState(key as ConsumerKey);
+        if (platformStateErrors.length === 0) {
+          return { data: jwt, errors: undefined };
+        }
+        return { errors: platformStateErrors, data: undefined };
+      }
+      return {
+        errors: [unexpectedKeyType(clientKind.consumer)],
+        data: undefined,
+      };
+    })
+    .exhaustive();
