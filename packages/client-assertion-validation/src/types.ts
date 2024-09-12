@@ -83,9 +83,3 @@ export type FailedValidation = {
   errors: Array<ApiError<ErrorCodes>>;
   data: undefined;
 };
-
-// // alternatively
-// export type ValidationResult2 = {
-//   errors: Array<ApiError<ErrorCodes>>;
-//   data?: ClientAssertion;
-// };
