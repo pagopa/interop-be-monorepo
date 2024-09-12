@@ -16,6 +16,7 @@ import { match, P } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
+import { toApiCompactTenant } from "./converters.js";
 
 const agreementProcessClient = agreementApi.createAgreementApiClient(
   config.agreementProcessUrl
@@ -64,7 +65,7 @@ async function processMessage({
           await agreementProcessClient.computeAgreementsByAttribute(
             {
               attributeId: unsafeBrandId(attributeId),
-              consumer: fromTenantV2(tenant),
+              consumer: toApiCompactTenant(fromTenantV2(tenant)),
             },
             {
               headers: {

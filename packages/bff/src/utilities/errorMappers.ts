@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -10,6 +11,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -17,6 +19,7 @@ export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "descriptorNotFound",
       "eserviceRiskNotFound",
+      "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -32,6 +35,17 @@ export const reversePurposeUpdateErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "eServiceNotFound",
+      "agreementNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "tenantNotFound",
@@ -64,4 +78,45 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "agreementDescriptorNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getAgreementByIdErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "agreementDescriptorNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const activateAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getClientUsersErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getProducerKeychainUsersErrorMapper = (
+  error: ApiError<ErrorCodes>
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): number =>
+  match(error.code)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
