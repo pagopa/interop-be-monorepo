@@ -27,6 +27,7 @@
     "testcontainers": "10.9.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
+    "mongodb-memory-server": "^8.15.1",
     "vitest": "1.6.0"
   },
   "dependencies": {
