@@ -53,7 +53,7 @@ export const EServiceAttributes = z.object({
 export type EserviceAttributes = z.infer<typeof EServiceAttributes>;
 
 export const DescriptorAttributeSQL = z.object({
-  id: AttributeId,
+  attribute_id: AttributeId,
   descriptor_id: DescriptorId,
   explicit_attribute_verification: z.boolean(),
   kind: AttributeKind,
