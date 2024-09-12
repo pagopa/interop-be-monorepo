@@ -34,7 +34,10 @@ export const errorCodes = {
   invalidJwtClaim: "0026",
   samlNotValid: "0027",
   missingSelfcareId: "0028",
-  notValidDescriptor: "0029",
+  invalidContentType: "0029",
+  contractNotFound: "0030",
+  contractException: "0031",
+  notValidDescriptor: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -291,5 +294,33 @@ export function notValidDescriptor(
     detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
+  });
+}
+
+export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "contractNotFound",
+    title: "Contract not found",
+  });
+}
+
+export function contractException(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract exception for agreement ${agreementId}`,
+    code: "contractException",
+    title: "Contract exception",
+  });
+}
+
+export function invalidContentType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
+    code: "invalidContentType",
+    title: "Invalid content type",
   });
 }
