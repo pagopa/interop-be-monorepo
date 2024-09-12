@@ -154,7 +154,6 @@ const producerKeychainRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await producerKeychainService.createProducerKey(
-          ctx.authData.userId,
           req.params.producerKeychainId,
           req.body,
           ctx

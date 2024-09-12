@@ -17,6 +17,7 @@ import {
 } from "pagopa-interop-models";
 import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { config } from "../config/config.js";
+import { toCatalogCreateEServiceSeed } from "../model/api/apiConverter.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
@@ -330,6 +331,44 @@ export function catalogServiceBuilder(
         id: updatedEservice.id,
       };
     },
+    createEService: async (
+      eServiceSeed: bffApi.EServiceSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const { id, descriptors } = await catalogProcessClient.createEService(
+        toCatalogCreateEServiceSeed(eServiceSeed),
+        {
+          headers,
+        }
+      );
+      return { id, descriptorId: descriptors[0].id };
+    },
+    updateEServiceById: async (
+      eServiceId: EServiceId,
+      updateEServiceSeed: bffApi.UpdateEServiceSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      const { id } = await catalogProcessClient.updateEServiceById(
+        updateEServiceSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+      return { id };
+    },
+    deleteEService: async (
+      eServiceId: EServiceId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> =>
+      await catalogProcessClient.deleteEService(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      }),
     createEServiceDocument: async (
       eServiceId: string,
       descriptorId: string,
