@@ -16,7 +16,6 @@ import {
   getAllFromPaginated,
   WithLogger,
 } from "pagopa-interop-commons";
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
 import {
@@ -828,7 +827,7 @@ export function catalogServiceBuilder(
       descriptorId: string,
       seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
       { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> =>
+    ): Promise<bffApi.CreatedResource> =>
       await catalogProcessClient.updateDescriptor(seed, {
         headers,
         params: {
