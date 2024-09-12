@@ -399,7 +399,7 @@ describe("integration tests", async () => {
         expect(result).toEqual([]);
       });
 
-      it("should return entries if they exist", async () => {
+      it("should return entries if they exist (no need for pagination)", async () => {
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
@@ -439,6 +439,46 @@ describe("integration tests", async () => {
         expect(tokenEntries).toEqual(
           expect.arrayContaining([tokenStateEntry1, tokenStateEntry2])
         );
+      });
+
+      it("should return entries if they exist (with pagination)", async () => {
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+        });
+
+        const tokenEntriesLength = 2000;
+
+        const writtenEntries = [];
+        // eslint-disable-next-line functional/no-let
+        for (let i = 0; i < tokenEntriesLength; i++) {
+          const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK(
+            {
+              clientId: generateId(),
+              kid: `kid ${Math.random()}`,
+              purposeId: generateId(),
+            }
+          );
+          const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
+            descriptorState: itemState.inactive,
+            descriptorAudience: "pagopa.it",
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          };
+          await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+          // eslint-disable-next-line functional/immutable-data
+          writtenEntries.push(tokenStateEntry);
+        }
+        vi.spyOn(dynamoDBClient, "send");
+        const tokenEntries =
+          await readTokenStateEntriesByEserviceIdAndDescriptorId(
+            eserviceId_descriptorId,
+            dynamoDBClient
+          );
+
+        expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
+        expect(tokenEntries).toHaveLength(tokenEntriesLength);
+        expect(tokenEntries).toEqual(expect.arrayContaining(writtenEntries));
       });
     });
 
