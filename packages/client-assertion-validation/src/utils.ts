@@ -82,7 +82,9 @@ export const validateRequestParameters = (
   if (!assertionTypeError && !grantTypeError) {
     return undefined;
   }
-  return [assertionTypeError, grantTypeError].filter((e) => e !== undefined);
+  return [assertionTypeError, grantTypeError].filter(
+    (e) => e !== undefined
+  ) as Array<ApiError<ErrorCodes>>;
 };
 
 const validateJti = (jti?: string): FlexibleValidationResult<string> => {
@@ -162,7 +164,7 @@ const validateSub = (
       return {
         errors: [clientIdError, invalidSubFormatError].filter(
           (e) => e !== undefined
-        ),
+        ) as Array<ApiError<ErrorCodes>>,
         data: undefined,
       };
     }
@@ -287,7 +289,9 @@ const validateDigest = (
     };
   }
   return {
-    errors: [digestLengthError, digestAlgError].filter((e) => e !== undefined),
+    errors: [digestLengthError, digestAlgError].filter(
+      (e) => e !== undefined
+    ) as Array<ApiError<ErrorCodes>>,
     data: undefined,
   };
 };
@@ -433,7 +437,7 @@ export const validatePlatformState = (
 
   return [agreementError, descriptorError, purposeError].filter(
     (e) => e !== undefined
-  );
+  ) as Array<ApiError<ErrorCodes>>;
 };
 
 export const validateClientKindAndPlatformState = (
