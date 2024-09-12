@@ -446,12 +446,12 @@ export const validateClientKindAndPlatformState = (
 ): ValidationResult =>
   match(key.clientKind)
     .with(clientKindTokenStates.api, () =>
-      !ApiKey.safeParse(key).success
-        ? {
+      ApiKey.safeParse(key).success
+        ? { data: jwt, errors: undefined }
+        : {
             errors: [unexpectedKeyType(clientKindTokenStates.api)],
             data: undefined,
           }
-        : { data: jwt, errors: undefined }
     )
     .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
