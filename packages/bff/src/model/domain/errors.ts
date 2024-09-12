@@ -34,6 +34,9 @@ export const errorCodes = {
   invalidJwtClaim: "0026",
   samlNotValid: "0027",
   missingSelfcareId: "0028",
+  invalidContentType: "0029",
+  contractNotFound: "0030",
+  contractException: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -281,5 +284,33 @@ export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
     detail: `Error extracting info from interface file`,
     code: "interfaceExtractingInfoError",
     title: "Error extracting info from interface file",
+  });
+}
+
+export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "contractNotFound",
+    title: "Contract not found",
+  });
+}
+
+export function contractException(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract exception for agreement ${agreementId}`,
+    code: "contractException",
+    title: "Contract exception",
+  });
+}
+
+export function invalidContentType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
+    code: "invalidContentType",
+    title: "Invalid content type",
   });
 }
