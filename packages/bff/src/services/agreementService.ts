@@ -36,6 +36,7 @@ import {
 } from "../model/api/converters/catalogClientApiConverter.js";
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
+import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
@@ -635,9 +636,7 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: producer.mails.find(
-        (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-      ),
+      contactMail: getLatestTenantContactEmail(producer),
     },
     consumer: {
       id: agreement.consumerId,
@@ -647,9 +646,7 @@ export async function enrichAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: consumer.mails.find(
-        (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-      ),
+      contactMail: getLatestTenantContactEmail(consumer),
       features: consumer.features,
     },
     eservice: {

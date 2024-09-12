@@ -4,6 +4,8 @@ import {
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { isDefined } from "pagopa-interop-commons";
+import { TenantMail } from "pagopa-interop-models";
+import { getLatestTenantContactEmail } from "../modelMappingUtils.js";
 
 export const toBffApiCompactOrganization = (
   input: tenantApi.Tenant
@@ -112,20 +114,6 @@ export function toBffApiVerifiedTenantAttributes(
     .filter(isDefined);
 }
 
-function toBffApiTenantMail(
-  tenantMails: tenantApi.Tenant["mails"]
-): bffApi.Mail | undefined {
-  const mail = tenantMails.find(
-    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-  );
-  return mail
-    ? {
-        address: mail.address,
-        description: mail.description,
-      }
-    : undefined;
-}
-
 export function toBffApiTenant(
   tenant: tenantApi.Tenant,
   certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
@@ -143,7 +131,7 @@ export function toBffApiTenant(
     features: tenant.features,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
-    contactMail: toBffApiTenantMail(tenant.mails),
+    contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
       certified: toBffApiCertifiedTenantAttributes(
         certifiedAttributes,
@@ -172,5 +160,22 @@ export async function toBffApiCompactTenant(
     name: tenant.name,
     selfcareId: tenant.selfcareId,
     logoUrl: await getLogoUrl(tenant.selfcareId),
+  };
+}
+
+export function fromApiTenantMail(mail: tenantApi.Mail): TenantMail {
+  return {
+    id: mail.id,
+    kind: mail.kind,
+    address: mail.address,
+    createdAt: new Date(mail.createdAt),
+    description: mail.description,
+  };
+}
+
+export function toBffTenantMail(mail: TenantMail): bffApi.Mail {
+  return {
+    address: mail.address,
+    description: mail.description,
   };
 }
