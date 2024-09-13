@@ -11,6 +11,7 @@ import {
   ApiError,
   ClientId,
   clientKindTokenStates,
+  itemState,
   PurposeId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -344,13 +345,13 @@ export const validatePlatformState = (
   key: ConsumerKey
 ): ValidationResult<ConsumerKey> => {
   const agreementError =
-    key.agreementState !== "ACTIVE" ? inactiveAgreement() : undefined;
+    key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
 
   const descriptorError =
-    key.descriptorState !== "ACTIVE" ? inactiveEService() : undefined;
+    key.descriptorState !== itemState.active ? inactiveEService() : undefined;
 
   const purposeError =
-    key.purposeState !== "ACTIVE" ? inactivePurpose() : undefined;
+    key.purposeState !== itemState.active ? inactivePurpose() : undefined;
 
   if (!agreementError && !descriptorError && !purposeError) {
     return successfulValidation(key);
