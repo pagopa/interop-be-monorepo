@@ -2,7 +2,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import { randomUUID } from "crypto";
+import AdmZip from "adm-zip";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  WithLogger,
+  createPollingByCondition,
+  formatDateyyyyMMddThhmmss,
+  getAllFromPaginated,
+} from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceDocumentId,
@@ -10,28 +18,27 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  formatDateyyyyMMddThhmmss,
-  getAllFromPaginated,
-  WithLogger,
-} from "pagopa-interop-commons";
 import { BffProcessConfig, config } from "../config/config.js";
-import { catalogApiDescriptorState } from "../model/api/apiTypes.js";
+import {
+  ConfigurationEservice,
+  catalogApiDescriptorState,
+} from "../model/api/apiTypes.js";
 import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
-  toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiEService,
+  toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogApiEserviceRiskAnalysisSeed,
   toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
   toCatalogCreateEServiceSeed,
 } from "../model/api/converters/catalogClientApiConverter.js";
 import {
+  eserviceDescriptorNotFound,
   eserviceRiskNotFound,
+  invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
-  eserviceDescriptorNotFound,
 } from "../model/domain/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { assertRequesterIsProducer } from "../model/validators.js";
@@ -42,8 +49,11 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { verifyAndCreateEServiceDocument } from "../utilities/eserviceDocumentUtils.js";
-import { createDescriptorDocumentZipFile } from "../utilities/fileutils.js";
+import {
+  verifyAndCreateEServiceDocument,
+  verifyAndCreateImportedDoc,
+} from "../utilities/eserviceDocumentUtils.js";
+import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -942,6 +952,172 @@ export function catalogServiceBuilder(
       return {
         filename,
         url,
+      };
+    },
+    importEService: async (
+      fileResource: bffApi.FileResource,
+      context: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
+      const tenantId = context.authData.organizationId;
+      const zipFile = await fileManager.get(
+        config.importEserviceContainer,
+        `${config.importEservicePath}/${tenantId}/${fileResource.filename}`,
+        context.logger
+      );
+
+      const zip = new AdmZip(Buffer.from(zipFile));
+
+      const rootFolderName = fileResource.filename.replace(".zip", "");
+
+      const entriesMap = zip.getEntries().reduce((map, entry) => {
+        map.set(entry.entryName.replace(rootFolderName + "/", ""), entry);
+        return map;
+      }, new Map<string, AdmZip.IZipEntry>());
+
+      const configurationEntry = entriesMap.get("configuration.json");
+      if (!configurationEntry) {
+        throw invalidZipStructure("Error reading configuration.json");
+      }
+
+      const jsonContent = configurationEntry.getData().toString("utf8");
+      const { data: importedEservice, error } = ConfigurationEservice.safeParse(
+        JSON.parse(jsonContent)
+      );
+
+      if (error) {
+        throw invalidZipStructure("Error decoding configuration.json");
+      }
+      const docsPath = importedEservice.descriptor.docs.map((doc) =>
+        entriesMap.get(doc.path)?.getData()
+      );
+      if (docsPath.some((doc) => doc === undefined)) {
+        throw invalidZipStructure("Error reading docs");
+      }
+
+      const descriptorInterface = importedEservice.descriptor.interface;
+
+      if (
+        descriptorInterface &&
+        entriesMap.get(descriptorInterface.path) === undefined
+      ) {
+        throw invalidZipStructure("Error reading interface");
+      }
+
+      const allowedFiles = [
+        "configuration.json",
+        "documents/",
+        importedEservice.descriptor.interface?.path,
+        ...importedEservice.descriptor.docs.map((doc) => doc.path),
+      ].filter(
+        (path: string | undefined): path is string => path !== undefined
+      );
+
+      const filePaths = Array.from(entriesMap.keys());
+
+      const difference = filePaths.filter(
+        (item) => !allowedFiles.includes(item)
+      );
+      if (difference.length > 0) {
+        throw invalidZipStructure(
+          `Not allowed files found: ${difference.join(", ")}`
+        );
+      }
+
+      const eserviceSeed: catalogApi.EServiceSeed = {
+        name: importedEservice.name,
+        description: importedEservice.description,
+        technology: importedEservice.technology,
+        mode: importedEservice.mode,
+        descriptor: {
+          description: importedEservice.descriptor.description,
+          audience: importedEservice.descriptor.audience,
+          voucherLifespan: importedEservice.descriptor.voucherLifespan,
+          dailyCallsPerConsumer:
+            importedEservice.descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: importedEservice.descriptor.dailyCallsTotal,
+          agreementApprovalPolicy:
+            importedEservice.descriptor.agreementApprovalPolicy,
+        },
+      };
+
+      const pollEServiceById = createPollingByCondition(() =>
+        catalogProcessClient.getEServiceById({
+          params: {
+            eServiceId: eservice.id,
+          },
+          headers: context.headers,
+        })
+      );
+
+      const eservice = await catalogProcessClient.createEService(eserviceSeed, {
+        headers: context.headers,
+      });
+      await pollEServiceById((result) => result.descriptors.length > 0);
+
+      for (const riskAnalysis of importedEservice.riskAnalysis) {
+        try {
+          await catalogProcessClient.createRiskAnalysis(
+            toBffCatalogApiEserviceRiskAnalysisSeed(riskAnalysis),
+            {
+              headers: context.headers,
+              params: {
+                eServiceId: eservice.id,
+              },
+            }
+          );
+        } catch (error) {
+          await catalogProcessClient.deleteEService(undefined, {
+            headers: context.headers,
+            params: {
+              eServiceId: eservice.id,
+            },
+          });
+        }
+        await pollEServiceById((result) => result.riskAnalysis.length > 0);
+      }
+
+      const descriptor = eservice.descriptors[0];
+      if (descriptorInterface) {
+        await verifyAndCreateImportedDoc(
+          catalogProcessClient,
+          fileManager,
+          eservice,
+          descriptor,
+          entriesMap,
+          descriptorInterface,
+          "INTERFACE",
+          context
+        );
+      }
+      await pollEServiceById((result) =>
+        result.descriptors.some(
+          (d) => d.id === descriptor.id && d.interface !== undefined
+        )
+      );
+
+      for (const doc of importedEservice.descriptor.docs) {
+        await verifyAndCreateImportedDoc(
+          catalogProcessClient,
+          fileManager,
+          eservice,
+          descriptor,
+          entriesMap,
+          doc,
+          "DOCUMENT",
+          context
+        );
+        await pollEServiceById((result) =>
+          result.descriptors.some(
+            (d) =>
+              d.id === descriptor.id &&
+              d.docs.some((d) => d.prettyName === doc.prettyName)
+          )
+        );
+      }
+
+      return {
+        id: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
       };
     },
   };

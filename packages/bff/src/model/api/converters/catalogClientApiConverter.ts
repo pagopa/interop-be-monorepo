@@ -35,7 +35,10 @@ import {
   isAgreementUpgradable,
   hasCertifiedAttributes,
 } from "../../validators.js";
-import { catalogApiDescriptorState } from "../apiTypes.js";
+import {
+  ConfigurationRiskAnalysis,
+  catalogApiDescriptorState,
+} from "../apiTypes.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -211,6 +214,46 @@ export function toBffCatalogApiEserviceRiskAnalysis(
     id: riskAnalysis.id,
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt,
+    riskAnalysisForm,
+  };
+}
+
+export function toBffCatalogApiEserviceRiskAnalysisSeed(
+  riskAnalysis: ConfigurationRiskAnalysis
+): bffApi.EServiceRiskAnalysisSeed {
+  const answers: bffApi.RiskAnalysisForm["answers"] =
+    riskAnalysis.riskAnalysisForm.singleAnswers
+      .concat(
+        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
+          multiAnswer.values.map((answerValue) => ({
+            value: answerValue,
+            key: multiAnswer.key,
+          }))
+        )
+      )
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
+        const key = answer.key;
+        if (!answers[key]) {
+          answers[key] = [];
+        }
+
+        if (answer.value) {
+          answers[key] = [...answers[key], answer.value];
+        } else {
+          answers[key] = [];
+        }
+
+        return answers;
+      }, {});
+
+  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
+    version: riskAnalysis.riskAnalysisForm.version,
+    answers,
+  };
+
+  return {
+    name: riskAnalysis.name,
     riskAnalysisForm,
   };
 }
