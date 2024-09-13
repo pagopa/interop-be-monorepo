@@ -33,8 +33,8 @@
     "vitest": "1.6.0"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.602.0",
-    "@aws-sdk/util-dynamodb": "^3.602.0",
+    "@aws-sdk/client-dynamodb": "3.602.0",
+    "@aws-sdk/util-dynamodb": "3.602.0",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "axios": "1.7.4",
