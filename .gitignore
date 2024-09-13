@@ -47,6 +47,9 @@ packages/*/src/generated
 # MinIO container data
 docker/minio-data
 
+# DynamoDB container data
+docker/dynamo-db-data
+
 ### Turbo ###
 # Turborepo task cache
 .turbo

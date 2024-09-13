@@ -274,6 +274,30 @@ const producerKeychainRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/encoded/keys/:keyId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const key =
+            await producerKeychainService.getEncodedProducerKeychainKeyById(
+              req.params.producerKeychainId,
+              req.params.keyId,
+              ctx
+            );
+
+          return res.status(200).json(key).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error retrieving key ${req.params.keyId} for producer keychain ${req.params.producerKeychainId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return producerKeychainRouter;
