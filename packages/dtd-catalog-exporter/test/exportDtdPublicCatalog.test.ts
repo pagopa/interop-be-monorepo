@@ -132,7 +132,7 @@ describe("exportDtdPublicCatalog", () => {
 
     await addOneEService(eserviceMock);
 
-    void expect(async () => {
+    await expect(async () => {
       await dtdCatalogExporterService.exportDtdPublicCatalog();
     }).rejects.toThrowError(
       genericError(`Producer for e-service ${eserviceMock.id} not found`)
@@ -163,7 +163,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceMock);
     await addOneTenant(producerMock);
 
-    void expect(async () => {
+    await expect(async () => {
       await dtdCatalogExporterService.exportDtdPublicCatalog();
     }).rejects.toThrowError(
       genericError(`Attribute with id ${attributeMock.id} not found`)
