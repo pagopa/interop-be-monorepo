@@ -1,8 +1,9 @@
 import { constants } from "http2";
 import {
   ApiError,
-  AttributeId,
+  parseErrorMessage,
   makeApiProblemBuilder,
+  AttributeId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -34,6 +35,14 @@ export const errorCodes = {
   invalidJwtClaim: "0026",
   samlNotValid: "0027",
   missingSelfcareId: "0028",
+  invalidContentType: "0029",
+  contractNotFound: "0030",
+  contractException: "0031",
+  notValidDescriptor: "0032",
+  dynamoReadingError: "0033",
+  privacyNoticeNotFoundInConfiguration: "0034",
+  privacyNoticeNotFound: "0035",
+  privacyNoticeVersionIsNotTheLatest: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -73,6 +82,46 @@ export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
   });
 }
 
+export function dynamoReadingError(error: unknown): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error while reading data from Dynamo -> ${parseErrorMessage(
+      error
+    )}`,
+    code: "dynamoReadingError",
+    title: "Dynamo reading error",
+  });
+}
+
+export function privacyNoticeNotFoundInConfiguration(
+  privacyNoticeKind: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Privacy Notice ${privacyNoticeKind} not found in configuration`,
+    code: "privacyNoticeNotFoundInConfiguration",
+    title: "Privacy Notice not found in configuration",
+  });
+}
+
+export function privacyNoticeNotFound(
+  privacyNoticeKind: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Privacy Notice ${privacyNoticeKind} not found`,
+    code: "privacyNoticeNotFound",
+    title: "Privacy Notice not found",
+  });
+}
+
+export function privacyNoticeVersionIsNotTheLatest(
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PrivacyNotice version ${versionId} not found`,
+    code: "privacyNoticeVersionIsNotTheLatest",
+    title: "Privacy Notice version is not the latest",
+  });
+}
+
 export function agreementDescriptorNotFound(
   agreementId: string
 ): ApiError<ErrorCodes> {
@@ -106,6 +155,16 @@ export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
     title: "Agreement not found",
   });
 }
+export function invalidEServiceRequester(
+  eserviceId: string,
+  requesterId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
+    code: "invalidEserviceRequester",
+    title: `Invalid eservice requester`,
+  });
+}
 
 export function eserviceDescriptorNotFound(
   eserviceId: string,
@@ -125,17 +184,6 @@ export function purposeDraftVersionNotFound(
     detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
     code: "purposeDraftVersionNotFound",
     title: "Purpose draft version not found",
-  });
-}
-
-export function invalidEServiceRequester(
-  eserviceId: string,
-  requesterId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} does not belong to producer ${requesterId}`,
-    code: "invalidEserviceRequester",
-    title: `Invalid eservice requester`,
   });
 }
 
@@ -201,6 +249,16 @@ export function invalidRiskAnalysisContentType(
     title: "Invalid Risk Analysis content type",
   });
 }
+export function eserviceRiskNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}`,
+    code: "eserviceRiskNotFound",
+    title: "Risk analysis not found",
+  });
+}
 
 export function missingInterface(
   eserviceId: string,
@@ -210,17 +268,6 @@ export function missingInterface(
     detail: `Missing interface for Eservice ${eserviceId} and descriptor ${descriptorId}`,
     code: "missingInterface",
     title: "Missing interface",
-  });
-}
-
-export function eserviceRiskNotFound(
-  eserviceId: string,
-  riskAnalysisId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
-    code: "eserviceRiskNotFound",
-    title: "Risk analysis not found",
   });
 }
 
@@ -281,5 +328,44 @@ export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
     detail: `Error extracting info from interface file`,
     code: "interfaceExtractingInfoError",
     title: "Error extracting info from interface file",
+  });
+}
+
+export function notValidDescriptor(
+  descriptorId: string,
+  state: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    code: "notValidDescriptor",
+    title: "Not valid descriptor",
+  });
+}
+
+export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "contractNotFound",
+    title: "Contract not found",
+  });
+}
+
+export function contractException(agreementId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract exception for agreement ${agreementId}`,
+    code: "contractException",
+    title: "Contract exception",
+  });
+}
+
+export function invalidContentType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
+    code: "invalidContentType",
+    title: "Invalid content type",
   });
 }

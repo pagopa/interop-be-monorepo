@@ -16,11 +16,13 @@ describe("FileManager tests", async () => {
   describe("FileManager storeBytes", () => {
     it("should store a file in the bucket", async () => {
       const result = await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test",
-        Buffer.from("test"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test",
+          content: Buffer.from("test"),
+        },
         genericLogger
       );
       expect(result).toBe("test/test/test");
@@ -45,11 +47,13 @@ describe("FileManager tests", async () => {
     it("should fail if the bucket does not exist", async () => {
       await expect(
         fileManager.storeBytes(
-          "invalid bucket",
-          "test",
-          "test",
-          "test",
-          Buffer.from("test"),
+          {
+            bucket: "invalid bucket",
+            path: "test",
+            resourceId: "test",
+            name: "test",
+            content: Buffer.from("test"),
+          },
           genericLogger
         )
       ).rejects.toThrowError(
@@ -65,11 +69,13 @@ describe("FileManager tests", async () => {
   describe("FileManager get", () => {
     it("should get a file in the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test1",
-        Buffer.from("test1"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test1",
+          content: Buffer.from("test1"),
+        },
         genericLogger
       );
 
@@ -112,19 +118,23 @@ describe("FileManager tests", async () => {
   describe("FileManager listFiles", () => {
     it("should list all files in the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test1",
-        Buffer.from("test1"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test1",
+          content: Buffer.from("test1"),
+        },
         genericLogger
       );
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test2",
-        Buffer.from("test2"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test2",
+          content: Buffer.from("test2"),
+        },
         genericLogger
       );
 
@@ -154,11 +164,13 @@ describe("FileManager tests", async () => {
   describe("FileManager delete", () => {
     it("should remove a file from the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test",
-        Buffer.from("test"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test",
+          content: Buffer.from("test"),
+        },
         genericLogger
       );
       const listBeforeDelete = await fileManager.listFiles(
@@ -191,11 +203,13 @@ describe("FileManager tests", async () => {
   describe("FileManager copy", () => {
     it("should copy a file in the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test",
-        Buffer.from("test"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test",
+          content: Buffer.from("test"),
+        },
         genericLogger
       );
 
