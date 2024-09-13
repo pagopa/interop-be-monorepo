@@ -43,6 +43,7 @@ export const errorCodes = {
   privacyNoticeNotFoundInConfiguration: "0034",
   privacyNoticeNotFound: "0035",
   privacyNoticeVersionIsNotTheLatest: "0036",
+  invalidZipStructure: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -367,5 +368,13 @@ export function invalidContentType(
     detail: `Invalid contentType ${contentType} for document ${documentId} from agreement ${agreementId}`,
     code: "invalidContentType",
     title: "Invalid content type",
+  });
+}
+
+export function invalidZipStructure(description: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid zip structure: ${description}`,
+    code: "invalidZipStructure",
+    title: "Invalid zip structure",
   });
 }

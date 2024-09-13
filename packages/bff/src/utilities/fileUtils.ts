@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
+import { Readable } from "stream";
+import crypto from "crypto";
 import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -9,6 +11,7 @@ import { DescriptorId, genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/domain/errors.js";
 import { verifyExportEligibility } from "../model/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
+import { ConfigurationEservice } from "../model/api/apiTypes.js";
 /* 
   FileDocumentsRegistry is a map that contains the following information:
   - occurrences: a map that contains the number of occurrences of a document name
@@ -70,7 +73,7 @@ export function buildJsonConfig(
   fileDocumentRegistry: FileDocumentsRegistry,
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor
-) {
+): ConfigurationEservice {
   return {
     name: eservice.name,
     description: eservice.description,
@@ -79,7 +82,7 @@ export function buildJsonConfig(
     descriptor: {
       interface: descriptor.interface && {
         prettyName: descriptor.interface.prettyName,
-        path: descriptor.interface.path,
+        path: descriptor.interface.name,
       },
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
@@ -87,7 +90,7 @@ export function buildJsonConfig(
           doc.id
         );
         return {
-          prettyname: doc.prettyName,
+          prettyName: doc.prettyName,
           path: `documents/${uniqueName}`,
         };
       }),
@@ -97,21 +100,21 @@ export function buildJsonConfig(
       dailyCallsTotal: descriptor.dailyCallsTotal,
       description: descriptor.description,
       agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
-      riskAnalysis: eservice.riskAnalysis.map((ra) => ({
-        name: ra.name,
-        riskAnalysisForm: {
-          version: ra.riskAnalysisForm.version,
-          singleAnswers: ra.riskAnalysisForm.singleAnswers.map((sa) => ({
-            key: sa.key,
-            value: sa.value,
-          })),
-          multiAnswers: ra.riskAnalysisForm.multiAnswers.map((ma) => ({
-            key: ma.key,
-            values: ma.values,
-          })),
-        },
-      })),
     },
+    riskAnalysis: eservice.riskAnalysis.map((ra) => ({
+      name: ra.name,
+      riskAnalysisForm: {
+        version: ra.riskAnalysisForm.version,
+        singleAnswers: ra.riskAnalysisForm.singleAnswers.map((sa) => ({
+          key: sa.key,
+          value: sa.value,
+        })),
+        multiAnswers: ra.riskAnalysisForm.multiAnswers.map((ma) => ({
+          key: ma.key,
+          values: ma.values,
+        })),
+      },
+    })),
   };
 }
 
@@ -125,10 +128,6 @@ export function buildJsonConfig(
   The zip folder structure in output is the following:
   - zipFolderName
       |
-      |- interface
-      |     |
-      |     |- interfaceFile.{fileExtension}
-      |
       |- documents
       |     |
       |     |- documentFile1.{fileExtension}
@@ -136,6 +135,7 @@ export function buildJsonConfig(
       |     |- ...
       |
       |- configuration.json
+      |- interfaceFile.{fileExtension}
 */
 export async function createDescriptorDocumentZipFile(
   s3BucketName: string,
@@ -206,4 +206,22 @@ export async function createDescriptorDocumentZipFile(
   );
 
   return zip.toBuffer();
+}
+
+export async function calculateChecksum(stream: Readable): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash("sha256");
+
+    stream.on("data", (data) => {
+      hash.update(data);
+    });
+
+    stream.on("end", () => {
+      resolve(hash.digest("hex"));
+    });
+
+    stream.on("error", (err) => {
+      reject(err);
+    });
+  });
 }
