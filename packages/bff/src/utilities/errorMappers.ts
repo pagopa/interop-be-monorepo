@@ -128,6 +128,31 @@ export const getClientUsersErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPrivacyNoticeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("privacyNoticeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("privacyNoticeNotFoundInConfiguration", () => HTTP_STATUS_NOT_FOUND)
+    .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const acceptPrivacyNoticeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("privacyNoticeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("privacyNoticeNotFoundInConfiguration", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "privacyNoticeVersionIsNotTheLatest",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const attributeEmptyErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
 export const getProducerKeychainUsersErrorMapper = (
   error: ApiError<ErrorCodes>
   // eslint-disable-next-line sonarjs/no-identical-functions

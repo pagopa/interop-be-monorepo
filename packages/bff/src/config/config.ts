@@ -96,6 +96,35 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const S3PrivacyNoticeConfig = z
+  .object({
+    PRIVACY_NOTICES_CONTAINER: z.string(),
+    PRIVACY_NOTICES_PATH: z.string(),
+    PRIVACY_NOTICES_FILE_NAME: z.string(),
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    privacyNoticesContainer: c.PRIVACY_NOTICES_CONTAINER,
+    privacyNoticesPath: c.PRIVACY_NOTICES_PATH,
+    privacyNoticesFileName: c.PRIVACY_NOTICES_FILE_NAME,
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+  }));
+
+export const PrivactNoticeConfig = z
+  .object({
+    PRIVACY_NOTICES_TOS_UUID: z.string(),
+    PRIVACY_NOTICES_PP_UUID: z.string(),
+    PRIVACY_NOTICES_DYNAMO_TABLE_NAME: z.string(),
+    PRIVACY_NOTICES_USERS_DYNAMO_TABLE_NAME: z.string(),
+  })
+  .transform((c) => ({
+    privacyNoticesTosUuid: c.PRIVACY_NOTICES_TOS_UUID,
+    privacyNoticesPpUuid: c.PRIVACY_NOTICES_PP_UUID,
+    privacyNoticesDynamoTableName: c.PRIVACY_NOTICES_DYNAMO_TABLE_NAME,
+    privacyNoticesUsersDynamoTableName:
+      c.PRIVACY_NOTICES_USERS_DYNAMO_TABLE_NAME,
+  }));
+
 export const AllowedListConfig = z
   .object({
     ALLOW_LIST_CONTAINER: z.string(),
@@ -153,6 +182,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowedListConfig)
+  .and(PrivactNoticeConfig)
+  .and(S3Config)
+  .and(S3PrivacyNoticeConfig)
   .and(S3Config)
   .and(RiskAnalysisDocumentConfig)
   .and(ExportFileConfig)
