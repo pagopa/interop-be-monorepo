@@ -218,6 +218,46 @@ export function toBffCatalogApiEserviceRiskAnalysis(
   };
 }
 
+export function toBffCatalogApiEserviceRiskAnalysisSeed(
+  riskAnalysis: ImportedRiskAnalysis
+): bffApi.EServiceRiskAnalysisSeed {
+  const answers: bffApi.RiskAnalysisForm["answers"] =
+    riskAnalysis.riskAnalysisForm.singleAnswers
+      .concat(
+        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
+          multiAnswer.values.map((answerValue) => ({
+            value: answerValue,
+            key: multiAnswer.key,
+          }))
+        )
+      )
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
+        const key = answer.key;
+        if (!answers[key]) {
+          answers[key] = [];
+        }
+
+        if (answer.value) {
+          answers[key] = [...answers[key], answer.value];
+        } else {
+          answers[key] = [];
+        }
+
+        return answers;
+      }, {});
+
+  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
+    version: riskAnalysis.riskAnalysisForm.version,
+    answers,
+  };
+
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm,
+  };
+}
+
 export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
