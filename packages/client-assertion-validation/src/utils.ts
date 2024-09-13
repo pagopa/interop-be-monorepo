@@ -2,6 +2,7 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   decode,
   JsonWebTokenError,
+  JwtPayload,
   NotBeforeError,
   TokenExpiredError,
   verify,
@@ -69,7 +70,7 @@ const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
 export const validateRequestParameters = (
   request: authorizationServerApi.AccessTokenRequest
-): Array<ApiError<ErrorCodes>> | undefined => {
+): ValidationResult<authorizationServerApi.AccessTokenRequest> => {
   const assertionTypeError =
     request.client_assertion_type !== EXPECTED_CLIENT_ASSERTION_TYPE
       ? invalidAssertionType(request.client_assertion_type)
@@ -82,43 +83,37 @@ export const validateRequestParameters = (
       : undefined;
 
   if (!assertionTypeError && !grantTypeError) {
-    return undefined;
+    return successfulValidation(request);
   }
-  return [assertionTypeError, grantTypeError].filter(
-    (e) => e !== undefined
-  ) as Array<ApiError<ErrorCodes>>;
+  return failedValidation([assertionTypeError, grantTypeError]);
 };
 
 const validateJti = (jti?: string): ValidationResult<string> => {
   if (!jti) {
     return failedValidation([jtiNotFound()]);
-  } else {
-    return successfulValidation(jti);
   }
+  return successfulValidation(jti);
 };
 
 const validateIat = (iat?: number): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([issuedAtNotFound()]);
-  } else {
-    return successfulValidation(iat);
   }
+  return successfulValidation(iat);
 };
 
 const validateExp = (exp?: number): ValidationResult<number> => {
   if (!exp) {
     return failedValidation([expNotFound()]);
-  } else {
-    return successfulValidation(exp);
   }
+  return successfulValidation(exp);
 };
 
 const validateIss = (iss?: string): ValidationResult<string> => {
   if (!iss) {
     return failedValidation([issuerNotFound()]);
-  } else {
-    return successfulValidation(iss);
   }
+  return successfulValidation(iss);
 };
 
 const validateSub = (
@@ -151,12 +146,11 @@ const validatePurposeId = (
 ): ValidationResult<PurposeId | undefined> => {
   if (purposeId && !PurposeId.safeParse(purposeId).success) {
     return failedValidation([invalidPurposeIdClaimFormat(purposeId)]);
-  } else {
-    const validatedPurposeId = purposeId
-      ? unsafeBrandId<PurposeId>(purposeId)
-      : undefined;
-    return successfulValidation(validatedPurposeId);
   }
+  const validatedPurposeId = purposeId
+    ? unsafeBrandId<PurposeId>(purposeId)
+    : undefined;
+  return successfulValidation(validatedPurposeId);
 };
 
 const validateKid = (kid?: string): ValidationResult<string> => {
@@ -179,12 +173,11 @@ const validateAudience = (
 
   if (!Array.isArray(aud)) {
     return failedValidation([invalidAudienceFormat()]);
-  } else {
-    if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
-      return failedValidation([invalidAudience()]);
-    }
-    return successfulValidation(aud);
   }
+  if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
+    return failedValidation([invalidAudience()]);
+  }
+  return successfulValidation(aud);
 };
 
 const validateAlgorithm = (alg?: string): ValidationResult<string> => {
@@ -320,7 +313,7 @@ export const verifyClientAssertion = (
 export const verifyClientAssertionSignature = (
   clientAssertionJws: string,
   key: Key
-): Array<ApiError<ErrorCodes>> | undefined => {
+): ValidationResult<JwtPayload> => {
   try {
     const result = verify(clientAssertionJws, key.publicKey, {
       algorithms: [key.algorithm],
@@ -328,27 +321,28 @@ export const verifyClientAssertionSignature = (
 
     // TODO: no idea when result is a string
     if (typeof result === "string") {
-      return [invalidClientAssertionSignatureType(typeof result)];
-    } else {
-      return undefined;
+      return failedValidation([
+        invalidClientAssertionSignatureType(typeof result),
+      ]);
     }
+    return successfulValidation(result);
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
-      return [tokenExpiredError()];
+      return failedValidation([tokenExpiredError()]);
     } else if (error instanceof NotBeforeError) {
-      return [notBeforeError()];
+      return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
       // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
-      return [jsonWebTokenError(error.message)];
+      return failedValidation([jsonWebTokenError(error.message)]);
     } else {
-      return [clientAssertionSignatureVerificationFailure()];
+      return failedValidation([clientAssertionSignatureVerificationFailure()]);
     }
   }
 };
 
 export const validatePlatformState = (
   key: ConsumerKey
-): Array<ApiError<ErrorCodes>> => {
+): ValidationResult<ConsumerKey> => {
   const agreementError =
     key.agreementState !== "ACTIVE" ? inactiveAgreement() : undefined;
 
@@ -358,9 +352,10 @@ export const validatePlatformState = (
   const purposeError =
     key.purposeState !== "ACTIVE" ? inactivePurpose() : undefined;
 
-  return [agreementError, descriptorError, purposeError].filter(
-    (e) => e !== undefined
-  ) as Array<ApiError<ErrorCodes>>;
+  if (!agreementError && !descriptorError && !purposeError) {
+    return successfulValidation(key);
+  }
+  return failedValidation([agreementError, descriptorError, purposeError]);
 };
 
 export const validateClientKindAndPlatformState = (
@@ -375,15 +370,20 @@ export const validateClientKindAndPlatformState = (
     )
     .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
-        const platformStateErrors = validatePlatformState(key as ConsumerKey);
+        const { errors: platformStateErrors } = validatePlatformState(
+          key as ConsumerKey
+        );
         const purposeIdError = jwt.payload.purposeId
           ? undefined
           : purposeIdNotProvided();
 
-        if (platformStateErrors.length === 0 && !purposeIdError) {
+        if (!platformStateErrors && !purposeIdError) {
           return successfulValidation(jwt);
         }
-        return failedValidation([...platformStateErrors, purposeIdError]);
+        return failedValidation([
+          ...(platformStateErrors || []),
+          purposeIdError,
+        ]);
       }
       return failedValidation([
         unexpectedKeyType(clientKindTokenStates.consumer),

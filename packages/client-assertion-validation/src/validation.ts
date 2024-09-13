@@ -16,15 +16,13 @@ export const validateClientAssertion = async (
   request: authorizationServerApi.AccessTokenRequest,
   key: ConsumerKey | ApiKey // TODO use just Key?
 ): Promise<ValidationResult<ClientAssertion>> => {
-  const parametersErrors = validateRequestParameters(request);
+  const { errors: parametersErrors } = validateRequestParameters(request);
 
   const { errors: clientAssertionVerificationErrors, data: jwt } =
     verifyClientAssertion(request.client_assertion, request.client_id);
 
-  const clientAssertionSignatureErrors = verifyClientAssertionSignature(
-    request.client_assertion,
-    key
-  );
+  const { errors: clientAssertionSignatureErrors } =
+    verifyClientAssertionSignature(request.client_assertion, key);
 
   if (
     parametersErrors ||
