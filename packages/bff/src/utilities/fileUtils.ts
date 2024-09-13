@@ -11,6 +11,7 @@ import { DescriptorId, genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/domain/errors.js";
 import { verifyExportEligibility } from "../model/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
+import { ImportedEservice } from "../model/api/apiTypes.js";
 /* 
   FileDocumentsRegistry is a map that contains the following information:
   - occurrences: a map that contains the number of occurrences of a document name
@@ -72,7 +73,7 @@ export function buildJsonConfig(
   fileDocumentRegistry: FileDocumentsRegistry,
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor
-) {
+): ImportedEservice {
   return {
     name: eservice.name,
     description: eservice.description,
@@ -81,7 +82,7 @@ export function buildJsonConfig(
     descriptor: {
       interface: descriptor.interface && {
         prettyName: descriptor.interface.prettyName,
-        path: descriptor.interface.path,
+        path: descriptor.interface.name,
       },
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
@@ -89,7 +90,7 @@ export function buildJsonConfig(
           doc.id
         );
         return {
-          prettyname: doc.prettyName,
+          prettyName: doc.prettyName,
           path: `documents/${uniqueName}`,
         };
       }),

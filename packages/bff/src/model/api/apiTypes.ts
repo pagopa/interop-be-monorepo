@@ -64,3 +64,4 @@ export const ImportedEservice = z.object({
   descriptor: ImportedDescriptor,
   riskAnalysis: z.array(ImportedRiskAnalysis),
 });
+export type ImportedEservice = z.infer<typeof ImportedEservice>;
