@@ -291,16 +291,16 @@ export const verifyClientAssertion = (
       return successfulValidation(result);
     }
     return failedValidation([
-      ...(jtiErrors || []),
-      ...(iatErrors || []),
-      ...(expErrors || []),
-      ...(issErrors || []),
-      ...(subErrors || []),
-      ...(purposeIdErrors || []),
-      ...(kidErrors || []),
-      ...(audErrors || []),
-      ...(algErrors || []),
-      ...(digestErrors || []),
+      jtiErrors,
+      iatErrors,
+      expErrors,
+      issErrors,
+      subErrors,
+      purposeIdErrors,
+      kidErrors,
+      audErrors,
+      algErrors,
+      digestErrors,
     ]);
   } catch (error) {
     return failedValidation([unexpectedClientAssertionPayload()]);
@@ -391,14 +391,26 @@ export const validateClientKindAndPlatformState = (
     })
     .exhaustive();
 
-const successfulValidation = <T>(result: T): SuccessfulValidation<T> => ({
+export const successfulValidation = <T>(
+  result: T
+): SuccessfulValidation<T> => ({
   data: result,
   errors: undefined,
 });
 
-const failedValidation = (
-  errors: Array<ApiError<ErrorCodes> | undefined>
-): FailedValidation => ({
-  data: undefined,
-  errors: errors.filter((e) => e !== undefined) as Array<ApiError<ErrorCodes>>,
-});
+export const failedValidation = (
+  // errors: [[error1, error2, undefined], error3, undefined]
+  errors: Array<
+    Array<ApiError<ErrorCodes> | undefined> | ApiError<ErrorCodes> | undefined
+  >
+): FailedValidation => {
+  const nestedArrayWithoutUndefined = errors.filter((a) => a !== undefined);
+  const flattenedArray = nestedArrayWithoutUndefined.flat(1);
+  const flattenedArrayWithoutUndefined = flattenedArray.filter(
+    (e) => e !== undefined
+  );
+  return {
+    data: undefined,
+    errors: flattenedArrayWithoutUndefined,
+  };
+};

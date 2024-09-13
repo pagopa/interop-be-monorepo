@@ -4,6 +4,8 @@ import {
   validateRequestParameters,
   verifyClientAssertion,
   validateClientKindAndPlatformState,
+  failedValidation,
+  successfulValidation,
 } from "./utils.js";
 import {
   ApiKey,
@@ -29,15 +31,18 @@ export const validateClientAssertion = async (
     clientAssertionVerificationErrors ||
     clientAssertionSignatureErrors
   ) {
-    return {
-      data: undefined,
-      errors: [
-        ...(parametersErrors || []),
-        ...(clientAssertionVerificationErrors || []),
-        ...(clientAssertionSignatureErrors || []),
-      ],
-    };
+    return failedValidation([
+      parametersErrors,
+      clientAssertionVerificationErrors,
+      clientAssertionSignatureErrors,
+    ]);
+  }
+  const { errors: clientKindAndPlatormStateErrors } =
+    validateClientKindAndPlatformState(key, jwt);
+
+  if (clientKindAndPlatormStateErrors) {
+    return failedValidation([clientAssertionSignatureErrors]);
   }
 
-  return validateClientKindAndPlatformState(key, jwt);
+  return successfulValidation(jwt);
 };
