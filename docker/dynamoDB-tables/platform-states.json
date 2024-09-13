@@ -1,7 +1,27 @@
 {
   "TableName": "platform-states",
-  "AttributeDefinitions": [{ "AttributeName": "PK", "AttributeType": "S" }],
+  "AttributeDefinitions": [
+    { "AttributeName": "PK", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" },
+    { "AttributeName": "GSISK_agreementTimestamp", "AttributeType": "S" }
+  ],
   "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "GSIPK_consumerId_eserviceId",
+      "KeySchema": [
+        { "AttributeName": "GSIPK_consumerId_eserviceId", "KeyType": "HASH" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSISK_agreementTimestamp",
+      "KeySchema": [
+        { "AttributeName": "GSISK_agreementTimestamp", "KeyType": "HASH" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    }
+  ],
   "ProvisionedThroughput": {
     "ReadCapacityUnits": 10,
     "WriteCapacityUnits": 5
