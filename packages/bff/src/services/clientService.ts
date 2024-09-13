@@ -11,9 +11,9 @@ import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
-import { toBffApiCompactUser } from "../model/api/apiConverter.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
+import { toBffApiCompactUser } from "../model/api/converters/catalogClientApiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -136,7 +136,6 @@ export function clientServiceBuilder(
     },
 
     async createKeys(
-      userId: string,
       clientId: string,
       keySeed: bffApi.KeysSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -144,7 +143,7 @@ export function clientServiceBuilder(
       logger.info(`Create keys for client ${clientId}`);
 
       const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
-        toAuthorizationKeySeed(seed, userId)
+        toAuthorizationKeySeed(seed)
       );
 
       await authorizationClient.client.createKeys(body, {

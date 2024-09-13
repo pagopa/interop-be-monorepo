@@ -24,9 +24,13 @@ export type TenantProcessServerConfig = z.infer<
 export const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
+    CONSUMER_DOCUMENTS_PATH: z.string(),
+    CONSUMER_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
+    consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
+    consumerDocumentsContainer: c.CONSUMER_DOCUMENTS_CONTAINER,
   }));
 export type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
@@ -76,6 +80,7 @@ export const AuthorizationProcessServerConfig = z
     SAML_CALLBACK_URL: z.string().url(),
     SAML_CALLBACK_ERROR_URL: z.string().url(),
     SUPPORT_LANDING_TOKEN_DURATION_SECONDS: z.coerce.number().default(300),
+    SUPPORT_TOKEN_DURATION_SECONDS: z.coerce.number().default(3600),
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
@@ -85,6 +90,7 @@ export const AuthorizationProcessServerConfig = z
     samlCallbackUrl: c.SAML_CALLBACK_URL,
     samlCallbackErrorUrl: c.SAML_CALLBACK_ERROR_URL,
     supportLandingJwtDuration: c.SUPPORT_LANDING_TOKEN_DURATION_SECONDS,
+    supportJwtDuration: c.SUPPORT_TOKEN_DURATION_SECONDS,
   }));
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
@@ -130,8 +136,33 @@ export const AllowedListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
+export const ExportFileConfig = z
+  .object({
+    EXPORT_ESERVICE_CONTAINER: z.string(),
+    EXPORT_ESERVICE_PATH: z.string(),
+    PRESIGNED_URL_GET_DURATION_MINUTES: z.coerce.number(),
+  })
+  .transform((c) => ({
+    exportEserviceContainer: c.EXPORT_ESERVICE_CONTAINER,
+    exportEservicePath: c.EXPORT_ESERVICE_PATH,
+    presignedUrlGetDurationMinutes: c.PRESIGNED_URL_GET_DURATION_MINUTES,
+  }));
+export type ExportFileConfig = z.infer<typeof ExportFileConfig>;
 
-export const S3RiskAnalysisConfig = z
+export const ImportFileConfig = z
+  .object({
+    IMPORT_ESERVICE_CONTAINER: z.string(),
+    IMPORT_ESERVICE_PATH: z.string(),
+    PRESIGNED_URL_PUT_DURATION_MINUTES: z.coerce.number(),
+  })
+  .transform((c) => ({
+    importEserviceContainer: c.IMPORT_ESERVICE_CONTAINER,
+    importEservicePath: c.IMPORT_ESERVICE_PATH,
+    presignedUrlPutDurationMinutes: c.PRESIGNED_URL_PUT_DURATION_MINUTES,
+  }));
+export type ImportFileConfig = z.infer<typeof ImportFileConfig>;
+
+export const RiskAnalysisDocumentConfig = z
   .object({
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
@@ -154,7 +185,10 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(PrivactNoticeConfig)
   .and(S3Config)
   .and(S3PrivacyNoticeConfig)
-  .and(S3RiskAnalysisConfig);
+  .and(S3Config)
+  .and(RiskAnalysisDocumentConfig)
+  .and(ExportFileConfig)
+  .and(ImportFileConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
