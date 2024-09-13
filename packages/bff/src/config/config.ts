@@ -163,7 +163,7 @@ export const ImportFileConfig = z
   }));
 export type ImportFileConfig = z.infer<typeof ImportFileConfig>;
 
-export const S3RiskAnalysisConfig = z
+export const RiskAnalysisDocumentConfig = z
   .object({
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
@@ -187,12 +187,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(S3Config)
   .and(S3PrivacyNoticeConfig)
   .and(S3Config)
-  .and(SelfCareConfig)
+  .and(RiskAnalysisDocumentConfig)
   .and(ExportFileConfig)
-  .and(ImportFileConfig)
-  .and(S3RiskAnalysisConfig)
-  .and(S3Config)
-  .and(PurposeProcessServerConfig);
+  .and(ImportFileConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

@@ -81,7 +81,7 @@ export function buildJsonConfig(
     descriptor: {
       interface: descriptor.interface && {
         prettyName: descriptor.interface.prettyName,
-        path: descriptor.interface.name,
+        path: descriptor.interface.path,
       },
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
