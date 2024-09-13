@@ -71,6 +71,8 @@ jobs:
             dockerfile_path: packages/tenant-outbound-writer
           - image_name: compute-agreements-consumer
             dockerfile_path: packages/compute-agreements-consumer
+          - image_name: dtd-catalog-exporter
+            dockerfile_path: packages/dtd-catalog-exporter
 
     steps:
       - name: Checkout repository
