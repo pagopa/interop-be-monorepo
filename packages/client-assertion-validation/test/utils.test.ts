@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { inactiveAgreement, inactiveEService } from "../src/errors";
-import { failedValidation } from "../src/utils";
+import { failedValidation, successfulValidation } from "../src/utils";
 
 describe("failedValidation", () => {
   it("array of errors", () => {
@@ -45,5 +45,18 @@ describe("failedValidation", () => {
       data: undefined,
       errors: [inactiveEService(), inactiveAgreement()],
     });
+  });
+});
+
+describe("successfulValidation", () => {
+  it("string", () => {
+    const resultString = "result";
+    const result = successfulValidation(resultString);
+    expect(result).toEqual({ data: resultString, errors: undefined });
+  });
+  it("number", () => {
+    const resultNumber = 1;
+    const result = successfulValidation(resultNumber);
+    expect(result).toEqual({ data: resultNumber, errors: undefined });
   });
 });
