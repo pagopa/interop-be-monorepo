@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Readable } from "node:stream";
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import mime from "mime";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { ApiError, genericError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
@@ -59,7 +59,7 @@ export async function verifyAndCreateEServiceDocument(
 
   const calculateChecksum = async (stream: Readable): Promise<string> =>
     new Promise((resolve, reject) => {
-      const hash = crypto.createHash("sha256");
+      const hash = createHash("sha256");
 
       stream.on("data", (data) => {
         hash.update(data);
@@ -157,7 +157,6 @@ export const verifyAndCreateImportedDoc = async (
     fileManager,
     eservice,
     {
-      mimeType,
       prettyName: doc.prettyName,
       doc: file,
       kind: docType,
@@ -237,13 +236,12 @@ function processSoapInterface(file: string) {
 async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
   technology: catalogApi.EServiceTechnology,
-  eServiceId: string,
-  logger: Logger
+  eServiceId: string
 ) {
   const file = await doc.doc.text();
   try {
     return match({
-      fileType: getFileType(doc.doc.name, eServiceId, logger),
+      fileType: getFileType(doc.doc.name),
       technology,
       kind: doc.kind,
     })

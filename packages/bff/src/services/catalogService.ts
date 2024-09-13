@@ -1,8 +1,8 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import AdmZip from "adm-zip";
 import { randomUUID } from "crypto";
+import AdmZip from "adm-zip";
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -49,7 +49,10 @@ import {
   TenantProcessClient,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { verifyAndCreateImportedDoc } from "../utilities/eserviceDocumentUtils.js";
+import {
+  verifyAndCreateEServiceDocument,
+  verifyAndCreateImportedDoc,
+} from "../utilities/eserviceDocumentUtils.js";
 import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 
