@@ -61,7 +61,7 @@ describe("validation test", () => {
   describe("validateRequestParameters", () => {
     it("success request parameters", () => {
       const request = getMockAccessTokenRequest();
-      const errors = validateRequestParameters(request);
+      const { errors } = validateRequestParameters(request);
       expect(errors).toBeUndefined();
     });
 
@@ -71,7 +71,7 @@ describe("validation test", () => {
         ...getMockAccessTokenRequest(),
         client_assertion_type: wrongAssertionType,
       };
-      const errors = validateRequestParameters(request);
+      const { errors } = validateRequestParameters(request);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
@@ -424,7 +424,7 @@ describe("validation test", () => {
         ...getMockConsumerKey(),
         publicKey,
       };
-      const errors = verifyClientAssertionSignature(jws, mockConsumerKey);
+      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
       expect(errors).toBeUndefined();
     });
 
@@ -462,14 +462,17 @@ describe("validation test", () => {
         ...getMockConsumerKey(),
         publicKey,
       };
-      const errors = verifyClientAssertionSignature(jws, mockConsumerKey);
+      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(tokenExpiredError());
     });
     it("jsonWebTokenError", () => {
       const mockKey = getMockConsumerKey();
-      const errors = verifyClientAssertionSignature("not-a-valid-jws", mockKey);
+      const { errors } = verifyClientAssertionSignature(
+        "not-a-valid-jws",
+        mockKey
+      );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0].title).toEqual(jsonWebTokenError("").title);
@@ -506,7 +509,7 @@ describe("validation test", () => {
         publicKey,
       };
 
-      const errors = verifyClientAssertionSignature(jws, mockConsumerKey);
+      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
@@ -526,9 +529,8 @@ describe("validation test", () => {
         purposeState: itemState.active,
       };
       validatePlatformState(mockKey);
-      const errors = validatePlatformState(mockKey);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(0);
+      const { errors } = validatePlatformState(mockKey);
+      expect(errors).toBeUndefined();
     });
 
     it("inactiveAgreement", () => {
@@ -537,11 +539,11 @@ describe("validation test", () => {
         agreementState: itemState.inactive,
       };
       validatePlatformState(mockKey);
-      const errors = validatePlatformState(mockKey);
+      const { errors } = validatePlatformState(mockKey);
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(inactiveAgreement());
+      expect(errors![0]).toEqual(inactiveAgreement());
     });
     it("inactiveAgreement", () => {
       const mockKey: ConsumerKey = {
@@ -549,11 +551,11 @@ describe("validation test", () => {
         descriptorState: itemState.inactive,
       };
       validatePlatformState(mockKey);
-      const errors = validatePlatformState(mockKey);
+      const { errors } = validatePlatformState(mockKey);
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(inactiveEService());
+      expect(errors![0]).toEqual(inactiveEService());
     });
     it("inactivePurpose", () => {
       const mockKey: ConsumerKey = {
@@ -561,11 +563,11 @@ describe("validation test", () => {
         purposeState: itemState.inactive,
       };
       validatePlatformState(mockKey);
-      const errors = validatePlatformState(mockKey);
+      const { errors } = validatePlatformState(mockKey);
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toEqual(inactivePurpose());
+      expect(errors![0]).toEqual(inactivePurpose());
     });
   });
 
