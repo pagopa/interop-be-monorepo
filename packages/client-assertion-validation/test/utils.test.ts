@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { inactiveAgreement, inactiveEService } from "../src/errors";
-import { failedValidation, successfulValidation } from "../src/utils";
+import { inactiveAgreement, inactiveEService } from "../src/errors.js";
+import { failedValidation, successfulValidation } from "../src/utils.js";
 
 describe("failedValidation", () => {
   it("array of errors", () => {

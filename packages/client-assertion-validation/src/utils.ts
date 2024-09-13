@@ -411,6 +411,6 @@ export const failedValidation = (
   );
   return {
     data: undefined,
-    errors: flattenedArrayWithoutUndefined,
+    errors: flattenedArrayWithoutUndefined as Array<ApiError<ErrorCodes>>,
   };
 };
