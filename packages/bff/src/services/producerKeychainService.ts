@@ -252,6 +252,24 @@ export function producerKeychainServiceBuilder(
         }
       );
     },
+
+    async getEncodedProducerKeychainKeyById(
+      producerKeychainId: string,
+      keyId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EncodedClientKey> {
+      logger.info(
+        `Retrieve key ${keyId} for producer keychain ${producerKeychainId}`
+      );
+
+      const key = await authorizationClient.producerKeychain.getProducerKeyById(
+        {
+          params: { producerKeychainId, keyId },
+          headers,
+        }
+      );
+      return { key: key.encodedPem };
+    },
   };
 }
 

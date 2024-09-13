@@ -19,6 +19,7 @@ export * from "./templating/htmlTemplateService.js";
 export * from "./types/index.js";
 export * from "./utils/arrays.js";
 export * from "./utils/getAll.js";
+export * from "./utils/apiUtils.js";
 export * from "./utils/date.js";
 export * from "./utils/tenantMails.js";
 export * from "./auth/jwk.js";

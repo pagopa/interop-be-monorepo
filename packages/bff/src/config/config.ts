@@ -136,6 +136,7 @@ export const AllowedListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
+
 export const ExportFileConfig = z
   .object({
     EXPORT_ESERVICE_CONTAINER: z.string(),
