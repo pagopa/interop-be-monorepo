@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Readable } from "node:stream";
-import { randomUUID, createHash } from "crypto";
+import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import mime from "mime";
@@ -21,6 +21,7 @@ import {
 import { CatalogProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { ConfigurationDoc } from "../model/api/apiTypes.js";
+import { calculateChecksum } from "./fileUtils.js";
 
 // eslint-disable-next-line max-params
 export async function verifyAndCreateEServiceDocument(
@@ -56,23 +57,6 @@ export async function verifyAndCreateEServiceDocument(
     },
     ctx.logger
   );
-
-  const calculateChecksum = async (stream: Readable): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const hash = createHash("sha256");
-
-      stream.on("data", (data) => {
-        hash.update(data);
-      });
-
-      stream.on("end", () => {
-        resolve(hash.digest("hex"));
-      });
-
-      stream.on("error", (err) => {
-        reject(err);
-      });
-    });
 
   const checksum = await calculateChecksum(Readable.from(doc.doc.stream()));
   try {
