@@ -20,7 +20,7 @@ import {
 } from "pagopa-interop-models";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
-  ImportedEservice,
+  ConfigurationEservice,
   catalogApiDescriptorState,
 } from "../model/api/apiTypes.js";
 import {
@@ -980,7 +980,7 @@ export function catalogServiceBuilder(
       }
 
       const jsonContent = configurationEntry.getData().toString("utf8");
-      const { data: importedEservice, error } = ImportedEservice.safeParse(
+      const { data: importedEservice, error } = ConfigurationEservice.safeParse(
         JSON.parse(jsonContent)
       );
 

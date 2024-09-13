@@ -14,40 +14,44 @@ export const EserviceConsumer = z.object({
   consumerExternalId: z.string(),
 });
 
-export const ImportedSingleAnswer = z.object({
+export const ConfigurationSingleAnswer = z.object({
   key: z.string(),
   value: z.string().nullable().optional(),
 });
-export type ImportedSingleAnswer = z.infer<typeof ImportedSingleAnswer>;
+export type ConfigurationSingleAnswer = z.infer<
+  typeof ConfigurationSingleAnswer
+>;
 
-export const ImportedMultiAnswer = z.object({
+export const ConfigurationMultiAnswer = z.object({
   key: z.string(),
   values: z.array(z.string()),
 });
-export type ImportedMultiAnswer = z.infer<typeof ImportedMultiAnswer>;
+export type ConfigurationMultiAnswer = z.infer<typeof ConfigurationMultiAnswer>;
 
-const ImportedRiskAnalysisForm = z.object({
+const ConfigurationRiskAnalysisForm = z.object({
   version: z.string(),
-  singleAnswers: z.array(ImportedSingleAnswer),
-  multiAnswers: z.array(ImportedMultiAnswer),
+  singleAnswers: z.array(ConfigurationSingleAnswer),
+  multiAnswers: z.array(ConfigurationMultiAnswer),
 });
 
-export const ImportedRiskAnalysis = z.object({
+export const ConfigurationRiskAnalysis = z.object({
   name: z.string(),
-  riskAnalysisForm: ImportedRiskAnalysisForm,
+  riskAnalysisForm: ConfigurationRiskAnalysisForm,
 });
 
-export type ImportedRiskAnalysis = z.infer<typeof ImportedRiskAnalysis>;
+export type ConfigurationRiskAnalysis = z.infer<
+  typeof ConfigurationRiskAnalysis
+>;
 
-export const ImportedDoc = z.object({
+export const ConfigurationDoc = z.object({
   prettyName: z.string(),
   path: z.string(),
 });
-export type ImportedDoc = z.infer<typeof ImportedDoc>;
+export type ConfigurationDoc = z.infer<typeof ConfigurationDoc>;
 
-export const ImportedDescriptor = z.object({
-  interface: ImportedDoc.optional(),
-  docs: z.array(ImportedDoc),
+export const ConfigurationDescriptor = z.object({
+  interface: ConfigurationDoc.optional(),
+  docs: z.array(ConfigurationDoc),
   audience: z.array(z.string()),
   voucherLifespan: z.number(),
   dailyCallsPerConsumer: z.number(),
@@ -56,12 +60,12 @@ export const ImportedDescriptor = z.object({
   agreementApprovalPolicy: bffApi.AgreementApprovalPolicy,
 });
 
-export const ImportedEservice = z.object({
+export const ConfigurationEservice = z.object({
   name: z.string(),
   description: z.string(),
   technology: bffApi.EServiceTechnology,
   mode: bffApi.EServiceMode,
-  descriptor: ImportedDescriptor,
-  riskAnalysis: z.array(ImportedRiskAnalysis),
+  descriptor: ConfigurationDescriptor,
+  riskAnalysis: z.array(ConfigurationRiskAnalysis),
 });
-export type ImportedEservice = z.infer<typeof ImportedEservice>;
+export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;

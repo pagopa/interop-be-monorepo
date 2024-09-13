@@ -11,7 +11,6 @@ import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { z } from "zod";
 import { config } from "../config/config.js";
-import { ImportedDoc } from "../model/api/apiTypes.js";
 import {
   ErrorCodes,
   interfaceExtractingInfoError,
@@ -21,6 +20,7 @@ import {
 } from "../model/domain/errors.js";
 import { CatalogProcessClient } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { ConfigurationDoc } from "../model/api/apiTypes.js";
 
 // eslint-disable-next-line max-params
 export async function verifyAndCreateEServiceDocument(
@@ -136,7 +136,7 @@ export const verifyAndCreateImportedDoc = async (
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor,
   entriesMap: Map<string, AdmZip.IZipEntry>,
-  doc: ImportedDoc,
+  doc: ConfigurationDoc,
   docType: "INTERFACE" | "DOCUMENT",
   context: WithLogger<BffAppContext>
   // eslint-disable-next-line max-params

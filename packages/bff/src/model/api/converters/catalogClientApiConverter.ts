@@ -36,7 +36,7 @@ import {
   hasCertifiedAttributes,
 } from "../../validators.js";
 import {
-  ImportedRiskAnalysis,
+  ConfigurationRiskAnalysis,
   catalogApiDescriptorState,
 } from "../apiTypes.js";
 
@@ -219,7 +219,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysisSeed(
-  riskAnalysis: ImportedRiskAnalysis
+  riskAnalysis: ConfigurationRiskAnalysis
 ): bffApi.EServiceRiskAnalysisSeed {
   const answers: bffApi.RiskAnalysisForm["answers"] =
     riskAnalysis.riskAnalysisForm.singleAnswers
