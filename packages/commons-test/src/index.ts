@@ -6,3 +6,4 @@ export * from "./riskAnalysisTestUtils.js";
 export * from "./setupTestContainersVitest.js";
 export * from "./setupTestContainersVitestGlobal.js";
 export * from "./protobufConvertersToV1/catalogProtobufConverterToV1.js";
+export * from "./protobufConvertersToV1/agreementProtobufConverterToV1.js";
