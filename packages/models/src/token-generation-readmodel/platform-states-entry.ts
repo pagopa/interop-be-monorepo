@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  DescriptorId,
   EServiceId,
   PurposeId,
   PurposeVersionId,
@@ -52,7 +53,7 @@ export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesAgreementPK,
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   GSISK_agreementTimestamp: z.string().datetime(),
-  agreementDescriptorId: z.string(),
+  agreementDescriptorId: DescriptorId,
 });
 export type PlatformStatesAgreementEntry = z.infer<
   typeof PlatformStatesAgreementEntry
