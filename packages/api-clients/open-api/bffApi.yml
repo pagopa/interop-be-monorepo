@@ -880,6 +880,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              additionalProperties: false
               required:
                 - name
                 - prettyName
@@ -2873,6 +2874,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              additionalProperties: false
               required:
                 - kind
                 - prettyName
@@ -11951,6 +11953,7 @@ components:
   schemas:
     RejectPurposeVersionPayload:
       type: object
+      additionalProperties: false
       description: models the reject payload for this purpose version.
       properties:
         rejectionReason:
@@ -11959,6 +11962,7 @@ components:
         - rejectionReason
     GoogleSAMLPayload:
       type: object
+      additionalProperties: false
       properties:
         SAMLResponse:
           type: string
@@ -11970,6 +11974,7 @@ components:
         - SAMLResponse
     SAMLTokenRequest:
       type: object
+      additionalProperties: false
       properties:
         saml2:
           type: string
@@ -11983,6 +11988,7 @@ components:
         - tenantId
     AccessTokenRequest:
       type: object
+      additionalProperties: false
       required:
         - client_assertion
         - client_assertion_type
@@ -12000,6 +12006,7 @@ components:
           type: string
     PrivacyNotice:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -12031,6 +12038,7 @@ components:
         - TOS
     PrivacyNoticeSeed:
       type: object
+      additionalProperties: false
       properties:
         latestVersionId:
           type: string
@@ -12039,6 +12047,7 @@ components:
         - latestVersionId
     RiskAnalysisFormConfig:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -12051,6 +12060,7 @@ components:
         - questions
     FormConfigQuestion:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -12094,12 +12104,14 @@ components:
         - defaultValue
     ValidationOption:
       type: object
+      additionalProperties: false
       properties:
         maxLength:
           type: integer
           format: int32
     HideOption:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -12110,6 +12122,7 @@ components:
         - value
     LabeledValue:
       type: object
+      additionalProperties: false
       properties:
         label:
           $ref: "#/components/schemas/LocalizedText"
@@ -12120,6 +12133,7 @@ components:
         - value
     LocalizedText:
       type: object
+      additionalProperties: false
       properties:
         it:
           type: string
@@ -12137,6 +12151,7 @@ components:
         - FREETEXT
     Dependency:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -12147,6 +12162,7 @@ components:
         - value
     UpdateEServiceSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - description
@@ -12163,6 +12179,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
     EServiceSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - description
@@ -12183,6 +12200,7 @@ components:
         - dailyCallsPerConsumer
         - dailyCallsTotal
       type: object
+      additionalProperties: false
       properties:
         voucherLifespan:
           type: integer
@@ -12207,6 +12225,7 @@ components:
         - agreementApprovalPolicy
         - attributes
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -12231,6 +12250,7 @@ components:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
     Mail:
       type: object
+      additionalProperties: false
       required:
         - address
       properties:
@@ -12240,6 +12260,7 @@ components:
           type: string
     EServiceDescriptionSeed:
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -12247,6 +12268,7 @@ components:
         - description
     CatalogEServiceDescriptor:
       type: object
+      additionalProperties: false
       required:
         - eservice
         - id
@@ -12316,6 +12338,7 @@ components:
     Client:
       description: Models Client details
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -12345,6 +12368,7 @@ components:
         - createdAt
     ClientPurpose:
       type: object
+      additionalProperties: false
       properties:
         purposeId:
           type: string
@@ -12359,6 +12383,7 @@ components:
         - eservice
     PurposeCloneSeed:
       type: object
+      additionalProperties: false
       properties:
         eserviceId:
           type: string
@@ -12367,6 +12392,7 @@ components:
         - eserviceId
     CatalogDescriptorEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12415,6 +12441,7 @@ components:
           $ref: "#/components/schemas/Mail"
     ProducerEServiceDetails:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12446,6 +12473,7 @@ components:
         - DELIVER
     EServiceRiskAnalysisSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - riskAnalysisForm
@@ -12456,6 +12484,7 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
     EServiceRiskAnalysis:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12474,6 +12503,7 @@ components:
           format: date-time
     ProducerEServiceDescriptor:
       type: object
+      additionalProperties: false
       required:
         - id
         - version
@@ -12527,6 +12557,7 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
     ProducerDescriptorEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12561,6 +12592,7 @@ components:
           $ref: "#/components/schemas/Mail"
     EServiceDoc:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12578,6 +12610,7 @@ components:
           type: string
     UpdateEServiceDescriptorDocumentSeed:
       type: object
+      additionalProperties: false
       required:
         - prettyName
       properties:
@@ -12648,7 +12681,6 @@ components:
         suspendedAt:
           type: string
           format: date-time
-      additionalProperties: false
       required:
         - id
         - producer
@@ -12665,6 +12697,7 @@ components:
         - isContractPresent
     Agreements:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -12677,6 +12710,7 @@ components:
         - pagination
     AgreementPayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement creation.
       properties:
         eserviceId:
@@ -12690,6 +12724,7 @@ components:
         - descriptorId
     AgreementUpdatePayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement update.
       properties:
         consumerNotes:
@@ -12698,12 +12733,14 @@ components:
         - consumerNotes
     AgreementSubmissionPayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement creation.
       properties:
         consumerNotes:
           type: string
     AgreementRejectionPayload:
       type: object
+      additionalProperties: false
       description: contains the information for agreement rejection.
       properties:
         reason:
@@ -12712,6 +12749,7 @@ components:
         - reason
     CatalogEServices:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -12724,6 +12762,7 @@ components:
         - pagination
     CatalogEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12756,6 +12795,7 @@ components:
         - CONSUMER
     CompactClients:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -12768,6 +12808,7 @@ components:
         - pagination
     AgreementListEntry:
       type: object
+      additionalProperties: false
       required:
         - id
         - eservice
@@ -12797,6 +12838,7 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
     CompactAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -12808,6 +12850,7 @@ components:
         - name
     CompactAgreement:
       type: object
+      additionalProperties: false
       required:
         - id
         - state
@@ -12822,6 +12865,7 @@ components:
           type: boolean
     CompactDescriptor:
       type: object
+      additionalProperties: false
       required:
         - id
         - state
@@ -12841,6 +12885,7 @@ components:
             type: string
     CompactEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12855,6 +12900,7 @@ components:
           $ref: "#/components/schemas/CompactOrganization"
     CompactPurposeEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12875,6 +12921,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
     PurposeVersionSeed:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose version creation.
       required:
         - dailyCalls
@@ -12886,6 +12933,7 @@ components:
           minimum: 0
     PurposeSeed:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
         eserviceId:
@@ -12917,6 +12965,7 @@ components:
         - dailyCalls
     PurposeEServiceSeed:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
         eserviceId:
@@ -12950,6 +12999,7 @@ components:
         - dailyCalls
     CompactOrganization:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12971,6 +13021,7 @@ components:
         - GSP
     CompactOrganizations:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -12983,6 +13034,7 @@ components:
         - pagination
     CompactEServiceLight:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -12994,6 +13046,7 @@ components:
           type: string
     CompactEServicesLight:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -13017,6 +13070,7 @@ components:
         - REJECTED
     IdentityToken:
       type: object
+      additionalProperties: false
       required:
         - identity_token
       properties:
@@ -13025,6 +13079,7 @@ components:
           format: jws
     SessionToken:
       type: object
+      additionalProperties: false
       required:
         - session_token
       properties:
@@ -13033,6 +13088,7 @@ components:
           format: jws
     Pagination:
       type: object
+      additionalProperties: false
       properties:
         offset:
           type: integer
@@ -13049,6 +13105,7 @@ components:
         - totalCount
     PresignedUrl:
       type: object
+      additionalProperties: false
       properties:
         url:
           type: string
@@ -13057,6 +13114,7 @@ components:
         - url
     ProducerEService:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -13075,6 +13133,7 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
     ProducerEServices:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -13087,6 +13146,7 @@ components:
         - pagination
     ProductInfo:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13101,6 +13161,7 @@ components:
         - createdAt
     SelfcareProduct:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13111,6 +13172,7 @@ components:
         - name
     SelfcareInstitution:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13133,6 +13195,7 @@ components:
         - userProductRoles
     Purpose:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13193,6 +13256,7 @@ components:
         - dailyCallsTotal
     PurposeAdditionDetailsSeed:
       type: object
+      additionalProperties: false
       properties:
         purposeId:
           type: string
@@ -13210,6 +13274,7 @@ components:
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object
+      additionalProperties: false
       properties:
         key:
           type: string
@@ -13237,6 +13302,7 @@ components:
         - ENC
     EncodedClientKey:
       type: object
+      additionalProperties: false
       properties:
         key:
           type: string
@@ -13247,6 +13313,7 @@ components:
     ClientSeed:
       description: Client creation request body
       type: object
+      additionalProperties: false
       properties:
         name:
           type: string
@@ -13262,6 +13329,7 @@ components:
         - members
     CompactClient:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13369,6 +13437,7 @@ components:
         - eserviceId
     PurposeUpdateContent:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose update.
       properties:
         title:
@@ -13392,6 +13461,7 @@ components:
         - dailyCalls
     ReversePurposeUpdateContent:
       type: object
+      additionalProperties: false
       description: contains the expected payload for purpose update.
       properties:
         title:
@@ -13413,6 +13483,7 @@ components:
         - dailyCalls
     Purposes:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -13425,6 +13496,7 @@ components:
         - pagination
     PurposeVersion:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13459,6 +13531,7 @@ components:
       description: business representation of a purpose version
     PurposeVersionDocument:
       type: object
+      additionalProperties: false
       required:
         - id
         - contentType
@@ -13474,6 +13547,7 @@ components:
           format: date-time
     PurposeVersionResource:
       type: object
+      additionalProperties: false
       description: contains the purposeId and the versionId of the created resource
       properties:
         purposeId:
@@ -13497,6 +13571,7 @@ components:
         - ARCHIVED
     User:
       type: object
+      additionalProperties: false
       properties:
         userId:
           type: string
@@ -13524,6 +13599,7 @@ components:
         $ref: "#/components/schemas/User"
     RiskAnalysisForm:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -13540,6 +13616,7 @@ components:
         - answers
     RiskAnalysisFormSeed:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -13553,6 +13630,7 @@ components:
         - answers
     CreatedResource:
       type: object
+      additionalProperties: false
       description: contains the id of the created resource
       properties:
         id:
@@ -13562,6 +13640,7 @@ components:
         - id
     CreatedEServiceDescriptor:
       type: object
+      additionalProperties: false
       description: contains the id of the created resource with the descriptorId
       properties:
         id:
@@ -13575,6 +13654,7 @@ components:
         - descriptorId
     Document:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -13595,6 +13675,8 @@ components:
           type: string
           format: date-time
     AgreementsEService:
+      type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13605,7 +13687,6 @@ components:
           type: string
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
-      additionalProperties: false
       required:
         - id
         - name
@@ -13627,6 +13708,7 @@ components:
         - SOAP
     DescriptorAttributes:
       type: object
+      additionalProperties: false
       properties:
         certified:
           type: array
@@ -13652,6 +13734,7 @@ components:
         - verified
     DescriptorAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13669,6 +13752,7 @@ components:
         - explicitAttributeVerification
     DescriptorAttributesSeed:
       type: object
+      additionalProperties: false
       properties:
         certified:
           type: array
@@ -13688,13 +13772,13 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/DescriptorAttributeSeed"
-      additionalProperties: false
       required:
         - certified
         - declared
         - verified
     DescriptorAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -13707,6 +13791,7 @@ components:
     CertifiedAttributeSeed:
       title: AttributeSeed
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         description:
@@ -13719,6 +13804,7 @@ components:
     AttributeSeed:
       title: AttributeSeed
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         description:
@@ -13731,6 +13817,7 @@ components:
     Attribute:
       title: Attribute
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         id:
@@ -13762,6 +13849,7 @@ components:
     VerifiedAttribute:
       title: VerifiedAttribute
       type: object
+      additionalProperties: false
       description: represents the details of a verified attribute bound to the agreement.
       properties:
         id:
@@ -13783,6 +13871,7 @@ components:
     DeclaredAttribute:
       title: DeclaredAttribute
       type: object
+      additionalProperties: false
       description: represents the details of a declared attribute bound to the agreement.
       properties:
         id:
@@ -13803,6 +13892,7 @@ components:
         - creationTime
     RequesterCertifiedAttribute:
       type: object
+      additionalProperties: false
       properties:
         tenantId:
           type: string
@@ -13821,6 +13911,7 @@ components:
         - attributeName
     RequesterCertifiedAttributes:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -13834,6 +13925,7 @@ components:
     CertifiedAttribute:
       title: CertifiedAttribute
       type: object
+      additionalProperties: false
       description: Models a certified attribute registry entry as payload response
       properties:
         id:
@@ -13855,6 +13947,7 @@ components:
     CertifiedAttributesResponse:
       title: CertifiedAttributesResponse
       type: object
+      additionalProperties: false
       properties:
         attributes:
           type: array
@@ -13865,6 +13958,7 @@ components:
     DeclaredAttributesResponse:
       title: DeclaredAttributesResponse
       type: object
+      additionalProperties: false
       properties:
         attributes:
           type: array
@@ -13875,6 +13969,7 @@ components:
     VerifiedAttributesResponse:
       title: VerifiedAttributesResponse
       type: object
+      additionalProperties: false
       properties:
         attributes:
           type: array
@@ -13891,6 +13986,7 @@ components:
     Attributes:
       title: Attributes
       type: object
+      additionalProperties: false
       properties:
         pagination:
           $ref: "#/components/schemas/Pagination"
@@ -13912,6 +14008,7 @@ components:
         - value
     FileResource:
       type: object
+      additionalProperties: false
       properties:
         filename:
           type: string
@@ -13929,6 +14026,7 @@ components:
     MailSeed:
       description: A specific kind of mail
       type: object
+      additionalProperties: false
       properties:
         kind:
           $ref: "#/components/schemas/MailKind"
@@ -13942,6 +14040,7 @@ components:
     Tenants:
       title: Tenants
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -13954,12 +14053,14 @@ components:
         - pagination
     TenantFeature:
       type: object
+      additionalProperties: false
       properties:
         certifier:
           $ref: "#/components/schemas/Certifier"
     Certifier:
       description: Certifier Tenant Feature
       type: object
+      additionalProperties: false
       properties:
         certifierId:
           type: string
@@ -14024,6 +14125,7 @@ components:
         - UO
     TenantAttributes:
       type: object
+      additionalProperties: false
       properties:
         declared:
           type: array
@@ -14043,6 +14145,7 @@ components:
         - verified
     DeclaredTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14064,6 +14167,7 @@ components:
         - assignmentTimestamp
     DeclaredTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14072,12 +14176,14 @@ components:
         - id
     UpdateVerifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         expirationDate:
           type: string
           format: date-time
     VerifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14090,6 +14196,7 @@ components:
 
     CertifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14111,6 +14218,7 @@ components:
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14139,6 +14247,7 @@ components:
         - revokedBy
     TenantVerifier:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14157,6 +14266,7 @@ components:
         - verificationDate
     TenantRevoker:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14179,6 +14289,7 @@ components:
         - revocationDate
     TokenGenerationValidationResult:
       type: object
+      additionalProperties: false
       properties:
         clientKind:
           $ref: "#/components/schemas/ClientKind"
@@ -14190,6 +14301,7 @@ components:
         - steps
     TokenGenerationValidationSteps:
       type: object
+      additionalProperties: false
       properties:
         clientAssertionValidation:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
@@ -14206,6 +14318,7 @@ components:
         - platformStatesVerification
     TokenGenerationValidationEntry:
       type: object
+      additionalProperties: false
       properties:
         result:
           $ref: "#/components/schemas/TokenGenerationValidationStepResult"
@@ -14225,6 +14338,7 @@ components:
         - FAILED
     TokenGenerationValidationStepFailure:
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -14235,6 +14349,7 @@ components:
         - reason
     TokenGenerationValidationEService:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14253,6 +14368,7 @@ components:
         - name
     PublicKey:
       type: object
+      additionalProperties: false
       properties:
         keyId:
           type: string
@@ -14274,6 +14390,7 @@ components:
     CompactUser:
       description: Contains some details about user
       type: object
+      additionalProperties: false
       properties:
         userId:
           type: string
@@ -14288,6 +14405,7 @@ components:
         - familyName
     PublicKeys:
       type: object
+      additionalProperties: false
       properties:
         keys:
           type: array
@@ -14297,6 +14415,7 @@ components:
         - keys
     CertifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -14304,6 +14423,8 @@ components:
       required:
         - id
     Problem:
+      type: object
+      additionalProperties: false
       properties:
         type:
           description: URI reference of type definition
@@ -14338,7 +14459,6 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/ProblemError"
-      additionalProperties: false
       required:
         - type
         - status

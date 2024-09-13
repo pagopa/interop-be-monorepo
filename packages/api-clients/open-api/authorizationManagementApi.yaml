@@ -727,6 +727,7 @@ components:
     Key:
       description: "Models the PersistentKey"
       type: object
+      additionalProperties: false
       properties:
         userId:
           type: string
@@ -756,6 +757,7 @@ components:
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object
+      additionalProperties: false
       properties:
         userId:
           type: string
@@ -788,6 +790,7 @@ components:
         $ref: "#/components/schemas/KeySeed"
     Keys:
       type: object
+      additionalProperties: false
       properties:
         keys:
           type: array
@@ -797,6 +800,7 @@ components:
         - keys
     KeyWithClient:
       type: object
+      additionalProperties: false
       properties:
         key:
           $ref: "#/components/schemas/JWKKey"
@@ -808,6 +812,7 @@ components:
     JWKKey:
       description: "Models a JWK"
       type: object
+      additionalProperties: false
       properties:
         kty:
           type: string
@@ -868,6 +873,7 @@ components:
     OtherPrimeInfo:
       title: OtherPrimeInfo
       type: object
+      additionalProperties: false
       properties:
         r:
           type: string
@@ -882,6 +888,7 @@ components:
     ClientSeed:
       description: Models the seed for a client to be persisted
       type: object
+      additionalProperties: false
       properties:
         clientId:
           type: string
@@ -911,6 +918,7 @@ components:
     Client:
       description: Models a Client
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -958,6 +966,7 @@ components:
     UserSeed:
       description: Models the seed for a User-Client correlation to be persisted
       type: object
+      additionalProperties: false
       properties:
         userId:
           type: string
@@ -966,6 +975,7 @@ components:
         - userId
     Purpose:
       type: object
+      additionalProperties: false
       properties:
         states:
           $ref: "#/components/schemas/ClientStatesChain"
@@ -973,6 +983,7 @@ components:
         - states
     PurposeSeed:
       type: object
+      additionalProperties: false
       properties:
         states:
           $ref: "#/components/schemas/ClientStatesChainSeed"
@@ -980,6 +991,7 @@ components:
         - states
     ClientStatesChain:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -997,6 +1009,7 @@ components:
         - purpose
     ClientStatesChainSeed:
       type: object
+      additionalProperties: false
       properties:
         eservice:
           $ref: "#/components/schemas/ClientEServiceDetailsSeed"
@@ -1010,6 +1023,7 @@ components:
         - purpose
     ClientEServiceDetails:
       type: object
+      additionalProperties: false
       properties:
         eserviceId:
           type: string
@@ -1034,6 +1048,7 @@ components:
         - voucherLifespan
     ClientEServiceDetailsSeed:
       type: object
+      additionalProperties: false
       properties:
         eserviceId:
           type: string
@@ -1058,6 +1073,7 @@ components:
         - voucherLifespan
     ClientEServiceDetailsUpdate:
       type: object
+      additionalProperties: false
       properties:
         state:
           $ref: "#/components/schemas/ClientComponentState"
@@ -1078,6 +1094,7 @@ components:
         - voucherLifespan
     ClientAgreementDetails:
       type: object
+      additionalProperties: false
       properties:
         eserviceId:
           type: string
@@ -1097,6 +1114,7 @@ components:
         - state
     ClientAgreementDetailsSeed:
       type: object
+      additionalProperties: false
       properties:
         eserviceId:
           type: string
@@ -1116,6 +1134,7 @@ components:
         - state
     ClientPurposeDetails:
       type: object
+      additionalProperties: false
       properties:
         purposeId:
           type: string
@@ -1131,6 +1150,7 @@ components:
         - state
     ClientAgreementDetailsUpdate:
       type: object
+      additionalProperties: false
       properties:
         agreementId:
           type: string
@@ -1142,6 +1162,7 @@ components:
         - state
     ClientAgreementAndEServiceDetailsUpdate:
       type: object
+      additionalProperties: false
       properties:
         agreementId:
           type: string
@@ -1169,6 +1190,7 @@ components:
         - eserviceState
     ClientPurposeDetailsSeed:
       type: object
+      additionalProperties: false
       properties:
         purposeId:
           type: string
@@ -1190,6 +1212,7 @@ components:
         - INACTIVE
     ClientPurposeDetailsUpdate:
       type: object
+      additionalProperties: false
       properties:
         versionId:
           type: string

@@ -1,0 +1,11 @@
+{
+  "TableName": "privacy-notice",
+  "KeySchema": [{ "AttributeName": "privacyNoticeId", "KeyType": "HASH" }],
+  "AttributeDefinitions": [
+    { "AttributeName": "privacyNoticeId", "AttributeType": "S" }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 10,
+    "WriteCapacityUnits": 5
+  }
+}

@@ -1,8 +1,13 @@
-import { catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
+import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import { catalogApiDescriptorState } from "./api/apiTypes.js";
+import {
+  fromApiTenantMail,
+  toBffTenantMail,
+} from "./api/tenantApiConverter.js";
 
-/* 
-  This file contains commons utility functions 
+/*
+  This file contains commons utility functions
   used to pick or transform data from model to another.
 */
 
@@ -29,10 +34,13 @@ export function getNotDraftDescriptor(
   );
 }
 
-export function getTenantEmail(
+export function getLatestTenantContactEmail(
   tenant: tenantApi.Tenant
-): tenantApi.Mail | undefined {
-  return tenant.mails.find(
-    (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
+): bffApi.Mail | undefined {
+  const mail = getLatestTenantMailOfKind(
+    tenant.mails.map(fromApiTenantMail),
+    tenantApi.MailKind.Values.CONTACT_EMAIL
   );
+
+  return mail ? toBffTenantMail(mail) : undefined;
 }

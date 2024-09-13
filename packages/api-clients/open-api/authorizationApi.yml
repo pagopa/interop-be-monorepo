@@ -1481,6 +1481,7 @@ components:
     ClientSeed:
       description: Client creation request body
       type: object
+      additionalProperties: false
       properties:
         name:
           type: string
@@ -1501,6 +1502,7 @@ components:
     Client:
       description: Models Client details
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1545,6 +1547,7 @@ components:
         - API
     ClientWithKeys:
       type: object
+      additionalProperties: false
       properties:
         client:
           $ref: "#/components/schemas/Client"
@@ -1557,6 +1560,7 @@ components:
         - keys
     ClientsWithKeys:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1570,6 +1574,7 @@ components:
         - totalCount
     Clients:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1589,6 +1594,7 @@ components:
     Key:
       description: "Models the PersistentKey"
       type: object
+      additionalProperties: false
       properties:
         userId:
           type: string
@@ -1617,6 +1623,7 @@ components:
         - createdAt
     Keys:
       type: object
+      additionalProperties: false
       properties:
         keys:
           type: array
@@ -1626,6 +1633,7 @@ components:
         - keys
     KeyWithClient:
       type: object
+      additionalProperties: false
       properties:
         key:
           $ref: "#/components/schemas/JWKKey"
@@ -1637,6 +1645,7 @@ components:
     JWKKey:
       description: "Models a JWK"
       type: object
+      additionalProperties: false
       properties:
         kty:
           type: string
@@ -1697,6 +1706,7 @@ components:
     OtherPrimeInfo:
       title: OtherPrimeInfo
       type: object
+      additionalProperties: false
       properties:
         r:
           type: string
@@ -1715,6 +1725,7 @@ components:
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object
+      additionalProperties: false
       properties:
         key:
           type: string
@@ -1742,6 +1753,7 @@ components:
         - ENC
     PurposeAdditionDetails:
       type: object
+      additionalProperties: false
       properties:
         purposeId:
           type: string

@@ -16,9 +16,9 @@ import {
   emptyErrorMapper,
   getProducerKeychainUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactProducerKeychain } from "../model/api/apiConverter.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
+import { toBffApiCompactProducerKeychain } from "../model/api/converters/catalogClientApiConverter.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -154,7 +154,6 @@ const producerKeychainRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await producerKeychainService.createProducerKey(
-          ctx.authData.userId,
           req.params.producerKeychainId,
           req.body,
           ctx
