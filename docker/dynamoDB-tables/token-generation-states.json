@@ -2,7 +2,8 @@
   "TableName": "token-generation-states",
   "AttributeDefinitions": [
     { "AttributeName": "PK", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_eserviceId_descriptorId", "AttributeType": "S" }
+    { "AttributeName": "GSIPK_eserviceId_descriptorId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_purposeId", "AttributeType": "S" }
   ],
   "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
   "GlobalSecondaryIndexes": [
@@ -10,6 +11,13 @@
       "IndexName": "GSIPK_eserviceId_descriptorId",
       "KeySchema": [
         { "AttributeName": "GSIPK_eserviceId_descriptorId", "KeyType": "HASH" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSIPK_purposeId",
+      "KeySchema": [
+        { "AttributeName": "GSIPK_purposeId", "KeyType": "HASH" }
       ],
       "Projection": { "ProjectionType": "ALL" }
     }
