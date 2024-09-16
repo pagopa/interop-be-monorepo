@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   verifyClientAssertionSignature,
   validateRequestParameters,
@@ -10,6 +9,7 @@ import {
 import {
   ApiKey,
   ClientAssertion,
+  ClientAssertionValidationRequest,
   ConsumerKey,
   ValidationResult,
 } from "./types.js";
@@ -46,18 +46,3 @@ export const validateClientAssertion = async (
 
   return successfulValidation(jwt);
 };
-
-const EXPECTED_CLIENT_ASSERTION_TYPE =
-  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
-const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
-
-export const ClientAssertionValidationRequest = z.object({
-  client_id: z.optional(z.string().uuid()),
-  client_assertion: z.string(),
-  client_assertion_type: z.literal(EXPECTED_CLIENT_ASSERTION_TYPE),
-  grant_type: z.literal(EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE),
-});
-
-export type ClientAssertionValidationRequest = z.infer<
-  typeof ClientAssertionValidationRequest
->;

@@ -63,9 +63,9 @@ import {
   purposeIdNotProvided,
 } from "./errors.js";
 const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // TODO: env?
-const EXPECTED_CLIENT_ASSERTION_TYPE =
+export const EXPECTED_CLIENT_ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
-const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
+export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
 const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 

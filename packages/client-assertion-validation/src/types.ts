@@ -10,6 +10,10 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
+import {
+  EXPECTED_CLIENT_ASSERTION_TYPE,
+  EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
+} from "./utils.js";
 
 export const ClientAssertionDigest = z
   .object({
@@ -84,3 +88,14 @@ export type FailedValidation = {
   errors: Array<ApiError<ErrorCodes>>;
   data: undefined;
 };
+
+export const ClientAssertionValidationRequest = z.object({
+  client_id: z.optional(z.string().uuid()),
+  client_assertion: z.string(),
+  client_assertion_type: z.literal(EXPECTED_CLIENT_ASSERTION_TYPE),
+  grant_type: z.literal(EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE),
+});
+
+export type ClientAssertionValidationRequest = z.infer<
+  typeof ClientAssertionValidationRequest
+>;
