@@ -1,36 +1,44 @@
-import { PurposeState, ReadModelClient } from '@interop-be-reports/commons'
-import { Purpose } from '../models/index.js'
+import { ReadModelRepository } from "pagopa-interop-commons";
+import { PurposeVersionState } from "pagopa-interop-models";
+import { Purpose } from "../models/purposeModel.js";
 
 export class ReadModelQueriesClient {
-  constructor(private readModel: ReadModelClient) {}
+  constructor(private readModel: ReadModelRepository) {}
 
-  async getSENDPurposes(pnEServiceId: string, comuniAttributeId: string): Promise<Array<Purpose>> {
+  public async getSENDPurposes(
+    pnEServiceId: string,
+    comuniAttributeId: string
+  ): Promise<Purpose[]> {
     return await this.readModel.purposes
       .aggregate([
         {
           $match: {
-            'data.eserviceId': pnEServiceId,
-            'data.versions.state': {
-              $in: ['Active', 'Suspended', 'WaitingForApproval'] satisfies Array<PurposeState>,
+            "data.eserviceId": pnEServiceId,
+            "data.versions.state": {
+              $in: [
+                "Active",
+                "Suspended",
+                "WaitingForApproval",
+              ] satisfies PurposeVersionState[],
             },
           },
         },
         {
           $lookup: {
-            from: 'tenants',
-            localField: 'data.consumerId',
-            foreignField: 'data.id',
-            as: 'data.consumer',
+            from: "tenants",
+            localField: "data.consumerId",
+            foreignField: "data.id",
+            as: "data.consumer",
           },
         },
         {
           $addFields: {
-            'data.consumer': { $arrayElemAt: ['$data.consumer', 0] },
+            "data.consumer": { $arrayElemAt: ["$data.consumer", 0] },
           },
         },
         {
           $match: {
-            'data.consumer.data.attributes': {
+            "data.consumer.data.attributes": {
               $elemMatch: { id: comuniAttributeId },
             },
           },
@@ -38,24 +46,17 @@ export class ReadModelQueriesClient {
         {
           $project: {
             _id: 0,
-            'data.id': 1,
-            'data.consumerId': 1,
-            'data.versions.firstActivationAt': 1,
-            'data.versions.state': 1,
-            'data.versions.dailyCalls': 1,
-            'data.consumerName': '$data.consumer.data.name',
-            'data.consumerExternalId': '$data.consumer.data.externalId',
+            "data.id": 1,
+            "data.consumerId": 1,
+            "data.versions.firstActivationAt": 1,
+            "data.versions.state": 1,
+            "data.versions.dailyCalls": 1,
+            "data.consumerName": "$data.consumer.data.name",
+            "data.consumerExternalId": "$data.consumer.data.externalId",
           },
         },
       ])
       .map(({ data }) => Purpose.parse(data))
-      .toArray()
-  }
-
-  /**
-   * Closes the connection to the database
-   * */
-  async close(): Promise<void> {
-    await this.readModel.close()
+      .toArray();
   }
 }

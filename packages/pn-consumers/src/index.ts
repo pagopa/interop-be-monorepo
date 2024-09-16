@@ -1,9 +1,13 @@
-import { Logger, ReadModelRepository, logger } from "pagopa-interop-commons";
+import {
+  Logger,
+  ReadModelRepository,
+  initSesMailManager,
+  logger,
+} from "pagopa-interop-commons";
 import { config } from "./configs/env.js";
 import { ReadModelQueriesClient } from "./services/readModelQueriesService.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
-import { Mailer } from "./services/mailerService.js";
 
 const loggerInstance = logger({
   serviceName: "pn-consumers",
@@ -37,31 +41,22 @@ async function main(): Promise<void> {
 
   loggerInstance.info("> Sending emails...");
 
-  const mailer = new Mailer({
-    host: config.smtpAddress,
-    port: config.smtpPort,
-    secure: config.smtpSecure,
-    auth: {
-      user: config.smtpUser,
-      pass: config.smtpPassword,
-    },
-  });
+  const mailer = initSesMailManager(config);
 
-  await mailer.sendMail({
-    from: {
+  await mailer.send(
+    {
       name: config.reportSenderLabel,
       address: config.reportSenderMail,
     },
-    to: config.mailRecipients,
-    subject: MAIL_SUBJECT,
-    text: MAIL_BODY,
-    attachments: [{ filename: CSV_FILENAME, content: csv }],
-  });
+    config.mailRecipients,
+    MAIL_SUBJECT,
+    MAIL_BODY,
+    [{ filename: CSV_FILENAME, content: csv }]
+  );
 
   loggerInstance.info("> Success!\n");
   loggerInstance.info("End of program.");
 
-  await readModelsQueriesClient.close();
   process.exit(0);
 }
 

@@ -1,10 +1,6 @@
 import nodemailer from "nodemailer";
-import {
-  SendEmailCommand,
-  SendEmailCommandInput,
-  SESv2Client,
-} from "@aws-sdk/client-sesv2";
-import { Address } from "nodemailer/lib/mailer/index.js";
+import { SESv2Client } from "@aws-sdk/client-sesv2";
+import { Address, Attachment } from "nodemailer/lib/mailer/index.js";
 import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
 
@@ -13,7 +9,8 @@ export type EmailManager = {
     from: string | { name: string; address: string },
     to: string[],
     subject: string,
-    body: string
+    body: string,
+    attachments?: Attachment[]
   ) => Promise<void>;
 };
 
@@ -26,7 +23,8 @@ export function initPecEmailManager(
       from: string | Address,
       to: string[],
       subject: string,
-      body: string
+      body: string,
+      attachments?: Attachment[]
     ): Promise<void> => {
       const transporter = nodemailer.createTransport({
         host: config.smtpAddress,
@@ -52,6 +50,7 @@ export function initPecEmailManager(
         to,
         subject,
         html: body,
+        attachments,
       });
     },
   };
@@ -68,30 +67,19 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManager {
       from: string | Address,
       to: string[],
       subject: string,
-      body: string
+      body: string,
+      attachments?: Attachment[]
     ): Promise<void> => {
-      const params: SendEmailCommandInput = {
-        Destination: {
-          ToAddresses: to,
-        },
-        Content: {
-          Simple: {
-            Subject: {
-              Data: subject,
-            },
-            Body: {
-              Html: {
-                Data: body,
-              },
-            },
-          },
-        },
-        FromEmailAddress:
-          typeof from === "string" ? from : `${from.name} <${from.address}>`,
-      };
-
-      const command = new SendEmailCommand(params);
-      await client.send(command);
+      const transporter = nodemailer.createTransport({
+        SES: client,
+      });
+      await transporter.sendMail({
+        from,
+        to,
+        subject,
+        html: body,
+        attachments,
+      });
     },
   };
 }
