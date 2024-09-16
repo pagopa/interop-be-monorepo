@@ -30,16 +30,3 @@ const PnConsumersConfig = LoggerConfig.and(ReadModelDbConfig)
 export type PnConsumersConfig = z.infer<typeof PnConsumersConfig>;
 
 export const config: PnConsumersConfig = PnConsumersConfig.parse(process.env);
-// export const Env = z.object({
-//
-//   MONGODB_REPLICA_SET: z.string().optional(),
-//   MONGODB_READ_PREFERENCE: z.string(),
-//   MONGODB_DIRECT_CONNECTION: z
-//     .string()
-//     .transform((value) => value === "true")
-//     .optional(),
-//   MONGODB_RETRY_WRITES: z
-//     .string()
-//     .transform((value) => value === "true")
-//     .optional(),
-// });

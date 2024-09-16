@@ -27,7 +27,7 @@ describe("toCsvDataRow", () => {
     const expected: PNDataCSVRow = {
       nome_comune: "tenantName",
       stato_finalita_migliore: "Attivo",
-      data_attivazione: "2021-01-01",
+      data_attivazione: new Date("2021-01-01"),
       fonte_codice: "origin",
       codice: "value",
       carico_finalita_migliore: 200,
@@ -56,7 +56,7 @@ describe("toCsvDataRow", () => {
     const expected: PNDataCSVRow = {
       nome_comune: "tenantName",
       stato_finalita_migliore: "Sospeso",
-      data_attivazione: "2021-01-01",
+      data_attivazione: new Date("2021-01-01"),
       fonte_codice: "origin",
       codice: "value",
       carico_finalita_migliore: 200,
@@ -85,7 +85,7 @@ describe("toCsvDataRow", () => {
     const expected: PNDataCSVRow = {
       nome_comune: "tenantName",
       stato_finalita_migliore: "In attesa di attivazione",
-      data_attivazione: "2021-01-01",
+      data_attivazione: new Date("2021-01-01"),
       fonte_codice: "origin",
       codice: "value",
       carico_finalita_migliore: 200,

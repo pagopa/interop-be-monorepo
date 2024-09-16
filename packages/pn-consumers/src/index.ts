@@ -4,6 +4,7 @@ import {
   initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "./configs/env.js";
 import { ReadModelQueriesClient } from "./services/readModelQueriesService.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
@@ -11,7 +12,7 @@ import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
 
 const loggerInstance = logger({
   serviceName: "pn-consumers",
-  correlationId: crypto.randomUUID(),
+  correlationId: uuidv4(),
 });
 
 async function main(): Promise<void> {

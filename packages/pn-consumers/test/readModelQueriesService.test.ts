@@ -1,5 +1,4 @@
 /* eslint-disable functional/no-let */
-import * as crypto from "crypto";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { describe, expect, it, afterEach, beforeAll, afterAll } from "vitest";
 import {
@@ -8,6 +7,7 @@ import {
   getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test/index.js";
 import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import { ReadModelQueriesClient } from "../src/services/readModelQueriesService.js";
 import { ReadModelRepository } from "../../commons/dist/repositories/ReadModelRepository.js";
 
@@ -15,8 +15,8 @@ const PN_ESERVICE_ID_MOCK = "4747d063-0d9c-4a5d-b143-9f2fdc4d7f22";
 const COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK =
   "5ec5dd81-ff71-4af8-974b-4190eb8347bf";
 
-const TENANT_COMUNE_ID = crypto.randomUUID();
-const TENANT_NON_COMUNE_ID = crypto.randomUUID();
+const TENANT_COMUNE_ID = uuidv4();
+const TENANT_NON_COMUNE_ID = uuidv4();
 
 describe("MetricsManager", () => {
   const DB_NAME = "read-model";
@@ -101,7 +101,14 @@ describe("MetricsManager", () => {
           ...getMockPurpose(),
           eserviceId: unsafeBrandId(PN_ESERVICE_ID_MOCK),
           consumerId: unsafeBrandId(TENANT_COMUNE_ID),
-          versions: [{ state: "Active" }],
+          versions: [
+            {
+              id: uuidv4(),
+              state: "Active",
+              dailyCalls: 1,
+              createdAt: new Date(),
+            },
+          ],
         },
       },
       {
@@ -109,7 +116,14 @@ describe("MetricsManager", () => {
           ...getMockPurpose(),
           eserviceId: unsafeBrandId(PN_ESERVICE_ID_MOCK),
           consumerId: unsafeBrandId(TENANT_NON_COMUNE_ID),
-          versions: [{ state: "Active" }],
+          versions: [
+            {
+              id: uuidv4(),
+              state: "Active",
+              dailyCalls: 1,
+              createdAt: new Date(),
+            },
+          ],
         },
       },
     ]);
