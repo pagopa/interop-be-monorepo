@@ -381,10 +381,7 @@ export const validateClientKindAndPlatformState = (
         if (!platformStateErrors && !purposeIdError) {
           return successfulValidation(jwt);
         }
-        return failedValidation([
-          ...(platformStateErrors || []),
-          purposeIdError,
-        ]);
+        return failedValidation([platformStateErrors, purposeIdError]);
       }
       return failedValidation([
         unexpectedKeyType(clientKindTokenStates.consumer),
