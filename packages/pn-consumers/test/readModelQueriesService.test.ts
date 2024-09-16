@@ -2,6 +2,12 @@
 import * as crypto from "crypto";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { describe, expect, it, afterEach, beforeAll, afterAll } from "vitest";
+import {
+  getMockPurpose,
+  getMockTenant,
+  getMockVerifiedTenantAttribute,
+} from "pagopa-interop-commons-test/index.js";
+import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { ReadModelQueriesClient } from "../src/services/readModelQueriesService.js";
 import { ReadModelRepository } from "../../commons/dist/repositories/ReadModelRepository.js";
 
@@ -68,38 +74,43 @@ describe("MetricsManager", () => {
   it("should not count purposes with consumers that have no attribute with id 'COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID'", async () => {
     await seedCollection("tenants", [
       {
-        data: getTenantMock({
-          id: TENANT_COMUNE_ID,
+        data: {
+          ...getMockTenant(unsafeBrandId<TenantId>(TENANT_COMUNE_ID), [
+            getMockVerifiedTenantAttribute(
+              unsafeBrandId<AttributeId>(
+                COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK
+              )
+            ),
+          ]),
           name: "tenant-comune",
           externalId: { origin: "origin", value: "value" },
-          attributes: [
-            { id: COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK },
-          ],
-        }),
+        },
       },
       {
-        data: getTenantMock({
-          id: TENANT_NON_COMUNE_ID,
+        data: {
+          ...getMockTenant(unsafeBrandId<TenantId>(TENANT_NON_COMUNE_ID)),
           name: "tenant-not-comune",
           externalId: { origin: "origin", value: "value" },
-        }),
+        },
       },
     ]);
 
     await seedCollection("purposes", [
       {
-        data: getPurposeMock({
-          eserviceId: PN_ESERVICE_ID_MOCK,
-          consumerId: TENANT_COMUNE_ID,
+        data: {
+          ...getMockPurpose(),
+          eserviceId: unsafeBrandId(PN_ESERVICE_ID_MOCK),
+          consumerId: unsafeBrandId(TENANT_COMUNE_ID),
           versions: [{ state: "Active" }],
-        }),
+        },
       },
       {
-        data: getPurposeMock({
-          eserviceId: PN_ESERVICE_ID_MOCK,
-          consumerId: TENANT_NON_COMUNE_ID,
+        data: {
+          ...getMockPurpose(),
+          eserviceId: unsafeBrandId(PN_ESERVICE_ID_MOCK),
+          consumerId: unsafeBrandId(TENANT_NON_COMUNE_ID),
           versions: [{ state: "Active" }],
-        }),
+        },
       },
     ]);
 
