@@ -689,7 +689,6 @@ describe("validation test", () => {
     });
 
     it("purposeIdNotProvided", () => {
-      // TODO this should be related to the case of consumerKey
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({

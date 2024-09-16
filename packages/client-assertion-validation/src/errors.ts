@@ -40,7 +40,7 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-// TODO: missing errors:
+// Notes about errors:
 // - InvalidClientIdFormat -> check on uuid
 // - ClientAssertionParseFailed -> already handled in invalidClientAssertionFormat      X
 // - ClientAssertionInvalidClaims -> should be covered by individual checks     ?
@@ -56,7 +56,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 // - PublicKeyParseFailed -> out of scope for this module     X
 // - ClientAssertionVerificationError -> maybe too generic      X
 // - InvalidClientAssertionSignature -> maybe already covered by existing cases     X
-// - PurposeIdNotProvided -> based on entry type (Api client doesn't need purposeId)      // TODO: where to put this error?
+// - PurposeIdNotProvided -> based on entry type (Api client doesn't need purposeId)
 // - PurposeNotFound -> related to previous, check if there is a purpose entry for that purposeId (in platform states)      needed in this package?
 // - InvalidKidFormat -> Verify that kid does not contain special characters
 
