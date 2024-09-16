@@ -42,10 +42,22 @@ node_modules/
 **/dist
 packages/models/src/gen
 packages/*/src/model/generated
+packages/*/src/generated
 
 # MinIO container data
 docker/minio-data
 
+# DynamoDB container data
+docker/dynamo-db-data
+
 ### Turbo ###
 # Turborepo task cache
 .turbo
+
+.env.local
+## Ignore pnpm-lock.yaml files in packages, to prevent committing them
+packages/**/pnpm-lock.yaml
+
+# General
+.DS_Store
+.env.local

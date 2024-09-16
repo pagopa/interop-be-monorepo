@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
+  fileManagerGetError,
   fileManagerListFilesError,
   fileManagerStoreBytesError,
   genericLogger,
+  streamToString,
 } from "pagopa-interop-commons";
 import { fileManager, s3Bucket } from "./utils.js";
 
@@ -14,11 +16,13 @@ describe("FileManager tests", async () => {
   describe("FileManager storeBytes", () => {
     it("should store a file in the bucket", async () => {
       const result = await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test",
-        Buffer.from("test"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test",
+          content: Buffer.from("test"),
+        },
         genericLogger
       );
       expect(result).toBe("test/test/test");
@@ -30,11 +34,13 @@ describe("FileManager tests", async () => {
     it("should fail if the bucket does not exist", async () => {
       await expect(
         fileManager.storeBytes(
-          "invalid bucket",
-          "test",
-          "test",
-          "test",
-          Buffer.from("test"),
+          {
+            bucket: "invalid bucket",
+            path: "test",
+            resourceId: "test",
+            name: "test",
+            content: Buffer.from("test"),
+          },
           genericLogger
         )
       ).rejects.toThrowError(
@@ -47,22 +53,75 @@ describe("FileManager tests", async () => {
     });
   });
 
+  describe("FileManager get", () => {
+    it("should get a file in the bucket", async () => {
+      await fileManager.storeBytes(
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test1",
+          content: Buffer.from("test1"),
+        },
+        genericLogger
+      );
+
+      const fileStream = await fileManager.get(
+        s3Bucket,
+        "test/test/test1",
+        genericLogger
+      );
+
+      const fileContent = streamToString(fileStream);
+
+      expect(fileContent).toContain("test1");
+    });
+
+    it("should throw if the file is not present in the bucket", async () => {
+      await expect(
+        fileManager.get(s3Bucket, "test", genericLogger)
+      ).rejects.toThrowError(
+        fileManagerGetError(
+          s3Bucket,
+          "test",
+          new Error("The specified key does not exist.")
+        )
+      );
+    });
+
+    it("should fail if the bucket does not exist", async () => {
+      await expect(
+        fileManager.get("invalid bucket", "test", genericLogger)
+      ).rejects.toThrowError(
+        fileManagerGetError(
+          "invalid bucket",
+          "test",
+          new Error("The specified bucket is not valid.")
+        )
+      );
+    });
+  });
+
   describe("FileManager listFiles", () => {
     it("should list all files in the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test1",
-        Buffer.from("test1"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test1",
+          content: Buffer.from("test1"),
+        },
         genericLogger
       );
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test2",
-        Buffer.from("test2"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test2",
+          content: Buffer.from("test2"),
+        },
         genericLogger
       );
 
@@ -92,11 +151,13 @@ describe("FileManager tests", async () => {
   describe("FileManager delete", () => {
     it("should remove a file from the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test",
-        Buffer.from("test"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test",
+          content: Buffer.from("test"),
+        },
         genericLogger
       );
       const listBeforeDelete = await fileManager.listFiles(
@@ -129,11 +190,13 @@ describe("FileManager tests", async () => {
   describe("FileManager copy", () => {
     it("should copy a file in the bucket", async () => {
       await fileManager.storeBytes(
-        s3Bucket,
-        "test",
-        "test",
-        "test",
-        Buffer.from("test"),
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test",
+          content: Buffer.from("test"),
+        },
         genericLogger
       );
 

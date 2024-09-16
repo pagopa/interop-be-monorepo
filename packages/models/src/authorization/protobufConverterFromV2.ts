@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { UserId, unsafeBrandId } from "../brandedIds.js";
+import { UserId, unsafeBrandId, EServiceId } from "../brandedIds.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
+import { ProducerKeychainV2 } from "../gen/v2/authorization/producer-keychain.js";
 import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
 import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 import { Key, KeyUse, keyUse } from "./key.js";
+import { ProducerKeychain } from "./producerKeychain.js";
 
 const fromKeyUseV2 = (input: KeyUseV2): KeyUse => {
   switch (input) {
@@ -39,5 +41,17 @@ export const fromClientV2 = (input: ClientV2): Client => ({
   users: input.users.map(unsafeBrandId<UserId>),
   kind: fromClientKindV2(input.kind),
   createdAt: bigIntToDate(input.createdAt),
+  keys: input.keys.map(fromKeyV2),
+});
+
+export const fromProducerKeychainV2 = (
+  input: ProducerKeychainV2
+): ProducerKeychain => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  producerId: unsafeBrandId(input.producerId),
+  createdAt: bigIntToDate(input.createdAt),
+  eservices: input.eservices.map(unsafeBrandId<EServiceId>),
+  users: input.users.map(unsafeBrandId<UserId>),
   keys: input.keys.map(fromKeyV2),
 });

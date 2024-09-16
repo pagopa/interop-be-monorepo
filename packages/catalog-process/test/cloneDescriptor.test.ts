@@ -20,7 +20,7 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
 } from "../src/model/domain/errors.js";
-import { config } from "../src/utilities/config.js";
+import { config } from "../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -75,29 +75,35 @@ describe("clone descriptor", () => {
     await addOneEService(eservice);
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      interfaceDocument.id,
-      interfaceDocument.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: interfaceDocument.id,
+        name: interfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      document1.id,
-      document1.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document1.id,
+        name: document1.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      document2.id,
-      document2.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document2.id,
+        name: document2.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
     expect(

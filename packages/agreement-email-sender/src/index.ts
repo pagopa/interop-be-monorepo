@@ -3,12 +3,11 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
-  agreementTopicConfig,
+  buildHTMLTemplateService,
   decodeKafkaMessage,
-  initEmailManager,
-  kafkaConsumerConfig,
+  initPecEmailManager,
+  initSesMailManager,
   logger,
-  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import {
   AgreementEvent,
@@ -16,17 +15,26 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { sendAgreementEmail } from "./services/agreementEmailSenderService.js";
-import { emailManagerConfig } from "./utilities/config.js";
+import {
+  sendAgreementActivationEmail,
+  senderAgreementSubmissionEmail,
+} from "./services/agreementEmailSenderService.js";
 
-const config = kafkaConsumerConfig();
-const readModelConfig = readModelWriterConfig();
-const topicsConfig = agreementTopicConfig();
-const emailConfig = emailManagerConfig();
-const emailManager = initEmailManager(emailConfig);
+import { config } from "./config/config.js";
+
+const sesEmailManager = initSesMailManager(config);
+const pecEmailManager = initPecEmailManager({
+  smtpAddress: config.smtpAddress,
+  smtpPort: config.smtpPort,
+  smtpSecure: config.smtpSecure,
+  smtpUsername: config.smtpUsername,
+  smtpPassword: config.smtpPassword,
+});
+
 const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(readModelConfig)
+  ReadModelRepository.init(config)
 );
+const templateService = buildHTMLTemplateService();
 
 export async function processMessage({
   message,
@@ -48,12 +56,35 @@ export async function processMessage({
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await sendAgreementEmail(
-            agreement,
+          await sendAgreementActivationEmail({
+            agreementV2: agreement,
             readModelService,
-            emailManager,
-            loggerInstance
-          );
+            emailManager: pecEmailManager,
+            sender: {
+              label: config.pecSenderLabel,
+              mail: config.pecSenderMail,
+            },
+            templateService,
+            logger: loggerInstance,
+          });
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
+      }
+    )
+    .with(
+      { event_version: 2, type: "AgreementSubmitted" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await senderAgreementSubmissionEmail({
+            agreementV2: agreement,
+            readModelService,
+            emailManager: sesEmailManager,
+            feBaseUrl: config.interopFeBaseUrl,
+            sender: { label: config.senderLabel, mail: config.senderMail },
+            templateService,
+            logger: loggerInstance,
+          });
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
@@ -66,7 +97,6 @@ export async function processMessage({
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementSubmitted",
           "AgreementUnsuspendedByProducer",
           "AgreementUnsuspendedByConsumer",
           "AgreementUnsuspendedByPlatform",
@@ -94,4 +124,4 @@ export async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [topicsConfig.agreementTopic], processMessage);
+await runConsumer(config, [config.agreementTopic], processMessage);

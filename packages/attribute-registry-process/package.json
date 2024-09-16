@@ -12,9 +12,7 @@
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/attribute-registry-service-spec.yml' -o './src/model/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
-    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
@@ -37,7 +35,7 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
-    "axios": "1.7.2",
+    "axios": "1.7.4",
     "connection-string": "4.4.0",
     "dotenv-flow": "4.1.0",
     "express": "4.19.2",
@@ -45,6 +43,7 @@
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
     "pg-promise": "11.8.0",
     "ts-pattern": "5.2.0",
     "uuid": "10.0.0",

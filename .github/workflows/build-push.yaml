@@ -51,6 +51,32 @@ jobs:
             dockerfile_path: packages/eservice-descriptors-archiver
           - image_name: agreement-email-sender
             dockerfile_path: packages/agreement-email-sender
+          - image_name: authorization-process
+            dockerfile_path: packages/authorization-process
+          - image_name: client-readmodel-writer
+            dockerfile_path: packages/client-readmodel-writer
+          - image_name: key-readmodel-writer
+            dockerfile_path: packages/key-readmodel-writer
+          - image_name: backend-for-frontend
+            dockerfile_path: packages/bff
+          - image_name: api-gateway
+            dockerfile_path: packages/api-gateway
+          - image_name: agreement-outbound-writer
+            dockerfile_path: packages/agreement-outbound-writer
+          - image_name: catalog-outbound-writer
+            dockerfile_path: packages/catalog-outbound-writer
+          - image_name: purpose-outbound-writer
+            dockerfile_path: packages/purpose-outbound-writer
+          - image_name: tenant-outbound-writer
+            dockerfile_path: packages/tenant-outbound-writer
+          - image_name: compute-agreements-consumer
+            dockerfile_path: packages/compute-agreements-consumer
+          - image_name: producer-key-events-writer
+            dockerfile_path: packages/producer-key-events-writer
+          - image_name: producer-key-readmodel-writer
+            dockerfile_path: packages/producer-key-readmodel-writer
+          - image_name: producer-keychain-readmodel-writer
+            dockerfile_path: packages/producer-keychain-readmodel-writer
 
     steps:
       - name: Checkout repository
@@ -70,7 +96,7 @@ jobs:
       - name: (latest) Docker metadata
         id: meta_latest
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@f7b4ed12385588c3f9bc252f0a2b520d83b52d48
+        uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -83,7 +109,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@f7b4ed12385588c3f9bc252f0a2b520d83b52d48
+        uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
           flavor: |
@@ -95,7 +121,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build_push
-        uses: docker/build-push-action@94f8f8c2eec4bc3f1d78c1755580779804cb87b2
+        uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
           context: .
           file: ${{ matrix.dockerfile_path }}/Dockerfile

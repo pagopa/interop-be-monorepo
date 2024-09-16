@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 import { generateMock } from "@anatine/zod-mock";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -8,34 +9,33 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
-  AgreementDocument,
-  generateId,
-  AgreementId,
-  TenantId,
-  AgreementDocumentId,
-  EServiceId,
   AgreementConsumerDocumentAddedV2,
-  agreementState,
   AgreementConsumerDocumentRemovedV2,
+  AgreementDocument,
+  AgreementDocumentId,
+  AgreementId,
+  EServiceId,
+  TenantId,
+  agreementState,
+  generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { describe, beforeEach, it, expect } from "vitest";
-import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it } from "vitest";
+import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/agreement-validators.js";
 import {
-  agreementNotFound,
-  operationNotAllowed,
-  agreementDocumentNotFound,
-  documentChangeNotAllowed,
   agreementDocumentAlreadyExists,
+  agreementDocumentNotFound,
+  agreementNotFound,
+  documentChangeNotAllowed,
+  operationNotAllowed,
 } from "../src/model/domain/errors.js";
-import { config } from "../src/utilities/config.js";
-import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/validators.js";
+import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   agreementService,
   fileManager,
-  readLastAgreementEvent,
   getMockConsumerDocument,
+  readLastAgreementEvent,
 } from "./utils.js";
 
 describe("agreement consumer document", () => {
@@ -321,11 +321,13 @@ describe("agreement consumer document", () => {
       const consumerDocument = agreement1.consumerDocuments[0];
 
       await fileManager.storeBytes(
-        config.s3Bucket,
-        `${config.consumerDocumentsPath}/${agreement1.id}`,
-        agreement1.consumerDocuments[0].id,
-        agreement1.consumerDocuments[0].name,
-        Buffer.from("test content"),
+        {
+          bucket: config.s3Bucket,
+          path: `${config.consumerDocumentsPath}/${agreement1.id}`,
+          resourceId: agreement1.consumerDocuments[0].id,
+          name: agreement1.consumerDocuments[0].name,
+          content: Buffer.from("test content"),
+        },
         genericLogger
       );
 

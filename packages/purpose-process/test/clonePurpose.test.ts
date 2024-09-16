@@ -19,6 +19,7 @@ import {
   toPurposeV2,
   toReadModelAgreement,
   unsafeBrandId,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -48,9 +49,6 @@ describe("clonePurpose", async () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the cloning of a purpose", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
     const mockTenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -71,7 +69,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
@@ -118,13 +116,8 @@ describe("clonePurpose", async () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
     expect(isRiskAnalysisValid).toBe(false);
-
-    vi.useRealTimers();
   });
   it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
     const mockTenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -146,7 +139,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
@@ -194,8 +187,6 @@ describe("clonePurpose", async () => {
     expect(expectedPurpose.title.length).toBe(60);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
     expect(isRiskAnalysisValid).toBe(false);
-
-    vi.useRealTimers();
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
     const mockTenant = {
@@ -217,7 +208,7 @@ describe("clonePurpose", async () => {
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -253,7 +244,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -289,7 +280,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -335,7 +326,7 @@ describe("clonePurpose", async () => {
 
     await addOnePurpose(mockPurposeToClone);
     await addOnePurpose(mockPurposeWithSameName);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(
@@ -373,7 +364,7 @@ describe("clonePurpose", async () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(mockTenant, tenants);
+    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
     await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
     expect(

@@ -17,7 +17,10 @@ export const TEST_MINIO_IMAGE =
 
 export const TEST_MAILPIT_HTTP_PORT = 8025;
 export const TEST_MAILPIT_SMTP_PORT = 465;
-export const TEST_MAILPIT_IMAGE = "axllent/mailpit";
+export const TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.19";
+
+export const TEST_REDIS_IMAGE = "redis:7.2.5-alpine3.20";
+export const TEST_REDIS_PORT = 6379;
 
 /**
  * Starts a MongoDB container for testing purposes.
@@ -66,8 +69,8 @@ export const postgreSQLContainer = (
 export const minioContainer = (config: S3Config): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
-      MINIO_ROOT_USER: "test-aws-key",
-      MINIO_ROOT_PASSWORD: "test-aws-secret",
+      MINIO_ROOT_USER: "testawskey",
+      MINIO_ROOT_PASSWORD: "testawssecret",
       MINIO_SITE_REGION: "eu-central-1",
     })
     .withEntrypoint(["sh", "-c"])
@@ -96,3 +99,6 @@ export const mailpitContainer = (): GenericContainer =>
       MP_SMTP_BIND_ADDR: `0.0.0.0:${TEST_MAILPIT_SMTP_PORT}`,
     })
     .withExposedPorts(TEST_MAILPIT_HTTP_PORT, TEST_MAILPIT_SMTP_PORT);
+
+export const redisContainer = (): GenericContainer =>
+  new GenericContainer(TEST_REDIS_IMAGE).withExposedPorts(TEST_REDIS_PORT);

@@ -1,0 +1,12 @@
+[default]
+aws_access_key_id=testawskey
+aws_secret_access_key=testawssecret
+region=eu-central-1
+services=local
+
+[services local]
+kms=
+  endpoint_url=http://localhost:4566
+
+dynamodb= 
+  endpoint_url=http://localhost:7001

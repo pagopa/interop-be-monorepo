@@ -1,4 +1,4 @@
 [default]
-aws_access_key_id=test-aws-key
-aws_secret_access_key=test-aws-secret
+aws_access_key_id=testawskey
+aws_secret_access_key=testawssecret
 region=eu-central-1

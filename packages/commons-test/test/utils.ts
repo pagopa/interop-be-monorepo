@@ -1,11 +1,14 @@
 import { inject, afterEach } from "vitest";
 import { setupTestContainersVitest } from "../src/index.js";
 
-export const { cleanup, fileManager } = setupTestContainersVitest(
-  undefined,
-  undefined,
-  inject("fileManagerConfig")
-);
+export const { cleanup, fileManager, redisRateLimiter } =
+  await setupTestContainersVitest(
+    undefined,
+    undefined,
+    inject("fileManagerConfig"),
+    undefined,
+    inject("redisRateLimiterConfig")
+  );
 
 afterEach(cleanup);
 

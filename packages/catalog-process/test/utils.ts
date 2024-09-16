@@ -24,6 +24,7 @@ import {
   toEServiceV2,
   toReadModelAttribute,
   toReadModelEService,
+  toReadModelTenant,
   toReadModelAgreement,
   DescriptorState,
 } from "pagopa-interop-models";
@@ -35,17 +36,13 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { inject, afterEach } from "vitest";
-import {
-  EServiceDescriptorSeed,
-  EServiceRiskAnalysisSeed,
-} from "../src/model/domain/models.js";
-import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
@@ -77,9 +74,44 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const buildDescriptorSeed = (
+export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
-): EServiceDescriptorSeed => ({
+): catalogApi.DescriptorSeedForEServiceCreation => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
+});
+
+export const buildCreateDescriptorSeed = (
+  descriptor: Descriptor
+): catalogApi.EServiceDescriptorSeed => ({
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: descriptor.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: descriptor.docs.map((d) => ({
+    ...d,
+    kind: "DOCUMENT",
+    serverUrls: [],
+    documentId: d.id,
+    filePath: d.path,
+    fileName: d.name,
+  })),
+});
+
+export const buildUpdateDescriptorSeed = (
+  descriptor: Descriptor
+): catalogApi.UpdateEServiceDescriptorSeed => ({
   audience: descriptor.audience,
   voucherLifespan: descriptor.voucherLifespan,
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
@@ -95,7 +127,7 @@ export const buildDescriptorSeed = (
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): EServiceRiskAnalysisSeed => ({
+): catalogApi.EServiceRiskAnalysisSeed => ({
   name: riskAnalysis.name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
@@ -120,7 +152,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   version: "1",
   docs: [],
   state: state || descriptorState.draft,
-  audience: [],
+  audience: ["pagopa.it"],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,
@@ -149,16 +181,29 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
   verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
 
-export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
-  contentType: "json",
-  prettyName: "prettyName",
-  serverUrls: ["pagopa.it"],
-  documentId: generateId(),
-  kind: "INTERFACE",
-  filePath: "filePath",
-  fileName: "fileName",
-  checksum: "checksum",
-});
+export const buildInterfaceSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
+export const buildDocumentSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "DOCUMENT",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
 
 export const getMockDocument = (): Document => ({
   name: "fileName",
@@ -168,19 +213,6 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
-});
-
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
 });
 
 export const getMockAgreement = ({
@@ -244,7 +276,7 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {

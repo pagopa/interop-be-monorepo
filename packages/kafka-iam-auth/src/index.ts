@@ -5,12 +5,17 @@ import {
   Kafka,
   KafkaConfig,
   OauthbearerProviderResponse,
+  Producer,
+  ProducerRecord,
+  RecordMetadata,
   logLevel,
 } from "kafkajs";
 import {
   KafkaConsumerConfig,
+  KafkaConfig as InteropKafkaConfig,
   Logger,
   genericLogger,
+  KafkaProducerConfig,
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -23,18 +28,18 @@ const processExit = (existStatusCode: number = 1): void => {
   process.exit(existStatusCode);
 };
 
-const errorEventsListener = (consumer: Consumer): void => {
+const errorEventsListener = (consumerOrProducer: Consumer | Producer): void => {
   errorTypes.forEach((type) => {
     process.on(type, async (e) => {
       try {
         genericLogger.error(`Error ${type} intercepted; Error detail: ${e}`);
-        await consumer.disconnect().finally(() => {
-          genericLogger.debug("Consumer disconnected properly");
+        await consumerOrProducer.disconnect().finally(() => {
+          genericLogger.debug("Disconnected successfully");
         });
         processExit();
       } catch (e) {
         genericLogger.error(
-          `Unexpected error on consumer disconnection with event type ${type}; Error detail: ${e}`
+          `Unexpected error on disconnection with event type ${type}; Error detail: ${e}`
         );
         processExit();
       }
@@ -44,8 +49,8 @@ const errorEventsListener = (consumer: Consumer): void => {
   signalTraps.forEach((type) => {
     process.once(type, async () => {
       try {
-        await consumer.disconnect().finally(() => {
-          genericLogger.debug("Consumer disconnected properly");
+        await consumerOrProducer.disconnect().finally(() => {
+          genericLogger.debug("Disconnected successfully");
           processExit();
         });
       } finally {
@@ -55,7 +60,7 @@ const errorEventsListener = (consumer: Consumer): void => {
   });
 };
 
-const kafkaEventsListener = (consumer: Consumer): void => {
+const consumerKafkaEventsListener = (consumer: Consumer): void => {
   if (genericLogger.isDebugEnabled()) {
     consumer.on(consumer.events.DISCONNECT, () => {
       genericLogger.debug(`Consumer has disconnected.`);
@@ -72,6 +77,20 @@ const kafkaEventsListener = (consumer: Consumer): void => {
   });
 
   consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
+    genericLogger.error(
+      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
+    );
+  });
+};
+
+const producerKafkaEventsListener = (producer: Producer): void => {
+  if (genericLogger.isDebugEnabled()) {
+    producer.on(producer.events.DISCONNECT, () => {
+      genericLogger.debug(`Producer has disconnected.`);
+    });
+  }
+  // eslint-disable-next-line sonarjs/no-identical-functions
+  producer.on(producer.events.REQUEST_TIMEOUT, (e) => {
     genericLogger.error(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
@@ -111,25 +130,17 @@ async function oauthBearerTokenProvider(
   };
 }
 
-const initConsumer = async (
-  config: KafkaConsumerConfig,
-  topics: string[],
-  consumerHandler: (payload: EachMessagePayload) => Promise<void>
-): Promise<Consumer> => {
-  genericLogger.debug(
-    `Consumer connecting to topics ${JSON.stringify(topics)}`
-  );
-
+const initKafka = (config: InteropKafkaConfig): Kafka => {
   const kafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
         clientId: config.kafkaClientId,
-        brokers: [config.kafkaBrokers],
+        brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
         ssl: false,
       }
     : {
         clientId: config.kafkaClientId,
-        brokers: [config.kafkaBrokers],
+        brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
@@ -140,7 +151,7 @@ const initConsumer = async (
         },
       };
 
-  const kafka = new Kafka({
+  return new Kafka({
     ...kafkaConfig,
     logCreator:
       (_logLevel) =>
@@ -170,6 +181,18 @@ const initConsumer = async (
           .otherwise(() => genericLogger.error(msg));
       },
   });
+};
+
+const initConsumer = async (
+  config: KafkaConsumerConfig,
+  topics: string[],
+  consumerHandler: (payload: EachMessagePayload) => Promise<void>
+): Promise<Consumer> => {
+  genericLogger.debug(
+    `Consumer connecting to topics ${JSON.stringify(topics)}`
+  );
+
+  const kafka = initKafka(config);
 
   const consumer = kafka.consumer({
     groupId: config.kafkaGroupId,
@@ -184,7 +207,7 @@ const initConsumer = async (
     },
   });
 
-  kafkaEventsListener(consumer);
+  consumerKafkaEventsListener(consumer);
   errorEventsListener(consumer);
 
   await consumer.connect();
@@ -197,7 +220,7 @@ const initConsumer = async (
 
   await consumer.subscribe({
     topics,
-    fromBeginning: true,
+    fromBeginning: config.topicStartingOffset === "earliest",
   });
 
   genericLogger.info(`Consumer subscribed topic ${topics}`);
@@ -218,7 +241,69 @@ const initConsumer = async (
       }
     },
   });
+
   return consumer;
+};
+
+export const initProducer = async (
+  config: KafkaProducerConfig,
+  topic: string
+): Promise<
+  Producer & {
+    send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
+  }
+> => {
+  try {
+    const kafka = initKafka({
+      kafkaBrokers: config.producerKafkaBrokers,
+      kafkaClientId: config.producerKafkaClientId,
+      kafkaDisableAwsIamAuth: config.producerKafkaDisableAwsIamAuth,
+      kafkaLogLevel: config.producerKafkaLogLevel,
+      kafkaReauthenticationThreshold:
+        config.producerKafkaReauthenticationThreshold,
+      awsRegion: config.awsRegion,
+    });
+
+    const producer = kafka.producer({
+      allowAutoTopicCreation: false,
+      retry: {
+        initialRetryTime: 100,
+        maxRetryTime: 3000,
+        retries: 3,
+        restartOnFailure: (error) => {
+          genericLogger.error(`Error during restart service: ${error.message}`);
+          return Promise.resolve(false);
+        },
+      },
+    });
+
+    producerKafkaEventsListener(producer);
+    errorEventsListener(producer);
+
+    await producer.connect();
+
+    genericLogger.debug("Producer connected");
+
+    const topicExists = await validateTopicMetadata(kafka, [topic]);
+    if (!topicExists) {
+      processExit();
+    }
+
+    return {
+      ...producer,
+      send: async (record: Omit<ProducerRecord, "topic">) =>
+        await producer.send({
+          ...record,
+          topic,
+        }),
+    };
+  } catch (e) {
+    genericLogger.error(
+      `Generic error occurs during consumer initialization: ${e}`
+    );
+    processExit();
+    return undefined as never;
+  }
 };
 
 export const runConsumer = async (

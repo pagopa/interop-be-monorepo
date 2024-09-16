@@ -1,7 +1,5 @@
-name: CI
+name: PR validation
 on:
-  push:
-    branches: main
   pull_request:
 
 jobs:
@@ -10,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm format:check
@@ -23,23 +21,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm lint
 
   check:
-    name: Check 
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm check
@@ -49,23 +47,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
-          node-version-file: ./package.json 
-      - uses: pnpm/action-setup@v2
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - run: pnpm test
 
-  build:
-    name: Build
+  find_dockerfiles:
+    name: Find Dockerfiles
     runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
+      - name: Find packages
+        id: set_packages_output
+        run: |
+          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+  docker_build:
+    name: Build
+    needs: [find_dockerfiles]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
+    env:
+        DOCKER_BUILD_SUMMARY: "false"
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Build Docker image
+        uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@v2
-        with:
-          run_install: true
-      - run: pnpm build
+          context: .
+          file: packages/${{ matrix.package }}/Dockerfile
+          push: false
+
+  check_build_result:
+    name: Build Result
+    needs: [docker_build]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Check build result
+        run: |
+          [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
+          exit 0
