@@ -62,13 +62,13 @@ export const getMockClientAssertion = ({
 };
 
 export const getMockConsumerKey = (): ConsumerKey => ({
-  GSIPK_clientId: generateId<ClientId>(),
+  clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
-  kidWithPurposeId: "",
+  kid: "",
+  purposeId: generateId<PurposeId>(),
   publicKey: "TODO",
   algorithm: "RS256",
   clientKind: clientKindTokenStates.consumer,
-  GSIPK_purposeId: generateId<PurposeId>(),
   purposeState: itemState.active,
   agreementId: generateId(),
   agreementState: itemState.active,
@@ -77,9 +77,10 @@ export const getMockConsumerKey = (): ConsumerKey => ({
 });
 
 export const getMockApiKey = (): ApiKey => ({
-  GSIPK_clientId: generateId<ClientId>(),
+  clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
-  kidWithPurposeId: "",
+  kid: "",
+  purposeId: generateId<PurposeId>(),
   publicKey: "TODO",
   algorithm: "RS256",
   clientKind: clientKindTokenStates.api,
