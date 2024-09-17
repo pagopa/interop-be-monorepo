@@ -19,7 +19,7 @@ import {
   openapiVersionNotRecognized,
 } from "../model/domain/errors.js";
 import { CatalogProcessClient } from "../providers/clientProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { BffAppContext } from "./context.js";
 import { ConfigurationDoc } from "../model/api/apiTypes.js";
 import { calculateChecksum } from "./fileUtils.js";
 
