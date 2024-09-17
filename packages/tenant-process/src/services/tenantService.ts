@@ -338,7 +338,8 @@ export function tenantServiceBuilder(
         const mails = tenantSeed.digitalAddress
           ? [
               {
-                id: crypto.createHash("sha256")
+                id: crypto
+                  .createHash("sha256")
                   .update(tenantSeed.digitalAddress.address)
                   .digest("hex"),
                 kind: tenantMailKind.DigitalAddress,
