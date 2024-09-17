@@ -7,6 +7,10 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 
+COPY ./packages/one-trust-notices/package.json /app/packages/one-trust-notices/package.json
+COPY ./packages/commons/package.json /app/packages/commons/package.json
+COPY ./packages/models/package.json /app/packages/models/package.json
+
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
@@ -14,7 +18,6 @@ COPY turbo.json /app/
 COPY ./packages/one-trust-notices /app/packages/one-trust-notices/
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
-COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -25,7 +28,6 @@ RUN pnpm build && \
     package*.json packages/one-trust-notices/package*.json \
     packages/commons/ \
     packages/models/ \
-    packages/kafka-iam-auth/ \
     packages/one-trust-notices/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
