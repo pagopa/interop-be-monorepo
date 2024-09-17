@@ -429,7 +429,7 @@ export function purposeServiceBuilder(
       }
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsPath,
+        config.riskAnalysisDocumentsContainer,
         document.path,
         logger
       );

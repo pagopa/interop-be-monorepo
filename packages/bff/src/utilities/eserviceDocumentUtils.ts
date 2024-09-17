@@ -49,7 +49,7 @@ export async function verifyAndCreateEServiceDocument(
   );
   const filePath = await fileManager.storeBytes(
     {
-      bucket: config.s3Bucket,
+      bucket: config.eserviceDocumentsContainer,
       path: config.eserviceDocumentsPath,
       resourceId: documentId,
       name: doc.doc.name,
@@ -80,7 +80,11 @@ export async function verifyAndCreateEServiceDocument(
       }
     );
   } catch (error) {
-    await fileManager.delete(config.s3Bucket, filePath, ctx.logger);
+    await fileManager.delete(
+      config.eserviceDocumentsContainer,
+      filePath,
+      ctx.logger
+    );
     throw error;
   }
 }
