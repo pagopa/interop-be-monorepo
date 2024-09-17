@@ -5,7 +5,7 @@ import {
   OneTrustNoticeVersion,
 } from "../models/index.js";
 import { config } from "../config/config.js";
-import { ONE_STRUST_API_ENDPOINT } from "../utils/consts.js";
+import { ONE_TRUST_API_ENDPOINT } from "../utils/consts.js";
 
 export class OneTrustClient {
   private otAxiosInstance: AxiosInstance;
@@ -32,7 +32,7 @@ export class OneTrustClient {
     });
     try {
       const response = await axios.post(
-        `${ONE_STRUST_API_ENDPOINT}/access/v1/oauth/token`,
+        `${ONE_TRUST_API_ENDPOINT}/access/v1/oauth/token`,
         form,
         {
           headers: {
@@ -59,7 +59,7 @@ export class OneTrustClient {
   ): Promise<OneTrustNoticeVersion> {
     // Date iso format without seconds
     const date = new Date().toISOString().slice(0, -5);
-    const url = `${ONE_STRUST_API_ENDPOINT}/privacynotice/v2/privacynotices/${noticeId}?date=${date}`;
+    const url = `${ONE_TRUST_API_ENDPOINT}/privacynotice/v2/privacynotices/${noticeId}?date=${date}`;
     const response = await this.otAxiosInstance.get(url);
     return OneTrustNoticeVersion.parse(response.data);
   }
