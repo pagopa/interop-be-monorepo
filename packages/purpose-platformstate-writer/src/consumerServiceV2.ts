@@ -57,6 +57,11 @@ export async function handleMessageV2(
         dynamoDBClient,
         purpose
       );
+      await updatePurposeVersionIdInTokenGenerationStatesTable(
+        dynamoDBClient,
+        purpose,
+        purpose.versions[0].id
+      );
     })
     .with(
       { type: "NewPurposeVersionActivated" },

@@ -21,8 +21,10 @@ import {
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
 import {
+  generateId,
   itemState,
   makePlatformStatesPurposePK,
+  makeTokenGenerationStatesClientKidPurposePK,
   NewPurposeVersionActivatedV2,
   PlatformStatesPurposeEntry,
   Purpose,
@@ -119,7 +121,7 @@ describe("integration tests", () => {
 
   describe("Events V2", async () => {
     describe("PurposeActivated", () => {
-      it.skip("no previous entry", async () => {
+      it("no previous entry", async () => {
         const messageVersion = 1;
         const purpose: Purpose = {
           ...getMockPurpose(),
@@ -150,17 +152,27 @@ describe("integration tests", () => {
         expect(previousPlatformPurposeEntry).toBeUndefined();
 
         // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
-            ...getMockTokenStatesClientPurposeEntry(),
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             GSIPK_purposeId: purposeId,
             purposeState: itemState.inactive,
           };
         await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
 
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
-            ...getMockTokenStatesClientPurposeEntry(),
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             GSIPK_purposeId: purposeId,
             purposeState,
           };
@@ -208,7 +220,6 @@ describe("integration tests", () => {
             purposeVersionId: purposeVersions[0].id,
             updatedAt: new Date().toISOString(),
           };
-        // FIX: add updated fields
         expect(retrievedTokenStateEntries).toHaveLength(2);
         expect(retrievedTokenStateEntries).toEqual(
           expect.arrayContaining([
@@ -293,7 +304,7 @@ describe("integration tests", () => {
         );
       });
 
-      it.skip("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 3;
         const purpose: Purpose = {
@@ -364,7 +375,6 @@ describe("integration tests", () => {
           expectedPlatformPurposeEntry
         );
 
-        // FIX: add updated fields
         // token-generation-states;
         const retrievedTokenStateEntries = await readTokenEntriesByPurposeId(
           dynamoDBClient,
