@@ -8,6 +8,7 @@ import {
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
+import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./providers/clientProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -65,12 +66,13 @@ app.use(rateLimiterMiddleware(redisRateLimiter));
 app.use(catalogRouter(zodiosCtx, clients, fileManager));
 app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
-app.use(agreementRouter(zodiosCtx, clients));
+app.use(agreementRouter(zodiosCtx, clients, fileManager));
 app.use(selfcareRouter(zodiosCtx));
 app.use(supportRouter(zodiosCtx, clients, redisRateLimiter));
 app.use(toolRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx, clients));
 app.use(clientRouter(zodiosCtx, clients));
+app.use(privacyNoticeRouter(zodiosCtx));
 app.use(producerKeychainRouter(zodiosCtx, clients));
 
 export default app;

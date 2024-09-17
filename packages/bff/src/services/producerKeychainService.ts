@@ -11,7 +11,7 @@ import { SelfcareId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
-import { toBffApiCompactUser } from "../model/api/apiConverter.js";
+import { toBffApiCompactUser } from "../model/api/converters/catalogClientApiConverter.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -251,6 +251,24 @@ export function producerKeychainServiceBuilder(
           headers,
         }
       );
+    },
+
+    async getEncodedProducerKeychainKeyById(
+      producerKeychainId: string,
+      keyId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EncodedClientKey> {
+      logger.info(
+        `Retrieve key ${keyId} for producer keychain ${producerKeychainId}`
+      );
+
+      const key = await authorizationClient.producerKeychain.getProducerKeyById(
+        {
+          params: { producerKeychainId, keyId },
+          headers,
+        }
+      );
+      return { key: key.encodedPem };
     },
   };
 }

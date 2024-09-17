@@ -395,11 +395,13 @@ export const contractBuilder = (
       );
 
       const documentPath = await fileManager.storeBytes(
-        config.s3Bucket,
-        `${config.agreementContractsPath}/${agreement.id}`,
-        documentId,
-        documentName,
-        pdfBuffer,
+        {
+          bucket: config.s3Bucket,
+          path: `${config.agreementContractsPath}/${agreement.id}`,
+          resourceId: documentId,
+          name: documentName,
+          content: pdfBuffer,
+        },
         logger
       );
 
