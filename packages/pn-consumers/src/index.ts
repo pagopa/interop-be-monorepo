@@ -44,7 +44,7 @@ async function main(): Promise<void> {
 
   const mailer = initSesMailManager(config);
 
-  await mailer.send(
+  await mailer.sendWithAttachments(
     {
       name: config.reportSenderLabel,
       address: config.reportSenderMail,
