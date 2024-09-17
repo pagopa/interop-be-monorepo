@@ -109,7 +109,7 @@ describe("selfcareUpsertTenant", async () => {
       id: unsafeBrandId(id),
       kind: undefined,
       selfcareId: tenantSeed.selfcareId,
-      onboardedAt: new Date(),
+      onboardedAt: mockTenant.onboardedAt!,
       createdAt: new Date(),
       name: tenantSeed.name,
       attributes: [],
