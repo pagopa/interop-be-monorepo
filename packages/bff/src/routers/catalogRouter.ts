@@ -15,15 +15,16 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { config } from "../config/config.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -44,7 +45,8 @@ const catalogRouter = (
     tenantProcessClient,
     agreementProcessClient,
     attributeProcessClient,
-    fileManager
+    fileManager,
+    config
   );
 
   catalogRouter
@@ -151,7 +153,6 @@ const catalogRouter = (
         }
       }
     )
-    .post("/eservices", async (_req, res) => res.status(501).send())
     .get("/eservices/:eServiceId/consumers", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -404,10 +405,51 @@ const catalogRouter = (
         }
       }
     )
-    .delete("/eservices/:eServiceId", async (_req, res) =>
-      res.status(501).send()
-    )
-    .put("/eservices/:eServiceId", async (_req, res) => res.status(501).send())
+    .post("/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.createEService(
+          req.body,
+          ctx
+        );
+        return res.status(200).send(createdResource);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating eservice with seed: ${req.body}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .delete("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.deleteEService(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .put("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.updateEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(createdResource);
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -517,12 +559,64 @@ const catalogRouter = (
     )
     .get(
       "/export/eservices/:eserviceId/descriptors/:descriptorId",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const response = await catalogService.exportEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.json(response).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            bffGetCatalogErrorMapper,
+            ctx.logger,
+            `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
-    .get("/import/eservices/presignedUrl", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/import/eservices", async (_req, res) => res.status(501).send());
+    .get("/import/eservices/presignedUrl", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.generatePutPresignedUrl(
+          req.query.fileName,
+          ctx
+        );
+
+        return res.status(200).json(response).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx.logger,
+          "Error getting eservice import presigned url"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .post("/import/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdEServiceDescriptor = await catalogService.importEService(
+          req.body,
+          ctx
+        );
+        return res.status(200).json(createdEServiceDescriptor).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          "Error importing eService"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    });
 
   return catalogRouter;
 };

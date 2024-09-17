@@ -16,9 +16,9 @@ import {
   emptyErrorMapper,
   getProducerKeychainUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactProducerKeychain } from "../model/api/apiConverter.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
+import { toBffApiCompactProducerKeychain } from "../model/api/converters/catalogClientApiConverter.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -154,7 +154,6 @@ const producerKeychainRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await producerKeychainService.createProducerKey(
-          ctx.authData.userId,
           req.params.producerKeychainId,
           req.body,
           ctx
@@ -272,6 +271,30 @@ const producerKeychainRouter = (
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/encoded/keys/:keyId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const key =
+            await producerKeychainService.getEncodedProducerKeychainKeyById(
+              req.params.producerKeychainId,
+              req.params.keyId,
+              ctx
+            );
+
+          return res.status(200).json(key).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error retrieving key ${req.params.keyId} for producer keychain ${req.params.producerKeychainId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

@@ -856,6 +856,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               properties:
                 currentVersion:
                   type: number
@@ -1011,6 +1012,7 @@ components:
         - value
     InternalAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         origin:
           type: string
@@ -1025,6 +1027,7 @@ components:
         - code
     M2MAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -1034,6 +1037,7 @@ components:
         - code
     CertifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1048,6 +1052,7 @@ components:
     Tenant:
       description: Tenant model
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1100,6 +1105,7 @@ components:
         - GSP
     Tenants:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1113,12 +1119,14 @@ components:
         - totalCount
     TenantFeature:
       type: object
+      additionalProperties: false
       properties:
         certifier:
           $ref: "#/components/schemas/Certifier"
     Certifier:
       description: Certifier Tenant Feature
       type: object
+      additionalProperties: false
       properties:
         certifierId:
           type: string
@@ -1126,6 +1134,7 @@ components:
         - certifierId
     CertifiedAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1144,6 +1153,7 @@ components:
         - attributeName
     CertifiedAttributes:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1157,6 +1167,7 @@ components:
         - totalCount
     TenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         declared:
           $ref: "#/components/schemas/DeclaredTenantAttribute"
@@ -1166,6 +1177,7 @@ components:
           $ref: "#/components/schemas/VerifiedTenantAttribute"
     DeclaredTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1182,6 +1194,7 @@ components:
         - assignmentTimestamp
     CertifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1198,6 +1211,7 @@ components:
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1221,6 +1235,7 @@ components:
         - revokedBy
     DeclaredTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1229,6 +1244,7 @@ components:
         - id
     VerifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1240,12 +1256,14 @@ components:
         - id
     UpdateVerifiedTenantAttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         expirationDate:
           type: string
           format: date-time
     TenantVerifier:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1264,6 +1282,7 @@ components:
         - verificationDate
     TenantRevoker:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1287,6 +1306,7 @@ components:
     InternalTenantSeed:
       description: Tenant Seed model
       type: object
+      additionalProperties: false
       properties:
         externalId:
           $ref: "#/components/schemas/ExternalId"
@@ -1305,6 +1325,7 @@ components:
     M2MTenantSeed:
       description: Tenant Seed model
       type: object
+      additionalProperties: false
       properties:
         externalId:
           $ref: "#/components/schemas/ExternalId"
@@ -1323,6 +1344,7 @@ components:
     SelfcareTenantSeed:
       description: Tenant Seed model
       type: object
+      additionalProperties: false
       properties:
         externalId:
           $ref: "#/components/schemas/ExternalId"
@@ -1339,6 +1361,7 @@ components:
     Mail:
       description: A specific kind of mail
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1365,6 +1388,7 @@ components:
         - DIGITAL_ADDRESS
     ResourceId:
       type: object
+      additionalProperties: false
       required:
         - id
       properties:
@@ -1374,6 +1398,7 @@ components:
     MailSeed:
       description: A specific kind of mail
       type: object
+      additionalProperties: false
       properties:
         kind:
           $ref: "#/components/schemas/MailKind"
@@ -1391,6 +1416,7 @@ components:
     CertifierPromotionPayload:
       description: Certifier promotion payload
       type: object
+      additionalProperties: false
       properties:
         certifierId:
           type: string

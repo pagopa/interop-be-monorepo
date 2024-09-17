@@ -1,9 +1,12 @@
+/* eslint-disable max-params */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { randomUUID } from "crypto";
 import {
+  FileManager,
   getAllFromPaginated,
-  toSetToArray,
+  removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -18,20 +21,29 @@ import {
   PagoPAInteropBeClients,
 } from "../providers/clientProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { agreementDescriptorNotFound } from "../model/domain/errors.js";
+import { isAgreementUpgradable } from "../model/validators.js";
 import {
+  agreementDescriptorNotFound,
+  contractException,
+  contractNotFound,
+  invalidContentType,
+} from "../model/domain/errors.js";
+import {
+  toCompactDescriptor,
+  toCompactEservice,
   toCompactEserviceLight,
   toCompactOrganization,
-} from "../model/api/apiConverter.js";
-import {
-  toCompactEservice,
-  toCompactDescriptor,
-} from "../model/api/apiConverter.js";
-import { isAgreementUpgradable } from "../model/validators.js";
+} from "../model/api/converters/catalogClientApiConverter.js";
+import { config } from "../config/config.js";
+import { contentTypes } from "../utilities/mimeTypes.js";
+import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { getBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 
-export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
+export function agreementServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const { agreementProcessClient } = clients;
   return {
     async createAgreement(
@@ -108,6 +120,115 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       return enrichAgreement(agreement, clients, ctx);
     },
 
+    async addAgreementConsumerDocument(
+      agreementId: string,
+      doc: bffApi.addAgreementConsumerDocument_Body,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Adding consumer document to agreement ${agreementId}`);
+
+      const documentPath = `${config.consumerDocumentsPath}/${agreementId}`;
+      const documentContent = Buffer.from(await doc.doc.arrayBuffer());
+      const documentId = randomUUID();
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.consumerDocumentsContainer,
+          path: documentPath,
+          resourceId: documentId,
+          name: doc.doc.name,
+          content: documentContent,
+        },
+        logger
+      );
+
+      const seed: agreementApi.DocumentSeed = {
+        id: documentId,
+        prettyName: doc.prettyName,
+        name: doc.doc.name,
+        contentType: doc.doc.type,
+        path: documentPath,
+      };
+
+      await agreementProcessClient.addAgreementConsumerDocument(seed, {
+        params: { agreementId },
+        headers,
+      });
+
+      return documentContent;
+    },
+
+    async getAgreementConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(
+        `Retrieving consumer document ${documentId} from agreement ${agreementId}`
+      );
+
+      const document =
+        await agreementProcessClient.getAgreementConsumerDocument({
+          params: { agreementId, documentId },
+          headers,
+        });
+
+      assertContentMediaType(document.contentType, agreementId, documentId);
+
+      const documentBytes = await fileManager.get(
+        config.consumerDocumentsContainer,
+        document.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
+
+    async getAgreementContract(
+      agreementId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Retrieving contract for agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers,
+      });
+
+      if (!agreement.contract) {
+        if (
+          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
+          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
+        ) {
+          throw contractException(agreementId);
+        }
+        throw contractNotFound(agreementId);
+      }
+
+      const documentBytes = await fileManager.get(
+        config.consumerDocumentsContainer,
+        agreement.contract.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
+
+    async removeConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing consumer document with id ${documentId} from agreement ${agreementId}`
+      );
+
+      await agreementProcessClient.removeAgreementConsumerDocument(undefined, {
+        params: { agreementId, documentId },
+        headers,
+      });
+    },
     async submitAgreement(
       agreementId: string,
       payload: bffApi.AgreementSubmissionPayload,
@@ -393,28 +514,43 @@ export const getLatestAgreement = async (
       })
   );
 
-  return allAgreements
-    .sort((firstAgreement, secondAgreement) => {
-      if (firstAgreement.version !== secondAgreement.version) {
-        const descriptorFirstAgreement = eservice.descriptors.find(
-          (d) => d.id === firstAgreement.descriptorId
-        );
-        const descriptorSecondAgreement = eservice.descriptors.find(
-          (d) => d.id === secondAgreement.descriptorId
-        );
+  type AgreementAndDescriptor = {
+    agreement: agreementApi.Agreement;
+    descriptor: catalogApi.EServiceDescriptor;
+  };
 
-        return descriptorFirstAgreement && descriptorSecondAgreement
-          ? Number(descriptorSecondAgreement.version) -
-              Number(descriptorFirstAgreement.version)
-          : 0;
+  const agreementAndDescriptor = allAgreements.reduce<AgreementAndDescriptor[]>(
+    (acc, agreement) => {
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === agreement.descriptorId
+      );
+      if (descriptor) {
+        acc.push({ agreement, descriptor });
+      }
+      return acc;
+    },
+    []
+  );
+
+  return agreementAndDescriptor
+    .sort((first, second) => {
+      const descriptorFirstAgreement = first.descriptor;
+      const descriptorSecondAgreement = second.descriptor;
+      if (
+        descriptorFirstAgreement.version !== descriptorSecondAgreement.version
+      ) {
+        return (
+          Number(descriptorSecondAgreement.version) -
+          Number(descriptorFirstAgreement.version)
+        );
       } else {
         return (
-          new Date(secondAgreement.createdAt).getTime() -
-          new Date(firstAgreement.createdAt).getTime()
+          new Date(second.agreement.createdAt).getTime() -
+          new Date(first.agreement.createdAt).getTime()
         );
       }
     })
-    .at(0);
+    .at(0)?.agreement;
 };
 
 async function enrichAgreementListEntry(
@@ -466,7 +602,7 @@ export async function enrichAgreement(
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
-  const allAttributesIds = toSetToArray([
+  const allAttributesIds = removeDuplicates([
     ...activeDescriptorAttributes,
     ...tenantAttributesIds(consumer),
   ]);
@@ -500,9 +636,7 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: producer.mails.find(
-        (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-      ),
+      contactMail: getLatestTenantContactEmail(producer),
     },
     consumer: {
       id: agreement.consumerId,
@@ -512,9 +646,7 @@ export async function enrichAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: consumer.mails.find(
-        (m) => m.kind === tenantApi.MailKind.Values.CONTACT_EMAIL
-      ),
+      contactMail: getLatestTenantContactEmail(consumer),
       features: consumer.features,
     },
     eservice: {
@@ -618,6 +750,15 @@ export function getCurrentDescriptor(
   return descriptor;
 }
 
+function assertContentMediaType(
+  contentType: string,
+  agreementId: string,
+  documentId: string
+): void {
+  if (!contentTypes.includes(contentType)) {
+    throw invalidContentType(contentType, agreementId, documentId);
+  }
+}
 const emptyPagination = (offset: number, limit: number) => ({
   pagination: {
     limit,
