@@ -65,7 +65,12 @@ const producerKeychainRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving producer keychains`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
