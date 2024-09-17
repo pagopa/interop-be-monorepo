@@ -1708,6 +1708,9 @@ function reassignVerifiedAttribute(
             organizationId,
             tenantAttributeSeed.expirationDate
           ),
+          revokedBy: verifiedTenantAttribute.revokedBy.filter(
+            (i) => i.id !== organizationId
+          ),
         }
       : attr
   );
