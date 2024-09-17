@@ -10,7 +10,6 @@ import {
   bffApi,
   selfcareV2InstitutionClientBuilder,
 } from "pagopa-interop-api-clients";
-
 import { makeApiProblem } from "../model/errors.js";
 import {
   getSelfcareErrorMapper,

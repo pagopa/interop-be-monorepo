@@ -21,7 +21,6 @@ import {
   PagoPAInteropBeClients,
 } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-
 import {
   agreementDescriptorNotFound,
   contractException,

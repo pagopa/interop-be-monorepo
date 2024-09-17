@@ -17,7 +17,6 @@ import {
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-
 import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {

@@ -11,7 +11,6 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-
 import {
   RegistryAttributesMap,
   toBffApiTenant,

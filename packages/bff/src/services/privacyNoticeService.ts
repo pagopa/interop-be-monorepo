@@ -7,7 +7,6 @@ import {
   privacyNoticeNotFound,
   privacyNoticeVersionIsNotTheLatest,
 } from "../model/errors.js";
-
 import { config } from "../config/config.js";
 import { UserPrivacyNotice } from "../model/types.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
