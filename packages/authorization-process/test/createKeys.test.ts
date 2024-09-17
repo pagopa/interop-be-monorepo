@@ -400,7 +400,7 @@ describe("createKeys", () => {
       invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
     );
   });
-  it.only("should throw notAllowedCertificateException if the key contains a certificate", async () => {
+  it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(mockClient);
