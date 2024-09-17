@@ -1344,20 +1344,27 @@ components:
     SelfcareTenantSeed:
       description: Tenant Seed model
       type: object
-      additionalProperties: false
       properties:
         externalId:
-          $ref: "#/components/schemas/ExternalId"
+          $ref: '#/components/schemas/ExternalId'
         selfcareId:
           type: string
         name:
           type: string
           minLength: 1
           maxLength: 1000
+        digitalAddress:
+          $ref: '#/components/schemas/MailSeed'  
+        onboardedAt:
+          type: string
+          format: date-time
+        subUnitType:
+          $ref: '#/components/schemas/TenantUnitType'
       required:
         - externalId
         - selfcareId
         - name
+        - onboardedAt
     Mail:
       description: A specific kind of mail
       type: object
