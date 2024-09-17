@@ -9,18 +9,18 @@ import {
   AttributeProcessClient,
   SelfcareV2Client,
   TenantProcessClient,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+
 import {
   RegistryAttributesMap,
-  toBffApiCertifiedTenantAttributes,
-  toBffApiCompactOrganization,
-  toBffApiCompactTenant,
-  toBffApiDeclaredTenantAttributes,
-  toBffApiRequesterCertifiedAttributes,
   toBffApiTenant,
+  toBffApiCompactTenant,
+  toBffApiRequesterCertifiedAttributes,
+  toBffApiCertifiedTenantAttributes,
+  toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
-} from "../model/api/tenantApiConverter.js";
+} from "../api/tenantApiConverters.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
@@ -147,7 +147,7 @@ export function tenantServiceBuilder(
         });
 
       return {
-        results: results.map(toBffApiCompactOrganization),
+        results: results.map((t) => ({ id: t.id, name: t.name })),
         pagination: {
           offset,
           limit,
@@ -172,7 +172,7 @@ export function tenantServiceBuilder(
         });
 
       return {
-        results: results.map(toBffApiCompactOrganization),
+        results: results.map((t) => ({ id: t.id, name: t.name })),
         pagination: {
           offset,
           limit,

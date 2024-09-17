@@ -7,8 +7,8 @@ import {
   zodiosValidationErrorToApiProblem,
   FileManager,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   activateAgreementErrorMapper,

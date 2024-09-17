@@ -1,44 +1,32 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
-import {
-  DescriptorWithOnlyAttributes,
-  TenantWithOnlyAttributes,
-} from "pagopa-interop-agreement-lifecycle";
+import { DescriptorWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
   attributeRegistryApi,
   bffApi,
   catalogApi,
   tenantApi,
-  authorizationApi,
-  selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
-import {
-  EServiceAttribute,
-  unsafeBrandId,
-  TenantAttribute,
-  tenantAttributeType,
-  CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
-  VerifiedTenantAttribute,
-} from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
-import { attributeNotExists } from "../../domain/errors.js";
+import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
+import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
   getNotDraftDescriptor,
   getLatestTenantContactEmail,
-} from "../../modelMappingUtils.js";
+} from "../model/modelMappingUtils.js";
 import {
   isRequesterEserviceProducer,
   isAgreementSubscribed,
   isAgreementUpgradable,
   hasCertifiedAttributes,
-} from "../../validators.js";
+} from "../services/validators.js";
 import {
   ConfigurationRiskAnalysis,
   catalogApiDescriptorState,
-} from "../apiTypes.js";
+} from "../model/types.js";
+import { toBffCompactOrganization } from "./tenantApiConverters.js";
+import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -94,27 +82,6 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
-  };
-}
-
-export function toBffCompactOrganization(
-  tenant: tenantApi.Tenant
-): bffApi.CompactOrganization {
-  return {
-    id: tenant.id,
-    name: tenant.name,
-    kind: tenant.kind,
-  };
-}
-
-export function toBffCompactAgreement(
-  agreement: agreementApi.Agreement,
-  eservice: catalogApi.EService
-): bffApi.CompactAgreement {
-  return {
-    id: agreement.id,
-    state: agreement.state,
-    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
   };
 }
 
@@ -339,59 +306,6 @@ export function toBffCatalogApiDescriptorAttributes(
     ],
   };
 }
-export function toTenantAttribute(
-  att: tenantApi.TenantAttribute
-): TenantAttribute[] {
-  const certified: CertifiedTenantAttribute | undefined = att.certified && {
-    id: unsafeBrandId(att.certified.id),
-    type: tenantAttributeType.CERTIFIED,
-    revocationTimestamp: att.certified.revocationTimestamp
-      ? new Date(att.certified.revocationTimestamp)
-      : undefined,
-    assignmentTimestamp: new Date(att.certified.assignmentTimestamp),
-  };
-
-  const verified: VerifiedTenantAttribute | undefined = att.verified && {
-    id: unsafeBrandId(att.verified.id),
-    type: tenantAttributeType.VERIFIED,
-    assignmentTimestamp: new Date(att.verified.assignmentTimestamp),
-    verifiedBy: att.verified.verifiedBy.map((v) => ({
-      id: v.id,
-      verificationDate: new Date(v.verificationDate),
-      expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
-      extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
-    })),
-    revokedBy: att.verified.revokedBy.map((r) => ({
-      id: r.id,
-      verificationDate: new Date(r.verificationDate),
-      revocationDate: new Date(r.revocationDate),
-      expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
-      extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
-    })),
-  };
-
-  const declared: DeclaredTenantAttribute | undefined = att.declared && {
-    id: unsafeBrandId(att.declared.id),
-    type: tenantAttributeType.DECLARED,
-    assignmentTimestamp: new Date(att.declared.assignmentTimestamp),
-    revocationTimestamp: att.declared.revocationTimestamp
-      ? new Date(att.declared.revocationTimestamp)
-      : undefined,
-  };
-
-  return [certified, verified, declared].filter(
-    (a): a is TenantAttribute => !!a
-  );
-}
-
-export function toTenantWithOnlyAttributes(
-  tenant: tenantApi.Tenant
-): TenantWithOnlyAttributes {
-  return {
-    ...tenant,
-    attributes: tenant.attributes.map(toTenantAttribute).flat(),
-  };
-}
 
 export function toCatalogCreateEServiceSeed(
   eServiceSeed: bffApi.EServiceSeed
@@ -406,24 +320,6 @@ export function toCatalogCreateEServiceSeed(
       agreementApprovalPolicy:
         catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
     },
-  };
-}
-
-export function toCompactEserviceLight(
-  eservice: agreementApi.CompactEService
-): bffApi.CompactEServiceLight {
-  return {
-    id: eservice.id,
-    name: eservice.name,
-  };
-}
-
-export function toCompactOrganization(
-  organization: agreementApi.CompactOrganization
-): bffApi.CompactOrganization {
-  return {
-    id: organization.id,
-    name: organization.name,
   };
 }
 
@@ -452,34 +348,3 @@ export function toCompactDescriptor(
     version: descriptor.version,
   };
 }
-export const toBffApiCompactClient = (
-  input: authorizationApi.ClientWithKeys
-): bffApi.CompactClient => ({
-  hasKeys: input.keys.length > 0,
-  id: input.client.id,
-  name: input.client.name,
-});
-
-export const toBffApiCompactUser = (
-  input: selfcareV2ClientApi.UserResponse,
-  userId: string
-): bffApi.CompactUser =>
-  match(input)
-    .with({ name: P.nullish, surname: P.nullish }, () => ({
-      userId,
-      name: "Utente",
-      familyName: userId,
-    }))
-    .otherwise((ur) => ({
-      userId,
-      name: ur.name ?? "",
-      familyName: ur.surname ?? "",
-    }));
-
-export const toBffApiCompactProducerKeychain = (
-  input: authorizationApi.ProducerKeychain
-): bffApi.CompactProducerKeychain => ({
-  hasKeys: input.keys.length > 0,
-  id: input.id,
-  name: input.name,
-});

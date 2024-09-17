@@ -9,16 +9,16 @@ import {
   bffApi,
   selfcareV2UsersClientBuilder,
 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   emptyErrorMapper,
   getProducerKeychainUsersErrorMapper,
 } from "../utilities/errorMappers.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
-import { toBffApiCompactProducerKeychain } from "../model/api/converters/catalogClientApiConverter.js";
+import { toBffApiCompactProducerKeychain } from "../api/authorizationApiConverter.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,

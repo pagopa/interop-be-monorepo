@@ -23,7 +23,7 @@ import {
   CatalogProcessClient,
   PurposeProcessClient,
   TenantProcessClient,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -32,14 +32,15 @@ import {
   purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
-} from "../model/domain/errors.js";
+} from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
-import { isAgreementUpgradable } from "../model/validators.js";
+
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { isAgreementUpgradable } from "./validators.js";
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]

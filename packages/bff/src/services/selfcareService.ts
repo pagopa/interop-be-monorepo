@@ -5,7 +5,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { userNotFound } from "../model/domain/errors.js";
+import { userNotFound } from "../model/errors.js";
 
 export function selfcareServiceBuilder(
   selfcareV2Client: SelfcareV2InstitutionClient

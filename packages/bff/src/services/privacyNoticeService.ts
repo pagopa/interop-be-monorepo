@@ -6,9 +6,10 @@ import {
   privacyNoticeNotFoundInConfiguration,
   privacyNoticeNotFound,
   privacyNoticeVersionIsNotTheLatest,
-} from "../model/domain/errors.js";
-import { UserPrivacyNotice } from "../model/domain/types.js";
+} from "../model/errors.js";
+
 import { config } from "../config/config.js";
+import { UserPrivacyNotice } from "../model/types.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
 
 export function privacyNoticeServiceBuilder(

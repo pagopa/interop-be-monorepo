@@ -1,10 +1,10 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
-import { catalogApiDescriptorState } from "./api/apiTypes.js";
 import {
   fromApiTenantMail,
   toBffTenantMail,
-} from "./api/tenantApiConverter.js";
+} from "../api/tenantApiConverters.js";
+import { catalogApiDescriptorState } from "./types.js";
 
 /*
   This file contains commons utility functions
