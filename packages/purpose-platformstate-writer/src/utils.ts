@@ -1,5 +1,7 @@
 import {
   AttributeValue,
+  DeleteItemCommand,
+  DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
   GetItemCommandOutput,
@@ -102,6 +104,21 @@ export const readPlatformPurposeEntry = async (
     }
     return purposeEntry.data;
   }
+};
+
+// TODO: very similar method: deleteCatalogEntry
+export const deletePlatformPurposeEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesPurposePK
+): Promise<void> => {
+  const input: DeleteItemInput = {
+    Key: {
+      PK: { S: primaryKey },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new DeleteItemCommand(input);
+  await dynamoDBClient.send(command);
 };
 
 export const readTokenEntriesByPurposeId = async (

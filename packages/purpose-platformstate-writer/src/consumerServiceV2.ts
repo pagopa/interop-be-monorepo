@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  deletePlatformPurposeEntry,
   getPurposeDataFromMessage,
   getPurposeVersionFromEvent,
   updatePurposeStateInPlatformStatesEntry,
@@ -109,9 +110,50 @@ export async function handleMessageV2(
       { type: "PurposeVersionSuspendedByProducer" },
       { type: "PurposeVersionUnsuspendedByConsumer" },
       { type: "PurposeVersionUnsuspendedByProducer" },
-      async (_msg) => Promise.resolve()
+      async (msg) => {
+        const { purpose, primaryKey, purposeState, existingPurposeEntry } =
+          await getPurposeDataFromMessage(dynamoDBClient, msg);
+
+        if (
+          !existingPurposeEntry ||
+          existingPurposeEntry.version > msg.version
+        ) {
+          // Stops processing if the message is older than the purpose entry or if it doesn't exist
+          return Promise.resolve();
+        } else {
+          // platform-states
+          await updatePurposeStateInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKey,
+            purposeState,
+            msg.version
+          );
+
+          // token-generation-states
+          await updatePurposeStateInTokenGenerationStatesTable(
+            dynamoDBClient,
+            purpose
+          );
+        }
+      }
     )
-    .with({ type: "PurposeArchived" }, async (_msg) => Promise.resolve())
+    .with({ type: "PurposeArchived" }, async (msg) => {
+      const { primaryKey, purposeState } = await getPurposeDataFromMessage(
+        dynamoDBClient,
+        msg
+      );
+
+      // platform-states
+      await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
+
+      // token-generation-states
+      await updatePurposeStateInPlatformStatesEntry(
+        dynamoDBClient,
+        primaryKey,
+        purposeState,
+        msg.version
+      );
+    })
     .with(
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
