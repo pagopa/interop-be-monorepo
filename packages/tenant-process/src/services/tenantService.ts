@@ -1,4 +1,4 @@
-import crypto, { createHash } from "crypto";
+import crypto from "crypto";
 import {
   DB,
   eventRepository,
@@ -338,7 +338,7 @@ export function tenantServiceBuilder(
         const mails = tenantSeed.digitalAddress
           ? [
               {
-                id: createHash("sha256")
+                id: crypto.createHash("sha256")
                   .update(tenantSeed.digitalAddress.address)
                   .digest("hex"),
                 kind: tenantMailKind.DigitalAddress,
