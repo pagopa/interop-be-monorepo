@@ -23,6 +23,7 @@
     "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
     "start:bff": "turbo start --filter pagopa-interop-bff",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
+    "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
