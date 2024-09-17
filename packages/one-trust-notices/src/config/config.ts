@@ -1,4 +1,5 @@
 import {
+  AWSConfig,
   FileManagerConfig,
   LoggerConfig,
   S3Config,
@@ -8,10 +9,10 @@ import dotenv from "dotenv";
 
 export const OnetrustServiceConfig = FileManagerConfig.and(S3Config)
   .and(LoggerConfig)
+  .and(AWSConfig)
   .and(
     z
       .object({
-        AWS_REGION: z.string(),
         LANGS: z.string().transform((value) => value.split(",")),
         CONTENT_STORAGE_BUCKET: z.string(),
         HISTORY_STORAGE_BUCKET: z.string(),
@@ -22,7 +23,6 @@ export const OnetrustServiceConfig = FileManagerConfig.and(S3Config)
         PRIVACY_NOTICES_DYNAMO_TABLE_NAME: z.string(),
       })
       .transform((c) => ({
-        awsRegion: c.AWS_REGION,
         langs: c.LANGS,
         contentStorageBucket: c.CONTENT_STORAGE_BUCKET,
         historyStorageBucket: c.HISTORY_STORAGE_BUCKET,

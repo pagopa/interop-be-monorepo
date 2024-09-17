@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 
-import { genericLogger, initFileManager } from "pagopa-interop-commons";
+import { randomUUID } from "crypto";
+import { initFileManager, logger } from "pagopa-interop-commons";
 import { html2json } from "./services/html2json.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 
@@ -17,7 +18,10 @@ import { ONE_TRUST_NOTICES } from "./utils/consts.js";
 import { OneTrustClient } from "./services/oneTrust.js";
 import { DynamoDbTableClient } from "./services/storage.js";
 
-const logger = genericLogger;
+const loggerInstance = logger({
+  serviceName: "one-trust-notices",
+  correlationId: randomUUID(),
+});
 const fileManager = initFileManager(config);
 
 const dynamoDbTableClient = new DynamoDbTableClient<OneTrustNoticeDBSchema>(
@@ -26,15 +30,15 @@ const dynamoDbTableClient = new DynamoDbTableClient<OneTrustNoticeDBSchema>(
 );
 
 async function main(): Promise<void> {
-  logger.info("Program started.\n");
-  logger.info("> Connecting to OneTrust...");
+  loggerInstance.info("Program started.\n");
+  loggerInstance.info("> Connecting to OneTrust...");
   const oneTrustClient = await OneTrustClient.connect();
 
-  logger.info("Connected!\n");
+  loggerInstance.info("Connected!\n");
 
   for (const oneTrustNotice of ONE_TRUST_NOTICES) {
     try {
-      logger.info(`> Getting ${oneTrustNotice.name} data...`);
+      loggerInstance.info(`> Getting ${oneTrustNotice.name} data...`);
 
       const [noticeActiveVersion, ...localizedNoticeContentResponses] =
         await Promise.all([
@@ -59,20 +63,20 @@ async function main(): Promise<void> {
         getLatestNoticeBucketPath(lang, oneTrustNotice.type)
       );
 
-      logger.info("> Checking if it is a new version...");
+      loggerInstance.info("> Checking if it is a new version...");
 
       // We check if there is a new version by checking if the history bucket already has one of the versioned paths.
       const versionedBucketContentList = await fileManager.listFiles(
         config.historyStorageBucket,
-        logger
+        loggerInstance
       );
       const isNewVersion = !versionedContentBucketPaths.some((bucketPath) =>
         versionedBucketContentList.includes(bucketPath)
       );
 
       if (isNewVersion) {
-        logger.info(`\nNew version found!`);
-        logger.info(
+        loggerInstance.info(`\nNew version found!`);
+        loggerInstance.info(
           `> Uploading to ${config.historyStorageBucket} bucket...\n`
         );
         await Promise.all(
@@ -81,15 +85,15 @@ async function main(): Promise<void> {
               config.historyStorageBucket,
               versionedContentBucketPaths[index],
               Buffer.from(JSON.stringify(noticeContentResponse)),
-              logger
+              loggerInstance
             )
           )
         );
       } else {
-        logger.info("\nNo new version found.\n");
+        loggerInstance.info("\nNo new version found.\n");
       }
 
-      logger.info(
+      loggerInstance.info(
         `> Uploading notice content to ${config.contentStorageBucket} bucket...`
       );
 
@@ -103,7 +107,7 @@ async function main(): Promise<void> {
             config.contentStorageBucket,
             versionedContentBucketPaths[index],
             Buffer.from(JSON.stringify(jsonHtmlNode)),
-            logger
+            loggerInstance
           )
         ),
         ...jsonHtmlNodes.map((jsonHtmlNode, index) =>
@@ -111,12 +115,14 @@ async function main(): Promise<void> {
             config.contentStorageBucket,
             latestContentBucketPaths[index],
             Buffer.from(JSON.stringify(jsonHtmlNode)),
-            logger
+            loggerInstance
           )
         ),
       ]);
 
-      logger.info(`> Updating ${oneTrustNotice.name} data in DynamoDB...`);
+      loggerInstance.info(
+        `> Updating ${oneTrustNotice.name} data in DynamoDB...`
+      );
 
       await dynamoDbTableClient.updateItem(
         { privacyNoticeId: oneTrustNotice.id },
@@ -125,15 +131,15 @@ async function main(): Promise<void> {
         )
       );
 
-      logger.info(`Finished ${oneTrustNotice.name}!\n`);
+      loggerInstance.info(`Finished ${oneTrustNotice.name}!\n`);
     } catch (error) {
-      logger.info(`Error while processing ${oneTrustNotice.name}:`);
-      logger.info(resolveError(error));
-      logger.info(`Skipping ${oneTrustNotice.name}...\n`);
+      loggerInstance.info(`Error while processing ${oneTrustNotice.name}:`);
+      loggerInstance.info(resolveError(error));
+      loggerInstance.info(`Skipping ${oneTrustNotice.name}...\n`);
     }
   }
 
-  logger.info("Done!.");
+  loggerInstance.info("Done!.");
 }
 
 await withExecutionTime(main);
