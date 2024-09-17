@@ -42,6 +42,8 @@ describe("selfcareUpsertTenant", async () => {
       },
       name: "A tenant",
       selfcareId,
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      subUnitType: mockTenant.subUnitType,
     };
     await tenantService.selfcareUpsertTenant(tenantSeed, {
       authData: getMockAuthData(mockTenant.id),
@@ -79,6 +81,8 @@ describe("selfcareUpsertTenant", async () => {
       },
       name: "A tenant",
       selfcareId: generateId(),
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      subUnitType: mockTenant.subUnitType,
     };
     const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
       authData: getMockAuthData(),
@@ -124,6 +128,8 @@ describe("selfcareUpsertTenant", async () => {
       },
       name: "A tenant",
       selfcareId: mockTenant.selfcareId!,
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      subUnitType: mockTenant.subUnitType,
     };
     expect(
       tenantService.selfcareUpsertTenant(tenantSeed, {
@@ -144,6 +150,8 @@ describe("selfcareUpsertTenant", async () => {
         value: mockTenant.externalId.value,
       },
       selfcareId: generateId(),
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      subUnitType: mockTenant.subUnitType,
     };
     expect(
       tenantService.selfcareUpsertTenant(newTenantSeed, {

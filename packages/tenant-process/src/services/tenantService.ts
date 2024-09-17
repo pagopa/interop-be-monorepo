@@ -359,6 +359,7 @@ export function tenantServiceBuilder(
           mails,
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
+          subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
         };
         return await repository.createEvent(
