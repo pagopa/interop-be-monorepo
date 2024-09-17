@@ -397,10 +397,17 @@ export function agreementServiceBuilder(
     },
 
     async getAgreementsEserviceConsumers(
-      offset: number,
-      limit: number,
-      requesterId: string,
-      eServiceName: string | undefined,
+      {
+        offset,
+        limit,
+        requesterId,
+        eServiceName,
+      }: {
+        offset: number;
+        limit: number;
+        requesterId: string;
+        eServiceName?: string;
+      },
       { headers, logger }: WithLogger<BffAppContext>
     ) {
       logger.info(
@@ -432,9 +439,11 @@ export function agreementServiceBuilder(
     },
 
     async getAgreementProducers(
-      offset: number,
-      limit: number,
-      producerName: string | undefined,
+      {
+        offset,
+        limit,
+        producerName,
+      }: { offset: number; limit: number; producerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement producers`);
@@ -463,9 +472,11 @@ export function agreementServiceBuilder(
     },
 
     async getAgreementConsumers(
-      offset: number,
-      limit: number,
-      consumerName: string | undefined,
+      {
+        offset,
+        limit,
+        consumerName,
+      }: { offset: number; limit: number; consumerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement consumers`);
