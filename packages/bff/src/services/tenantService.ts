@@ -19,7 +19,7 @@ import {
   toBffApiCertifiedTenantAttributes,
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
-} from "../api/tenantApiConverters.js";
+} from "../api/tenantApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(

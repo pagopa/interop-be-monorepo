@@ -3,7 +3,7 @@ import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import {
   fromApiTenantMail,
   toBffTenantMail,
-} from "../api/tenantApiConverters.js";
+} from "../api/tenantApiConverter.js";
 import { catalogApiDescriptorState } from "./types.js";
 
 /*

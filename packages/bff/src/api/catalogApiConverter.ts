@@ -25,7 +25,7 @@ import {
   ConfigurationRiskAnalysis,
   catalogApiDescriptorState,
 } from "../model/types.js";
-import { toBffCompactOrganization } from "./tenantApiConverters.js";
+import { toBffCompactOrganization } from "./tenantApiConverter.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(

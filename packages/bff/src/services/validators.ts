@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
 import { toDescriptorWithOnlyAttributes } from "../api/catalogApiConverter.js";
-import { toTenantWithOnlyAttributes } from "../api/tenantApiConverters.js";
+import { toTenantWithOnlyAttributes } from "../api/tenantApiConverter.js";
 import {
   invalidEServiceRequester,
   notValidDescriptor,
