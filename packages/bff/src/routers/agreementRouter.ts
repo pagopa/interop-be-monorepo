@@ -227,7 +227,7 @@ const agreementRouter = (
             error,
             getAgreementConsumerDocumentErrorMapper,
             ctx.logger,
-            `Error downloading contract for agreement ${req.params.agreementId}`
+            `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

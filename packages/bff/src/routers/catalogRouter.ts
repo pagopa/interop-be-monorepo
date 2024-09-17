@@ -190,7 +190,12 @@ const catalogRouter = (
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error while deleting draft descriptor ${req.params.descriptorId} for E-Service ${req.params.eServiceId}"`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
