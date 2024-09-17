@@ -70,16 +70,6 @@ export function toTenantWithOnlyAttributes(
   };
 }
 
-export function toBffCompactOrganization(
-  tenant: tenantApi.Tenant
-): bffApi.CompactOrganization {
-  return {
-    id: tenant.id,
-    name: tenant.name,
-    kind: tenant.kind,
-  };
-}
-
 export const toBffApiRequesterCertifiedAttributes = (
   input: tenantApi.CertifiedAttribute
 ): bffApi.RequesterCertifiedAttribute => ({

@@ -25,7 +25,6 @@ import {
   ConfigurationRiskAnalysis,
   catalogApiDescriptorState,
 } from "../model/types.js";
-import { toBffCompactOrganization } from "./tenantApiConverter.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -95,7 +94,11 @@ export function toBffCatalogDescriptorEService(
   return {
     id: eservice.id,
     name: eservice.name,
-    producer: toBffCompactOrganization(producerTenant),
+    producer: {
+      id: producerTenant.id,
+      name: producerTenant.name,
+      kind: producerTenant.kind,
+    },
     description: eservice.description,
     technology: eservice.technology,
     descriptors: getNotDraftDescriptor(eservice),
