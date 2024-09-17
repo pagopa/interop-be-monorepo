@@ -23,6 +23,7 @@
     "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
     "start:bff": "turbo start --filter pagopa-interop-bff",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
+    "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
