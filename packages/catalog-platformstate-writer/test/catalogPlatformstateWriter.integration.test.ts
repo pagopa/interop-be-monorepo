@@ -239,12 +239,12 @@ describe("integration tests", async () => {
           await readCatalogEntry(primaryKey, dynamoDBClient)
         ).toBeUndefined();
         await writeCatalogEntry(catalogStateEntry, dynamoDBClient);
-        const expectedCatalogEntry = await readCatalogEntry(
+        const retrievedCatalogEntry = await readCatalogEntry(
           primaryKey,
           dynamoDBClient
         );
 
-        expect(expectedCatalogEntry).toEqual(catalogStateEntry);
+        expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
       });
     });
 
@@ -271,12 +271,12 @@ describe("integration tests", async () => {
           updatedAt: new Date().toISOString(),
         };
         await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
-        const expectedCatalogEntry = await readCatalogEntry(
+        const retrievedCatalogEntry = await readCatalogEntry(
           primaryKey,
           dynamoDBClient
         );
 
-        expect(expectedCatalogEntry).toEqual(previousCatalogStateEntry);
+        expect(retrievedCatalogEntry).toEqual(previousCatalogStateEntry);
       });
     });
 
@@ -305,11 +305,11 @@ describe("integration tests", async () => {
         };
         await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
         await deleteCatalogEntry(primaryKey, dynamoDBClient);
-        const expectedCatalogEntry = await readCatalogEntry(
+        const retrievedCatalogEntry = await readCatalogEntry(
           primaryKey,
           dynamoDBClient
         );
-        expect(expectedCatalogEntry).toBeUndefined();
+        expect(retrievedCatalogEntry).toBeUndefined();
       });
     });
 
@@ -377,13 +377,13 @@ describe("integration tests", async () => {
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
-        const expectedTokenStateEntries =
+        const retrievedTokenStateEntries =
           await readTokenStateEntriesByEserviceIdAndDescriptorId(
             eserviceId_descriptorId,
             dynamoDBClient
           );
 
-        expect(expectedTokenStateEntries).toEqual([tokenStateEntry]);
+        expect(retrievedTokenStateEntries).toEqual([tokenStateEntry]);
       });
     });
 
