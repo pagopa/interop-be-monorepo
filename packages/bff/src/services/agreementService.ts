@@ -30,7 +30,6 @@ import {
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
-
 import {
   toCompactEservice,
   toCompactDescriptor,
