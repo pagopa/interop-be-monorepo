@@ -24,6 +24,7 @@
     "start:bff": "turbo start --filter pagopa-interop-bff",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",
+    "start:ivass-certified-attributes-importer": "turbo start --filter pagopa-interop-ivass-certified-attributes-importer",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",

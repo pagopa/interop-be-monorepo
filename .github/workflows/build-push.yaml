@@ -79,6 +79,8 @@ jobs:
             dockerfile_path: packages/producer-keychain-readmodel-writer
           - image_name: anac-certified-attributes-importer
             dockerfile_path: packages/anac-certified-attributes-importer
+          - image_name: ivass-certified-attributes-importer
+            dockerfile_path: packages/ivass-certified-attributes-importer
 
     steps:
       - name: Checkout repository
