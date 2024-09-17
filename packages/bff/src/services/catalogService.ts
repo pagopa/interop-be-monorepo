@@ -16,6 +16,7 @@ import {
   EServiceDocumentId,
   EServiceId,
   RiskAnalysisId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -63,7 +64,7 @@ const enhanceCatalogEService =
     tenantProcessClient: TenantProcessClient,
     agreementProcessClient: AgreementProcessClient,
     headers: Headers,
-    requesterId: string
+    requesterId: TenantId
   ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
   async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
     const producerTenant = await tenantProcessClient.tenant.getTenant({
@@ -147,7 +148,7 @@ export const retrieveEserviceDescriptor = (
 
 const retrieveRiskAnalysis = (
   eservice: catalogApi.EService,
-  riskAnalysisId: string
+  riskAnalysisId: RiskAnalysisId
 ): catalogApi.EServiceRiskAnalysis => {
   const riskAnalysis = eservice.riskAnalysis.find(
     (ra) => ra.id === riskAnalysisId
@@ -300,7 +301,7 @@ export function catalogServiceBuilder(
       };
     },
     getProducerEServiceDetails: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       { headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDetails> => {
       const requesterId = authData.organizationId;
@@ -382,8 +383,8 @@ export function catalogServiceBuilder(
         },
       }),
     createEServiceDocument: async (
-      eServiceId: string,
-      descriptorId: string,
+      eServiceId: EServiceId,
+      descriptorId: EServiceId,
       doc: bffApi.createEServiceDocument_Body,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
@@ -678,7 +679,7 @@ export function catalogServiceBuilder(
       return { contentType, document: Buffer.from(stream) };
     },
     createDescriptor: async (
-      eServiceId: string,
+      eServiceId: EServiceId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
       const eService = await catalogProcessClient.getEServiceById({
@@ -755,8 +756,8 @@ export function catalogServiceBuilder(
       return { id };
     },
     deleteDraft: async (
-      eServiceId: string,
-      descriptorId: string,
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.deleteDraft(undefined, {
@@ -767,8 +768,8 @@ export function catalogServiceBuilder(
         },
       }),
     updateDraftDescriptor: async (
-      eServiceId: string,
-      descriptorId: string,
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
       updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
@@ -822,7 +823,7 @@ export function catalogServiceBuilder(
     },
     activateDescriptor: async (
       eServiceId: EServiceId,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.activateDescriptor(undefined, {
@@ -834,7 +835,7 @@ export function catalogServiceBuilder(
       }),
     updateDescriptor: async (
       eServiceId: EServiceId,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> =>
@@ -847,7 +848,7 @@ export function catalogServiceBuilder(
       }),
     publishDescriptor: async (
       eServiceId: EServiceId,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.publishDescriptor(undefined, {
@@ -859,7 +860,7 @@ export function catalogServiceBuilder(
       }),
     suspendDescriptor: async (
       eServiceId: EServiceId,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> =>
       await catalogProcessClient.suspendDescriptor(undefined, {
