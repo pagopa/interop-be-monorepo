@@ -128,7 +128,7 @@ export const PrivactNoticeConfig = z
   }));
 export type PrivactNoticeConfig = z.infer<typeof PrivactNoticeConfig>;
 
-export const AlloweListConfig = z
+export const AllowListConfig = z
   .object({
     ALLOW_LIST_CONTAINER: z.string(),
     ALLOW_LIST_PATH: z.string(),
@@ -139,7 +139,7 @@ export const AlloweListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
-export type AlloweListConfig = z.infer<typeof AlloweListConfig>;
+export type AllowListConfig = z.infer<typeof AllowListConfig>;
 
 export const ExportFileConfig = z
   .object({
@@ -178,7 +178,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
-  .and(AlloweListConfig)
+  .and(AllowListConfig)
   .and(PrivactNoticeConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
