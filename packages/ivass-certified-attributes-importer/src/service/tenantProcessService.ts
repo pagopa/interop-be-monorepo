@@ -1,10 +1,14 @@
 /* eslint-disable max-params */
-import axios from "axios";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
 import { InteropContext } from "../model/interopContextModel.js";
 
 export class TenantProcessService {
-  constructor(private tenantProcessUrl: string) {}
+  private readonly client: ReturnType<typeof tenantApi.createInternalApiClient>;
+
+  constructor(tenantProcessUrl: string) {
+    this.client = tenantApi.createInternalApiClient(tenantProcessUrl);
+  }
 
   public async internalAssignCertifiedAttribute(
     tenantOrigin: string,
@@ -14,19 +18,21 @@ export class TenantProcessService {
     context: InteropContext,
     logger: Logger
   ): Promise<void> {
-    const { data } = await axios
-      .post<void>(
-        `${this.tenantProcessUrl}/internal/origin/${tenantOrigin}/externalId/${tenantExternalId}/attributes/origin/${attributeOrigin}/externalId/${attributeExternalId}`,
-        undefined,
-        {
-          headers: {
-            "X-Correlation-Id": context.correlationId,
-            Authorization: `Bearer ${context.bearerToken}`,
-            "Content-Type": false,
-          },
-        }
-      )
-      .catch((err: Error) => {
+    return await this.client
+      .internalAssignCertifiedAttribute(undefined, {
+        params: {
+          tOrigin: tenantOrigin,
+          tExternalId: tenantExternalId,
+          aOrigin: attributeOrigin,
+          aExternalId: attributeExternalId,
+        },
+        headers: {
+          "X-Correlation-Id": context.correlationId,
+          Authorization: `Bearer ${context.bearerToken}`,
+          "Content-Type": false,
+        },
+      })
+      .catch((err) => {
         logger.error(
           `Error on internalAssignCertifiedAttribute. Reason: ${err.message}`
         );
@@ -34,7 +40,6 @@ export class TenantProcessService {
           `Unexpected response from internalAssignCertifiedAttribute. Reason: ${err.message}`
         );
       });
-    return data;
   }
 
   public async internalRevokeCertifiedAttribute(
@@ -45,18 +50,21 @@ export class TenantProcessService {
     context: InteropContext,
     logger: Logger
   ): Promise<void> {
-    const { data } = await axios
-      .delete<void>(
-        `${this.tenantProcessUrl}/internal/origin/${tenantOrigin}/externalId/${tenantExternalId}/attributes/origin/${attributeOrigin}/externalId/${attributeExternalId}`,
-        {
-          headers: {
-            "X-Correlation-Id": context.correlationId,
-            Authorization: `Bearer ${context.bearerToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .catch((err: Error) => {
+    return await this.client
+      .internalRevokeCertifiedAttribute(undefined, {
+        params: {
+          tOrigin: tenantOrigin,
+          tExternalId: tenantExternalId,
+          aOrigin: attributeOrigin,
+          aExternalId: attributeExternalId,
+        },
+        headers: {
+          "X-Correlation-Id": context.correlationId,
+          Authorization: `Bearer ${context.bearerToken}`,
+          "Content-Type": false,
+        },
+      })
+      .catch((err) => {
         logger.error(
           `Error on internalRevokeCertifiedAttribute. Reason: ${err.message}`
         );
@@ -64,6 +72,5 @@ export class TenantProcessService {
           `Unexpected response from internalRevokeCertifiedAttribute. Reason: ${err.message}`
         );
       });
-    return data;
   }
 }
