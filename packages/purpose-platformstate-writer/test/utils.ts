@@ -16,8 +16,8 @@ afterEach(cleanup);
 
 // TODO: same function as catalog-platformstate-writer
 export const writeTokenStateEntry = async (
-  tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tokenStateEntry: TokenGenerationStatesClientPurposeEntry
 ): Promise<void> => {
   if (!config) {
     fail();

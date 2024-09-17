@@ -1,18 +1,16 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  fromPurposeV2,
-  genericInternalError,
-  makePlatformStatesPurposePK,
   PlatformStatesPurposeEntry,
   PurposeEventEnvelopeV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  purposeStateToItemState,
-  readPlatformPurposeEntry,
+  getPurposeDataFromMessage,
+  getPurposeVersionFromEvent,
   updatePurposeStateInPlatformStatesEntry,
   updatePurposeStateInTokenGenerationStatesTable,
+  updatePurposeVersionIdInPlatformStatesEntry,
+  updatePurposeVersionIdInTokenGenerationStatesTable,
   writePlatformPurposeEntry,
 } from "./utils.js";
 
@@ -22,17 +20,8 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with({ type: "PurposeActivated" }, async (msg) => {
-      const purposeV2 = msg.data.purpose;
-      if (!purposeV2) {
-        throw genericInternalError(`Purpose not found in message data`);
-      }
-      const purpose = fromPurposeV2(purposeV2);
-      const primaryKey = makePlatformStatesPurposePK(unsafeBrandId(purpose.id));
-      const purposeState = purposeStateToItemState(purpose);
-      const existingPurposeEntry = await readPlatformPurposeEntry(
-        primaryKey,
-        dynamoDBClient
-      );
+      const { purpose, primaryKey, purposeState, existingPurposeEntry } =
+        await getPurposeDataFromMessage(dynamoDBClient, msg);
 
       if (existingPurposeEntry && existingPurposeEntry.version > msg.version) {
         // Stops processing if the message is older than the purpose entry
@@ -41,19 +30,15 @@ export async function handleMessageV2(
         existingPurposeEntry &&
         existingPurposeEntry.version <= msg.version
       ) {
+        // platform-states
         await updatePurposeStateInPlatformStatesEntry(
           dynamoDBClient,
           primaryKey,
           purposeState,
           msg.version
         );
-
-        // token-generation-states
-        await updatePurposeStateInTokenGenerationStatesTable(
-          purpose,
-          dynamoDBClient
-        );
       } else {
+        // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
           PK: primaryKey,
           state: purposeState,
@@ -63,20 +48,56 @@ export async function handleMessageV2(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-
-        await writePlatformPurposeEntry(purposeEntry, dynamoDBClient);
-
-        // token-generation-states
-        await updatePurposeStateInTokenGenerationStatesTable(
-          purpose,
-          dynamoDBClient
-        );
+        await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
       }
+
+      // token-generation-states
+      // TODO: add missing updates
+      await updatePurposeStateInTokenGenerationStatesTable(
+        dynamoDBClient,
+        purpose
+      );
     })
     .with(
       { type: "NewPurposeVersionActivated" },
       { type: "PurposeVersionActivated" },
-      async (_msg) => Promise.resolve()
+      async (msg) => {
+        const { purpose, primaryKey, purposeState, existingPurposeEntry } =
+          await getPurposeDataFromMessage(dynamoDBClient, msg);
+
+        if (
+          !existingPurposeEntry ||
+          existingPurposeEntry.version > msg.version
+        ) {
+          // Stops processing if the message is older than the purpose entry or if it doesn't exist
+          return Promise.resolve();
+        } else {
+          // platform-states
+          await updatePurposeStateInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKey,
+            purposeState,
+            msg.version
+          );
+          await updatePurposeVersionIdInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKey,
+            getPurposeVersionFromEvent(msg, msg.type).id,
+            msg.version
+          );
+
+          // token-generation-states
+          await updatePurposeStateInTokenGenerationStatesTable(
+            dynamoDBClient,
+            purpose
+          );
+          await updatePurposeVersionIdInTokenGenerationStatesTable(
+            dynamoDBClient,
+            purpose,
+            getPurposeVersionFromEvent(msg, msg.type).id
+          );
+        }
+      }
     )
     .with(
       { type: "PurposeVersionSuspendedByConsumer" },
