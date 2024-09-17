@@ -15,12 +15,9 @@ import {
 } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const { cleanup, readModelRepository } = await setupTestContainersVitest(
+  inject("readModelConfig")
+);
 
 afterEach(cleanup);
 
