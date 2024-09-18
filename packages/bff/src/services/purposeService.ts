@@ -23,7 +23,7 @@ import {
   CatalogProcessClient,
   PurposeProcessClient,
   TenantProcessClient,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -32,13 +32,14 @@ import {
   purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
-} from "../model/domain/errors.js";
+} from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
-import { isAgreementUpgradable } from "../model/validators.js";
 import { config } from "../config/config.js";
+import { contentTypes } from "../utilities/mimeTypes.js";
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { isAgreementUpgradable } from "./validators.js";
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -418,19 +419,6 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      // from https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes$.html
-      const contentTypes = [
-        "NoContentType",
-        "application/grpc+proto",
-        "application/json",
-        "application/octet-stream",
-        "application/x-www-form-urlencoded",
-        "text/csv(UTF-8)",
-        "text/html(UTF-8)",
-        "text/plain(UTF-8)",
-        "text/xml(UTF-8)",
-      ];
-
       if (!contentTypes.includes(document.contentType)) {
         throw invalidRiskAnalysisContentType(
           document.contentType,
@@ -441,7 +429,7 @@ export function purposeServiceBuilder(
       }
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsPath,
+        config.riskAnalysisDocumentsContainer,
         document.path,
         logger
       );

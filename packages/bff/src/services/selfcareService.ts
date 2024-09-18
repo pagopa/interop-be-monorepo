@@ -5,7 +5,8 @@ import {
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { userNotFound } from "../model/domain/errors.js";
+import { Logger } from "pagopa-interop-commons";
+import { userNotFound } from "../model/errors.js";
 
 export function selfcareServiceBuilder(
   selfcareV2Client: SelfcareV2InstitutionClient
@@ -14,8 +15,12 @@ export function selfcareServiceBuilder(
     async getSelfcareUser(
       userId: UserId,
       userIdQuery: string,
-      institutionId: string
+      institutionId: string,
+      logger: Logger
     ): Promise<selfcareV2ClientApi.UserResource> {
+      logger.info(
+        `Retrieving User with with istitution id ${institutionId}, user ${userId}`
+      );
       const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
         params: { institutionId },
         queries: {
@@ -33,8 +38,12 @@ export function selfcareServiceBuilder(
 
     async getSelfcareInstitutionsProducts(
       userId: UserId,
-      institutionId: string
+      institutionId: string,
+      logger: Logger
     ): Promise<selfcareV2ClientApi.ProductResource[]> {
+      logger.info(
+        `Retrieving Products for Institution ${institutionId} and User ${userId}`
+      );
       return selfcareV2Client.getInstitutionUserProductsUsingGET({
         params: { institutionId },
         queries: { userId },
@@ -42,8 +51,10 @@ export function selfcareServiceBuilder(
     },
 
     async getSelfcareInstitutions(
-      userId: UserId
+      userId: UserId,
+      logger: Logger
     ): Promise<selfcareV2ClientApi.InstitutionResource[]> {
+      logger.info(`Retrieving Institutions for User ${userId}`);
       return selfcareV2Client.getInstitutionsUsingGET({
         queries: { userIdForAuth: userId },
       });
