@@ -52,7 +52,11 @@ export function selfcareOnboardingProcessorBuilder(
         const eventPayload = InstitutionEventPayload.parse(jsonPayload);
 
         const institution = eventPayload.institution;
-        if (allowedOrigins.indexOf(institution.origin) < 0) {
+        const origin =
+          institution.institutionType === "SCP"
+            ? `${institution.origin}-SCP` // needed since the origin is PDND_INFOCAMERE while in allowedOrigins is PDND_INFOCAMERE-SCP
+            : institution.origin;
+        if (allowedOrigins.indexOf(origin) < 0) {
           loggerInstance.warn(
             `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
           );
