@@ -12,11 +12,11 @@ import {
 import * as jwt from "jsonwebtoken";
 import {
   validateClientKindAndPlatformState,
-  validatePlatformState,
   validateRequestParameters,
   verifyClientAssertion,
   verifyClientAssertionSignature,
-} from "../src/utils.js";
+} from "../src/validation.js";
+import { validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
