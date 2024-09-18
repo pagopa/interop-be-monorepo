@@ -7,7 +7,11 @@ import {
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger, Logger } from "pagopa-interop-commons";
-import { missingSelfcareId, userNotFound } from "../model/errors.js";
+import {
+  missingSelfcareId,
+  missingUserId,
+  userNotFound,
+} from "../model/errors.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toApiSelfcareUser } from "../api/selfcareApiConverter.js";
@@ -88,9 +92,7 @@ export function selfcareServiceBuilder(
       const roles = authData.userRoles;
       const requesterId = authData.organizationId;
       if (!userId) {
-        throw new Error(
-          `Error while retrieving users corresponding to tenant ${tenantId}`
-        );
+        throw missingUserId();
       }
 
       const tenant = await tenantProcessClient.tenant.getTenant({

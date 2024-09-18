@@ -44,6 +44,7 @@ export const errorCodes = {
   privacyNoticeNotFound: "0035",
   privacyNoticeVersionIsNotTheLatest: "0036",
   invalidZipStructure: "0037",
+  missingUserId: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -376,5 +377,13 @@ export function invalidZipStructure(description: string): ApiError<ErrorCodes> {
     detail: `Invalid zip structure: ${description}`,
     code: "invalidZipStructure",
     title: "Invalid zip structure",
+  });
+}
+
+export function missingUserId(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing userId in request`,
+    code: "missingUserId",
+    title: "Missing userId",
   });
 }
