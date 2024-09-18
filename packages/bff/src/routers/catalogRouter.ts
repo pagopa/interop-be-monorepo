@@ -217,7 +217,11 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
-            `Error updating draft descriptor ${req.params.descriptorId} on service ${req.params.eServiceId} with seed: ${req.body}`
+            `Error updating draft descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -280,7 +284,9 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
-            `Error updating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId} with seed: ${req.body}`
+            `Error updating descriptor ${req.params.descriptorId} on service ${
+              req.params.eServiceId
+            } with seed: ${JSON.stringify(req.body)}`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -473,7 +479,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error creating eservice with seed: ${req.body}`
+          `Error creating eservice with seed: ${JSON.stringify(req.body)}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
