@@ -8,14 +8,15 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   emptyErrorMapper,
   clonePurposeErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
+  getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
@@ -316,7 +317,6 @@ const purposeRouter = (
         }
       }
     )
-    .get("/purposes/:purposeId", async (_req, res) => res.status(501).send())
     .delete("/purposes/:purposeId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -379,12 +379,68 @@ const purposeRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/purposes/riskAnalysis/latest", async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.getPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeErrorMapper,
+          ctx.logger,
+          `Error retrieving purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .get("/purposes/riskAnalysis/latest", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await purposeService.retrieveLatestRiskAnalysisConfiguration(ctx);
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          "Error retrieving latest risk analysis configuration"
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeService.retrieveRiskAnalysisConfigurationByVersion(
+              unsafeBrandId(req.query.eserviceId),
+              unsafeBrandId(req.params.riskAnalysisVersion),
+              ctx
+            );
+
+          return res.status(200).json(result).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error retrieving risk analysis configuration for version ${req.params.riskAnalysisVersion}`
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return purposeRouter;

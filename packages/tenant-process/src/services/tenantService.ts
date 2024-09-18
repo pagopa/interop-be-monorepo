@@ -27,6 +27,7 @@ import {
   unsafeBrandId,
   TenantMail,
   TenantEvent,
+  tenantMailKind,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -335,15 +336,31 @@ export function tenantServiceBuilder(
         logger.info(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
+        const mails = tenantSeed.digitalAddress
+          ? [
+              {
+                id: crypto
+                  .createHash("sha256")
+                  .update(tenantSeed.digitalAddress.address)
+                  .digest("hex"),
+                kind: tenantMailKind.DigitalAddress,
+                address: tenantSeed.digitalAddress.address,
+                description: tenantSeed.digitalAddress.description,
+                createdAt: new Date(),
+              },
+            ]
+          : [];
+
         const newTenant: Tenant = {
           id: generateId(),
           name: tenantSeed.name,
           attributes: [],
           externalId: tenantSeed.externalId,
           features: [],
-          mails: [],
+          mails,
           selfcareId: tenantSeed.selfcareId,
-          onboardedAt: new Date(),
+          onboardedAt: new Date(tenantSeed.onboardedAt),
+          subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
         };
         return await repository.createEvent(

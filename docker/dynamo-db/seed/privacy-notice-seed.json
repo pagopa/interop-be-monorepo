@@ -1,0 +1,44 @@
+{
+  "privacy-notice": [
+    {
+      "PutRequest": {
+        "Item": {
+          "privacyNoticeId": {
+            "S": "6bf8412a-41a7-41a0-82dc-26286ce61b1a"
+          },
+          "createdDate": {
+            "S": "2023-03-10T15:14:39.847Z"
+          },
+          "lastPublishedDate": {
+            "S": "2024-07-05T10:33:26.423Z"
+          },
+          "organizationId": {
+            "S": "5d6e166b-531a-4014-96b6-1cae7db0f64e"
+          },
+          "persistedAt": {
+            "S": "2024-09-04T15:01:24.467Z"
+          },
+          "privacyNoticeVersion": {
+            "M": {
+              "name": {
+                "S": "Interoperabilità - Backoffice - ToS"
+              },
+              "publishedDate": {
+                "S": "2024-07-05T10:33:26.423Z"
+              },
+              "status": {
+                "S": "ACTIVE"
+              },
+              "version": {
+                "N": "11"
+              },
+              "versionId": {
+                "S": "0805a4a4-5c7e-4092-96bd-b6dfeda4adfa"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

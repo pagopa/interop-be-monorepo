@@ -120,6 +120,7 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "tooManyKeysPerClient",
       "notAllowedPrivateKeyException",
+      "notAllowedCertificateException",
       "jwkDecodingError",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -220,6 +221,7 @@ export const createProducerKeychainKeyErrorMapper = (
     .with(
       "tooManyKeysPerProducerKeychain",
       "notAllowedPrivateKeyException",
+      "notAllowedCertificateException",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)

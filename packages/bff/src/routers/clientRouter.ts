@@ -1,24 +1,22 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  bffApi,
-  selfcareV2UsersClientBuilder,
-} from "pagopa-interop-api-clients";
+import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
 import { clientServiceBuilder } from "../services/clientService.js";
 import { config } from "../config/config.js";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactClient } from "../model/api/apiConverter.js";
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
@@ -265,12 +263,7 @@ const clientRouter = (
     .post("/clients/:clientId/keys", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await clientService.createKeys(
-          ctx.authData.userId,
-          req.params.clientId,
-          req.body,
-          ctx
-        );
+        await clientService.createKeys(req.params.clientId, req.body, ctx);
 
         return res.status(204).send();
       } catch (error) {
