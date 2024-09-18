@@ -4,6 +4,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: "./tsconfig.eslint.json",
   },
+  plugins: ["custom"],
   rules: {
     // Any project level custom rule
     "@typescript-eslint/switch-exhaustiveness-check": "error",
@@ -19,6 +20,7 @@ module.exports = {
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-use-before-define": "off",
+    "custom/no-res-method": "error",
   },
   ignorePatterns: [
     ".eslintrc.cjs",

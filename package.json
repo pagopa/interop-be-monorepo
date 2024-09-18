@@ -39,7 +39,8 @@
   },
   "devDependencies": {
     "@tsconfig/node-lts": "20.1.3",
-    "turbo": "2.0.4"
+    "turbo": "2.0.4",
+    "eslint-plugin-custom": "workspace:*"
   },
   "config": {
     "protocVersion": "26.1"
