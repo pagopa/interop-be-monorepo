@@ -4,19 +4,27 @@ import {
   DeleteObjectCommand,
   ListObjectsCommand,
   PutObjectCommand,
+  GetObjectCommand,
   S3Client,
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { FileManagerConfig } from "../config/fileManagerConfig.js";
 import { Logger, LoggerConfig } from "../index.js";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
+  fileManagerGetError,
   fileManagerListFilesError,
   fileManagerStoreBytesError,
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
+  buildS3Key: (
+    path: string,
+    resourceId: string | undefined,
+    fileName: string
+  ) => string;
   delete: (bucket: string, path: string, logger: Logger) => Promise<void>;
   copy: (
     bucket: string,
@@ -27,14 +35,29 @@ export type FileManager = {
     logger: Logger
   ) => Promise<string>;
   storeBytes: (
-    bucket: string,
-    path: string,
-    resourceId: string,
-    fileName: string,
-    fileContent: Buffer,
+    s3File: {
+      bucket: string;
+      path: string;
+      resourceId?: string;
+      name: string;
+      content: Buffer;
+    },
     logger: Logger
   ) => Promise<string>;
+  get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
+  generateGetPresignedUrl: (
+    bucketName: string,
+    path: string,
+    fileName: string,
+    durationInMinutes: number
+  ) => Promise<string>;
+  generatePutPresignedUrl: (
+    bucketName: string,
+    path: string,
+    fileName: string,
+    durationInMinutes: number
+  ) => Promise<string>;
 };
 
 export function initFileManager(
@@ -51,11 +74,17 @@ export function initFileManager(
 
   const buildS3Key = (
     path: string,
-    resourceId: string,
+    resourceId: string | undefined,
     fileName: string
-  ): string => `${path}/${resourceId}/${fileName}`;
+  ): string =>
+    [path, resourceId, fileName].filter((s) => s && s.length > 0).join("/");
 
   return {
+    buildS3Key: (
+      path: string,
+      resourceId: string | undefined,
+      fileName: string
+    ): string => buildS3Key(path, resourceId, fileName),
     delete: async (
       bucket: string,
       path: string,
@@ -98,6 +127,28 @@ export function initFileManager(
         throw fileManagerCopyError(filePathToCopy, key, bucket, error);
       }
     },
+    get: async (
+      bucket: string,
+      path: string,
+      logger: Logger
+    ): Promise<Uint8Array> => {
+      logger.info(`Getting file ${path} in bucket ${bucket}`);
+      try {
+        const response = await client.send(
+          new GetObjectCommand({
+            Bucket: bucket,
+            Key: path,
+          })
+        );
+        const body = response.Body;
+        if (!body) {
+          throw fileManagerGetError(bucket, path, "File is empty");
+        }
+        return await body.transformToByteArray();
+      } catch (error) {
+        throw fileManagerGetError(bucket, path, error);
+      }
+    },
     listFiles: async (bucket: string, logger: Logger): Promise<string[]> => {
       logger.info(`Listing files in bucket ${bucket}`);
       try {
@@ -116,27 +167,49 @@ export function initFileManager(
       }
     },
     storeBytes: async (
-      bucket: string,
-      path: string,
-      resourceId: string,
-      fileName: string,
-      fileContent: Buffer,
+      s3File: {
+        bucket: string;
+        path: string;
+        resourceId?: string;
+        name: string;
+        content: Buffer;
+      },
       logger: Logger
     ): Promise<string> => {
-      const key = buildS3Key(path, resourceId, fileName);
-      logger.info(`Storing file ${key} in bucket ${bucket}`);
+      const key = buildS3Key(s3File.path, s3File.resourceId, s3File.name);
+      logger.info(`Storing file ${key} in bucket ${s3File.bucket}`);
       try {
         await client.send(
           new PutObjectCommand({
-            Bucket: bucket,
+            Bucket: s3File.bucket,
             Key: key,
-            Body: fileContent,
+            Body: s3File.content,
           })
         );
         return key;
       } catch (error) {
-        throw fileManagerStoreBytesError(key, bucket, error);
+        throw fileManagerStoreBytesError(key, s3File.bucket, error);
       }
+    },
+    generateGetPresignedUrl: async (
+      bucketName: string,
+      path: string,
+      fileName: string,
+      durationInMinutes: number
+    ): Promise<string> => {
+      const key: string = buildS3Key(path, undefined, fileName);
+      const command = new GetObjectCommand({ Bucket: bucketName, Key: key });
+      return getSignedUrl(client, command, { expiresIn: durationInMinutes });
+    },
+    generatePutPresignedUrl: async (
+      bucketName: string,
+      path: string,
+      fileName: string,
+      durationInMinutes: number
+    ): Promise<string> => {
+      const key: string = buildS3Key(path, undefined, fileName);
+      const command = new PutObjectCommand({ Bucket: bucketName, Key: key });
+      return getSignedUrl(client, command, { expiresIn: durationInMinutes });
     },
   };
 }

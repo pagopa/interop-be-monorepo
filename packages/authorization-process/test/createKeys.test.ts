@@ -9,10 +9,17 @@ import {
   TenantId,
   UserId,
   generateId,
+  invalidKey,
+  notAllowedCertificateException,
   notAllowedPrivateKeyException,
   toClientV2,
 } from "pagopa-interop-models";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import {
+  AuthData,
+  calculateKid,
+  createJWK,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockKey,
@@ -31,11 +38,6 @@ import {
   userNotFound,
   userWithoutSecurityPrivileges,
 } from "../src/model/domain/errors.js";
-import {
-  calculateKid,
-  createJWK,
-  decodeBase64ToPem,
-} from "../../commons/src/auth/jwk.js";
 import {
   addOneClient,
   authorizationService,
@@ -60,14 +62,14 @@ describe("createKeys", () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey = Buffer.from(
+  const base64Key = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
   const keySeed: authorizationApi.KeySeed = {
     name: "key seed",
     use: "ENC",
-    key: pemKey,
+    key: base64Key,
     alg: "",
   };
 
@@ -143,7 +145,6 @@ describe("createKeys", () => {
       ...mockClient,
       keys: [
         {
-          clientId: mockClient.id,
           name: keySeed.name,
           createdAt: new Date(),
           kid: writtenPayload.kid,
@@ -266,14 +267,14 @@ describe("createKeys", () => {
       modulusLength: 2048,
     }).privateKey;
 
-    const privatePemKey = Buffer.from(
+    const privateBase64Key = Buffer.from(
       privateKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
     const keySeedByPrivateKey: authorizationApi.KeySeed = {
       name: "key seed",
       use: "ENC",
-      key: privatePemKey,
+      key: privateBase64Key,
       alg: "",
     };
 
@@ -294,7 +295,7 @@ describe("createKeys", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of that client ", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
+      kid: calculateKid(createJWK(keySeed.key)),
     };
 
     const clientWithDuplicateKey: Client = {
@@ -317,7 +318,7 @@ describe("createKeys", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different client ", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(decodeBase64ToPem(keySeed.key))),
+      kid: calculateKid(createJWK(keySeed.key)),
     };
 
     const client: Client = {
@@ -344,5 +345,82 @@ describe("createKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
+  });
+  it("should throw invalidKey if the key is not an RSA key", async () => {
+    const notRSAKey = crypto.generateKeyPairSync("ed25519", {
+      modulusLength: 2048,
+    }).publicKey;
+
+    const notRSABase64Key = Buffer.from(
+      notRSAKey.export({ type: "spki", format: "pem" })
+    ).toString("base64url");
+
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: notRSABase64Key,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
+    await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
+  });
+  it("should throw invalidKey if the key doesn't have the delimiters", async () => {
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: `Ck1JSUJDZ0tDQVFFQXF1c1hpYUtuR2RmbnZyZ21WNDlGK2lJR0lOa0tUQ0FJQTZ0d3NVUzNzaWVxdXlQRk80QmMKcVhZSUE2cXZyWDJxc21hOElTS2RMbkt5azBFNXczQ0JOZmZCcUs2ZE9pYm5xZGxEVndnZDZEWm1HY2VWWWFoYQp6QnpqbFdXcllmNEUrTUNvZ1FiUEFYTytOa0Z0M1c3cVhMTFFCYzBYTXlIelQzTlBtQlpJTktRMS9hd05iR3dYCnJJSGlyVnBqZHVpNzJRb3hjR1VBMW5JallRTW9iQ3VBMHg1L3dFL29KblFZZ1g1NVg3SnRKaTQ2dmx0VlpiVVMKckZiWkdlRUIzMEF1NUV6a0U0NUpLVGpTZnVmclJEZDJzcFByKzJiYmFibFFsY1lSYnloaHVpeVR2cU1pSGZmKwplZ2JJNGpseVFSTExhUXdEeThzOHd2NDNWNUtzNmtmVGVRSURBUUFCCgo=`,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
+    await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
+    );
+  });
+  it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    await addOneClient(mockClient);
+
+    const cert =
+      "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUROakNDQWg2Z0F3SUJBZ0lHQVpJQXNpaThNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1Gd3hEakFNQmdOVkJBTU1CVkJ5YjNaaE1Rc3dDUVlEVlFRR0V3SlZVekVPTUF3R0ExVUVDd3dGY0hKdmRtRXhEakFNQmdOVkJBY01CWEJ5YjNaaE1SMHdHd1lKS29aSWh2Y05BUWtCRmc1d2NtOTJZVUJ0WVdsc0xtTnZiVEFlRncweU5EQTVNVGN4TlRVMU1qaGFGdzB5TlRBNU1UY3hOVFUxTWpoYU1Gd3hEakFNQmdOVkJBTU1CVkJ5YjNaaE1Rc3dDUVlEVlFRR0V3SlZVekVPTUF3R0ExVUVDd3dGY0hKdmRtRXhEakFNQmdOVkJBY01CWEJ5YjNaaE1SMHdHd1lKS29aSWh2Y05BUWtCRmc1d2NtOTJZVUJ0WVdsc0xtTnZiVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLR0xCZHJacmpRLzRqd2h3Y1ZhU0kvTlgyV1ozMGx3VE5wVHlhMjhXSDhEOGlHVTlZdG1CL0s3cXUxQjhaOGtGaWJtditteGh1dS8rbStGRTg4SmIwM3pnU0liT1JwY0FSaThmWGFuZzM1eG8rdmh1bE5iL2x5bWthaFZ5ekRCSER0aXl5WUlUZTdsMmNPT0hPdm5MbDhRZERpZUhjOUNmcVJYTDhVeFlNaG1wd2QyMlVOK1BsNE1SNXFhbVFFZkp4cGxLdllva1NYTUdrb1QxWEJHcitmSDBsL0ZKRmxZT3R6QUdvSm5xUkNwTDRiNlZUeGxZZlZuUXhaNnpSQkRlbTd0dDhraGJncm1Va2hIWG1YaTNuL1A2RktEQnNyNG9WbjlUU2QyUENwL1VzQmtiKzB1RktuVFlyZyt5aSt5NVBZb2NmbTZUbnl1bUVOU2VHNGZxSUVDQXdFQUFUQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFGdDRjOUs0TWJOV0Ewb1k1RzdiWHQ1RW5FeXNLNTh0R1RSU2xpTG14aTRxSXE3eTNQMjExTUcvTDhpc211WVNybkF2Q29Yb1ZJbDZldzloOGh4eGl4N2QvR3dNc3lISzhQcm5SamZIU2pmL1ZzcGJXdTVPOEQzV1RtanNjOTVnMTZIbmgrS2NiaWFzN0FFNi95d2EvK1ZrdG55dnROL21vQzdtc2R3eForS3o1Nld0WTkzWVpBTkQwSUx2Y1pVRlNMbUdsNTI5Q2lxdlByVURlY2RFVWFob3J4VXozdWJ1ZmJjNW5PWTV6RU1FNkNWNG9SUWJzWTBmbWxoU1Q5Y20xc1ZSUmJsV1VNSTcyeGRGZFJIc04wcFpNaWYvVWpKTGhBTTQ0SUxSZXYwenRjMnlYMGtZUXBSejJmcWtucnY3S1ZRU1dwcjM4QlZSV3NJU0J5NnFZbHc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t";
+
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds: [
+          {
+            ...keySeed,
+            key: cert,
+          },
+        ],
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(notAllowedCertificateException());
   });
 });

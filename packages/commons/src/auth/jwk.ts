@@ -1,6 +1,8 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
 import {
+  invalidKey,
   jwkDecodingError,
+  notAllowedCertificateException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
 
@@ -14,8 +16,8 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const createJWK = (pemKey: string): JsonWebKey =>
-  createPublicKey(pemKey).export({ format: "jwk" });
+export const createJWK = (pemKeyBase64: string): JsonWebKey =>
+  createPublicKey(pemKeyBase64).export({ format: "jwk" });
 
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
@@ -23,13 +25,35 @@ export const calculateKid = (jwk: JsonWebKey): string => {
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
 };
 
-function createPublicKey(key: string): KeyObject {
+function assertNotCertificate(key: string): void {
+  try {
+    new crypto.X509Certificate(key);
+  } catch (error) {
+    return;
+  }
+  throw notAllowedCertificateException();
+}
+
+function assertNotPrivateKey(key: string): void {
   try {
     crypto.createPrivateKey(key);
   } catch {
-    return crypto.createPublicKey(key);
+    return;
   }
   throw notAllowedPrivateKeyException();
+}
+
+function createPublicKey(key: string): KeyObject {
+  const pemKey = decodeBase64ToPem(key);
+
+  assertNotPrivateKey(pemKey);
+  assertNotCertificate(pemKey);
+
+  try {
+    return crypto.createPublicKey(pemKey);
+  } catch (error) {
+    throw invalidKey(key, error);
+  }
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {

@@ -16,7 +16,7 @@ import {
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { keyToJWKKey } from "pagopa-interop-commons";
+import { keyToClientJWKKey } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
 import { keys } from "./utils.js";
 
@@ -25,7 +25,7 @@ describe("Events V1", async () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey = Buffer.from(
+  const base64Key = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
@@ -33,60 +33,112 @@ describe("Events V1", async () => {
     modulusLength: 2048,
   }).publicKey;
 
-  const pemKey2 = Buffer.from(
+  const base64Key2 = Buffer.from(
     key2.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
 
-  it("KeysAdded", async () => {
-    const mockKey = { ...getMockKey(), encodedPem: pemKey };
-    const jwkKey = keyToJWKKey(mockKey);
-    const mockClient: Client = {
-      ...getMockClient(),
-      keys: [],
-    };
-    await writeInReadmodel(jwkKey, keys);
+  describe("KeysAdded", () => {
+    it("KeysAdded - RSA", async () => {
+      const mockClient: Client = {
+        ...getMockClient(),
+        keys: [],
+      };
+      const mockKey = { ...getMockKey(), encodedPem: base64Key };
+      const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
 
-    const addedKey: Key = {
-      ...getMockKey(),
-      clientId: mockClient.id,
-      encodedPem: pemKey2,
-    };
+      await writeInReadmodel(jwkKey, keys);
 
-    const payload: KeysAddedV1 = {
-      clientId: mockClient.id,
-      keys: [
-        {
-          keyId: generateId(),
-          value: toKeyV1(addedKey),
-        },
-      ],
-    };
+      const addedKey: Key = {
+        ...getMockKey(),
+        encodedPem: base64Key2,
+      };
 
-    const message: AuthorizationEventEnvelopeV1 = {
-      sequence_num: 1,
-      stream_id: mockClient.id,
-      version: 1,
-      type: "KeysAdded",
-      event_version: 1,
-      data: payload,
-      log_date: new Date(),
-    };
+      const payload: KeysAddedV1 = {
+        clientId: mockClient.id,
+        keys: [
+          {
+            keyId: generateId(),
+            value: toKeyV1(addedKey),
+          },
+        ],
+      };
 
-    await handleMessageV1(message, keys);
+      const message: AuthorizationEventEnvelopeV1 = {
+        sequence_num: 1,
+        stream_id: mockClient.id,
+        version: 1,
+        type: "KeysAdded",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
 
-    const retrievedKey = await keys.findOne({
-      "data.kid": addedKey.kid,
+      await handleMessageV1(message, keys);
+
+      const retrievedKey = await keys.findOne({
+        "data.kid": addedKey.kid,
+      });
+
+      expect(retrievedKey?.data).toEqual(
+        keyToClientJWKKey(addedKey, mockClient.id)
+      );
+      expect(retrievedKey?.metadata).toEqual({
+        version: 1,
+      });
     });
+    it.each(["prime256v1", "secp256k1"])("KeysAdded - EC", async (curve) => {
+      const key = crypto.generateKeyPairSync("ec", {
+        namedCurve: curve,
+      }).publicKey;
 
-    expect(retrievedKey?.data).toEqual(keyToJWKKey(addedKey));
-    expect(retrievedKey?.metadata).toEqual({
-      version: 1,
+      const base64Key = Buffer.from(
+        key.export({ type: "spki", format: "pem" })
+      ).toString("base64url");
+
+      const mockClient: Client = {
+        ...getMockClient(),
+        keys: [],
+      };
+
+      const addedKey: Key = {
+        ...getMockKey(),
+        encodedPem: base64Key,
+      };
+
+      const payload: KeysAddedV1 = {
+        clientId: mockClient.id,
+        keys: [
+          {
+            keyId: generateId(),
+            value: toKeyV1(addedKey),
+          },
+        ],
+      };
+
+      const message: AuthorizationEventEnvelopeV1 = {
+        sequence_num: 1,
+        stream_id: mockClient.id,
+        version: 1,
+        type: "KeysAdded",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV1(message, keys);
+
+      const retrievedKey = await keys.findOne({
+        "data.kid": addedKey.kid,
+      });
+
+      expect(retrievedKey).toBeNull();
     });
   });
+
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const jwkKey = keyToJWKKey(mockKey);
+    const mockKey = { ...getMockKey(), encodedPem: base64Key };
+    const jwkKey = keyToClientJWKKey(mockKey, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -121,10 +173,10 @@ describe("Events V1", async () => {
   });
   it("ClientDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey1: Key = { ...getMockKey(), clientId, encodedPem: pemKey };
-    const mockKey2: Key = { ...getMockKey(), clientId, encodedPem: pemKey2 };
-    const jwkKey1 = keyToJWKKey(mockKey1);
-    const jwkKey2 = keyToJWKKey(mockKey2);
+    const mockKey1: Key = { ...getMockKey(), encodedPem: base64Key };
+    const mockKey2: Key = { ...getMockKey(), encodedPem: base64Key2 };
+    const jwkKey1 = keyToClientJWKKey(mockKey1, clientId);
+    const jwkKey2 = keyToClientJWKKey(mockKey2, clientId);
 
     const mockClient: Client = {
       ...getMockClient(),

@@ -108,8 +108,11 @@ export const fromTenantAttributesV1 = (
       const { certifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(certifiedAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(certifiedAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          certifiedAttribute.assignmentTimestamp
+        ),
+        revocationTimestamp: bigIntToDate(
+          certifiedAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -117,8 +120,8 @@ export const fromTenantAttributesV1 = (
       const { verifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(verifiedAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(verifiedAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          verifiedAttribute.assignmentTimestamp
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
@@ -128,8 +131,11 @@ export const fromTenantAttributesV1 = (
       const { declaredAttribute } = sealedValue;
       return {
         id: unsafeBrandId(declaredAttribute.id),
-        assignmentTimestamp: new Date(
-          Number(declaredAttribute.assignmentTimestamp)
+        assignmentTimestamp: bigIntToDate(
+          declaredAttribute.assignmentTimestamp
+        ),
+        revocationTimestamp: bigIntToDate(
+          declaredAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.DECLARED,
       };

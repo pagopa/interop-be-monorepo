@@ -88,6 +88,7 @@ export function toApiTenantAttribute(
       declared: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+        revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
       },
     }))
     .exhaustive();
@@ -102,6 +103,7 @@ export function toApiMailKind(kind: TenantMailKind): tenantApi.MailKind {
 
 export function toApiMail(mail: TenantMail): tenantApi.Mail {
   return {
+    id: mail.id,
     kind: toApiMailKind(mail.kind),
     address: mail.address,
     createdAt: mail.createdAt.toJSON(),
@@ -121,5 +123,7 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     updatedAt: tenant.updatedAt?.toJSON(),
     mails: tenant.mails.map(toApiMail),
     name: tenant.name,
+    onboardedAt: tenant.onboardedAt?.toJSON(),
+    subUnitType: tenant.subUnitType,
   };
 }

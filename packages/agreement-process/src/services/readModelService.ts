@@ -1,5 +1,4 @@
 /* eslint-disable no-constant-condition */
-/* eslint-disable functional/no-let */
 import {
   AgreementCollection,
   MongoQueryKeys,

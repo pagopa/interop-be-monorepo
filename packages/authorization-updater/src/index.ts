@@ -431,6 +431,17 @@ export async function sendAuthorizationAuthUpdate(
         correlationId
       );
     })
+    .with(
+      { type: "ProducerKeychainAdded" },
+      { type: "ProducerKeychainDeleted" },
+      { type: "ProducerKeychainKeyAdded" },
+      { type: "ProducerKeychainKeyDeleted" },
+      { type: "ProducerKeychainUserAdded" },
+      { type: "ProducerKeychainUserDeleted" },
+      { type: "ProducerKeychainEServiceAdded" },
+      { type: "ProducerKeychainEServiceRemoved" },
+      () => Promise.resolve
+    )
     .exhaustive();
 }
 
