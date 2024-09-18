@@ -35,24 +35,24 @@ export class InteropTokenGenerator {
       alg: JWT_HEADER_ALG,
       use: "sig",
       typ: "at+jwt",
-      kid: this.config.kid,
+      kid: this.config.internalKid,
     };
 
     const payload: InteropJwtPayload = {
       jti: crypto.randomUUID(),
-      iss: this.config.issuer,
-      aud: this.config.audience,
-      sub: this.config.subject,
+      iss: this.config.internalIssuer,
+      aud: this.config.internalAudience,
+      sub: this.config.internalSubject,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp: currentTimestamp + this.config.secondsDuration,
+      exp: currentTimestamp + this.config.internalSecondsDuration,
       [JWT_ROLE_CLAIM]: JWT_INTERNAL_ROLE,
     };
 
     const serializedToken = await this.createAndSignToken(
       header,
       payload,
-      this.config.kid
+      this.config.internalKid
     );
 
     return {
@@ -67,10 +67,10 @@ export class InteropTokenGenerator {
     jwtDuration?: number
   ): Promise<SessionToken> {
     if (
-      !this.config.generatedKid ||
-      !this.config.generatedIssuer ||
-      !this.config.generatedAudience ||
-      !this.config.generatedSecondsDuration
+      !this.config.sessionKid ||
+      !this.config.sessionIssuer ||
+      !this.config.sessionAudience ||
+      !this.config.sessionSecondsDuration
     ) {
       throw Error("SessionTokenGenerationConfig not provided or incomplete");
     }
@@ -81,15 +81,15 @@ export class InteropTokenGenerator {
       alg: JWT_HEADER_ALG,
       use: "sig",
       typ: "at+jwt",
-      kid: this.config.generatedKid,
+      kid: this.config.sessionKid,
     };
 
-    const duration = jwtDuration ?? this.config.generatedSecondsDuration;
+    const duration = jwtDuration ?? this.config.sessionSecondsDuration;
 
     const payload: SessionJwtPayload = {
       jti: crypto.randomUUID(),
-      iss: this.config.generatedIssuer,
-      aud: this.config.generatedAudience,
+      iss: this.config.sessionIssuer,
+      aud: this.config.sessionAudience,
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp: currentTimestamp + duration,
@@ -99,7 +99,7 @@ export class InteropTokenGenerator {
     const serializedToken = await this.createAndSignToken(
       header,
       payload,
-      this.config.generatedKid
+      this.config.sessionKid
     );
 
     return {

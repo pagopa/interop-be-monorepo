@@ -9,11 +9,11 @@ export const TokenGenerationConfig = z
     INTERNAL_JWT_SECONDS_DURATION: z.coerce.number(),
   })
   .transform((c) => ({
-    kid: c.INTERNAL_JWT_KID,
-    subject: c.INTERNAL_JWT_SUBJECT,
-    issuer: c.INTERNAL_JWT_ISSUER,
-    audience: c.INTERNAL_JWT_AUDIENCE,
-    secondsDuration: c.INTERNAL_JWT_SECONDS_DURATION,
+    internalKid: c.INTERNAL_JWT_KID,
+    internalSubject: c.INTERNAL_JWT_SUBJECT,
+    internalIssuer: c.INTERNAL_JWT_ISSUER,
+    internalAudience: c.INTERNAL_JWT_AUDIENCE,
+    internalSecondsDuration: c.INTERNAL_JWT_SECONDS_DURATION,
   }));
 
 export type TokenGenerationConfig = z.infer<typeof TokenGenerationConfig>;

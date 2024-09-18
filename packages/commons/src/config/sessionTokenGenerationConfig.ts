@@ -8,10 +8,10 @@ export const SessionTokenGenerationConfig = z
     GENERATED_JWT_SECONDS_DURATION: z.coerce.number(),
   })
   .transform((c) => ({
-    generatedKid: c.GENERATED_JWT_KID,
-    generatedIssuer: c.GENERATED_JWT_ISSUER,
-    generatedAudience: c.GENERATED_JWT_AUDIENCE,
-    generatedSecondsDuration: c.GENERATED_JWT_SECONDS_DURATION,
+    sessionKid: c.GENERATED_JWT_KID,
+    sessionIssuer: c.GENERATED_JWT_ISSUER,
+    sessionAudience: c.GENERATED_JWT_AUDIENCE,
+    sessionSecondsDuration: c.GENERATED_JWT_SECONDS_DURATION,
   }));
 
 export type SessionTokenGenerationConfig = z.infer<
