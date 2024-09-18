@@ -10,18 +10,18 @@ import {
   bffApi,
   selfcareV2InstitutionClientBuilder,
 } from "pagopa-interop-api-clients";
-import {
-  toApiSelfcareUser,
-  toApiSelfcareProduct,
-  toApiSelfcareInstitution,
-} from "../model/domain/apiConverter.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
 } from "../utilities/errorMappers.js";
 import { selfcareServiceBuilder } from "../services/selfcareService.js";
 import { config } from "../config/config.js";
+import {
+  toApiSelfcareUser,
+  toApiSelfcareProduct,
+  toApiSelfcareInstitution,
+} from "../api/selfcareApiConverter.js";
 
 const selfcareService = selfcareServiceBuilder(
   selfcareV2InstitutionClientBuilder(config)

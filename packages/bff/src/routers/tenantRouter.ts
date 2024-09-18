@@ -8,10 +8,10 @@ import {
 import { bffApi } from "pagopa-interop-api-clients";
 import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { tenantServiceBuilder } from "../services/tenantService.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { emptyErrorMapper } from "../utilities/errorMappers.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
