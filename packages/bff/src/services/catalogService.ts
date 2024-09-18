@@ -54,7 +54,8 @@ import {
   catalogApiDescriptorState,
   ConfigurationEservice,
 } from "../model/types.js";
-import { getLatestAgreement } from "./agreementService.js";
+import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
+import { getAllBulkAttributes } from "./attributeService.js";
 import { assertRequesterIsProducer } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
@@ -117,22 +118,6 @@ const enhanceProducerEService = (
   ),
 });
 
-const fetchAttributes = async (
-  attributeProcessClient: AttributeProcessClient,
-  headers: Headers,
-  descriptorAttributeIds: string[]
-) =>
-  await getAllFromPaginated(
-    async (offset: number) =>
-      await attributeProcessClient.getBulkedAttributes(descriptorAttributeIds, {
-        headers,
-        queries: {
-          limit: 50,
-          offset,
-        },
-      })
-  );
-
 export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
   descriptorId: DescriptorId
@@ -174,21 +159,18 @@ const getAttributeIds = (
   ),
 ];
 
-export const fetchAllEserviceConsumers = async (
+export const getAllEserviceConsumers = async (
   catalogProcessClient: CatalogProcessClient,
   headers: Headers,
   eServiceId: EServiceId
 ): Promise<catalogApi.EServiceConsumer[]> =>
-  await getAllFromPaginated(async (offset: number) =>
+  await getAllFromPaginated(async (offset, limit) =>
     catalogProcessClient.getEServiceConsumers({
       headers,
       params: {
         eServiceId,
       },
-      queries: {
-        offset,
-        limit: 50,
-      },
+      queries: { offset, limit },
     })
   );
 
@@ -261,7 +243,7 @@ export function catalogServiceBuilder(
 
       const descriptorAttributeIds = getAttributeIds(descriptor);
 
-      const attributes = await fetchAttributes(
+      const attributes = await getAllBulkAttributes(
         attributeProcessClient,
         headers,
         descriptorAttributeIds
@@ -442,19 +424,12 @@ export function catalogServiceBuilder(
         res.totalCount = totalCount;
       } else {
         const eserviceIds = (
-          await getAllFromPaginated(async (offset: number, limit: number) =>
-            agreementProcessClient.getAgreements({
-              headers,
-              queries: {
-                consumersIds,
-                producersIds: [producerId],
-                eservicesIds: [],
-                states: [],
-                offset,
-                limit,
-              },
-            })
-          )
+          await getAllAgreements(agreementProcessClient, headers, {
+            consumersIds,
+            producersIds: [producerId],
+            eservicesIds: [],
+            states: [],
+          })
         ).map((agreement) => agreement.eserviceId);
 
         const { results, totalCount } = await catalogProcessClient.getEServices(
@@ -499,7 +474,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
-      const attributes = await fetchAttributes(
+      const attributes = await getAllBulkAttributes(
         attributeProcessClient,
         headers,
         attributeIds
@@ -571,7 +546,7 @@ export function catalogServiceBuilder(
         headers,
       });
 
-      const consumers = await fetchAllEserviceConsumers(
+      const consumers = await getAllEserviceConsumers(
         catalogProcessClient,
         headers,
         eserviceId
