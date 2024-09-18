@@ -74,7 +74,7 @@ export const downloadCSV = async (
   const { blob, filename } = await downloadFile(sourceUrl);
 
   const zipFile = Buffer.from(await blob.arrayBuffer());
-  await fileManager.storeBytesByPath(
+  await fileManager.storeBytesByKey(
     bucket,
     `organizations/${filename}`,
     zipFile,
