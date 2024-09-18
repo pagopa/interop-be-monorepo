@@ -15,16 +15,16 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { toEserviceCatalogProcessQueryParams } from "../model/api/converters/catalogClientApiConverter.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
+import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,

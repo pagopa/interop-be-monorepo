@@ -10,8 +10,8 @@ import {
 import { bffApi } from "pagopa-interop-api-clients";
 
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { makeApiProblem } from "../model/errors.js";
 import { config } from "../config/config.js";
 import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
