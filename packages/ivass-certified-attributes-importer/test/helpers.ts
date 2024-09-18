@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Tenant, TenantAttribute, unsafeBrandId } from "pagopa-interop-models";
 import { vi } from "vitest";
+import { match } from "ts-pattern";
 import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../src/config/constants.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 import { PersistentAttribute } from "../src/model/attributeModel.js";
@@ -59,20 +60,17 @@ export const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
 export const getAttributeByExternalIdMock = (
   origin: string,
   code: string
-): Promise<PersistentAttribute> => {
-  // eslint-disable-next-line sonarjs/no-small-switch
-  switch (code) {
-    case IVASS_INSURANCES_ATTRIBUTE_CODE:
-      return Promise.resolve({
+): Promise<PersistentAttribute> =>
+  match(code)
+    .with(IVASS_INSURANCES_ATTRIBUTE_CODE, () =>
+      Promise.resolve({
         ...persistentAttribute,
         id: ATTRIBUTE_IVASS_INSURANCES_ID,
         origin,
         code,
-      });
-    default:
-      return Promise.reject(new Error("Unexpected attribute code"));
-  }
-};
+      })
+    )
+    .otherwise(() => Promise.reject(new Error("Unexpected attribute code")));
 
 export const persistentTenant: Tenant = {
   id: unsafeBrandId("091fbea1-0c8e-411b-988f-5098b6a33ba7"),

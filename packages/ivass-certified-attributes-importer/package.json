@@ -34,6 +34,7 @@
     "@zip.js/zip.js": "^2.7.31",
     "axios": "^1.5.0",
     "csv": "^6.3.2",
+    "ts-pattern": "5.2.0",
     "dotenv-flow": "4.1.0",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

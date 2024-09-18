@@ -1532,6 +1532,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
