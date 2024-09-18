@@ -336,20 +336,6 @@ export function tenantServiceBuilder(
         logger.info(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
-        const mails = tenantSeed.digitalAddress
-          ? [
-              {
-                id: crypto
-                  .createHash("sha256")
-                  .update(tenantSeed.digitalAddress.address)
-                  .digest("hex"),
-                kind: tenantMailKind.DigitalAddress,
-                address: tenantSeed.digitalAddress.address,
-                description: tenantSeed.digitalAddress.description,
-                createdAt: new Date(),
-              },
-            ]
-          : [];
 
         const newTenant: Tenant = {
           id: generateId(),
@@ -357,7 +343,7 @@ export function tenantServiceBuilder(
           attributes: [],
           externalId: tenantSeed.externalId,
           features: [],
-          mails,
+          mails: formatTenantMail(tenantSeed.digitalAddress),
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
@@ -1094,17 +1080,17 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+      const validatedAddress = validateAddress(mailSeed.address);
+
+      if (tenant.data.mails.find((m) => m.address === validatedAddress)) {
         throw mailAlreadyExists();
       }
-
-      const validatedAddress = validateAddress(mailSeed.address);
 
       const newMail: TenantMail = {
         kind: mailSeed.kind,
         address: validatedAddress,
         description: mailSeed.description,
-        id: crypto.createHash("sha256").update(mailSeed.address).digest("hex"),
+        id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
         createdAt: new Date(),
       };
 
@@ -1772,11 +1758,33 @@ function validateAddress(address: string): string {
     .replace(/[^\w.@-_]/g, "")
     .replace(/\^/g, "");
 
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // same path used by the frontend
+  // Taken from HTML spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
+  const emailPattern =
+    // eslint-disable-next-line no-useless-escape
+    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (!emailPattern.test(sanitizedMail)) {
     throw notValidMailAddress(address);
   }
   return sanitizedMail;
+}
+
+function formatTenantMail(
+  digitalAddress: tenantApi.MailSeed | undefined
+): TenantMail[] {
+  if (!digitalAddress) {
+    return [];
+  }
+  const validatedAddress = validateAddress(digitalAddress.address);
+  return [
+    {
+      id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
+      kind: tenantMailKind.DigitalAddress,
+      address: validatedAddress,
+      description: digitalAddress.description,
+      createdAt: new Date(),
+    },
+  ];
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
