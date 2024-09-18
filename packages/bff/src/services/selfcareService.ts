@@ -7,11 +7,7 @@ import {
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger, Logger } from "pagopa-interop-commons";
-import {
-  missingSelfcareId,
-  missingUserId,
-  userNotFound,
-} from "../model/errors.js";
+import { missingSelfcareId, userNotFound } from "../model/errors.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { toApiSelfcareUser } from "../api/selfcareApiConverter.js";
@@ -84,17 +80,13 @@ export function selfcareServiceBuilder(
     async getInstitutionUsers(
       tenantId: TenantId,
       userId: UserId | undefined,
+      roles: string[],
       query: string | undefined,
       { authData, logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Users> {
       logger.info(`Retrieving users for institutions ${tenantId}`);
 
-      const roles = authData.userRoles;
       const requesterId = authData.organizationId;
-      if (!userId) {
-        throw missingUserId();
-      }
-
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,

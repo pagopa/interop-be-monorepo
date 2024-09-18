@@ -121,7 +121,8 @@ const selfcareRouter = (
           req.query.personId
             ? unsafeBrandId<UserId>(req.query.personId)
             : undefined,
-          req.query.query as string,
+          req.query.roles,
+          req.query.query,
           ctx
         );
 
