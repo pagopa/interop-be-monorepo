@@ -14,9 +14,9 @@ import {
   assertIsEserviceProducer,
   assertOnlyOneAgreementForEserviceAndConsumerExists,
 } from "./validators.js";
-import { getAgreements } from "./agreementService.js";
+import { getAllAgreements } from "./agreementService.js";
 
-export async function getPurposes(
+export async function getAllPurposes(
   purposeProcessClient: PurposeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
@@ -86,7 +86,7 @@ export function purposeServiceBuilder(
       logger.info(
         `Retrieving Purposes for eservice ${eserviceId} and consumer ${consumerId}"`
       );
-      return await getPurposes(purposeProcessClient, headers, {
+      return await getAllPurposes(purposeProcessClient, headers, {
         eserviceId,
         consumerId,
       });
@@ -104,7 +104,7 @@ export function purposeServiceBuilder(
         },
       });
 
-      const { agreements } = await getAgreements(
+      const { agreements } = await getAllAgreements(
         agreementProcessClient,
         headers,
         {

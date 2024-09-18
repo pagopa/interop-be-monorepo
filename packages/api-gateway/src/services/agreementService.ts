@@ -10,9 +10,9 @@ import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
-import { getPurposes } from "./purposeService.js";
+import { getAllPurposes } from "./purposeService.js";
 
-export async function getAgreements(
+export async function getAllAgreements(
   agreementProcessClient: AgreementProcessClient,
   headers: ApiGatewayAppContext["headers"],
   queryParams: apiGatewayApi.GetAgreementsQueryParams
@@ -56,7 +56,11 @@ export function agreementServiceBuilder(
         throw producerAndConsumerParamMissing();
       }
 
-      return await getAgreements(agreementProcessClient, headers, queryParams);
+      return await getAllAgreements(
+        agreementProcessClient,
+        headers,
+        queryParams
+      );
     },
 
     getAgreementById: async (
@@ -110,7 +114,7 @@ export function agreementServiceBuilder(
         },
       });
 
-      return await getPurposes(purposeProcessClient, headers, {
+      return await getAllPurposes(purposeProcessClient, headers, {
         eserviceId: agreement.eserviceId,
         consumerId: agreement.consumerId,
       });

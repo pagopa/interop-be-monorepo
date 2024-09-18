@@ -1,16 +1,21 @@
 import {
   agreementApi,
   apiGatewayApi,
+  attributeRegistryApi,
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
+  attributeNotFoundInRegistry,
   invalidAgreementState,
   missingActivePurposeVersion,
+  missingAvailableDescriptor,
   multipleAgreementForEserviceAndConsumer,
+  unexpectedDescriptorState,
 } from "../models/errors.js";
+import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
 export function assertAgreementStateNotDraft(
   agreementState: agreementApi.AgreementState,
@@ -48,5 +53,32 @@ export function assertOnlyOneAgreementForEserviceAndConsumerExists(
     throw activeAgreementByEserviceAndConsumerNotFound(eserviceId, consumerId);
   } else if (agreements.length > 1) {
     throw multipleAgreementForEserviceAndConsumer(eserviceId, consumerId);
+  }
+}
+
+export function assertAvailableDescriptorExists(
+  descriptor: catalogApi.EServiceDescriptor | undefined,
+  eserviceId: apiGatewayApi.EService["id"]
+): asserts descriptor is NonNullable<catalogApi.EServiceDescriptor> {
+  if (!descriptor) {
+    throw missingAvailableDescriptor(eserviceId);
+  }
+}
+
+export function assertNonDraftDescriptor(
+  descriptor: catalogApi.EServiceDescriptor,
+  descriptorId: catalogApi.EServiceDescriptor["id"]
+): asserts descriptor is NonDraftCatalogApiDescriptor {
+  if (descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT) {
+    throw unexpectedDescriptorState(descriptor.state, descriptorId);
+  }
+}
+
+export function assertRegistryAttributeExists(
+  registryAttribute: attributeRegistryApi.Attribute | undefined,
+  attributeId: attributeRegistryApi.Attribute["id"]
+): asserts registryAttribute is NonNullable<attributeRegistryApi.Attribute> {
+  if (!registryAttribute) {
+    throw attributeNotFoundInRegistry(attributeId);
   }
 }

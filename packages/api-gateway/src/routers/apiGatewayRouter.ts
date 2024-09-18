@@ -17,9 +17,11 @@ import {
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getEserviceErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -28,12 +30,19 @@ const apiGatewayRouter = (
     tenantProcessClient,
     purposeProcessClient,
     catalogProcessClient,
+    attributeProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const catalogService = catalogServiceBuilder(
+    catalogProcessClient,
+    tenantProcessClient,
+    attributeProcessClient
+  );
 
   const agreementService = agreementServiceBuilder(
     agreementProcessClient,
@@ -147,13 +156,40 @@ const apiGatewayRouter = (
       authorizationMiddleware([M2M_ROLE]),
       async (_req, res) => res.status(501).send()
     )
-    .get("/eservices", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
+    .get(
+      "/eservices",
+      authorizationMiddleware([M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const eservices = await catalogService.getEservices(ctx, req.query);
+          return res.status(200).json(eservices).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices/:eserviceId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const eservice = await catalogService.getEservice(
+            ctx,
+            req.params.eserviceId
+          );
+          return res.status(200).json(eservice).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices/:eserviceId/descriptors",
