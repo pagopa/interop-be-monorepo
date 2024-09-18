@@ -79,7 +79,7 @@ export function selfcareServiceBuilder(
 
     async getInstitutionUsers(
       tenantId: TenantId,
-      userId: UserId | undefined,
+      userId: string | undefined,
       roles: string[],
       query: string | undefined,
       { authData, logger, headers }: WithLogger<BffAppContext>

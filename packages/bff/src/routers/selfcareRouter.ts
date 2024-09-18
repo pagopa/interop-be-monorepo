@@ -118,9 +118,7 @@ const selfcareRouter = (
       try {
         const results = await selfcareService.getInstitutionUsers(
           unsafeBrandId<TenantId>(req.params.tenantId),
-          req.query.personId
-            ? unsafeBrandId<UserId>(req.query.personId)
-            : undefined,
+          req.query.personId,
           req.query.roles,
           req.query.query,
           ctx
