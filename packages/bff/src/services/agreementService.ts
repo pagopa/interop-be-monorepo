@@ -38,9 +38,27 @@ import {
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
-import { getBulkAttributes } from "./attributeService.js";
+import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
+
+export async function getAllAgreements(
+  agreementProcessClient: AgreementProcessClient,
+  headers: BffAppContext["headers"],
+  getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
+): Promise<agreementApi.Agreement[]> {
+  return await getAllFromPaginated<agreementApi.Agreement>(
+    async (offset, limit) =>
+      await agreementProcessClient.getAgreements({
+        headers,
+        queries: {
+          ...getAgreementsQueryParams,
+          offset,
+          limit,
+        },
+      })
+  );
+}
 
 export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
@@ -517,17 +535,13 @@ export const getLatestAgreement = async (
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
-  const allAgreements = await getAllFromPaginated(
-    async (offset: number, limit: number) =>
-      agreementProcessClient.getAgreements({
-        headers,
-        queries: {
-          consumersIds: [consumerId],
-          eservicesIds: [eservice.id],
-          limit,
-          offset,
-        },
-      })
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      eservicesIds: [eservice.id],
+    }
   );
 
   type AgreementAndDescriptor = {
@@ -623,10 +637,10 @@ export async function enrichAgreement(
     ...tenantAttributesIds(consumer),
   ]);
 
-  const attributes = await getBulkAttributes(
-    allAttributesIds,
+  const attributes = await getAllBulkAttributes(
     clients.attributeProcessClient,
-    ctx
+    ctx.headers,
+    allAttributesIds
   );
 
   const agreementVerifiedAttrs = filterAttributes(
