@@ -14,9 +14,12 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
   emptyErrorMapper,
+  getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -24,6 +27,7 @@ const apiGatewayRouter = (
     agreementProcessClient,
     tenantProcessClient,
     purposeProcessClient,
+    catalogProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
@@ -35,6 +39,12 @@ const apiGatewayRouter = (
     agreementProcessClient,
     tenantProcessClient,
     purposeProcessClient
+  );
+
+  const purposeService = purposeServiceBuilder(
+    purposeProcessClient,
+    catalogProcessClient,
+    agreementProcessClient
   );
 
   apiGatewayRouter
@@ -176,18 +186,60 @@ const apiGatewayRouter = (
     .get("/keys/:kid", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
       res.status(501).send()
     )
-    .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        const purposes = await purposeService.getPurposes(ctx, req.query);
+
+        return res.status(200).json(purposes).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/purposes/:purposeId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const purpose = await purposeService.getPurpose(
+            ctx,
+            req.params.purposeId
+          );
+
+          return res.status(200).json(purpose).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/:purposeId/agreement",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const agreement = await purposeService.getAgreementByPurpose(
+            ctx,
+            req.params.purposeId
+          );
+          return res.status(200).json(agreement).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getAgreementByPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/organizations/:organizationId",
