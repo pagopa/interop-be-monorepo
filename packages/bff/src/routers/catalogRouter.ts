@@ -190,7 +190,12 @@ const catalogRouter = (
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error while deleting draft descriptor ${req.params.descriptorId} for E-Service ${req.params.eServiceId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -208,7 +213,16 @@ const catalogRouter = (
           );
           return res.status(200).json(createdResource).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error updating draft descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -222,7 +236,12 @@ const catalogRouter = (
         );
         return res.status(200).json(createdResource).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error creating descriptor in EService ${req.params.eServiceId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -238,7 +257,12 @@ const catalogRouter = (
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error activating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -256,7 +280,14 @@ const catalogRouter = (
           );
           return res.status(200).json().send({ id });
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error updating descriptor ${req.params.descriptorId} on service ${
+              req.params.eServiceId
+            } with seed: ${JSON.stringify(req.body)}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -273,7 +304,12 @@ const catalogRouter = (
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error publishing descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -290,7 +326,12 @@ const catalogRouter = (
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error suspending descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -308,7 +349,12 @@ const catalogRouter = (
           );
           return res.status(200).json(resp).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error creating eService document of kind ${req.body.kind} and name ${req.body.prettyName} for eService ${req.params.eServiceId} and descriptor ${req.params.descriptorId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -326,7 +372,12 @@ const catalogRouter = (
           );
           return res.status(204).json().send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error deleting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -348,7 +399,12 @@ const catalogRouter = (
             .status(200)
             .end(document);
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error getting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -366,7 +422,12 @@ const catalogRouter = (
             );
           return res.status(200).json(createdEServiceDescriptor).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            `Error cloning eService ${req.params.eServiceId} with descriptor ${req.params.descriptorId}`
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -418,7 +479,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error creating eservice with seed: ${req.body}`
+          `Error creating eservice with seed: ${JSON.stringify(req.body)}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -432,7 +493,12 @@ const catalogRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error deleting EService ${req.params.eServiceId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
@@ -446,7 +512,12 @@ const catalogRouter = (
         );
         return res.status(200).send(createdResource);
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error updating EService ${req.params.eServiceId}`
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })

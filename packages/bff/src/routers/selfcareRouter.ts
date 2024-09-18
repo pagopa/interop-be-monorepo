@@ -42,7 +42,8 @@ const selfcareRouter = (
         const user = await selfcareService.getSelfcareUser(
           ctx.authData.userId,
           req.params.userId,
-          ctx.authData.selfcareId
+          ctx.authData.selfcareId,
+          ctx.logger
         );
 
         return res
@@ -53,7 +54,8 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareUserErrorMapper,
-          ctx.logger
+          ctx.logger,
+          "Error retrieving user"
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -65,7 +67,8 @@ const selfcareRouter = (
       try {
         const products = await selfcareService.getSelfcareInstitutionsProducts(
           ctx.authData.userId,
-          ctx.authData.selfcareId
+          ctx.authData.selfcareId,
+          ctx.logger
         );
 
         return res.status(200).json(products.map(toApiSelfcareProduct)).end();
@@ -73,7 +76,8 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareErrorMapper,
-          ctx.logger
+          ctx.logger,
+          "Error retrieving products for institution"
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -84,7 +88,8 @@ const selfcareRouter = (
 
       try {
         const institutions = await selfcareService.getSelfcareInstitutions(
-          ctx.authData.userId
+          ctx.authData.userId,
+          ctx.logger
         );
 
         return res
@@ -95,7 +100,8 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareErrorMapper,
-          ctx.logger
+          ctx.logger,
+          "Error retrieving institutions"
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
