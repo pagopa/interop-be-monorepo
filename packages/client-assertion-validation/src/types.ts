@@ -1,10 +1,10 @@
-import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   AgreementId,
   ApiError,
   ClientId,
   clientKindTokenStates,
   EServiceId,
+  ItemState,
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
@@ -68,11 +68,11 @@ export type Key = z.infer<typeof Key>;
 export const ConsumerKey = Key.extend({
   clientKind: z.literal(clientKindTokenStates.consumer),
   purposeId: PurposeId, // TODO is this naming ok?
-  purposeState: authorizationManagementApi.ClientComponentState,
+  purposeState: ItemState,
   agreementId: AgreementId,
-  agreementState: authorizationManagementApi.ClientComponentState,
+  agreementState: ItemState,
   eServiceId: EServiceId, // no field to map. Extract from GSIPK_eserviceId_descriptorId?
-  descriptorState: authorizationManagementApi.ClientComponentState,
+  descriptorState: ItemState,
 }).strict();
 export type ConsumerKey = z.infer<typeof ConsumerKey>;
 

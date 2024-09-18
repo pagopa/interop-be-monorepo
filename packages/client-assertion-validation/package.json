@@ -20,7 +20,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "jsonwebtoken": "9.0.2",
-    "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
