@@ -4,6 +4,7 @@ import {
   DescriptorId,
   DescriptorSQL,
   DocumentSQL,
+  EServiceDocumentId,
   EServiceId,
   EServiceSQL,
 } from "pagopa-interop-models";
@@ -33,6 +34,14 @@ export const prepareReadEservice = (id: EServiceId): any =>
     values: [id],
   });
 
+export const prepareDeleteEservice = (id: EServiceId): any => {
+  new pgPromise.PreparedStatement({
+    name: "delete-eservice",
+    text: "DELETE FROM readmodel.eservice WHERE id = $1",
+    values: [id],
+  });
+};
+
 export const prepareInsertDescriptor = (
   descriptorSQL: DescriptorSQL
 ): pgPromise.PreparedStatement =>
@@ -59,6 +68,14 @@ export const prepareInsertDescriptor = (
     ],
   });
 
+export const prepareDeleteDescriptor = (id: DescriptorId): any => {
+  new pgPromise.PreparedStatement({
+    name: "delete-descriptor",
+    text: "DELETE FROM readmodel.descriptor WHERE id = $1",
+    values: [id],
+  });
+};
+
 export const prepareReadDescriptorsByEserviceId = (id: EServiceId): any =>
   new pgPromise.PreparedStatement({
     name: "read-descriptors-by-eservice-id",
@@ -71,7 +88,7 @@ export const prepareInsertDescriptorDocument = (
 ): pgPromise.PreparedStatement =>
   new pgPromise.PreparedStatement({
     name: "insert-document",
-    text: "INSERT INTO readmodel.document(id, descriptor_id, name, content_type, pretty_name, path, checksum, upload_date, document_kind) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    text: "INSERT INTO readmodel.descriptor_document(id, descriptor_id, name, content_type, pretty_name, path, checksum, upload_date, document_kind) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     values: [
       documentSQL.id,
       documentSQL.descriptor_id,
@@ -85,17 +102,25 @@ export const prepareInsertDescriptorDocument = (
     ],
   });
 
+export const prepareDeleteDocument = (id: EServiceDocumentId): any => {
+  new pgPromise.PreparedStatement({
+    name: "delete-descriptor",
+    text: "DELETE FROM readmodel.descriptor_document WHERE id = $1",
+    values: [id],
+  });
+};
+
 export const prepareReadDocumentsByDescriptorId = (id: DescriptorId): any =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-documents-by-descriptor-id",
-    text: "SELECT * FROM readmodel.document WHERE descriptor_id = $1",
+    text: "SELECT * FROM readmodel.descriptor_document WHERE descriptor_id = $1",
     values: [id],
   });
 
 export const prepareReadDocumentsByEserviceId = (id: EServiceId): any =>
   new pgPromise.PreparedStatement({
     name: "read-documents-by-eservice-id",
-    text: "SELECT * FROM readmodel.document WHERE document.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
+    text: "SELECT * FROM readmodel.descriptor_document WHERE descriptor_document.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
     values: [id],
   });
 
