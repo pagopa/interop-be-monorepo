@@ -61,7 +61,7 @@ export const prepareInsertDescriptor = (
 
 export const prepareReadDescriptorsByEserviceId = (id: EServiceId): any =>
   new pgPromise.PreparedStatement({
-    name: "read-descriptors",
+    name: "read-descriptors-by-eservice-id",
     text: "SELECT * FROM readmodel.descriptor WHERE eservice_id = $1",
     values: [id],
   });
@@ -87,7 +87,7 @@ export const prepareInsertDescriptorDocument = (
 
 export const prepareReadDocumentsByDescriptorId = (id: DescriptorId): any =>
   new pgPromise.PreparedStatement({
-    name: "read-descriptor-documents",
+    name: "read-descriptor-documents-by-descriptor-id",
     text: "SELECT * FROM readmodel.document WHERE descriptor_id = $1",
     values: [id],
   });
@@ -114,7 +114,7 @@ export const prepareInsertDescriptorAttribute = (
     ],
   });
 
-export const prepareReadDescriptorAttributeByDescriptorId = (
+export const prepareReadDescriptorAttributesByDescriptorId = (
   id: DescriptorId
 ): any =>
   new pgPromise.PreparedStatement({
@@ -123,11 +123,34 @@ export const prepareReadDescriptorAttributeByDescriptorId = (
     values: [id],
   });
 
-export const prepareReadDescriptorAttributeByEserviceId = (
+export const prepareReadDescriptorAttributesByEserviceId = (
   id: EServiceId
 ): any =>
   new pgPromise.PreparedStatement({
     name: "read-descriptor-attributes-by-eservice-id",
     text: "SELECT * FROM readmodel.descriptor_attribute as attribute WHERE attribute.descriptor_id IN (SELECT id FROM readmodel.descriptor WHERE descriptor.eservice_id = $1)",
     values: [id],
+  });
+
+export const prepareReadDescriptorsByEserviceIds = (ids: EServiceId[]): any =>
+  new pgPromise.PreparedStatement({
+    name: "read-descriptors-by-eservices-ids",
+    text: "SELECT * FROM readmodel.descriptor WHERE eservice_id IN ($1:list)",
+    values: [ids],
+  });
+
+export const prepareReadDescriptorAttributesByDescriptorIds = (
+  ids: DescriptorId[]
+): any =>
+  new pgPromise.PreparedStatement({
+    name: "read-descriptor-attributes",
+    text: "SELECT * FROM readmodel.descriptor_attribute WHERE descriptor_id IN ($1:list)",
+    values: [ids],
+  });
+
+export const prepareReadDocumentsByDescriptorIds = (ids: DescriptorId[]): any =>
+  new pgPromise.PreparedStatement({
+    name: "read-descriptor-documents-by-descriptors-ids",
+    text: "SELECT * FROM readmodel.document WHERE descriptor_id IN ($1:list)",
+    values: [ids],
   });
