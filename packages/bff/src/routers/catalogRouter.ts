@@ -93,7 +93,7 @@ const catalogRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const response = await catalogService.getProducerEServiceDetails(
-          req.params.eserviceId,
+          unsafeBrandId(req.params.eserviceId),
           ctx
         );
         return res.status(200).json(response).send();
@@ -184,8 +184,8 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           await catalogService.deleteDraft(
-            req.params.eServiceId,
-            req.body,
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(204).json().send();
@@ -206,8 +206,8 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const createdResource = await catalogService.updateDraftDescriptor(
-            req.params.eServiceId,
-            req.params.descriptorId,
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
             req.body,
             ctx
           );
@@ -227,7 +227,7 @@ const catalogRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const createdResource = await catalogService.createDescriptor(
-          req.params.eServiceId,
+          unsafeBrandId(req.params.eServiceId),
           ctx
         );
         return res.status(200).json(createdResource).send();
@@ -248,7 +248,7 @@ const catalogRouter = (
         try {
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
-            req.params.descriptorId,
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(204).json().send();
@@ -270,7 +270,7 @@ const catalogRouter = (
         try {
           const { id } = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
-            req.params.descriptorId,
+            unsafeBrandId(req.params.descriptorId),
             req.body,
             ctx
           );
@@ -293,7 +293,7 @@ const catalogRouter = (
         try {
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
-            req.params.descriptorId,
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(204).json().send();
@@ -315,7 +315,7 @@ const catalogRouter = (
         try {
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
-            req.params.descriptorId,
+            unsafeBrandId(req.params.descriptorId),
             ctx
           );
           return res.status(204).json().send();
@@ -336,8 +336,8 @@ const catalogRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const resp = await catalogService.createEServiceDocument(
-            req.params.eServiceId,
-            req.params.descriptorId,
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
             req.body,
             ctx
           );
