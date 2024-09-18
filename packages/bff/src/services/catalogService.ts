@@ -693,7 +693,11 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      const stream = await fileManager.get(config.s3Bucket, path, logger);
+      const stream = await fileManager.get(
+        config.eserviceDocumentsContainer,
+        path,
+        logger
+      );
 
       return { contentType, document: Buffer.from(stream) };
     },
@@ -729,9 +733,9 @@ export function catalogServiceBuilder(
         doc: catalogApi.EServiceDoc
       ): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> => {
         const clonedPath = await fileManager.copy(
-          config.s3Bucket,
-          config.eserviceDocumentsPath,
+          config.eserviceDocumentsContainer,
           doc.path,
+          config.eserviceDocumentsPath,
           clonedDocumentId,
           doc.name,
           logger
@@ -962,7 +966,7 @@ export function catalogServiceBuilder(
 
       const zipFolderName = `${eservice.id}_${descriptorId}`;
       const zipFile = await createDescriptorDocumentZipFile(
-        bffConfig.s3Bucket,
+        bffConfig.eserviceDocumentsContainer,
         fileManager,
         logger,
         zipFolderName,
