@@ -185,7 +185,7 @@ export function catalogServiceBuilder(
   return {
     getCatalog: async (
       { headers, authData, logger }: WithLogger<BffAppContext>,
-      queries: catalogApi.GetCatalogQueryParam
+      queries: catalogApi.GetEServicesQueryParams
     ): Promise<bffApi.CatalogEServices> => {
       const { offset, limit, producersIds, states, attributesIds, name } =
         queries;

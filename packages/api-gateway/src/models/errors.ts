@@ -1,4 +1,9 @@
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -7,6 +12,9 @@ export const errorCodes = {
   missingActivePurposeVersion: "0003",
   activeAgreementByEserviceAndConsumerNotFound: "0004",
   multipleAgreementForEserviceAndConsumer: "0005",
+  missingAvailableDescriptor: "0006",
+  unexpectedDescriptorState: "0007",
+  attributeNotFoundInRegistry: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -61,5 +69,36 @@ export function multipleAgreementForEserviceAndConsumer(
     detail: `Unexpected multiple Active Agreements for EService ${eserviceId} and Consumer ${consumerId}`,
     code: "multipleAgreementForEserviceAndConsumer",
     title: "Multiple active Agreements found",
+  });
+}
+
+export function missingAvailableDescriptor(
+  eserviceId: catalogApi.EService["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No available descriptors for EService ${eserviceId}`,
+    code: "missingAvailableDescriptor",
+    title: "Missing available descriptor",
+  });
+}
+
+export function unexpectedDescriptorState(
+  state: catalogApi.EServiceDescriptorState,
+  descriptorId: catalogApi.EServiceDescriptor["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected Descriptor state: ${state} - id: ${descriptorId}`,
+    code: "unexpectedDescriptorState",
+    title: "Unexpected descriptor state",
+  });
+}
+
+export function attributeNotFoundInRegistry(
+  attributeId: attributeRegistryApi.Attribute["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found in Attribute Registry`,
+    code: "attributeNotFoundInRegistry",
+    title: "Attribute not found in Attribute Registry",
   });
 }

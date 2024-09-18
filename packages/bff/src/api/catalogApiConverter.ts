@@ -29,7 +29,7 @@ import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
-): catalogApi.GetCatalogQueryParam {
+): catalogApi.GetEServicesQueryParams {
   return {
     ...queryParams,
     eservicesIds: [],
