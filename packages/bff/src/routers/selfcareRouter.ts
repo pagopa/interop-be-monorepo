@@ -4,12 +4,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import {
   bffApi,
   selfcareV2InstitutionClientBuilder,
 } from "pagopa-interop-api-clients";
+import { TenantId, unsafeBrandId, UserId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import {
   getSelfcareErrorMapper,
@@ -22,21 +22,25 @@ import {
   toApiSelfcareProduct,
   toApiSelfcareInstitution,
 } from "../api/selfcareApiConverter.js";
-
-const selfcareService = selfcareServiceBuilder(
-  selfcareV2InstitutionClientBuilder(config)
-);
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const selfcareRouter = (
+  clients: PagoPAInteropBeClients,
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const selfcareService = selfcareServiceBuilder(
+    selfcareV2InstitutionClientBuilder(config),
+    clients.tenantProcessClient
+  );
+
   const selfcareRouter = ctx.router(bffApi.selfcareApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
   selfcareRouter
     .get("/users/:userId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const user = await selfcareService.getSelfcareUser(
@@ -55,14 +59,14 @@ const selfcareRouter = (
           error,
           getSelfcareUserErrorMapper,
           ctx.logger,
-          "Error retrieving user"
+          `Error while retrieving user ${req.params.userId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
 
     .get("/selfcare/institutions/products", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const products = await selfcareService.getSelfcareInstitutionsProducts(
@@ -84,7 +88,7 @@ const selfcareRouter = (
     })
 
     .get("/selfcare/institutions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const institutions = await selfcareService.getSelfcareInstitutions(
@@ -101,7 +105,32 @@ const selfcareRouter = (
           error,
           getSelfcareErrorMapper,
           ctx.logger,
-          "Error retrieving institutions"
+          `Error retrieving institutions`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/tenants/:tenantId/users", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const results = await selfcareService.getInstitutionUsers(
+          unsafeBrandId<TenantId>(req.params.tenantId),
+          req.query.personId
+            ? unsafeBrandId<UserId>(req.query.personId)
+            : undefined,
+          req.query.query as string,
+          ctx
+        );
+
+        return res.status(200).json(results).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getSelfcareErrorMapper,
+          ctx.logger,
+          `Error while retrieving users corresponding to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
