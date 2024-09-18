@@ -47,14 +47,19 @@ import {
   unexpectedKeyType,
 } from "./errors.js";
 
+/*
+TEMPLATE for client assertion validation
+
 export const validateClientAssertion = async (
   request: ClientAssertionValidationRequest,
-  key: ConsumerKey | ApiKey // TODO use just Key?
 ): Promise<ValidationResult<ClientAssertion>> => {
   const { errors: parametersErrors } = validateRequestParameters(request);
 
   const { errors: clientAssertionVerificationErrors, data: jwt } =
     verifyClientAssertion(request.client_assertion, request.client_id);
+
+  // TO DO retrieve key
+
 
   const { errors: clientAssertionSignatureErrors } =
     verifyClientAssertionSignature(request.client_assertion, key);
@@ -79,6 +84,7 @@ export const validateClientAssertion = async (
 
   return successfulValidation(jwt);
 };
+*/
 
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest
