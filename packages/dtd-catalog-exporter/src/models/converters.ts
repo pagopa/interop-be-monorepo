@@ -9,7 +9,9 @@ import { getLatestActiveDescriptor } from "../utils/utils.js";
 import {
   PublicEService,
   PublicEServiceAttribute,
+  PublicEServiceAttributeGroup,
   PublicEServiceAttributes,
+  PublicEServiceAttributeSingle,
 } from "./models.js";
 
 export function toPublicEService(
@@ -40,42 +42,54 @@ export function toPublicEService(
   };
 }
 
+function toPublicAttribute(
+  id: string,
+  attributesMap: Map<string, AttributeReadmodel>
+): PublicEServiceAttribute {
+  const attributeData = attributesMap.get(id);
+
+  if (!attributeData) {
+    throw genericError(`Attribute with id ${id} not found`);
+  }
+
+  return {
+    description: attributeData.description,
+    name: attributeData.name,
+  };
+}
+
+function toPublicAttributesGroup(
+  attributesGroup: EserviceAttributes[keyof EserviceAttributes][0],
+  attributesMap: Map<string, AttributeReadmodel>
+): PublicEServiceAttributeGroup | PublicEServiceAttributeSingle {
+  if (attributesGroup.length === 1) {
+    return {
+      single: toPublicAttribute(attributesGroup[0].id, attributesMap),
+    };
+  }
+
+  return {
+    group: attributesGroup.map(({ id }) =>
+      toPublicAttribute(id, attributesMap)
+    ),
+  };
+}
+
 function toPublicAttributes(
   attributes: EserviceAttributes,
   attributesMap: Map<string, AttributeReadmodel>
 ): PublicEServiceAttributes {
-  function toPublicAttribute(
-    attributesGroup: EserviceAttributes[keyof EserviceAttributes][0]
-  ): PublicEServiceAttributes["certified"][number] {
-    function toPublicEServiceAttribute(id: string): PublicEServiceAttribute {
-      const attributeData = attributesMap.get(id);
-
-      if (!attributeData) {
-        throw genericError(`Attribute with id ${id} not found`);
-      }
-
-      return {
-        description: attributeData.description,
-        name: attributeData.name,
-      };
-    }
-
-    if (attributesGroup.length === 1) {
-      return {
-        single: toPublicEServiceAttribute(attributesGroup[0].id),
-      };
-    }
-
-    return {
-      group: attributesGroup.map(({ id }) => toPublicEServiceAttribute(id)),
-    };
-  }
-
   const { certified, verified, declared } = attributes;
 
   return {
-    certified: certified.map(toPublicAttribute),
-    verified: verified.map(toPublicAttribute),
-    declared: declared.map(toPublicAttribute),
+    certified: certified.map((att) =>
+      toPublicAttributesGroup(att, attributesMap)
+    ),
+    verified: verified.map((att) =>
+      toPublicAttributesGroup(att, attributesMap)
+    ),
+    declared: declared.map((att) =>
+      toPublicAttributesGroup(att, attributesMap)
+    ),
   };
 }
