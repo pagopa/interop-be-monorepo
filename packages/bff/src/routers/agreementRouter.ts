@@ -60,7 +60,7 @@ const agreementRouter = (
           },
           ctx
         );
-        handleResponse(res, 200, result, bffApi.Agreements);
+        return handleResponse(res, 200, result, bffApi.Agreements);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

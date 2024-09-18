@@ -7,7 +7,8 @@ module.exports = {
       recommended: true,
     },
     messages: {
-      noExpressResponse: "Avoid using the Express response object directly.",
+      noExpressResponse:
+        "Avoid using the Express response object directly use handleResponse instead",
     },
     schema: [], // no options
   },
