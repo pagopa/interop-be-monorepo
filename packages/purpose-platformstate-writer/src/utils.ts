@@ -37,9 +37,9 @@ import { z } from "zod";
 import { config } from "./config/config.js";
 
 export const purposeStateToItemState = (purpose: Purpose): ItemState =>
-  !purpose.suspendedByConsumer && !purpose.suspendedByProducer
-    ? itemState.active
-    : itemState.inactive;
+  purpose.suspendedByConsumer && purpose.suspendedByProducer
+    ? itemState.inactive
+    : itemState.active;
 
 export const writePlatformPurposeEntry = async (
   dynamoDBClient: DynamoDBClient,
