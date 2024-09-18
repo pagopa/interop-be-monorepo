@@ -123,3 +123,31 @@ export const eserviceSQLtoEservice = (
   };
   return eservice;
 };
+
+export const eserviceSQLArraytoEserviceArray = (
+  eservicesSQL: EServiceSQL[],
+  descriptorsSQL: DescriptorSQL[],
+  documentsSQL: DocumentSQL[],
+  attributesSQL: DescriptorAttributeSQL[]
+): EService[] =>
+  eservicesSQL.map((eservice) => {
+    const descriptorsSQLOfCurrentEservice = descriptorsSQL.filter(
+      (d) => d.eservice_id === eservice.id
+    );
+    const descriptorsIds = descriptorsSQL.map((d) => d.id);
+
+    const documentsSQLOfCurrentEservice = documentsSQL.filter((doc) =>
+      descriptorsIds.includes(doc.descriptor_id)
+    );
+
+    const attributesSQLOfCurrentEservice = attributesSQL.filter((attr) =>
+      descriptorsIds.includes(attr.descriptor_id)
+    );
+
+    return eserviceSQLtoEservice(
+      eservice,
+      descriptorsSQLOfCurrentEservice,
+      documentsSQLOfCurrentEservice,
+      attributesSQLOfCurrentEservice
+    );
+  });
