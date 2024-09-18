@@ -28,6 +28,18 @@ export const readmodelRepositorySQL = (db: DB) => ({
       throw genericInternalError(`Error writing stuff: ${error}`);
     }
   },
+  // eslint-disable-next-line sonarjs/no-identical-functions
+  async deleteItem(
+    preparedStatement: pgPromise.PreparedStatement
+  ): Promise<void> {
+    try {
+      await db.tx(async (t) => {
+        await t.none(preparedStatement);
+      });
+    } catch (error) {
+      throw genericInternalError(`Error writing stuff: ${error}`);
+    }
+  },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async readItem(preparedStatement: pgPromise.PreparedStatement): Promise<any> {
     try {
@@ -48,4 +60,4 @@ export const readmodelRepositorySQL = (db: DB) => ({
   },
 });
 
-export type ReadModelRepositorySQL = typeof readmodelRepositorySQL;
+export type ReadModelRepositorySQL = ReturnType<typeof readmodelRepositorySQL>;
