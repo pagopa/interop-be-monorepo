@@ -138,7 +138,7 @@ export async function handleMessageV2(
       }
     )
     .with({ type: "PurposeArchived" }, async (msg) => {
-      const { primaryKey, purposeState } = await getPurposeDataFromMessage(
+      const { purpose, primaryKey } = await getPurposeDataFromMessage(
         dynamoDBClient,
         msg
       );
@@ -147,11 +147,9 @@ export async function handleMessageV2(
       await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
 
       // token-generation-states
-      await updatePurposeStateInPlatformStatesEntry(
+      await updatePurposeStateInTokenGenerationStatesTable(
         dynamoDBClient,
-        primaryKey,
-        purposeState,
-        msg.version
+        purpose
       );
     })
     .with(
