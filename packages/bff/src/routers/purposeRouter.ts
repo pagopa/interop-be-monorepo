@@ -8,9 +8,9 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   emptyErrorMapper,
   clonePurposeErrorMapper,

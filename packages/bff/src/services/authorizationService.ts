@@ -27,8 +27,8 @@ import {
   missingSelfcareId,
   tenantLoginNotAllowed,
   tokenVerificationFailed,
-} from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+} from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 import { BffAppContext } from "../utilities/context.js";
 
