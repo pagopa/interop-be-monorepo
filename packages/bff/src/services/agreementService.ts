@@ -318,8 +318,9 @@ export function agreementServiceBuilder(
 
     async deleteAgreement(
       agreementId: string,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(`Deleting agreement ${agreementId}`);
       return await agreementProcessClient.deleteAgreement(undefined, {
         params: { agreementId },
         headers,
@@ -330,6 +331,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Activating agreement ${agreementId}`);
       const agreement = await agreementProcessClient.activateAgreement(
         undefined,
         {
@@ -342,8 +344,9 @@ export function agreementServiceBuilder(
 
     async cloneAgreement(
       agreementId: string,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
+      logger.info(`Cloning agreement ${agreementId}`);
       const agreement = await agreementProcessClient.cloneAgreement(undefined, {
         params: { agreementId },
         headers,
