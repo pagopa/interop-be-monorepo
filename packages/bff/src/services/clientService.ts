@@ -367,18 +367,18 @@ export const getAllClients = async (
   authorizationClient: AuthorizationProcessClient,
   consumerId: string,
   purposeId: string,
-  headers: { "X-Correlation-Id": string }
+  headers: BffAppContext["headers"]
 ): Promise<authorizationApi.ClientWithKeys[]> =>
   await getAllFromPaginated(
-    async (start: number) =>
+    async (offset, limit) =>
       await authorizationClient.client.getClientsWithKeys({
         headers,
         queries: {
           userIds: [],
           consumerId,
           purposeId,
-          limit: 50,
-          offset: start,
+          limit,
+          offset,
         },
       })
   );
