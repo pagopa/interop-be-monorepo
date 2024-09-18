@@ -1081,8 +1081,12 @@ export function tenantServiceBuilder(
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       const validatedAddress = validateAddress(mailSeed.address);
+      const mailId = crypto
+        .createHash("sha256")
+        .update(validatedAddress)
+        .digest("hex");
 
-      if (tenant.data.mails.find((m) => m.address === validatedAddress)) {
+      if (tenant.data.mails.find((m) => m.id === mailId)) {
         throw mailAlreadyExists();
       }
 
@@ -1090,7 +1094,7 @@ export function tenantServiceBuilder(
         kind: mailSeed.kind,
         address: validatedAddress,
         description: mailSeed.description,
-        id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
+        id: mailId,
         createdAt: new Date(),
       };
 
