@@ -42,7 +42,8 @@ const selfcareRouter = (
         const user = await selfcareService.getSelfcareUser(
           ctx.authData.userId,
           req.params.userId,
-          ctx.authData.selfcareId
+          ctx.authData.selfcareId,
+          ctx.logger
         );
 
         return res
@@ -66,7 +67,8 @@ const selfcareRouter = (
       try {
         const products = await selfcareService.getSelfcareInstitutionsProducts(
           ctx.authData.userId,
-          ctx.authData.selfcareId
+          ctx.authData.selfcareId,
+          ctx.logger
         );
 
         return res.status(200).json(products.map(toApiSelfcareProduct)).end();
@@ -86,7 +88,8 @@ const selfcareRouter = (
 
       try {
         const institutions = await selfcareService.getSelfcareInstitutions(
-          ctx.authData.userId
+          ctx.authData.userId,
+          ctx.logger
         );
 
         return res
