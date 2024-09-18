@@ -108,7 +108,6 @@ export function selfcareServiceBuilder(
       const users: selfcareV2ClientApi.UserResource[] =
         await selfcareV2Client.getInstitutionProductUsersUsingGET({
           params: { institutionId: selfcareId },
-          headers,
           queries: {
             userId,
             userIdForAuth: requesterId,
