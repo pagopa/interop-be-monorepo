@@ -36,7 +36,7 @@ CREATE TABLE readmodel.descriptor(
   -- attributes
 );
 
-CREATE TABLE readmodel.document(
+CREATE TABLE readmodel.descriptor_document(
   id uuid,
   descriptor_id uuid,
   name varchar,
@@ -56,9 +56,19 @@ CREATE TABLE readmodel.descriptor_attribute(
   group_set integer
 );
 
+/*
+certified: [[a], [b,c], [d]]
+
+a | certified | 1
+b | certified | 2
+c | certified | 2
+d | certified | 3
+
+*/
 CREATE TABLE readmodel.eservice_risk_analysis(
   risk_analysis_id uuid,
   name varchar,
+  -- to do eserviceId
   created_at timestamp with time zone,
   risk_analysis_form_id uuid,
   risk_analysis_form_version varchar
@@ -77,3 +87,5 @@ CREATE TABLE readmodel.risk_analysis_multi_answer(
   key varchar,
   value varchar ARRAY
 );
+
+-- alternative: one table for the answers: value always array, adding a type "single/multi"
