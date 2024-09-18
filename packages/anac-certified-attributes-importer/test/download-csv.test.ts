@@ -4,9 +4,9 @@ import { SftpClient } from "../src/service/sftpService.js";
 import { sftpConfigTest } from "./helpers.js";
 
 describe("CSV getFileName", () => {
-  const fileInfoMock: sftp.FileInfo = {
+  const getMockFileInfo = (name?: string): sftp.FileInfo => ({
     type: "-",
-    name: "",
+    name: name || "",
     size: 0,
     modifyTime: 0,
     accessTime: 0,
@@ -17,7 +17,7 @@ describe("CSV getFileName", () => {
     },
     owner: 0,
     group: 0,
-  };
+  });
 
   it("should retrieve last file (alphabetical order)", async () => {
     const sftpClient = new SftpClient({
@@ -26,22 +26,10 @@ describe("CSV getFileName", () => {
     });
 
     const fileList: sftp.FileInfo[] = [
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-22221100.csv`,
-      },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-99998877.csv`,
-      },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-00001122.csv`,
-      },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-55554433.csv`,
-      },
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-22221100.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-99998877.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-00001122.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-55554433.csv`),
     ];
 
     const result = await sftpClient.getFileName(async (_: string) =>
@@ -60,16 +48,10 @@ describe("CSV getFileName", () => {
     });
 
     const fileList: sftp.FileInfo[] = [
-      { ...fileInfoMock, name: `aaaa-22221100.csv` },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-99998877.csv`,
-      },
-      { ...fileInfoMock, name: `zzzz-00001122.csv` },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-55554433.csv`,
-      },
+      getMockFileInfo(`aaaa-22221100.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-99998877.csv`),
+      getMockFileInfo(`zzzz-00001122.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-55554433.csv`),
     ];
 
     const result = await sftpClient.getFileName(async (_: string) =>
@@ -101,22 +83,10 @@ describe("CSV getFileName", () => {
     });
 
     const fileList: sftp.FileInfo[] = [
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-22221100.csv`,
-      },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-99998877.csv`,
-      },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-00001122.csv`,
-      },
-      {
-        ...fileInfoMock,
-        name: `${sftpConfigTest.fileNamePrefix}-55554433.csv`,
-      },
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-22221100.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-99998877.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-00001122.csv`),
+      getMockFileInfo(`${sftpConfigTest.fileNamePrefix}-55554433.csv`),
     ];
 
     const result = await sftpClient.getFileName(async (_: string) =>

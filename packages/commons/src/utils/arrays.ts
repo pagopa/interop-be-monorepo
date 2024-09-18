@@ -24,7 +24,8 @@ export function removeDuplicateObjectsById<A extends { id: string }>(
  * @param b
  * @param getValueA Function that extracts the key for array a
  * @param getValueB Function that extracts the key for array b
- * @returns
+ * @returns array of tuples, where each tuple is of the form [A, B],
+ * containing one element from a and one from b whose keys match based on the accessor functions.
  */
 export function zipBy<A, B, K>(
   a: A[],

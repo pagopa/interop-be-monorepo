@@ -4,11 +4,6 @@ import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
 import { Tenant } from "pagopa-interop-models";
 import {
-  ANAC_ABILITATO_CODE,
-  ANAC_INCARICATO_CODE,
-  ANAC_IN_CONVALIDA_CODE,
-} from "../config/constants.js";
-import {
   AnacAttributes,
   AttributeIdentifiers,
   BatchParseResult,
@@ -18,6 +13,10 @@ import { InteropContext } from "../model/interopContextModel.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 import { ReadModelQueries } from "./readmodelQueriesService.js";
 import { SftpClient } from "./sftpService.js";
+
+export const ANAC_ENABLED_CODE = "anac_abilitato";
+export const ANAC_ASSIGNED_CODE = "anac_incaricato";
+export const ANAC_IN_VALIDATION_CODE = "anac_in_convalida";
 
 export async function importAttributes(
   sftpClient: SftpClient,
@@ -200,15 +199,15 @@ async function getAttributesIdentifiers(
 
   const anacAbilitato = await readModel.getAttributeByExternalId(
     certifier.certifierId,
-    ANAC_ABILITATO_CODE
+    ANAC_ENABLED_CODE
   );
   const anacIncaricato = await readModel.getAttributeByExternalId(
     certifier.certifierId,
-    ANAC_INCARICATO_CODE
+    ANAC_ASSIGNED_CODE
   );
   const anacInConvalida = await readModel.getAttributeByExternalId(
     certifier.certifierId,
-    ANAC_IN_CONVALIDA_CODE
+    ANAC_IN_VALIDATION_CODE
   );
 
   return {

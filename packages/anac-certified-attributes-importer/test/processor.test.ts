@@ -13,9 +13,9 @@ import { SftpClient } from "../src/service/sftpService.js";
 import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
 import { importAttributes } from "../src/service/processor.js";
 import {
-  ATTRIBUTE_ANAC_ABILITATO_ID,
-  ATTRIBUTE_ANAC_INCARICATO_ID,
-  ATTRIBUTE_ANAC_IN_CONVALIDA_ID,
+  ATTRIBUTE_ANAC_ASSIGNED_ID,
+  ATTRIBUTE_ANAC_ENABLED_ID,
+  ATTRIBUTE_ANAC_IN_VALIDATION_ID,
   downloadCSVMock,
   downloadCSVMockGenerator,
   getAttributeByExternalIdMock,
@@ -139,7 +139,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
         ],
       },
@@ -181,11 +181,11 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
           },
         ],
       },
@@ -228,7 +228,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
         ],
       },
@@ -272,7 +272,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
         ],
       },
@@ -323,15 +323,15 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
           },
         ],
       },
@@ -342,7 +342,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
         ],
       },
@@ -353,7 +353,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
           },
         ],
       },
@@ -364,7 +364,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
           },
         ],
       },
@@ -375,15 +375,15 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
           },
         ],
       },
@@ -394,15 +394,15 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_INCARICATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
           },
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_CONVALIDA_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
           },
         ],
       },
@@ -506,7 +506,7 @@ describe("ANAC Certified Attributes Importer", () => {
         attributes: [
           {
             ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_ANAC_ABILITATO_ID),
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
           },
         ],
       },

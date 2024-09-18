@@ -9,10 +9,10 @@ import { SftpConfig } from "../src/config/sftpConfig.js";
 import { PersistentAttribute } from "../src/model/attributeModel.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 import {
-  ANAC_ABILITATO_CODE,
-  ANAC_IN_CONVALIDA_CODE,
-  ANAC_INCARICATO_CODE,
-} from "../src/config/constants.js";
+  ANAC_ASSIGNED_CODE,
+  ANAC_ENABLED_CODE,
+  ANAC_IN_VALIDATION_CODE,
+} from "../src/service/processor.js";
 
 export const sftpConfigTest: SftpConfig = {
   host: "host",
@@ -29,11 +29,10 @@ const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,
 0011223344,E-Procurement 1,eprocurement1@pec.it,,TRUE,TRUE,FALSE
 0011223344,"E-Procurement 2 con , virgola nel nome",eprocurement1@pec.it,,TRUE,TRUE,FALSE`;
 
-export const ATTRIBUTE_ANAC_INCARICATO_ID =
+export const ATTRIBUTE_ANAC_ASSIGNED_ID =
   "b1d64ee0-fda9-48e2-84f8-1b62f1292b47";
-export const ATTRIBUTE_ANAC_ABILITATO_ID =
-  "dc77c852-7635-4522-bc1c-e431c5d68b55";
-export const ATTRIBUTE_ANAC_IN_CONVALIDA_ID =
+export const ATTRIBUTE_ANAC_ENABLED_ID = "dc77c852-7635-4522-bc1c-e431c5d68b55";
+export const ATTRIBUTE_ANAC_IN_VALIDATION_ID =
   "97dec753-8a6e-4a25-aa02-95ac8602b364";
 
 export const downloadCSVMockGenerator =
@@ -87,24 +86,24 @@ export const getAttributeByExternalIdMock = (
   code: string
 ): Promise<PersistentAttribute> => {
   switch (code) {
-    case ANAC_ABILITATO_CODE:
+    case ANAC_ENABLED_CODE:
       return Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_ANAC_ABILITATO_ID,
+        id: ATTRIBUTE_ANAC_ENABLED_ID,
         origin,
         code,
       });
-    case ANAC_IN_CONVALIDA_CODE:
+    case ANAC_IN_VALIDATION_CODE:
       return Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_ANAC_IN_CONVALIDA_ID,
+        id: ATTRIBUTE_ANAC_IN_VALIDATION_ID,
         origin,
         code,
       });
-    case ANAC_INCARICATO_CODE:
+    case ANAC_ASSIGNED_CODE:
       return Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_ANAC_INCARICATO_ID,
+        id: ATTRIBUTE_ANAC_ASSIGNED_ID,
         origin,
         code,
       });
