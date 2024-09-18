@@ -29,6 +29,7 @@ import {
   PlatformStatesPurposeEntry,
   Purpose,
   PurposeActivatedV2,
+  PurposeArchivedV2,
   PurposeEventEnvelope,
   PurposeVersion,
   PurposeVersionActivatedV2,
@@ -415,11 +416,8 @@ describe("integration tests", () => {
         const messageVersion = 3;
 
         const purposeVersions: PurposeVersion[] = [
-          { ...getMockPurposeVersion(), state: purposeVersionState.active },
-          {
-            ...getMockPurposeVersion(),
-            state: purposeVersionState.waitingForApproval,
-          },
+          getMockPurposeVersion(purposeVersionState.active),
+          getMockPurposeVersion(purposeVersionState.waitingForApproval),
         ];
         const purpose: Purpose = {
           ...getMockPurpose(),
@@ -540,11 +538,8 @@ describe("integration tests", () => {
         const messageVersion = 1;
 
         const purposeVersions: PurposeVersion[] = [
-          { ...getMockPurposeVersion(), state: purposeVersionState.active },
-          {
-            ...getMockPurposeVersion(),
-            state: purposeVersionState.waitingForApproval,
-          },
+          getMockPurposeVersion(purposeVersionState.active),
+          getMockPurposeVersion(purposeVersionState.waitingForApproval),
         ];
         const purpose: Purpose = {
           ...getMockPurpose(),
@@ -656,10 +651,7 @@ describe("integration tests", () => {
         const messageVersion = 3;
 
         const purposeVersions: PurposeVersion[] = [
-          {
-            ...getMockPurposeVersion(),
-            state: purposeVersionState.waitingForApproval,
-          },
+          getMockPurposeVersion(purposeVersionState.waitingForApproval),
         ];
         const purpose: Purpose = {
           ...getMockPurpose(),
@@ -777,10 +769,7 @@ describe("integration tests", () => {
         const purpose: Purpose = {
           ...getMockPurpose(),
           versions: [
-            {
-              ...getMockPurposeVersion(),
-              state: purposeVersionState.waitingForApproval,
-            },
+            getMockPurposeVersion(purposeVersionState.waitingForApproval),
           ],
         };
         const purposeId = purpose.id;
@@ -797,8 +786,7 @@ describe("integration tests", () => {
 
         const updatedPurposeVersions: PurposeVersion[] = [
           {
-            ...getMockPurposeVersion(),
-            state: purposeVersionState.active,
+            ...getMockPurposeVersion(purposeVersionState.active),
             updatedAt: new Date(),
           },
         ];
@@ -813,7 +801,7 @@ describe("integration tests", () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             GSIPK_purposeId: purposeId,
-            purposeState: itemState.inactive,
+            purposeState,
           };
         await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
 
@@ -873,6 +861,109 @@ describe("integration tests", () => {
           ])
         );
       });
+    });
+
+    it("PurposeArchived", async () => {
+      const previousEntryVersion = 1;
+      const messageVersion = 2;
+
+      const purposeVersions: PurposeVersion[] = [
+        getMockPurposeVersion(purposeVersionState.active),
+      ];
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: purposeVersions,
+      };
+      const purposeId = purpose.id;
+      const purposeState = purposeStateToItemState(purpose);
+
+      // platform-states
+      const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+      const previousStateEntry: PlatformStatesPurposeEntry = {
+        PK: purposeEntryPrimaryKey,
+        state: purposeState,
+        purposeVersionId: purposeVersions[0].id,
+        purposeEserviceId: purpose.eserviceId,
+        purposeConsumerId: purpose.consumerId,
+        version: previousEntryVersion,
+        updatedAt: mockDate.toISOString(),
+      };
+      await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          GSIPK_purposeId: purposeId,
+          purposeState,
+        };
+      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          GSIPK_purposeId: purposeId,
+          purposeState,
+        };
+      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+      const updatedPurpose: Purpose = {
+        ...purpose,
+        versions: [
+          {
+            ...purposeVersions[0],
+            state: purposeVersionState.archived,
+            updatedAt: new Date(),
+          },
+        ],
+      };
+
+      const payload: PurposeArchivedV2 = {
+        purpose: toPurposeV2(updatedPurpose),
+        versionId: purposeVersions[0].id,
+      };
+      const message: PurposeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeId,
+        version: messageVersion,
+        type: "PurposeArchived",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV2(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+        dynamoDBClient,
+        purposeEntryPrimaryKey
+      );
+      expect(retrievedPlatformPurposeEntry).toBeUndefined();
+
+      // token-generation-states
+      const retrievedTokenStateEntries = await readTokenEntriesByPurposeId(
+        dynamoDBClient,
+        purposeId
+      );
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      // TODO: not sure about purposeState if archived. For now it remains active.
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          previousTokenStateEntry1,
+          previousTokenStateEntry2,
+        ])
+      );
     });
   });
 });
