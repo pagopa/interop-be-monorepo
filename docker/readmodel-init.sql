@@ -3,7 +3,7 @@ CREATE SCHEMA readmodel;
 -- CATALOG
 CREATE TABLE readmodel.eservice(
   id uuid,
-  producer_id UUID,
+  producer_id uuid,
   name varchar,
   description varchar,
   technology varchar,
@@ -89,3 +89,41 @@ CREATE TABLE readmodel.risk_analysis_multi_answer(
 );
 
 -- alternative: one table for the answers: value always array, adding a type "single/multi"
+
+
+
+-- AGREEMENT
+CREATE TABLE readmodel.agreement(
+  id uuid,
+  eservice_id uuid,
+  descriptor_id uuid,
+  producer_id uuid,
+  consumer_id uuid,
+  state varchar,
+  suspended_by_consumer timestamp with time zone,
+  suspended_by_producer timestamp with time zone,
+  suspended_by_platform timestamp with time zone,
+  created_at timestamp with time zone,
+  updatedAt timestamp with time zone,
+  consumer_notes varchar,
+  -- to do contract
+  -- to do stamps
+  rejection_reason varchar,
+  suspended_at timestamp with time zone
+);
+
+CREATE TABLE readmodel.agreement_attribute(
+  attribute_id uuid,
+  agreement_id uuid,
+  kind varchar
+);
+
+CREATE TABLE readmodel.agreement_consumer_document(
+  id uuid,
+  agreement_id uuid,
+  name varchar,
+  pretty_name varchar,
+  content_type varchar,
+  path varchar,
+  created_at timestamp with time zone
+);
