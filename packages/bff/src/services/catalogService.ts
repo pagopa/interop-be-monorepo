@@ -384,7 +384,7 @@ export function catalogServiceBuilder(
       }),
     createEServiceDocument: async (
       eServiceId: EServiceId,
-      descriptorId: EServiceId,
+      descriptorId: DescriptorId,
       doc: bffApi.createEServiceDocument_Body,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
