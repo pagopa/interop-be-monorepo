@@ -266,10 +266,6 @@ export const getMockDescriptorSQL = (): DescriptorSQL => ({
   daily_calls_total: 1000,
   server_urls: [],
   agreement_approval_policy: "Automatic",
-  published_at: new Date(),
-  suspended_at: new Date(),
-  deprecated_at: new Date(),
-  archived_at: new Date(),
 });
 
 export const getMockDocument = (): Document => ({
