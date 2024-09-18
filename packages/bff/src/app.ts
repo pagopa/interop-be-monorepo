@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
-import { getInteropBeClients } from "./providers/clientProvider.js";
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";

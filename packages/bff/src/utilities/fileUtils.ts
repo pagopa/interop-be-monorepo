@@ -8,10 +8,11 @@ import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { DescriptorId, genericError } from "pagopa-interop-models";
-import { missingInterface } from "../model/domain/errors.js";
-import { verifyExportEligibility } from "../model/validators.js";
+import { missingInterface } from "../model/errors.js";
+import { verifyExportEligibility } from "../services/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
-import { ConfigurationEservice } from "../model/api/apiTypes.js";
+import { ConfigurationEservice } from "../model/types.js";
+
 /*
   FileDocumentsRegistry is a map that contains the following information:
   - occurrences: a map that contains the number of occurrences of a document name

@@ -10,8 +10,8 @@ import {
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
 import { tooManyRequestsError } from "pagopa-interop-models";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";

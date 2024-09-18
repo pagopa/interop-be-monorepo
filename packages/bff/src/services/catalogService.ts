@@ -21,41 +21,41 @@ import {
 } from "pagopa-interop-models";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
-  ConfigurationEservice,
-  catalogApiDescriptorState,
-} from "../model/api/apiTypes.js";
-import {
-  toBffCatalogApiDescriptorAttributes,
-  toBffCatalogApiDescriptorDoc,
-  toBffCatalogApiEService,
-  toBffCatalogApiEserviceRiskAnalysis,
-  toBffCatalogApiEserviceRiskAnalysisSeed,
-  toBffCatalogApiProducerDescriptorEService,
-  toBffCatalogDescriptorEService,
-  toCatalogCreateEServiceSeed,
-} from "../model/api/converters/catalogClientApiConverter.js";
-import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
   invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
-} from "../model/domain/errors.js";
+} from "../model/errors.js";
 import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
-import { assertRequesterIsProducer } from "../model/validators.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
   TenantProcessClient,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   verifyAndCreateEServiceDocument,
   verifyAndCreateImportedDoc,
 } from "../utilities/eserviceDocumentUtils.js";
 import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
+import {
+  toBffCatalogApiEService,
+  toBffCatalogApiDescriptorAttributes,
+  toBffCatalogApiDescriptorDoc,
+  toBffCatalogApiProducerDescriptorEService,
+  toBffCatalogApiEserviceRiskAnalysis,
+  toCatalogCreateEServiceSeed,
+  toBffCatalogDescriptorEService,
+  toBffCatalogApiEserviceRiskAnalysisSeed,
+} from "../api/catalogApiConverter.js";
+import {
+  catalogApiDescriptorState,
+  ConfigurationEservice,
+} from "../model/types.js";
 import { getLatestAgreement } from "./agreementService.js";
+import { assertRequesterIsProducer } from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 

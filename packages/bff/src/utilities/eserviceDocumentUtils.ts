@@ -17,10 +17,10 @@ import {
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
-} from "../model/domain/errors.js";
-import { CatalogProcessClient } from "../providers/clientProvider.js";
+} from "../model/errors.js";
+import { CatalogProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { ConfigurationDoc } from "../model/api/apiTypes.js";
+import { ConfigurationDoc } from "../model/types.js";
 import { calculateChecksum } from "./fileUtils.js";
 
 // eslint-disable-next-line max-params
