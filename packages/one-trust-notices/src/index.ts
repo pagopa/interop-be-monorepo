@@ -81,7 +81,7 @@ async function main(): Promise<void> {
         );
         await Promise.all(
           localizedNoticeContentResponses.map((noticeContentResponse, index) =>
-            fileManager.storeBytesByPath(
+            fileManager.storeBytesByKey(
               config.historyStorageBucket,
               versionedContentBucketPaths[index],
               Buffer.from(JSON.stringify(noticeContentResponse)),
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
 
       await Promise.all([
         ...jsonHtmlNodes.map((jsonHtmlNode, index) =>
-          fileManager.storeBytesByPath(
+          fileManager.storeBytesByKey(
             config.contentStorageBucket,
             versionedContentBucketPaths[index],
             Buffer.from(JSON.stringify(jsonHtmlNode)),
@@ -111,7 +111,7 @@ async function main(): Promise<void> {
           )
         ),
         ...jsonHtmlNodes.map((jsonHtmlNode, index) =>
-          fileManager.storeBytesByPath(
+          fileManager.storeBytesByKey(
             config.contentStorageBucket,
             latestContentBucketPaths[index],
             Buffer.from(JSON.stringify(jsonHtmlNode)),

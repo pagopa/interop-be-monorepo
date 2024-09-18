@@ -44,9 +44,9 @@ export type FileManager = {
     },
     logger: Logger
   ) => Promise<string>;
-  storeBytesByPath: (
+  storeBytesByKey: (
     bucket: string,
-    path: string,
+    key: string,
     fileContent: Buffer,
     logger: Logger
   ) => Promise<string>;
@@ -84,6 +84,25 @@ export function initFileManager(
     fileName: string
   ): string =>
     [path, resourceId, fileName].filter((s) => s && s.length > 0).join("/");
+
+  const store = async (
+    bucket: string,
+    key: string,
+    fileContent: Buffer
+  ): Promise<string> => {
+    try {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: fileContent,
+        })
+      );
+      return key;
+    } catch (error) {
+      throw fileManagerStoreBytesError(key, bucket, error);
+    }
+  };
 
   return {
     buildS3Key: (
@@ -172,6 +191,15 @@ export function initFileManager(
         throw fileManagerListFilesError(bucket, error);
       }
     },
+    storeBytesByKey: async (
+      bucket: string,
+      key: string,
+      fileContent: Buffer,
+      logger: Logger
+    ): Promise<string> => {
+      logger.info(`Storing file ${key} in bucket ${bucket}`);
+      return store(bucket, key, fileContent);
+    },
     storeBytes: async (
       s3File: {
         bucket: string;
@@ -184,38 +212,8 @@ export function initFileManager(
     ): Promise<string> => {
       const key = buildS3Key(s3File.path, s3File.resourceId, s3File.name);
       logger.info(`Storing file ${key} in bucket ${s3File.bucket}`);
-      try {
-        await client.send(
-          new PutObjectCommand({
-            Bucket: s3File.bucket,
-            Key: key,
-            Body: s3File.content,
-          })
-        );
-        return key;
-      } catch (error) {
-        throw fileManagerStoreBytesError(key, s3File.bucket, error);
-      }
-    },
-    storeBytesByPath: async (
-      bucket: string,
-      path: string,
-      fileContent: Buffer,
-      logger: Logger
-    ): Promise<string> => {
-      logger.info(`Storing file ${path} in bucket ${bucket}`);
-      try {
-        await client.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: path,
-            Body: fileContent,
-          })
-        );
-        return path;
-      } catch (error) {
-        throw fileManagerStoreBytesError(path, bucket, error);
-      }
+
+      return store(s3File.bucket, key, s3File.content);
     },
     generateGetPresignedUrl: async (
       bucketName: string,
