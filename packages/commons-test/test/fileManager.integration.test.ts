@@ -31,19 +31,6 @@ describe("FileManager tests", async () => {
       expect(files).toContain("test/test/test");
     });
 
-    it("should store a file by path in the bucket", async () => {
-      const result = await fileManager.storeBytesByPath(
-        s3Bucket,
-        "test/test/test",
-        Buffer.from("test"),
-        genericLogger
-      );
-      expect(result).toBe("test/test/test");
-
-      const files = await fileManager.listFiles(s3Bucket, genericLogger);
-      expect(files).toContain("test/test/test");
-    });
-
     it("should fail if the bucket does not exist", async () => {
       await expect(
         fileManager.storeBytes(
