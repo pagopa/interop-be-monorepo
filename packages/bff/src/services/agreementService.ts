@@ -19,26 +19,28 @@ import {
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { isAgreementUpgradable } from "../model/validators.js";
 import {
   agreementDescriptorNotFound,
   contractException,
   contractNotFound,
   invalidContentType,
-} from "../model/domain/errors.js";
-import {
-  toCompactDescriptor,
-  toCompactEservice,
-  toCompactEserviceLight,
-  toCompactOrganization,
-} from "../model/api/converters/catalogClientApiConverter.js";
+} from "../model/errors.js";
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
-import { enhanceTenantAttributes } from "./tenantService.js";
+import {
+  toCompactEservice,
+  toCompactDescriptor,
+} from "../api/catalogApiConverter.js";
+import {
+  toBffCompactOrganization,
+  toCompactEserviceLight,
+} from "../api/agreementApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
+import { enhanceTenantAttributes } from "./tenantService.js";
+import { isAgreementUpgradable } from "./validators.js";
 
 export async function getAllAgreements(
   agreementProcessClient: AgreementProcessClient,
@@ -476,7 +478,7 @@ export function agreementServiceBuilder(
           offset,
           totalCount: producers.totalCount,
         },
-        results: producers.results.map((p) => toCompactOrganization(p)),
+        results: producers.results.map((p) => toBffCompactOrganization(p)),
       };
     },
 
@@ -507,7 +509,7 @@ export function agreementServiceBuilder(
           offset,
           totalCount: consumers.totalCount,
         },
-        results: consumers.results.map((c) => toCompactOrganization(c)),
+        results: consumers.results.map((c) => toBffCompactOrganization(c)),
       };
     },
   };

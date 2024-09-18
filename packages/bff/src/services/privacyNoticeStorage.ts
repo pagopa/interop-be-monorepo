@@ -9,8 +9,8 @@ import {
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { Logger } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
-import { dynamoReadingError } from "../model/domain/errors.js";
-import { PrivacyNotice, UserPrivacyNotice } from "../model/domain/types.js";
+import { dynamoReadingError } from "../model/errors.js";
+import { PrivacyNotice, UserPrivacyNotice } from "../model/types.js";
 
 export function privacyNoticeStorageServiceBuilder(
   db: DynamoDBClient,

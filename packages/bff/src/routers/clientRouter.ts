@@ -9,14 +9,14 @@ import {
 import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
 import { clientServiceBuilder } from "../services/clientService.js";
 import { config } from "../config/config.js";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
