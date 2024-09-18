@@ -61,8 +61,9 @@ export function tenantServiceBuilder(
   return {
     async getTenant(
       tenantId: TenantId,
-      { headers }: WithLogger<BffAppContext>
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenant> {
+      logger.info(`Getting tenant with id ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
