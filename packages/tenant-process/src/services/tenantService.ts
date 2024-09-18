@@ -64,6 +64,7 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
+  notValidMailAddress,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1080,9 +1081,11 @@ export function tenantServiceBuilder(
         throw mailAlreadyExists();
       }
 
+      const validatedAddress = validateAddress(mailSeed.address);
+
       const newMail: TenantMail = {
         kind: mailSeed.kind,
-        address: mailSeed.address,
+        address: validatedAddress,
         description: mailSeed.description,
         id: crypto.createHash("sha256").update(mailSeed.address).digest("hex"),
         createdAt: new Date(),
@@ -1732,6 +1735,31 @@ async function revokeCertifiedAttribute(
         : attr
     ),
   } satisfies Tenant;
+}
+
+function validateAddress(address: string): string {
+  // Here I am removing the non-printing control characters
+  const removeNonPrintingcontrolCharacters = address.replace(
+    // eslint-disable-next-line no-control-regex
+    /[\x00-\x1F\x7F]/g,
+    ""
+  );
+
+  // Here I am removing the extra spaces and tabs
+  const removeExtraSpace = removeNonPrintingcontrolCharacters
+    .replace(/\s+/g, "")
+    .trim();
+
+  // Here I am removing strange characters or special symbols
+  const sanitizedMail = removeExtraSpace
+    .replace(/[^\w.@-_]/g, "")
+    .replace(/\^/g, "");
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(sanitizedMail)) {
+    throw notValidMailAddress(address);
+  }
+  return sanitizedMail;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
