@@ -23,13 +23,13 @@ export type TenantProcessServerConfig = z.infer<
 export const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
-    CONSUMER_DOCS_PATH: z.string(),
-    CONSUMER_DOCS_CONTAINER: z.string(),
+    CONSUMER_DOCUMENTS_PATH: z.string(),
+    CONSUMER_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
-    consumerDocumentsPath: c.CONSUMER_DOCS_PATH,
-    consumerDocumentsContainer: c.CONSUMER_DOCS_CONTAINER,
+    consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
+    consumerDocumentsContainer: c.CONSUMER_DOCUMENTS_CONTAINER,
   }));
 export type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
@@ -38,13 +38,13 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
-    ESERVICE_DOCS_CONTAINER: z.string(),
-    ESERVICE_DOCS_PATH: z.string(),
+    ESERVICE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
-    eserviceDocumentsContainer: c.ESERVICE_DOCS_CONTAINER,
-    eserviceDocumentsPath: c.ESERVICE_DOCS_PATH,
+    eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -64,11 +64,11 @@ export type AttributeRegistryProcessServerConfig = z.infer<
 export const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
-    RISK_ANALYSIS_DOCS_CONTAINER: z.string(),
+    RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     purposeUrl: c.PURPOSE_PROCESS_URL,
-    riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCS_CONTAINER,
+    riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
