@@ -104,8 +104,9 @@ export function tenantServiceBuilder(
     async getTenants(
       name: string | undefined,
       limit: number,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenants> {
+      logger.info(`Getting tenants with name ${name}, limit ${limit}`);
       const offset = 0; // This BFF query gets only the limit as parameter, offset is always 0
       const pagedResults = await tenantProcessClient.tenant.getTenants({
         queries: {
@@ -134,8 +135,11 @@ export function tenantServiceBuilder(
       name: string | undefined,
       offset: number,
       limit: number,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
+      logger.info(
+        `Getting consumers with name ${name}, limit ${limit}, offset ${offset}`
+      );
       const { results, totalCount } =
         await tenantProcessClient.tenant.getConsumers({
           queries: {
@@ -159,8 +163,11 @@ export function tenantServiceBuilder(
       name: string | undefined,
       offset: number,
       limit: number,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
+      logger.info(
+        `Getting producers with name ${name}, limit ${limit}, offset ${offset}`
+      );
       const { results, totalCount } =
         await tenantProcessClient.tenant.getProducers({
           queries: {
@@ -183,8 +190,11 @@ export function tenantServiceBuilder(
     async getRequesterCertifiedAttributes(
       offset: number,
       limit: number,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RequesterCertifiedAttributes> {
+      logger.info(
+        `Getting requester certified attributes with limit ${limit}, offset ${offset}`
+      );
       const { results, totalCount } =
         await tenantProcessClient.tenant.getCertifiedAttributes({
           queries: {
@@ -205,8 +215,9 @@ export function tenantServiceBuilder(
     },
     async getCertifiedAttributes(
       tenantId: TenantId,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CertifiedAttributesResponse> {
+      logger.info(`Getting certified attributes for tenant ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
@@ -231,8 +242,9 @@ export function tenantServiceBuilder(
     },
     async getDeclaredAttributes(
       tenantId: TenantId,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.DeclaredAttributesResponse> {
+      logger.info(`Getting declared attributes for tenant ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
@@ -257,8 +269,9 @@ export function tenantServiceBuilder(
     },
     async getVerifiedAttributes(
       tenantId: TenantId,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.VerifiedAttributesResponse> {
+      logger.info(`Getting verified attributes for tenant ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
@@ -284,8 +297,11 @@ export function tenantServiceBuilder(
     async addCertifiedAttribute(
       tenantId: TenantId,
       seed: bffApi.CertifiedTenantAttributeSeed,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(
+        `Adding certified attribute ${seed.id} to tenant ${tenantId}`
+      );
       await tenantProcessClient.tenantAttribute.addCertifiedAttribute(seed, {
         params: { tenantId },
         headers,
@@ -293,8 +309,9 @@ export function tenantServiceBuilder(
     },
     async addDeclaredAttribute(
       seed: bffApi.DeclaredTenantAttributeSeed,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(`Adding declared attribute ${seed.id} to requester Tenant`);
       await tenantProcessClient.tenantAttribute.addDeclaredAttribute(seed, {
         headers,
       });
@@ -302,8 +319,11 @@ export function tenantServiceBuilder(
     async verifyVerifiedAttribute(
       tenantId: TenantId,
       seed: bffApi.VerifiedTenantAttributeSeed,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(
+        `Verifying verified attribute ${seed.id} for tenant ${tenantId}`
+      );
       await tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(seed, {
         params: { tenantId },
         headers,
@@ -313,8 +333,11 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       seed: bffApi.UpdateVerifiedTenantAttributeSeed,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(
+        `Updating verified attribute ${attributeId} for tenant ${tenantId}`
+      );
       await tenantProcessClient.tenant.updateVerifiedAttribute(seed, {
         params: { tenantId, attributeId },
         headers,
@@ -322,8 +345,11 @@ export function tenantServiceBuilder(
     },
     async revokeDeclaredAttribute(
       attributeId: AttributeId,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(
+        `Revoking declared attribute ${attributeId} for requester Tenant`
+      );
       await tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
         undefined,
         {
@@ -335,8 +361,11 @@ export function tenantServiceBuilder(
     async revokeCertifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(
+        `Revoking certified attribute ${attributeId} for tenant ${tenantId}`
+      );
       await tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
         undefined,
         {
@@ -348,8 +377,11 @@ export function tenantServiceBuilder(
     async revokeVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(
+        `Revoking verified attribute ${attributeId} for tenant ${tenantId}`
+      );
       await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
         undefined,
         {
@@ -361,8 +393,9 @@ export function tenantServiceBuilder(
     async addTenantMail(
       tenantId: TenantId,
       seed: bffApi.MailSeed,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(`Adding mail ${seed.address} to tenant ${tenantId}`);
       await tenantProcessClient.tenant.addTenantMail(seed, {
         params: { tenantId },
         headers,
@@ -371,8 +404,9 @@ export function tenantServiceBuilder(
     async deleteTenantMail(
       tenantId: TenantId,
       mailId: string,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(`Deleting mail ${mailId} from tenant ${tenantId}`);
       await tenantProcessClient.tenant.deleteTenantMail(undefined, {
         params: { tenantId, mailId },
         headers,
