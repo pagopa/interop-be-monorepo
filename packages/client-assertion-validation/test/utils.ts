@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
 import * as jwt from "jsonwebtoken";
 import {
   ClientId,
@@ -9,7 +8,12 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
-import { ApiKey, ClientAssertionHeader, ConsumerKey } from ".././src/types.js";
+import {
+  ApiKey,
+  ClientAssertionHeader,
+  ClientAssertionValidationRequest,
+  ConsumerKey,
+} from ".././src/types.js";
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
 
@@ -87,7 +91,7 @@ export const getMockApiKey = (): ApiKey => ({
 });
 
 export const getMockAccessTokenRequest =
-  (): authorizationServerApi.AccessTokenRequest => {
+  (): ClientAssertionValidationRequest => {
     const keySet = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     });

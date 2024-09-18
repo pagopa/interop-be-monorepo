@@ -1,4 +1,3 @@
-import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   decode,
   JsonWebTokenError,
@@ -82,14 +81,14 @@ export const validateClientAssertion = async (
 };
 
 export const validateRequestParameters = (
-  request: authorizationServerApi.AccessTokenRequest
-): ValidationResult<authorizationServerApi.AccessTokenRequest> => {
+  request: ClientAssertionValidationRequest
+): ValidationResult<ClientAssertionValidationRequest> => {
   const assertionTypeError =
     request.client_assertion_type !== EXPECTED_CLIENT_ASSERTION_TYPE
       ? invalidAssertionType(request.client_assertion_type)
       : undefined;
 
-  // TODO: this might be useless because authorizationServerApi.AccessTokenRequest has the string hard coded
+  // TODO: this might be useless because ClientAssertionValidationRequest has the string hard coded
   const grantTypeError =
     request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE
       ? invalidGrantType(request.grant_type)
