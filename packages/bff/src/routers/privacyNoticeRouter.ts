@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { bffApi } from "pagopa-interop-api-clients";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import { privacyNoticeServiceBuilder } from "../services/privacyNoticeService.js";
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
 import { privacyNoticeStorageServiceBuilder } from "../services/privacyNoticeStorage.js";

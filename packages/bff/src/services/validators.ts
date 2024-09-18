@@ -5,16 +5,16 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
-import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
-import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
+import { toDescriptorWithOnlyAttributes } from "../api/catalogApiConverter.js";
+import { toTenantWithOnlyAttributes } from "../api/tenantApiConverter.js";
 import {
   invalidEServiceRequester,
   notValidDescriptor,
-} from "./domain/errors.js";
+} from "../model/errors.js";
 import {
-  agreementApiState,
   catalogApiDescriptorState,
-} from "./api/apiTypes.js";
+  agreementApiState,
+} from "../model/types.js";
 
 export function isRequesterEserviceProducer(
   requesterId: string,
