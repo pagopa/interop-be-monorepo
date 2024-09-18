@@ -15,6 +15,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import handleResponse from "../utilities/handleResponse.js";
 
 const supportRouter = (
   ctx: ZodiosContext,
@@ -44,7 +45,12 @@ const supportRouter = (
         tenantId,
         ctx
       );
-      return res.status(200).send({ session_token: jwt });
+      return handleResponse(
+        res,
+        200,
+        { session_token: jwt },
+        bffApi.SessionToken
+      );
     } catch (error) {
       makeApiProblem(
         error,
@@ -52,7 +58,7 @@ const supportRouter = (
         ctx.logger,
         "Error creating a session token"
       );
-      return res.status(500).send();
+      return handleResponse(res, 500);
     }
   });
 

@@ -7,6 +7,7 @@ import {
   zodiosValidationErrorToApiProblem,
   FileManager,
 } from "pagopa-interop-commons";
+import { Problem } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -19,6 +20,7 @@ import {
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
+import handleResponse from "../utilities/handleResponse.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
@@ -58,7 +60,7 @@ const agreementRouter = (
           },
           ctx
         );
-        return res.status(200).json(result).end();
+        handleResponse(res, 200, result, bffApi.Agreements);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -66,7 +68,7 @@ const agreementRouter = (
           ctx.logger,
           "Error retrieving agreements"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return handleResponse(res, errorRes.status, errorRes, Problem);
       }
     })
 
@@ -75,7 +77,7 @@ const agreementRouter = (
 
       try {
         const result = await agreementService.createAgreement(req.body, ctx);
-        return res.status(200).json(result).end();
+        return handleResponse(res, 200, result, bffApi.Agreement);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -83,7 +85,7 @@ const agreementRouter = (
           ctx.logger,
           `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.descriptorId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return handleResponse(res, errorRes.status, errorRes, Problem);
       }
     })
     .get("/producers/agreements/eservices", async (_req, res) =>

@@ -77,7 +77,7 @@ const main = async () => {
         withAlias: true,
         shouldExportAllTypes: true,
         groupStrategy: "tag",
-        strictObjects: true,
+        strictObjects: false,
         apiClientName: fileName,
       },
     });
