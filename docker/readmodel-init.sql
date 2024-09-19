@@ -88,8 +88,16 @@ CREATE TABLE readmodel.risk_analysis_multi_answer(
   value varchar ARRAY
 );
 
--- alternative: one table for the answers: value always array, adding a type "single/multi"
 
+
+-- alternative: one table for the answers: value always array, adding a type "single/multi"
+CREATE TABLE readmodel.risk_analysis_answer(
+  id uuid,
+  risk_analysis_form_id uuid,
+  kind varchar, -- SINGLE/MULTI
+  key varchar,
+  value varchar ARRAY
+);
 
 
 -- AGREEMENT
