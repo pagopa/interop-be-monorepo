@@ -430,3 +430,23 @@ export const readCatalogEntry = async (
     return catalogEntry.data;
   }
 };
+
+export const isAgreementTheLatest = async (
+  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+  agreementId: AgreementId,
+  dynamoDBClient: DynamoDBClient
+): Promise<boolean> => {
+  const agreementEntries =
+    await readPlatformStateAgreementEntriesByConsumerIdEserviceId(
+      GSIPK_consumerId_eserviceId,
+      dynamoDBClient
+    );
+
+  if (agreementEntries.length === 0) {
+    return true;
+  }
+  const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
+    agreementEntries[0].PK
+  );
+  return agreementIdFromEntry === agreementId;
+};
