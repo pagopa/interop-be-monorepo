@@ -16,10 +16,9 @@ import { match } from "ts-pattern";
 import {
   agreementStateToItemState,
   deleteAgreementEntry,
-  extractAgreementIdFromAgreementPK,
+  isAgreementTheLatest,
   readAgreementEntry,
   readCatalogEntry,
-  readPlatformStateAgreementEntriesByConsumerIdEserviceId,
   updateAgreementStateInPlatformStatesEntry,
   updateAgreementStateInTokenGenerationStatesTable,
   updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo,
@@ -92,6 +91,7 @@ export async function handleMessageV2(
         );
 
         if (!catalogEntry) {
+          // TODO double-check
           throw genericInternalError("Catalog entry not found");
         }
         const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
@@ -137,24 +137,22 @@ export async function handleMessageV2(
             msg.version
           );
 
-          const GSI_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+          const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
             consumerId: agreement.consumerId,
             eserviceId: agreement.eserviceId,
           });
-          const agreementEntries =
-            await readPlatformStateAgreementEntriesByConsumerIdEserviceId(
-              GSI_consumerId_eserviceId,
-              dynamoDBClient
-            );
 
-          const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
-            agreementEntries[0].PK
-          );
-          if (agreementIdFromEntry === agreement.id) {
+          if (
+            await isAgreementTheLatest(
+              GSIPK_consumerId_eserviceId,
+              agreement.id,
+              dynamoDBClient
+            )
+          ) {
             // token-generation-states only if agreement is the latest
 
             await updateAgreementStateInTokenGenerationStatesTable(
-              GSI_consumerId_eserviceId,
+              GSIPK_consumerId_eserviceId,
               agreement.state,
               dynamoDBClient
             );
@@ -205,16 +203,13 @@ export async function handleMessageV2(
           eserviceId: agreement.eserviceId,
         });
 
-        const agreementEntries =
-          await readPlatformStateAgreementEntriesByConsumerIdEserviceId(
+        if (
+          await isAgreementTheLatest(
             GSIPK_consumerId_eserviceId,
+            agreement.id,
             dynamoDBClient
-          );
-
-        const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
-          agreementEntries[0].PK
-        );
-        if (agreementIdFromEntry === agreement.id) {
+          )
+        ) {
           // token-generation-states only if agreement is the latest
           const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId(
             {
@@ -263,25 +258,22 @@ export async function handleMessageV2(
       const agreement = parseAgreement(msg.data.agreement);
 
       const primaryKey = makePlatformStatesAgreementPK(agreement.id);
-      const GSI_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: agreement.consumerId,
         eserviceId: agreement.eserviceId,
       });
 
-      const agreementEntries =
-        await readPlatformStateAgreementEntriesByConsumerIdEserviceId(
-          GSI_consumerId_eserviceId,
+      if (
+        await isAgreementTheLatest(
+          GSIPK_consumerId_eserviceId,
+          agreement.id,
           dynamoDBClient
-        );
-
-      const agreementIdFromEntry = extractAgreementIdFromAgreementPK(
-        agreementEntries[0].PK
-      );
-      if (agreementIdFromEntry === agreement.id) {
+        )
+      ) {
         // token-generation-states only if agreement is the latest
 
         await updateAgreementStateInTokenGenerationStatesTable(
-          GSI_consumerId_eserviceId,
+          GSIPK_consumerId_eserviceId,
           agreement.state,
           dynamoDBClient
         );
