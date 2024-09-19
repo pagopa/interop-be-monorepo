@@ -28,7 +28,9 @@ export class InteropTokenGenerator {
     this.kmsClient = new KMSClient();
   }
 
-  public async generateInternalToken(): Promise<InteropToken> {
+  public async generateInternalToken(
+    claims?: Pick<SessionClaims, "uid">
+  ): Promise<InteropToken> {
     const currentTimestamp = Math.floor(Date.now() / 1000);
 
     const header: InteropJwtHeader = {
@@ -46,6 +48,7 @@ export class InteropTokenGenerator {
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp: currentTimestamp + this.config.internalSecondsDuration,
+      ...claims,
       [JWT_ROLE_CLAIM]: JWT_INTERNAL_ROLE,
     };
 

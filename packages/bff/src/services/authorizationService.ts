@@ -171,8 +171,9 @@ export function authorizationServiceBuilder(
         logger
       );
 
-      const { serialized } =
-        await interopTokenGenerator.generateInternalToken();
+      const { serialized } = await interopTokenGenerator.generateInternalToken({
+        uid: sessionClaims.uid,
+      });
 
       const internalHeaders = {
         ...headers,
@@ -233,8 +234,9 @@ export function authorizationServiceBuilder(
 
       validateSamlResponse(samlResponse);
 
-      const { serialized } =
-        await interopTokenGenerator.generateInternalToken();
+      const { serialized } = await interopTokenGenerator.generateInternalToken({
+        uid: SUPPORT_USER_ID,
+      });
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: config.pagoPaTenantId },
