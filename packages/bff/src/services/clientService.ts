@@ -10,10 +10,10 @@ import {
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
-} from "../providers/clientProvider.js";
-import { toBffApiCompactUser } from "../model/api/apiConverter.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
+import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -136,7 +136,6 @@ export function clientServiceBuilder(
     },
 
     async createKeys(
-      userId: string,
       clientId: string,
       keySeed: bffApi.KeysSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -144,7 +143,7 @@ export function clientServiceBuilder(
       logger.info(`Create keys for client ${clientId}`);
 
       const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
-        toAuthorizationKeySeed(seed, userId)
+        toAuthorizationKeySeed(seed)
       );
 
       await authorizationClient.client.createKeys(body, {
@@ -156,7 +155,7 @@ export function clientServiceBuilder(
     async getClientKeys(
       clientId: string,
       userIds: string[],
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey[]> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
@@ -167,7 +166,9 @@ export function clientServiceBuilder(
       });
 
       return Promise.all(
-        keys.map((k) => decorateKey(selfcareUsersClient, k, clientId))
+        keys.map((k) =>
+          decorateKey(selfcareUsersClient, k, authData.selfcareId)
+        )
       );
     },
 
@@ -366,18 +367,18 @@ export const getAllClients = async (
   authorizationClient: AuthorizationProcessClient,
   consumerId: string,
   purposeId: string,
-  headers: { "X-Correlation-Id": string }
+  headers: BffAppContext["headers"]
 ): Promise<authorizationApi.ClientWithKeys[]> =>
   await getAllFromPaginated(
-    async (start: number) =>
+    async (offset, limit) =>
       await authorizationClient.client.getClientsWithKeys({
         headers,
         queries: {
           userIds: [],
           consumerId,
           purposeId,
-          limit: 50,
-          offset: start,
+          limit,
+          offset,
         },
       })
   );

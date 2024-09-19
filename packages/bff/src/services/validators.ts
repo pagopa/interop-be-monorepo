@@ -5,23 +5,16 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
-import { toDescriptorWithOnlyAttributes } from "./api/converters/catalogClientApiConverter.js";
-import { toTenantWithOnlyAttributes } from "./api/converters/tenantClientApiConverters.js";
-import { invalidEServiceRequester } from "./domain/errors.js";
+import { toDescriptorWithOnlyAttributes } from "../api/catalogApiConverter.js";
+import { toTenantWithOnlyAttributes } from "../api/tenantApiConverter.js";
 import {
-  agreementApiState,
+  invalidEServiceRequester,
+  notValidDescriptor,
+} from "../model/errors.js";
+import {
   catalogApiDescriptorState,
-} from "./api/apiTypes.js";
-
-export const catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied = (
-  descriptor: catalogApi.EServiceDescriptor | undefined,
-  tenant: tenantApi.Tenant
-): boolean =>
-  descriptor !== undefined &&
-  certifiedAttributesSatisfied(
-    toDescriptorWithOnlyAttributes(descriptor),
-    toTenantWithOnlyAttributes(tenant)
-  );
+  agreementApiState,
+} from "../model/types.js";
 
 export function isRequesterEserviceProducer(
   requesterId: string,
@@ -79,9 +72,17 @@ export function hasCertifiedAttributes(
 ): boolean {
   return (
     descriptor !== undefined &&
-    catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-      descriptor,
-      requesterTenant
+    certifiedAttributesSatisfied(
+      toDescriptorWithOnlyAttributes(descriptor),
+      toTenantWithOnlyAttributes(requesterTenant)
     )
   );
+}
+
+export function verifyExportEligibility(
+  descriptor: catalogApi.EServiceDescriptor
+): void {
+  if (descriptor.state === catalogApiDescriptorState.DRAFT) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
 }

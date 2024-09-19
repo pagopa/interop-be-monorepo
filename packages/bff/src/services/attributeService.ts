@@ -5,9 +5,9 @@ import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
 import {
   AttributeProcessClient,
   PagoPAInteropBeClients,
-} from "../providers/clientProvider.js";
-import { toApiAttributeProcessSeed } from "../model/domain/apiConverter.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { toApiAttributeProcessSeed } from "../api/attributeApiConverter.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: AttributeProcessClient,

@@ -6,8 +6,8 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
 import { emptyErrorMapper } from "../utilities/errorMappers.js";

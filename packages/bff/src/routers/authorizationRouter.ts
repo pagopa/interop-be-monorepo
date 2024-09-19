@@ -5,17 +5,17 @@ import {
   ExpressContext,
   InteropTokenGenerator,
   ZodiosContext,
-  fromAppContext,
   zodiosValidationErrorToApiProblem,
   RateLimiter,
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
 import { tooManyRequestsError } from "pagopa-interop-models";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const authorizationRouter = (
   ctx: ZodiosContext,
@@ -38,13 +38,12 @@ const authorizationRouter = (
   authorizationRouter
     .post("/session/tokens", async (req, res) => {
       const { identity_token: identityToken } = req.body;
-      const { correlationId, logger } = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const result = await authorizationService.getSessionToken(
-          correlationId,
           identityToken,
-          logger
+          ctx
         );
 
         const headers = rateLimiterHeadersFromStatus(result.rateLimiterStatus);
@@ -59,14 +58,29 @@ const authorizationRouter = (
         const err = makeApiProblem(
           error,
           sessionTokenErrorMapper,
-          logger,
+          ctx.logger,
           "Error creating a session token"
         );
 
         return res.status(err.status).send();
       }
     })
-    .post("/support", async (_req, res) => res.status(501).send());
+    .post("/support", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
+
+        const jwt = await authorizationService.samlLoginCallback(saml, ctx);
+        return res.redirect(
+          302,
+          `${config.samlCallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
+        );
+      } catch (error) {
+        ctx.logger.error(`Error calling support SAML - ${error}`);
+        return res.redirect(302, config.samlCallbackErrorUrl);
+      }
+    });
 
   return authorizationRouter;
 };
