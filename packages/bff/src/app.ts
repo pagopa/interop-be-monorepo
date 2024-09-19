@@ -67,7 +67,7 @@ app.use(catalogRouter(zodiosCtx, clients, fileManager));
 app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
 app.use(agreementRouter(zodiosCtx, clients, fileManager));
-app.use(selfcareRouter(zodiosCtx));
+app.use(selfcareRouter(clients, zodiosCtx));
 app.use(supportRouter(zodiosCtx, clients, redisRateLimiter));
 app.use(toolRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx, clients));
