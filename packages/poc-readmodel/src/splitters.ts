@@ -12,6 +12,10 @@ import {
   DescriptorId,
   Document,
   DocumentKind,
+  RiskAnalysis,
+  EserviceRiskAnalysisSQL,
+  RiskAnalysisAnswerSQL,
+  riskAnalysisAnswerKind,
 } from "pagopa-interop-models";
 
 export const splitEserviceIntoObjectsSQL = (
@@ -126,6 +130,54 @@ export const splitDescriptorIntoObjectsSQL = (
     descriptorSQL,
     attributesSQL,
     documentsSQL: interfaceSQL ? [interfaceSQL, ...documentsSQL] : documentsSQL,
+  };
+};
+
+export const splitRiskAnalysisIntoObjectsSQL = (
+  riskAnalysis: RiskAnalysis,
+  eserviceId: EServiceId
+): {
+  eserviceRiskAnalysisSQL: EserviceRiskAnalysisSQL;
+  riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[];
+} => {
+  const eserviceRiskAnalysisSQL: EserviceRiskAnalysisSQL = {
+    risk_analysis_id: riskAnalysis.id,
+    eservice_id: eserviceId,
+    name: riskAnalysis.name,
+    created_at: riskAnalysis.createdAt,
+    risk_analysis_form_id: riskAnalysis.riskAnalysisForm.id,
+    risk_analysis_form_version: riskAnalysis.riskAnalysisForm.version,
+  };
+
+  const riskAnalysisSingleAnwers: RiskAnalysisAnswerSQL[] =
+    riskAnalysis.riskAnalysisForm.singleAnswers.map(
+      (a) =>
+        ({
+          id: a.id,
+          key: a.key,
+          value: a.value ? [a.value] : [],
+          risk_analysis_form_id: riskAnalysis.riskAnalysisForm.id,
+          kind: riskAnalysisAnswerKind.single,
+        } satisfies RiskAnalysisAnswerSQL)
+    );
+  const riskAnalysisMultiAnwers: RiskAnalysisAnswerSQL[] =
+    riskAnalysis.riskAnalysisForm.multiAnswers.map(
+      (a) =>
+        ({
+          id: a.id,
+          key: a.key,
+          value: a.values,
+          risk_analysis_form_id: riskAnalysis.riskAnalysisForm.id,
+          kind: riskAnalysisAnswerKind.multi,
+        } satisfies RiskAnalysisAnswerSQL)
+    );
+
+  return {
+    eserviceRiskAnalysisSQL,
+    riskAnalysisAnswersSQL: [
+      ...riskAnalysisSingleAnwers,
+      ...riskAnalysisMultiAnwers,
+    ],
   };
 };
 
