@@ -57,6 +57,126 @@ export const splitEserviceIntoObjectsSQL = (
   return { eserviceSQL, descriptorsSQL, attributesSQL, documentsSQL };
 };
 
+const attributeToAttributeSQL = ({
+  attribute,
+  descriptorId,
+  group_set,
+}: {
+  attribute: EServiceAttribute;
+  descriptorId: DescriptorId;
+  group_set: number;
+}): DescriptorAttributeSQL => ({
+  attribute_id: attribute.id,
+  descriptor_id: descriptorId,
+  explicit_attribute_verification: attribute.explicitAttributeVerification,
+  kind: attributeKind.certified,
+  group_set,
+});
+
+const attributesNestedArrayToAttributeSQLarray = (
+  descriptorId: DescriptorId,
+  attributes: EServiceAttribute[][]
+): DescriptorAttributeSQL[] =>
+  attributes.flatMap((group, index) =>
+    group.map((attribute) =>
+      attributeToAttributeSQL({
+        attribute,
+        descriptorId,
+        group_set: index,
+      })
+    )
+  );
+
+export const splitDescriptorIntoObjectsSQL = (
+  eserviceId: EServiceId,
+  descriptor: Descriptor
+): {
+  descriptorSQL: DescriptorSQL;
+  attributesSQL: DescriptorAttributeSQL[];
+  documentsSQL: DocumentSQL[];
+} => {
+  const descriptorSQL = descriptorToDescriptorSQL(eserviceId, descriptor);
+
+  const attributesSQL = [
+    ...attributesNestedArrayToAttributeSQLarray(
+      descriptor.id,
+      descriptor.attributes.certified
+    ),
+    ...attributesNestedArrayToAttributeSQLarray(
+      descriptor.id,
+      descriptor.attributes.declared
+    ),
+    ...attributesNestedArrayToAttributeSQLarray(
+      descriptor.id,
+      descriptor.attributes.verified
+    ),
+  ];
+  const interfaceSQL = descriptor.interface
+    ? documentToDocumentSQL(
+        descriptor.interface,
+        documentKind.descriptorInterface,
+        descriptor.id
+      )
+    : undefined;
+
+  const documentsSQL = descriptor.docs.map((doc) =>
+    documentToDocumentSQL(doc, documentKind.descriptorInterface, descriptor.id)
+  );
+  return {
+    descriptorSQL,
+    attributesSQL,
+    documentsSQL: interfaceSQL ? [interfaceSQL, ...documentsSQL] : documentsSQL,
+  };
+};
+
+export const documentToDocumentSQL = (
+  document: Document,
+  documentKind: DocumentKind,
+  descriptorId: DescriptorId
+): DocumentSQL => ({
+  id: document.id,
+  descriptor_id: descriptorId,
+  name: document.name,
+  content_type: document.contentType,
+  pretty_name: document.prettyName,
+  path: document.path,
+  checksum: document.checksum,
+  upload_date: document.uploadDate,
+  document_kind: documentKind,
+});
+
+export const descriptorToDescriptorSQL = (
+  eserviceId: EServiceId,
+  descriptor: Descriptor
+): DescriptorSQL => ({
+  version: descriptor.version,
+  id: descriptor.id,
+  description: descriptor.description,
+  created_at: descriptor.createdAt,
+  eservice_id: eserviceId,
+  state: descriptor.state,
+  audience: descriptor.audience,
+  voucher_lifespan: descriptor.voucherLifespan,
+  daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
+  daily_calls_total: descriptor.dailyCallsTotal,
+  server_urls: descriptor.serverUrls,
+  agreement_approval_policy: descriptor.agreementApprovalPolicy,
+  published_at: descriptor.publishedAt,
+  suspended_at: descriptor.suspendedAt,
+  deprecated_at: descriptor.deprecatedAt,
+  archived_at: descriptor.archivedAt,
+});
+
+export const eserviceToEserviceSQL = (eservice: EService): EServiceSQL => ({
+  name: eservice.name,
+  id: eservice.id,
+  created_at: eservice.createdAt,
+  producer_id: eservice.producerId,
+  description: eservice.description,
+  technology: eservice.technology,
+  mode: eservice.mode,
+});
+
 /*
 export const splitEserviceIntoObjectsSQL = (
   eservice: EService
@@ -190,144 +310,3 @@ export const splitEserviceIntoObjectsSQL = (
 };
 
 */
-
-const attributeToAttributeSQL = ({
-  attribute,
-  descriptorId,
-  group_set,
-}: {
-  attribute: EServiceAttribute;
-  descriptorId: DescriptorId;
-  group_set: number;
-}): DescriptorAttributeSQL => ({
-  attribute_id: attribute.id,
-  descriptor_id: descriptorId,
-  explicit_attribute_verification: attribute.explicitAttributeVerification,
-  kind: attributeKind.certified,
-  group_set,
-});
-
-const attributesNestedArrayToAttributeSQLarray = (
-  descriptorId: DescriptorId,
-  attributes: EServiceAttribute[][]
-): DescriptorAttributeSQL[] =>
-  attributes.flatMap((group, index) =>
-    group.map((attribute) =>
-      attributeToAttributeSQL({
-        attribute,
-        descriptorId,
-        group_set: index,
-      })
-    )
-  );
-
-export const splitDescriptorIntoObjectsSQL = (
-  eserviceId: EServiceId,
-  currentDescriptor: Descriptor
-): {
-  descriptorSQL: DescriptorSQL;
-  attributesSQL: DescriptorAttributeSQL[];
-  documentsSQL: DocumentSQL[];
-} => {
-  const descriptorSQL: DescriptorSQL = {
-    version: currentDescriptor.version,
-    id: currentDescriptor.id,
-    description: currentDescriptor.description,
-    created_at: currentDescriptor.createdAt,
-    eservice_id: eserviceId,
-    state: currentDescriptor.state,
-    audience: currentDescriptor.audience,
-    voucher_lifespan: currentDescriptor.voucherLifespan,
-    daily_calls_per_consumer: currentDescriptor.dailyCallsPerConsumer,
-    daily_calls_total: currentDescriptor.dailyCallsTotal,
-    server_urls: currentDescriptor.serverUrls,
-    agreement_approval_policy: currentDescriptor.agreementApprovalPolicy,
-    published_at: currentDescriptor.publishedAt,
-    suspended_at: currentDescriptor.suspendedAt,
-    deprecated_at: currentDescriptor.deprecatedAt,
-    archived_at: currentDescriptor.archivedAt,
-  };
-
-  const attributesSQL = [
-    ...attributesNestedArrayToAttributeSQLarray(
-      currentDescriptor.id,
-      currentDescriptor.attributes.certified
-    ),
-    ...attributesNestedArrayToAttributeSQLarray(
-      currentDescriptor.id,
-      currentDescriptor.attributes.declared
-    ),
-    ...attributesNestedArrayToAttributeSQLarray(
-      currentDescriptor.id,
-      currentDescriptor.attributes.verified
-    ),
-  ];
-  const interfaceSQL = currentDescriptor.interface
-    ? documentToDocumentSQL(
-        currentDescriptor.interface,
-        documentKind.descriptorInterface,
-        currentDescriptor.id
-      )
-    : undefined;
-
-  const documentsSQL = currentDescriptor.docs.map((doc) =>
-    documentToDocumentSQL(
-      doc,
-      documentKind.descriptorInterface,
-      currentDescriptor.id
-    )
-  );
-  return {
-    descriptorSQL,
-    attributesSQL,
-    documentsSQL: interfaceSQL ? [interfaceSQL, ...documentsSQL] : documentsSQL,
-  };
-};
-
-export const documentToDocumentSQL = (
-  document: Document,
-  documentKind: DocumentKind,
-  descriptorId: DescriptorId
-): DocumentSQL => ({
-  id: document.id,
-  descriptor_id: descriptorId,
-  name: document.name,
-  content_type: document.contentType,
-  pretty_name: document.prettyName,
-  path: document.path,
-  checksum: document.checksum,
-  upload_date: document.uploadDate,
-  document_kind: documentKind,
-});
-
-export const descriptorToDescriptorSQL = (
-  eserviceId: EServiceId,
-  descriptor: Descriptor
-): DescriptorSQL => ({
-  version: descriptor.version,
-  id: descriptor.id,
-  description: descriptor.description,
-  created_at: descriptor.createdAt,
-  eservice_id: eserviceId,
-  state: descriptor.state,
-  audience: descriptor.audience,
-  voucher_lifespan: descriptor.voucherLifespan,
-  daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
-  daily_calls_total: descriptor.dailyCallsTotal,
-  server_urls: descriptor.serverUrls,
-  agreement_approval_policy: descriptor.agreementApprovalPolicy,
-  published_at: descriptor.publishedAt,
-  suspended_at: descriptor.suspendedAt,
-  deprecated_at: descriptor.deprecatedAt,
-  archived_at: descriptor.archivedAt,
-});
-
-export const eserviceToEserviceSQL = (eservice: EService): EServiceSQL => ({
-  name: eservice.name,
-  id: eservice.id,
-  created_at: eservice.createdAt,
-  producer_id: eservice.producerId,
-  description: eservice.description,
-  technology: eservice.technology,
-  mode: eservice.mode,
-});
