@@ -299,3 +299,35 @@ export const documentToDocumentSQL = (
   upload_date: document.uploadDate,
   document_kind: documentKind,
 });
+
+export const descriptorToDescriptorSQL = (
+  eserviceId: EServiceId,
+  descriptor: Descriptor
+): DescriptorSQL => ({
+  version: descriptor.version,
+  id: descriptor.id,
+  description: descriptor.description,
+  created_at: descriptor.createdAt,
+  eservice_id: eserviceId,
+  state: descriptor.state,
+  audience: descriptor.audience,
+  voucher_lifespan: descriptor.voucherLifespan,
+  daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
+  daily_calls_total: descriptor.dailyCallsTotal,
+  server_urls: descriptor.serverUrls,
+  agreement_approval_policy: descriptor.agreementApprovalPolicy,
+  published_at: descriptor.publishedAt,
+  suspended_at: descriptor.suspendedAt,
+  deprecated_at: descriptor.deprecatedAt,
+  archived_at: descriptor.archivedAt,
+});
+
+export const eserviceToEserviceSQL = (eservice: EService): EServiceSQL => ({
+  name: eservice.name,
+  id: eservice.id,
+  created_at: eservice.createdAt,
+  producer_id: eservice.producerId,
+  description: eservice.description,
+  technology: eservice.technology,
+  mode: eservice.mode,
+});
