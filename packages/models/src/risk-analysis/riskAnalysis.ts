@@ -66,11 +66,11 @@ export const RiskAnalysisAnswerKind = z.enum([
 export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
 
 export const RiskAnalysisAnswerSQL = z.object({
-  id: RiskAnalysisSingleAnswerId,
+  id: RiskAnalysisSingleAnswerId.or(RiskAnalysisMultiAnswerId),
   risk_analysis_form_id: RiskAnalysisFormId,
   kind: RiskAnalysisAnswerKind,
   key: z.string(),
-  value: z.string().optional(),
+  value: z.array(z.string()),
 });
 export type RiskAnalysisAnswerSQL = z.infer<typeof RiskAnalysisAnswerSQL>;
 
