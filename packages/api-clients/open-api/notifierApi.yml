@@ -1,4 +1,5 @@
 openapi: 3.0.3
+
 info:
   title: Notification Notifier Micro Service
   description: This service notifies organization about occurred platform events
@@ -191,6 +192,53 @@ paths:
       summary: Get list of agreements events for all organizations
       description: Get list of agreements events for all organizations
       operationId: getAllAgreementsEventsFromId
+      parameters:
+        - name: lastEventId
+          in: query
+          description: returns events starting from this last received id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: the number of events returned by this response
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Events"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/events/producerKeys":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      tags:
+        - events
+      summary: Get list of the producer keys events
+      description: Retrieves the list of the keys events
+      operationId: getProducerKeysEvents
       parameters:
         - name: lastEventId
           in: query

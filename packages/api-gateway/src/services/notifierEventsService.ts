@@ -76,5 +76,22 @@ export function notifierEventsServiceBuilder(
         },
       });
     },
+    getProducerKeysEventsFromId: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      lastEventId: number,
+      limit: number
+    ): Promise<apiGatewayApi.Events> => {
+      logger.info(
+        `Retrieving Producer Keys Notifier Events - lastEventId: ${lastEventId} - limit ${limit}`
+      );
+
+      return await notifierEventsClient.getProducerKeysEvents({
+        headers,
+        queries: {
+          lastEventId,
+          limit,
+        },
+      });
+    },
   };
 }

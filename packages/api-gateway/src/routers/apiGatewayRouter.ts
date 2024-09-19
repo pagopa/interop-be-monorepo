@@ -282,6 +282,27 @@ const apiGatewayRouter = (
         }
       }
     )
+    .get(
+      "/events/producerKeys",
+      authorizationMiddleware([M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events =
+            await notifierEventsService.getProducerKeysEventsFromId(
+              ctx,
+              req.query.lastEventId,
+              req.query.limit
+            );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
     .get("/keys/:kid", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
       res.status(501).send()
     )
