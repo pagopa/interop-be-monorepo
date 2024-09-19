@@ -67,8 +67,8 @@ d | certified | 3
 */
 CREATE TABLE readmodel.eservice_risk_analysis(
   risk_analysis_id uuid,
+  eservice_id uuid,
   name varchar,
-  -- to do eserviceId
   created_at timestamp with time zone,
   risk_analysis_form_id uuid,
   risk_analysis_form_version varchar
