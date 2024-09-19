@@ -9,7 +9,7 @@ import {
   getPurposeDataFromMessage,
   getPurposeVersionFromEvent,
   updatePurposeStateInPlatformStatesEntry,
-  updatePurposeStateInTokenGenerationStatesTable,
+  updatePurposeStatesInTokenGenerationStatesTable,
   updatePurposeVersionIdInPlatformStatesEntry,
   updatePurposeVersionIdInTokenGenerationStatesTable,
   writePlatformPurposeEntry,
@@ -54,7 +54,7 @@ export async function handleMessageV2(
 
       // token-generation-states
       // TODO: add missing updates
-      await updatePurposeStateInTokenGenerationStatesTable(
+      await updatePurposeStatesInTokenGenerationStatesTable(
         dynamoDBClient,
         purpose
       );
@@ -93,7 +93,7 @@ export async function handleMessageV2(
           );
 
           // token-generation-states
-          await updatePurposeStateInTokenGenerationStatesTable(
+          await updatePurposeStatesInTokenGenerationStatesTable(
             dynamoDBClient,
             purpose
           );
@@ -130,7 +130,7 @@ export async function handleMessageV2(
           );
 
           // token-generation-states
-          await updatePurposeStateInTokenGenerationStatesTable(
+          await updatePurposeStatesInTokenGenerationStatesTable(
             dynamoDBClient,
             purpose
           );
@@ -147,7 +147,7 @@ export async function handleMessageV2(
       await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
 
       // token-generation-states
-      await updatePurposeStateInTokenGenerationStatesTable(
+      await updatePurposeStatesInTokenGenerationStatesTable(
         dynamoDBClient,
         purpose
       );

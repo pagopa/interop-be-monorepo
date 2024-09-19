@@ -16,12 +16,21 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
+  DescriptorId,
+  EServiceId,
   fromPurposeV2,
   genericInternalError,
+  GSIPKConsumerIdEServiceId,
   itemState,
   ItemState,
+  makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
+  makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   missingKafkaMessageDataError,
+  PlatformStatesAgreementEntry,
+  PlatformStatesCatalogEntry,
+  PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposeEntry,
   PlatformStatesPurposePK,
   Purpose,
@@ -30,6 +39,7 @@ import {
   PurposeV2,
   PurposeVersion,
   PurposeVersionId,
+  TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -179,6 +189,7 @@ export const readTokenEntriesByPurposeId = async (
   return await runPaginatedQuery(purposeId, dynamoDBClient, undefined);
 };
 
+// TODO: should this be an upsert?
 export const updatePurposeStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesPurposePK,
@@ -215,8 +226,84 @@ export const updatePurposeStateInPlatformStatesEntry = async (
   await dynamoDBClient.send(command);
 };
 
-// TODO: should this take state from platform-states? There could be times when the platform-states record is still not added (see case 2)
-export const updatePurposeStateInTokenGenerationStatesTable = async (
+export const updatePurposeEntriesInTokenGenerationStatesTable = async (
+  dynamoDBClient: DynamoDBClient,
+  purpose: Purpose
+): Promise<void> => {
+  const entriesToUpdate = await readTokenEntriesByPurposeId(
+    dynamoDBClient,
+    purpose.id
+  );
+
+  // if (!entriesToUpdate) {
+  //   // TODO: add record with only purpose data
+  // } else {
+  for (const entry of entriesToUpdate) {
+    const primaryKey = entry.PK;
+
+    // Update token entry with agreement data from platform-states if they're missing AND purposeState is not undefined
+    const consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+      consumerId: purpose.consumerId,
+      eserviceId: purpose.eserviceId,
+    });
+    if (
+      (!entry.GSIPK_consumerId_eserviceId ||
+        !entry.agreementId ||
+        !entry.agreementState) &&
+      entry.purposeState
+    ) {
+      const agreementPlatformEntry =
+        await readPlatformAgreementEntryByConsumerIdAndEServiceId(
+          dynamoDBClient,
+          consumerId_eserviceId
+        );
+
+      if (agreementPlatformEntry) {
+        await updateTokenPurposeEntryWithAgreementData(
+          dynamoDBClient,
+          primaryKey,
+          agreementPlatformEntry
+        );
+
+        // Update token entry with descriptor data from platform-states if they're missing
+        const descriptorId = agreementPlatformEntry.agreementDescriptorId;
+        if (
+          !entry.GSIPK_eserviceId_descriptorId ||
+          !entry.descriptorAudience ||
+          !entry.descriptorState
+        ) {
+          const platformDescriptorPK = makePlatformStatesEServiceDescriptorPK({
+            eserviceId: purpose.eserviceId,
+            descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
+          });
+          const catalogEntry = await readCatalogEntry(
+            dynamoDBClient,
+            platformDescriptorPK
+          );
+
+          if (catalogEntry) {
+            await updateTokenPurposeEntryWithDescriptorData(
+              dynamoDBClient,
+              primaryKey,
+              catalogEntry
+            );
+          }
+        }
+      }
+    }
+
+    // Update token entry with new purpose state
+    const purposeState = purposeStateToItemState(purpose);
+    await updatePurposeStateInTokenGenerationStatesTable(
+      dynamoDBClient,
+      primaryKey,
+      purposeState
+    );
+  }
+  // }
+};
+
+export const updatePurposeStatesInTokenGenerationStatesTable = async (
   dynamoDBClient: DynamoDBClient,
   purpose: Purpose
 ): Promise<void> => {
@@ -226,29 +313,159 @@ export const updatePurposeStateInTokenGenerationStatesTable = async (
     purpose.id
   );
 
-  for (const entry of entriesToUpdate) {
-    const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(GSIPK_purposeId)",
-      Key: {
-        PK: {
-          S: entry.PK,
-        },
+  if (!entriesToUpdate) {
+    // TODO: add record with only purpose data
+  } else {
+    for (const entry of entriesToUpdate) {
+      await updatePurposeStateInTokenGenerationStatesTable(
+        dynamoDBClient,
+        entry.PK,
+        purposeState
+      );
+    }
+  }
+};
+
+export const updatePurposeStateInTokenGenerationStatesTable = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: TokenGenerationStatesClientKidPurposePK,
+  purposeState: ItemState
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+    Key: {
+      PK: {
+        S: primaryKey,
       },
-      ExpressionAttributeValues: {
-        ":newState": {
-          S: purposeState,
-        },
-        ":newUpdateAt": {
-          S: new Date().toISOString(),
-        },
+    },
+    ExpressionAttributeValues: {
+      ":newState": {
+        S: purposeState,
       },
-      UpdateExpression:
-        "SET purposeState = :newState, updatedAt = :newUpdateAt",
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      ReturnValues: "NONE",
-    };
-    const command = new UpdateItemCommand(input);
-    await dynamoDBClient.send(command);
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression: "SET purposeState = :newState, updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const updateTokenPurposeEntryWithDescriptorData = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: TokenGenerationStatesClientKidPurposePK,
+  catalogEntry: PlatformStatesCatalogEntry
+): Promise<void> => {
+  const splitCatalogPK = catalogEntry.PK.split("#");
+  const eserviceId: EServiceId = unsafeBrandId(splitCatalogPK[1]);
+  const descriptorId: DescriptorId = unsafeBrandId(splitCatalogPK[2]);
+  const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+    eserviceId,
+    descriptorId,
+  });
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":eserviceId_descriptorId": {
+        S: eserviceId_descriptorId,
+      },
+      ":descriptorState": {
+        S: catalogEntry.state,
+      },
+      ":descriptorAudience": {
+        S: catalogEntry.descriptorAudience,
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression:
+      "SET GSIPK_eserviceId_descriptorId = :eserviceId_descriptorId, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const updateTokenPurposeEntryWithAgreementData = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: TokenGenerationStatesClientKidPurposePK,
+  agreementPlatformEntry: PlatformStatesAgreementEntry
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":consumerId_eserviceId": {
+        S: agreementPlatformEntry.GSIPK_consumerId_eserviceId,
+      },
+      ":agreementId": {
+        S: agreementPlatformEntry.PK.split("#")[1],
+      },
+      ":agreementState": {
+        S: agreementPlatformEntry.state,
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression:
+      "SET GSIPK_consumerId_eserviceId = :consumerId_eserviceId, agreementId = :agreementId, agreementState = :agreementState, updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const readPlatformAgreementEntryByConsumerIdAndEServiceId = async (
+  dynamoDBClient: DynamoDBClient,
+  consumerId_eserviceId: GSIPKConsumerIdEServiceId
+): Promise<PlatformStatesAgreementEntry | undefined> => {
+  const input: QueryInput = {
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    IndexName: "GSIPK_consumerId_eserviceId",
+    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
+    ExpressionAttributeValues: {
+      ":gsiValue": { S: consumerId_eserviceId },
+    },
+  };
+  const command = new QueryCommand(input);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Items) {
+    return undefined;
+  } else if (data.Items.length > 1) {
+    // TODO: platform-states should not have multiple entries for the same consumerId_eserviceId, but a GSI doesn't check for uniqueness
+    throw genericInternalError(
+      `Multiple entries found for GSIPK_consumerId_eserviceId ${consumerId_eserviceId}`
+    );
+  } else {
+    const unmarshalled = unmarshall(data.Items[0]);
+    const agreementEntry = PlatformStatesAgreementEntry.safeParse(unmarshalled);
+
+    if (agreementEntry.success) {
+      return agreementEntry.data;
+    } else {
+      throw genericInternalError(
+        `Unable to read platform state entry: result ${JSON.stringify(
+          agreementEntry
+        )} `
+      );
+    }
   }
 };
 
@@ -319,6 +536,37 @@ export const updatePurposeVersionIdInTokenGenerationStatesTable = async (
     };
     const command = new UpdateItemCommand(input);
     await dynamoDBClient.send(command);
+  }
+};
+
+// TODO: copied from catalog-platformstate-writer
+export const readCatalogEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesEServiceDescriptorPK
+): Promise<PlatformStatesCatalogEntry | undefined> => {
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: primaryKey },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Item) {
+    return undefined;
+  } else {
+    const unmarshalled = unmarshall(data.Item);
+    const catalogEntry = PlatformStatesCatalogEntry.safeParse(unmarshalled);
+
+    if (!catalogEntry.success) {
+      throw genericInternalError(
+        `Unable to parse catalog entry item: result ${JSON.stringify(
+          catalogEntry
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return catalogEntry.data;
   }
 };
 
