@@ -4,7 +4,6 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import {
   bffApi,
@@ -41,14 +40,14 @@ const selfcareRouter = (
 
   selfcareRouter
     .get("/users/:userId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const user = await selfcareService.getSelfcareUser(
           ctx.authData.userId,
           req.params.userId,
           ctx.authData.selfcareId,
-          ctx.logger
+          ctx
         );
 
         return res
@@ -67,13 +66,13 @@ const selfcareRouter = (
     })
 
     .get("/selfcare/institutions/products", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const products = await selfcareService.getSelfcareInstitutionsProducts(
           ctx.authData.userId,
           ctx.authData.selfcareId,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).json(products.map(toApiSelfcareProduct)).end();
@@ -89,12 +88,12 @@ const selfcareRouter = (
     })
 
     .get("/selfcare/institutions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const institutions = await selfcareService.getSelfcareInstitutions(
           ctx.authData.userId,
-          ctx.logger
+          ctx
         );
 
         return res
