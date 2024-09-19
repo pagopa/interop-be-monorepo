@@ -472,7 +472,8 @@ export function agreementServiceBuilder(
         fileManager,
         selfcareV2Client,
         config,
-        logger
+        logger,
+        correlationId
       );
 
       const isFirstActivation =
@@ -615,7 +616,8 @@ export function agreementServiceBuilder(
         fileManager,
         selfcareV2Client,
         config,
-        logger
+        logger,
+        correlationId
       );
 
       const [agreement, events] = await createUpgradeOrNewDraft({
@@ -935,7 +937,8 @@ export function agreementServiceBuilder(
         fileManager,
         selfcareV2Client,
         config,
-        logger
+        logger,
+        correlationId
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);

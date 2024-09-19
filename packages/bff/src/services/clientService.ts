@@ -167,7 +167,12 @@ export function clientServiceBuilder(
 
       return Promise.all(
         keys.map((k) =>
-          decorateKey(selfcareUsersClient, k, authData.selfcareId)
+          decorateKey(
+            selfcareUsersClient,
+            k,
+            authData.selfcareId,
+            headers["X-Correlation-Id"]
+          )
         )
       );
     },
@@ -199,7 +204,12 @@ export function clientServiceBuilder(
 
       const users = clientUsers.map(async (id) =>
         toBffApiCompactUser(
-          await getSelfcareUserById(selfcareUsersClient, id, selfcareId),
+          await getSelfcareUserById(
+            selfcareUsersClient,
+            id,
+            selfcareId,
+            headers["X-Correlation-Id"]
+          ),
           id
         )
       );
@@ -218,7 +228,12 @@ export function clientServiceBuilder(
         params: { clientId, keyId },
         headers,
       });
-      return decorateKey(selfcareUsersClient, key, selfcareId);
+      return decorateKey(
+        selfcareUsersClient,
+        key,
+        selfcareId,
+        headers["X-Correlation-Id"]
+      );
     },
 
     async getEncodedClientKeyById(
@@ -328,30 +343,36 @@ async function enhancePurpose(
   };
 }
 
-async function getSelfcareUserById(
+export async function getSelfcareUserById(
   selfcareClient: SelfcareV2UsersClient,
   userId: string,
-  selfcareId: string
+  selfcareId: string,
+  correlationId: string
 ): Promise<selfcareV2ClientApi.UserResponse> {
   try {
     return selfcareClient.getUserInfoUsingGET({
       params: { id: userId },
       queries: { institutionId: selfcareId },
+      headers: {
+        "X-Correlation-Id": correlationId,
+      },
     });
   } catch (error) {
     return {};
   }
 }
 
-async function decorateKey(
+export async function decorateKey(
   selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
-  selfcareId: string
+  selfcareId: string,
+  correlationId: string
 ): Promise<bffApi.PublicKey> {
   const user = await getSelfcareUserById(
     selfcareClient,
     key.userId,
-    selfcareId
+    selfcareId,
+    correlationId
   );
 
   return {
