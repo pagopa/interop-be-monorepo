@@ -7,13 +7,16 @@ export async function handleMessageV1(
   _dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
+    .with({ type: "PurposeCreated" }, async (_msg) => Promise.resolve())
+    .with({ type: "PurposeVersionCreated" }, async (_msg) => Promise.resolve())
     .with(
-      { type: "PurposeCreated" },
-      { type: "PurposeVersionCreated" },
-      { type: "PurposeUpdated" },
       { type: "PurposeVersionActivated" },
       { type: "PurposeVersionSuspended" },
-      { type: "PurposeVersionArchived" },
+      async (_msg) => Promise.resolve()
+    )
+    .with({ type: "PurposeVersionArchived" }, async (_msg) => Promise.resolve())
+    .with(
+      { type: "PurposeUpdated" },
       { type: "PurposeVersionWaitedForApproval" },
       { type: "PurposeVersionRejected" },
       { type: "PurposeVersionUpdated" },
