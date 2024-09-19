@@ -43,7 +43,7 @@ describe("m2mUpsertTenant", async () => {
       value: "123456",
     },
     name: "A tenant",
-    certifiedAttributes: [{ origin: "ORIGIN", code: "CODE" }],
+    certifiedAttributes: [{ code: "CODE" }],
   };
 
   const attribute: Attribute = {
@@ -211,7 +211,7 @@ describe("m2mUpsertTenant", async () => {
       ...tenantSeed,
       certifiedAttributes: [
         ...tenantSeed.certifiedAttributes,
-        { origin: certifierId, code: "CODE 2" },
+        { code: "CODE 2" },
       ],
     };
 
@@ -387,7 +387,7 @@ describe("m2mUpsertTenant", async () => {
         value: "NOT CODE",
       },
       name: "A tenant",
-      certifiedAttributes: [{ origin: "NOT ORIGIN", code: "NOT CODE" }],
+      certifiedAttributes: [{ code: "NOT CODE" }],
     };
 
     expect(

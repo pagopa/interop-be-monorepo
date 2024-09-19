@@ -1,6 +1,5 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
-  AuthToken,
   CustomClaims,
   InteropTokenGenerator,
   Logger,
@@ -15,6 +14,7 @@ import {
   SessionClaims,
   UID,
   USER_ROLES,
+  WithLogger,
   decodeJwtToken,
   userRoles,
   verifyJwtToken,
@@ -26,9 +26,10 @@ import {
   missingSelfcareId,
   tenantLoginNotAllowed,
   tokenVerificationFailed,
-} from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+} from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
+import { BffAppContext } from "../utilities/context.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
@@ -67,26 +68,28 @@ export function authorizationServiceBuilder(
 
     const decoded = decodeJwtToken(identityToken);
 
-    const {
-      success: validToken,
-      data: token,
-      error,
-    } = AuthToken.safeParse(decoded);
-    if (!validToken) {
-      const claim = error?.errors[0]?.path.join(".");
+    const userRoles: string[] = decoded?.organization?.roles
+      ? decoded.organization.roles.map((r: { role: string }) => r.role)
+      : decoded?.[USER_ROLES]
+      ? decoded[USER_ROLES].split(",")
+      : decoded?.role
+      ? decoded.role.split(",")
+      : [];
+
+    if (userRoles.length === 0) {
+      throw genericError("Unable to extract userRoles from claims");
+    }
+
+    const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
+    if (error) {
+      const claim = error.errors[0].path.join(".");
       throw missingClaim(claim);
     }
 
-    if (token.role) {
-      throw genericError("User roles in context are not in valid format");
-    }
-
-    const sessionClaims = SessionClaims.parse(token);
-
-    const selfcareId = token[ORGANIZATION].id;
+    const selfcareId = sessionClaims[ORGANIZATION].id;
 
     return {
-      roles: token[USER_ROLES].join(","),
+      roles: userRoles.join(","),
       sessionClaims,
       selfcareId,
     };
@@ -146,11 +149,21 @@ export function authorizationServiceBuilder(
     };
   };
 
+  const retrieveSupportClaims = (
+    tenant: tenantApi.Tenant
+  ): ReturnType<typeof buildSupportClaims> => {
+    const selfcareId = tenant.selfcareId;
+    if (!selfcareId) {
+      throw missingSelfcareId(config.pagoPaTenantId);
+    }
+
+    return buildSupportClaims(selfcareId, tenant);
+  };
+
   return {
     getSessionToken: async (
-      correlationId: string,
       identityToken: string,
-      logger: Logger
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<GetSessionTokenReturnType> => {
       logger.info("Received session token exchange request");
 
@@ -162,21 +175,21 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const headers = {
-        "X-Correlation-Id": correlationId,
+      const internalHeaders = {
+        ...headers,
         Authorization: `Bearer ${serialized}`,
       };
 
       const tenantBySelfcareId =
         await tenantProcessClient.selfcare.getTenantBySelfcareId({
           params: { selfcareId },
-          headers,
+          headers: internalHeaders,
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
-        headers,
+        headers: internalHeaders,
       });
 
       assertTenantAllowed(selfcareId, tenant.externalId.origin);
@@ -214,35 +227,50 @@ export function authorizationServiceBuilder(
       };
     },
     samlLoginCallback: async (
-      correlationId: string,
-      samlResponse: string
+      samlResponse: string,
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<string> => {
+      logger.info("Calling Support SAML");
+
       validateSamlResponse(samlResponse);
 
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const headers = {
-        "X-Correlation-Id": correlationId,
-        Authorization: `Bearer ${serialized}`,
-      };
-
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: config.pagoPaTenantId },
-        headers,
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${serialized}`,
+        },
       });
-
-      const selfcareId = tenant.selfcareId;
-      if (!selfcareId) {
-        throw missingSelfcareId(config.pagoPaTenantId);
-      }
-
-      const claims = buildSupportClaims(selfcareId, tenant);
 
       const { serialized: sessionToken } =
         await interopTokenGenerator.generateSessionToken(
-          claims,
+          retrieveSupportClaims(tenant),
           config.supportLandingJwtDuration
+        );
+
+      return sessionToken;
+    },
+    getSaml2Token: async (
+      samlResponse: string,
+      tenantId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<string> => {
+      logger.info("Calling get SAML2 token");
+
+      validateSamlResponse(samlResponse);
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const { serialized: sessionToken } =
+        await interopTokenGenerator.generateSessionToken(
+          retrieveSupportClaims(tenant),
+          config.supportJwtDuration
         );
 
       return sessionToken;

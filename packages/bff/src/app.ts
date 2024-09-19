@@ -8,16 +8,18 @@ import {
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
-import { getInteropBeClients } from "./providers/clientProvider.js";
+import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import catalogRouter from "./routers/catalogRouter.js";
-import genericRouter from "./routers/genericRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
+import supportRouter from "./routers/supportRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
+import toolRouter from "./routers/toolRouter.js";
 import getAllowList from "./utilities/getAllowList.js";
 import {
   fromFilesToBodyMiddleware,
@@ -61,14 +63,16 @@ app.use(authenticationMiddleware);
 // Authenticated routes - rate limiter and logger need authentication data to work
 app.use(loggerMiddleware(serviceName));
 app.use(rateLimiterMiddleware(redisRateLimiter));
-app.use(genericRouter(zodiosCtx));
 app.use(catalogRouter(zodiosCtx, clients, fileManager));
 app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
-app.use(agreementRouter(zodiosCtx, clients));
-app.use(selfcareRouter(zodiosCtx));
+app.use(agreementRouter(zodiosCtx, clients, fileManager));
+app.use(selfcareRouter(clients, zodiosCtx));
+app.use(supportRouter(zodiosCtx, clients, redisRateLimiter));
+app.use(toolRouter(zodiosCtx));
 app.use(tenantRouter(zodiosCtx, clients));
 app.use(clientRouter(zodiosCtx, clients));
+app.use(privacyNoticeRouter(zodiosCtx));
 app.use(producerKeychainRouter(zodiosCtx, clients));
 
 export default app;

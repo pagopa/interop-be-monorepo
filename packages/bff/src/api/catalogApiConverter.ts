@@ -3,29 +3,33 @@
 import { DescriptorWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  attributeRegistryApi,
   bffApi,
   catalogApi,
   tenantApi,
-  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
-import { attributeNotExists } from "../../domain/errors.js";
+import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
   getNotDraftDescriptor,
-  getTenantEmail,
-} from "../../modelMappingUtils.js";
+  getLatestTenantContactEmail,
+} from "../model/modelMappingUtils.js";
 import {
-  catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied,
   isRequesterEserviceProducer,
   isAgreementSubscribed,
   isAgreementUpgradable,
-} from "../../validators.js";
-import { catalogApiDescriptorState } from "../apiTypes.js";
+  hasCertifiedAttributes,
+} from "../services/validators.js";
+import {
+  ConfigurationRiskAnalysis,
+  catalogApiDescriptorState,
+} from "../model/types.js";
+import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
-): catalogApi.GetCatalogQueryParam {
+): catalogApi.GetEServicesQueryParams {
   return {
     ...queryParams,
     eservicesIds: [],
@@ -50,11 +54,10 @@ export function toBffCatalogApiEService(
       name: producerTenant.name,
     },
     isMine: isRequesterEqProducer,
-    hasCertifiedAttributes:
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        activeDescriptor,
-        requesterTenant
-      ),
+    hasCertifiedAttributes: hasCertifiedAttributes(
+      activeDescriptor,
+      requesterTenant
+    ),
   };
 
   return {
@@ -81,27 +84,6 @@ export function toBffCatalogApiEService(
   };
 }
 
-export function toBffCompactOrganization(
-  tenant: tenantApi.Tenant
-): bffApi.CompactOrganization {
-  return {
-    id: tenant.id,
-    name: tenant.name,
-    kind: tenant.kind,
-  };
-}
-
-export function toBffCompactAgreement(
-  agreement: agreementApi.Agreement,
-  eservice: catalogApi.EService
-): bffApi.CompactAgreement {
-  return {
-    id: agreement.id,
-    state: agreement.state,
-    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
-  };
-}
-
 export function toBffCatalogDescriptorEService(
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor,
@@ -112,20 +94,20 @@ export function toBffCatalogDescriptorEService(
   return {
     id: eservice.id,
     name: eservice.name,
-    producer: toBffCompactOrganization(producerTenant),
+    producer: {
+      id: producerTenant.id,
+      name: producerTenant.name,
+      kind: producerTenant.kind,
+    },
     description: eservice.description,
     technology: eservice.technology,
     descriptors: getNotDraftDescriptor(eservice),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
-    hasCertifiedAttributes:
-      catalogProcessApiEServiceDescriptorCertifiedAttributesSatisfied(
-        descriptor,
-        requesterTenant
-      ),
+    hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
     isSubscribed: isAgreementSubscribed(agreement),
     activeDescriptor: getLatestActiveDescriptor(eservice),
-    mail: getTenantEmail(producerTenant),
+    mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
@@ -206,11 +188,51 @@ export function toBffCatalogApiEserviceRiskAnalysis(
   };
 }
 
+export function toBffCatalogApiEserviceRiskAnalysisSeed(
+  riskAnalysis: ConfigurationRiskAnalysis
+): bffApi.EServiceRiskAnalysisSeed {
+  const answers: bffApi.RiskAnalysisForm["answers"] =
+    riskAnalysis.riskAnalysisForm.singleAnswers
+      .concat(
+        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
+          multiAnswer.values.map((answerValue) => ({
+            value: answerValue,
+            key: multiAnswer.key,
+          }))
+        )
+      )
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
+        const key = answer.key;
+        if (!answers[key]) {
+          answers[key] = [];
+        }
+
+        if (answer.value) {
+          answers[key] = [...answers[key], answer.value];
+        } else {
+          answers[key] = [];
+        }
+
+        return answers;
+      }, {});
+
+  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
+    version: riskAnalysis.riskAnalysisForm.version,
+    answers,
+  };
+
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm,
+  };
+}
+
 export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.ProducerDescriptorEService {
-  const producerMail = getTenantEmail(producer);
+  const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors: bffApi.CompactDescriptor[] =
     eservice.descriptors.filter(
@@ -285,5 +307,47 @@ export function toBffCatalogApiDescriptorAttributes(
         descriptor.attributes.verified.flat()
       ),
     ],
+  };
+}
+
+export function toCatalogCreateEServiceSeed(
+  eServiceSeed: bffApi.EServiceSeed
+): catalogApi.EServiceSeed {
+  return {
+    ...eServiceSeed,
+    descriptor: {
+      audience: [],
+      voucherLifespan: 60,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1,
+      agreementApprovalPolicy:
+        catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
+    },
+  };
+}
+
+export function toCompactEservice(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.CompactEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: {
+      id: producer.id,
+      name: producer.name,
+      kind: producer.kind,
+    },
+  };
+}
+
+export function toCompactDescriptor(
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.CompactDescriptor {
+  return {
+    id: descriptor.id,
+    audience: descriptor.audience,
+    state: descriptor.state,
+    version: descriptor.version,
   };
 }

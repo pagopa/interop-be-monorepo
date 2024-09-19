@@ -1,9 +1,5 @@
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  apiGatewayApi,
-  purposeApi,
-} from "pagopa-interop-api-clients";
+import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
   PurposeProcessClient,
@@ -14,10 +10,29 @@ import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js
 import { producerAndConsumerParamMissing } from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 import { toApiGatewayAgreementAttributes } from "../api/attributesApiConverter.js";
-import {
-  toApiGatewayPurpose,
-  toPurposeProcessGetPurposesQueryParams,
-} from "../api/purposeApiConverter.js";
+import { getAllPurposes } from "./purposeService.js";
+
+export async function getAllAgreements(
+  agreementProcessClient: AgreementProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  queryParams: apiGatewayApi.GetAgreementsQueryParams
+): Promise<apiGatewayApi.Agreements> {
+  const getAgreementsQueryParams =
+    toAgreementProcessGetAgreementsQueryParams(queryParams);
+
+  const agreements = await getAllFromPaginated<agreementApi.Agreement>(
+    async (offset, limit) =>
+      await agreementProcessClient.getAgreements({
+        headers,
+        queries: {
+          ...getAgreementsQueryParams,
+          offset,
+          limit,
+        },
+      })
+  );
+  return { agreements: agreements.map(toApiGatewayAgreementIfNotDraft) };
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
@@ -41,21 +56,11 @@ export function agreementServiceBuilder(
         throw producerAndConsumerParamMissing();
       }
 
-      const getAgreementsQueryParams =
-        toAgreementProcessGetAgreementsQueryParams(queryParams);
-
-      const agreements = await getAllFromPaginated<agreementApi.Agreement>(
-        async (offset, limit) =>
-          await agreementProcessClient.getAgreements({
-            headers,
-            queries: {
-              ...getAgreementsQueryParams,
-              offset,
-              limit,
-            },
-          })
+      return await getAllAgreements(
+        agreementProcessClient,
+        headers,
+        queryParams
       );
-      return { agreements: agreements.map(toApiGatewayAgreementIfNotDraft) };
     },
 
     getAgreementById: async (
@@ -109,24 +114,10 @@ export function agreementServiceBuilder(
         },
       });
 
-      const getPurposesQueryParams = toPurposeProcessGetPurposesQueryParams({
+      return await getAllPurposes(purposeProcessClient, headers, {
         eserviceId: agreement.eserviceId,
         consumerId: agreement.consumerId,
       });
-
-      const purposes = await getAllFromPaginated<purposeApi.Purpose>(
-        async (offset, limit) =>
-          await purposeProcessClient.getPurposes({
-            headers,
-            queries: {
-              ...getPurposesQueryParams,
-              offset,
-              limit,
-            },
-          })
-      );
-
-      return { purposes: purposes.map(toApiGatewayPurpose) };
     },
   };
 }
