@@ -56,24 +56,24 @@ app.use(multerMiddleware);
 app.use(fromFilesToBodyMiddleware);
 app.use(contextMiddleware(serviceName, true));
 
-// Unauthenticated routes
-app.use(healthRouter);
-app.use(authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter));
-
-app.use(authenticationMiddleware);
-
-// Authenticated routes - rate limiter and logger need authentication data to work
-app.use(rateLimiterMiddleware(redisRateLimiter));
-app.use(catalogRouter(zodiosCtx, clients, fileManager));
-app.use(attributeRouter(zodiosCtx, clients));
-app.use(purposeRouter(zodiosCtx, clients));
-app.use(agreementRouter(zodiosCtx, clients, fileManager));
-app.use(selfcareRouter(clients, zodiosCtx));
-app.use(supportRouter(zodiosCtx, clients, redisRateLimiter));
-app.use(toolRouter(zodiosCtx));
-app.use(tenantRouter(zodiosCtx, clients));
-app.use(clientRouter(zodiosCtx, clients));
-app.use(privacyNoticeRouter(zodiosCtx));
-app.use(producerKeychainRouter(zodiosCtx, clients));
+app.use(
+  `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
+  healthRouter,
+  authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
+  authenticationMiddleware,
+  // Authenticated routes - rate limiter need authentication data to work
+  rateLimiterMiddleware(redisRateLimiter),
+  catalogRouter(zodiosCtx, clients, fileManager),
+  attributeRouter(zodiosCtx, clients),
+  purposeRouter(zodiosCtx, clients),
+  agreementRouter(zodiosCtx, clients, fileManager),
+  selfcareRouter(clients, zodiosCtx),
+  supportRouter(zodiosCtx, clients, redisRateLimiter),
+  toolRouter(zodiosCtx),
+  tenantRouter(zodiosCtx, clients),
+  clientRouter(zodiosCtx, clients),
+  privacyNoticeRouter(zodiosCtx),
+  producerKeychainRouter(zodiosCtx, clients)
+);
 
 export default app;
