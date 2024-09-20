@@ -687,6 +687,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-client-assertion-validation:
+        specifier: workspace:*
+        version: link:../client-assertion-validation
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons

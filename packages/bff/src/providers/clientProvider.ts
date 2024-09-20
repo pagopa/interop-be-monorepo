@@ -32,6 +32,7 @@ export type PurposeProcessClient = ReturnType<
 export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
   user: ReturnType<typeof authorizationApi.createUserApiClient>;
+  token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
 };
 
 export type PagoPAInteropBeClients = {
@@ -62,6 +63,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
       user: authorizationApi.createUserApiClient(config.authorizationUrl),
+      token: authorizationApi.createTokenGenerationApiClient(
+        config.authorizationUrl
+      ),
     },
   };
 }
