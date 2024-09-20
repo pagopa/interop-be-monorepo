@@ -461,8 +461,8 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
         .slice()
         .sort(
           (a, b) =>
-            Date.parse(b.GSIPK_agreementTimestamp) -
-            Date.parse(a.GSIPK_agreementTimestamp)
+            Date.parse(b.GSISK_agreementTimestamp) -
+            Date.parse(a.GSISK_agreementTimestamp)
         )[0];
     } else {
       throw genericInternalError(
