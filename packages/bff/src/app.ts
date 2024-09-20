@@ -50,6 +50,8 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+app.use(loggerMiddleware(serviceName));
+
 app.use(multerMiddleware);
 app.use(fromFilesToBodyMiddleware);
 app.use(contextMiddleware(serviceName, true));
@@ -61,7 +63,6 @@ app.use(authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter));
 app.use(authenticationMiddleware);
 
 // Authenticated routes - rate limiter and logger need authentication data to work
-app.use(loggerMiddleware(serviceName));
 app.use(rateLimiterMiddleware(redisRateLimiter));
 app.use(catalogRouter(zodiosCtx, clients, fileManager));
 app.use(attributeRouter(zodiosCtx, clients));
