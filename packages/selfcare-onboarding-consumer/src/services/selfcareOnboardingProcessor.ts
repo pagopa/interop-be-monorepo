@@ -3,6 +3,7 @@ import { EachMessagePayload } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { genericInternalError } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 import { ORIGIN_IPA } from "../model/constants.js";
@@ -52,10 +53,10 @@ export function selfcareOnboardingProcessorBuilder(
         const eventPayload = InstitutionEventPayload.parse(jsonPayload);
 
         const institution = eventPayload.institution;
-        const origin =
-          institution.institutionType === "SCP"
-            ? `${institution.origin}-SCP` // needed since the origin is PDND_INFOCAMERE while in allowedOrigins is PDND_INFOCAMERE-SCP
-            : institution.origin;
+        const origin = match(institution.institutionType)
+          .with("SCP", () => `${institution.origin}-SCP`)
+          .with("PVT", () => `${institution.origin}-PVT`)
+          .otherwise(() => institution.origin);
         if (allowedOrigins.indexOf(origin) < 0) {
           loggerInstance.warn(
             `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
