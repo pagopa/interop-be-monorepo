@@ -9,6 +9,14 @@ import {
   EServiceAttribute,
   EServiceSQL,
   EService,
+  EserviceRiskAnalysisSQL,
+  RiskAnalysisAnswerSQL,
+  RiskAnalysis,
+  riskAnalysisAnswerKind,
+  RiskAnalysisSingleAnswer,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswer,
+  RiskAnalysisMultiAnswerId,
 } from "pagopa-interop-models";
 
 export const documentSQLtoDocument = (input: DocumentSQL): Document => {
@@ -99,6 +107,8 @@ export const descriptorSQLtoDescriptor = (
 
 export const eserviceSQLtoEservice = (
   eserviceSQL: EServiceSQL,
+  riskAnalysisSQL: EserviceRiskAnalysisSQL[],
+  riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[],
   descriptorsSQL: DescriptorSQL[],
   documentsSQL: DocumentSQL[],
   attributesSQL: DescriptorAttributeSQL[]
@@ -108,6 +118,15 @@ export const eserviceSQLtoEservice = (
       descriptor,
       documentsSQL.filter((d) => d.descriptor_id === descriptor.id),
       attributesSQL.filter((a) => a.descriptor_id === descriptor.id)
+    )
+  );
+
+  const riskAnalysis = riskAnalysisSQL.map((ra) =>
+    riskAnalysisSQLtoRiskAnalysis(
+      ra,
+      riskAnalysisAnswersSQL.filter(
+        (answer) => answer.risk_analysis_form_id === ra.risk_analysis_form_id
+      )
     )
   );
   const eservice: EService = {
@@ -126,11 +145,25 @@ export const eserviceSQLtoEservice = (
 
 export const eserviceSQLArraytoEserviceArray = (
   eservicesSQL: EServiceSQL[],
+  riskAnalysisSQL: EserviceRiskAnalysisSQL[],
+  riskAnalysisAnswers: RiskAnalysisAnswerSQL[],
   descriptorsSQL: DescriptorSQL[],
   documentsSQL: DocumentSQL[],
   attributesSQL: DescriptorAttributeSQL[]
 ): EService[] =>
   eservicesSQL.map((eservice) => {
+    const riskAnalysisSQLOfCurrentEservice = riskAnalysisSQL.filter(
+      (ra) => ra.eservice_id === eservice.id
+    );
+
+    const formIds = riskAnalysisSQLOfCurrentEservice.map(
+      (ra) => ra.risk_analysis_form_id
+    );
+
+    const riskAnalysisAnswersSQLOfCurrentEservice = riskAnalysisAnswers.filter(
+      (ra) => formIds.includes(ra.risk_analysis_form_id)
+    );
+
     const descriptorsSQLOfCurrentEservice = descriptorsSQL.filter(
       (d) => d.eservice_id === eservice.id
     );
@@ -146,8 +179,50 @@ export const eserviceSQLArraytoEserviceArray = (
 
     return eserviceSQLtoEservice(
       eservice,
+      riskAnalysisSQLOfCurrentEservice,
+      riskAnalysisAnswersSQLOfCurrentEservice,
       descriptorsSQLOfCurrentEservice,
       documentsSQLOfCurrentEservice,
       attributesSQLOfCurrentEservice
     );
   });
+
+export const riskAnalysisSQLtoRiskAnalysis = (
+  riskAnalysisSQL: EserviceRiskAnalysisSQL,
+  answers: RiskAnalysisAnswerSQL[]
+): RiskAnalysis => {
+  const singleAnswers = answers
+    .filter((a) => a.kind === riskAnalysisAnswerKind.single)
+    .map(
+      (a) =>
+        ({
+          id: a.id as RiskAnalysisSingleAnswerId,
+          key: a.key,
+          value: a.value[0],
+        } satisfies RiskAnalysisSingleAnswer)
+    );
+
+  const multiAnswers = answers
+    .filter((a) => a.kind === riskAnalysisAnswerKind.multi)
+    .map(
+      (a) =>
+        ({
+          id: a.id as RiskAnalysisMultiAnswerId,
+          key: a.key,
+          values: a.value,
+        } satisfies RiskAnalysisMultiAnswer)
+    );
+
+  const riskAnalysis: RiskAnalysis = {
+    name: riskAnalysisSQL.name,
+    id: riskAnalysisSQL.risk_analysis_id,
+    createdAt: riskAnalysisSQL.created_at,
+    riskAnalysisForm: {
+      version: riskAnalysisSQL.risk_analysis_form_version,
+      id: riskAnalysisSQL.risk_analysis_form_id,
+      singleAnswers,
+      multiAnswers,
+    },
+  };
+  return riskAnalysis;
+};

@@ -22,6 +22,8 @@ export const splitEserviceIntoObjectsSQL = (
   eservice: EService
 ): {
   eserviceSQL: EServiceSQL;
+  riskAnalysisSQL: EserviceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[];
   descriptorsSQL: DescriptorSQL[];
   attributesSQL: DescriptorAttributeSQL[];
   documentsSQL: DocumentSQL[];
@@ -35,6 +37,30 @@ export const splitEserviceIntoObjectsSQL = (
     technology: eservice.technology,
     mode: eservice.mode,
   };
+
+  const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
+    eservice.riskAnalysis.reduce(
+      (
+        acc: {
+          riskAnalysisSQL: EserviceRiskAnalysisSQL[];
+          riskAnalysisAnswersSQL: RiskAnalysisAnswerSQL[];
+        },
+        currentRiskAnalysis: RiskAnalysis
+      ) => {
+        const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
+          splitRiskAnalysisIntoObjectsSQL(currentRiskAnalysis, eservice.id);
+        return {
+          riskAnalysisSQL: acc.riskAnalysisSQL.concat(eserviceRiskAnalysisSQL),
+          riskAnalysisAnswersSQL: acc.riskAnalysisAnswersSQL.concat(
+            riskAnalysisAnswersSQL
+          ),
+        };
+      },
+      {
+        riskAnalysisSQL: [],
+        riskAnalysisAnswersSQL: [],
+      }
+    );
 
   const { descriptorsSQL, attributesSQL, documentsSQL } =
     eservice.descriptors.reduce(
@@ -58,7 +84,14 @@ export const splitEserviceIntoObjectsSQL = (
       { descriptorsSQL: [], attributesSQL: [], documentsSQL: [] }
     );
 
-  return { eserviceSQL, descriptorsSQL, attributesSQL, documentsSQL };
+  return {
+    eserviceSQL,
+    riskAnalysisSQL,
+    riskAnalysisAnswersSQL,
+    descriptorsSQL,
+    attributesSQL,
+    documentsSQL,
+  };
 };
 
 const attributeToAttributeSQL = ({
