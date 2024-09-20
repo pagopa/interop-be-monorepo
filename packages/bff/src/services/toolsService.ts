@@ -12,18 +12,14 @@ import {
 import {
   AgreementId,
   ClientId,
+  EServiceId,
   genericInternalError,
   PurposeId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  authorizationApi,
-  bffApi,
-  purposeApi,
-} from "pagopa-interop-api-clients";
+import { agreementApi, bffApi } from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
@@ -31,8 +27,6 @@ import {
 import { BffAppContext } from "../utilities/context.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
-  const { purposeProcessClient, authorizationClient, agreementProcessClient } =
-    clients;
   return {
     async validateTokenGeneration(
       clientId: string | undefined,
@@ -54,28 +48,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         throw genericInternalError("Invalid client assertion");
       }
 
-      const clientWithKeys =
-        await authorizationClient.token.getKeyWithClientByKeyId({
-          params: {
-            clientId: jwt.payload.sub,
-            keyId: jwt.header.kid,
-          },
-          headers: ctx.headers,
-        });
-
-      const purpose = await purposeProcessClient.getPurpose({
-        params: { id: jwt.payload.purposeId ?? "" }, // TODO check if not exists
-        headers: ctx.headers,
-      });
-
-      const agreement = await retrieveAgreement(
-        agreementProcessClient,
-        purpose.consumerId,
-        purpose.eserviceId,
-        ctx
-      );
-
-      const key = getKey(jwt, clientWithKeys, agreement, purpose);
+      const key = await retrieveKey(clients, jwt, ctx);
 
       verifyClientAssertionSignature(clientAssertion, key);
       validateClientKindAndPlatformState(key, jwt);
@@ -87,19 +60,67 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
 
 export type ToolsService = ReturnType<typeof toolsServiceBuilder>;
 
-function getKey(
+async function retrieveKey(
+  {
+    authorizationClient,
+    purposeProcessClient,
+    agreementProcessClient,
+  }: PagoPAInteropBeClients,
   jwt: ClientAssertion,
-  client: authorizationApi.KeyWithClient,
-  agreement: agreementApi.Agreement,
-  purpose: purposeApi.Purpose
-): ApiKey | ConsumerKey {
+  ctx: WithLogger<BffAppContext>
+): Promise<ApiKey | ConsumerKey> {
+  const client = await authorizationClient.token.getKeyWithClientByKeyId({
+    params: {
+      clientId: jwt.payload.sub,
+      keyId: jwt.header.kid,
+    },
+    headers: ctx.headers,
+  });
+
+  const { encodedPem } = await authorizationClient.client.getClientKeyById({
+    headers: ctx.headers,
+    params: {
+      clientId: client.client.id,
+      keyId: jwt.header.kid,
+    },
+  });
+
+  const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId ?? ""); // TODO check if not exists
+
+  if (client.client.kind === "API") {
+    return {
+      clientKind: "API",
+      kid: jwt.header.kid,
+      algorithm: "RS256",
+      publicKey: encodedPem,
+      clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
+      consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
+      purposeId,
+    };
+  }
+
+  const purpose = await purposeProcessClient.getPurpose({
+    params: { id: purposeId },
+    headers: ctx.headers,
+  });
+
+  const agreement = await retrieveAgreement(
+    agreementProcessClient,
+    purpose.consumerId,
+    purpose.eserviceId,
+    ctx
+  );
+
   return {
+    clientKind: "CONSUMER",
     clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
     kid: jwt.header.kid,
-    consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
     algorithm: "RS256",
+    publicKey: encodedPem,
+    purposeId,
+    consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
     agreementId: unsafeBrandId<AgreementId>(agreement.id),
-    purposeId: unsafeBrandId<PurposeId>(purpose.id),
+    eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
   };
 }
 
