@@ -51,7 +51,7 @@ export type PlatformStatesPurposeEntry = z.infer<
 export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesAgreementPK,
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
-  GSIPK_agreementTimestamp: z.string().datetime(),
+  GSISK_agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: z.string(),
 });
 export type PlatformStatesAgreementEntry = z.infer<
