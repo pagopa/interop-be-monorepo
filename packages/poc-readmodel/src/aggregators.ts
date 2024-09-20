@@ -53,28 +53,16 @@ export const descriptorSQLtoDescriptor = (
   const certifiedAttributesSQL = attributesSQL.filter(
     (a) => a.kind === attributeKind.certified
   );
-  // const declaredAttributesSQL = attributesSQL.filter(
-  //   (a) => a.kind === attributeKind.declared
-  // );
-  // const verifiedAttributesSQL = attributesSQL.filter(
-  //   (a) => a.kind === attributeKind.verified
-  // );
+  const declaredAttributesSQL = attributesSQL.filter(
+    (a) => a.kind === attributeKind.declared
+  );
+  const verifiedAttributesSQL = attributesSQL.filter(
+    (a) => a.kind === attributeKind.verified
+  );
 
-  const certifiedAttrMap = new Map<number, EServiceAttribute[]>();
-  certifiedAttributesSQL.forEach((current) => {
-    const currentAttribute: EServiceAttribute = {
-      id: current.attribute_id,
-      explicitAttributeVerification: current.explicit_attribute_verification,
-    };
-    const group = certifiedAttrMap.get(current.group_set);
-    if (group) {
-      certifiedAttrMap.set(current.group_set, [...group, currentAttribute]);
-    } else {
-      certifiedAttrMap.set(current.group_set, [currentAttribute]);
-    }
-  });
-
-  const certifiedAttributes = Array.from(certifiedAttrMap.values());
+  const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
+  const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
+  const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
 
   // console.log(certifiedAttrMap);
   const d: Descriptor = {
@@ -97,8 +85,8 @@ export const descriptorSQLtoDescriptor = (
     archivedAt: input.archived_at || undefined,
     attributes: {
       certified: certifiedAttributes,
-      verified: [],
-      declared: [],
+      verified: declaredAttributes,
+      declared: verifiedAttributes,
     },
   };
   // console.log(d);
@@ -137,7 +125,7 @@ export const eserviceSQLtoEservice = (
     description: eserviceSQL.description,
     technology: eserviceSQL.technology,
     descriptors,
-    riskAnalysis: [],
+    riskAnalysis,
     mode: eserviceSQL.mode,
   };
   return eservice;
@@ -225,4 +213,25 @@ export const riskAnalysisSQLtoRiskAnalysis = (
     },
   };
   return riskAnalysis;
+};
+
+export const attributesSQLtoAttributes = (
+  attributesSQL: DescriptorAttributeSQL[]
+): EServiceAttribute[][] => {
+  const certifiedAttrMap = new Map<number, EServiceAttribute[]>();
+  attributesSQL.forEach((current) => {
+    const currentAttribute: EServiceAttribute = {
+      id: current.attribute_id,
+      explicitAttributeVerification: current.explicit_attribute_verification,
+    };
+    const group = certifiedAttrMap.get(current.group_set);
+    if (group) {
+      certifiedAttrMap.set(current.group_set, [...group, currentAttribute]);
+    } else {
+      certifiedAttrMap.set(current.group_set, [currentAttribute]);
+    }
+  });
+
+  const attributes = Array.from(certifiedAttrMap.values());
+  return attributes;
 };
