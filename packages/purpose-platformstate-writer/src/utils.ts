@@ -239,34 +239,36 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
   //   // TODO: add record with only purpose data
   // } else {
   for (const entry of entriesToUpdate) {
-    const primaryKey = entry.PK;
+    const tokenEntryPK = entry.PK;
 
     // Update token entry with agreement data from platform-states if they're missing AND purposeState is not undefined
-    const consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+    const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
       consumerId: purpose.consumerId,
       eserviceId: purpose.eserviceId,
     });
+
+    // TODO should this only add the data if it's not already there?
     if (
       (!entry.GSIPK_consumerId_eserviceId ||
         !entry.agreementId ||
         !entry.agreementState) &&
       entry.purposeState
     ) {
-      const agreementPlatformEntry =
-        await readPlatformAgreementEntryByConsumerIdAndEServiceId(
+      const platformAgreementEntry =
+        await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
           dynamoDBClient,
-          consumerId_eserviceId
+          gsiPKConsumerIdEServiceId
         );
 
-      if (agreementPlatformEntry) {
+      if (platformAgreementEntry) {
         await updateTokenPurposeEntryWithAgreementData(
           dynamoDBClient,
-          primaryKey,
-          agreementPlatformEntry
+          tokenEntryPK,
+          platformAgreementEntry
         );
 
         // Update token entry with descriptor data from platform-states if they're missing
-        const descriptorId = agreementPlatformEntry.agreementDescriptorId;
+        const descriptorId = platformAgreementEntry.agreementDescriptorId;
         if (
           !entry.GSIPK_eserviceId_descriptorId ||
           !entry.descriptorAudience ||
@@ -284,7 +286,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
           if (catalogEntry) {
             await updateTokenPurposeEntryWithDescriptorData(
               dynamoDBClient,
-              primaryKey,
+              tokenEntryPK,
               catalogEntry
             );
           }
@@ -296,7 +298,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
     const purposeState = purposeStateToItemState(purpose);
     await updatePurposeStateInTokenGenerationStatesTable(
       dynamoDBClient,
-      primaryKey,
+      tokenEntryPK,
       purposeState
     );
   }
@@ -362,7 +364,7 @@ export const updateTokenPurposeEntryWithDescriptorData = async (
   const splitCatalogPK = catalogEntry.PK.split("#");
   const eserviceId: EServiceId = unsafeBrandId(splitCatalogPK[1]);
   const descriptorId: DescriptorId = unsafeBrandId(splitCatalogPK[2]);
-  const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+  const gsiPKEServiceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
     eserviceId,
     descriptorId,
   });
@@ -374,8 +376,8 @@ export const updateTokenPurposeEntryWithDescriptorData = async (
       },
     },
     ExpressionAttributeValues: {
-      ":eserviceId_descriptorId": {
-        S: eserviceId_descriptorId,
+      ":GSIPK_eserviceId_descriptorId": {
+        S: gsiPKEServiceIdDescriptorId,
       },
       ":descriptorState": {
         S: catalogEntry.state,
@@ -388,7 +390,7 @@ export const updateTokenPurposeEntryWithDescriptorData = async (
       },
     },
     UpdateExpression:
-      "SET GSIPK_eserviceId_descriptorId = :eserviceId_descriptorId, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, updatedAt = :newUpdateAt",
+      "SET GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, updatedAt = :newUpdateAt",
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     ReturnValues: "NONE",
   };
@@ -409,7 +411,7 @@ export const updateTokenPurposeEntryWithAgreementData = async (
       },
     },
     ExpressionAttributeValues: {
-      ":consumerId_eserviceId": {
+      ":GSIPK_consumerId_eserviceId": {
         S: agreementPlatformEntry.GSIPK_consumerId_eserviceId,
       },
       ":agreementId": {
@@ -423,7 +425,7 @@ export const updateTokenPurposeEntryWithAgreementData = async (
       },
     },
     UpdateExpression:
-      "SET GSIPK_consumerId_eserviceId = :consumerId_eserviceId, agreementId = :agreementId, agreementState = :agreementState, updatedAt = :newUpdateAt",
+      "SET GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, agreementId = :agreementId, agreementState = :agreementState, updatedAt = :newUpdateAt",
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
     ReturnValues: "NONE",
   };
@@ -431,16 +433,16 @@ export const updateTokenPurposeEntryWithAgreementData = async (
   await dynamoDBClient.send(command);
 };
 
-export const readPlatformAgreementEntryByConsumerIdAndEServiceId = async (
+export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
   dynamoDBClient: DynamoDBClient,
-  consumerId_eserviceId: GSIPKConsumerIdEServiceId
+  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
 ): Promise<PlatformStatesAgreementEntry | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     IndexName: "GSIPK_consumerId_eserviceId",
     KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
     ExpressionAttributeValues: {
-      ":gsiValue": { S: consumerId_eserviceId },
+      ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
   };
   const command = new QueryCommand(input);
@@ -448,21 +450,24 @@ export const readPlatformAgreementEntryByConsumerIdAndEServiceId = async (
 
   if (!data.Items) {
     return undefined;
-  } else if (data.Items.length > 1) {
-    // TODO: platform-states should not have multiple entries for the same consumerId_eserviceId, but a GSI doesn't check for uniqueness
-    throw genericInternalError(
-      `Multiple entries found for GSIPK_consumerId_eserviceId ${consumerId_eserviceId}`
-    );
   } else {
-    const unmarshalled = unmarshall(data.Items[0]);
-    const agreementEntry = PlatformStatesAgreementEntry.safeParse(unmarshalled);
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+    const platformAgreementEntries = z
+      .array(PlatformStatesAgreementEntry)
+      .safeParse(unmarshalledItems);
 
-    if (agreementEntry.success) {
-      return agreementEntry.data;
+    if (platformAgreementEntries.success) {
+      return platformAgreementEntries.data
+        .slice()
+        .sort(
+          (a, b) =>
+            Date.parse(b.GSIPK_agreementTimestamp) -
+            Date.parse(a.GSIPK_agreementTimestamp)
+        )[0];
     } else {
       throw genericInternalError(
-        `Unable to read platform state entry: result ${JSON.stringify(
-          agreementEntry
+        `Unable to read platform state entries: result ${JSON.stringify(
+          platformAgreementEntries
         )} `
       );
     }
