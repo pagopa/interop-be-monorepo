@@ -151,8 +151,7 @@ export async function sendAgreementAuthUpdate(
           "AgreementSuspendedByPlatform",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByProducer",
-          "AgreementArchivedByConsumer",
-          "AgreementArchivedByUpgrade"
+          "AgreementArchivedByConsumer"
         ),
       },
       async (msg) => {
@@ -215,7 +214,8 @@ export async function sendAgreementAuthUpdate(
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementArchivedByUpgrade"
         ),
       },
       () => {
