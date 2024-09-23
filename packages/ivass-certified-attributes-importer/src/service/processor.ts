@@ -174,8 +174,8 @@ async function getAttributesIdentifiers(
     ivassInsurances: {
       id: ivassInsurances.id,
       externalId: {
-        origin: ivassInsurances.origin,
-        value: ivassInsurances.code,
+        origin: ivassInsurances.origin || "",
+        value: ivassInsurances.code || "",
       },
     },
   };
