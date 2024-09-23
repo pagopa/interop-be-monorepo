@@ -62,7 +62,8 @@ export function selfcareOnboardingProcessorBuilder(
           .with("SCP", () => `${institution.origin}-SCP`)
           .with("PVT", () => `${institution.origin}-PVT`)
           .otherwise(() => institution.origin);
-        if (allowedOrigins.indexOf(origin) < 0) {
+
+        if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
             `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
           );
@@ -76,7 +77,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         const seed: tenantApi.SelfcareTenantSeed = {
           externalId: {
-            origin: institution.origin,
+            origin,
             value: externalIdValue,
           },
           selfcareId: eventPayload.internalIstitutionID,
