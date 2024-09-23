@@ -10,10 +10,10 @@ import {
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
-import { toBffApiCompactUser } from "../model/api/converters/catalogClientApiConverter.js";
+import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -367,18 +367,18 @@ export const getAllClients = async (
   authorizationClient: AuthorizationProcessClient,
   consumerId: string,
   purposeId: string,
-  headers: { "X-Correlation-Id": string }
+  headers: BffAppContext["headers"]
 ): Promise<authorizationApi.ClientWithKeys[]> =>
   await getAllFromPaginated(
-    async (start: number) =>
+    async (offset, limit) =>
       await authorizationClient.client.getClientsWithKeys({
         headers,
         queries: {
           userIds: [],
           consumerId,
           purposeId,
-          limit: 50,
-          offset: start,
+          limit,
+          offset,
         },
       })
   );
