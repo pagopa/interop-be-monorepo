@@ -1,12 +1,18 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  fromPurposeV2,
+  genericInternalError,
+  missingKafkaMessageDataError,
   PlatformStatesPurposeEntry,
   PurposeEventEnvelopeV2,
+  PurposeVersionId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   deletePlatformPurposeEntry,
-  getPurposeDataFromMessage,
+  getPurposeDataFromEvent,
+  getPurposeVersionByPurposeVersionId,
   getPurposeVersionFromEvent,
   updatePurposeStateInPlatformStatesEntry,
   updatePurposeStatesInTokenGenerationStatesTable,
@@ -21,8 +27,17 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with({ type: "PurposeActivated" }, async (msg) => {
-      const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-        await getPurposeDataFromMessage(dynamoDBClient, msg);
+      const purposeV2 = msg.data.purpose;
+      if (!purposeV2) {
+        throw missingKafkaMessageDataError("purpose", msg.type);
+      }
+      const purpose = fromPurposeV2(purposeV2);
+      const { primaryKey, purposeState, existingPurposeEntry } =
+        await getPurposeDataFromEvent(
+          dynamoDBClient,
+          unsafeBrandId(purpose.id),
+          purpose.versions[0]
+        );
 
       if (existingPurposeEntry && existingPurposeEntry.version > msg.version) {
         // Stops processing if the message is older than the purpose entry
@@ -68,8 +83,30 @@ export async function handleMessageV2(
       { type: "NewPurposeVersionActivated" },
       { type: "PurposeVersionActivated" },
       async (msg) => {
-        const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-          await getPurposeDataFromMessage(dynamoDBClient, msg);
+        const purposeV2 = msg.data.purpose;
+        if (!purposeV2) {
+          throw missingKafkaMessageDataError("purpose", msg.type);
+        }
+        const purpose = fromPurposeV2(purposeV2);
+        const purposeVersionId = unsafeBrandId<PurposeVersionId>(
+          msg.data.versionId
+        );
+        const purposeVersion = getPurposeVersionByPurposeVersionId(
+          purpose.versions,
+          purposeVersionId
+        );
+        if (!purposeVersion) {
+          throw genericInternalError(
+            `Purpose version not found in purpose with id ${purpose.id}`
+          );
+        }
+
+        const { primaryKey, purposeState, existingPurposeEntry } =
+          await getPurposeDataFromEvent(
+            dynamoDBClient,
+            unsafeBrandId(purpose.id),
+            purposeVersion
+          );
 
         if (
           !existingPurposeEntry ||
@@ -78,6 +115,11 @@ export async function handleMessageV2(
           // Stops processing if the message is older than the purpose entry or if it doesn't exist
           return Promise.resolve();
         } else {
+          const purposeVersion = getPurposeVersionFromEvent(
+            purpose.versions,
+            purposeVersionId,
+            msg.type
+          );
           // platform-states
           await updatePurposeStateInPlatformStatesEntry(
             dynamoDBClient,
@@ -88,7 +130,7 @@ export async function handleMessageV2(
           await updatePurposeVersionIdInPlatformStatesEntry(
             dynamoDBClient,
             primaryKey,
-            getPurposeVersionFromEvent(msg, msg.type).id,
+            purposeVersion.id,
             msg.version
           );
 
@@ -100,7 +142,7 @@ export async function handleMessageV2(
           await updatePurposeVersionIdInTokenGenerationStatesTable(
             dynamoDBClient,
             purpose,
-            getPurposeVersionFromEvent(msg, msg.type).id
+            purposeVersion.id
           );
         }
       }
@@ -111,8 +153,30 @@ export async function handleMessageV2(
       { type: "PurposeVersionUnsuspendedByConsumer" },
       { type: "PurposeVersionUnsuspendedByProducer" },
       async (msg) => {
-        const { purpose, primaryKey, purposeState, existingPurposeEntry } =
-          await getPurposeDataFromMessage(dynamoDBClient, msg);
+        const purposeV2 = msg.data.purpose;
+        if (!purposeV2) {
+          throw missingKafkaMessageDataError("purpose", msg.type);
+        }
+        const purpose = fromPurposeV2(purposeV2);
+        const purposeVersionId = unsafeBrandId<PurposeVersionId>(
+          msg.data.versionId
+        );
+        const purposeVersion = getPurposeVersionByPurposeVersionId(
+          purpose.versions,
+          purposeVersionId
+        );
+        if (!purposeVersion) {
+          throw genericInternalError(
+            `Purpose version not found in purpose with id ${purpose.id}`
+          );
+        }
+
+        const { primaryKey, purposeState, existingPurposeEntry } =
+          await getPurposeDataFromEvent(
+            dynamoDBClient,
+            unsafeBrandId(purpose.id),
+            purposeVersion
+          );
 
         if (
           !existingPurposeEntry ||
@@ -138,9 +202,28 @@ export async function handleMessageV2(
       }
     )
     .with({ type: "PurposeArchived" }, async (msg) => {
-      const { purpose, primaryKey } = await getPurposeDataFromMessage(
+      const purposeV2 = msg.data.purpose;
+      if (!purposeV2) {
+        throw missingKafkaMessageDataError("purpose", msg.type);
+      }
+      const purpose = fromPurposeV2(purposeV2);
+      const purposeVersionId = unsafeBrandId<PurposeVersionId>(
+        msg.data.versionId
+      );
+      const purposeVersion = getPurposeVersionByPurposeVersionId(
+        purpose.versions,
+        purposeVersionId
+      );
+      if (!purposeVersion) {
+        throw genericInternalError(
+          `Purpose version not found in purpose with id ${purpose.id}`
+        );
+      }
+
+      const { primaryKey } = await getPurposeDataFromEvent(
         dynamoDBClient,
-        msg
+        unsafeBrandId(purpose.id),
+        purposeVersion
       );
 
       // platform-states

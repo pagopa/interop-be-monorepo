@@ -18,7 +18,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   DescriptorId,
   EServiceId,
-  fromPurposeV2,
   genericInternalError,
   GSIPKConsumerIdEServiceId,
   itemState,
@@ -34,11 +33,10 @@ import {
   PlatformStatesPurposeEntry,
   PlatformStatesPurposePK,
   Purpose,
-  PurposeEventEnvelopeV2,
   PurposeId,
-  PurposeV2,
   PurposeVersion,
   PurposeVersionId,
+  purposeVersionState,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
@@ -46,8 +44,15 @@ import {
 import { z } from "zod";
 import { config } from "./config/config.js";
 
-export const purposeStateToItemState = (purpose: Purpose): ItemState =>
-  purpose.suspendedByConsumer && purpose.suspendedByProducer
+export const purposeVersionToItemState = (
+  purposeVersion: PurposeVersion
+): ItemState =>
+  purposeVersion.state === purposeVersionState.active
+    ? itemState.active
+    : itemState.inactive;
+
+export const purposeToItemState = (purpose: Purpose): ItemState =>
+  purpose.suspendedByConsumer || purpose.suspendedByProducer
     ? itemState.inactive
     : itemState.active;
 
@@ -295,7 +300,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
     }
 
     // Update token entry with new purpose state
-    const purposeState = purposeStateToItemState(purpose);
+    const purposeState = purposeToItemState(purpose);
     await updatePurposeStateInTokenGenerationStatesTable(
       dynamoDBClient,
       tokenEntryPK,
@@ -309,7 +314,10 @@ export const updatePurposeStatesInTokenGenerationStatesTable = async (
   dynamoDBClient: DynamoDBClient,
   purpose: Purpose
 ): Promise<void> => {
-  const purposeState = purposeStateToItemState(purpose);
+  const purposeState =
+    purpose.suspendedByConsumer || purpose.suspendedByProducer
+      ? itemState.inactive
+      : itemState.active;
   const entriesToUpdate = await readTokenEntriesByPurposeId(
     dynamoDBClient,
     purpose.id
@@ -575,60 +583,47 @@ export const readCatalogEntry = async (
   }
 };
 
-export const getPurposeDataFromMessage = async (
+export const getPurposeDataFromEvent = async (
   dynamoDBClient: DynamoDBClient,
-  msg: PurposeEventEnvelopeV2
+  purposeId: PurposeId,
+  purposeVersion: PurposeVersion
 ): Promise<{
-  purpose: Purpose;
   primaryKey: PlatformStatesPurposePK;
   purposeState: ItemState;
   existingPurposeEntry?: PlatformStatesPurposeEntry;
 }> => {
-  const purpose = getPurposeFromEvent(msg, msg.type);
-  const primaryKey = makePlatformStatesPurposePK(unsafeBrandId(purpose.id));
-  const purposeState = purposeStateToItemState(purpose);
+  const primaryKey = makePlatformStatesPurposePK(purposeId);
+  const purposeState = purposeVersionToItemState(purposeVersion);
 
   const existingPurposeEntry = await readPlatformPurposeEntry(
     dynamoDBClient,
     primaryKey
   );
-  return { purpose, primaryKey, purposeState, existingPurposeEntry };
+  return {
+    primaryKey,
+    purposeState,
+    existingPurposeEntry,
+  };
 };
 
-// TODO: copied from /interop-be-monorepo/packages/authorization-updater/src/utils.ts. Maybe move to a common place?
-export const getPurposeFromEvent = (
-  msg: {
-    data: {
-      purpose?: PurposeV2;
-    };
-  },
-  eventType: string
-): Purpose => {
-  if (!msg.data.purpose) {
-    throw missingKafkaMessageDataError("purpose", eventType);
-  }
-
-  return fromPurposeV2(msg.data.purpose);
-};
-
-// TODO: copied from /interop-be-monorepo/packages/authorization-updater/src/utils.ts. Maybe move to a common place?
 export const getPurposeVersionFromEvent = (
-  msg: {
-    data: {
-      purpose?: PurposeV2;
-      versionId: string;
-    };
-  },
+  purposeVersions: PurposeVersion[],
+  purposeVersionId: PurposeVersionId,
   eventType: string
 ): PurposeVersion => {
-  const purpose = getPurposeFromEvent(msg, eventType);
-  const purposeVersion = purpose.versions.find(
-    (v) => v.id === msg.data.versionId
+  const purposeVersion = getPurposeVersionByPurposeVersionId(
+    purposeVersions,
+    purposeVersionId
   );
-
   if (!purposeVersion) {
     throw missingKafkaMessageDataError("purposeVersion", eventType);
   }
 
   return purposeVersion;
 };
+
+export const getPurposeVersionByPurposeVersionId = (
+  purposeVersions: PurposeVersion[],
+  purposeVersionId: PurposeVersionId
+): PurposeVersion | undefined =>
+  purposeVersions.find((v) => v.id === purposeVersionId);
