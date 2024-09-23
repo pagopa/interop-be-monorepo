@@ -17,10 +17,7 @@ import {
   genericLogger,
   KafkaProducerConfig,
 } from "pagopa-interop-commons";
-import {
-  genericInternalError,
-  kafkaMessageProcessError,
-} from "pagopa-interop-models";
+import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
@@ -156,9 +153,18 @@ async function oauthBearerTokenProvider(
 }
 
 const initKafka = (config: InteropKafkaConfig): Kafka => {
-  if (config.kafkaBrokerConnectionString && !config.kafkaDisableAwsIamAuth) {
-    throw genericInternalError(
-      "Cannot use a kafka broker connection string when kafka AWS IAM auth is enabled"
+  const connectionStringMechanism: KafkaConfig["sasl"] =
+    config.kafkaBrokerConnectionString
+      ? {
+          mechanism: "plain",
+          username: "$ConnectionString",
+          password: config.kafkaBrokerConnectionString,
+        }
+      : undefined;
+
+  if (connectionStringMechanism) {
+    genericLogger.warn(
+      "Using connection string mechanism for Kafka Broker authentication - this will override other mechanisms. If that is not desired, remove Kafka broker connection string from env variables."
     );
   }
 
@@ -167,14 +173,8 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         clientId: config.kafkaClientId,
         brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
-        ssl: config.kafkaBrokerConnectionString ? true : false,
-        sasl: config.kafkaBrokerConnectionString
-          ? {
-              mechanism: "plain",
-              username: "$ConnectionString",
-              password: config.kafkaBrokerConnectionString,
-            }
-          : undefined,
+        ssl: connectionStringMechanism ? true : false,
+        sasl: connectionStringMechanism,
       }
     : {
         clientId: config.kafkaClientId,
@@ -182,7 +182,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         logLevel: config.kafkaLogLevel,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
-        sasl: {
+        sasl: connectionStringMechanism ?? {
           mechanism: "oauthbearer",
           oauthBearerProvider: () =>
             oauthBearerTokenProvider(config.awsRegion, genericLogger),

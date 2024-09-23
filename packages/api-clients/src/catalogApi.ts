@@ -3,7 +3,7 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type CatalogApi = typeof catalogApi.processApi.api;
 
-export type GetCatalogQueryParam = QueryParametersByAlias<
+export type GetEServicesQueryParams = QueryParametersByAlias<
   CatalogApi,
   "getEServices"
 >;

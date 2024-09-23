@@ -1,4 +1,8 @@
-import { WithLogger, FileManager, toSetToArray } from "pagopa-interop-commons";
+import {
+  WithLogger,
+  FileManager,
+  removeDuplicates,
+} from "pagopa-interop-commons";
 import {
   EServiceId,
   PurposeId,
@@ -19,7 +23,7 @@ import {
   CatalogProcessClient,
   PurposeProcessClient,
   TenantProcessClient,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -28,13 +32,14 @@ import {
   purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
-} from "../model/domain/errors.js";
+} from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { toBffApiCompactClient } from "../model/domain/apiConverter.js";
-import { isAgreementUpgradable } from "../model/validators.js";
 import { config } from "../config/config.js";
+import { contentTypes } from "../utilities/mimeTypes.js";
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { isAgreementUpgradable } from "./validators.js";
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -186,10 +191,13 @@ export function purposeServiceBuilder(
   ): Promise<bffApi.Purposes> => {
     const distinctFilters = {
       ...filters,
-      eseviceIds: filters.eservicesIds && toSetToArray(filters.eservicesIds),
-      consumersIds: filters.consumersIds && toSetToArray(filters.consumersIds),
-      producersIds: filters.producersIds && toSetToArray(filters.producersIds),
-      states: filters.states && toSetToArray(filters.states),
+      eseviceIds:
+        filters.eservicesIds && removeDuplicates(filters.eservicesIds),
+      consumersIds:
+        filters.consumersIds && removeDuplicates(filters.consumersIds),
+      producersIds:
+        filters.producersIds && removeDuplicates(filters.producersIds),
+      states: filters.states && removeDuplicates(filters.states),
     };
 
     const purposes = await purposeProcessClient.getPurposes({
@@ -202,7 +210,7 @@ export function purposeServiceBuilder(
     });
 
     const eservices = await Promise.all(
-      toSetToArray(purposes.results.map((p) => p.eserviceId)).map(
+      removeDuplicates(purposes.results.map((p) => p.eserviceId)).map(
         (eServiceId) =>
           catalogProcessClient.getEServiceById({
             params: {
@@ -221,10 +229,10 @@ export function purposeServiceBuilder(
         headers,
       });
     const consumers = await Promise.all(
-      toSetToArray(purposes.results.map((p) => p.consumerId)).map(getTenant)
+      removeDuplicates(purposes.results.map((p) => p.consumerId)).map(getTenant)
     );
     const producers = await Promise.all(
-      toSetToArray(eservices.map((e) => e.producerId)).map(getTenant)
+      removeDuplicates(eservices.map((e) => e.producerId)).map(getTenant)
     );
 
     const results = await Promise.all(
@@ -411,19 +419,6 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      // from https://doc.akka.io/api/akka-http/current/akka/http/scaladsl/model/ContentTypes$.html
-      const contentTypes = [
-        "NoContentType",
-        "application/grpc+proto",
-        "application/json",
-        "application/octet-stream",
-        "application/x-www-form-urlencoded",
-        "text/csv(UTF-8)",
-        "text/html(UTF-8)",
-        "text/plain(UTF-8)",
-        "text/xml(UTF-8)",
-      ];
-
       if (!contentTypes.includes(document.contentType)) {
         throw invalidRiskAnalysisContentType(
           document.contentType,
@@ -434,7 +429,7 @@ export function purposeServiceBuilder(
       }
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsPath,
+        config.riskAnalysisDocumentsContainer,
         document.path,
         logger
       );
