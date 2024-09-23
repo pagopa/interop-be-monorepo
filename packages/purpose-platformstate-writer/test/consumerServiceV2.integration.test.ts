@@ -409,9 +409,100 @@ describe("integration tests", () => {
     });
 
     describe("NewPurposeVersionActivated", async () => {
-      // TODO: same test as PurposeActivated no operation
-      // it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
-      // });
+      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+        const previousEntryVersion = 2;
+        const messageVersion = 1;
+
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: purposeVersions,
+        };
+        const purposeId = purpose.id;
+        const purposeState = purposeToItemState(purpose);
+
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousStateEntry: PlatformStatesPurposeEntry = {
+          PK: purposeEntryPrimaryKey,
+          state: purposeState,
+          purposeVersionId: purposeVersions[0].id,
+          purposeEserviceId: purpose.eserviceId,
+          purposeConsumerId: purpose.consumerId,
+          version: previousEntryVersion,
+          updatedAt: mockDate.toISOString(),
+        };
+        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+
+        // token-generation-states
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: [
+            {
+              ...purposeVersions[0],
+              state: purposeVersionState.suspended,
+              suspendedAt: new Date(),
+            },
+          ],
+          suspendedByConsumer: true,
+        };
+
+        const payload: NewPurposeVersionActivatedV2 = {
+          purpose: toPurposeV2(updatedPurpose),
+          versionId: purposeVersions[0].id,
+        };
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "NewPurposeVersionActivated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        expect(retrievedPlatformPurposeEntry).toEqual(previousStateEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries = await readTokenEntriesByPurposeId(
+          dynamoDBClient,
+          purposeId
+        );
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
+      });
 
       it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
@@ -644,9 +735,100 @@ describe("integration tests", () => {
     });
 
     describe("PurposeVersionActivated", async () => {
-      // TODO: same test as PurposeActivated no operation
-      // it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
-      // });
+      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+        const previousEntryVersion = 2;
+        const messageVersion = 1;
+
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: purposeVersions,
+        };
+        const purposeId = purpose.id;
+        const purposeState = purposeToItemState(purpose);
+
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousStateEntry: PlatformStatesPurposeEntry = {
+          PK: purposeEntryPrimaryKey,
+          state: purposeState,
+          purposeVersionId: purposeVersions[0].id,
+          purposeEserviceId: purpose.eserviceId,
+          purposeConsumerId: purpose.consumerId,
+          version: previousEntryVersion,
+          updatedAt: mockDate.toISOString(),
+        };
+        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+
+        // token-generation-states
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: [
+            {
+              ...purposeVersions[0],
+              state: purposeVersionState.suspended,
+              suspendedAt: new Date(),
+            },
+          ],
+          suspendedByConsumer: true,
+        };
+
+        const payload: PurposeVersionActivatedV2 = {
+          purpose: toPurposeV2(updatedPurpose),
+          versionId: purposeVersions[0].id,
+        };
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "PurposeVersionActivated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        expect(retrievedPlatformPurposeEntry).toEqual(previousStateEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries = await readTokenEntriesByPurposeId(
+          dynamoDBClient,
+          purposeId
+        );
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
+      });
 
       it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
