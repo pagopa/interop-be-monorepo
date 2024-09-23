@@ -19,26 +19,46 @@ import {
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
-} from "../providers/clientProvider.js";
+} from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import { isAgreementUpgradable } from "../model/validators.js";
 import {
   agreementDescriptorNotFound,
   contractException,
   contractNotFound,
   invalidContentType,
-} from "../model/domain/errors.js";
-import {
-  toCompactDescriptor,
-  toCompactEservice,
-  toCompactEserviceLight,
-  toCompactOrganization,
-} from "../model/api/converters/catalogClientApiConverter.js";
+} from "../model/errors.js";
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
-import { getBulkAttributes } from "./attributeService.js";
+import {
+  toCompactEservice,
+  toCompactDescriptor,
+} from "../api/catalogApiConverter.js";
+import {
+  toBffCompactOrganization,
+  toCompactEserviceLight,
+} from "../api/agreementApiConverter.js";
+import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
+import { isAgreementUpgradable } from "./validators.js";
+
+export async function getAllAgreements(
+  agreementProcessClient: AgreementProcessClient,
+  headers: BffAppContext["headers"],
+  getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
+): Promise<agreementApi.Agreement[]> {
+  return await getAllFromPaginated<agreementApi.Agreement>(
+    async (offset, limit) =>
+      await agreementProcessClient.getAgreements({
+        headers,
+        queries: {
+          ...getAgreementsQueryParams,
+          offset,
+          limit,
+        },
+      })
+  );
+}
 
 export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
@@ -318,8 +338,9 @@ export function agreementServiceBuilder(
 
     async deleteAgreement(
       agreementId: string,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
+      logger.info(`Deleting agreement ${agreementId}`);
       return await agreementProcessClient.deleteAgreement(undefined, {
         params: { agreementId },
         headers,
@@ -330,6 +351,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
+      ctx.logger.info(`Activating agreement ${agreementId}`);
       const agreement = await agreementProcessClient.activateAgreement(
         undefined,
         {
@@ -342,8 +364,9 @@ export function agreementServiceBuilder(
 
     async cloneAgreement(
       agreementId: string,
-      { headers }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
+      logger.info(`Cloning agreement ${agreementId}`);
       const agreement = await agreementProcessClient.cloneAgreement(undefined, {
         params: { agreementId },
         headers,
@@ -397,10 +420,17 @@ export function agreementServiceBuilder(
     },
 
     async getAgreementsEserviceConsumers(
-      offset: number,
-      limit: number,
-      requesterId: string,
-      eServiceName: string | undefined,
+      {
+        offset,
+        limit,
+        requesterId,
+        eServiceName,
+      }: {
+        offset: number;
+        limit: number;
+        requesterId: string;
+        eServiceName?: string;
+      },
       { headers, logger }: WithLogger<BffAppContext>
     ) {
       logger.info(
@@ -432,9 +462,11 @@ export function agreementServiceBuilder(
     },
 
     async getAgreementProducers(
-      offset: number,
-      limit: number,
-      producerName: string | undefined,
+      {
+        offset,
+        limit,
+        producerName,
+      }: { offset: number; limit: number; producerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement producers`);
@@ -458,14 +490,16 @@ export function agreementServiceBuilder(
           offset,
           totalCount: producers.totalCount,
         },
-        results: producers.results.map((p) => toCompactOrganization(p)),
+        results: producers.results.map((p) => toBffCompactOrganization(p)),
       };
     },
 
     async getAgreementConsumers(
-      offset: number,
-      limit: number,
-      consumerName: string | undefined,
+      {
+        offset,
+        limit,
+        consumerName,
+      }: { offset: number; limit: number; consumerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
       logger.info(`Retrieving agreement consumers`);
@@ -489,7 +523,7 @@ export function agreementServiceBuilder(
           offset,
           totalCount: consumers.totalCount,
         },
-        results: consumers.results.map((c) => toCompactOrganization(c)),
+        results: consumers.results.map((c) => toBffCompactOrganization(c)),
       };
     },
   };
@@ -501,17 +535,13 @@ export const getLatestAgreement = async (
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
-  const allAgreements = await getAllFromPaginated(
-    async (offset: number, limit: number) =>
-      agreementProcessClient.getAgreements({
-        headers,
-        queries: {
-          consumersIds: [consumerId],
-          eservicesIds: [eservice.id],
-          limit,
-          offset,
-        },
-      })
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      eservicesIds: [eservice.id],
+    }
   );
 
   type AgreementAndDescriptor = {
@@ -607,10 +637,10 @@ export async function enrichAgreement(
     ...tenantAttributesIds(consumer),
   ]);
 
-  const attributes = await getBulkAttributes(
-    allAttributesIds,
+  const attributes = await getAllBulkAttributes(
     clients.attributeProcessClient,
-    ctx
+    ctx.headers,
+    allAttributesIds
   );
 
   const agreementVerifiedAttrs = filterAttributes(

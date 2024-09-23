@@ -1,5 +1,21 @@
 import { z } from "zod";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  RedisRateLimiterConfig,
+  ReadModelDbConfig,
+} from "pagopa-interop-commons";
+
+export const CatalogProcessServerConfig = z
+  .object({
+    CATALOG_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    catalogProcessUrl: c.CATALOG_PROCESS_URL,
+  }));
+export type CatalogProcessServerConfig = z.infer<
+  typeof CatalogProcessServerConfig
+>;
 
 export const AgreementProcessServerConfig = z
   .object({
@@ -30,12 +46,40 @@ export const PurposeProcessServerConfig = z
   .transform((c) => ({
     purposeProcessUrl: c.PURPOSE_PROCESS_URL,
   }));
+export type PurposeProcessServerConfig = z.infer<
+  typeof PurposeProcessServerConfig
+>;
 
-const ApiGatewayConfig = CommonHTTPServiceConfig.and(
-  AgreementProcessServerConfig
-)
+export const AttributeRegistryProcessServerConfig = z
+  .object({
+    ATTRIBUTE_REGISTRY_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    attributeRegistryProcessUrl: c.ATTRIBUTE_REGISTRY_PROCESS_URL,
+  }));
+export type AttributeRegistryProcessServerConfig = z.infer<
+  typeof AttributeRegistryProcessServerConfig
+>;
+
+export const AuthorizationProcessServerConfig = z
+  .object({
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    authorizationProcessUrl: c.AUTHORIZATION_PROCESS_URL,
+  }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
+
+const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
+  .and(CatalogProcessServerConfig)
+  .and(AgreementProcessServerConfig)
   .and(TenantProcessServerConfig)
-  .and(PurposeProcessServerConfig);
+  .and(PurposeProcessServerConfig)
+  .and(AuthorizationProcessServerConfig)
+  .and(AttributeRegistryProcessServerConfig)
+  .and(ReadModelDbConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
 export const config: ApiGatewayConfig = ApiGatewayConfig.parse(process.env);

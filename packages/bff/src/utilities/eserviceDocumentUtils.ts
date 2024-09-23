@@ -17,10 +17,10 @@ import {
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
-} from "../model/domain/errors.js";
-import { CatalogProcessClient } from "../providers/clientProvider.js";
+} from "../model/errors.js";
+import { CatalogProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { ConfigurationDoc } from "../model/api/apiTypes.js";
+import { ConfigurationDoc } from "../model/types.js";
 import { calculateChecksum } from "./fileUtils.js";
 
 // eslint-disable-next-line max-params
@@ -49,7 +49,7 @@ export async function verifyAndCreateEServiceDocument(
   );
   const filePath = await fileManager.storeBytes(
     {
-      bucket: config.s3Bucket,
+      bucket: config.eserviceDocumentsContainer,
       path: config.eserviceDocumentsPath,
       resourceId: documentId,
       name: doc.doc.name,
@@ -80,7 +80,11 @@ export async function verifyAndCreateEServiceDocument(
       }
     );
   } catch (error) {
-    await fileManager.delete(config.s3Bucket, filePath, ctx.logger);
+    await fileManager.delete(
+      config.eserviceDocumentsContainer,
+      filePath,
+      ctx.logger
+    );
     throw error;
   }
 }

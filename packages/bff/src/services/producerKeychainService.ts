@@ -8,10 +8,10 @@ import {
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { SelfcareId } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../model/domain/apiConverter.js";
-import { toBffApiCompactUser } from "../model/api/converters/catalogClientApiConverter.js";
+import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients,
