@@ -23,6 +23,9 @@ export const errorCodes = {
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
   missingActivePurposeVersion: "0018",
+  activeAgreementByEserviceAndConsumerNotFound: "0019",
+  multipleAgreementForEserviceAndConsumer: "0020",
+  purposeIdNotFoundInClientAssertion: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -191,5 +194,35 @@ export function missingActivePurposeVersion(
     detail: `There is no active version for purpose ${purposeId}`,
     code: "missingActivePurposeVersion",
     title: "Missing active purpose version",
+  });
+}
+
+export function activeAgreementByEserviceAndConsumerNotFound(
+  eserviceId: string,
+  consumerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Active agreement for Eservice ${eserviceId} and consumer ${consumerId} not found`,
+    code: "activeAgreementByEserviceAndConsumerNotFound",
+    title: "Active agreement not found",
+  });
+}
+
+export function multipleAgreementForEserviceAndConsumer(
+  eserviceId: string,
+  consumerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Multiple agreements for Eservice ${eserviceId} and consumer ${consumerId} found`,
+    code: "multipleAgreementForEserviceAndConsumer",
+    title: "Multiple agreement found",
+  });
+}
+
+export function purposeIdNotFoundInClientAssertion(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PurposeId not found in client assertion`,
+    code: "purposeIdNotFoundInClientAssertion",
+    title: "PurposeId not found in client assertion",
   });
 }

@@ -34,8 +34,11 @@ import {
 } from "../providers/clientProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
+  activeAgreementByEserviceAndConsumerNotFound,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
+  multipleAgreementForEserviceAndConsumer,
+  purposeIdNotFoundInClientAssertion,
 } from "../model/domain/errors.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -99,7 +102,10 @@ async function retrieveKey(
     },
   });
 
-  const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId ?? ""); // TODO check if not exists
+  if (!jwt.payload.purposeId) {
+    throw purposeIdNotFoundInClientAssertion();
+  }
+  const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
   if (client.client.kind === authorizationApi.ClientKind.enum.API) {
     return {
@@ -171,8 +177,11 @@ async function retrieveAgreement(
       })
   );
 
-  // TODO assert only one exists
-
+  assertOnlyOneAgreementForEserviceAndConsumerExists(
+    agreements,
+    eserviceId,
+    consumerId
+  );
   return agreements[0];
 }
 
@@ -235,3 +244,15 @@ const purposeVersionStateToItemState = (
   state === purposeApi.PurposeVersionState.Enum.ACTIVE
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
+
+export function assertOnlyOneAgreementForEserviceAndConsumerExists(
+  agreements: agreementApi.Agreement[],
+  eserviceId: string,
+  consumerId: string
+): asserts agreements is [agreementApi.Agreement] {
+  if (agreements.length === 0) {
+    throw activeAgreementByEserviceAndConsumerNotFound(eserviceId, consumerId);
+  } else if (agreements.length > 1) {
+    throw multipleAgreementForEserviceAndConsumer(eserviceId, consumerId);
+  }
+}
