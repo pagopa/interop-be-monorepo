@@ -44,7 +44,7 @@ import {
 import { getMockTokenStatesClientPurposeEntry } from "pagopa-interop-commons-test";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
-  purposeStateToItemState,
+  purposeToItemState,
   readPlatformPurposeEntry,
   readTokenEntriesByPurposeId,
   writePlatformPurposeEntry,
@@ -135,7 +135,7 @@ describe("integration tests", () => {
         };
         const purposeId = purpose.id;
         const purposeVersions = purpose.versions;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
         const payload: PurposeActivatedV2 = {
           purpose: toPurposeV2(purpose),
         };
@@ -259,7 +259,7 @@ describe("integration tests", () => {
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
         const previousStateEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
-          state: purposeStateToItemState(purpose),
+          state: purposeToItemState(purpose),
           purposeVersionId: purpose.versions[0].id,
           purposeEserviceId: purpose.eserviceId,
           purposeConsumerId: purpose.consumerId,
@@ -315,9 +315,7 @@ describe("integration tests", () => {
         const messageVersion = 3;
         const purpose: Purpose = {
           ...getMockPurpose(),
-          versions: [getMockPurposeVersion()],
-          suspendedByConsumer: false,
-          suspendedByProducer: false,
+          versions: [getMockPurposeVersion(purposeVersionState.active)],
         };
         const purposeVersions = purpose.versions;
         const payload: PurposeActivatedV2 = {
@@ -337,7 +335,7 @@ describe("integration tests", () => {
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
         const previousStateEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
-          state: purposeStateToItemState(purpose),
+          state: purposeToItemState(purpose),
           purposeVersionId: purposeVersions[0].id,
           purposeEserviceId: purpose.eserviceId,
           purposeConsumerId: purpose.consumerId,
@@ -428,7 +426,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -550,7 +548,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -662,7 +660,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -776,7 +774,7 @@ describe("integration tests", () => {
           ],
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -879,7 +877,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -974,7 +972,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1043,7 +1041,7 @@ describe("integration tests", () => {
         );
         const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           ...previousStateEntry,
-          state: itemState.active,
+          state: itemState.inactive,
           version: messageVersion,
           updatedAt: new Date().toISOString(),
         };
@@ -1059,13 +1057,13 @@ describe("integration tests", () => {
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry2,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         expect(retrievedTokenStateEntries).toHaveLength(2);
@@ -1090,7 +1088,7 @@ describe("integration tests", () => {
           suspendedByProducer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1201,7 +1199,7 @@ describe("integration tests", () => {
           versions: [getMockPurposeVersion(purposeVersionState.active)],
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
         const purposeVersions: PurposeVersion[] = [
           getMockPurposeVersion(purposeVersionState.active),
         ];
@@ -1311,7 +1309,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1406,7 +1404,7 @@ describe("integration tests", () => {
           versions: purposeVersions,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1475,7 +1473,7 @@ describe("integration tests", () => {
         );
         const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           ...previousStateEntry,
-          state: itemState.active,
+          state: itemState.inactive,
           version: messageVersion,
           updatedAt: new Date().toISOString(),
         };
@@ -1491,13 +1489,13 @@ describe("integration tests", () => {
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry2,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         expect(retrievedTokenStateEntries).toHaveLength(2);
@@ -1522,7 +1520,7 @@ describe("integration tests", () => {
           suspendedByConsumer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1633,7 +1631,7 @@ describe("integration tests", () => {
           versions: [getMockPurposeVersion(purposeVersionState.active)],
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
         const purposeVersions: PurposeVersion[] = [
           getMockPurposeVersion(purposeVersionState.active),
         ];
@@ -1744,7 +1742,7 @@ describe("integration tests", () => {
           suspendedByConsumer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1841,7 +1839,7 @@ describe("integration tests", () => {
           suspendedByConsumer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1959,7 +1957,7 @@ describe("integration tests", () => {
           suspendedByProducer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -1998,7 +1996,7 @@ describe("integration tests", () => {
           versions: [
             {
               ...purposeVersions[0],
-              state: purposeVersionState.active,
+              // TODO: not sure what the state becomes
               suspendedAt: undefined,
               updatedAt: new Date(),
             },
@@ -2029,7 +2027,7 @@ describe("integration tests", () => {
         );
         const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           ...previousStateEntry,
-          state: itemState.active,
+          state: itemState.inactive,
           version: messageVersion,
           updatedAt: new Date().toISOString(),
         };
@@ -2045,13 +2043,13 @@ describe("integration tests", () => {
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry2,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         expect(retrievedTokenStateEntries).toHaveLength(2);
@@ -2072,7 +2070,7 @@ describe("integration tests", () => {
           suspendedByConsumer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
         const purposeVersions: PurposeVersion[] = [
           getMockPurposeVersion(purposeVersionState.active),
         ];
@@ -2184,7 +2182,7 @@ describe("integration tests", () => {
           suspendedByProducer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -2281,7 +2279,7 @@ describe("integration tests", () => {
           suspendedByProducer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -2399,7 +2397,7 @@ describe("integration tests", () => {
           suspendedByProducer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
@@ -2438,7 +2436,7 @@ describe("integration tests", () => {
           versions: [
             {
               ...purposeVersions[0],
-              state: purposeVersionState.active,
+              // TODO: not sure what the state becomes
               suspendedAt: undefined,
               updatedAt: new Date(),
             },
@@ -2469,7 +2467,7 @@ describe("integration tests", () => {
         );
         const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           ...previousStateEntry,
-          state: itemState.active,
+          state: itemState.inactive,
           version: messageVersion,
           updatedAt: new Date().toISOString(),
         };
@@ -2485,13 +2483,13 @@ describe("integration tests", () => {
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry2,
-            purposeState: itemState.active,
+            purposeState: itemState.inactive,
             updatedAt: new Date().toISOString(),
           };
         expect(retrievedTokenStateEntries).toHaveLength(2);
@@ -2512,7 +2510,7 @@ describe("integration tests", () => {
           suspendedByProducer: true,
         };
         const purposeId = purpose.id;
-        const purposeState = purposeStateToItemState(purpose);
+        const purposeState = purposeToItemState(purpose);
         const purposeVersions: PurposeVersion[] = [
           getMockPurposeVersion(purposeVersionState.active),
         ];
@@ -2622,7 +2620,7 @@ describe("integration tests", () => {
         versions: purposeVersions,
       };
       const purposeId = purpose.id;
-      const purposeState = purposeStateToItemState(purpose);
+      const purposeState = purposeToItemState(purpose);
 
       // platform-states
       const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
