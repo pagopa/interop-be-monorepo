@@ -275,6 +275,7 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
         ":gsiValue": { S: consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
+      ScanIndexForward: false,
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
