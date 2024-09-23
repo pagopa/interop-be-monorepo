@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
+  Attribute,
   Tenant,
   TenantAttribute,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { SftpConfig } from "../src/config/sftpConfig.js";
-import { PersistentAttribute } from "../src/model/attributeModel.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 import {
   ANAC_ASSIGNED_CODE,
@@ -84,26 +84,26 @@ export const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
 export const getAttributeByExternalIdMock = (
   origin: string,
   code: string
-): Promise<PersistentAttribute> => {
+): Promise<Attribute> => {
   switch (code) {
     case ANAC_ENABLED_CODE:
       return Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_ANAC_ENABLED_ID,
+        id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
         origin,
         code,
       });
     case ANAC_IN_VALIDATION_CODE:
       return Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_ANAC_IN_VALIDATION_ID,
+        id: unsafeBrandId(ATTRIBUTE_ANAC_IN_VALIDATION_ID),
         origin,
         code,
       });
     case ANAC_ASSIGNED_CODE:
       return Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_ANAC_ASSIGNED_ID,
+        id: unsafeBrandId(ATTRIBUTE_ANAC_ASSIGNED_ID),
         origin,
         code,
       });
@@ -124,10 +124,14 @@ export const persistentTenant: Tenant = {
   mails: [],
 };
 
-export const persistentAttribute: PersistentAttribute = {
-  id: "7a04c906-1525-4c68-8a5b-d740d77d9c80",
+export const persistentAttribute: Attribute = {
+  id: unsafeBrandId("7a04c906-1525-4c68-8a5b-d740d77d9c80"),
   origin: "attributeOrigin",
   code: "attributeCode",
+  name: "attributeName",
+  kind: "Certified",
+  creationTime: new Date(),
+  description: "attributeDescription",
 };
 
 export const persistentTenantAttribute: TenantAttribute = {
