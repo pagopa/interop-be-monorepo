@@ -3,7 +3,10 @@ import {
   attributeRegistryApi,
   catalogApi,
 } from "pagopa-interop-api-clients";
-import { assertRegistryAttributeExists } from "../services/validators.js";
+import {
+  assertNonDraftDescriptor,
+  assertRegistryAttributeExists,
+} from "../services/validators.js";
 
 export type NonDraftCatalogApiDescriptor = catalogApi.EServiceDescriptor & {
   state: Exclude<catalogApi.EServiceDescriptorState, "DRAFT">;
@@ -77,5 +80,37 @@ export function toApiGatewayEserviceAttributes(
       eserviceDescriptorAttributes.verified,
       registryAttributes
     ),
+  };
+}
+
+export function toApiGatewayDescriptorDocument(
+  doc: catalogApi.EServiceDescriptor["docs"][number]
+): apiGatewayApi.EServiceDescriptor["docs"][number] {
+  return {
+    id: doc.id,
+    name: doc.name,
+    contentType: doc.contentType,
+  };
+}
+
+export function toApiGatewayDescriptorIfNotDraft(
+  descriptor: catalogApi.EServiceDescriptor
+): apiGatewayApi.EServiceDescriptor {
+  assertNonDraftDescriptor(descriptor, descriptor.id);
+
+  return {
+    id: descriptor.id,
+    version: descriptor.version,
+    description: descriptor.description,
+    audience: descriptor.audience,
+    voucherLifespan: descriptor.voucherLifespan,
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    interface: descriptor.interface
+      ? toApiGatewayDescriptorDocument(descriptor.interface)
+      : undefined,
+    docs: descriptor.docs.map(toApiGatewayDescriptorDocument),
+    state: descriptor.state,
+    serverUrls: descriptor.serverUrls,
   };
 }

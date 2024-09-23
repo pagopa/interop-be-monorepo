@@ -15,6 +15,8 @@ export const errorCodes = {
   missingAvailableDescriptor: "0006",
   unexpectedDescriptorState: "0007",
   attributeNotFoundInRegistry: "0008",
+  eserviceDescriptorNotFound: "0009",
+  keyNotFound: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -100,5 +102,24 @@ export function attributeNotFoundInRegistry(
     detail: `Attribute ${attributeId} not found in Attribute Registry`,
     code: "attributeNotFoundInRegistry",
     title: "Attribute not found in Attribute Registry",
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eserviceId: catalogApi.EService["id"],
+  descriptorId: catalogApi.EServiceDescriptor["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for EService ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "Descriptor not found",
+  });
+}
+
+export function keyNotFound(kId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key with kId ${kId} not found`,
+    code: "keyNotFound",
+    title: "Key not found",
   });
 }

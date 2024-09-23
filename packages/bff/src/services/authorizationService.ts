@@ -1,6 +1,5 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
-  AuthToken,
   CustomClaims,
   InteropTokenGenerator,
   Logger,
@@ -69,26 +68,28 @@ export function authorizationServiceBuilder(
 
     const decoded = decodeJwtToken(identityToken);
 
-    const {
-      success: validToken,
-      data: token,
-      error,
-    } = AuthToken.safeParse(decoded);
-    if (!validToken) {
-      const claim = error?.errors[0]?.path.join(".");
+    const userRoles: string[] = decoded?.organization?.roles
+      ? decoded.organization.roles.map((r: { role: string }) => r.role)
+      : decoded?.[USER_ROLES]
+      ? decoded[USER_ROLES].split(",")
+      : decoded?.role
+      ? decoded.role.split(",")
+      : [];
+
+    if (userRoles.length === 0) {
+      throw genericError("Unable to extract userRoles from claims");
+    }
+
+    const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
+    if (error) {
+      const claim = error.errors[0].path.join(".");
       throw missingClaim(claim);
     }
 
-    if (token.role) {
-      throw genericError("User roles in context are not in valid format");
-    }
-
-    const sessionClaims = SessionClaims.parse(token);
-
-    const selfcareId = token[ORGANIZATION].id;
+    const selfcareId = sessionClaims[ORGANIZATION].id;
 
     return {
-      roles: token[USER_ROLES].join(","),
+      roles: userRoles.join(","),
       sessionClaims,
       selfcareId,
     };
