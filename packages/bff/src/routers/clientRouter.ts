@@ -51,14 +51,16 @@ const clientRouter = (
 
         return res
           .status(200)
-          .json({
-            results: clients.results.map(toBffApiCompactClient),
-            pagination: {
-              limit,
-              offset,
-              totalCount: clients.totalCount,
-            },
-          })
+          .json(
+            bffApi.CompactClients.parse({
+              results: clients.results.map(toBffApiCompactClient),
+              pagination: {
+                limit,
+                offset,
+                totalCount: clients.totalCount,
+              },
+            })
+          )
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -79,7 +81,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).json(client).end();
+        return res.status(200).json(bffApi.Client.parse(client)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -139,7 +141,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).json(key).end();
+        return res.status(200).json(bffApi.PublicKey.parse(key)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -182,7 +184,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).json(createdUser);
+        return res.status(200).json(bffApi.CreatedResource.parse(createdUser));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -248,7 +250,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).json(users).end();
+        return res.status(200).json(bffApi.CompactUsers.parse(users)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -286,7 +288,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).json({ keys }).end();
+        return res.status(200).json(bffApi.PublicKeys.parse({ keys })).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -307,7 +309,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).json(key).end();
+        return res.status(200).json(bffApi.EncodedClientKey.parse(key)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -325,7 +327,7 @@ const clientRouter = (
       try {
         const result = await clientService.createConsumerClient(req.body, ctx);
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -343,7 +345,7 @@ const clientRouter = (
       try {
         const result = await clientService.createApiClient(req.body, ctx);
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
