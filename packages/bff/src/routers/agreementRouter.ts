@@ -58,7 +58,7 @@ const agreementRouter = (
           },
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreements.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -75,7 +75,7 @@ const agreementRouter = (
 
       try {
         const result = await agreementService.createAgreement(req.body, ctx);
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -104,7 +104,10 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CompactEServicesLight.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -132,7 +135,10 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CatalogEServices.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -157,7 +163,10 @@ const agreementRouter = (
           },
           ctx
         );
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CompactOrganizations.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -182,7 +191,10 @@ const agreementRouter = (
           },
           ctx
         );
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CompactOrganizations.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -202,7 +214,7 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -261,7 +273,7 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -281,7 +293,10 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CompactAgreement.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -373,7 +388,7 @@ const agreementRouter = (
           req.body,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -393,7 +408,7 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -414,7 +429,7 @@ const agreementRouter = (
           req.body,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -452,7 +467,7 @@ const agreementRouter = (
           req.body,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -472,7 +487,7 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Agreement.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
