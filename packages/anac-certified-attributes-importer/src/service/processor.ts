@@ -213,17 +213,23 @@ async function getAttributesIdentifiers(
   return {
     anacAbilitato: {
       id: anacAbilitato.id,
-      externalId: { origin: anacAbilitato.origin, value: anacAbilitato.code },
+      externalId: {
+        origin: anacAbilitato.origin || "",
+        value: anacAbilitato.code || "",
+      },
     },
     anacIncaricato: {
       id: anacIncaricato.id,
-      externalId: { origin: anacIncaricato.origin, value: anacIncaricato.code },
+      externalId: {
+        origin: anacIncaricato.origin || "",
+        value: anacIncaricato.code || "",
+      },
     },
     anacInConvalida: {
       id: anacInConvalida.id,
       externalId: {
-        origin: anacInConvalida.origin,
-        value: anacInConvalida.code,
+        origin: anacInConvalida.origin || "",
+        value: anacInConvalida.code || "",
       },
     },
   };
