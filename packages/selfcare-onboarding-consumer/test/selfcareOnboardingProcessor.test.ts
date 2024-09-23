@@ -11,12 +11,16 @@ import {
   expect,
 } from "vitest";
 import {
+  getInteropHeaders,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
 import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
-import { TenantProcessClient } from "../src/clients/tenantProcessClient.js";
+import {
+  TenantProcessClient,
+  tenantProcessClientBuilder,
+} from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
 import {
   allowedOrigins,
@@ -27,10 +31,13 @@ import {
   interopToken,
   kafkaMessagePayload,
   selfcareUpsertTenantMock,
+  uuidRegexp,
 } from "./utils.js";
 
 describe("Message processor", () => {
-  let mockTenantProcessClient: TenantProcessClient;
+  let tenantProcessClientMock: TenantProcessClient = tenantProcessClientBuilder(
+    config.tenantProcessUrl
+  );
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareOnboardingProcessor: ReturnType<
@@ -40,7 +47,7 @@ describe("Message processor", () => {
   beforeAll(async () => {
     selfcareOnboardingProcessor = selfcareOnboardingProcessorBuilder(
       refreshableTokenMock,
-      mockTenantProcessClient,
+      tenantProcessClientMock,
       interopProductName,
       allowedOrigins
     );
@@ -58,7 +65,7 @@ describe("Message processor", () => {
       .mockImplementation(generateInternalTokenMock);
 
     selfcareUpsertTenantSpy = vi
-      .spyOn(mockTenantProcessClient.selfcare, "selfcareUpsertTenant")
+      .spyOn(tenantProcessClientMock.selfcare, "selfcareUpsertTenant")
       .mockImplementation(selfcareUpsertTenantMock);
   });
 
@@ -170,7 +177,12 @@ describe("Message processor", () => {
         selfcareId: correctEventPayload.internalIstitutionID,
         name: correctInstitutionEventField.description,
       }),
-      expect.objectContaining({ bearerToken: interopToken.serialized })
+      expect.objectContaining({
+        headers: getInteropHeaders({
+          token: interopToken.serialized,
+          correlationId: expect.stringMatching(uuidRegexp),
+        }),
+      })
     );
   });
 
@@ -204,7 +216,12 @@ describe("Message processor", () => {
         selfcareId: correctEventPayload.internalIstitutionID,
         name: correctInstitutionEventField.description,
       }),
-      expect.objectContaining({ bearerToken: interopToken.serialized })
+      expect.objectContaining({
+        headers: getInteropHeaders({
+          token: interopToken.serialized,
+          correlationId: expect.stringMatching(uuidRegexp),
+        }),
+      })
     );
   });
 
@@ -239,7 +256,12 @@ describe("Message processor", () => {
         selfcareId: correctEventPayload.internalIstitutionID,
         name: correctInstitutionEventField.description,
       }),
-      expect.objectContaining({ bearerToken: interopToken.serialized })
+      expect.objectContaining({
+        headers: getInteropHeaders({
+          token: interopToken.serialized,
+          correlationId: expect.stringMatching(uuidRegexp),
+        }),
+      })
     );
   });
 
@@ -274,7 +296,12 @@ describe("Message processor", () => {
         selfcareId: correctEventPayload.internalIstitutionID,
         name: correctInstitutionEventField.description,
       }),
-      expect.objectContaining({ bearerToken: interopToken.serialized })
+      expect.objectContaining({
+        headers: getInteropHeaders({
+          token: interopToken.serialized,
+          correlationId: expect.stringMatching(uuidRegexp),
+        }),
+      })
     );
   });
 
@@ -309,7 +336,12 @@ describe("Message processor", () => {
         selfcareId: correctEventPayload.internalIstitutionID,
         name: correctInstitutionEventField.description,
       }),
-      expect.objectContaining({ bearerToken: interopToken.serialized })
+      expect.objectContaining({
+        headers: getInteropHeaders({
+          token: interopToken.serialized,
+          correlationId: expect.stringMatching(uuidRegexp),
+        }),
+      })
     );
   });
 

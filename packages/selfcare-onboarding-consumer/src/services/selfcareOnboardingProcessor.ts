@@ -51,6 +51,7 @@ export function selfcareOnboardingProcessorBuilder(
           loggerInstance.info(
             `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
           );
+          return;
         }
 
         const eventPayload = InstitutionEventPayload.parse(jsonPayload);
