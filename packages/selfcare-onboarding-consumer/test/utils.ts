@@ -1,26 +1,13 @@
-import { MessageSetEntry } from "kafkajs";
-// import { tenantApi } from "pagopa-interop-api-clients";
-
-// import { afterEach, inject } from "vitest";
-// import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-
-// export const { cleanup, readModelRepository } = await setupTestContainersVitest(
-//   inject("readModelConfig")
-// );
-
-// afterEach(cleanup);
-
-// export const { tenants } =
-//   readModelRepository;
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { EachMessagePayload } from "kafkajs";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { InteropToken } from "pagopa-interop-commons";
 
 export const interopProductName = "test-interop-product";
 export const allowedOrigins = ["IPA", "ANAC", "IVASS"];
 
-// export const selfcareUpsertTenantMock = (
-//   _seed: tenantApi.SelfcareTenantSeed,
-//   _context: InteropContext
-// ): Promise<SelfcareUpsertTenantResponse> =>
-//   Promise.resolve({ id: "tenant-id" });
+export const selfcareUpsertTenantMock = (): Promise<tenantApi.ResourceId> =>
+  Promise.resolve({ id: "tenant-id" });
 
 export const correctInstitutionEventField = {
   institutionType: "PA",
@@ -63,13 +50,19 @@ export const correctEventPayload = {
   notificationType: "ADD",
 };
 
-export const kafkaMessage: MessageSetEntry = {
-  key: Buffer.from("kafka-message-key"),
-  value: Buffer.from(JSON.stringify(correctEventPayload)),
-  timestamp: "0",
-  attributes: 0,
-  offset: "10",
-  size: 100,
+export const kafkaMessagePayload: EachMessagePayload = {
+  topic: "kafka-test-topic",
+  partition: 0,
+  message: {
+    key: Buffer.from("kafka-message-key"),
+    value: Buffer.from(JSON.stringify(correctEventPayload)),
+    timestamp: "0",
+    attributes: 0,
+    offset: "10",
+    size: 100,
+  },
+  heartbeat: async () => {},
+  pause: () => () => {},
 };
 
 export const selfcareUpsertTenantSeed = {
@@ -79,4 +72,27 @@ export const selfcareUpsertTenantSeed = {
   },
   selfcareId: correctEventPayload.internalIstitutionID,
   name: correctEventPayload.institution.description,
+};
+
+export const generateInternalTokenMock = (): Promise<InteropToken> =>
+  Promise.resolve(interopToken);
+
+export const interopToken: InteropToken = {
+  header: {
+    alg: "algorithm",
+    use: "use",
+    typ: "type",
+    kid: "key-id",
+  },
+  payload: {
+    jti: "token-id",
+    iss: "issuer",
+    aud: ["audience1"],
+    sub: "subject",
+    iat: 0,
+    nbf: 0,
+    exp: 10,
+    role: "role1",
+  },
+  serialized: "the-token",
 };

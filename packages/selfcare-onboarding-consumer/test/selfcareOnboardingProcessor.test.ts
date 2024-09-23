@@ -1,25 +1,35 @@
 /* eslint-disable prefer-const */
 /* eslint-disable functional/no-let */
-import { vi, afterEach, beforeAll, beforeEach, describe } from "vitest";
-import { generateId } from "pagopa-interop-models";
 import {
-  getInteropHeaders,
+  vi,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  MockInstance,
+  it,
+  expect,
+} from "vitest";
+import {
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
+import { EachMessagePayload } from "kafkajs";
 import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
 import { TenantProcessClient } from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
-import { allowedOrigins, interopProductName } from "./utils.js";
+import {
+  allowedOrigins,
+  correctEventPayload,
+  correctInstitutionEventField,
+  generateInternalTokenMock,
+  interopProductName,
+  interopToken,
+  kafkaMessagePayload,
+  selfcareUpsertTenantMock,
+} from "./utils.js";
 
 describe("Message processor", () => {
-  const testCorrelationId = generateId();
-  const testToken = "mockToken";
-  const testHeaders = getInteropHeaders({
-    correlationId: testCorrelationId,
-    token: testToken,
-  });
-
   let mockTenantProcessClient: TenantProcessClient;
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
@@ -36,15 +46,18 @@ describe("Message processor", () => {
     );
   });
 
+  let refreshableInternalTokenSpy: MockInstance;
+  let selfcareUpsertTenantSpy: MockInstance;
+
   beforeEach(() => {
     vi.spyOn(tokenGeneratorMock, "generateInternalToken").mockImplementation(
       generateInternalTokenMock
     );
-    const refreshableInternalTokenSpy = vi
+    refreshableInternalTokenSpy = vi
       .spyOn(refreshableTokenMock, "get")
       .mockImplementation(generateInternalTokenMock);
 
-    const selfcareUpsertTenantSpy = vi
+    selfcareUpsertTenantSpy = vi
       .spyOn(mockTenantProcessClient.selfcare, "selfcareUpsertTenant")
       .mockImplementation(selfcareUpsertTenantMock);
   });
@@ -54,85 +67,100 @@ describe("Message processor", () => {
   });
 
   it("should skip empty message", async () => {
-    const message = { ...kafkaMessage, value: null };
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: { ...kafkaMessagePayload.message, value: null },
+    };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(0);
   });
 
   it("should throw an error if message is malformed", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from('{ not-a : "correct-json"'),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from('{ not-a : "correct-json"'),
+      },
     };
 
-    await expect(() => configuredProcessor(message, 0)).rejects.toThrowError(
-      /Error.*partition.*offset.*Reason/
-    );
+    await expect(() =>
+      selfcareOnboardingProcessor.processMessage(message)
+    ).rejects.toThrowError(/Error.*partition.*offset.*Reason/);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(0);
   });
 
   it("should skip message not containing required product", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({ ...correctEventPayload, product: "another-product" })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({ ...correctEventPayload, product: "another-product" })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(0);
   });
 
   it("should throw an error if message has unexpected schema", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        `{ "product" : "${interopProductName}", "this-schema" : "was-unexpected" }`
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          `{ "product" : "${interopProductName}", "this-schema" : "was-unexpected" }`
+        ),
+      },
     };
 
-    await expect(() => configuredProcessor(message, 0)).rejects.toThrowError(
-      /Error.*partition.*offset.*Reason/
-    );
+    await expect(() =>
+      selfcareOnboardingProcessor.processMessage(message)
+    ).rejects.toThrowError(/Error.*partition.*offset.*Reason/);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(0);
   });
 
   it("should upsert tenant on correct message", async () => {
-    const message = kafkaMessage;
+    const message = kafkaMessagePayload;
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
   });
 
   it("should upsert PA tenant - Main institution", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({
-          ...correctEventPayload,
-          institution: {
-            ...correctInstitutionEventField,
-            origin: "IPA",
-            originId: "ipa_123",
-            subUnitType: null,
-            subUnitCode: null,
-          },
-        })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            institution: {
+              ...correctInstitutionEventField,
+              origin: "IPA",
+              originId: "ipa_123",
+              subUnitType: null,
+              subUnitCode: null,
+            },
+          })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
@@ -147,23 +175,26 @@ describe("Message processor", () => {
   });
 
   it("should upsert PA tenant - AOO/UO", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({
-          ...correctEventPayload,
-          institution: {
-            ...correctInstitutionEventField,
-            origin: "IPA",
-            originId: "ipa_123",
-            subUnitType: "AOO",
-            subUnitCode: "AOO_456",
-          },
-        })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            institution: {
+              ...correctInstitutionEventField,
+              origin: "IPA",
+              originId: "ipa_123",
+              subUnitType: "AOO",
+              subUnitCode: "AOO_456",
+            },
+          })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
@@ -178,24 +209,27 @@ describe("Message processor", () => {
   });
 
   it("should upsert non-PA tenant with allowed origin", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({
-          ...correctEventPayload,
-          institution: {
-            ...correctInstitutionEventField,
-            origin: "ANAC",
-            originId: "ipa_123",
-            taxCode: "tax789",
-            subUnitType: null,
-            subUnitCode: null,
-          },
-        })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            institution: {
+              ...correctInstitutionEventField,
+              origin: "ANAC",
+              originId: "ipa_123",
+              taxCode: "tax789",
+              subUnitType: null,
+              subUnitCode: null,
+            },
+          })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
@@ -210,24 +244,27 @@ describe("Message processor", () => {
   });
 
   it("should upsert non-PA tenant with missing tax code", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({
-          ...correctEventPayload,
-          institution: {
-            ...correctInstitutionEventField,
-            origin: "ANAC",
-            originId: "anac_123",
-            taxCode: undefined,
-            subUnitType: null,
-            subUnitCode: null,
-          },
-        })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            institution: {
+              ...correctInstitutionEventField,
+              origin: "ANAC",
+              originId: "anac_123",
+              taxCode: undefined,
+              subUnitType: null,
+              subUnitCode: null,
+            },
+          })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
@@ -242,24 +279,27 @@ describe("Message processor", () => {
   });
 
   it("should upsert non-PA tenant with null tax code", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({
-          ...correctEventPayload,
-          institution: {
-            ...correctInstitutionEventField,
-            origin: "ANAC",
-            originId: "anac_123",
-            taxCode: null,
-            subUnitType: null,
-            subUnitCode: null,
-          },
-        })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            institution: {
+              ...correctInstitutionEventField,
+              origin: "ANAC",
+              originId: "anac_123",
+              taxCode: null,
+              subUnitType: null,
+              subUnitCode: null,
+            },
+          })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
@@ -274,24 +314,27 @@ describe("Message processor", () => {
   });
 
   it("should skip upsert of tenant with not allowed origin", async () => {
-    const message = {
-      ...kafkaMessage,
-      value: Buffer.from(
-        JSON.stringify({
-          ...correctEventPayload,
-          institution: {
-            ...correctInstitutionEventField,
-            origin: "not-allowed",
-            originId: "ipa_123",
-            taxCode: "tax789",
-            subUnitType: null,
-            subUnitCode: null,
-          },
-        })
-      ),
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            institution: {
+              ...correctInstitutionEventField,
+              origin: "not-allowed",
+              originId: "ipa_123",
+              taxCode: "tax789",
+              subUnitType: null,
+              subUnitCode: null,
+            },
+          })
+        ),
+      },
     };
 
-    await configuredProcessor(message, 0);
+    await selfcareOnboardingProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(0);
