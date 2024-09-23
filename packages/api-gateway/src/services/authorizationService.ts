@@ -1,6 +1,10 @@
 import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { operationForbidden, TenantId } from "pagopa-interop-models";
+import {
+  ClientJWKKey,
+  operationForbidden,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   CatalogProcessClient,
@@ -8,12 +12,15 @@ import {
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayClient } from "../api/authorizationApiConverter.js";
+import { keyNotFound } from "../models/errors.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   authorizationProcessClient: AuthorizationProcessClient,
   purposeProcessClient: PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient
+  catalogProcessClient: CatalogProcessClient,
+  readModelService: ReturnType<typeof readModelServiceBuilder>
 ) {
   return {
     getClient: async (
@@ -46,6 +53,19 @@ export function authorizationServiceBuilder(
       }
 
       return toApiGatewayClient(client);
+    },
+    getJWK: async (
+      { logger }: WithLogger<ApiGatewayAppContext>,
+      kId: ClientJWKKey["kid"]
+    ): Promise<apiGatewayApi.JWK> => {
+      logger.info(`Retrieving JWK of key with kId: ${kId}`);
+
+      const jwk = await readModelService.getJWKById(kId);
+      if (!jwk) {
+        throw keyNotFound(kId);
+      }
+
+      return jwk;
     },
   };
 }
