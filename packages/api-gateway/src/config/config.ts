@@ -60,11 +60,23 @@ export type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
+export const AuthorizationProcessServerConfig = z
+  .object({
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    authorizationProcessUrl: c.AUTHORIZATION_PROCESS_URL,
+  }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
+
 const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
   .and(CatalogProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
+  .and(AuthorizationProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
