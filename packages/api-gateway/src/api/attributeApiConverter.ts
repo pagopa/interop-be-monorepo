@@ -2,6 +2,7 @@ import {
   agreementApi,
   tenantApi,
   apiGatewayApi,
+  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { isDefined, removeDuplicateObjectsById } from "pagopa-interop-commons";
 import {
@@ -42,5 +43,15 @@ export function toApiGatewayAgreementAttributes(
           .map(declaredAttributeToAttributeValidityState)
       )
     ),
+  };
+}
+
+export function toApiGatewayAttribute(
+  attribute: attributeRegistryApi.Attribute
+): apiGatewayApi.Attribute {
+  return {
+    id: attribute.id,
+    name: attribute.name,
+    kind: attribute.kind,
   };
 }
