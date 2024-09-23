@@ -114,21 +114,24 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
 
 export type ToolsService = ReturnType<typeof toolsServiceBuilder>;
 
-// TODO add client kind and eservice
-function handleValidationResults(errs: {
-  clientAssertionErrors?: Array<ApiError<string>>;
-  keyRetrieveErrors?: Array<ApiError<string>>;
-  clientSignatureErrors?: Array<ApiError<string>>;
-  platformStateErrors?: Array<ApiError<string>>;
-}): bffApi.TokenGenerationValidationResult {
+function handleValidationResults(
+  errs: {
+    clientAssertionErrors?: Array<ApiError<string>>;
+    keyRetrieveErrors?: Array<ApiError<string>>;
+    clientSignatureErrors?: Array<ApiError<string>>;
+    platformStateErrors?: Array<ApiError<string>>;
+  },
+  clientKind?: authorizationApi.ClientKind,
+  eservice?: bffApi.TokenGenerationValidationEService
+): bffApi.TokenGenerationValidationResult {
   const clientAssertionErrors = errs.clientAssertionErrors ?? [];
   const keyRetrieveErrors = errs.keyRetrieveErrors ?? [];
   const clientSignatureErrors = errs.clientSignatureErrors ?? [];
   const platformStateErrors = errs.platformStateErrors ?? [];
 
   return {
-    clientKind: undefined,
-    eserviceId: undefined,
+    clientKind,
+    eservice,
     steps: {
       clientAssertionValidation: {
         result: getStepResult([], clientAssertionErrors),
