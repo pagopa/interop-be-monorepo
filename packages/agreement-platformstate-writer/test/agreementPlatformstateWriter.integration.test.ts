@@ -19,8 +19,10 @@ import {
   AgreementId,
   AgreementUnsuspendedByProducerV2,
   DescriptorId,
+  EServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
+  TenantId,
   TokenGenerationStatesClientPurposeEntry,
   agreementState,
   descriptorState,
@@ -78,22 +80,49 @@ describe("integration tests", async () => {
       // to do: why is this needed?
       fail();
     }
+
     const platformTableDefinition: CreateTableInput = {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config.tokenGenerationReadModelTableNamePlatform,
-      AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
+      AttributeDefinitions: [
+        { AttributeName: "PK", AttributeType: "S" },
+        { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
+        { AttributeName: "GSISK_agreementTimestamp", AttributeType: "S" },
+      ],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "GSIPK_consumerId_eserviceId",
+          KeySchema: [
+            {
+              AttributeName: "GSIPK_consumerId_eserviceId",
+              KeyType: "HASH",
+            },
+            {
+              AttributeName: "GSISK_agreementTimestamp",
+              KeyType: "RANGE",
+            },
+          ],
+          Projection: {
+            NonKeyAttributes: [],
+            ProjectionType: "ALL",
+          },
+          // ProvisionedThroughput: {
+          //   ReadCapacityUnits: 5,
+          //   WriteCapacityUnits: 5,
+          // },
+        },
+      ],
     };
     const command1 = new CreateTableCommand(platformTableDefinition);
     await dynamoDBClient.send(command1);
 
     const tokenGenerationTableDefinition: CreateTableInput = {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       AttributeDefinitions: [
         { AttributeName: "PK", AttributeType: "S" },
         { AttributeName: "GSIPK_eserviceId_descriptorId", AttributeType: "S" },
+        { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
       ],
       KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       BillingMode: "PAY_PER_REQUEST",
@@ -103,6 +132,23 @@ describe("integration tests", async () => {
           KeySchema: [
             {
               AttributeName: "GSIPK_eserviceId_descriptorId",
+              KeyType: "HASH",
+            },
+          ],
+          Projection: {
+            NonKeyAttributes: [],
+            ProjectionType: "ALL",
+          },
+          // ProvisionedThroughput: {
+          //   ReadCapacityUnits: 5,
+          //   WriteCapacityUnits: 5,
+          // },
+        },
+        {
+          IndexName: "GSIPK_consumerId_eserviceId",
+          KeySchema: [
+            {
+              AttributeName: "GSIPK_consumerId_eserviceId",
               KeyType: "HASH",
             },
           ],
@@ -602,37 +648,35 @@ describe("integration tests", async () => {
         await writeAgreementEntry(previousStateEntry, dynamoDBClient);
 
         // token-generation-states
-        // const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        //   clientId: generateId(),
-        //   kid: `kid ${Math.random()}`,
-        //   purposeId: generateId(),
-        // });
-        // const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        //   eserviceId: eservice.id,
-        //   descriptorId: publishedDescriptor.id,
-        // });
-        // const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        //   {
-        //     ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-        //     descriptorState: itemState.inactive,
-        //     descriptorAudience: publishedDescriptor.audience[0],
-        //     GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        //   };
-        // await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        // const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        //   clientId: generateId(),
-        //   kid: `kid ${Math.random()}`,
-        //   purposeId: generateId(),
-        // });
-        // const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        //   {
-        //     ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-        //     descriptorState: itemState.inactive,
-        //     descriptorAudience: publishedDescriptor.audience[0],
-        //     GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        //   };
-        // await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await sleep(1000, mockDate);
         await handleMessageV2(message, dynamoDBClient);
@@ -646,19 +690,19 @@ describe("integration tests", async () => {
         expect(retrievedAgreementEntry).toEqual(previousStateEntry);
 
         // token-generation-states
-        // const retrievedTokenStateEntries =
-        //   await readTokenStateEntriesByEserviceIdAndDescriptorId(
-        //     eserviceId_descriptorId,
-        //     dynamoDBClient
-        //   );
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
 
-        // expect(retrievedTokenStateEntries).toHaveLength(2);
-        // expect(retrievedTokenStateEntries).toEqual(
-        //   expect.arrayContaining([
-        //     previousTokenStateEntry1,
-        //     previousTokenStateEntry2,
-        //   ])
-        // );
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
       });
       it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
         const agreement: Agreement = {
@@ -699,8 +743,8 @@ describe("integration tests", async () => {
           purposeId: generateId(),
         });
         const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
@@ -748,23 +792,21 @@ describe("integration tests", async () => {
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
-            descriptorState: itemState.active,
+            agreementState: itemState.active,
             updatedAt: new Date().toISOString(),
           };
         const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry2,
-            descriptorState: itemState.active,
+            agreementState: itemState.active,
             updatedAt: new Date().toISOString(),
           };
 
-        // // TODO: this works, but arrayContaining must have the exact objects
-        // expect.arrayContaining([expectedTokenStateEntry2, expectedTokenStateEntry2]) also passes the test
         expect(retrievedTokenStateEntries).toHaveLength(2);
         expect(retrievedTokenStateEntries).toEqual(
           expect.arrayContaining([
-            expectedTokenStateEntry2,
             expectedTokenStateEntry1,
+            expectedTokenStateEntry2,
           ])
         );
       });
@@ -811,37 +853,35 @@ describe("integration tests", async () => {
         await writeCatalogEntry(catalogEntry, dynamoDBClient);
 
         // token-generation-states
-        // const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        //   clientId: generateId(),
-        //   kid: `kid ${Math.random()}`,
-        //   purposeId: generateId(),
-        // });
-        // const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        //   eserviceId: eservice.id,
-        //   descriptorId: publishedDescriptor.id,
-        // });
-        // const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        //   {
-        //     ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-        //     descriptorState: itemState.inactive,
-        //     descriptorAudience: publishedDescriptor.audience[0],
-        //     GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        //   };
-        // await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementState: itemState.inactive,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
-        // const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        //   clientId: generateId(),
-        //   kid: `kid ${Math.random()}`,
-        //   purposeId: generateId(),
-        // });
-        // const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        //   {
-        //     ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-        //     descriptorState: itemState.inactive,
-        //     descriptorAudience: publishedDescriptor.audience[0],
-        //     GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-        //   };
-        // await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementState: itemState.inactive,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await sleep(1000, mockDate);
         await handleMessageV2(message, dynamoDBClient);
@@ -868,9 +908,37 @@ describe("integration tests", async () => {
           agreementDescriptorId: agreement.descriptorId,
         };
         expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
-      });
-    });
 
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            agreementState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            agreementState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry1,
+            expectedTokenStateEntry2,
+          ])
+        );
+      });
+      it("should add the entry if it doesn't exist - and add descriptor info to token-generation-states entry if missing", () => {});
+    });
+    describe("AgreementSuspendedByProducer", async () => {});
     describe("AgreementUnsuspendedByProducer", async () => {
       it("should not throw error if the entry doesn't exist", async () => {
         const agreement: Agreement = {
@@ -909,10 +977,29 @@ describe("integration tests", async () => {
 
         expect(retrievedAgreementEntry).toBeUndefined();
       });
-      it("should update the entry (agreement is not the latest -> no operation on token states)", () => {});
-      it("should update the entry (agreement is the latest -> update in token states)", async () => {
-        const agreement: Agreement = {
+      it("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
+        const sixHoursAgo = new Date();
+        sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+        const consumerId = generateId<TenantId>();
+        const eserviceId = generateId<EServiceId>();
+
+        const previousAgreement: Agreement = {
           ...getMockAgreement(),
+          consumerId,
+          eserviceId,
+          state: agreementState.active,
+          stamps: {
+            activation: {
+              when: sixHoursAgo,
+              who: generateId(),
+            },
+          },
+        };
+        const latestAgreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId,
+          eserviceId,
           state: agreementState.active,
           stamps: {
             activation: {
@@ -922,111 +1009,267 @@ describe("integration tests", async () => {
           },
         };
         const payload: AgreementUnsuspendedByProducerV2 = {
-          agreement: toAgreementV2(agreement),
+          agreement: toAgreementV2(previousAgreement),
         };
         const message: AgreementEventEnvelope = {
           sequence_num: 1,
-          stream_id: agreement.id,
+          stream_id: previousAgreement.id,
           version: 1,
           type: "AgreementUnsuspendedByProducer",
           event_version: 2,
           data: payload,
           log_date: new Date(),
         };
-        const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
-          agreement.id
+        const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          previousAgreement.id
+        );
+        const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          latestAgreement.id
         );
         const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
+          consumerId,
+          eserviceId,
         });
-        const agreementStateEntry: PlatformStatesAgreementEntry = {
-          ...getMockAgreementEntry(agreementEntryPrimaryKey),
+
+        const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
           state: itemState.inactive,
           GSIPK_consumerId_eserviceId,
           GSISK_agreementTimestamp:
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
+            previousAgreement.stamps.activation!.when.toISOString(),
         };
 
-        // TODO add a previous agreement
-        await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
+        const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+          state: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSISK_agreementTimestamp:
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            latestAgreement.stamps.activation!.when.toISOString(),
+        };
+
+        await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+        await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementId: previousAgreement.id,
+            agreementState: itemState.inactive,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementId: previousAgreement.id,
+            agreementState: itemState.inactive,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
         await sleep(1000, mockDate);
         await handleMessageV2(message, dynamoDBClient);
 
         const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
-          ...agreementStateEntry,
+          ...previousAgreementStateEntry,
           state: itemState.active,
           updatedAt: new Date().toISOString(),
-          GSISK_agreementTimestamp:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
         };
 
         const retrievedEntry = await readAgreementEntry(
-          agreementEntryPrimaryKey,
+          previousAgreementEntryPrimaryKey,
           dynamoDBClient
         );
         expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        // expect(retrievedTokenStateEntries).toEqual(
+        //   expect.arrayContaining([
+        //     previousTokenStateEntry2,
+        //     previousTokenStateEntry1,
+        //   ])
+        // );
+      });
+      it("should update the entry (agreement is the latest -> update in token states)", async () => {
+        const sixHoursAgo = new Date();
+        sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+        const consumerId = generateId<TenantId>();
+        const eserviceId = generateId<EServiceId>();
+
+        const previousAgreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId,
+          eserviceId,
+          state: agreementState.active,
+          stamps: {
+            activation: {
+              when: sixHoursAgo,
+              who: generateId(),
+            },
+          },
+        };
+        const latestAgreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId,
+          eserviceId,
+          state: agreementState.active,
+          stamps: {
+            activation: {
+              when: new Date(),
+              who: generateId(),
+            },
+          },
+        };
+        const payload: AgreementUnsuspendedByProducerV2 = {
+          agreement: toAgreementV2(latestAgreement),
+        };
+        const message: AgreementEventEnvelope = {
+          sequence_num: 1,
+          stream_id: latestAgreement.id,
+          version: 1,
+          type: "AgreementUnsuspendedByProducer",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          previousAgreement.id
+        );
+        const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          latestAgreement.id
+        );
+        const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId,
+        });
+
+        const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
+          state: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSISK_agreementTimestamp:
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            previousAgreement.stamps.activation!.when.toISOString(),
+        };
+
+        const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+          state: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSISK_agreementTimestamp:
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            latestAgreement.stamps.activation!.when.toISOString(),
+        };
+
+        await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+        await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementId: latestAgreement.id,
+            agreementState: itemState.inactive,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementId: latestAgreement.id,
+            agreementState: itemState.inactive,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+        await sleep(1000, mockDate);
+        await handleMessageV2(message, dynamoDBClient);
+
+        const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...latestAgreementStateEntry,
+          state: itemState.active,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const retrievedEntry = await readAgreementEntry(
+          latestAgreementEntryPrimaryKey,
+          dynamoDBClient
+        );
+        expect(retrievedEntry).toEqual(expectedAgreementStateEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            agreementState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            agreementState: itemState.active,
+            updatedAt: new Date().toISOString(),
+          };
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry2,
+            expectedTokenStateEntry1,
+          ])
+        );
       });
     });
 
     describe("AgreementUpgraded", async () => {});
 
-    it("AgreementArchivedByUpgrade", async () => {
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.archived,
-        stamps: {
-          activation: {
-            when: new Date(),
-            who: generateId(),
-          },
-          archiving: {
-            when: new Date(),
-            who: generateId(),
-          },
-        },
-      };
-      const payload: AgreementArchivedByUpgradeV2 = {
-        agreement: toAgreementV2(agreement),
-      };
-      const message: AgreementEventEnvelope = {
-        sequence_num: 1,
-        stream_id: agreement.id,
-        version: 1,
-        type: "AgreementArchivedByUpgrade",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-      const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
-        agreement.id
-      );
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: generateId(),
-        eserviceId: generateId(),
-      });
-      const agreementStateEntry: PlatformStatesAgreementEntry = {
-        ...getMockAgreementEntry(agreementEntryPrimaryKey),
-        state: itemState.inactive,
-        GSIPK_consumerId_eserviceId,
-      };
-      await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
-      await sleep(1000, mockDate);
-      await handleMessageV2(message, dynamoDBClient);
+    describe("AgreementArchivedByUpgrade", () => {
+      it("should delete the entry (no update in token-generation-states)", async () => {
+        const consumerId = generateId<TenantId>();
+        const eserviceId = generateId<EServiceId>();
 
-      const retrievedEntry = await readAgreementEntry(
-        agreementEntryPrimaryKey,
-        dynamoDBClient
-      );
-      expect(retrievedEntry).toBeUndefined();
-    });
-
-    describe("AgreementArchivedByConsumer", () => {
-      it("agreement is the latest (includes operation on token states)", async () => {
         const agreement: Agreement = {
           ...getMockAgreement(),
+          consumerId,
+          eserviceId,
           state: agreementState.archived,
           stamps: {
             activation: {
@@ -1039,14 +1282,15 @@ describe("integration tests", async () => {
             },
           },
         };
-        const payload: AgreementArchivedByConsumerV2 = {
+
+        const payload: AgreementArchivedByUpgradeV2 = {
           agreement: toAgreementV2(agreement),
         };
         const message: AgreementEventEnvelope = {
           sequence_num: 1,
           stream_id: agreement.id,
           version: 1,
-          type: "AgreementArchivedByConsumer",
+          type: "AgreementArchivedByUpgrade",
           event_version: 2,
           data: payload,
           log_date: new Date(),
@@ -1054,21 +1298,48 @@ describe("integration tests", async () => {
         const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
           agreement.id
         );
+
         const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
+          consumerId,
+          eserviceId,
         });
         const agreementStateEntry: PlatformStatesAgreementEntry = {
           ...getMockAgreementEntry(agreementEntryPrimaryKey),
-          state: itemState.inactive,
+          state: itemState.active,
           GSIPK_consumerId_eserviceId,
-          GSISK_agreementTimestamp:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
         };
 
-        // TODO add a previous agreement
         await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementId: agreement.id,
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementId: agreement.id,
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
         await sleep(1000, mockDate);
         await handleMessageV2(message, dynamoDBClient);
 
@@ -1077,77 +1348,284 @@ describe("integration tests", async () => {
           dynamoDBClient
         );
         expect(retrievedEntry).toBeUndefined();
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
+      });
+    });
+
+    describe("AgreementArchivedByConsumer", () => {
+      it("agreement is the latest (includes operation on token states)", async () => {
+        const sixHoursAgo = new Date();
+        sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+        const consumerId = generateId<TenantId>();
+        const eserviceId = generateId<EServiceId>();
+
+        const previousAgreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId,
+          eserviceId,
+          state: agreementState.archived,
+          stamps: {
+            activation: {
+              when: sixHoursAgo,
+              who: generateId(),
+            },
+          },
+        };
+        const latestAgreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId,
+          eserviceId,
+          state: agreementState.archived,
+          stamps: {
+            activation: {
+              when: new Date(),
+              who: generateId(),
+            },
+          },
+        };
+        const payload: AgreementArchivedByConsumerV2 = {
+          agreement: toAgreementV2(latestAgreement),
+        };
+        const message: AgreementEventEnvelope = {
+          sequence_num: 1,
+          stream_id: latestAgreement.id,
+          version: 1,
+          type: "AgreementArchivedByConsumer",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+        const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          previousAgreement.id
+        );
+        const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          latestAgreement.id
+        );
+        const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId,
+        });
+        const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
+          state: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSISK_agreementTimestamp:
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            previousAgreement.stamps.activation!.when.toISOString(),
+        };
+        const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
+          state: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSISK_agreementTimestamp:
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            latestAgreement.stamps.activation!.when.toISOString(),
+        };
+        await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
+        await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementId: latestAgreement.id,
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementId: latestAgreement.id,
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+        await sleep(1000, mockDate);
+        await handleMessageV2(message, dynamoDBClient);
+
+        const retrievedEntry = await readAgreementEntry(
+          latestAgreementEntryPrimaryKey,
+          dynamoDBClient
+        );
+        expect(retrievedEntry).toBeUndefined();
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            agreementState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            agreementState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ]);
       });
       it("agreement is not the latest (no operation on token states)", async () => {
         const sixHoursAgo = new Date();
         sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
-        const agreement: Agreement = {
+        const consumerId = generateId<TenantId>();
+        const eserviceId = generateId<EServiceId>();
+
+        const previousAgreement: Agreement = {
           ...getMockAgreement(),
+          consumerId,
+          eserviceId,
           state: agreementState.archived,
           stamps: {
             activation: {
               when: sixHoursAgo,
               who: generateId(),
             },
-            archiving: {
-              when: sixHoursAgo,
+          },
+        };
+        const latestAgreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId,
+          eserviceId,
+          state: agreementState.archived,
+          stamps: {
+            activation: {
+              when: new Date(),
               who: generateId(),
             },
           },
         };
         const payload: AgreementArchivedByConsumerV2 = {
-          agreement: toAgreementV2(agreement),
+          agreement: toAgreementV2(previousAgreement),
         };
         const message: AgreementEventEnvelope = {
           sequence_num: 1,
-          stream_id: agreement.id,
+          stream_id: previousAgreement.id,
           version: 1,
           type: "AgreementArchivedByConsumer",
           event_version: 2,
           data: payload,
           log_date: new Date(),
         };
-        const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
-          agreement.id
+        const previousAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          previousAgreement.id
+        );
+        const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+          latestAgreement.id
         );
         const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-          consumerId: generateId(),
-          eserviceId: generateId(),
+          consumerId,
+          eserviceId,
         });
-        const agreementStateEntry: PlatformStatesAgreementEntry = {
-          ...getMockAgreementEntry(agreementEntryPrimaryKey),
-
+        const previousAgreementStateEntry: PlatformStatesAgreementEntry = {
+          ...getMockAgreementEntry(previousAgreementEntryPrimaryKey),
           state: itemState.inactive,
           GSIPK_consumerId_eserviceId,
           GSISK_agreementTimestamp:
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            agreement.stamps.activation!.when.toISOString(),
+            previousAgreement.stamps.activation!.when.toISOString(),
         };
-
-        const latestAgreementEntryPrimaryKey = makePlatformStatesAgreementPK(
-          generateId()
-        );
         const latestAgreementStateEntry: PlatformStatesAgreementEntry = {
           ...getMockAgreementEntry(latestAgreementEntryPrimaryKey),
           state: itemState.inactive,
           GSIPK_consumerId_eserviceId,
-          GSISK_agreementTimestamp: new Date().toISOString(),
+          GSISK_agreementTimestamp:
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            latestAgreement.stamps.activation!.when.toISOString(),
         };
-
-        await writeAgreementEntry(agreementStateEntry, dynamoDBClient);
+        await writeAgreementEntry(previousAgreementStateEntry, dynamoDBClient);
         await writeAgreementEntry(latestAgreementStateEntry, dynamoDBClient);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            agreementId: previousAgreement.id,
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            agreementId: previousAgreement.id,
+            agreementState: itemState.active,
+            GSIPK_consumerId_eserviceId,
+          };
+        await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
         await sleep(1000, mockDate);
         await handleMessageV2(message, dynamoDBClient);
 
         const retrievedEntry = await readAgreementEntry(
-          agreementEntryPrimaryKey,
+          previousAgreementEntryPrimaryKey,
           dynamoDBClient
         );
         expect(retrievedEntry).toBeUndefined();
 
-        // TODO how to test "no operation" on token states
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenStateEntriesByConsumerIdEserviceId(
+            GSIPK_consumerId_eserviceId,
+            dynamoDBClient
+          );
+
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry2,
+            previousTokenStateEntry1,
+          ])
+        );
       });
     });
   });
