@@ -13,8 +13,10 @@ import { ApiGatewayAppContext } from "../utilities/context.js";
 import {
   NonDraftCatalogApiDescriptor,
   toApiGatewayCatalogEservice,
+  toApiGatewayDescriptorIfNotDraft,
   toApiGatewayEserviceAttributes,
 } from "../api/catalogApiConverter.js";
+import { eserviceDescriptorNotFound } from "../models/errors.js";
 import {
   assertAvailableDescriptorExists,
   assertNonDraftDescriptor,
@@ -90,14 +92,68 @@ export function catalogServiceBuilder(
         eservice
       );
     },
+    getEserviceDescriptor: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      eserviceId: catalogApi.EService["id"],
+      descriptorId: catalogApi.EServiceDescriptor["id"]
+    ): Promise<apiGatewayApi.EServiceDescriptor> => {
+      logger.info(
+        `Retrieving Descriptor ${descriptorId} of EService ${eserviceId}`
+      );
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        headers,
+        params: {
+          eServiceId: eserviceId,
+        },
+      });
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      return toApiGatewayDescriptorIfNotDraft(descriptor);
+    },
+    getEserviceDescriptors: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      eserviceId: catalogApi.EService["id"]
+    ): Promise<apiGatewayApi.EServiceDescriptors> => {
+      logger.info(`Retrieving Descriptors of EService ${eserviceId}`);
+
+      const eservice = await catalogProcessClient.getEServiceById({
+        headers,
+        params: {
+          eServiceId: eserviceId,
+        },
+      });
+
+      const descriptors = eservice.descriptors
+        .filter(isNonDraft)
+        .map((d) => toApiGatewayDescriptorIfNotDraft(d));
+
+      return { descriptors };
+    },
   };
+}
+
+const isNonDraft = (d: catalogApi.EServiceDescriptor): boolean =>
+  d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT;
+
+function retrieveEserviceDescriptor(
+  eservice: catalogApi.EService,
+  descriptorId: catalogApi.EServiceDescriptor["id"]
+): catalogApi.EServiceDescriptor {
+  const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+
+  if (!descriptor) {
+    throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+  }
+
+  return descriptor;
 }
 
 function getLatestNonDraftDescriptor(
   eservice: catalogApi.EService
 ): NonDraftCatalogApiDescriptor {
   const latestNonDraftDescriptor = eservice.descriptors
-    .filter((d) => d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT)
+    .filter(isNonDraft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 

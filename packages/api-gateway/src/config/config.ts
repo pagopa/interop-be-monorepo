@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { APIEndpoint, CommonHTTPServiceConfig } from "pagopa-interop-commons";
+import {
+  APIEndpoint,
+  CommonHTTPServiceConfig,
+  RedisRateLimiterConfig,
+  ReadModelDbConfig,
+} from "pagopa-interop-commons";
 
 export const CatalogProcessServerConfig = z
   .object({
@@ -56,11 +61,35 @@ export type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-const ApiGatewayConfig = CommonHTTPServiceConfig.and(CatalogProcessServerConfig)
+export const AuthorizationProcessServerConfig = z
+  .object({
+    AUTHORIZATION_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    authorizationProcessUrl: c.AUTHORIZATION_PROCESS_URL,
+  }));
+export type AuthorizationProcessServerConfig = z.infer<
+  typeof AuthorizationProcessServerConfig
+>;
+
+export const NotifierServerConfig = z
+  .object({
+    NOTIFIER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    notifierUrl: c.NOTIFIER_URL,
+  }));
+export type NotifierServerConfig = z.infer<typeof NotifierServerConfig>;
+
+const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
+  .and(CatalogProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
-  .and(AttributeRegistryProcessServerConfig);
+  .and(AuthorizationProcessServerConfig)
+  .and(AttributeRegistryProcessServerConfig)
+  .and(NotifierServerConfig)
+  .and(ReadModelDbConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
 export const config: ApiGatewayConfig = ApiGatewayConfig.parse(process.env);

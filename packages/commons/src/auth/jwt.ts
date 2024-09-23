@@ -28,12 +28,12 @@ const getKey =
     logger: Logger
   ): ((header: JwtHeader, callback: SigningKeyCallback) => void) =>
   (header, callback) => {
-    for (const { client, last } of clients.map((c, i) => ({
-      client: c,
-      last: i === clients.length - 1,
-    }))) {
+    // eslint-disable-next-line functional/no-let
+    let responseReceived = 0;
+    for (const client of clients) {
       client.getSigningKey(header.kid, function (err, key) {
-        if (err && last) {
+        responseReceived = responseReceived + 1;
+        if (err && responseReceived === clients.length) {
           logger.error(`Error getting signing key: ${err}`);
           return callback(err, undefined);
         } else {
