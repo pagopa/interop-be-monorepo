@@ -460,16 +460,10 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
       .safeParse(unmarshalledItems);
 
     if (platformAgreementEntries.success) {
-      return platformAgreementEntries.data
-        .slice()
-        .sort(
-          (a, b) =>
-            Date.parse(b.GSISK_agreementTimestamp) -
-            Date.parse(a.GSISK_agreementTimestamp)
-        )[0];
+      return platformAgreementEntries.data[0];
     } else {
       throw genericInternalError(
-        `Unable to read platform state entries: result ${JSON.stringify(
+        `Unable to parse platform state entries: result ${JSON.stringify(
           platformAgreementEntries
         )} `
       );
