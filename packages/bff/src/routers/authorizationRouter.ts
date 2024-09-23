@@ -53,7 +53,11 @@ const authorizationRouter = (
           throw tooManyRequestsError(result.rateLimitedTenantId);
         }
 
-        return res.status(200).send({ session_token: result.sessionToken });
+        return res
+          .status(200)
+          .send(
+            bffApi.SessionToken.parse({ session_token: result.sessionToken })
+          );
       } catch (error) {
         const err = makeApiProblem(
           error,
