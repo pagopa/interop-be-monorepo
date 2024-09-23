@@ -4,6 +4,7 @@ import { apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   authorizationMiddleware,
   ExpressContext,
+  ReadModelRepository,
   userRoles,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -17,12 +18,19 @@ import {
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getClientErrorMapper,
+  getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
+  getJWKErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { notifierEventsServiceBuilder } from "../services/notifierEventsService.js";
+import { attributeServiceBuilder } from "../services/attributeService.js";
+import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { config } from "../config/config.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -33,6 +41,7 @@ const apiGatewayRouter = (
     catalogProcessClient,
     attributeProcessClient,
     notifierEventsClient,
+    authorizationProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
@@ -60,6 +69,19 @@ const apiGatewayRouter = (
 
   const notifierEventsService =
     notifierEventsServiceBuilder(notifierEventsClient);
+
+  const attributeService = attributeServiceBuilder(attributeProcessClient);
+
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+
+  const authorizationService = authorizationServiceBuilder(
+    authorizationProcessClient,
+    purposeProcessClient,
+    catalogProcessClient,
+    readModelService
+  );
 
   apiGatewayRouter
     .get(
@@ -149,17 +171,62 @@ const apiGatewayRouter = (
     .post(
       "/attributes",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const attribute = await attributeService.createCertifiedAttribute(
+            ctx,
+            req.body
+          );
+
+          return res.status(200).json(attribute).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/attributes/:attributeId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const attribute = await attributeService.getAttribute(
+            ctx,
+            req.params.attributeId
+          );
+
+          return res.status(200).json(attribute).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/clients/:clientId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const client = await authorizationService.getClient(
+            ctx,
+            req.params.clientId
+          );
+          return res.status(200).json(client).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices",
@@ -199,12 +266,41 @@ const apiGatewayRouter = (
     .get(
       "/eservices/:eserviceId/descriptors",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const descriptors = await catalogService.getEserviceDescriptors(
+            ctx,
+            req.params.eserviceId
+          );
+          return res.status(200).json(descriptors).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          const descriptor = await catalogService.getEserviceDescriptor(
+            ctx,
+            req.params.eserviceId,
+            req.params.descriptorId
+          );
+          return res.status(200).json(descriptor).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceDescriptorErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/events", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
       const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
@@ -303,8 +399,21 @@ const apiGatewayRouter = (
         }
       }
     )
-    .get("/keys/:kid", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
+    .get(
+      "/keys/:kid",
+      authorizationMiddleware([M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const jwk = await authorizationService.getJWK(ctx, req.params.kid);
+
+          return res.status(200).json(jwk).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
       const ctx = fromApiGatewayAppContext(req.ctx, req.headers);

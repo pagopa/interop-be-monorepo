@@ -167,6 +167,14 @@ export const ImportFileConfig = z
   }));
 export type ImportFileConfig = z.infer<typeof ImportFileConfig>;
 
+export const InterfaceVersion = z
+  .object({
+    BACKEND_FOR_FRONTEND_INTERFACE_VERSION: z.string(),
+  })
+  .transform((c) => ({
+    backendForFrontendInterfaceVersion:
+      c.BACKEND_FOR_FRONTEND_INTERFACE_VERSION,
+  }));
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -182,7 +190,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(PrivactNoticeConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
-  .and(ImportFileConfig);
+  .and(ImportFileConfig)
+  .and(InterfaceVersion);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
