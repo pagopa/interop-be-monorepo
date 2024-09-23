@@ -211,10 +211,7 @@ function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
     throw missingActivePurposeVersion(purpose.id);
   }
 
-  return activePurposeVersion.state ===
-    purposeApi.PurposeVersionState.Enum.ACTIVE
-    ? ItemState.Enum.ACTIVE
-    : ItemState.Enum.INACTIVE;
+  return purposeVersionStateToItemState(activePurposeVersion.state);
 }
 
 const agreementStateToItemState = (
@@ -229,5 +226,12 @@ const descriptorStateToItemState = (
 ): ItemState =>
   state === catalogApi.EServiceDescriptorState.Enum.PUBLISHED ||
   state === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
+    ? ItemState.Enum.ACTIVE
+    : ItemState.Enum.INACTIVE;
+
+const purposeVersionStateToItemState = (
+  state: purposeApi.PurposeVersionState
+): ItemState =>
+  state === purposeApi.PurposeVersionState.Enum.ACTIVE
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
