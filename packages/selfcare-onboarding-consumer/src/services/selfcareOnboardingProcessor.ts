@@ -1,4 +1,8 @@
-import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import {
+  getInteropHeaders,
+  logger,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -82,10 +86,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         const token = (await refreshableToken.get()).serialized;
 
-        const headers = {
-          "X-Correlation-Id": correlationId,
-          Authorization: `Bearer ${token}`,
-        };
+        const headers = getInteropHeaders({ token, correlationId });
 
         await tenantProcessClient.selfcare.selfcareUpsertTenant(seed, {
           headers,
