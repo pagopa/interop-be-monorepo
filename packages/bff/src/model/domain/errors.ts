@@ -22,6 +22,7 @@ export const errorCodes = {
   invalidRiskAnalysisContentType: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
+  missingActivePurposeVersion: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -180,5 +181,15 @@ export function eserviceRiskNotFound(
     detail: `"RiskAnalysis ${riskAnalysisId} not found in Eservice ${eserviceId}"`,
     code: "eserviceRiskNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function missingActivePurposeVersion(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no active version for purpose ${purposeId}`,
+    code: "missingActivePurposeVersion",
+    title: "Missing active purpose version",
   });
 }
