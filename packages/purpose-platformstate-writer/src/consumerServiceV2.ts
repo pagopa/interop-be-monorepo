@@ -14,7 +14,7 @@ import { match } from "ts-pattern";
 import {
   deletePlatformPurposeEntry,
   getPurposeVersionByPurposeVersionId,
-  purposeToItemState,
+  getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
   updatePurposeStateInPlatformStatesEntry,
   updatePurposeStatesInTokenGenerationStatesTable,
@@ -166,7 +166,9 @@ export async function handleMessageV2(
         }
         const purpose = fromPurposeV2(purposeV2);
         const primaryKey = makePlatformStatesPurposePK(purpose.id);
-        const purposeState = purposeToItemState(purpose);
+        const purposeState = getPurposeStateFromPurposeVersions(
+          purpose.versions
+        );
         const existingPurposeEntry = await readPlatformPurposeEntry(
           dynamoDBClient,
           primaryKey
@@ -224,7 +226,7 @@ export async function handleMessageV2(
       await updatePurposeStatesInTokenGenerationStatesTable(
         dynamoDBClient,
         purpose.id,
-        purposeToItemState(purpose)
+        getPurposeStateFromPurposeVersions(purpose.versions)
       );
     })
     .with(
