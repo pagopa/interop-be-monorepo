@@ -16,9 +16,12 @@ export function loggerMiddleware(serviceName: string): express.RequestHandler {
       };
 
       const loggerInstance = logger(loggerMetadata);
-      loggerInstance.info(
-        `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`
-      );
+      const msg = `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`;
+      if (req.url === "/status") {
+        loggerInstance.debug(msg);
+      } else {
+        loggerInstance.info(msg);
+      }
     });
 
     next();
