@@ -26,6 +26,7 @@ export const errorCodes = {
   activeAgreementByEserviceAndConsumerNotFound: "0019",
   multipleAgreementForEserviceAndConsumer: "0020",
   purposeIdNotFoundInClientAssertion: "0021",
+  clientAssertionPublicKeyNotFound: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -224,5 +225,16 @@ export function purposeIdNotFoundInClientAssertion(): ApiError<ErrorCodes> {
     detail: `PurposeId not found in client assertion`,
     code: "purposeIdNotFoundInClientAssertion",
     title: "PurposeId not found in client assertion",
+  });
+}
+
+export function clientAssertionPublicKeyNotFound(
+  kid: string,
+  clientId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Public key with kid ${kid} not found for client ${clientId}`,
+    code: "clientAssertionPublicKeyNotFound",
+    title: "Client assertion public key not found",
   });
 }

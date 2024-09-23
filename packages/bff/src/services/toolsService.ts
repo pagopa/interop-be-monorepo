@@ -4,6 +4,8 @@ import {
   ApiKey,
   ClientAssertion,
   ConsumerKey,
+  FailedValidation,
+  SuccessfulValidation,
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
@@ -11,9 +13,9 @@ import {
 } from "pagopa-interop-client-assertion-validation";
 import {
   AgreementId,
+  ApiError,
   ClientId,
   EServiceId,
-  genericInternalError,
   ItemState,
   PurposeId,
   TenantId,
@@ -35,11 +37,14 @@ import {
 import { BffAppContext } from "../utilities/context.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
+  clientAssertionPublicKeyNotFound,
+  ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
   multipleAgreementForEserviceAndConsumer,
   purposeIdNotFoundInClientAssertion,
 } from "../model/domain/errors.js";
+import { TokenGenerationValidationStepFailure } from "../../../api-clients/dist/bffApi.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -50,8 +55,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       _grantType: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
-      // TODO HANDLE ERRORS!
-      validateRequestParameters({
+      const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,
         client_assertion_type:
           "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -59,22 +63,115 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         client_id: clientId,
       });
 
-      const { data: jwt } = verifyClientAssertion(clientAssertion, clientId);
-      if (!jwt) {
-        throw genericInternalError("Invalid client assertion");
+      const { data: jwt, errors: clientAssertionErrors } =
+        verifyClientAssertion(clientAssertion, clientId);
+
+      if (parametersErrors || clientAssertionErrors) {
+        return handleValidationResults({
+          clientAssertionErrors: [
+            ...(parametersErrors ?? []),
+            ...(clientAssertionErrors ?? []),
+          ],
+        });
       }
 
-      const key = await retrieveKey(clients, jwt, ctx);
+      const { data: key, errors: keyRetrieveErrors } = await retrieveKey(
+        clients,
+        jwt,
+        ctx
+      );
 
-      verifyClientAssertionSignature(clientAssertion, key);
-      validateClientKindAndPlatformState(key, jwt);
+      if (keyRetrieveErrors) {
+        return handleValidationResults({
+          keyRetrieveErrors,
+        });
+      }
 
-      return {};
+      const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
+        clientAssertion,
+        key
+      );
+
+      if (clientSignatureErrors) {
+        return handleValidationResults({
+          clientSignatureErrors,
+        });
+      }
+
+      const { errors: platformStateErrors } =
+        validateClientKindAndPlatformState(key, jwt);
+
+      if (platformStateErrors) {
+        return handleValidationResults({
+          platformStateErrors,
+        });
+      }
+
+      return handleValidationResults({});
     },
   };
 }
 
 export type ToolsService = ReturnType<typeof toolsServiceBuilder>;
+
+// TODO add client kind and eservice
+function handleValidationResults(errs: {
+  clientAssertionErrors?: Array<ApiError<string>>;
+  keyRetrieveErrors?: Array<ApiError<string>>;
+  clientSignatureErrors?: Array<ApiError<string>>;
+  platformStateErrors?: Array<ApiError<string>>;
+}): bffApi.TokenGenerationValidationResult {
+  const clientAssertionErrors = errs.clientAssertionErrors ?? [];
+  const keyRetrieveErrors = errs.keyRetrieveErrors ?? [];
+  const clientSignatureErrors = errs.clientSignatureErrors ?? [];
+  const platformStateErrors = errs.platformStateErrors ?? [];
+
+  return {
+    clientKind: undefined,
+    eserviceId: undefined,
+    steps: {
+      clientAssertionValidation: {
+        result: getStepResult([], clientAssertionErrors),
+        failures: apiErrorsToValidationFailures(clientAssertionErrors),
+      },
+      publicKeyRetrieve: {
+        result: getStepResult(clientAssertionErrors, keyRetrieveErrors),
+        failures: apiErrorsToValidationFailures(keyRetrieveErrors),
+      },
+      clientAssertionSignatureVerification: {
+        result: getStepResult(
+          [...clientAssertionErrors, ...keyRetrieveErrors],
+          clientSignatureErrors
+        ),
+        failures: apiErrorsToValidationFailures(clientSignatureErrors),
+      },
+      platformStatesVerification: {
+        result: getStepResult(
+          [
+            ...clientAssertionErrors,
+            ...keyRetrieveErrors,
+            ...clientSignatureErrors,
+          ],
+          platformStateErrors
+        ),
+        failures: apiErrorsToValidationFailures(platformStateErrors),
+      },
+    },
+  };
+}
+
+function getStepResult(
+  prevStepErrors: Array<ApiError<string>>,
+  currentStepErrors: Array<ApiError<string>>
+): bffApi.TokenGenerationValidationStepResult {
+  if (currentStepErrors.length > 0) {
+    return bffApi.TokenGenerationValidationStepResult.Enum.FAILED;
+  } else if (prevStepErrors.length > 0) {
+    return bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED;
+  } else {
+    return bffApi.TokenGenerationValidationStepResult.Enum.PASSED;
+  }
+}
 
 async function retrieveKey(
   {
@@ -85,14 +182,27 @@ async function retrieveKey(
   }: PagoPAInteropBeClients,
   jwt: ClientAssertion,
   ctx: WithLogger<BffAppContext>
-): Promise<ApiKey | ConsumerKey> {
-  const client = await authorizationClient.token.getKeyWithClientByKeyId({
-    params: {
-      clientId: jwt.payload.sub,
-      keyId: jwt.header.kid,
-    },
-    headers: ctx.headers,
-  });
+): Promise<
+  SuccessfulValidation<ApiKey | ConsumerKey> | FailedValidation<ErrorCodes>
+> {
+  const client = await authorizationClient.token
+    .getKeyWithClientByKeyId({
+      params: {
+        clientId: jwt.payload.sub,
+        keyId: jwt.header.kid,
+      },
+      headers: ctx.headers,
+    })
+    .catch(() => undefined);
+
+  if (!client) {
+    return {
+      data: undefined,
+      errors: [
+        clientAssertionPublicKeyNotFound(jwt.header.kid, jwt.payload.sub),
+      ],
+    };
+  }
 
   const { encodedPem } = await authorizationClient.client.getClientKeyById({
     headers: ctx.headers,
@@ -103,19 +213,25 @@ async function retrieveKey(
   });
 
   if (!jwt.payload.purposeId) {
-    throw purposeIdNotFoundInClientAssertion();
+    return {
+      data: undefined,
+      errors: [purposeIdNotFoundInClientAssertion()],
+    };
   }
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
   if (client.client.kind === authorizationApi.ClientKind.enum.API) {
     return {
-      clientKind: authorizationApi.ClientKind.enum.API,
-      kid: jwt.header.kid,
-      algorithm: "RS256",
-      publicKey: encodedPem,
-      clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
-      consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
-      purposeId,
+      errors: undefined,
+      data: {
+        clientKind: authorizationApi.ClientKind.enum.API,
+        kid: jwt.header.kid,
+        algorithm: "RS256",
+        publicKey: encodedPem,
+        clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
+        consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
+        purposeId,
+      },
     };
   }
 
@@ -139,18 +255,21 @@ async function retrieveKey(
   );
 
   return {
-    clientKind: authorizationApi.ClientKind.enum.CONSUMER,
-    clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
-    kid: jwt.header.kid,
-    algorithm: "RS256",
-    publicKey: encodedPem,
-    purposeId,
-    consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
-    agreementId: unsafeBrandId<AgreementId>(agreement.id),
-    eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
-    agreementState: agreementStateToItemState(agreement.state),
-    purposeState: retrievePurposeItemState(purpose),
-    descriptorState: descriptorStateToItemState(descriptor.state),
+    errors: undefined,
+    data: {
+      clientKind: authorizationApi.ClientKind.enum.CONSUMER,
+      clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
+      kid: jwt.header.kid,
+      algorithm: "RS256",
+      publicKey: encodedPem,
+      purposeId,
+      consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
+      agreementId: unsafeBrandId<AgreementId>(agreement.id),
+      eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
+      agreementState: agreementStateToItemState(agreement.state),
+      purposeState: retrievePurposeItemState(purpose),
+      descriptorState: descriptorStateToItemState(descriptor.state),
+    },
   };
 }
 
@@ -255,4 +374,17 @@ export function assertOnlyOneAgreementForEserviceAndConsumerExists(
   } else if (agreements.length > 1) {
     throw multipleAgreementForEserviceAndConsumer(eserviceId, consumerId);
   }
+}
+
+function apiErrorsToValidationFailures<T extends string>(
+  errors: Array<ApiError<T>> | undefined
+): TokenGenerationValidationStepFailure[] {
+  if (!errors) {
+    return [];
+  }
+
+  return errors.map((err) => ({
+    code: err.code,
+    reason: err.message,
+  }));
 }

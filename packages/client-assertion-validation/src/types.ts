@@ -81,11 +81,13 @@ export const ApiKey = Key.extend({
 }).strict();
 export type ApiKey = z.infer<typeof ApiKey>;
 
-export type ValidationResult<T> = SuccessfulValidation<T> | FailedValidation;
+export type ValidationResult<T> =
+  | SuccessfulValidation<T>
+  | FailedValidation<ErrorCodes>;
 
 export type SuccessfulValidation<T> = { errors: undefined; data: T };
-export type FailedValidation = {
-  errors: Array<ApiError<ErrorCodes>>;
+export type FailedValidation<T> = {
+  errors: Array<ApiError<T>>;
   data: undefined;
 };
 

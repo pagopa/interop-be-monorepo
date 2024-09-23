@@ -204,7 +204,7 @@ export const failedValidation = (
   errors: Array<
     Array<ApiError<ErrorCodes> | undefined> | ApiError<ErrorCodes> | undefined
   >
-): FailedValidation => {
+): FailedValidation<ErrorCodes> => {
   const nestedArrayWithoutUndefined = errors.filter((a) => a !== undefined);
   const flattenedArray = nestedArrayWithoutUndefined.flat(1);
   const flattenedArrayWithoutUndefined = flattenedArray.filter(
