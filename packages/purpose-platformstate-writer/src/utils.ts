@@ -42,17 +42,15 @@ import {
 import { z } from "zod";
 import { config } from "./config/config.js";
 
-export const purposeVersionToItemState = (
-  purposeVersion: PurposeVersion
-): ItemState =>
-  purposeVersion.state === purposeVersionState.active
-    ? itemState.active
-    : itemState.inactive;
-
-export const purposeToItemState = (purpose: Purpose): ItemState =>
-  purpose.suspendedByConsumer || purpose.suspendedByProducer
-    ? itemState.inactive
-    : itemState.active;
+export const getPurposeStateFromPurposeVersions = (
+  purposeVersions: PurposeVersion[]
+): ItemState => {
+  if (purposeVersions.find((v) => v.state === purposeVersionState.active)) {
+    return itemState.active;
+  } else {
+    return itemState.inactive;
+  }
+};
 
 export const writePlatformPurposeEntry = async (
   dynamoDBClient: DynamoDBClient,
@@ -192,7 +190,6 @@ export const readTokenEntriesByPurposeId = async (
   return await runPaginatedQuery(purposeId, dynamoDBClient, undefined);
 };
 
-// TODO: should this be an upsert?
 export const updatePurposeStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesPurposePK,
@@ -237,25 +234,21 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
     dynamoDBClient,
     purpose.id
   );
+  const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
+    consumerId: purpose.consumerId,
+    eserviceId: purpose.eserviceId,
+  });
 
-  // if (!entriesToUpdate) {
-  //   // TODO: add record with only purpose data
-  // } else {
   for (const entry of entriesToUpdate) {
     const tokenEntryPK = entry.PK;
 
     // Update token entry with agreement data from platform-states if they're missing AND purposeState is not undefined
-    const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
-      consumerId: purpose.consumerId,
-      eserviceId: purpose.eserviceId,
-    });
 
     // TODO should this only add the data if it's not already there?
     if (
-      (!entry.GSIPK_consumerId_eserviceId ||
-        !entry.agreementId ||
-        !entry.agreementState) &&
-      entry.purposeState
+      !entry.GSIPK_consumerId_eserviceId ||
+      !entry.agreementId ||
+      !entry.agreementState
     ) {
       const platformAgreementEntry =
         await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
@@ -264,6 +257,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
         );
 
       if (platformAgreementEntry) {
+        // Unire updateTokenPurposeEntryWithAgreementData e updateTokenPurposeEntryWithDescriptorData e gli update di purpose in una query
         await updateTokenPurposeEntryWithAgreementData(
           dynamoDBClient,
           tokenEntryPK,
@@ -298,7 +292,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
     }
 
     // Update token entry with new purpose state
-    const purposeState = purposeToItemState(purpose);
+    const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
     await updatePurposeStateInTokenGenerationStatesTable(
       dynamoDBClient,
       tokenEntryPK,
