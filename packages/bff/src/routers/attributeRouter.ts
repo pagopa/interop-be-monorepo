@@ -32,7 +32,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Attribute.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -55,7 +55,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Attribute.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -78,7 +78,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Attribute.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -110,10 +110,12 @@ const attributeRouter = (
         );
 
         return res
-          .json({
-            results: attributes.results,
-            pagination: { offset, limit, totalCount: attributes.totalCount },
-          })
+          .json(
+            bffApi.Attributes.parse({
+              results: attributes.results,
+              pagination: { offset, limit, totalCount: attributes.totalCount },
+            })
+          )
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -135,7 +137,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Attribute.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -157,7 +159,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Attribute.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
