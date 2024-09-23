@@ -7,8 +7,8 @@ import {
   zodiosValidationErrorToApiProblem,
   FileManager,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
+import { makeApiProblem } from "../model/errors.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   activateAgreementErrorMapper,
@@ -86,18 +86,113 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/producers/agreements/eservices", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/consumers/agreements/eservices", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/agreements/filter/producers", async (_req, res) =>
-      res.status(501).send()
-    )
-    .get("/agreements/filter/consumers", async (_req, res) =>
-      res.status(501).send()
-    )
+
+    .get("/producers/agreements/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const { offset, limit, states, q } = req.query;
+      try {
+        const requesterId = ctx.authData.organizationId;
+        const result = await agreementService.getAgreementsEserviceProducers(
+          {
+            offset,
+            limit,
+            states,
+            requesterId,
+            eServiceName: q,
+          },
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/consumers/agreements/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const { offset, limit, q } = req.query;
+      try {
+        const requesterId = ctx.authData.organizationId;
+        const result = await agreementService.getAgreementsEserviceConsumers(
+          {
+            offset,
+            limit,
+            requesterId,
+            eServiceName: q,
+          },
+          ctx
+        );
+
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/agreements/filter/producers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const { offset, limit, q } = req.query;
+      try {
+        const result = await agreementService.getAgreementProducers(
+          {
+            offset,
+            limit,
+            producerName: q,
+          },
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving producers from agreement filtered by producer name ${q}, offset ${offset}, limit ${limit}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+
+    .get("/agreements/filter/consumers", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const { offset, limit, q } = req.query;
+      try {
+        const result = await agreementService.getAgreementConsumers(
+          {
+            offset,
+            limit,
+            consumerName: q,
+          },
+          ctx
+        );
+        return res.status(200).json(result).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error retrieving consumers from agreement filtered by consumer name ${q}, offset ${offset}, limit ${limit}`
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
 
     .get("/agreements/:agreementId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -135,13 +230,6 @@ const agreementRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-
-    .post("/agreements/:agreementId/activate", async (_req, res) =>
-      res.status(501).send()
-    )
-    .post("/agreements/:agreementId/clone", async (_req, res) =>
-      res.status(501).send()
-    )
 
     .post("/agreements/:agreementId/consumer-documents", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -205,10 +293,6 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/consumer-documents", async (_req, res) =>
-      res.status(501).send()
-    )
-
     .get(
       "/agreements/:agreementId/consumer-documents/:documentId",
       async (req, res) => {
@@ -227,7 +311,7 @@ const agreementRouter = (
             error,
             getAgreementConsumerDocumentErrorMapper,
             ctx.logger,
-            `Error downloading contract for agreement ${req.params.agreementId}`
+            `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -258,6 +342,7 @@ const agreementRouter = (
         }
       }
     )
+
     .get("/agreements/:agreementId/contract", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

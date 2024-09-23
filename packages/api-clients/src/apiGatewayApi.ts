@@ -10,4 +10,9 @@ export type GetAgreementsQueryParams = QueryParametersByAlias<
 
 export type GetPurposesQueryParams = QueryParametersByAlias<Api, "getPurposes">;
 
+export type GetEServicesQueryParams = QueryParametersByAlias<
+  Api,
+  "getEServices"
+>;
+
 export * from "./generated/apiGatewayApi.js";
