@@ -57,7 +57,7 @@ export function selfcareOnboardingProcessorBuilder(
         const eventPayload = InstitutionEventPayload.parse(jsonPayload);
 
         const institution = eventPayload.institution;
-        if (allowedOrigins.indexOf(institution.origin) < 0) {
+        if (!allowedOrigins.includes(institution.origin)) {
           loggerInstance.warn(
             `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
           );
