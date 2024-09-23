@@ -173,7 +173,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         clientId: config.kafkaClientId,
         brokers: config.kafkaBrokers,
         logLevel: config.kafkaLogLevel,
-        ssl: config.kafkaBrokerConnectionString ? true : false,
+        ssl: connectionStringMechanism ? true : false,
         sasl: connectionStringMechanism,
       }
     : {
