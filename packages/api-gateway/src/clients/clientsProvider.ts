@@ -4,6 +4,7 @@ import {
   purposeApi,
   tenantApi,
   attributeRegistryApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -27,12 +28,17 @@ export type AttributeProcessClient = ReturnType<
   typeof attributeRegistryApi.createAttributeApiClient
 >;
 
+export type AuthorizationProcessClient = {
+  client: ReturnType<typeof authorizationApi.createClientApiClient>;
+};
+
 export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   tenantProcessClient: TenantProcessClient;
   purposeProcessClient: PurposeProcessClient;
   attributeProcessClient: AttributeProcessClient;
+  authorizationProcessClient: AuthorizationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -52,5 +58,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     attributeProcessClient: attributeRegistryApi.createAttributeApiClient(
       config.attributeRegistryProcessUrl
     ),
+    authorizationProcessClient: {
+      client: authorizationApi.createClientApiClient(
+        config.authorizationProcessUrl
+      ),
+    },
   };
 }

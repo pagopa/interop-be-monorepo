@@ -17,12 +17,14 @@ import {
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getClientErrorMapper,
   getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
+import { authorizationServiceBuilder } from "../services/authorizationService.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -32,6 +34,7 @@ const apiGatewayRouter = (
     purposeProcessClient,
     catalogProcessClient,
     attributeProcessClient,
+    authorizationProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
@@ -55,6 +58,12 @@ const apiGatewayRouter = (
     purposeProcessClient,
     catalogProcessClient,
     agreementProcessClient
+  );
+
+  const authorizationService = authorizationServiceBuilder(
+    authorizationProcessClient,
+    purposeProcessClient,
+    catalogProcessClient
   );
 
   apiGatewayRouter
@@ -155,7 +164,24 @@ const apiGatewayRouter = (
     .get(
       "/clients/:clientId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const client = await authorizationService.getClient(
+            ctx,
+            req.params.clientId
+          );
+          return res.status(200).json(client).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getClientErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/eservices",
