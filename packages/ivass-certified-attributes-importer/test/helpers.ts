@@ -1,10 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { Tenant, TenantAttribute, unsafeBrandId } from "pagopa-interop-models";
+import {
+  Attribute,
+  AttributeId,
+  Tenant,
+  TenantAttribute,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { vi } from "vitest";
 import { match } from "ts-pattern";
 import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../src/config/constants.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
-import { PersistentAttribute } from "../src/model/attributeModel.js";
 
 const csvFileContent = `OTHER_FIELD;CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
 F1;D0001;2020-12-02;9999-12-31;Org1;0000012345678901
@@ -60,12 +65,12 @@ export const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
 export const getAttributeByExternalIdMock = (
   origin: string,
   code: string
-): Promise<PersistentAttribute> =>
+): Promise<Attribute> =>
   match(code)
     .with(IVASS_INSURANCES_ATTRIBUTE_CODE, () =>
       Promise.resolve({
         ...persistentAttribute,
-        id: ATTRIBUTE_IVASS_INSURANCES_ID,
+        id: unsafeBrandId<AttributeId>(ATTRIBUTE_IVASS_INSURANCES_ID),
         origin,
         code,
       })
@@ -82,10 +87,14 @@ export const persistentTenant: Tenant = {
   name: "tenantName",
 };
 
-export const persistentAttribute: PersistentAttribute = {
-  id: "7a04c906-1525-4c68-8a5b-d740d77d9c80",
+export const persistentAttribute: Attribute = {
+  id: unsafeBrandId("7a04c906-1525-4c68-8a5b-d740d77d9c80"),
   origin: "attributeOrigin",
   code: "attributeCode",
+  name: "attributeName",
+  kind: "Certified",
+  creationTime: new Date(),
+  description: "attributeDescription",
 };
 
 export const persistentTenantAttribute: TenantAttribute = {
