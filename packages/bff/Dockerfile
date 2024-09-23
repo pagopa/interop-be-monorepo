@@ -12,6 +12,7 @@ COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
+COPY ./packages/client-assertion-validation/package.json /app/packages/client-assertion-validation/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -22,6 +23,7 @@ COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
+COPY ./packages/client-assertion-validation /app/packages/client-assertion-validation
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -34,6 +36,7 @@ RUN pnpm build && \
       packages/models \
       packages/api-clients  \
       packages/agreement-lifecycle \
+      packages/client-assertion-validation \
       packages/bff/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
