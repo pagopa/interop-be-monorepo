@@ -5,5 +5,3 @@ export const config = inject("tokenGenerationReadModelConfig");
 export const { cleanup } = setupTestContainersVitest();
 
 afterEach(cleanup);
-
-// export const eservices = readModelRepository.eservices;
