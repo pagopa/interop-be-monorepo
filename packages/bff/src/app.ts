@@ -35,7 +35,7 @@ app.use(healthRouter);
 app.use(authorizationRouter(zodiosCtx, clients, allowList));
 app.use(authenticationMiddleware);
 app.use(loggerMiddleware(serviceName));
-app.use(genericRouter(zodiosCtx));
+app.use(genericRouter(zodiosCtx, clients));
 app.use(catalogRouter(zodiosCtx, clients));
 app.use(attributeRouter(zodiosCtx, clients));
 app.use(purposeRouter(zodiosCtx, clients));
