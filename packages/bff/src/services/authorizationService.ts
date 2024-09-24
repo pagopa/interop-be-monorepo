@@ -42,7 +42,7 @@ type GetSessionTokenReturnType =
     }
   | {
       limitReached: false;
-      sessionToken: string;
+      sessionToken: bffApi.SessionToken;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     };
 
@@ -222,7 +222,7 @@ export function authorizationServiceBuilder(
 
       return {
         limitReached: false,
-        sessionToken,
+        sessionToken: { session_token: sessionToken },
         rateLimiterStatus,
       };
     },

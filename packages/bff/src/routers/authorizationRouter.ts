@@ -55,9 +55,7 @@ const authorizationRouter = (
 
         return res
           .status(200)
-          .send(
-            bffApi.SessionToken.parse({ session_token: result.sessionToken })
-          );
+          .send(bffApi.SessionToken.parse(result.sessionToken));
       } catch (error) {
         const err = makeApiProblem(
           error,
