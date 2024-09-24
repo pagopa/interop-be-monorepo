@@ -194,22 +194,10 @@ export const successfulValidation = <T>(
   result: T
 ): SuccessfulValidation<T> => ({
   data: result,
-  errors: undefined,
 });
 
 export const failedValidation = (
-  // errors: [[error1, error2, undefined], error3, undefined]
-  errors: Array<
-    Array<ApiError<ErrorCodes> | undefined> | ApiError<ErrorCodes> | undefined
-  >
-): FailedValidation => {
-  const nestedArrayWithoutUndefined = errors.filter((a) => a !== undefined);
-  const flattenedArray = nestedArrayWithoutUndefined.flat(1);
-  const flattenedArrayWithoutUndefined = flattenedArray.filter(
-    (e) => e !== undefined
-  );
-  return {
-    data: undefined,
-    errors: flattenedArrayWithoutUndefined as Array<ApiError<ErrorCodes>>,
-  };
-};
+  errors: Array<ApiError<ErrorCodes> | undefined>
+): FailedValidation => ({
+  errors: errors.filter((v): v is NonNullable<typeof v> => Boolean(v)),
+});
