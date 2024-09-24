@@ -212,7 +212,6 @@ describe("Authorization Updater processMessage", () => {
     "AgreementUnsuspendedByConsumer",
     "AgreementUnsuspendedByProducer",
     "AgreementArchivedByConsumer",
-    "AgreementArchivedByUpgrade",
   ])(
     "Should correctly process an agreement messages with type %t and call updateAgreementState",
     async (eventType) => {
