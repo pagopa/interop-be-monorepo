@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
 import {
+  ALLOWED_ALGORITHM,
   EXPECTED_CLIENT_ASSERTION_TYPE,
   EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
 } from "./utils.js";
@@ -26,7 +27,7 @@ export type ClientAssertionDigest = z.infer<typeof ClientAssertionDigest>;
 export const ClientAssertionHeader = z
   .object({
     kid: z.string(),
-    alg: z.string(), // TODO Enum, which values?
+    alg: z.string(),
   })
   .strict();
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
@@ -58,20 +59,20 @@ export const Key = z
     clientId: ClientId,
     consumerId: TenantId,
     kid: z.string(),
-    purposeId: PurposeId, // TODO which field of the table is mapped to this?
+    purposeId: PurposeId,
     publicKey: z.string().min(1),
-    algorithm: z.literal("RS256"), // no field to map from the table. Is it extracted from publicKey field?
+    algorithm: z.literal(ALLOWED_ALGORITHM),
   })
   .strict();
 export type Key = z.infer<typeof Key>;
 
 export const ConsumerKey = Key.extend({
   clientKind: z.literal(clientKindTokenStates.consumer),
-  purposeId: PurposeId, // TODO is this naming ok?
+  purposeId: PurposeId,
   purposeState: ItemState,
   agreementId: AgreementId,
   agreementState: ItemState,
-  eServiceId: EServiceId, // no field to map. Extract from GSIPK_eserviceId_descriptorId?
+  eServiceId: EServiceId,
   descriptorState: ItemState,
 }).strict();
 export type ConsumerKey = z.infer<typeof ConsumerKey>;
