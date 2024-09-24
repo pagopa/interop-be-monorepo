@@ -980,7 +980,7 @@ describe("Authorization Updater processMessage", () => {
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
       consumerId: mockConsumerId,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     const mockActiveAgreement: Agreement = {
       ...getMockAgreement(),
@@ -988,7 +988,7 @@ describe("Authorization Updater processMessage", () => {
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
       consumerId: mockConsumerId,
-      createdAt: new Date(mockArchivedAgreement.createdAt.getTime() + 10000)
+      createdAt: new Date(mockArchivedAgreement.createdAt.getTime() + 10000),
     };
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.active
@@ -1002,8 +1002,14 @@ describe("Authorization Updater processMessage", () => {
     const mockClient = { ...getMockClient(), purposes: [mockPurpose.id] };
 
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockArchivedAgreement), agreements);
-    await writeInReadmodel(toReadModelAgreement(mockActiveAgreement), agreements);
+    await writeInReadmodel(
+      toReadModelAgreement(mockArchivedAgreement),
+      agreements
+    );
+    await writeInReadmodel(
+      toReadModelAgreement(mockActiveAgreement),
+      agreements
+    );
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
 
     const message = {

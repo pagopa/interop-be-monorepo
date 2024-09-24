@@ -121,10 +121,11 @@ export function readModelServiceBuilder(
         .toArray();
 
       if (data) {
-        if (data.length > 1)
+        if (data.length > 1) {
           throw genericInternalError(
             `Too many agreements returned: data ${JSON.stringify(data)} `
           );
+        }
 
         const result = Agreement.safeParse(data[0].data);
 
