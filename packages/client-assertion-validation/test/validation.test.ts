@@ -67,7 +67,6 @@ describe("validation test", () => {
     // it("invalidAssertionType", () => {
     // TODO how to test this if "something-wrong" can't be assigned to the property?
     // possible solution: the property is a string (not literal) and the check is done later
-
     //   const wrongAssertionType = "something-wrong";
     //   const request = {
     //     ...getMockAccessTokenRequest(),
@@ -78,7 +77,10 @@ describe("validation test", () => {
     //   expect(errors).toHaveLength(1);
     //   expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
     // });
+
     // it("invalidGrantType", () => {
+    // TODO how to test this if "something-wrong" can't be assigned to the property?
+    // possible solution: the property is a string (not literal) and the check is done later
     //   const wrongGrantType = "something-wrong";
     //   const request = {
     //     ...getMockAccessTokenRequest(),
@@ -600,6 +602,7 @@ describe("validation test", () => {
     });
 
     // it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
+    //   // How to test this? The goal is to pass an api key to validateClientKindAndPlatformState (with kind clientKindTokenStates.consumer)
     //   const mockApiKey = {
     //     ...getMockApiKey(),
     //     clientKind: clientKindTokenStates.consumer,
@@ -713,9 +716,3 @@ describe("validation test", () => {
     });
   });
 });
-
-// const printErrors = (errors?: Array<ApiError<ErrorCodes>>): void => {
-//   if (errors) {
-//     errors.forEach((e) => console.log(e.code, e.detail));
-//   }
-// };
