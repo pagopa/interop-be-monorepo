@@ -1,6 +1,7 @@
 import {
   genericInternalError,
   PlatformStatesCatalogEntry,
+  PlatformStatesEServiceDescriptorPK,
 } from "pagopa-interop-models";
 import {
   DeleteItemCommand,
@@ -47,7 +48,7 @@ export const writeCatalogEntry = async (
 };
 
 export const readCatalogEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesCatalogEntry | undefined> => {
   const input: GetItemInput = {
@@ -77,7 +78,7 @@ export const readCatalogEntry = async (
 };
 
 export const deleteCatalogEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: DeleteItemInput = {
