@@ -2,7 +2,8 @@
   "TableName": "platform-states",
   "AttributeDefinitions": [
     { "AttributeName": "PK", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" }
+    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" },
+    { "AttributeName": "GSISK_agreementTimestamp", "AttributeType": "S" }
   ],
   "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
   "GlobalSecondaryIndexes": [
