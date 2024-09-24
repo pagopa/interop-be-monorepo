@@ -6,8 +6,7 @@ import {
 import { z } from "zod";
 import dotenv from "dotenv";
 
-export const OnetrustServiceConfig = FileManagerConfig.and(FileManagerConfig)
-  .and(LoggerConfig)
+export const OnetrustServiceConfig = FileManagerConfig.and(LoggerConfig)
   .and(AWSConfig)
   .and(
     z
