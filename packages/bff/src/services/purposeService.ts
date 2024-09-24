@@ -266,9 +266,7 @@ export function purposeServiceBuilder(
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<
-      ReturnType<typeof purposeProcessClient.createPurposeFromEService>
-    > {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
@@ -276,15 +274,20 @@ export function purposeServiceBuilder(
         ...createSeed,
         eServiceId: createSeed.eserviceId,
       };
-      return await purposeProcessClient.createPurposeFromEService(payload, {
-        headers,
-      });
+
+      const { id } = await purposeProcessClient.createPurposeFromEService(
+        payload,
+        {
+          headers,
+        }
+      );
+      return { id };
     },
     async reversePurposeUpdate(
       id: PurposeId,
       updateSeed: bffApi.ReversePurposeUpdateContent,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ purposeId: PurposeId; versionId: PurposeVersionId }> {
+    ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating reverse purpose ${id}`);
       const updatedPurpose = await purposeProcessClient.updateReversePurpose(
         updateSeed,
