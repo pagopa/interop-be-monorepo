@@ -47,6 +47,11 @@ export const getEserviceErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getEserviceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -56,6 +61,11 @@ export const getEserviceDescriptorErrorMapper = (
       "unexpectedDescriptorState",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
