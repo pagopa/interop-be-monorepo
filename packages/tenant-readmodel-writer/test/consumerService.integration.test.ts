@@ -137,9 +137,7 @@ describe("Integration tests", async () => {
         "data.id": mockTenant.id,
       });
 
-      expect(retrievedTenant?.data).toEqual(
-        toReadModelTenant(updatedTenant)
-      );
+      expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
 
       vi.useRealTimers();
