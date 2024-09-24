@@ -283,7 +283,8 @@ async function searchTenantsByName(
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
-      aggregationPipeline
+      aggregationPipeline,
+      true
     ),
   };
 }
@@ -401,7 +402,8 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
-          aggregationPipeline
+          aggregationPipeline,
+          true
         ),
       };
     },
@@ -558,7 +560,8 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline
+          aggregationPipeline,
+          true
         ),
       };
     },
