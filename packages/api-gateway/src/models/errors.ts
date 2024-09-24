@@ -21,7 +21,10 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(
+  errorCodes,
+  false // API Gateway shall not let Problem errors from other services to pass through
+);
 
 export function invalidAgreementState(
   state: agreementApi.AgreementState,
