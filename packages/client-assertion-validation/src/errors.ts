@@ -40,26 +40,6 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-// Notes about errors:
-// - InvalidClientIdFormat -> check on uuid
-// - ClientAssertionParseFailed -> already handled in invalidClientAssertionFormat      X
-// - ClientAssertionInvalidClaims -> should be covered by individual checks     ?
-// - InvalidSubjectFormat -> check on uuid of subject claim
-// - InvalidPurposeIdFormat -> check on uuid of purposeId claim (already covered by invalidPurposeIdClaimFormat?)
-// - DigestClaimNotFound -> check if custom claim digest exists
-// - InvalidDigestClaims -> check if digest has only {alg, value} keys      X we aren't discriminating between different safeParse errors
-// - InvalidDigestFormat -> check object shape
-// - InvalidHashLength -> check on the length of digest.value (digest is a custom claim)
-// - InvalidHashAlgorithm -> check if digest.alg is sha256
-// - AlgorithmNotFound -> check if header.alg is present
-// - AlgorithmNotAllowed -> check if (header.alg === RS256)
-// - PublicKeyParseFailed -> out of scope for this module     X
-// - ClientAssertionVerificationError -> maybe too generic      X
-// - InvalidClientAssertionSignature -> maybe already covered by existing cases     X
-// - PurposeIdNotProvided -> based on entry type (Api client doesn't need purposeId)
-// - PurposeNotFound -> related to previous, check if there is a purpose entry for that purposeId (in platform states)      needed in this package?
-// - InvalidKidFormat -> Verify that kid does not contain special characters
-
 export function clientAssertionValidationFailure(
   details: string
 ): ApiError<ErrorCodes> {
