@@ -79,6 +79,7 @@ export async function handleMessageV2(
             PK: primaryKeyCurrent,
             state: descriptorStateToItemState(descriptor.state),
             descriptorAudience: descriptor.audience[0],
+            descriptorVoucherLifespan: descriptor.voucherLifespan,
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };

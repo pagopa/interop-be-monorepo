@@ -114,6 +114,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.inactive,
           descriptorAudience: "pagopa.it",
+          descriptorVoucherLifespan: 60,
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -150,6 +151,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.inactive,
           descriptorAudience: "pagopa.it",
+          descriptorVoucherLifespan: 100,
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -167,6 +169,7 @@ describe("integration tests", async () => {
         const catalogStateEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.inactive,
+          descriptorVoucherLifespan: 100,
           descriptorAudience: "pagopa.it",
           version: 1,
           updatedAt: new Date().toISOString(),
@@ -203,6 +206,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.inactive,
           descriptorAudience: "pagopa.it",
+          descriptorVoucherLifespan: 100,
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -236,6 +240,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.inactive,
           descriptorAudience: "pagopa.it",
+          descriptorVoucherLifespan: 100,
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -541,6 +546,7 @@ describe("integration tests", async () => {
           PK: catalogEntryPrimaryKey,
           state: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
+          descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
         };
@@ -639,6 +645,7 @@ describe("integration tests", async () => {
           PK: catalogEntryPrimaryKey,
           state: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
+          descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 1,
           updatedAt: new Date().toISOString(),
         };
@@ -833,6 +840,7 @@ describe("integration tests", async () => {
         PK: primaryKey,
         state: itemState.inactive,
         descriptorAudience: archivedDescriptor.audience[0],
+        descriptorVoucherLifespan: archivedDescriptor.voucherLifespan,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -946,6 +954,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
+          descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
         };
@@ -988,6 +997,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.active,
           descriptorAudience: publishedDescriptor.audience[0],
+          descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
         };
@@ -1034,6 +1044,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.inactive,
           descriptorAudience: publishedDescriptor.audience[0],
+          descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
         };
@@ -1191,6 +1202,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.active,
           descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorVoucherLifespan: suspendedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
         };
@@ -1288,6 +1300,7 @@ describe("integration tests", async () => {
           PK: primaryKey,
           state: itemState.active,
           descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorVoucherLifespan: suspendedDescriptor.voucherLifespan,
           version: 1,
           updatedAt: new Date().toISOString(),
         };
