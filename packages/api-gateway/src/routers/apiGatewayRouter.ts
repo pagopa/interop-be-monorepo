@@ -151,7 +151,11 @@ const apiGatewayRouter = (
 
           return res.status(200).json(attributes).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getAgreementErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -170,7 +174,11 @@ const apiGatewayRouter = (
 
           return res.status(200).json(purposes).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getAgreementErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

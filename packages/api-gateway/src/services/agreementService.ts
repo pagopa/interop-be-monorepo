@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import {
@@ -94,12 +95,18 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Attributes> => {
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient.getAgreementById({
-        headers,
-        params: {
-          agreementId,
-        },
-      });
+      const agreement = await agreementProcessClient
+        .getAgreementById({
+          headers,
+          params: {
+            agreementId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: agreementNotFound(agreementId),
+          });
+        });
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         headers,
@@ -117,12 +124,18 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Purposes> => {
       logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient.getAgreementById({
-        headers,
-        params: {
-          agreementId,
-        },
-      });
+      const agreement = await agreementProcessClient
+        .getAgreementById({
+          headers,
+          params: {
+            agreementId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: agreementNotFound(agreementId),
+          });
+        });
 
       return await getAllPurposes(purposeProcessClient, headers, {
         eserviceId: agreement.eserviceId,
