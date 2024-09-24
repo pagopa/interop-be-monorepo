@@ -109,14 +109,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res
-          .json(
-            bffApi.Attributes.parse({
-              results: attributes.results,
-              pagination: { offset, limit, totalCount: attributes.totalCount },
-            })
-          )
-          .end();
+        return res.json(bffApi.Attributes.parse(attributes)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
