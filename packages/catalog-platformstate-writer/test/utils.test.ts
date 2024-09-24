@@ -418,7 +418,7 @@ describe("utils tests", async () => {
       expect(
         updateDescriptorStateInTokenGenerationStatesTable(
           eserviceId_descriptorId,
-          descriptorState.archived,
+          itemState.inactive,
           dynamoDBClient
         )
       ).resolves.not.toThrowError();
@@ -462,7 +462,7 @@ describe("utils tests", async () => {
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
-        descriptorState.published,
+        itemState.active,
         dynamoDBClient
       );
       const retrievedTokenStateEntries =

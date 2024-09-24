@@ -210,7 +210,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
 
 export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
-  descriptorState: DescriptorState,
+  descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const entriesToUpdate =
@@ -229,7 +229,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       },
       ExpressionAttributeValues: {
         ":newState": {
-          S: descriptorStateToItemState(descriptorState),
+          S: descriptorState,
         },
         ":newUpdateAt": {
           S: new Date().toISOString(),

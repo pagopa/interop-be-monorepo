@@ -7,9 +7,9 @@ import {
   EServiceEventEnvelopeV2,
   EServiceV2,
   fromEServiceV2,
-  genericInternalError,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  missingKafkaMessageDataError,
   PlatformStatesCatalogEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -31,7 +31,8 @@ export async function handleMessageV2(
     .with({ type: "EServiceDescriptorPublished" }, async (msg) => {
       const { eservice, descriptor } = parseEServiceAndDescriptor(
         msg.data.eservice,
-        unsafeBrandId(msg.data.descriptorId)
+        unsafeBrandId(msg.data.descriptorId),
+        message.type
       );
       const previousDescriptor = eservice.descriptors.find(
         (d) => d.version === (Number(descriptor.version) - 1).toString()
@@ -71,7 +72,7 @@ export async function handleMessageV2(
           });
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
-            descriptor.state,
+            descriptorStateToItemState(descriptor.state),
             dynamoDBClient
           );
         } else {
@@ -93,7 +94,7 @@ export async function handleMessageV2(
           });
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
-            descriptor.state,
+            descriptorStateToItemState(descriptor.state),
             dynamoDBClient
           );
         }
@@ -124,7 +125,7 @@ export async function handleMessageV2(
           });
         await updateDescriptorStateInTokenGenerationStatesTable(
           eserviceId_descriptorId_previous,
-          previousDescriptor.state,
+          descriptorStateToItemState(previousDescriptor.state),
           dynamoDBClient
         );
       }
@@ -135,7 +136,8 @@ export async function handleMessageV2(
       async (msg) => {
         const { eservice, descriptor } = parseEServiceAndDescriptor(
           msg.data.eservice,
-          unsafeBrandId(msg.data.descriptorId)
+          unsafeBrandId(msg.data.descriptorId),
+          message.type
         );
         const primaryKey = makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
@@ -160,20 +162,18 @@ export async function handleMessageV2(
           });
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
-            descriptor.state,
+            descriptorStateToItemState(descriptor.state),
             dynamoDBClient
           );
         }
       }
     )
     .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
-      const eserviceV2 = msg.data.eservice;
-      if (!eserviceV2) {
-        throw genericInternalError(
-          `EService not found in message data for event ${msg.type}`
-        );
-      }
-      const eservice = fromEServiceV2(eserviceV2);
+      const { eservice, descriptor } = parseEServiceAndDescriptor(
+        msg.data.eservice,
+        unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        msg.type
+      );
 
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice.id,
@@ -189,7 +189,7 @@ export async function handleMessageV2(
       });
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
-        descriptorState.archived,
+        descriptorStateToItemState(descriptor.state),
         dynamoDBClient
       );
     })
@@ -219,19 +219,18 @@ export async function handleMessageV2(
 
 export const parseEServiceAndDescriptor = (
   eserviceV2: EServiceV2 | undefined,
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
+  eventType: string
 ): { eservice: EService; descriptor: Descriptor } => {
   if (!eserviceV2) {
-    throw genericInternalError(`EService not found in message data`);
+    throw missingKafkaMessageDataError("eservice", eventType);
   }
 
   const eservice = fromEServiceV2(eserviceV2);
 
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
-    throw genericInternalError(
-      `Unable to find descriptor with id ${descriptorId}`
-    );
+    throw missingKafkaMessageDataError("descriptor", eventType);
   }
   return { eservice, descriptor };
 };
