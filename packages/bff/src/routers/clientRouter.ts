@@ -16,7 +16,6 @@ import {
   emptyErrorMapper,
   getClientUsersErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
