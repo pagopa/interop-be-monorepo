@@ -55,6 +55,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       _grantType: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
+      ctx.logger.info(`Validating token generation for client ${clientId}`);
+
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,
         client_assertion_type:
