@@ -2,7 +2,6 @@ import {
   AWSConfig,
   FileManagerConfig,
   LoggerConfig,
-  S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import dotenv from "dotenv";
