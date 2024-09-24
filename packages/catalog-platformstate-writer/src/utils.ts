@@ -45,6 +45,9 @@ export const writeCatalogEntry = async (
       descriptorAudience: {
         S: catalogEntry.descriptorAudience,
       },
+      descriptorVoucherLifespan: {
+        N: catalogEntry.descriptorVoucherLifespan.toString(),
+      },
       version: {
         N: catalogEntry.version.toString(),
       },
@@ -102,9 +105,7 @@ export const deleteCatalogEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const descriptorStateToClientState = (
-  state: DescriptorState
-): ItemState =>
+export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;
@@ -228,7 +229,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       },
       ExpressionAttributeValues: {
         ":newState": {
-          S: descriptorStateToClientState(descriptorState),
+          S: descriptorStateToItemState(descriptorState),
         },
         ":newUpdateAt": {
           S: new Date().toISOString(),
