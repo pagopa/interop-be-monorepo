@@ -71,6 +71,8 @@ jobs:
             dockerfile_path: packages/tenant-outbound-writer
           - image_name: compute-agreements-consumer
             dockerfile_path: packages/compute-agreements-consumer
+          - image_name: selfcare-onboarding-consumer
+            dockerfile_path: packages/selfcare-onboarding-consumer
           - image_name: producer-key-events-writer
             dockerfile_path: packages/producer-key-events-writer
           - image_name: producer-key-readmodel-writer
