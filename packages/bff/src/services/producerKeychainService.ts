@@ -10,7 +10,10 @@ import {
 import { SelfcareId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import {
+  toAuthorizationKeySeed,
+  toBffApiCompactProducerKeychain,
+} from "../api/authorizationApiConverter.js";
 import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
 
 export function producerKeychainServiceBuilder(
@@ -35,20 +38,30 @@ export function producerKeychainServiceBuilder(
         name?: string;
       },
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<authorizationApi.ProducerKeychains> {
+    ): Promise<bffApi.CompactProducerKeychains> {
       logger.info(`Retrieving producer keychains`);
 
-      return authorizationClient.producerKeychain.getProducerKeychains({
-        queries: {
-          offset,
+      const producerKeychains =
+        await authorizationClient.producerKeychain.getProducerKeychains({
+          queries: {
+            offset,
+            limit,
+            userIds,
+            producerId: requesterId,
+            name,
+            eserviceId: undefined,
+          },
+          headers,
+        });
+
+      return {
+        results: producerKeychains.results.map(toBffApiCompactProducerKeychain),
+        pagination: {
           limit,
-          userIds,
-          producerId: requesterId,
-          name,
-          eserviceId: undefined,
+          offset,
+          totalCount: producerKeychains.totalCount,
         },
-        headers,
-      });
+      };
     },
     async createProducerKeychain(
       seed: authorizationApi.ProducerKeychainSeed,

@@ -49,19 +49,7 @@ const clientRouter = (
           ctx
         );
 
-        return res
-          .status(200)
-          .json(
-            bffApi.CompactClients.parse({
-              results: clients.results.map(toBffApiCompactClient),
-              pagination: {
-                limit,
-                offset,
-                totalCount: clients.totalCount,
-              },
-            })
-          )
-          .end();
+        return res.status(200).json(bffApi.CompactClients.parse(clients)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

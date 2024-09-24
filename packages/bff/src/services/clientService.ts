@@ -12,7 +12,10 @@ import {
   PagoPAInteropBeClients,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import {
+  toAuthorizationKeySeed,
+  toBffApiCompactClient,
+} from "../api/authorizationApiConverter.js";
 import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
 
 export function clientServiceBuilder(
@@ -39,10 +42,10 @@ export function clientServiceBuilder(
         kind?: bffApi.ClientKind;
       },
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<authorizationApi.ClientsWithKeys> {
+    ): Promise<bffApi.CompactClients> {
       logger.info(`Retrieving clients`);
 
-      return authorizationClient.client.getClientsWithKeys({
+      const clients = await authorizationClient.client.getClientsWithKeys({
         queries: {
           offset,
           limit,
@@ -54,6 +57,15 @@ export function clientServiceBuilder(
         },
         headers,
       });
+
+      return {
+        results: clients.results.map(toBffApiCompactClient),
+        pagination: {
+          limit,
+          offset,
+          totalCount: clients.totalCount,
+        },
+      };
     },
 
     async getClientById(

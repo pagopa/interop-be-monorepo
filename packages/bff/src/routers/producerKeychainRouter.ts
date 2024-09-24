@@ -18,7 +18,6 @@ import {
 } from "../utilities/errorMappers.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
-import { toBffApiCompactProducerKeychain } from "../api/authorizationApiConverter.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -53,18 +52,7 @@ const producerKeychainRouter = (
 
         return res
           .status(200)
-          .json(
-            bffApi.CompactProducerKeychains.parse({
-              results: producerKeychains.results.map(
-                toBffApiCompactProducerKeychain
-              ),
-              pagination: {
-                limit,
-                offset,
-                totalCount: producerKeychains.totalCount,
-              },
-            })
-          )
+          .json(bffApi.CompactProducerKeychains.parse(producerKeychains))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
