@@ -7,7 +7,7 @@ import {
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
-  invalidAgreementState: "0001",
+  agreementNotFound: "0001",
   producerAndConsumerParamMissing: "0002",
   missingActivePurposeVersion: "0003",
   activeAgreementByEserviceAndConsumerNotFound: "0004",
@@ -25,17 +25,6 @@ export const makeApiProblem = makeApiProblemBuilder(
   errorCodes,
   false // API Gateway shall not let Problem errors from other services to pass through
 );
-
-export function invalidAgreementState(
-  state: agreementApi.AgreementState,
-  agreementId: agreementApi.Agreement["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Cannot retrieve agreement in ${state} state - id: ${agreementId}`,
-    code: "invalidAgreementState",
-    title: "Invalid agreement state",
-  });
-}
 
 export function producerAndConsumerParamMissing(): ApiError<ErrorCodes> {
   return new ApiError({
@@ -124,5 +113,15 @@ export function keyNotFound(kId: string): ApiError<ErrorCodes> {
     detail: `Key with kId ${kId} not found`,
     code: "keyNotFound",
     title: "Key not found",
+  });
+}
+
+export function agreementNotFound(
+  agreementId: agreementApi.Agreement["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} not found`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
   });
 }
