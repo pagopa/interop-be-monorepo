@@ -139,7 +139,7 @@ export function producerKeychainServiceBuilder(
       producerKeychainId: string,
       userIds: string[],
       { logger, headers, authData }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PublicKey[]> {
+    ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of producer keychain ${producerKeychainId}`);
 
       const selfcareId = authData.selfcareId;
@@ -151,9 +151,11 @@ export function producerKeychainServiceBuilder(
           headers,
         });
 
-      return Promise.all(
+      const decoratedKeys = await Promise.all(
         keys.map((k) => decorateKey(selfcareUsersClient, k, selfcareId))
       );
+
+      return { keys: decoratedKeys };
     },
     async getProducerKeyById(
       producerKeychainId: string,
@@ -194,7 +196,7 @@ export function producerKeychainServiceBuilder(
     async getProducerKeychainUsers(
       producerKeychainId: string,
       { logger, headers, authData }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CompactUser[]> {
+    ): Promise<bffApi.CompactUsers> {
       logger.info(
         `Retrieving users for producer keychain ${producerKeychainId}`
       );
