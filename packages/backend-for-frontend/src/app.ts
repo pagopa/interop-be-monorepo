@@ -28,7 +28,7 @@ import {
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 
-const serviceName = "bff-process";
+const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
 const allowList = await getAllowList(serviceName, fileManager, config);
 
