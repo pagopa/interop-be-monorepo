@@ -103,14 +103,14 @@ const apiGatewayRouter = (
             req.query
           );
 
-          return res.status(200).json(agreements).send();
+          return res.status(200).send(agreements);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAgreementsErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -126,14 +126,14 @@ const apiGatewayRouter = (
             req.params.agreementId
           );
 
-          return res.status(200).json(agreement).send();
+          return res.status(200).send(agreement);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAgreementErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -149,10 +149,10 @@ const apiGatewayRouter = (
             req.params.agreementId
           );
 
-          return res.status(200).json(attributes).send();
+          return res.status(200).send(attributes);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -168,10 +168,10 @@ const apiGatewayRouter = (
             req.params.agreementId
           );
 
-          return res.status(200).json(purposes).send();
+          return res.status(200).send(purposes);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -187,10 +187,10 @@ const apiGatewayRouter = (
             req.body
           );
 
-          return res.status(200).json(attribute).send();
+          return res.status(200).send(attribute);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -206,10 +206,10 @@ const apiGatewayRouter = (
             req.params.attributeId
           );
 
-          return res.status(200).json(attribute).send();
+          return res.status(200).send(attribute);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -224,14 +224,14 @@ const apiGatewayRouter = (
             ctx,
             req.params.clientId
           );
-          return res.status(200).json(client).send();
+          return res.status(200).send(client);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -242,10 +242,10 @@ const apiGatewayRouter = (
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
         try {
           const eservices = await catalogService.getEservices(ctx, req.query);
-          return res.status(200).json(eservices).send();
+          return res.status(200).send(eservices);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -259,14 +259,14 @@ const apiGatewayRouter = (
             ctx,
             req.params.eserviceId
           );
-          return res.status(200).json(eservice).send();
+          return res.status(200).send(eservice);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getEserviceErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -280,10 +280,10 @@ const apiGatewayRouter = (
             ctx,
             req.params.eserviceId
           );
-          return res.status(200).json(descriptors).send();
+          return res.status(200).send(descriptors);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -298,14 +298,14 @@ const apiGatewayRouter = (
             req.params.eserviceId,
             req.params.descriptorId
           );
-          return res.status(200).json(descriptor).send();
+          return res.status(200).send(descriptor);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getEserviceDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -319,10 +319,10 @@ const apiGatewayRouter = (
           req.query.limit
         );
 
-        return res.status(200).json(events).send();
+        return res.status(200).send(events);
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -338,10 +338,10 @@ const apiGatewayRouter = (
             req.query.limit
           );
 
-          return res.status(200).json(events).send();
+          return res.status(200).send(events);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -358,10 +358,10 @@ const apiGatewayRouter = (
             req.query.limit
           );
 
-          return res.status(200).json(events).send();
+          return res.status(200).send(events);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -378,10 +378,10 @@ const apiGatewayRouter = (
             req.query.limit
           );
 
-          return res.status(200).json(events).send();
+          return res.status(200).send(events);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -399,10 +399,10 @@ const apiGatewayRouter = (
               req.query.limit
             );
 
-          return res.status(200).json(events).send();
+          return res.status(200).send(events);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -415,10 +415,10 @@ const apiGatewayRouter = (
         try {
           const jwk = await authorizationService.getJWK(ctx, req.params.kid);
 
-          return res.status(200).json(jwk).send();
+          return res.status(200).send(jwk);
         } catch (error) {
           const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -428,10 +428,10 @@ const apiGatewayRouter = (
       try {
         const purposes = await purposeService.getPurposes(ctx, req.query);
 
-        return res.status(200).json(purposes).send();
+        return res.status(200).send(purposes);
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -445,14 +445,14 @@ const apiGatewayRouter = (
             req.params.purposeId
           );
 
-          return res.status(200).json(purpose).send();
+          return res.status(200).send(purpose);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getPurposeErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -466,14 +466,14 @@ const apiGatewayRouter = (
             ctx,
             req.params.purposeId
           );
-          return res.status(200).json(agreement).send();
+          return res.status(200).send(agreement);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAgreementByPurposeErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )

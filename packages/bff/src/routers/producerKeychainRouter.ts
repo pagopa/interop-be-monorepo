@@ -52,8 +52,7 @@ const producerKeychainRouter = (
 
         return res
           .status(200)
-          .json(bffApi.CompactProducerKeychains.parse(producerKeychains))
-          .end();
+          .send(bffApi.CompactProducerKeychains.parse(producerKeychains));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -65,7 +64,7 @@ const producerKeychainRouter = (
             req.query.offset
           }, userIds = ${JSON.stringify(req.query.userIds)}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/producerKeychains", async (req, res) => {
@@ -77,7 +76,7 @@ const producerKeychainRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -85,7 +84,7 @@ const producerKeychainRouter = (
           ctx.logger,
           `Error creating producer keychain with seed: ${JSON.stringify(req)}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/producerKeychains/:producerKeychainId", async (req, res) => {
@@ -99,8 +98,7 @@ const producerKeychainRouter = (
 
         return res
           .status(200)
-          .json(bffApi.ProducerKeychain.parse(producerKeychain))
-          .end();
+          .send(bffApi.ProducerKeychain.parse(producerKeychain));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -108,7 +106,7 @@ const producerKeychainRouter = (
           ctx.logger,
           `Error retrieving producer keychain with id = ${req.params.producerKeychainId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete("/producerKeychains/:producerKeychainId", async (req, res) => {
@@ -127,7 +125,7 @@ const producerKeychainRouter = (
           ctx.logger,
           `Error deleting producer keychain with id = ${req.params.producerKeychainId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post(
@@ -150,7 +148,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error adding EService ${req.body.eserviceId} to producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -173,7 +171,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error removing EService ${req.params.eserviceId} from producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -196,7 +194,7 @@ const producerKeychainRouter = (
             req.params.producerKeychainId
           } with seed: ${JSON.stringify(req.body)}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/producerKeychains/:producerKeychainId/keys", async (req, res) => {
@@ -208,7 +206,7 @@ const producerKeychainRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.PublicKeys.parse(keys)).end();
+        return res.status(200).send(bffApi.PublicKeys.parse(keys));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -218,7 +216,7 @@ const producerKeychainRouter = (
             req.params.producerKeychainId
           } for user ids: ${JSON.stringify(req.query.userIds)}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -232,7 +230,7 @@ const producerKeychainRouter = (
             ctx
           );
 
-          return res.status(200).json(bffApi.PublicKey.parse(key)).end();
+          return res.status(200).send(bffApi.PublicKey.parse(key));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -240,7 +238,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error retrieving producer key ${req.params.keyId} in producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -264,7 +262,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error deleting producer key ${req.params.keyId} in producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -277,7 +275,7 @@ const producerKeychainRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.CompactUsers.parse(users)).end();
+        return res.status(200).send(bffApi.CompactUsers.parse(users));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -285,7 +283,7 @@ const producerKeychainRouter = (
           ctx.logger,
           `Error retrieving users in producer keychain ${req.params.producerKeychainId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post(
@@ -303,7 +301,7 @@ const producerKeychainRouter = (
 
           return res
             .status(200)
-            .json(bffApi.CreatedResource.parse(createdUser));
+            .send(bffApi.CreatedResource.parse(createdUser));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -311,7 +309,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error adding user ${req.params.userId} to producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -335,7 +333,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error removing user ${req.params.userId} from producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -351,7 +349,7 @@ const producerKeychainRouter = (
               ctx
             );
 
-          return res.status(200).json(bffApi.EncodedClientKey.parse(key)).end();
+          return res.status(200).send(bffApi.EncodedClientKey.parse(key));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -359,7 +357,7 @@ const producerKeychainRouter = (
             ctx.logger,
             `Error retrieving key ${req.params.keyId} for producer keychain ${req.params.producerKeychainId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

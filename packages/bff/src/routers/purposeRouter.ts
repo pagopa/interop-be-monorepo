@@ -48,7 +48,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -56,7 +56,7 @@ const purposeRouter = (
           ctx.logger,
           `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/reverse/purposes/:purposeId", async (req, res) => {
@@ -71,8 +71,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .json(bffApi.PurposeVersionResource.parse(result))
-          .end();
+          .send(bffApi.PurposeVersionResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -80,7 +79,7 @@ const purposeRouter = (
           ctx.logger,
           `Error updating reverse Purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes", async (req, res) => {
@@ -89,7 +88,7 @@ const purposeRouter = (
       try {
         const result = await purposeService.createPurpose(req.body, ctx);
 
-        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -97,7 +96,7 @@ const purposeRouter = (
           ctx.logger,
           `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/producer/purposes", async (req, res) => {
@@ -117,7 +116,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.Purposes.parse(result)).end();
+        return res.status(200).send(bffApi.Purposes.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -125,7 +124,7 @@ const purposeRouter = (
           ctx.logger,
           `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/consumer/purposes", async (req, res) => {
@@ -145,7 +144,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.Purposes.parse(result)).end();
+        return res.status(200).send(bffApi.Purposes.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -153,7 +152,7 @@ const purposeRouter = (
           ctx.logger,
           `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/clone", async (req, res) => {
@@ -168,8 +167,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .json(bffApi.PurposeVersionResource.parse(result))
-          .end();
+          .send(bffApi.PurposeVersionResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -177,7 +175,7 @@ const purposeRouter = (
           ctx.logger,
           `Error cloning purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/versions", async (req, res) => {
@@ -192,8 +190,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .json(bffApi.PurposeVersionResource.parse(result))
-          .end();
+          .send(bffApi.PurposeVersionResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -201,7 +198,7 @@ const purposeRouter = (
           ctx.logger,
           `Error creating version for purpose ${req.params.purposeId} with dailyCalls ${req.body.dailyCalls}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -217,7 +214,7 @@ const purposeRouter = (
             ctx
           );
 
-          return res.status(200).json(Buffer.from(result)).end();
+          return res.status(200).send(Buffer.from(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -225,7 +222,7 @@ const purposeRouter = (
             ctx.logger,
             `Error downloading risk analysis document ${req.params.documentId} from purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -242,7 +239,7 @@ const purposeRouter = (
             ctx
           );
 
-          return res.status(204).end();
+          return res.status(204);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -250,7 +247,7 @@ const purposeRouter = (
             ctx.logger,
             `Error rejecting version ${req.params.versionId} of purpose ${req.params.purposeId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -268,8 +265,7 @@ const purposeRouter = (
 
           return res
             .status(200)
-            .json(bffApi.PurposeVersionResource.parse(result))
-            .end();
+            .send(bffApi.PurposeVersionResource.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -277,7 +273,7 @@ const purposeRouter = (
             ctx.logger,
             `Error archiving purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -295,8 +291,7 @@ const purposeRouter = (
 
           return res
             .status(200)
-            .json(bffApi.PurposeVersionResource.parse(result))
-            .end();
+            .send(bffApi.PurposeVersionResource.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -304,7 +299,7 @@ const purposeRouter = (
             ctx.logger,
             `Error suspending Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -322,8 +317,7 @@ const purposeRouter = (
 
           return res
             .status(200)
-            .json(bffApi.PurposeVersionResource.parse(result))
-            .end();
+            .send(bffApi.PurposeVersionResource.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -331,7 +325,7 @@ const purposeRouter = (
             ctx.logger,
             `Error activating Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -344,7 +338,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204).end();
+        return res.status(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -352,7 +346,7 @@ const purposeRouter = (
           ctx.logger,
           `Error deleting purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId", async (req, res) => {
@@ -367,8 +361,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .json(bffApi.PurposeVersionResource.parse(result))
-          .end();
+          .send(bffApi.PurposeVersionResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -376,7 +369,7 @@ const purposeRouter = (
           ctx.logger,
           `Error updating Purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
@@ -389,7 +382,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204).end();
+        return res.status(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -397,7 +390,7 @@ const purposeRouter = (
           ctx.logger,
           `Error deleting purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/purposes/:purposeId", async (req, res) => {
@@ -409,7 +402,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.Purpose.parse(result)).end();
+        return res.status(200).send(bffApi.Purpose.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -417,7 +410,7 @@ const purposeRouter = (
           ctx.logger,
           `Error retrieving purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/purposes/riskAnalysis/latest", async (req, res) => {
@@ -429,8 +422,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .json(bffApi.RiskAnalysisFormConfig.parse(result))
-          .end();
+          .send(bffApi.RiskAnalysisFormConfig.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -438,7 +430,7 @@ const purposeRouter = (
           ctx.logger,
           "Error retrieving latest risk analysis configuration"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -456,8 +448,7 @@ const purposeRouter = (
 
           return res
             .status(200)
-            .json(bffApi.RiskAnalysisFormConfig.parse(result))
-            .end();
+            .send(bffApi.RiskAnalysisFormConfig.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -465,7 +456,7 @@ const purposeRouter = (
             ctx.logger,
             `Error retrieving risk analysis configuration for version ${req.params.riskAnalysisVersion}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );
