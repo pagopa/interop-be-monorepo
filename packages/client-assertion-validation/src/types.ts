@@ -11,7 +11,6 @@ import {
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
 import {
-  ALLOWED_ALGORITHM,
   EXPECTED_CLIENT_ASSERTION_TYPE,
   EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
 } from "./utils.js";
@@ -61,7 +60,7 @@ export const Key = z
     kid: z.string(),
     purposeId: PurposeId,
     publicKey: z.string().min(1),
-    algorithm: z.literal(ALLOWED_ALGORITHM),
+    algorithm: z.literal("RS256"),
   })
   .strict();
 export type Key = z.infer<typeof Key>;
