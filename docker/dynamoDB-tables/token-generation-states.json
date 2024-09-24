@@ -2,7 +2,12 @@
   "TableName": "token-generation-states",
   "AttributeDefinitions": [
     { "AttributeName": "PK", "AttributeType": "S" },
-    { "AttributeName": "GSIPK_eserviceId_descriptorId", "AttributeType": "S" }
+    { "AttributeName": "GSIPK_eserviceId_descriptorId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_purposeId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_clientId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_kid", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_clientId_purposeId", "AttributeType": "S" }
   ],
   "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
   "GlobalSecondaryIndexes": [
@@ -10,6 +15,38 @@
       "IndexName": "GSIPK_eserviceId_descriptorId",
       "KeySchema": [
         { "AttributeName": "GSIPK_eserviceId_descriptorId", "KeyType": "HASH" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSIPK_consumerId_eserviceId",
+      "KeySchema": [
+        {
+          "AttributeName": "GSIPK_consumerId_eserviceId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSIPK_purposeId",
+      "KeySchema": [{ "AttributeName": "GSIPK_purposeId", "KeyType": "HASH" }],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSIPK_clientId",
+      "KeySchema": [{ "AttributeName": "GSIPK_clientId", "KeyType": "HASH" }],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSIPK_kid",
+      "KeySchema": [{ "AttributeName": "GSIPK_kid", "KeyType": "HASH" }],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "GSIPK_clientId_purposeId",
+      "KeySchema": [
+        { "AttributeName": "GSIPK_clientId_purposeId", "KeyType": "HASH" }
       ],
       "Projection": { "ProjectionType": "ALL" }
     }
