@@ -138,10 +138,7 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedTenant?.data).toEqual(
-        toReadModelTenant({
-          ...updatedTenant,
-          onboardedAt: new Date(),
-        })
+        toReadModelTenant(updatedTenant)
       );
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
 
