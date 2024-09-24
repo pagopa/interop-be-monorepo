@@ -552,20 +552,45 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const newDescriptor = eservice.descriptors.find(
+      const publishedAndSuspendedDescriptors = eservice.descriptors.filter(
         (d) =>
           d.state === descriptorState.published ||
           d.state === descriptorState.suspended
       );
-      if (newDescriptor === undefined) {
+      if (publishedAndSuspendedDescriptors.length === 0) {
         throw publishedDescriptorNotFound(eservice.id);
       }
-      const latestDescriptorVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(newDescriptor.version);
-      if (!latestDescriptorVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-      }
+
+      const preprocessVersion = (version: string): number => {
+        const versionNumber = z
+          .preprocess((x) => Number(x), z.number())
+          .safeParse(version);
+        if (!versionNumber.success) {
+          throw unexpectedVersionFormat(eservice.id, latestDescriptor.id);
+        }
+
+        return versionNumber.data;
+      };
+
+      const { latestDescriptor, latestVersion } =
+        publishedAndSuspendedDescriptors.reduce(
+          ({ latestDescriptor, latestVersion }, descriptor) => {
+            const descriptorVersion = preprocessVersion(descriptor.version);
+
+            return descriptorVersion > latestVersion
+              ? {
+                  latestDescriptor: descriptor,
+                  latestVersion: descriptorVersion,
+                }
+              : { latestDescriptor, latestVersion };
+          },
+          {
+            latestDescriptor: publishedAndSuspendedDescriptors[0],
+            latestVersion: preprocessVersion(
+              publishedAndSuspendedDescriptors[0].version
+            ),
+          }
+        );
 
       const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
@@ -579,7 +604,7 @@ export function agreementServiceBuilder(
         throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
       }
 
-      if (latestDescriptorVersion.data <= currentVersion.data) {
+      if (latestVersion <= currentVersion.data) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
@@ -595,19 +620,19 @@ export function agreementServiceBuilder(
 
       if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
         validateCertifiedAttributes({
-          descriptor: newDescriptor,
+          descriptor: latestDescriptor,
           consumer,
         });
       }
 
       const verifiedValid = verifiedAttributesSatisfied(
         agreementToBeUpgraded.data.producerId,
-        newDescriptor,
+        latestDescriptor,
         consumer
       );
 
       const declaredValid = declaredAttributesSatisfied(
-        newDescriptor,
+        latestDescriptor,
         consumer
       );
 
@@ -622,7 +647,7 @@ export function agreementServiceBuilder(
 
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
-        newDescriptor,
+        newDescriptor: latestDescriptor,
         eservice,
         consumer,
         producer,
