@@ -171,9 +171,6 @@ export const validateDigest = (
   return failedValidation([digestLengthError, digestAlgError]);
 };
 
-// export const b64Decode = (str: string): string =>
-//   Buffer.from(str, "base64").toString("binary");
-
 export const validatePlatformState = (
   key: ConsumerKey
 ): ValidationResult<ConsumerKey> => {
