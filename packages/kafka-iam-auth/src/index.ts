@@ -153,41 +153,50 @@ async function oauthBearerTokenProvider(
 }
 
 const initKafka = (config: InteropKafkaConfig): Kafka => {
-  const connectionStringMechanism: KafkaConfig["sasl"] =
+  const commonConfigProps = {
+    clientId: config.kafkaClientId,
+    brokers: config.kafkaBrokers,
+    logLevel: config.kafkaLogLevel,
+  };
+
+  const connectionStringKafkaConfig: KafkaConfig | undefined =
     config.kafkaBrokerConnectionString
       ? {
-          mechanism: "plain",
-          username: "$ConnectionString",
-          password: config.kafkaBrokerConnectionString,
+          ...commonConfigProps,
+          reauthenticationThreshold: config.kafkaReauthenticationThreshold,
+          ssl: true,
+          sasl: {
+            mechanism: "plain",
+            username: "$ConnectionString",
+            password: config.kafkaBrokerConnectionString,
+          },
         }
       : undefined;
 
-  if (connectionStringMechanism) {
-    genericLogger.warn(
-      "Using connection string mechanism for Kafka Broker authentication - this will override other mechanisms. If that is not desired, remove Kafka broker connection string from env variables."
-    );
-  }
-
-  const kafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
+  const iamAuthKafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
-        clientId: config.kafkaClientId,
-        brokers: config.kafkaBrokers,
-        logLevel: config.kafkaLogLevel,
-        ssl: connectionStringMechanism ? true : false,
-        sasl: connectionStringMechanism,
+        ...commonConfigProps,
+        ssl: false,
       }
     : {
-        clientId: config.kafkaClientId,
-        brokers: config.kafkaBrokers,
-        logLevel: config.kafkaLogLevel,
+        ...commonConfigProps,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
-        sasl: connectionStringMechanism ?? {
+        sasl: {
           mechanism: "oauthbearer",
           oauthBearerProvider: () =>
             oauthBearerTokenProvider(config.awsRegion, genericLogger),
         },
       };
+
+  if (connectionStringKafkaConfig) {
+    genericLogger.warn(
+      "Using connection string mechanism for Kafka Broker authentication - this will override other mechanisms. If that is not desired, remove Kafka broker connection string from env variables."
+    );
+  }
+
+  const kafkaConfig: KafkaConfig =
+    connectionStringKafkaConfig ?? iamAuthKafkaConfig;
 
   return new Kafka({
     ...kafkaConfig,
