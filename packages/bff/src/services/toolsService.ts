@@ -188,6 +188,12 @@ async function retrieveKey(
 ): Promise<
   SuccessfulValidation<ApiKey | ConsumerKey> | FailedValidation<ErrorCodes>
 > {
+  if (!jwt.payload.purposeId) {
+    return {
+      data: undefined,
+      errors: [purposeIdNotFoundInClientAssertion()],
+    };
+  }
   const client = await authorizationClient.token
     .getKeyWithClientByKeyId({
       params: {
@@ -215,12 +221,6 @@ async function retrieveKey(
     },
   });
 
-  if (!jwt.payload.purposeId) {
-    return {
-      data: undefined,
-      errors: [purposeIdNotFoundInClientAssertion()],
-    };
-  }
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
   if (client.client.kind === authorizationApi.ClientKind.enum.API) {
