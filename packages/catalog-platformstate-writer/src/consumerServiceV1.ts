@@ -71,7 +71,7 @@ export async function handleMessageV1(
             });
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
-              descriptor.state,
+              descriptorStateToItemState(descriptor.state),
               dynamoDBClient
             );
           } else {
@@ -79,6 +79,7 @@ export async function handleMessageV1(
               PK: eserviceDescriptorPK,
               state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience[0],
+              descriptorVoucherLifespan: descriptor.voucherLifespan,
               version: msg.version,
               updatedAt: new Date().toISOString(),
             };
@@ -92,7 +93,7 @@ export async function handleMessageV1(
             });
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
-              descriptor.state,
+              descriptorStateToItemState(descriptor.state),
               dynamoDBClient
             );
           }
@@ -129,7 +130,7 @@ export async function handleMessageV1(
             });
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
-              descriptor.state,
+              descriptorStateToItemState(descriptor.state),
               dynamoDBClient
             );
           }
@@ -158,7 +159,7 @@ export async function handleMessageV1(
           });
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
-            descriptor.state,
+            descriptorStateToItemState(descriptor.state),
             dynamoDBClient
           );
         })
