@@ -1,4 +1,4 @@
-import { tenantApi } from "pagopa-interop-api-clients";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   CustomClaims,
   InteropTokenGenerator,
@@ -257,7 +257,7 @@ export function authorizationServiceBuilder(
       samlResponse: string,
       tenantId: string,
       { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<string> => {
+    ): Promise<bffApi.SessionToken> => {
       logger.info("Calling get SAML2 token");
 
       validateSamlResponse(samlResponse);
@@ -267,13 +267,13 @@ export function authorizationServiceBuilder(
         headers,
       });
 
-      const { serialized: sessionToken } =
+      const { serialized: session_token } =
         await interopTokenGenerator.generateSessionToken(
           retrieveSupportClaims(tenant),
           config.supportJwtDuration
         );
 
-      return sessionToken;
+      return { session_token };
     },
   };
 }
