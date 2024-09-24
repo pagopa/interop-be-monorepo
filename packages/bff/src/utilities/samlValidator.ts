@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { config } from "../config/config.js";
-import { samlNotValid } from "../model/domain/errors.js";
+import { samlNotValid } from "../model/errors.js";
 import { SAMLResponse } from "../model/types.js";
 
 const SUPPORT_LEVELS = ["L2", "L3"];

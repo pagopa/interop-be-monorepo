@@ -166,6 +166,7 @@ const errorCodes = {
   missingRequiredJWKClaim: "10002",
   invalidKey: "10003",
   tooManyRequestsError: "10004",
+  notAllowedCertificateException: "10005",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -362,6 +363,14 @@ export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
     detail: `The received key is a private key`,
     code: "notAllowedPrivateKeyException",
     title: "Not allowed private key exception",
+  });
+}
+
+export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key is a certificate`,
+    code: "notAllowedCertificateException",
+    title: "Not allowed certificate exception",
   });
 }
 
