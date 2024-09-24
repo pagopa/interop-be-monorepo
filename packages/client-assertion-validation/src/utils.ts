@@ -37,7 +37,8 @@ import {
   invalidHashAlgorithm,
   invalidKidFormat,
 } from "./errors.js";
-const CLIENT_ASSERTION_AUDIENCE = "test.interop.pagopa.it"; // TODO: env?
+import { config } from "./config.js";
+
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
 export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
@@ -123,14 +124,14 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
 export const validateAudience = (
   aud: string | string[] | undefined
 ): ValidationResult<string[]> => {
-  if (aud === CLIENT_ASSERTION_AUDIENCE) {
+  if (aud === config.clientAssertionAudience) {
     return successfulValidation([aud]);
   }
 
   if (!Array.isArray(aud)) {
     return failedValidation([invalidAudienceFormat()]);
   }
-  if (!aud.includes(CLIENT_ASSERTION_AUDIENCE)) {
+  if (!aud.includes(config.clientAssertionAudience)) {
     return failedValidation([invalidAudience()]);
   }
   return successfulValidation(aud);
