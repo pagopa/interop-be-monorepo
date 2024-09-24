@@ -1,7 +1,7 @@
 {
-  "name": "datalake-data-export",
+  "name": "pagopa-interop-datalake-data-export",
   "version": "1.0.0",
-  "description": "Data Lake Data Export",
+  "description": "PagoPA Interoperability Data Lake Data Export",
   "main": "dist",
   "type": "module",
   "scripts": {
