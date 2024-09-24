@@ -553,7 +553,9 @@ export function agreementServiceBuilder(
       );
 
       const newDescriptor = eservice.descriptors.find(
-        (d) => d.state === descriptorState.published
+        (d) =>
+          d.state === descriptorState.published ||
+          d.state === descriptorState.suspended
       );
       if (newDescriptor === undefined) {
         throw publishedDescriptorNotFound(eservice.id);
