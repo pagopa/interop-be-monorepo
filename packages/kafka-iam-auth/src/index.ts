@@ -182,7 +182,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
         ...commonConfigProps,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
-        sasl: connectionStringMechanism ?? {
+        sasl: {
           mechanism: "oauthbearer",
           oauthBearerProvider: () =>
             oauthBearerTokenProvider(config.awsRegion, genericLogger),
