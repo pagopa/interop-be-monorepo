@@ -14,6 +14,10 @@ import {
   ClientAssertionValidationRequest,
   ConsumerKey,
 } from ".././src/types.js";
+import {
+  EXPECTED_CLIENT_ASSERTION_TYPE,
+  EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
+} from "../src/utils.js";
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
 
@@ -98,15 +102,13 @@ export const getMockAccessTokenRequest =
 
     return {
       client_id: generateId<ClientId>(),
-      // TODO: change to env variable
-      client_assertion_type:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      client_assertion_type: EXPECTED_CLIENT_ASSERTION_TYPE,
       client_assertion: getMockClientAssertion({
         customHeader: {},
         payload: {},
         customClaims: {},
         keySet,
       }),
-      grant_type: "client_credentials",
+      grant_type: EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
     };
   };
