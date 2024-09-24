@@ -208,7 +208,7 @@ const getAllAgreements = async (
   filters: AgreementQueryFilters
 ): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
-    .aggregate([getAgreementsFilters(filters)])
+    .aggregate([getAgreementsFilters(filters)], { allowDiskUse: true })
     .toArray();
 
   const result = z
@@ -266,7 +266,9 @@ async function searchTenantsByName(
   );
 
   const data = await agreements
-    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
+      allowDiskUse: true,
+    })
     .toArray();
 
   const result = z
@@ -285,7 +287,7 @@ async function searchTenantsByName(
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
       aggregationPipeline,
-      false
+      true
     ),
   };
 }
@@ -305,7 +307,7 @@ export function readModelServiceBuilder(
       offset: number
     ): Promise<ListResult<Agreement>> {
       const agreementsData = await agreements
-        .aggregate([getAgreementsFilters(filters)])
+        .aggregate([getAgreementsFilters(filters)], { allowDiskUse: true })
         .toArray();
 
       const eserviceIds = agreementsData.map(
@@ -504,11 +506,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await eservices
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z
@@ -527,7 +528,7 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
           aggregationPipeline,
-          false
+          true
         ),
       };
     },

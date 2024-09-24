@@ -26,6 +26,8 @@ import {
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
+import { notifierEventsServiceBuilder } from "../services/notifierEventsService.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { config } from "../config/config.js";
@@ -39,6 +41,7 @@ const apiGatewayRouter = (
     purposeProcessClient,
     catalogProcessClient,
     attributeProcessClient,
+    notifierEventsClient,
     authorizationProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -64,6 +67,15 @@ const apiGatewayRouter = (
     catalogProcessClient,
     agreementProcessClient
   );
+
+  const tenantService = tenantServiceBuilder(
+    tenantProcessClient,
+    attributeProcessClient,
+    catalogProcessClient
+  );
+
+  const notifierEventsService =
+    notifierEventsServiceBuilder(notifierEventsClient);
 
   const attributeService = attributeServiceBuilder(attributeProcessClient);
 
@@ -297,23 +309,102 @@ const apiGatewayRouter = (
         }
       }
     )
-    .get("/events", authorizationMiddleware([M2M_ROLE]), async (_req, res) =>
-      res.status(501).send()
-    )
+    .get("/events", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        const events = await notifierEventsService.getEventsFromId(
+          ctx,
+          req.query.lastEventId,
+          req.query.limit
+        );
+
+        return res.status(200).json(events).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
     .get(
       "/events/agreements",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events = await notifierEventsService.getAgreementsEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/events/eservices",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events = await notifierEventsService.getEservicesEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/events/keys",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events = await notifierEventsService.getKeysEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/events/producerKeys",
+      authorizationMiddleware([M2M_ROLE]),
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const events =
+            await notifierEventsService.getProducerKeysEventsFromId(
+              ctx,
+              req.query.lastEventId,
+              req.query.limit
+            );
+
+          return res.status(200).json(events).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/keys/:kid",
@@ -389,22 +480,81 @@ const apiGatewayRouter = (
     .get(
       "/organizations/:organizationId",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const organization = await tenantService.getOrganization(
+            ctx,
+            req.params.organizationId
+          );
+
+          return res.status(200).json(organization).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/organizations/origin/:origin/externalId/:externalId/attributes/:code",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          await tenantService.upsertTenant(ctx, {
+            origin: req.params.origin,
+            externalId: req.params.externalId,
+            attributeCode: req.params.code,
+          });
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/organizations/origin/:origin/externalId/:externalId/attributes/:code",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        try {
+          await tenantService.revokeTenantAttribute(ctx, {
+            origin: req.params.origin,
+            externalId: req.params.externalId,
+            attributeCode: req.params.code,
+          });
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/organizations/origin/:origin/externalId/:externalId/eservices",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          const eservices = await tenantService.getOrganizationEservices(ctx, {
+            origin: req.params.origin,
+            externalId: req.params.externalId,
+            attributeOrigin: req.query.attributeOrigin,
+            attributeCode: req.query.attributeCode,
+          });
+
+          return res.status(200).json(eservices).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return apiGatewayRouter;

@@ -36,7 +36,7 @@ const getKey =
         if (err && responseReceived === clients.length) {
           logger.error(`Error getting signing key: ${err}`);
           return callback(err, undefined);
-        } else {
+        } else if (!err) {
           return callback(null, key?.getPublicKey());
         }
       });

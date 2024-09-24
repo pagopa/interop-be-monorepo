@@ -72,6 +72,15 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const NotifierServerConfig = z
+  .object({
+    NOTIFIER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    notifierUrl: c.NOTIFIER_URL,
+  }));
+export type NotifierServerConfig = z.infer<typeof NotifierServerConfig>;
+
 const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
   .and(CatalogProcessServerConfig)
   .and(AgreementProcessServerConfig)
@@ -79,6 +88,7 @@ const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
+  .and(NotifierServerConfig)
   .and(ReadModelDbConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
