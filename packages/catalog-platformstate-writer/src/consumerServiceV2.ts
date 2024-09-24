@@ -124,7 +124,7 @@ export async function handleMessageV2(
           });
         await updateDescriptorStateInTokenGenerationStatesTable(
           eserviceId_descriptorId_previous,
-          descriptor.state,
+          previousDescriptor.state,
           dynamoDBClient
         );
       }
