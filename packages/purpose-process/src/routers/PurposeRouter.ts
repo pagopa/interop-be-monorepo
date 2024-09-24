@@ -276,7 +276,7 @@ const purposeRouter = (
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

@@ -219,7 +219,7 @@ const agreementRouter = (
 
       try {
         await agreementService.deleteAgreement(req.params.agreementId, ctx);
-        return res.status(204);
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -330,7 +330,7 @@ const agreementRouter = (
             ctx
           );
 
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -431,7 +431,7 @@ const agreementRouter = (
 
       try {
         await agreementService.archiveAgreement(req.params.agreementId, ctx);
-        return res.status(204);
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

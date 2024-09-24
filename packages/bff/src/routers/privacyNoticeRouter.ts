@@ -76,7 +76,7 @@ const privacyNoticeRouter = (
           req.body,
           ctx.logger
         );
-        return res.status(204);
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

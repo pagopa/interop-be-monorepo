@@ -137,7 +137,7 @@ const eservicesRouter = (
             totalCount: catalogs.totalCount,
           });
         } catch (error) {
-          return res.status(500);
+          return res.status(500).send();
         }
       }
     )
@@ -223,7 +223,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -346,7 +346,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -417,7 +417,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -464,7 +464,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -487,7 +487,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -510,7 +510,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -559,7 +559,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -606,7 +606,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -630,7 +630,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -677,7 +677,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
