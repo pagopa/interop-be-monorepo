@@ -44,7 +44,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   deleteCatalogEntry,
-  descriptorStateToClientState,
+  descriptorStateToItemState,
   readCatalogEntry,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
   updateDescriptorStateInPlatformStatesEntry,
@@ -317,7 +317,7 @@ describe("integration tests", async () => {
       it.each([descriptorState.published, descriptorState.deprecated])(
         "should convert %s state to active",
         async (s) => {
-          expect(descriptorStateToClientState(s)).toBe(itemState.active);
+          expect(descriptorStateToItemState(s)).toBe(itemState.active);
         }
       );
 
@@ -326,7 +326,7 @@ describe("integration tests", async () => {
         descriptorState.draft,
         descriptorState.suspended,
       ])("should convert %s state to inactive", async (s) => {
-        expect(descriptorStateToClientState(s)).toBe(itemState.inactive);
+        expect(descriptorStateToItemState(s)).toBe(itemState.inactive);
       });
     });
 
