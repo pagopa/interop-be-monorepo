@@ -488,7 +488,7 @@ describe("integration tests V2 events", async () => {
 
   describe("EServiceDescriptorPublished", () => {
     describe("the eservice has 1 descriptor", () => {
-      it("should add the entry if if doesn't exists", async () => {
+      it("should add the entry if it doesn't exist", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
