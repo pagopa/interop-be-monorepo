@@ -33,7 +33,10 @@ const toolsRouter = (
         req.body.grant_type,
         ctx
       );
-      return res.status(200).json(result).end();
+      return res
+        .status(200)
+        .json(bffApi.TokenGenerationValidationResult.parse(result))
+        .end();
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
