@@ -141,7 +141,7 @@ export function makeApiProblemBuilder<T extends string>(
 
           if (problemErrorsPassthrough) {
             logger.warn(makeProblemLogString(receivedProblem, error));
-            return e.response.data;
+            return receivedProblem;
           } else {
             logger.warn(
               makeProblemLogString(
