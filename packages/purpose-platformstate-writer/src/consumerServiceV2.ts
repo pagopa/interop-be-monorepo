@@ -21,6 +21,7 @@ import {
   updatePurposeVersionIdInPlatformStatesEntry,
   updatePurposeVersionIdInTokenGenerationStatesTable,
   writePlatformPurposeEntry,
+  updatePurposeEntriesInTokenGenerationStatesTable,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -70,15 +71,10 @@ export async function handleMessageV2(
       }
 
       // token-generation-states
-      // TODO: add missing updates
-      await updatePurposeStatesInTokenGenerationStatesTable(
+      await updatePurposeEntriesInTokenGenerationStatesTable(
         dynamoDBClient,
-        purpose.id,
-        purposeState
-      );
-      await updatePurposeVersionIdInTokenGenerationStatesTable(
-        dynamoDBClient,
-        purpose.id,
+        purpose,
+        purposeState,
         purpose.versions[0].id
       );
     })
@@ -127,6 +123,7 @@ export async function handleMessageV2(
           }
 
           // platform-states
+          // TODO: should be done in a single transaction
           await updatePurposeStateInPlatformStatesEntry(
             dynamoDBClient,
             primaryKey,
