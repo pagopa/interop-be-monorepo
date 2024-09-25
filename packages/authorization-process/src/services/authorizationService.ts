@@ -500,6 +500,7 @@ export function authorizationServiceBuilder(
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
         userIdToCheck: userId,
+        correlationId,
       });
       if (client.data.users.includes(userId)) {
         throw clientUserAlreadyAssigned(clientId, userId);
@@ -646,6 +647,7 @@ export function authorizationServiceBuilder(
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
+        correlationId,
       });
 
       if (keysSeeds.length !== 1) {
@@ -901,6 +903,7 @@ export function authorizationServiceBuilder(
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
         userIdToCheck: userId,
+        correlationId,
       });
       if (producerKeychain.data.users.includes(userId)) {
         throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
@@ -1009,6 +1012,7 @@ export function authorizationServiceBuilder(
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
+        correlationId,
       });
 
       const jwk = createJWK(keySeed.key);

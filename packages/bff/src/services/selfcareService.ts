@@ -6,7 +6,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { WithLogger, Logger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import { missingSelfcareId, userNotFound } from "../model/errors.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -33,7 +33,7 @@ export function selfcareServiceBuilder(
       userId: UserId,
       userIdQuery: string,
       institutionId: string,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<selfcareV2ClientApi.UserResource> {
       logger.info(
         `Retrieving User with with istitution id ${institutionId}, user ${userId}`
@@ -43,6 +43,9 @@ export function selfcareServiceBuilder(
         queries: {
           userIdForAuth: userId,
           userId: userIdQuery,
+        },
+        headers: {
+          "X-Correlation-Id": headers["X-Correlation-Id"],
         },
       });
 
@@ -56,7 +59,7 @@ export function selfcareServiceBuilder(
     async getSelfcareInstitutionsProducts(
       userId: UserId,
       institutionId: string,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<selfcareV2ClientApi.ProductResource[]> {
       logger.info(
         `Retrieving Products for Institution ${institutionId} and User ${userId}`
@@ -64,16 +67,22 @@ export function selfcareServiceBuilder(
       return selfcareV2Client.getInstitutionUserProductsUsingGET({
         params: { institutionId },
         queries: { userId },
+        headers: {
+          "X-Correlation-Id": headers["X-Correlation-Id"],
+        },
       });
     },
 
     async getSelfcareInstitutions(
       userId: UserId,
-      logger: Logger
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<selfcareV2ClientApi.InstitutionResource[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
       return selfcareV2Client.getInstitutionsUsingGET({
         queries: { userIdForAuth: userId },
+        headers: {
+          "X-Correlation-Id": headers["X-Correlation-Id"],
+        },
       });
     },
 
@@ -104,6 +113,9 @@ export function selfcareServiceBuilder(
             userId,
             userIdForAuth: requesterId,
             productRoles: roles,
+          },
+          headers: {
+            "X-Correlation-Id": headers["X-Correlation-Id"],
           },
         });
 

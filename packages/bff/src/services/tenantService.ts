@@ -43,7 +43,8 @@ export function tenantServiceBuilder(
   selfcareV2Client: SelfcareV2Client
 ) {
   async function getLogoUrl(
-    selfcareId: tenantApi.Tenant["selfcareId"]
+    selfcareId: tenantApi.Tenant["selfcareId"],
+    correlationId: string
   ): Promise<bffApi.CompactTenant["logoUrl"]> {
     if (!selfcareId) {
       return undefined;
@@ -52,6 +53,9 @@ export function tenantServiceBuilder(
     const institution = await selfcareV2Client.institution.getInstitution({
       params: {
         id: selfcareId,
+      },
+      headers: {
+        "X-Correlation-Id": correlationId,
       },
     });
 
@@ -119,7 +123,9 @@ export function tenantServiceBuilder(
 
       const results = await Promise.all(
         pagedResults.results.map((tenant) =>
-          toBffApiCompactTenant(tenant, getLogoUrl)
+          toBffApiCompactTenant(tenant, (selfcareId) =>
+            getLogoUrl(selfcareId, headers["X-Correlation-Id"])
+          )
         )
       );
       return {
