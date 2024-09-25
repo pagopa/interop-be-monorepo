@@ -4,7 +4,6 @@ import {
   LoggerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-import dotenv from "dotenv";
 
 export const OnetrustServiceConfig = FileManagerConfig.and(LoggerConfig)
   .and(AWSConfig)
@@ -36,7 +35,6 @@ export const OnetrustServiceConfig = FileManagerConfig.and(LoggerConfig)
 
 export type OnetrustServiceConfig = z.infer<typeof OnetrustServiceConfig>;
 
-dotenv.config();
 export const config: OnetrustServiceConfig = OnetrustServiceConfig.parse(
   process.env
 );
