@@ -1,12 +1,14 @@
 import { match } from "ts-pattern";
 import {
+  Descriptor,
   descriptorState,
+  EServiceDescriptorV1,
   EServiceEventEnvelopeV1,
   EServiceId,
   fromDescriptorV1,
-  genericInternalError,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  missingKafkaMessageDataError,
   PlatformStatesCatalogEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -27,13 +29,8 @@ export async function handleMessageV1(
   await match(message)
     .with({ type: "EServiceDescriptorUpdated" }, async (msg) => {
       const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
-      const descriptorV1 = msg.data.eserviceDescriptor;
-      if (!descriptorV1) {
-        throw genericInternalError(
-          `EServiceDescriptor not found in message data for event ${msg.type}`
-        );
-      }
-      const descriptor = fromDescriptorV1(descriptorV1);
+      const descriptor = parseDescriptor(msg.data.eserviceDescriptor, msg.type);
+
       const eserviceDescriptorPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId,
         descriptorId: descriptor.id,
@@ -71,7 +68,7 @@ export async function handleMessageV1(
             });
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
-              descriptor.state,
+              descriptorStateToItemState(descriptor.state),
               dynamoDBClient
             );
           } else {
@@ -79,6 +76,7 @@ export async function handleMessageV1(
               PK: eserviceDescriptorPK,
               state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience[0],
+              descriptorVoucherLifespan: descriptor.voucherLifespan,
               version: msg.version,
               updatedAt: new Date().toISOString(),
             };
@@ -92,7 +90,7 @@ export async function handleMessageV1(
             });
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
-              descriptor.state,
+              descriptorStateToItemState(descriptor.state),
               dynamoDBClient
             );
           }
@@ -103,15 +101,10 @@ export async function handleMessageV1(
             dynamoDBClient
           );
 
-          if (!existingCatalogEntry) {
-            throw genericInternalError(
-              `EServiceDescriptor not found in catalog for event ${msg.type}`
-            );
-          } else if (
-            existingCatalogEntry &&
+          if (
+            !existingCatalogEntry ||
             existingCatalogEntry.version > msg.version
           ) {
-            // Stops processing if the message is older than the catalog entry
             return Promise.resolve();
           } else {
             // platform-states
@@ -129,20 +122,17 @@ export async function handleMessageV1(
             });
             await updateDescriptorStateInTokenGenerationStatesTable(
               eserviceId_descriptorId,
-              descriptor.state,
+              descriptorStateToItemState(descriptor.state),
               dynamoDBClient
             );
           }
         })
         .with(descriptorState.archived, async () => {
           const eserviceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
-          const descriptorV1 = msg.data.eserviceDescriptor;
-          if (!descriptorV1) {
-            throw genericInternalError(
-              `EServiceDescriptor not found in message data for event ${msg.type}`
-            );
-          }
-          const descriptor = fromDescriptorV1(descriptorV1);
+          const descriptor = parseDescriptor(
+            msg.data.eserviceDescriptor,
+            msg.type
+          );
 
           // platform-states
           const primaryKey = makePlatformStatesEServiceDescriptorPK({
@@ -158,7 +148,7 @@ export async function handleMessageV1(
           });
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
-            descriptor.state,
+            descriptorStateToItemState(descriptor.state),
             dynamoDBClient
           );
         })
@@ -185,3 +175,13 @@ export async function handleMessageV1(
     )
     .exhaustive();
 }
+
+export const parseDescriptor = (
+  descriptorV1: EServiceDescriptorV1 | undefined,
+  eventType: string
+): Descriptor => {
+  if (!descriptorV1) {
+    throw missingKafkaMessageDataError("descriptor", eventType);
+  }
+  return fromDescriptorV1(descriptorV1);
+};

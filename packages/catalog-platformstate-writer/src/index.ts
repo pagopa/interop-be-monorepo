@@ -9,10 +9,14 @@ import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
 const dynamoDBClient = new DynamoDBClient({
-  credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-  region: "eu-central-1",
+  credentials: {
+    accessKeyId: config.awsAccessKeyId,
+    secretAccessKey: config.awsSecretAccessKey,
+  },
+  region: config.awsRegion,
   endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
 });
+
 async function processMessage({
   message,
   partition,
