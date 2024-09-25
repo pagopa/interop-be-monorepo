@@ -75,7 +75,7 @@ const agreementRouter = (
 
       try {
         const result = await agreementService.createAgreement(req.body, ctx);
-        return res.status(200).send(bffApi.Agreement.parse(result));
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
