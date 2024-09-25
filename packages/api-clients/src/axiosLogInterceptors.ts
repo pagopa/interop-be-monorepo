@@ -33,10 +33,10 @@ export function configureAxiosLogInterceptors(
         }
       ) as AxiosResponse,
     (error: AxiosError): Promise<AxiosError> => {
-      const prefix = getPrefix(error.config?.headers, clientName);
+      const prefixText = getPrefix(error.config?.headers, clientName);
       if ("errors" in error && Array.isArray(error.errors)) {
         error.errors.forEach((err) =>
-          genericLogger.error(`[${prefix}] ${err}`)
+          genericLogger.error(`[${prefixText}] ${err}`)
         );
       }
 
@@ -44,7 +44,7 @@ export function configureAxiosLogInterceptors(
         error as Parameters<typeof AxiosLogger.errorLogger>[0],
         {
           logger: genericLogger.error,
-          prefixText: getPrefix(error.config?.headers, clientName),
+          prefixText,
         }
       ) as Promise<AxiosError>;
     }
