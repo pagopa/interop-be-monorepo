@@ -106,34 +106,6 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
-type ValidationOutput = {
-  jti: ValidationResult<string>;
-  iat: ValidationResult<number>;
-};
-
-function isValidationSuccess(
-  validationResult: ValidationResult<unknown>
-): validationResult is Extract<typeof validationResult, { data: unknown }> {
-  return "data" in validationResult && Boolean(validationResult.data);
-}
-
-function isValidationError(
-  validationResult: ValidationResult<unknown>
-): validationResult is Extract<typeof validationResult, { errors: unknown }> {
-  return "errors" in validationResult && Array.isArray(validationResult.errors);
-}
-
-function isAllValidationSuccess(
-  validationOutput: ValidationOutput
-): validationOutput is {
-  [TKey in keyof typeof validationOutput]: Extract<
-    (typeof validationOutput)[TKey],
-    { data: unknown }
-  >;
-} {
-  return Object.values(validationOutput).every(isValidationSuccess);
-}
-
 // eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
@@ -149,14 +121,48 @@ export const verifyClientAssertion = (
       return failedValidation([unexpectedClientAssertionPayload()]);
     }
 
-    const validationOutput: ValidationOutput = {
-      jti: validateJti(decoded.payload.jti),
-      iat: validateIat(decoded.payload.iat),
-    };
-
-    if (isAllValidationSuccess(validationOutput)) {
-      // build client assertion
-
+    const { errors: jtiErrors, data: validatedJti } = validateJti(
+      decoded.payload.jti
+    );
+    const { errors: iatErrors, data: validatedIat } = validateIat(
+      decoded.payload.iat
+    );
+    const { errors: expErrors, data: validatedExp } = validateExp(
+      decoded.payload.exp
+    );
+    const { errors: issErrors, data: validatedIss } = validateIss(
+      decoded.payload.iss
+    );
+    const { errors: subErrors, data: validatedSub } = validateSub(
+      decoded.payload.sub,
+      clientId
+    );
+    const { errors: purposeIdErrors, data: validatedPurposeId } =
+      validatePurposeId(decoded.payload.purposeId);
+    const { errors: kidErrors, data: validatedKid } = validateKid(
+      decoded.header.kid
+    );
+    const { errors: audErrors, data: validatedAud } = validateAudience(
+      decoded.payload.aud
+    );
+    const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
+      decoded.header.alg
+    );
+    const { errors: digestErrors, data: validatedDigest } = validateDigest(
+      decoded.payload.digest
+    );
+    if (
+      !jtiErrors &&
+      !iatErrors &&
+      !expErrors &&
+      !issErrors &&
+      !subErrors &&
+      !purposeIdErrors &&
+      !kidErrors &&
+      !audErrors &&
+      !algErrors &&
+      !digestErrors
+    ) {
       const result: ClientAssertion = {
         header: {
           kid: validatedKid,
@@ -165,8 +171,8 @@ export const verifyClientAssertion = (
         payload: {
           sub: validatedSub,
           purposeId: validatedPurposeId,
-          jti: validationOutput.jti.data,
-          iat: validationOutput.iat.data,
+          jti: validatedJti,
+          iat: validatedIat,
           iss: validatedIss,
           aud: validatedAud,
           exp: validatedExp,
@@ -175,11 +181,18 @@ export const verifyClientAssertion = (
       };
       return successfulValidation(result);
     }
-
-    const errors = Object.values(validationOutput)
-      .filter(isValidationError)
-      .flatMap(({ errors }) => errors);
-    return failedValidation(errors);
+    return failedValidation([
+      jtiErrors,
+      iatErrors,
+      expErrors,
+      issErrors,
+      subErrors,
+      purposeIdErrors,
+      kidErrors,
+      audErrors,
+      algErrors,
+      digestErrors,
+    ]);
   } catch (error) {
     return failedValidation([unexpectedClientAssertionPayload()]);
   }
@@ -227,14 +240,9 @@ export const validateClientKindAndPlatformState = (
     )
     .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
-        const validationResult = validatePlatformState(key as ConsumerKey);
-
-        if (isValidationSuccess(validationResult)) {
-          // ...
-        } else {
-          validationResult.errors;
-        }
-
+        const { errors: platformStateErrors } = validatePlatformState(
+          key as ConsumerKey
+        );
         const purposeIdError = jwt.payload.purposeId
           ? undefined
           : purposeIdNotProvided();
@@ -249,64 +257,3 @@ export const validateClientKindAndPlatformState = (
       ]);
     })
     .exhaustive();
-
-// const { errors: jtiErrors, data: validatedJti } = validateJti(
-//   decoded.payload.jti
-// );
-// const { errors: iatErrors, data: validatedIat } = validateIat(
-//   decoded.payload.iat
-// );
-// const { errors: expErrors, data: validatedExp } = validateExp(
-//   decoded.payload.exp
-// );
-// const { errors: issErrors, data: validatedIss } = validateIss(
-//   decoded.payload.iss
-// );
-// const { errors: subErrors, data: validatedSub } = validateSub(
-//   decoded.payload.sub,
-//   clientId
-// );
-// const { errors: purposeIdErrors, data: validatedPurposeId } =
-//   validatePurposeId(decoded.payload.purposeId);
-// const { errors: kidErrors, data: validatedKid } = validateKid(
-//   decoded.header.kid
-// );
-// const { errors: audErrors, data: validatedAud } = validateAudience(
-//   decoded.payload.aud
-// );
-// const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
-//   decoded.header.alg
-// );
-// const { errors: digestErrors, data: validatedDigest } = validateDigest(
-//   decoded.payload.digest
-// );
-// if (
-//   !jtiErrors &&
-//   !iatErrors &&
-//   !expErrors &&
-//   !issErrors &&
-//   !subErrors &&
-//   !purposeIdErrors &&
-//   !kidErrors &&
-//   !audErrors &&
-//   !algErrors &&
-//   !digestErrors
-// ) {
-//   const result: ClientAssertion = {
-//     header: {
-//       kid: validatedKid,
-//       alg: validatedAlg,
-//     },
-//     payload: {
-//       sub: validatedSub,
-//       purposeId: validatedPurposeId,
-//       jti: validatedJti,
-//       iat: validatedIat,
-//       iss: validatedIss,
-//       aud: validatedAud,
-//       exp: validatedExp,
-//       digest: validatedDigest,
-//     },
-//   };
-//   return successfulValidation(result);
-// }
