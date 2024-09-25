@@ -65,7 +65,7 @@ describe("integration tests V2 events", async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
   afterEach(async () => {
-    deleteDynamoDBTables(dynamoDBClient);
+    await deleteDynamoDBTables(dynamoDBClient);
   });
   const mockDate = new Date();
   beforeAll(() => {
