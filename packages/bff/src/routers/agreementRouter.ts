@@ -281,7 +281,7 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res.status(200).send(bffApi.CompactAgreement.parse(result));
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
