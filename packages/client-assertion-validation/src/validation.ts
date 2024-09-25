@@ -1,13 +1,19 @@
+/* eslint-disable no-underscore-dangle */
 import {
   decode,
   JsonWebTokenError,
+  Jwt,
   JwtPayload,
   NotBeforeError,
   TokenExpiredError,
   verify,
 } from "jsonwebtoken";
 import { match } from "ts-pattern";
-import { clientKindTokenStates, PurposeId } from "pagopa-interop-models";
+import {
+  ApiError,
+  clientKindTokenStates,
+  PurposeId,
+} from "pagopa-interop-models";
 import {
   failedValidation,
   successfulValidation,
@@ -30,14 +36,17 @@ import {
   ClientAssertion,
   ClientAssertionDigest,
   ClientAssertionValidationRequest,
+  ClientAssertionValidationResult,
   ConsumerKey,
   FailedValidation,
   Key,
   SuccessfulValidation,
+  ValidatedClientAssertion,
   ValidationResult,
 } from "./types.js";
 import {
   clientAssertionSignatureVerificationFailure,
+  ErrorCodes,
   invalidAssertionType,
   invalidClientAssertionFormat,
   invalidClientAssertionSignatureType,
@@ -109,66 +118,35 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
-type VerifyClientAssertion_ValidationOutput = {
-  kid: ValidationResult<string>;
-  alg: ValidationResult<string>;
-  sub: ValidationResult<string>;
-  purposeId: ValidationResult<PurposeId | undefined>;
-  jti: ValidationResult<string>;
-  iat: ValidationResult<number>;
-  iss: ValidationResult<string>;
-  aud: ValidationResult<string[]>;
-  exp: ValidationResult<number>;
-  digest: ValidationResult<ClientAssertionDigest>;
-};
-
-function isValidationSuccess(
-  validationResult: ValidationResult<unknown>
-): validationResult is SuccessfulValidation<unknown> {
-  return "data" in validationResult && validationResult.data !== undefined;
-}
-
-function isValidationError(
-  validationResult: ValidationResult<unknown>
-): validationResult is FailedValidation {
-  return "errors" in validationResult && Array.isArray(validationResult.errors);
-}
-
-function isAllValidationSuccess(
-  validationOutput: VerifyClientAssertion_ValidationOutput
-): validationOutput is {
-  [TKey in keyof typeof validationOutput]: Extract<
-    (typeof validationOutput)[TKey],
-    { data: unknown }
+function hasValidationFailed(
+  caValidationResult: ClientAssertionValidationResult
+): caValidationResult is {
+  [TKey in keyof ClientAssertionValidationResult]: Extract<
+    ClientAssertionValidationResult[TKey],
+    { _errors: unknown[] }
   >;
 } {
-  return Object.values(validationOutput).every(isValidationSuccess);
-}
-
-function isAllValidationSuccess2(
-  validationOutput: ValidateClientKindAndPlatformState_ValidationOutput
-): validationOutput is {
-  [TKey in keyof ValidationOutput]: SuccessfulValidation<unknown>;
-} {
-  return Object.values(validationOutput).every(isValidationSuccess);
+  return Object.values(caValidationResult).some(
+    (result) => "_errors" in result && Array.isArray(result._errors)
+  );
 }
 
 // eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined
-): ValidationResult<ClientAssertion> => {
+): Array<ApiError<ErrorCodes>> | ValidatedClientAssertion => {
   try {
     const decoded = decode(clientAssertionJws, { complete: true, json: true });
     if (!decoded) {
-      return failedValidation([invalidClientAssertionFormat()]);
+      return [invalidClientAssertionFormat()];
     }
 
     if (typeof decoded.payload === "string") {
-      return failedValidation([unexpectedClientAssertionPayload()]);
+      return [unexpectedClientAssertionPayload()];
     }
 
-    const validationOutput: VerifyClientAssertion_ValidationOutput = {
+    const validationOutput: ClientAssertionValidationResult = {
       kid: validateKid(decoded.header.kid),
       alg: validateAlgorithm(decoded.header.alg),
       sub: validateSub(decoded.payload.sub, clientId),
@@ -181,32 +159,26 @@ export const verifyClientAssertion = (
       digest: validateDigest(decoded.payload.digest),
     };
 
-    if (isAllValidationSuccess(validationOutput)) {
-      // build client assertion
-
-      const result: ClientAssertion = {
-        header: {
-          kid: validationOutput.kid.data,
-          alg: validationOutput.alg.data,
-        },
-        payload: {
-          sub: validationOutput.sub.data,
-          purposeId: validationOutput.purposeId.data,
-          jti: validationOutput.jti.data,
-          iat: validationOutput.iat.data,
-          iss: validationOutput.iss.data,
-          aud: validationOutput.aud.data,
-          exp: validationOutput.exp.data,
-          digest: validationOutput.digest.data,
-        },
-      };
-      return successfulValidation(result);
+    if (hasValidationFailed(validationOutput)) {
+      return Object.values(validationOutput).flatMap(({ _errors }) => _errors);
     }
 
-    const errors = Object.values(validationOutput)
-      .filter(isValidationError)
-      .flatMap(({ errors }) => errors);
-    return failedValidation(errors);
+    return {
+      header: {
+        kid: validationOutput.kid,
+        alg: validationOutput.alg,
+      },
+      payload: {
+        sub: validationOutput.sub,
+        purposeId: validationOutput.purposeId,
+        jti: validationOutput.jti,
+        iat: validationOutput.iat,
+        iss: validationOutput.iss,
+        aud: validationOutput.aud,
+        exp: validationOutput.exp,
+        digest: validationOutput.digest,
+      },
+    };
   } catch (error) {
     return failedValidation([unexpectedClientAssertionPayload()]);
   }

@@ -1,19 +1,21 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable functional/immutable-data */
+import { ClientId, PurposeId, unsafeBrandId } from "pagopa-interop-models";
 import {
-  ApiError,
-  ClientId,
-  itemState,
-  PurposeId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import {
-  ClientAssertionDigest,
-  ConsumerKey,
-  FailedValidation,
-  ValidationResult,
-  SuccessfulValidation,
+  ValidationResult_,
+  ValidatedKid,
+  ValidatedAlg,
+  ValidatedDigest,
+  ValidationErrors,
+  ValidatedPurposeId,
+  ValidatedSub,
+  ValidatedIss,
+  ValidatedExp,
+  ValidatedJti,
+  ValidatedIat,
+  ValidatedAud,
 } from "./types.js";
 import {
-  ErrorCodes,
   expNotFound,
   issuedAtNotFound,
   invalidAudience,
@@ -45,162 +47,161 @@ export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // T
 export const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
-export const validateJti = (jti?: string): ValidationResult<string> => {
+export const validateJti = (jti?: string): ValidationResult_<ValidatedJti> => {
   if (!jti) {
-    return failedValidation([jtiNotFound()]);
+    return { _errors: [jtiNotFound()] };
   }
-  return successfulValidation(jti);
+  return jti as ValidatedJti;
 };
 
-export const validateIat = (iat?: number): ValidationResult<number> => {
+export const validateIat = (iat?: number): ValidationResult_<ValidatedIat> => {
   if (!iat) {
-    return failedValidation([issuedAtNotFound()]);
+    return { _errors: [issuedAtNotFound()] };
   }
-  return successfulValidation(iat);
+  return iat as ValidatedIat;
 };
 
-export const validateExp = (exp?: number): ValidationResult<number> => {
+export const validateExp = (exp?: number): ValidationResult_<ValidatedExp> => {
   if (!exp) {
-    return failedValidation([expNotFound()]);
+    return { _errors: [expNotFound()] };
   }
-  return successfulValidation(exp);
+  return exp as ValidatedExp;
 };
 
-export const validateIss = (iss?: string): ValidationResult<string> => {
+export const validateIss = (iss?: string): ValidationResult_<ValidatedIss> => {
   if (!iss) {
-    return failedValidation([issuerNotFound()]);
+    return { _errors: [issuerNotFound()] };
   }
-  return successfulValidation(iss);
+  return iss as ValidatedIss;
 };
 
 export const validateSub = (
   // TODO requires refactor
   sub?: string,
   clientId?: string
-): ValidationResult<string> => {
+): ValidationResult_<ValidatedSub> => {
   if (!sub) {
-    return failedValidation([subjectNotFound()]);
+    return { _errors: [subjectNotFound()] };
   }
   if (clientId) {
-    const clientIdError = !ClientId.safeParse(clientId).success
-      ? invalidClientIdFormat(clientId)
-      : undefined;
-    const invalidSubFormatError = !ClientId.safeParse(sub).success
-      ? invalidSubjectFormat(sub)
-      : undefined;
-    if (clientIdError || invalidSubFormatError) {
-      return failedValidation([clientIdError, invalidSubFormatError]);
+    const validationErrors: ValidationErrors = { _errors: [] };
+
+    if (!ClientId.safeParse(clientId).success) {
+      validationErrors._errors.push(invalidClientIdFormat(clientId));
     }
+
+    if (!ClientId.safeParse(sub).success) {
+      validationErrors._errors.push(invalidSubjectFormat(sub));
+    }
+
+    if (validationErrors._errors.length > 0) {
+      return validationErrors;
+    }
+
     // TODO: clientId undefined OK?
     if (sub !== clientId) {
-      return failedValidation([invalidSubject(sub)]);
+      return { _errors: [invalidSubject(sub)] };
     }
   }
-  return successfulValidation(sub);
+  return sub as ValidatedSub;
 };
 
 export const validatePurposeId = (
   purposeId?: string
-): ValidationResult<PurposeId | undefined> => {
+): ValidationResult_<ValidatedPurposeId | undefined> => {
   if (purposeId && !PurposeId.safeParse(purposeId).success) {
-    return failedValidation([invalidPurposeIdClaimFormat(purposeId)]);
+    return { _errors: [invalidPurposeIdClaimFormat(purposeId)] };
   }
   const validatedPurposeId = purposeId
     ? unsafeBrandId<PurposeId>(purposeId)
     : undefined;
-  return successfulValidation(validatedPurposeId);
+
+  return validatedPurposeId as ValidatedPurposeId | undefined;
 };
 
-export const validateKid = (kid?: string): ValidationResult<string> => {
+export const validateKid = (kid?: string): ValidationResult_<ValidatedKid> => {
   if (!kid) {
-    return failedValidation([kidNotFound()]);
+    return { _errors: [kidNotFound()] };
   }
   const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
   if (alphanumericRegex.test(kid)) {
-    return successfulValidation(kid);
+    return kid as ValidatedKid;
   }
-  return failedValidation([invalidKidFormat()]);
+  return { _errors: [invalidKidFormat()] };
 };
 
 export const validateAudience = (
   aud: string | string[] | undefined
-): ValidationResult<string[]> => {
+): ValidationResult_<ValidatedAud> => {
   if (aud === config.clientAssertionAudience) {
-    return successfulValidation([aud]);
+    return [aud] as ValidatedAud;
   }
 
   if (!Array.isArray(aud)) {
-    return failedValidation([invalidAudienceFormat()]);
+    return { _errors: [invalidAudienceFormat()] };
   }
   if (!aud.includes(config.clientAssertionAudience)) {
-    return failedValidation([invalidAudience()]);
+    return { _errors: [invalidAudience()] };
   }
-  return successfulValidation(aud);
+  return aud as ValidatedAud;
 };
 
-export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
+export const validateAlgorithm = (
+  alg?: string
+): ValidationResult_<ValidatedAlg> => {
   if (!alg) {
-    return failedValidation([algorithmNotFound()]);
+    return { _errors: [algorithmNotFound()] };
   }
   if (alg === ALLOWED_ALGORITHM) {
-    return successfulValidation(alg);
+    return alg as ValidatedAlg;
   }
-  return failedValidation([algorithmNotAllowed(alg)]);
+  return { _errors: [algorithmNotAllowed(alg)] };
 };
 
 export const validateDigest = (
-  // TODO requires refactor
   digest?: object
-): ValidationResult<ClientAssertionDigest> => {
+): ValidationResult_<ValidatedDigest> => {
   if (!digest) {
-    return failedValidation([digestClaimNotFound()]);
+    return { _errors: [digestClaimNotFound()] };
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([invalidDigestFormat()]);
+    return { _errors: [invalidDigestFormat()] };
   }
+
   const validatedDigest = result.data;
-  const digestLengthError =
-    validatedDigest.value.length !== 64
-      ? invalidHashLength(validatedDigest.alg)
-      : undefined;
-  const digestAlgError =
-    validatedDigest.alg !== ALLOWED_DIGEST_ALGORITHM
-      ? invalidHashAlgorithm()
-      : undefined;
-  if (!digestLengthError && !digestAlgError) {
-    return successfulValidation(result.data);
+  const validationErrors: ValidationErrors = { _errors: [] };
+
+  if (validatedDigest.value.length !== 64) {
+    validationErrors._errors.push(invalidHashLength(validatedDigest.alg));
   }
-  return failedValidation([digestLengthError, digestAlgError]);
+
+  if (validatedDigest.alg !== ALLOWED_DIGEST_ALGORITHM) {
+    validationErrors._errors.push(invalidHashAlgorithm());
+  }
+
+  if (validationErrors._errors.length > 0) {
+    return validationErrors;
+  }
+
+  return result.data as ValidatedDigest;
 };
 
-export const validatePlatformState = (
-  // TODO requires refactor
-  key: ConsumerKey
-): ValidationResult<ConsumerKey> => {
-  const agreementError =
-    key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
+// export const validatePlatformState = (
+//   // TODO requires refactor
+//   key: ConsumerKey
+// ): ValidationResult<ConsumerKey> => {
+//   const agreementError =
+//     key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
 
-  const descriptorError =
-    key.descriptorState !== itemState.active ? inactiveEService() : undefined;
+//   const descriptorError =
+//     key.descriptorState !== itemState.active ? inactiveEService() : undefined;
 
-  const purposeError =
-    key.purposeState !== itemState.active ? inactivePurpose() : undefined;
+//   const purposeError =
+//     key.purposeState !== itemState.active ? inactivePurpose() : undefined;
 
-  if (!agreementError && !descriptorError && !purposeError) {
-    return successfulValidation(key);
-  }
-  return failedValidation([agreementError, descriptorError, purposeError]);
-};
-
-export const successfulValidation = <T>(
-  result: T
-): SuccessfulValidation<T> => ({
-  data: result,
-});
-
-export const failedValidation = (
-  errors: Array<ApiError<ErrorCodes> | undefined>
-): FailedValidation => ({
-  errors: errors.filter((v): v is NonNullable<typeof v> => Boolean(v)),
-});
+//   if (!agreementError && !descriptorError && !purposeError) {
+//     return successfulValidation(key);
+//   }
+//   return failedValidation([agreementError, descriptorError, purposeError]);
+// };
