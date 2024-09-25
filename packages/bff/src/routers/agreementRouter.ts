@@ -137,7 +137,7 @@ const agreementRouter = (
 
         return res
           .status(200)
-          .json(bffApi.CatalogEServices.parse(result))
+          .json(bffApi.CompactEServicesLight.parse(result))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -293,10 +293,7 @@ const agreementRouter = (
           req.params.agreementId,
           ctx
         );
-        return res
-          .status(200)
-          .json(bffApi.CompactAgreement.parse(result))
-          .end();
+        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

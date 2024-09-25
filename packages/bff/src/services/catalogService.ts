@@ -1001,7 +1001,7 @@ export function catalogServiceBuilder(
     generatePutPresignedUrl: async (
       filename: string,
       { authData, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.FileResource> => {
+    ): Promise<bffApi.PresignedUrl> => {
       logger.info(
         `Generating presigned url for file ${filename} for organization ${authData.organizationId}`
       );
@@ -1014,7 +1014,6 @@ export function catalogServiceBuilder(
       );
 
       return {
-        filename,
         url,
       };
     },
