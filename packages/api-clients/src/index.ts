@@ -8,4 +8,3 @@ export * as purposeApi from "./generated/purposeApi.js";
 export * as selfcareV2ClientApi from "./generated/selfcareV2ClientApi.js";
 export * as tenantApi from "./generated/tenantApi.js";
 export * from "./selfcareClients.js";
-export * as authorizationServerApi from "./generated/authorizationServerApi.js";
