@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ApiError, genericError } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { ErrorCodes } from "../models/errors.js";
 
 const CatchableCodes = z.enum(["404", "403"]);
@@ -18,20 +17,12 @@ type StatusCodeErrorsMap = Record<
 >;
 export function clientStatusCodeToError(
   clientResult: unknown,
-  logger: Logger,
   statusCodesErrorMap: Partial<StatusCodeErrorsMap>
 ): Error {
   const clientError = ClientError.safeParse(clientResult);
 
   if (clientError.success) {
-    const {
-      response: { status },
-      message,
-    } = clientError.data;
-    logger.warn(
-      `Catching API client error with code ${status} - original error: ${message}`
-    );
-    const error = statusCodesErrorMap[status];
+    const error = statusCodesErrorMap[clientError.data.response.status];
     if (error) {
       return error;
     }

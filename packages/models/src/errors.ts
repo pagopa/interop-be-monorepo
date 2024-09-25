@@ -105,11 +105,7 @@ export function makeApiProblemBuilder<T extends string>(
       })),
     });
 
-    const fallbackProblem = (error: unknown): Problem => {
-      const problem = makeProblem(500, genericError("Unexpected error"));
-      logger.error(makeProblemLogString(problem, error));
-      return problem;
-    };
+    const genericProblem = makeProblem(500, genericError("Unexpected error"));
 
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
@@ -138,19 +134,31 @@ export function makeApiProblemBuilder<T extends string>(
           },
         },
         (e) => {
-          if (!problemErrorsPassthrough) {
-            return fallbackProblem(error);
-          }
-
           const receivedProblem: Problem = e.response.data;
           if (operationalMsg) {
             logger.warn(operationalMsg);
           }
-          logger.warn(makeProblemLogString(receivedProblem, error));
-          return e.response.data;
+
+          if (problemErrorsPassthrough) {
+            logger.warn(makeProblemLogString(receivedProblem, error));
+            return e.response.data;
+          } else {
+            logger.warn(
+              makeProblemLogString(
+                genericProblem,
+                `${receivedProblem.title}: code: ${
+                  receivedProblem.errors.at(0)?.code
+                } - detail: ${receivedProblem.errors.at(0)?.detail}`
+              )
+            );
+            return genericProblem;
+          }
         }
       )
-      .otherwise(fallbackProblem);
+      .otherwise((error: unknown): Problem => {
+        logger.error(makeProblemLogString(genericProblem, error));
+        return genericProblem;
+      });
   };
 }
 
