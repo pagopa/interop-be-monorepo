@@ -4,7 +4,13 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import { InteropToken } from "pagopa-interop-commons";
 
 export const interopProductName = "test-interop-product";
-export const allowedOrigins = ["IPA", "ANAC", "IVASS"];
+export const allowedOrigins = [
+  "IPA",
+  "ANAC",
+  "IVASS",
+  "PDND_INFOCAMERE-PVT",
+  "PDND_INFOCAMERE-SCP",
+];
 
 export const selfcareUpsertTenantMock = (): Promise<tenantApi.ResourceId> =>
   Promise.resolve({ id: "tenant-id" });
