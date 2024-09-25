@@ -7,7 +7,7 @@ import {
   verify,
 } from "jsonwebtoken";
 import { match } from "ts-pattern";
-import { clientKindTokenStates } from "pagopa-interop-models";
+import { clientKindTokenStates, PurposeId } from "pagopa-interop-models";
 import {
   failedValidation,
   successfulValidation,
@@ -28,6 +28,7 @@ import {
 import {
   ApiKey,
   ClientAssertion,
+  ClientAssertionDigest,
   ClientAssertionValidationRequest,
   ConsumerKey,
   FailedValidation,
@@ -108,9 +109,17 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
-type ValidationOutput = {
+type VerifyClientAssertion_ValidationOutput = {
+  kid: ValidationResult<string>;
+  alg: ValidationResult<string>;
+  sub: ValidationResult<string>;
+  purposeId: ValidationResult<PurposeId | undefined>;
   jti: ValidationResult<string>;
   iat: ValidationResult<number>;
+  iss: ValidationResult<string>;
+  aud: ValidationResult<string[]>;
+  exp: ValidationResult<number>;
+  digest: ValidationResult<ClientAssertionDigest>;
 };
 
 function isValidationSuccess(
@@ -126,7 +135,18 @@ function isValidationError(
 }
 
 function isAllValidationSuccess(
-  validationOutput: ValidationOutput
+  validationOutput: VerifyClientAssertion_ValidationOutput
+): validationOutput is {
+  [TKey in keyof typeof validationOutput]: Extract<
+    (typeof validationOutput)[TKey],
+    { data: unknown }
+  >;
+} {
+  return Object.values(validationOutput).every(isValidationSuccess);
+}
+
+function isAllValidationSuccess2(
+  validationOutput: ValidateClientKindAndPlatformState_ValidationOutput
 ): validationOutput is {
   [TKey in keyof ValidationOutput]: SuccessfulValidation<unknown>;
 } {
@@ -148,9 +168,17 @@ export const verifyClientAssertion = (
       return failedValidation([unexpectedClientAssertionPayload()]);
     }
 
-    const validationOutput: ValidationOutput = {
+    const validationOutput: VerifyClientAssertion_ValidationOutput = {
+      kid: validateKid(decoded.header.kid),
+      alg: validateAlgorithm(decoded.header.alg),
+      sub: validateSub(decoded.payload.sub, clientId),
+      purposeId: validatePurposeId(decoded.payload.purposeId),
       jti: validateJti(decoded.payload.jti),
       iat: validateIat(decoded.payload.iat),
+      iss: validateIss(decoded.payload.iss),
+      aud: validateAudience(decoded.payload.aud),
+      exp: validateExp(decoded.payload.exp),
+      digest: validateDigest(decoded.payload.digest),
     };
 
     if (isAllValidationSuccess(validationOutput)) {
@@ -158,18 +186,18 @@ export const verifyClientAssertion = (
 
       const result: ClientAssertion = {
         header: {
-          kid: validatedKid,
-          alg: validatedAlg,
+          kid: validationOutput.kid.data,
+          alg: validationOutput.alg.data,
         },
         payload: {
-          sub: validatedSub,
-          purposeId: validatedPurposeId,
+          sub: validationOutput.sub.data,
+          purposeId: validationOutput.purposeId.data,
           jti: validationOutput.jti.data,
           iat: validationOutput.iat.data,
-          iss: validatedIss,
-          aud: validatedAud,
-          exp: validatedExp,
-          digest: validatedDigest,
+          iss: validationOutput.iss.data,
+          aud: validationOutput.aud.data,
+          exp: validationOutput.exp.data,
+          digest: validationOutput.digest.data,
         },
       };
       return successfulValidation(result);
@@ -214,6 +242,20 @@ export const verifyClientAssertionSignature = (
   }
 };
 
+type ValidateClientKindAndPlatformState_ValidationOutput = {
+  consumerKey: ValidationResult<ConsumerKey>;
+  purposeId: ValidationResult<PurposeId>;
+};
+
+const validateRequiredPurposeId = (
+  purposeId: PurposeId | undefined
+): ValidationResult<PurposeId> => {
+  if (purposeId) {
+    return successfulValidation(purposeId);
+  }
+  return failedValidation([purposeIdNotProvided()]);
+};
+
 export const validateClientKindAndPlatformState = (
   key: ApiKey | ConsumerKey,
   jwt: ClientAssertion
@@ -226,23 +268,19 @@ export const validateClientKindAndPlatformState = (
     )
     .with(clientKindTokenStates.consumer, () => {
       if (ConsumerKey.safeParse(key).success) {
-        const validationResult = validatePlatformState(key as ConsumerKey);
+        const res: ValidateClientKindAndPlatformState_ValidationOutput = {
+          consumerKey: validatePlatformState(key as ConsumerKey),
+          purposeId: validateRequiredPurposeId(jwt.payload.purposeId),
+        };
 
-        if (isValidationSuccess(validationResult)) {
-          validationResult.data;
-          // ...
-        } else {
-          validationResult.errors;
-        }
-
-        const purposeIdError = jwt.payload.purposeId
-          ? undefined
-          : purposeIdNotProvided();
-
-        if (!platformStateErrors && !purposeIdError) {
+        if (isAllValidationSuccess2(res)) {
           return successfulValidation(jwt);
+        } else {
+          const errors = Object.values(res)
+            .filter(isValidationError)
+            .flatMap(({ errors }) => errors);
+          return failedValidation(errors);
         }
-        return failedValidation([platformStateErrors, purposeIdError]);
       }
       return failedValidation([
         unexpectedKeyType(clientKindTokenStates.consumer),

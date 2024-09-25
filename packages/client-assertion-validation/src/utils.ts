@@ -74,6 +74,7 @@ export const validateIss = (iss?: string): ValidationResult<string> => {
 };
 
 export const validateSub = (
+  // TODO requires refactor
   sub?: string,
   clientId?: string
 ): ValidationResult<string> => {
@@ -148,6 +149,7 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 };
 
 export const validateDigest = (
+  // TODO requires refactor
   digest?: object
 ): ValidationResult<ClientAssertionDigest> => {
   if (!digest) {
@@ -173,6 +175,7 @@ export const validateDigest = (
 };
 
 export const validatePlatformState = (
+  // TODO requires refactor
   key: ConsumerKey
 ): ValidationResult<ConsumerKey> => {
   const agreementError =
