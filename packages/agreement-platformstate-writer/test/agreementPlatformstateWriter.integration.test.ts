@@ -37,15 +37,13 @@ import {
 } from "pagopa-interop-models";
 import {
   ConditionalCheckFailedException,
-  CreateTableCommand,
-  CreateTableInput,
-  DeleteTableCommand,
-  DeleteTableInput,
   DynamoDBClient,
 } from "@aws-sdk/client-dynamodb";
 import {
   getMockTokenStatesClientPurposeEntry,
   getMockAgreement,
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
 import {
   agreementStateToItemState,
@@ -76,110 +74,10 @@ describe("integration tests", async () => {
     endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
-    if (!config) {
-      // to do: why is this needed?
-      fail();
-    }
-
-    const platformTableDefinition: CreateTableInput = {
-      TableName: config.tokenGenerationReadModelTableNamePlatform,
-      AttributeDefinitions: [
-        { AttributeName: "PK", AttributeType: "S" },
-        { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
-        { AttributeName: "GSISK_agreementTimestamp", AttributeType: "S" },
-      ],
-      KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
-      BillingMode: "PAY_PER_REQUEST",
-      GlobalSecondaryIndexes: [
-        {
-          IndexName: "GSIPK_consumerId_eserviceId",
-          KeySchema: [
-            {
-              AttributeName: "GSIPK_consumerId_eserviceId",
-              KeyType: "HASH",
-            },
-            {
-              AttributeName: "GSISK_agreementTimestamp",
-              KeyType: "RANGE",
-            },
-          ],
-          Projection: {
-            NonKeyAttributes: [],
-            ProjectionType: "ALL",
-          },
-          // ProvisionedThroughput: {
-          //   ReadCapacityUnits: 5,
-          //   WriteCapacityUnits: 5,
-          // },
-        },
-      ],
-    };
-    const command1 = new CreateTableCommand(platformTableDefinition);
-    await dynamoDBClient.send(command1);
-
-    const tokenGenerationTableDefinition: CreateTableInput = {
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      AttributeDefinitions: [
-        { AttributeName: "PK", AttributeType: "S" },
-        { AttributeName: "GSIPK_eserviceId_descriptorId", AttributeType: "S" },
-        { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
-      ],
-      KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
-      BillingMode: "PAY_PER_REQUEST",
-      GlobalSecondaryIndexes: [
-        {
-          IndexName: "GSIPK_eserviceId_descriptorId",
-          KeySchema: [
-            {
-              AttributeName: "GSIPK_eserviceId_descriptorId",
-              KeyType: "HASH",
-            },
-          ],
-          Projection: {
-            NonKeyAttributes: [],
-            ProjectionType: "ALL",
-          },
-          // ProvisionedThroughput: {
-          //   ReadCapacityUnits: 5,
-          //   WriteCapacityUnits: 5,
-          // },
-        },
-        {
-          IndexName: "GSIPK_consumerId_eserviceId",
-          KeySchema: [
-            {
-              AttributeName: "GSIPK_consumerId_eserviceId",
-              KeyType: "HASH",
-            },
-          ],
-          Projection: {
-            NonKeyAttributes: [],
-            ProjectionType: "ALL",
-          },
-          // ProvisionedThroughput: {
-          //   ReadCapacityUnits: 5,
-          //   WriteCapacityUnits: 5,
-          // },
-        },
-      ],
-    };
-    const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
-    await dynamoDBClient.send(command2);
+    await buildDynamoDBTables(dynamoDBClient);
   });
   afterEach(async () => {
-    if (!config) {
-      fail();
-    }
-    const tableToDelete1: DeleteTableInput = {
-      TableName: config.tokenGenerationReadModelTableNamePlatform,
-    };
-    const tableToDelete2: DeleteTableInput = {
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    };
-    const command1 = new DeleteTableCommand(tableToDelete1);
-    await dynamoDBClient.send(command1);
-    const command2 = new DeleteTableCommand(tableToDelete2);
-    await dynamoDBClient.send(command2);
+    deleteDynamoDBTables(dynamoDBClient);
   });
   const mockDate = new Date();
   beforeAll(() => {
