@@ -132,15 +132,12 @@ const eservicesRouter = (
             logger
           );
 
-          return res
-            .status(200)
-            .json({
-              results: catalogs.results.map(eServiceToApiEService),
-              totalCount: catalogs.totalCount,
-            })
-            .end();
+          return res.status(200).send({
+            results: catalogs.results.map(eServiceToApiEService),
+            totalCount: catalogs.totalCount,
+          });
         } catch (error) {
-          return res.status(500).end();
+          return res.status(500).send();
         }
       }
     )
@@ -152,14 +149,14 @@ const eservicesRouter = (
 
         try {
           const eservice = await catalogService.createEService(req.body, ctx);
-          return res.status(200).json(eServiceToApiEService(eservice)).end();
+          return res.status(200).send(eServiceToApiEService(eservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createEServiceErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -181,14 +178,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             ctx
           );
-          return res.status(200).json(eServiceToApiEService(eservice)).end();
+          return res.status(200).send(eServiceToApiEService(eservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getEServiceErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -204,17 +201,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(eServiceToApiEService(updatedEService))
-            .end();
+          return res.status(200).send(eServiceToApiEService(updatedEService));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateEServiceErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -229,14 +223,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteEServiceErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -260,26 +254,23 @@ const eservicesRouter = (
             ctx.logger
           );
 
-          return res
-            .status(200)
-            .json({
-              results: consumers.results.map((c) => ({
-                descriptorVersion: parseInt(c.descriptorVersion, 10),
-                descriptorState: descriptorStateToApiEServiceDescriptorState(
-                  c.descriptorState
-                ),
-                agreementState: agreementStateToApiAgreementState(
-                  c.agreementState
-                ),
-                consumerName: c.consumerName,
-                consumerExternalId: c.consumerExternalId,
-              })),
-              totalCount: consumers.totalCount,
-            })
-            .end();
+          return res.status(200).send({
+            results: consumers.results.map((c) => ({
+              descriptorVersion: parseInt(c.descriptorVersion, 10),
+              descriptorState: descriptorStateToApiEServiceDescriptorState(
+                c.descriptorState
+              ),
+              agreementState: agreementStateToApiAgreementState(
+                c.agreementState
+              ),
+              consumerName: c.consumerName,
+              consumerExternalId: c.consumerExternalId,
+            })),
+            totalCount: consumers.totalCount,
+          });
         } catch (error) {
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -307,14 +298,14 @@ const eservicesRouter = (
             ctx
           );
 
-          return res.status(200).json(documentToApiDocument(document)).end();
+          return res.status(200).send(documentToApiDocument(document));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             documentGetErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -331,17 +322,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(eServiceToApiEService(updatedEService))
-            .end();
+          return res.status(200).send(eServiceToApiEService(updatedEService));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             documentCreateErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -358,14 +346,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             documentDeleteErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -383,17 +371,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(documentToApiDocument(updatedDocument))
-            .end();
+          return res.status(200).send(documentToApiDocument(updatedDocument));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             documentUpdateErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -409,17 +394,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(descriptorToApiDescriptor(descriptor))
-            .end();
+          return res.status(200).send(descriptorToApiDescriptor(descriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -435,14 +417,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteDraftDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -459,17 +441,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(eServiceToApiEService(updatedEService))
-            .end();
+          return res.status(200).send(eServiceToApiEService(updatedEService));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -485,14 +464,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             publishDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -508,14 +487,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             suspendDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -531,14 +510,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             activateDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -557,15 +536,14 @@ const eservicesRouter = (
             );
           return res
             .status(200)
-            .json(eServiceToApiEService(clonedEserviceByDescriptor))
-            .end();
+            .send(eServiceToApiEService(clonedEserviceByDescriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             cloneEServiceByDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -581,14 +559,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -605,17 +583,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(eServiceToApiEService(updatedEService))
-            .end();
+          return res.status(200).send(eServiceToApiEService(updatedEService));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -631,14 +606,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createRiskAnalysisErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -655,14 +630,14 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -679,17 +654,14 @@ const eservicesRouter = (
               req.body.description,
               ctx
             );
-          return res
-            .status(200)
-            .json(eServiceToApiEService(updatedEService))
-            .end();
+          return res.status(200).send(eServiceToApiEService(updatedEService));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updateEServiceDescriptionErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -705,14 +677,14 @@ const eservicesRouter = (
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

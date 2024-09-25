@@ -56,10 +56,7 @@ const catalogRouter = (
       try {
         const response = await catalogService.getCatalog(ctx, queryParams);
 
-        return res
-          .status(200)
-          .json(bffApi.CatalogEServices.parse(response))
-          .send();
+        return res.status(200).send(bffApi.CatalogEServices.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -67,7 +64,7 @@ const catalogRouter = (
           ctx.logger,
           "Error retrieving Catalog EServices"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/producers/eservices", async (req, res) => {
@@ -81,10 +78,7 @@ const catalogRouter = (
           ctx
         );
 
-        return res
-          .status(200)
-          .json(bffApi.ProducerEServices.parse(response))
-          .send();
+        return res.status(200).send(bffApi.ProducerEServices.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -92,7 +86,7 @@ const catalogRouter = (
           ctx.logger,
           "Error retrieving Producer EServices"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/producers/eservices/:eserviceId", async (req, res) => {
@@ -104,8 +98,7 @@ const catalogRouter = (
         );
         return res
           .status(200)
-          .json(bffApi.ProducerEServiceDetails.parse(response))
-          .send();
+          .send(bffApi.ProducerEServiceDetails.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -113,7 +106,7 @@ const catalogRouter = (
           ctx.logger,
           `Error retrieving producer eservice ${req.params.eserviceId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -129,8 +122,7 @@ const catalogRouter = (
           );
           return res
             .status(200)
-            .json(bffApi.ProducerEServiceDescriptor.parse(response))
-            .send();
+            .send(bffApi.ProducerEServiceDescriptor.parse(response));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -138,7 +130,7 @@ const catalogRouter = (
             ctx.logger,
             `Error retrieving producer descriptor ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -155,8 +147,7 @@ const catalogRouter = (
 
           return res
             .status(200)
-            .json(bffApi.CatalogEServiceDescriptor.parse(response))
-            .send();
+            .send(bffApi.CatalogEServiceDescriptor.parse(response));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -164,7 +155,7 @@ const catalogRouter = (
             ctx.logger,
             `Error retrieving descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId} from catalog`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -190,7 +181,7 @@ const catalogRouter = (
           ctx.logger,
           `Error getting consumers of eservice ${req.params.eServiceId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete(
@@ -203,7 +194,7 @@ const catalogRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).json().send();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -211,7 +202,7 @@ const catalogRouter = (
             ctx.logger,
             `Error while deleting draft descriptor ${req.params.descriptorId} for E-Service ${req.params.eServiceId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -228,8 +219,7 @@ const catalogRouter = (
           );
           return res
             .status(200)
-            .json(bffApi.CreatedResource.parse(createdResource))
-            .send();
+            .send(bffApi.CreatedResource.parse(createdResource));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -241,7 +231,7 @@ const catalogRouter = (
               req.body
             )}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -254,8 +244,7 @@ const catalogRouter = (
         );
         return res
           .status(200)
-          .json(bffApi.CreatedResource.parse(createdResource))
-          .send();
+          .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -263,7 +252,7 @@ const catalogRouter = (
           ctx.logger,
           `Error creating descriptor in EService ${req.params.eServiceId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post(
@@ -276,7 +265,7 @@ const catalogRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).json().send();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -284,7 +273,7 @@ const catalogRouter = (
             ctx.logger,
             `Error activating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -299,10 +288,7 @@ const catalogRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json()
-            .send(bffApi.CreatedResource.parse({ id }));
+          return res.status(200).send(bffApi.CreatedResource.parse({ id }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -312,7 +298,7 @@ const catalogRouter = (
               req.params.eServiceId
             } with seed: ${JSON.stringify(req.body)}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -326,7 +312,7 @@ const catalogRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).json().send();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -334,7 +320,7 @@ const catalogRouter = (
             ctx.logger,
             `Error publishing descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -348,7 +334,7 @@ const catalogRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).json().send();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -356,7 +342,7 @@ const catalogRouter = (
             ctx.logger,
             `Error suspending descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -371,10 +357,7 @@ const catalogRouter = (
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .json(bffApi.CreatedResource.parse(resp))
-            .send();
+          return res.status(200).send(bffApi.CreatedResource.parse(resp));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -382,7 +365,7 @@ const catalogRouter = (
             ctx.logger,
             `Error creating eService document of kind ${req.body.kind} and name ${req.body.prettyName} for eService ${req.params.eServiceId} and descriptor ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -397,7 +380,7 @@ const catalogRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204).json().send();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -405,7 +388,7 @@ const catalogRouter = (
             ctx.logger,
             `Error deleting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -424,7 +407,7 @@ const catalogRouter = (
           return res
             .header(constants.HTTP2_HEADER_CONTENT_TYPE, contentType)
             .status(200)
-            .end(document);
+            .send(document);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -432,7 +415,7 @@ const catalogRouter = (
             ctx.logger,
             `Error getting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -449,10 +432,9 @@ const catalogRouter = (
             );
           return res
             .status(200)
-            .json(
+            .send(
               bffApi.CreatedEServiceDescriptor.parse(createdEServiceDescriptor)
-            )
-            .send();
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -460,7 +442,7 @@ const catalogRouter = (
             ctx.logger,
             `Error cloning eService ${req.params.eServiceId} with descriptor ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -486,7 +468,7 @@ const catalogRouter = (
             ctx
           );
 
-          return res.status(200).json(bffApi.EServiceDoc.parse(doc)).send();
+          return res.status(200).send(bffApi.EServiceDoc.parse(doc));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -494,7 +476,7 @@ const catalogRouter = (
             ctx.logger,
             `Error updating document ${documentId} on eService ${eServiceId} for descriptor ${descriptorId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -515,7 +497,7 @@ const catalogRouter = (
           ctx.logger,
           `Error creating eservice with seed: ${JSON.stringify(req.body)}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete("/eservices/:eServiceId", async (req, res) => {
@@ -533,7 +515,7 @@ const catalogRouter = (
           ctx.logger,
           `Error deleting EService ${req.params.eServiceId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .put("/eservices/:eServiceId", async (req, res) => {
@@ -554,7 +536,7 @@ const catalogRouter = (
           ctx.logger,
           `Error updating EService ${req.params.eServiceId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
@@ -574,7 +556,7 @@ const catalogRouter = (
           ctx.logger,
           `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/eservices/:eServiceId/update", async (req, res) => {
@@ -585,7 +567,7 @@ const catalogRouter = (
           unsafeBrandId(req.params.eServiceId),
           req.body
         );
-        return res.status(200).json(bffApi.CreatedResource.parse(id)).send();
+        return res.status(200).send(bffApi.CreatedResource.parse(id));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -593,7 +575,7 @@ const catalogRouter = (
           ctx.logger,
           `Error updating description of eservice with Id: ${req.params.eServiceId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -609,8 +591,7 @@ const catalogRouter = (
 
           return res
             .status(200)
-            .json(bffApi.EServiceRiskAnalysis.parse(riskAnalysis))
-            .send();
+            .send(bffApi.EServiceRiskAnalysis.parse(riskAnalysis));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -618,7 +599,7 @@ const catalogRouter = (
             ctx.logger,
             `Error retrieving risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -641,7 +622,7 @@ const catalogRouter = (
             ctx.logger,
             `Error updating risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -663,7 +644,7 @@ const catalogRouter = (
             ctx.logger,
             `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -678,7 +659,7 @@ const catalogRouter = (
             ctx
           );
 
-          return res.json(bffApi.FileResource.parse(response)).send();
+          return res.send(bffApi.FileResource.parse(response));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -686,7 +667,7 @@ const catalogRouter = (
             ctx.logger,
             `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -698,7 +679,7 @@ const catalogRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.PresignedUrl.parse(response)).send();
+        return res.status(200).send(bffApi.PresignedUrl.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -706,7 +687,7 @@ const catalogRouter = (
           ctx.logger,
           "Error getting eservice import presigned url"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/import/eservices", async (req, res) => {
@@ -718,10 +699,9 @@ const catalogRouter = (
         );
         return res
           .status(200)
-          .json(
+          .send(
             bffApi.CreatedEServiceDescriptor.parse(createdEServiceDescriptor)
-          )
-          .send();
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -729,7 +709,7 @@ const catalogRouter = (
           ctx.logger,
           "Error importing eService"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

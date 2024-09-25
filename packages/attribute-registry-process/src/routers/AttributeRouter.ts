@@ -86,15 +86,12 @@ const attributeRouter = (
               logger
             );
 
-          return res
-            .status(200)
-            .json({
-              results: attributes.results.map(toApiAttribute),
-              totalCount: attributes.totalCount,
-            })
-            .end();
+          return res.status(200).send({
+            results: attributes.results.map(toApiAttribute),
+            totalCount: attributes.totalCount,
+          });
         } catch (error) {
-          return res.status(500).end();
+          return res.status(500).send();
         }
       }
     )
@@ -116,14 +113,14 @@ const attributeRouter = (
             ctx.logger
           );
 
-          return res.status(200).json(toApiAttribute(attribute.data)).end();
+          return res.status(200).send(toApiAttribute(attribute.data));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAttributesByNameErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -150,14 +147,14 @@ const attributeRouter = (
               ctx.logger
             );
 
-          return res.status(200).json(toApiAttribute(attribute.data)).end();
+          return res.status(200).send(toApiAttribute(attribute.data));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAttributeByOriginAndCodeErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -180,14 +177,14 @@ const attributeRouter = (
             ctx.logger
           );
 
-          return res.status(200).json(toApiAttribute(attribute.data)).end();
+          return res.status(200).send(toApiAttribute(attribute.data));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getAttributeByIdErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -213,15 +210,12 @@ const attributeRouter = (
             },
             logger
           );
-          return res
-            .status(200)
-            .json({
-              results: attributes.results.map(toApiAttribute),
-              totalCount: attributes.totalCount,
-            })
-            .end();
+          return res.status(200).send({
+            results: attributes.results.map(toApiAttribute),
+            totalCount: attributes.totalCount,
+          });
         } catch (error) {
-          return res.status(500).end();
+          return res.status(500).send();
         }
       }
     )
@@ -237,14 +231,14 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res.status(200).send(toApiAttribute(attribute));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributesErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -260,14 +254,14 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res.status(200).send(toApiAttribute(attribute));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createDeclaredAttributesErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -283,14 +277,14 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res.status(200).send(toApiAttribute(attribute));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createVerifiedAttributesErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -306,14 +300,14 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).json(toApiAttribute(attribute)).end();
+          return res.status(200).send(toApiAttribute(attribute));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createInternalCertifiedAttributesErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

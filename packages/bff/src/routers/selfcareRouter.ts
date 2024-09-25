@@ -44,7 +44,7 @@ const selfcareRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.User.parse(user)).end();
+        return res.status(200).send(bffApi.User.parse(user));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -52,7 +52,7 @@ const selfcareRouter = (
           ctx.logger,
           `Error while retrieving user ${req.params.userId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -66,8 +66,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(z.array(bffApi.SelfcareProduct).parse(products))
-          .end();
+          .send(z.array(bffApi.SelfcareProduct).parse(products));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -75,7 +74,7 @@ const selfcareRouter = (
           ctx.logger,
           "Error retrieving products for institution"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -87,8 +86,7 @@ const selfcareRouter = (
 
         return res
           .status(200)
-          .json(z.array(bffApi.SelfcareInstitution).parse(institutions))
-          .end();
+          .send(z.array(bffApi.SelfcareInstitution).parse(institutions));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -96,7 +94,7 @@ const selfcareRouter = (
           ctx.logger,
           `Error retrieving institutions`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -112,7 +110,7 @@ const selfcareRouter = (
           ctx
         );
 
-        return res.status(200).json(bffApi.Users.parse(results)).end();
+        return res.status(200).send(bffApi.Users.parse(results));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -120,7 +118,7 @@ const selfcareRouter = (
           ctx.logger,
           `Error while retrieving users corresponding to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

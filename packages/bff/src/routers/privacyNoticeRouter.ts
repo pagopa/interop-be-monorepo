@@ -51,7 +51,7 @@ const privacyNoticeRouter = (
           userId,
           ctx.logger
         );
-        return res.status(200).json(bffApi.PrivacyNotice.parse(notice)).end();
+        return res.status(200).send(bffApi.PrivacyNotice.parse(notice));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -59,7 +59,7 @@ const privacyNoticeRouter = (
           ctx.logger,
           `Error retrieving privacy notices for consentType ${req.params.consentType}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -76,7 +76,7 @@ const privacyNoticeRouter = (
           req.body,
           ctx.logger
         );
-        return res.status(204).end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -84,7 +84,7 @@ const privacyNoticeRouter = (
           ctx.logger,
           `Error accepting privacy notices for consentType ${req.params.consentType}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -98,7 +98,7 @@ const privacyNoticeRouter = (
           consentType,
           ctx.logger
         );
-        return res.status(200).send(file).end();
+        return res.status(200).send(file);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -106,7 +106,7 @@ const privacyNoticeRouter = (
           ctx.logger,
           `Error retrieving privacy notices content for consentType ${req.params.consentType}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 
