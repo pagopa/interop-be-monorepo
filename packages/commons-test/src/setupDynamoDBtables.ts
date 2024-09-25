@@ -12,9 +12,36 @@ export const buildDynamoDBTables = async (
   const platformTableDefinition: CreateTableInput = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "platform-states",
-    AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
+    AttributeDefinitions: [
+      { AttributeName: "PK", AttributeType: "S" },
+      { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
+      { AttributeName: "GSISK_agreementTimestamp", AttributeType: "S" },
+    ],
     KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
     BillingMode: "PAY_PER_REQUEST",
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: "GSIPK_consumerId_eserviceId",
+        KeySchema: [
+          {
+            AttributeName: "GSIPK_consumerId_eserviceId",
+            KeyType: "HASH",
+          },
+          {
+            AttributeName: "GSISK_agreementTimestamp",
+            KeyType: "RANGE",
+          },
+        ],
+        Projection: {
+          NonKeyAttributes: [],
+          ProjectionType: "ALL",
+        },
+        // ProvisionedThroughput: {
+        //   ReadCapacityUnits: 5,
+        //   WriteCapacityUnits: 5,
+        // },
+      },
+    ],
   };
   const command1 = new CreateTableCommand(platformTableDefinition);
   await dynamoDBClient.send(command1);
@@ -25,6 +52,11 @@ export const buildDynamoDBTables = async (
     AttributeDefinitions: [
       { AttributeName: "PK", AttributeType: "S" },
       { AttributeName: "GSIPK_eserviceId_descriptorId", AttributeType: "S" },
+      { AttributeName: "GSIPK_consumerId_eserviceId", AttributeType: "S" },
+      { AttributeName: "GSIPK_purposeId", AttributeType: "S" },
+      { AttributeName: "GSIPK_clientId", AttributeType: "S" },
+      { AttributeName: "GSIPK_kid", AttributeType: "S" },
+      { AttributeName: "GSIPK_clientId_purposeId", AttributeType: "S" },
     ],
     KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
     BillingMode: "PAY_PER_REQUEST",
@@ -41,10 +73,53 @@ export const buildDynamoDBTables = async (
           NonKeyAttributes: [],
           ProjectionType: "ALL",
         },
-        // ProvisionedThroughput: {
-        //   ReadCapacityUnits: 5,
-        //   WriteCapacityUnits: 5,
-        // },
+      },
+      {
+        IndexName: "GSIPK_consumerId_eserviceId",
+        KeySchema: [
+          {
+            AttributeName: "GSIPK_consumerId_eserviceId",
+            KeyType: "HASH",
+          },
+        ],
+        Projection: {
+          NonKeyAttributes: [],
+          ProjectionType: "ALL",
+        },
+      },
+      {
+        IndexName: "GSIPK_purposeId",
+        KeySchema: [{ AttributeName: "GSIPK_purposeId", KeyType: "HASH" }],
+        Projection: {
+          NonKeyAttributes: [],
+          ProjectionType: "ALL",
+        },
+      },
+      {
+        IndexName: "GSIPK_clientId",
+        KeySchema: [{ AttributeName: "GSIPK_clientId", KeyType: "HASH" }],
+        Projection: {
+          NonKeyAttributes: [],
+          ProjectionType: "ALL",
+        },
+      },
+      {
+        IndexName: "GSIPK_kid",
+        KeySchema: [{ AttributeName: "GSIPK_kid", KeyType: "HASH" }],
+        Projection: {
+          NonKeyAttributes: [],
+          ProjectionType: "ALL",
+        },
+      },
+      {
+        IndexName: "GSIPK_clientId_purposeId",
+        KeySchema: [
+          { AttributeName: "GSIPK_clientId_purposeId", KeyType: "HASH" },
+        ],
+        Projection: {
+          NonKeyAttributes: [],
+          ProjectionType: "ALL",
+        },
       },
     ],
   };

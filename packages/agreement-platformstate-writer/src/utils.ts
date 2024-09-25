@@ -194,15 +194,13 @@ export const updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo 
     agreementState,
     dynamoDBClient,
     GSIPK_eserviceId_descriptorId,
-    descriptorState,
-    descriptorAudience,
+    catalogEntry,
   }: {
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
     agreementState: AgreementState;
     dynamoDBClient: DynamoDBClient;
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
-    descriptorState: ItemState;
-    descriptorAudience: string;
+    catalogEntry: PlatformStatesCatalogEntry | undefined;
   }): Promise<void> => {
     const entriesToUpdate = await readTokenStateEntriesByConsumerIdEserviceId(
       GSIPK_consumerId_eserviceId,
@@ -211,45 +209,46 @@ export const updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo 
 
     for (const entry of entriesToUpdate) {
       const additionalDescriptorInfo =
-        !entry.GSIPK_eserviceId_descriptorId || !entry.descriptorState;
+        catalogEntry &&
+        (!entry.GSIPK_eserviceId_descriptorId || !entry.descriptorState);
 
+      const additionalAttributesToSet: Record<string, AttributeValue> =
+        additionalDescriptorInfo
+          ? {
+              ":descriptorState": {
+                S: catalogEntry.state,
+              },
+              ":descriptorAudience": {
+                S: catalogEntry.descriptorAudience,
+              },
+              ":gsi": {
+                S: GSIPK_eserviceId_descriptorId,
+              },
+            }
+          : {};
       const input: UpdateItemInput = {
-        // TODO ConditionExpression to avoid upsert
+        // ConditionExpression to avoid upsert
         ConditionExpression: "attribute_exists(PK)",
         Key: {
           PK: {
             S: entry.PK,
           },
         },
-        ExpressionAttributeValues: additionalDescriptorInfo
-          ? {
-              ":newState": {
-                S: agreementStateToItemState(agreementState),
-              },
-              ":newUpdateAt": {
-                S: new Date().toISOString(),
-              },
-              ":descriptorState": {
-                S: descriptorState,
-              },
-              ":gsi": {
-                S: GSIPK_eserviceId_descriptorId,
-              },
-              ":descriptorAudience": {
-                S: descriptorAudience,
-              },
-            }
-          : {
-              ":newState": {
-                S: agreementStateToItemState(agreementState),
-              },
-              ":newUpdateAt": {
-                S: new Date().toISOString(),
-              },
-            },
-        UpdateExpression: additionalDescriptorInfo
-          ? "SET agreementState = :newState, updatedAt = :newUpdateAt, GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience"
-          : "SET agreementState = :newState, updatedAt = :newUpdateAt",
+        ExpressionAttributeValues: {
+          ":newState": {
+            S: agreementStateToItemState(agreementState),
+          },
+          ":newUpdateAt": {
+            S: new Date().toISOString(),
+          },
+          ...additionalAttributesToSet,
+        },
+        UpdateExpression:
+          "SET agreementState = :newState, updatedAt = :newUpdateAt".concat(
+            additionalDescriptorInfo
+              ? ", GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience"
+              : ""
+          ),
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         ReturnValues: "NONE",
       };

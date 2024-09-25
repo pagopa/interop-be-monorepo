@@ -8,7 +8,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockTokenStatesClientPurposeEntry,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   makePlatformStatesAgreementPK,
   generateId,
@@ -57,7 +57,6 @@ describe("utils", async () => {
     deleteDynamoDBTables(dynamoDBClient);
   });
 
-  // TODO: move this to other test file after improving table setup
   describe("updateAgreementStateInPlatformStatesEntry", async () => {
     it("should throw error if previous entry doesn't exist", async () => {
       const primaryKey = makePlatformStatesAgreementPK(

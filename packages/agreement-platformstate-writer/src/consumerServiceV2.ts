@@ -89,10 +89,6 @@ export async function handleMessageV2(
           dynamoDBClient
         );
 
-        if (!catalogEntry) {
-          // TODO double-check
-          throw genericInternalError("Catalog entry not found");
-        }
         const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: agreement.eserviceId,
           descriptorId: agreement.descriptorId,
@@ -105,8 +101,7 @@ export async function handleMessageV2(
             agreementState: agreement.state,
             dynamoDBClient,
             GSIPK_eserviceId_descriptorId,
-            descriptorState: catalogEntry.state,
-            descriptorAudience: catalogEntry.descriptorAudience,
+            catalogEntry,
           }
         );
       }
@@ -231,8 +226,7 @@ export async function handleMessageV2(
               agreementState: agreement.state,
               dynamoDBClient,
               GSIPK_eserviceId_descriptorId,
-              descriptorState: catalogEntry.state,
-              descriptorAudience: catalogEntry.descriptorAudience,
+              catalogEntry,
             }
           );
         }
