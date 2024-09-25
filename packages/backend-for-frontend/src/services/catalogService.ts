@@ -111,6 +111,9 @@ const enhanceProducerEService = (
   eservice: catalogApi.EService
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
+  const draftDescriptor = eservice.descriptors.find(
+    (d) => d.state === catalogApiDescriptorState.DRAFT
+  );
 
   return {
     id: eservice.id,
@@ -119,9 +122,9 @@ const enhanceProducerEService = (
     activeDescriptor: activeDescriptor
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
-    draftDescriptor: eservice.descriptors.find(
-      (d) => d.state === catalogApiDescriptorState.DRAFT
-    ),
+    draftDescriptor: draftDescriptor
+      ? toCompactDescriptor(draftDescriptor)
+      : undefined,
   };
 };
 

@@ -237,15 +237,13 @@ export function toBffCatalogApiProducerDescriptorEService(
 ): bffApi.ProducerDescriptorEService {
   const producerMail = getLatestTenantContactEmail(producer);
 
-  const notDraftDecriptors: bffApi.CompactDescriptor[] =
-    eservice.descriptors.filter(
-      (d) => d.state !== catalogApiDescriptorState.DRAFT
-    );
+  const notDraftDecriptors = eservice.descriptors
+    .filter((d) => d.state !== catalogApiDescriptorState.DRAFT)
+    .map(toCompactDescriptor);
 
-  const draftDescriptor: bffApi.CompactDescriptor | undefined =
-    eservice.descriptors.find(
-      (d) => d.state === catalogApiDescriptorState.DRAFT
-    );
+  const draftDescriptor = eservice.descriptors.find(
+    (d) => d.state === catalogApiDescriptorState.DRAFT
+  );
 
   return {
     id: eservice.id,
@@ -257,7 +255,9 @@ export function toBffCatalogApiProducerDescriptorEService(
       address: producerMail.address,
       description: producerMail.description,
     },
-    draftDescriptor,
+    draftDescriptor: draftDescriptor
+      ? toCompactDescriptor(draftDescriptor)
+      : undefined,
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
     ),
