@@ -54,7 +54,7 @@ describe("utils", async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
   afterEach(async () => {
-    deleteDynamoDBTables(dynamoDBClient);
+    await deleteDynamoDBTables(dynamoDBClient);
   });
 
   describe("updateAgreementStateInPlatformStatesEntry", async () => {
