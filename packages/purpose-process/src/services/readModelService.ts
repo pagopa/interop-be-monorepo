@@ -286,8 +286,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           purposes,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },
