@@ -12,7 +12,10 @@ import {
   PagoPAInteropBeClients,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import {
+  toAuthorizationKeySeed,
+  toBffApiCompactClient,
+} from "../api/authorizationApiConverter.js";
 import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
 
 export function clientServiceBuilder(
@@ -39,10 +42,10 @@ export function clientServiceBuilder(
         kind?: bffApi.ClientKind;
       },
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<authorizationApi.ClientsWithKeys> {
+    ): Promise<bffApi.CompactClients> {
       logger.info(`Retrieving clients`);
 
-      return authorizationClient.client.getClientsWithKeys({
+      const clients = await authorizationClient.client.getClientsWithKeys({
         queries: {
           offset,
           limit,
@@ -54,6 +57,15 @@ export function clientServiceBuilder(
         },
         headers,
       });
+
+      return {
+        results: clients.results.map(toBffApiCompactClient),
+        pagination: {
+          limit,
+          offset,
+          totalCount: clients.totalCount,
+        },
+      };
     },
 
     async getClientById(
@@ -156,7 +168,7 @@ export function clientServiceBuilder(
       clientId: string,
       userIds: string[],
       { logger, headers, authData }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PublicKey[]> {
+    ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
       const { keys } = await authorizationClient.client.getClientKeys({
@@ -165,7 +177,7 @@ export function clientServiceBuilder(
         headers,
       });
 
-      return Promise.all(
+      const decoratedKeys = await Promise.all(
         keys.map((k) =>
           decorateKey(
             selfcareUsersClient,
@@ -175,6 +187,8 @@ export function clientServiceBuilder(
           )
         )
       );
+
+      return { keys: decoratedKeys };
     },
 
     async addClientPurpose(
@@ -194,7 +208,7 @@ export function clientServiceBuilder(
       clientId: string,
       selfcareId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CompactUser[]> {
+    ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
       const clientUsers = await authorizationClient.client.getClientUsers({

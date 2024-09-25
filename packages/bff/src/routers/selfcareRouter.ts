@@ -10,6 +10,7 @@ import {
   selfcareV2InstitutionClientBuilder,
 } from "pagopa-interop-api-clients";
 import { TenantId, unsafeBrandId } from "pagopa-interop-models";
+import { z } from "zod";
 import { makeApiProblem } from "../model/errors.js";
 import {
   getSelfcareErrorMapper,
@@ -17,11 +18,6 @@ import {
 } from "../utilities/errorMappers.js";
 import { selfcareServiceBuilder } from "../services/selfcareService.js";
 import { config } from "../config/config.js";
-import {
-  toApiSelfcareUser,
-  toApiSelfcareProduct,
-  toApiSelfcareInstitution,
-} from "../api/selfcareApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
@@ -44,16 +40,11 @@ const selfcareRouter = (
 
       try {
         const user = await selfcareService.getSelfcareUser(
-          ctx.authData.userId,
           req.params.userId,
-          ctx.authData.selfcareId,
           ctx
         );
 
-        return res
-          .status(200)
-          .json(toApiSelfcareUser(user, ctx.authData.organizationId))
-          .end();
+        return res.status(200).json(bffApi.User.parse(user)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -70,12 +61,13 @@ const selfcareRouter = (
 
       try {
         const products = await selfcareService.getSelfcareInstitutionsProducts(
-          ctx.authData.userId,
-          ctx.authData.selfcareId,
           ctx
         );
 
-        return res.status(200).json(products.map(toApiSelfcareProduct)).end();
+        return res
+          .status(200)
+          .json(z.array(bffApi.SelfcareProduct).parse(products))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -91,14 +83,11 @@ const selfcareRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const institutions = await selfcareService.getSelfcareInstitutions(
-          ctx.authData.userId,
-          ctx
-        );
+        const institutions = await selfcareService.getSelfcareInstitutions(ctx);
 
         return res
           .status(200)
-          .json(institutions.map(toApiSelfcareInstitution))
+          .json(z.array(bffApi.SelfcareInstitution).parse(institutions))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -123,7 +112,7 @@ const selfcareRouter = (
           ctx
         );
 
-        return res.status(200).json(results).end();
+        return res.status(200).json(bffApi.Users.parse(results)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

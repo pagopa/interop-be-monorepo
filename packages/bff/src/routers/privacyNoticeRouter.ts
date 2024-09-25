@@ -51,7 +51,7 @@ const privacyNoticeRouter = (
           userId,
           ctx.logger
         );
-        return res.status(200).json(notice).end();
+        return res.status(200).json(bffApi.PrivacyNotice.parse(notice)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -18,7 +18,6 @@ import {
 } from "../utilities/errorMappers.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
-import { toBffApiCompactProducerKeychain } from "../api/authorizationApiConverter.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -53,16 +52,7 @@ const producerKeychainRouter = (
 
         return res
           .status(200)
-          .json({
-            results: producerKeychains.results.map(
-              toBffApiCompactProducerKeychain
-            ),
-            pagination: {
-              limit,
-              offset,
-              totalCount: producerKeychains.totalCount,
-            },
-          })
+          .json(bffApi.CompactProducerKeychains.parse(producerKeychains))
           .end();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -87,7 +77,7 @@ const producerKeychainRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -107,7 +97,10 @@ const producerKeychainRouter = (
             ctx
           );
 
-        return res.status(200).json(producerKeychain).end();
+        return res
+          .status(200)
+          .json(bffApi.ProducerKeychain.parse(producerKeychain))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -215,7 +208,7 @@ const producerKeychainRouter = (
           ctx
         );
 
-        return res.status(200).json({ keys }).end();
+        return res.status(200).json(bffApi.PublicKeys.parse(keys)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -239,7 +232,7 @@ const producerKeychainRouter = (
             ctx
           );
 
-          return res.status(200).json(key).end();
+          return res.status(200).json(bffApi.PublicKey.parse(key)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -284,7 +277,7 @@ const producerKeychainRouter = (
           ctx
         );
 
-        return res.status(200).json(users).end();
+        return res.status(200).json(bffApi.CompactUsers.parse(users)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -308,7 +301,9 @@ const producerKeychainRouter = (
               ctx
             );
 
-          return res.status(200).json(createdUser);
+          return res
+            .status(200)
+            .json(bffApi.CreatedResource.parse(createdUser));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -356,7 +351,7 @@ const producerKeychainRouter = (
               ctx
             );
 
-          return res.status(200).json(key).end();
+          return res.status(200).json(bffApi.EncodedClientKey.parse(key)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
