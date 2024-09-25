@@ -21,7 +21,7 @@
     "start:authorization": "turbo start --filter pagopa-interop-authorization-process",
     "start:client-readmodel-writer": "turbo start --filter pagopa-interop-client-readmodel-writer",
     "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
-    "start:bff": "turbo start --filter pagopa-interop-bff",
+    "start:bff": "turbo start --filter pagopa-interop-backend-for-frontend",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "test": "turbo test",
     "build": "turbo build",

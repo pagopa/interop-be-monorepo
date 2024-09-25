@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-bff",
+  "name": "pagopa-interop-backend-for-frontend",
   "version": "1.0.0",
   "description": "PagoPA Interop Backend for Frontend",
   "main": "dist",
