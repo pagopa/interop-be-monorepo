@@ -89,33 +89,23 @@ export function readModelServiceBuilder(
       eserviceId: EServiceId,
       consumerId: TenantId
     ): Promise<Agreement | undefined> {
-      const data = await agreements
-        .find(
-          {
-            "data.eserviceId": eserviceId,
-            "data.consumerId": consumerId,
-            "data.state": {
-              $in: [
-                agreementState.active,
-                agreementState.archived,
-                agreementState.suspended,
-              ],
-            },
+      const data = await agreements.findOne(
+        {
+          "data.eserviceId": eserviceId,
+          "data.consumerId": consumerId,
+          "data.state": {
+            $in: [
+              agreementState.active,
+              agreementState.archived,
+              agreementState.suspended,
+            ],
           },
-          { projection: { data: true } }
-        )
-        .sort({ "data.createdAt": -1 })
-        .limit(1)
-        .toArray();
+        },
+        { projection: { data: true }, sort: { createdAt: -1 } }
+      );
 
       if (data) {
-        if (data.length > 1) {
-          throw genericInternalError(
-            `Too many agreements returned: data ${JSON.stringify(data)} `
-          );
-        }
-
-        const result = Agreement.safeParse(data[0].data);
+        const result = Agreement.safeParse(data);
 
         if (!result.success) {
           throw genericInternalError(
