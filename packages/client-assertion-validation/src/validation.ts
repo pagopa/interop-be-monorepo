@@ -30,7 +30,9 @@ import {
   ClientAssertion,
   ClientAssertionValidationRequest,
   ConsumerKey,
+  FailedValidation,
   Key,
+  SuccessfulValidation,
   ValidationResult,
 } from "./types.js";
 import {
@@ -113,23 +115,20 @@ type ValidationOutput = {
 
 function isValidationSuccess(
   validationResult: ValidationResult<unknown>
-): validationResult is Extract<typeof validationResult, { data: unknown }> {
-  return "data" in validationResult && Boolean(validationResult.data);
+): validationResult is SuccessfulValidation<unknown> {
+  return "data" in validationResult && validationResult.data !== undefined;
 }
 
 function isValidationError(
   validationResult: ValidationResult<unknown>
-): validationResult is Extract<typeof validationResult, { errors: unknown }> {
+): validationResult is FailedValidation {
   return "errors" in validationResult && Array.isArray(validationResult.errors);
 }
 
 function isAllValidationSuccess(
   validationOutput: ValidationOutput
 ): validationOutput is {
-  [TKey in keyof typeof validationOutput]: Extract<
-    (typeof validationOutput)[TKey],
-    { data: unknown }
-  >;
+  [TKey in keyof ValidationOutput]: SuccessfulValidation<unknown>;
 } {
   return Object.values(validationOutput).every(isValidationSuccess);
 }
@@ -230,6 +229,7 @@ export const validateClientKindAndPlatformState = (
         const validationResult = validatePlatformState(key as ConsumerKey);
 
         if (isValidationSuccess(validationResult)) {
+          validationResult.data;
           // ...
         } else {
           validationResult.errors;
