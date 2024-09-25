@@ -308,6 +308,7 @@ describe("integration tests V2 events", async () => {
         PK: primaryKeyCatalogEntry,
         state: itemState.inactive,
         descriptorAudience: "pagopa.it",
+        descriptorVoucherLifespan: 60,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
