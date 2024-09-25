@@ -102,7 +102,7 @@ export function toBffCatalogDescriptorEService(
     },
     description: eservice.description,
     technology: eservice.technology,
-    descriptors: getNotDraftDescriptor(eservice),
+    descriptors: getNotDraftDescriptor(eservice).map(toCompactDescriptor),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
