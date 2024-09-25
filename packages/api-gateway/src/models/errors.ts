@@ -14,7 +14,7 @@ export const errorCodes = {
   missingActivePurposeVersion: "0003",
   activeAgreementByEserviceAndConsumerNotFound: "0004",
   multipleAgreementForEserviceAndConsumer: "0005",
-  missingAvailableDescriptor: "0006",
+  eserviceNotFound: "0006",
   unexpectedDescriptorState: "0007",
   attributeNotFoundInRegistry: "0008",
   eserviceDescriptorNotFound: "0009",
@@ -72,24 +72,27 @@ export function multipleAgreementForEserviceAndConsumer(
 }
 
 export function missingAvailableDescriptor(
-  eserviceId: catalogApi.EService["id"]
+  eserviceId: catalogApi.EService["id"],
+  logger: Logger
 ): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No available descriptors for EService ${eserviceId}`,
-    code: "missingAvailableDescriptor",
-    title: "Missing available descriptor",
-  });
+  const error = eserviceNotFound(eserviceId);
+  logger.warn(
+    `Root cause for Error "${error.title}": no available descriptors for EService ${eserviceId}`
+  );
+  return error;
 }
 
 export function unexpectedDescriptorState(
   state: catalogApi.EServiceDescriptorState,
-  descriptorId: catalogApi.EServiceDescriptor["id"]
+  eserviceId: catalogApi.EService["id"],
+  descriptorId: catalogApi.EServiceDescriptor["id"],
+  logger: Logger
 ): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected Descriptor state: ${state} - id: ${descriptorId}`,
-    code: "unexpectedDescriptorState",
-    title: "Unexpected descriptor state",
-  });
+  const error = eserviceDescriptorNotFound(eserviceId, descriptorId);
+  logger.warn(
+    `Root cause for Error "${error.title}": Unexpected Descriptor state: ${state} for Descriptor ${descriptorId}`
+  );
+  return error;
 }
 
 export function attributeNotFoundInRegistry(
@@ -170,5 +173,15 @@ export function clientNotFound(
     detail: `Client ${clientId} not found`,
     code: "clientNotFound",
     title: "Client not found",
+  });
+}
+
+export function eserviceNotFound(
+  eserviceId: catalogApi.EService["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} not found`,
+    code: "eserviceNotFound",
+    title: "EService not found",
   });
 }

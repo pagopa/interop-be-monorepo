@@ -16,7 +16,11 @@ import {
   toApiGatewayDescriptorIfNotDraft,
   toApiGatewayEserviceAttributes,
 } from "../api/catalogApiConverter.js";
-import { eserviceDescriptorNotFound } from "../models/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  eserviceNotFound,
+} from "../models/errors.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   assertAvailableDescriptorExists,
   assertNonDraftDescriptor,
@@ -78,12 +82,18 @@ export function catalogServiceBuilder(
       eserviceId: catalogApi.EService["id"]
     ): Promise<apiGatewayApi.EService> => {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eservice = await catalogProcessClient.getEServiceById({
-        headers,
-        params: {
-          eServiceId: eserviceId,
-        },
-      });
+      const eservice = await catalogProcessClient
+        .getEServiceById({
+          headers,
+          params: {
+            eServiceId: eserviceId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: eserviceNotFound(eserviceId),
+          });
+        });
 
       return enhanceEservice(
         tenantProcessClient,

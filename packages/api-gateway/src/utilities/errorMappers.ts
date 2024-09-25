@@ -53,11 +53,7 @@ export const getAgreementByPurposeErrorMapper = (
 
 export const getEserviceErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with(
-      "missingAvailableDescriptor",
-      "unexpectedDescriptorState",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
