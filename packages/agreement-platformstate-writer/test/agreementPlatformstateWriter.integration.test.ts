@@ -299,22 +299,6 @@ describe("integration tests V2 events", async () => {
         agreement.id
       );
 
-      const primaryKeyCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-      });
-
-      const catalogEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKeyCatalogEntry,
-        state: itemState.inactive,
-        descriptorAudience: "pagopa.it",
-        descriptorVoucherLifespan: 60,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await writeCatalogEntry(catalogEntry, dynamoDBClient);
-
       // token-generation-states
       const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -399,7 +383,145 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should add the entry if it doesn't exist - and add descriptor info to token-generation-states entry if missing", () => {});
+    it("should add the entry if it doesn't exist - and add descriptor info to token-generation-states entry if missing", async () => {
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.active,
+        stamps: {
+          activation: {
+            when: new Date(),
+            who: generateId(),
+          },
+        },
+      };
+      const payload: AgreementActivatedV2 = {
+        agreement: toAgreementV2(agreement),
+      };
+      const message: AgreementEventEnvelope = {
+        sequence_num: 1,
+        stream_id: agreement.id,
+        version: 1,
+        type: "AgreementActivated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      const agreementEntryPrimaryKey = makePlatformStatesAgreementPK(
+        agreement.id
+      );
+
+      const primaryKeyCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
+
+      const catalogEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKeyCatalogEntry,
+        state: itemState.active,
+        descriptorAudience: "pagopa.it",
+        descriptorVoucherLifespan: 60,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await writeCatalogEntry(catalogEntry, dynamoDBClient);
+
+      // token-generation-states
+      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+      });
+      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          agreementState: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSIPK_eserviceId_descriptorId: undefined,
+          descriptorAudience: undefined,
+          descriptorState: undefined,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+
+      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+        clientId: generateId(),
+        kid: `kid ${Math.random()}`,
+        purposeId: generateId(),
+      });
+      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          agreementState: itemState.inactive,
+          GSIPK_consumerId_eserviceId,
+          GSIPK_eserviceId_descriptorId: undefined,
+          descriptorAudience: undefined,
+          descriptorState: undefined,
+        };
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+
+      await sleep(1000, mockDate);
+      await handleMessageV2(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedAgreementEntry = await readAgreementEntry(
+        agreementEntryPrimaryKey,
+        dynamoDBClient
+      );
+
+      const expectedAgreementEntry: PlatformStatesAgreementEntry = {
+        PK: agreementEntryPrimaryKey,
+        version: 1,
+        state: itemState.active,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        updatedAt: agreement.stamps.activation!.when.toISOString(),
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        }),
+        GSISK_agreementTimestamp:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          agreement.stamps.activation!.when.toISOString(),
+        agreementDescriptorId: agreement.descriptorId,
+      };
+      expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
+
+      // token-generation-states
+      const retrievedTokenStateEntries =
+        await readTokenStateEntriesByConsumerIdEserviceId(
+          GSIPK_consumerId_eserviceId,
+          dynamoDBClient
+        );
+      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry1,
+          agreementState: itemState.active,
+          descriptorState: catalogEntry.state,
+          descriptorAudience: catalogEntry.descriptorAudience,
+          descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+        {
+          ...previousTokenStateEntry2,
+          agreementState: itemState.active,
+          descriptorState: catalogEntry.state,
+          descriptorAudience: catalogEntry.descriptorAudience,
+          descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenStateEntries).toHaveLength(2);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
+    });
   });
   describe("AgreementSuspendedByProducer", async () => {});
   describe("AgreementUnsuspendedByProducer", async () => {
