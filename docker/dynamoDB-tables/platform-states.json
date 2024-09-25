@@ -10,13 +10,7 @@
     {
       "IndexName": "GSIPK_consumerId_eserviceId",
       "KeySchema": [
-        { "AttributeName": "GSIPK_consumerId_eserviceId", "KeyType": "HASH" }
-      ],
-      "Projection": { "ProjectionType": "ALL" }
-    },
-    {
-      "IndexName": "GSISK_agreementTimestamp",
-      "KeySchema": [
+        { "AttributeName": "GSIPK_consumerId_eserviceId", "KeyType": "HASH" },
         { "AttributeName": "GSISK_agreementTimestamp", "KeyType": "HASH" }
       ],
       "Projection": { "ProjectionType": "ALL" }
