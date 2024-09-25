@@ -51,24 +51,4 @@ const toolsRouter = (
   return toolsRouter;
 };
 
-const supportRouter = (
-  ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const supportRouter = ctx.router(bffApi.supportApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
-  });
-
-  supportRouter.post("/session/saml2/tokens", async (_req, res) =>
-    res.status(501).send()
-  );
-
-  return supportRouter;
-};
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export default function genericRouter(
-  ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
-) {
-  return [toolsRouter(ctx, clients), supportRouter(ctx)];
-}
+export default toolsRouter;
