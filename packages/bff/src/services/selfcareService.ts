@@ -6,7 +6,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { WithLogger, Logger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import { missingSelfcareId, userNotFound } from "../model/errors.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -49,6 +49,9 @@ export function selfcareServiceBuilder(
           userIdForAuth: userId,
           userId: userIdQuery,
         },
+        headers: {
+          "X-Correlation-Id": ctx.headers["X-Correlation-Id"],
+        },
       });
 
       const user = users.at(0);
@@ -59,17 +62,20 @@ export function selfcareServiceBuilder(
     },
 
     async getSelfcareInstitutionsProducts(
-      userId: UserId,
-      institutionId: string,
-      logger: Logger
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.SelfcareProduct[]> {
-      logger.info(
+      const institutionId = ctx.authData.selfcareId;
+      const userId = ctx.authData.userId;
+      ctx.logger.info(
         `Retrieving Products for Institution ${institutionId} and User ${userId}`
       );
       const products =
         await selfcareV2Client.getInstitutionUserProductsUsingGET({
           params: { institutionId },
           queries: { userId },
+          headers: {
+            "X-Correlation-Id": ctx.headers["X-Correlation-Id"],
+          },
         });
 
       return products.map(toApiSelfcareProduct);
@@ -77,12 +83,16 @@ export function selfcareServiceBuilder(
 
     async getSelfcareInstitutions(
       userId: UserId,
-      logger: Logger
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.SelfcareInstitution[]> {
+      const userId = ctx.authData.userId;
       logger.info(`Retrieving Institutions for User ${userId}`);
 
       const institutions = await selfcareV2Client.getInstitutionsUsingGET({
         queries: { userIdForAuth: userId },
+        headers: {
+          "X-Correlation-Id": headers["X-Correlation-Id"],
+        },
       });
 
       return institutions.map(toApiSelfcareInstitution);
@@ -115,6 +125,9 @@ export function selfcareServiceBuilder(
             userId,
             userIdForAuth: requesterId,
             productRoles: roles,
+          },
+          headers: {
+            "X-Correlation-Id": headers["X-Correlation-Id"],
           },
         });
 

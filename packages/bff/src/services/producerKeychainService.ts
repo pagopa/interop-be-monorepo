@@ -4,10 +4,8 @@ import { WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
-  selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
-import { SelfcareId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
@@ -15,6 +13,7 @@ import {
   toBffApiCompactProducerKeychain,
 } from "../api/authorizationApiConverter.js";
 import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
+import { decorateKey, getSelfcareUserById } from "./clientService.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -165,7 +164,14 @@ export function producerKeychainServiceBuilder(
         });
 
       const decoratedKeys = await Promise.all(
-        keys.map((k) => decorateKey(selfcareUsersClient, k, selfcareId))
+        keys.map((k) =>
+          decorateKey(
+            selfcareUsersClient,
+            k,
+            selfcareId,
+            headers["X-Correlation-Id"]
+          )
+        )
       );
 
       return { keys: decoratedKeys };
@@ -187,7 +193,12 @@ export function producerKeychainServiceBuilder(
           headers,
         }
       );
-      return decorateKey(selfcareUsersClient, key, selfcareId);
+      return decorateKey(
+        selfcareUsersClient,
+        key,
+        selfcareId,
+        headers["X-Correlation-Id"]
+      );
     },
     async deleteProducerKeyById(
       producerKeychainId: string,
@@ -224,7 +235,12 @@ export function producerKeychainServiceBuilder(
 
       const users = producerKeychainUsers.map(async (id) =>
         toBffApiCompactUser(
-          await getSelfcareUserById(selfcareUsersClient, id, selfcareId),
+          await getSelfcareUserById(
+            selfcareUsersClient,
+            id,
+            selfcareId,
+            headers["X-Correlation-Id"]
+          ),
           id
         )
       );
@@ -342,40 +358,5 @@ async function enhanceEService(
       name: producer.name,
       kind: producer.kind,
     },
-  };
-}
-
-async function getSelfcareUserById(
-  selfcareClient: SelfcareV2UsersClient,
-  userId: string,
-  selfcareId: string
-): Promise<selfcareV2ClientApi.UserResponse> {
-  try {
-    return selfcareClient.getUserInfoUsingGET({
-      params: { id: userId },
-      queries: { institutionId: selfcareId },
-    });
-  } catch (error) {
-    return {};
-  }
-}
-
-async function decorateKey(
-  selfcareClient: SelfcareV2UsersClient,
-  key: authorizationApi.Key,
-  selfcareId: SelfcareId
-): Promise<bffApi.PublicKey> {
-  const user = await getSelfcareUserById(
-    selfcareClient,
-    key.userId,
-    selfcareId
-  );
-
-  return {
-    user: toBffApiCompactUser(user, key.userId),
-    name: key.name,
-    keyId: key.kid,
-    createdAt: key.createdAt,
-    isOrphan: user.id === undefined,
   };
 }
