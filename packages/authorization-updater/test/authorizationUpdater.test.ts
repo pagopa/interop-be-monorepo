@@ -973,12 +973,21 @@ describe("Authorization Updater processMessage", () => {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
-    const mockAgreement: Agreement = {
+    const mockArchivedAgreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.archived,
+      eserviceId: mockEservice.id,
+      descriptorId: mockDescriptor.id,
+      consumerId: mockConsumerId,
+      createdAt: new Date(),
+    };
+    const mockActiveAgreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.active,
       eserviceId: mockEservice.id,
       descriptorId: mockDescriptor.id,
       consumerId: mockConsumerId,
+      createdAt: new Date(mockArchivedAgreement.createdAt.getTime() + 10000),
     };
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.active
@@ -992,7 +1001,14 @@ describe("Authorization Updater processMessage", () => {
     const mockClient = { ...getMockClient(), purposes: [mockPurpose.id] };
 
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
+    await writeInReadmodel(
+      toReadModelAgreement(mockArchivedAgreement),
+      agreements
+    );
+    await writeInReadmodel(
+      toReadModelAgreement(mockActiveAgreement),
+      agreements
+    );
     await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
 
     const message = {
@@ -1034,7 +1050,7 @@ describe("Authorization Updater processMessage", () => {
             voucherLifespan: mockDescriptor.voucherLifespan,
           },
           agreement: {
-            agreementId: mockAgreement.id,
+            agreementId: mockActiveAgreement.id,
             state:
               authorizationManagementApi.ClientComponentState.Values.ACTIVE,
             eserviceId: mockEservice.id,

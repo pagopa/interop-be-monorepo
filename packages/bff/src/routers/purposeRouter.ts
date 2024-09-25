@@ -48,7 +48,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -69,7 +69,10 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.PurposeVersionResource.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -86,7 +89,7 @@ const purposeRouter = (
       try {
         const result = await purposeService.createPurpose(req.body, ctx);
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.CreatedResource.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -114,7 +117,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Purposes.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -142,7 +145,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Purposes.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -163,7 +166,10 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.PurposeVersionResource.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -184,7 +190,10 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.PurposeVersionResource.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -257,7 +266,10 @@ const purposeRouter = (
             ctx
           );
 
-          return res.status(200).json(result).end();
+          return res
+            .status(200)
+            .json(bffApi.PurposeVersionResource.parse(result))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -281,7 +293,10 @@ const purposeRouter = (
             ctx
           );
 
-          return res.status(200).json(result).end();
+          return res
+            .status(200)
+            .json(bffApi.PurposeVersionResource.parse(result))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -305,7 +320,10 @@ const purposeRouter = (
             ctx
           );
 
-          return res.status(200).json(result).end();
+          return res
+            .status(200)
+            .json(bffApi.PurposeVersionResource.parse(result))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -347,7 +365,10 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.PurposeVersionResource.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -388,7 +409,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Purpose.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -406,7 +427,10 @@ const purposeRouter = (
         const result =
           await purposeService.retrieveLatestRiskAnalysisConfiguration(ctx);
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.RiskAnalysisFormConfig.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -430,7 +454,10 @@ const purposeRouter = (
               ctx
             );
 
-          return res.status(200).json(result).end();
+          return res
+            .status(200)
+            .json(bffApi.RiskAnalysisFormConfig.parse(result))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

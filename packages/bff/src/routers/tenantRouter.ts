@@ -39,7 +39,10 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CompactOrganizations.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -61,7 +64,10 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CompactOrganizations.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -82,7 +88,10 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.RequesterCertifiedAttributes.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -103,7 +112,10 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.CertifiedAttributesResponse.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -174,7 +186,10 @@ const tenantRouter = (
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getDeclaredAttributes(tenantId, ctx);
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.DeclaredAttributesResponse.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -192,7 +207,10 @@ const tenantRouter = (
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getVerifiedAttributes(tenantId, ctx);
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .json(bffApi.VerifiedAttributesResponse.parse(result))
+          .end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -312,7 +330,7 @@ const tenantRouter = (
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getTenant(tenantId, ctx);
-        return res.status(200).json(result).end();
+        return res.status(200).json(bffApi.Tenant.parse(result)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -369,7 +387,7 @@ const tenantRouter = (
             req.query.limit,
             ctx
           );
-          return res.status(200).json(result).end();
+          return res.status(200).json(bffApi.Tenants.parse(result)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

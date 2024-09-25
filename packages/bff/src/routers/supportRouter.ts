@@ -39,12 +39,12 @@ const supportRouter = (
 
     try {
       const samlDecoded = Buffer.from(saml2, "base64").toString();
-      const jwt = await authorizationService.getSaml2Token(
+      const sessionToken = await authorizationService.getSaml2Token(
         samlDecoded,
         tenantId,
         ctx
       );
-      return res.status(200).send({ session_token: jwt });
+      return res.status(200).send(bffApi.SessionToken.parse(sessionToken));
     } catch (error) {
       makeApiProblem(
         error,
