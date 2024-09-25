@@ -37,6 +37,7 @@ export const TokenGenerationStatesClientPurposeEntry =
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId.optional(),
     descriptorState: ItemState.optional(),
     descriptorAudience: z.string().optional(),
+    descriptorVoucherLifespan: z.number().optional(),
     GSIPK_purposeId: PurposeId.optional(),
     purposeState: ItemState.optional(),
     purposeVersionId: PurposeVersionId.optional(),
