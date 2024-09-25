@@ -105,7 +105,7 @@ export function readModelServiceBuilder(
       );
 
       if (data) {
-        const result = Agreement.safeParse(data);
+        const result = Agreement.safeParse(data.data);
 
         if (!result.success) {
           throw genericInternalError(
