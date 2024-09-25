@@ -19,6 +19,7 @@ import {
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getAttributeErrorMapper,
   getClientErrorMapper,
   getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
@@ -221,7 +222,11 @@ const apiGatewayRouter = (
 
           return res.status(200).send(attribute);
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getAttributeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

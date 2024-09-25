@@ -7,7 +7,7 @@ import { AttributeProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAttribute } from "../api/attributeApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
-import { attributeAlreadyExists } from "../models/errors.js";
+import { attributeAlreadyExists, attributeNotFound } from "../models/errors.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: AttributeProcessClient,
@@ -37,12 +37,18 @@ export function attributeServiceBuilder(
     ): Promise<apiGatewayApi.Attribute> => {
       logger.info(`Retrieving attribute ${attributeId}`);
 
-      const attribute = await attributeProcessClient.getAttributeById({
-        headers,
-        params: {
-          attributeId,
-        },
-      });
+      const attribute = await attributeProcessClient
+        .getAttributeById({
+          headers,
+          params: {
+            attributeId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, logger, {
+            404: attributeNotFound(attributeId),
+          });
+        });
 
       return toApiGatewayAttribute(attribute);
     },

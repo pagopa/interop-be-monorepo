@@ -19,6 +19,7 @@ export const errorCodes = {
   eserviceDescriptorNotFound: "0009",
   keyNotFound: "0010",
   attributeAlreadyExists: "0011",
+  attributeNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -140,12 +141,22 @@ export function invalidAgreementState(
 }
 
 export function attributeAlreadyExists(
-  name: attributeRegistryApi.CertifiedAttributeSeed["name"],
-  code: attributeRegistryApi.CertifiedAttributeSeed["code"]
+  name: attributeRegistryApi.Attribute["name"],
+  code: attributeRegistryApi.Attribute["code"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${name} with code ${code} already exists`,
     code: "attributeAlreadyExists",
     title: "Attribute already exists",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: attributeRegistryApi.Attribute["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }
