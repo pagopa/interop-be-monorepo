@@ -7,3 +7,10 @@ export const toApiAttributeProcessSeed = (
   ...seed,
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
+
+export const toCompactAttribute = (
+  attribute: attributeRegistryApi.Attribute
+): bffApi.CompactAttribute => ({
+  id: attribute.id,
+  name: attribute.name,
+});

@@ -49,6 +49,7 @@ import {
   toCatalogCreateEServiceSeed,
   toBffCatalogDescriptorEService,
   toBffCatalogApiEserviceRiskAnalysisSeed,
+  toCompactDescriptor,
 } from "../api/catalogApiConverter.js";
 import {
   catalogApiDescriptorState,
@@ -108,15 +109,24 @@ const enhanceCatalogEService =
 
 const enhanceProducerEService = (
   eservice: catalogApi.EService
-): bffApi.ProducerEService => ({
-  id: eservice.id,
-  name: eservice.name,
-  mode: eservice.mode,
-  activeDescriptor: getLatestActiveDescriptor(eservice),
-  draftDescriptor: eservice.descriptors.find(
+): bffApi.ProducerEService => {
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
+  const draftDescriptor = eservice.descriptors.find(
     (d) => d.state === catalogApiDescriptorState.DRAFT
-  ),
-});
+  );
+
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    mode: eservice.mode,
+    activeDescriptor: activeDescriptor
+      ? toCompactDescriptor(activeDescriptor)
+      : undefined,
+    draftDescriptor: draftDescriptor
+      ? toCompactDescriptor(draftDescriptor)
+      : undefined,
+  };
+};
 
 export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
