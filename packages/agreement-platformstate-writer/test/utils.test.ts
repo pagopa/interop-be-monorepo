@@ -8,7 +8,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockTokenStatesClientPurposeEntry,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   makePlatformStatesAgreementPK,
   generateId,
