@@ -45,7 +45,7 @@ export function attributeServiceBuilder(
           },
         })
         .catch((res) => {
-          throw clientStatusCodeToError(res, logger, {
+          throw clientStatusCodeToError(res, {
             404: attributeNotFound(attributeId),
           });
         });
@@ -72,7 +72,7 @@ export function attributeServiceBuilder(
           }
         )
         .catch((res) => {
-          throw clientStatusCodeToError(res, logger, {
+          throw clientStatusCodeToError(res, {
             409: attributeAlreadyExists(attributeSeed.name, attributeSeed.code),
           });
         });
