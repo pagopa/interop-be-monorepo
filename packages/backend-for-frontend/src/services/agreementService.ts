@@ -683,7 +683,9 @@ export async function enrichAgreement(
       id: agreement.eserviceId,
       name: eservice.name,
       version: currentDescriptior.version,
-      activeDescriptor,
+      activeDescriptor: activeDescriptor
+        ? toCompactDescriptor(activeDescriptor)
+        : undefined,
     },
     state: agreement.state,
     verifiedAttributes: agreementVerifiedAttrs,
