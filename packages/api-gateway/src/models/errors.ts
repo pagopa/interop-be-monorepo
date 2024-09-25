@@ -4,6 +4,7 @@ import {
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -124,4 +125,15 @@ export function agreementNotFound(
     code: "agreementNotFound",
     title: "Agreement not found",
   });
+}
+
+export function invalidAgreementState(
+  agreementId: agreementApi.Agreement["id"],
+  logger: Logger
+): ApiError<ErrorCodes> {
+  const error = agreementNotFound(agreementId);
+  logger.warn(
+    `Root cause for Error "${error.title}": cannot retrieve agreement in DRAFT state`
+  );
+  return error;
 }

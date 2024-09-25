@@ -9,8 +9,8 @@ import { operationForbidden, TenantId } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
-  agreementNotFound,
   attributeNotFoundInRegistry,
+  invalidAgreementState,
   missingActivePurposeVersion,
   missingAvailableDescriptor,
   multipleAgreementForEserviceAndConsumer,
@@ -24,11 +24,7 @@ export function assertAgreementStateNotDraft(
   logger: Logger
 ): asserts agreementState is apiGatewayApi.AgreementState {
   if (agreementState === agreementApi.AgreementState.Values.DRAFT) {
-    const error = agreementNotFound(agreementId);
-    logger.warn(
-      `Root cause for Agreement ${error.title}: cannot retrieve agreement in DRAFT state`
-    );
-    throw error;
+    throw invalidAgreementState(agreementId, logger);
   }
 }
 
