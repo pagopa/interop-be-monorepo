@@ -32,7 +32,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.Attribute.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -42,7 +42,7 @@ const attributeRouter = (
             req.body
           )}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -55,7 +55,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.Attribute.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -65,7 +65,7 @@ const attributeRouter = (
             req.body
           )}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -78,7 +78,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.Attribute.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -88,7 +88,7 @@ const attributeRouter = (
             req.body
           )}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -109,12 +109,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res
-          .json({
-            results: attributes.results,
-            pagination: { offset, limit, totalCount: attributes.totalCount },
-          })
-          .end();
+        return res.status(200).send(bffApi.Attributes.parse(attributes));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -122,7 +117,7 @@ const attributeRouter = (
           ctx.logger,
           `Error retrieving attributes with name = ${req.query.q}, limit = ${req.query.limit}, offset = ${req.query.offset}, kinds = ${req.query.kinds}`
         );
-        return res.status(errorRes.status).end();
+        return res.status(errorRes.status).send();
       }
     })
 
@@ -135,7 +130,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.Attribute.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -143,7 +138,7 @@ const attributeRouter = (
           ctx.logger,
           `Error retrieving attribute with id ${req.params.attributeId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -157,7 +152,7 @@ const attributeRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.Attribute.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -165,7 +160,7 @@ const attributeRouter = (
           ctx.logger,
           `Error retrieving attribute with origin = ${req.params.origin} and code = ${req.params.code}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

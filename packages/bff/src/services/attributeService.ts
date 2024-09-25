@@ -112,12 +112,17 @@ export function attributeServiceBuilder(
         origin?: string;
       },
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<attributeRegistryApi.Attributes> {
+    ): Promise<bffApi.Attributes> {
       logger.info("Retrieving attributes");
-      return attributeClient.getAttributes({
+
+      const attributes = await attributeClient.getAttributes({
         queries: { offset, limit, kinds, name, origin },
         headers,
       });
+      return {
+        results: attributes.results,
+        pagination: { offset, limit, totalCount: attributes.totalCount },
+      };
     },
   };
 }
