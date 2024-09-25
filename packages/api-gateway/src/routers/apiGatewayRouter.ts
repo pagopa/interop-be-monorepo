@@ -489,10 +489,10 @@ const apiGatewayRouter = (
             req.params.organizationId
           );
 
-          return res.status(200).json(organization).send();
+          return res.status(200).send(organization);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -512,7 +512,7 @@ const apiGatewayRouter = (
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -531,7 +531,7 @@ const apiGatewayRouter = (
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -549,10 +549,10 @@ const apiGatewayRouter = (
             attributeCode: req.query.attributeCode,
           });
 
-          return res.status(200).json(eservices).send();
+          return res.status(200).send(eservices);
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );
