@@ -81,7 +81,7 @@ export function agreementServiceBuilder(
           },
         })
         .catch((res) => {
-          throw clientStatusCodeToError(res, {
+          throw clientStatusCodeToError(res, logger, {
             404: agreementNotFound(agreementId),
           });
         });
@@ -103,7 +103,7 @@ export function agreementServiceBuilder(
           },
         })
         .catch((res) => {
-          throw clientStatusCodeToError(res, {
+          throw clientStatusCodeToError(res, logger, {
             404: agreementNotFound(agreementId),
           });
         });
@@ -132,7 +132,7 @@ export function agreementServiceBuilder(
           },
         })
         .catch((res) => {
-          throw clientStatusCodeToError(res, {
+          throw clientStatusCodeToError(res, logger, {
             404: agreementNotFound(agreementId),
           });
         });
