@@ -101,9 +101,8 @@ export function readModelServiceBuilder(
             ],
           },
         },
-        { projection: { data: true }, sort: { createdAt: -1 } }
+        { projection: { data: true }, sort: { "data.createdAt": -1 } }
       );
-
       if (data) {
         const result = Agreement.safeParse(data.data);
 
