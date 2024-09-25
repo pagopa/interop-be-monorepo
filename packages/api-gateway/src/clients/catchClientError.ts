@@ -31,7 +31,7 @@ export function clientStatusCodeToError(
   if (clientResult instanceof Error) {
     return clientResult;
     // Returning the original error as it is,
-    // so that it can thrown, logged and handled as it is
+    // so that it can be thrown, handled and logged
   }
 
   return genericError(
