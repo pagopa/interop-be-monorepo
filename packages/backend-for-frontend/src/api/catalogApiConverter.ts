@@ -91,6 +91,7 @@ export function toBffCatalogDescriptorEService(
   agreement: agreementApi.Agreement | undefined,
   requesterTenant: tenantApi.Tenant
 ): bffApi.CatalogDescriptorEService {
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
     id: eservice.id,
     name: eservice.name,
@@ -106,7 +107,9 @@ export function toBffCatalogDescriptorEService(
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
     isSubscribed: isAgreementSubscribed(agreement),
-    activeDescriptor: getLatestActiveDescriptor(eservice),
+    activeDescriptor: activeDescriptor
+      ? toCompactDescriptor(activeDescriptor)
+      : undefined,
     mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
     riskAnalysis: eservice.riskAnalysis.map(
