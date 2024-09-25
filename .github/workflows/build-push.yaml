@@ -79,6 +79,8 @@ jobs:
             dockerfile_path: packages/producer-key-readmodel-writer
           - image_name: producer-keychain-readmodel-writer
             dockerfile_path: packages/producer-keychain-readmodel-writer
+          - image_name: one-trust-notices
+            dockerfile_path: packages/one-trust-notices
 
     steps:
       - name: Checkout repository
