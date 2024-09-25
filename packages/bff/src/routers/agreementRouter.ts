@@ -132,7 +132,7 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(bffApi.CatalogEServices.parse(result));
+        return res.status(200).send(bffApi.CompactEServicesLight.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

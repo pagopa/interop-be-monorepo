@@ -679,7 +679,7 @@ const catalogRouter = (
           ctx
         );
 
-        return res.status(200).send(bffApi.FileResource.parse(response));
+        return res.status(200).send(bffApi.PresignedUrl.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
