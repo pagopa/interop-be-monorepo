@@ -264,7 +264,48 @@ describe("Message processor", () => {
       })
     );
   });
+  it.each(["SCP", "PVT"])(
+    "should upsert tenant with institutionType %s correctly",
+    async (institutionType) => {
+      const origin = "PDND_INFOCAMERE";
 
+      const message: EachMessagePayload = {
+        ...kafkaMessagePayload,
+        message: {
+          ...kafkaMessagePayload.message,
+          value: Buffer.from(
+            JSON.stringify({
+              ...correctEventPayload,
+              institution: {
+                ...correctInstitutionEventField,
+                origin,
+                institutionType,
+                taxCode: "tax789",
+              },
+            })
+          ),
+        },
+      };
+
+      await selfcareOnboardingProcessor.processMessage(message);
+
+      const expectedOrigin = origin + "-" + institutionType;
+      expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
+      expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          externalId: { origin: expectedOrigin, value: "tax789" },
+          selfcareId: correctEventPayload.internalIstitutionID,
+          name: correctInstitutionEventField.description,
+        }),
+        expect.objectContaining({
+          headers: getInteropHeaders({
+            token: interopToken.serialized,
+            correlationId: expect.stringMatching(uuidRegexp),
+          }),
+        })
+      );
+    }
+  );
   it("should upsert non-PA tenant with missing tax code", async () => {
     const message: EachMessagePayload = {
       ...kafkaMessagePayload,

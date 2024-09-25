@@ -4,14 +4,16 @@ import { WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
-  selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
-import { SelfcareId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toAuthorizationKeySeed } from "../api/authorizationApiConverter.js";
+import {
+  toAuthorizationKeySeed,
+  toBffApiCompactProducerKeychain,
+} from "../api/authorizationApiConverter.js";
 import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
+import { decorateKey, getSelfcareUserById } from "./clientService.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -35,20 +37,30 @@ export function producerKeychainServiceBuilder(
         name?: string;
       },
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<authorizationApi.ProducerKeychains> {
+    ): Promise<bffApi.CompactProducerKeychains> {
       logger.info(`Retrieving producer keychains`);
 
-      return authorizationClient.producerKeychain.getProducerKeychains({
-        queries: {
-          offset,
+      const producerKeychains =
+        await authorizationClient.producerKeychain.getProducerKeychains({
+          queries: {
+            offset,
+            limit,
+            userIds,
+            producerId: requesterId,
+            name,
+            eserviceId: undefined,
+          },
+          headers,
+        });
+
+      return {
+        results: producerKeychains.results.map(toBffApiCompactProducerKeychain),
+        pagination: {
           limit,
-          userIds,
-          producerId: requesterId,
-          name,
-          eserviceId: undefined,
+          offset,
+          totalCount: producerKeychains.totalCount,
         },
-        headers,
-      });
+      };
     },
     async createProducerKeychain(
       seed: authorizationApi.ProducerKeychainSeed,
@@ -139,7 +151,7 @@ export function producerKeychainServiceBuilder(
       producerKeychainId: string,
       userIds: string[],
       { logger, headers, authData }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PublicKey[]> {
+    ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of producer keychain ${producerKeychainId}`);
 
       const selfcareId = authData.selfcareId;
@@ -151,9 +163,18 @@ export function producerKeychainServiceBuilder(
           headers,
         });
 
-      return Promise.all(
-        keys.map((k) => decorateKey(selfcareUsersClient, k, selfcareId))
+      const decoratedKeys = await Promise.all(
+        keys.map((k) =>
+          decorateKey(
+            selfcareUsersClient,
+            k,
+            selfcareId,
+            headers["X-Correlation-Id"]
+          )
+        )
       );
+
+      return { keys: decoratedKeys };
     },
     async getProducerKeyById(
       producerKeychainId: string,
@@ -172,7 +193,12 @@ export function producerKeychainServiceBuilder(
           headers,
         }
       );
-      return decorateKey(selfcareUsersClient, key, selfcareId);
+      return decorateKey(
+        selfcareUsersClient,
+        key,
+        selfcareId,
+        headers["X-Correlation-Id"]
+      );
     },
     async deleteProducerKeyById(
       producerKeychainId: string,
@@ -194,7 +220,7 @@ export function producerKeychainServiceBuilder(
     async getProducerKeychainUsers(
       producerKeychainId: string,
       { logger, headers, authData }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CompactUser[]> {
+    ): Promise<bffApi.CompactUsers> {
       logger.info(
         `Retrieving users for producer keychain ${producerKeychainId}`
       );
@@ -209,7 +235,12 @@ export function producerKeychainServiceBuilder(
 
       const users = producerKeychainUsers.map(async (id) =>
         toBffApiCompactUser(
-          await getSelfcareUserById(selfcareUsersClient, id, selfcareId),
+          await getSelfcareUserById(
+            selfcareUsersClient,
+            id,
+            selfcareId,
+            headers["X-Correlation-Id"]
+          ),
           id
         )
       );
@@ -327,40 +358,5 @@ async function enhanceEService(
       name: producer.name,
       kind: producer.kind,
     },
-  };
-}
-
-async function getSelfcareUserById(
-  selfcareClient: SelfcareV2UsersClient,
-  userId: string,
-  selfcareId: string
-): Promise<selfcareV2ClientApi.UserResponse> {
-  try {
-    return selfcareClient.getUserInfoUsingGET({
-      params: { id: userId },
-      queries: { institutionId: selfcareId },
-    });
-  } catch (error) {
-    return {};
-  }
-}
-
-async function decorateKey(
-  selfcareClient: SelfcareV2UsersClient,
-  key: authorizationApi.Key,
-  selfcareId: SelfcareId
-): Promise<bffApi.PublicKey> {
-  const user = await getSelfcareUserById(
-    selfcareClient,
-    key.userId,
-    selfcareId
-  );
-
-  return {
-    user: toBffApiCompactUser(user, key.userId),
-    name: key.name,
-    keyId: key.kid,
-    createdAt: key.createdAt,
-    isOrphan: user.id === undefined,
   };
 }

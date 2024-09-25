@@ -39,7 +39,7 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.CompactOrganizations.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -47,7 +47,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving consumers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/producers", async (req, res) => {
@@ -61,7 +61,7 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.CompactOrganizations.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -69,7 +69,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving producers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/attributes/certified", async (req, res) => {
@@ -82,7 +82,9 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .send(bffApi.RequesterCertifiedAttributes.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -90,7 +92,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving tenant certified attributes offset ${req.query.offset}, limit ${req.query.limit}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId/attributes/certified", async (req, res) => {
@@ -103,7 +105,9 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .send(bffApi.CertifiedAttributesResponse.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -111,7 +115,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving certified attributes for tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/tenants/:tenantId/attributes/certified", async (req, res) => {
@@ -121,7 +125,7 @@ const tenantRouter = (
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         await tenantService.addCertifiedAttribute(tenantId, req.body, ctx);
 
-        return res.status(204).json().end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -129,7 +133,7 @@ const tenantRouter = (
           ctx.logger,
           `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/tenants/attributes/declared", async (req, res) => {
@@ -138,7 +142,7 @@ const tenantRouter = (
       try {
         await tenantService.addDeclaredAttribute(req.body, ctx);
 
-        return res.status(204).json().end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -146,7 +150,7 @@ const tenantRouter = (
           ctx.logger,
           `Error adding declared attribute ${req.body.id} to requester tenant`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete("/tenants/attributes/declared/:attributeId", async (req, res) => {
@@ -156,7 +160,7 @@ const tenantRouter = (
         const attributeId = unsafeBrandId<AttributeId>(req.params.attributeId);
         await tenantService.revokeDeclaredAttribute(attributeId, ctx);
 
-        return res.status(204).json().end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -164,7 +168,7 @@ const tenantRouter = (
           ctx.logger,
           `Error revoking declared attribute ${req.params.attributeId} to requester tenant`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId/attributes/declared", async (req, res) => {
@@ -174,7 +178,9 @@ const tenantRouter = (
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getDeclaredAttributes(tenantId, ctx);
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .send(bffApi.DeclaredAttributesResponse.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -182,7 +188,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving declared attributes for tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId/attributes/verified", async (req, res) => {
@@ -192,7 +198,9 @@ const tenantRouter = (
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getVerifiedAttributes(tenantId, ctx);
 
-        return res.status(200).json(result).end();
+        return res
+          .status(200)
+          .send(bffApi.VerifiedAttributesResponse.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -200,7 +208,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving verified attributes for tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/tenants/:tenantId/attributes/verified", async (req, res) => {
@@ -210,7 +218,7 @@ const tenantRouter = (
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         await tenantService.verifyVerifiedAttribute(tenantId, req.body, ctx);
 
-        return res.status(204).json().end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -218,7 +226,7 @@ const tenantRouter = (
           ctx.logger,
           `Error verifying verified attribute ${req.body.id} to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete(
@@ -237,7 +245,7 @@ const tenantRouter = (
             ctx
           );
 
-          return res.status(204).json().end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -245,7 +253,7 @@ const tenantRouter = (
             ctx.logger,
             `Error revoking certified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -266,7 +274,7 @@ const tenantRouter = (
             ctx
           );
 
-          return res.status(204).json().end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -274,7 +282,7 @@ const tenantRouter = (
             ctx.logger,
             `Error updating expirationDate for verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -294,7 +302,7 @@ const tenantRouter = (
             ctx
           );
 
-          return res.status(204).json().end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -302,7 +310,7 @@ const tenantRouter = (
             ctx.logger,
             `Error revoking verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -312,7 +320,7 @@ const tenantRouter = (
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         const result = await tenantService.getTenant(tenantId, ctx);
-        return res.status(200).json(result).end();
+        return res.status(200).send(bffApi.Tenant.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -320,7 +328,7 @@ const tenantRouter = (
           ctx.logger,
           `Error retrieving tenant with tenantId ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/tenants/:tenantId/mails", async (req, res) => {
@@ -329,7 +337,7 @@ const tenantRouter = (
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         await tenantService.addTenantMail(tenantId, req.body, ctx);
-        return res.status(204).json().end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -337,7 +345,7 @@ const tenantRouter = (
           ctx.logger,
           `Error adding mail to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete("/tenants/:tenantId/mails/:mailId", async (req, res) => {
@@ -346,7 +354,7 @@ const tenantRouter = (
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         await tenantService.deleteTenantMail(tenantId, req.params.mailId, ctx);
-        return res.status(204).json().end();
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -354,7 +362,7 @@ const tenantRouter = (
           ctx.logger,
           `Error deleting mail ${req.params.mailId} from tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -369,7 +377,7 @@ const tenantRouter = (
             req.query.limit,
             ctx
           );
-          return res.status(200).json(result).end();
+          return res.status(200).send(bffApi.Tenants.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -377,7 +385,7 @@ const tenantRouter = (
             ctx.logger,
             `Error retrieving tenants`
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

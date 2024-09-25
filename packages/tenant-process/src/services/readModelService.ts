@@ -54,7 +54,6 @@ export const getTenants = async ({
   aggregationPipeline,
   offset,
   limit,
-  allowDiskUse = false,
 }: {
   tenants: TenantCollection;
   aggregationPipeline: Array<Filter<TenantReadModel>>;
@@ -67,7 +66,7 @@ export const getTenants = async ({
 }> => {
   const data = await tenants
     .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
-      allowDiskUse,
+      allowDiskUse: true,
     })
     .toArray();
 
@@ -84,8 +83,7 @@ export const getTenants = async ({
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       tenants,
-      aggregationPipeline,
-      allowDiskUse
+      aggregationPipeline
     ),
   };
 };
@@ -324,7 +322,9 @@ export function readModelServiceBuilder(
 
     async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
       const data = await attributes
-        .aggregate([{ $match: { "data.id": { $in: attributeIds } } }])
+        .aggregate([{ $match: { "data.id": { $in: attributeIds } } }], {
+          allowDiskUse: true,
+        })
         .toArray();
       const result = z.array(Attribute).safeParse(data.map((d) => d.data));
       if (!result.success) {
@@ -481,8 +481,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           attributes,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },

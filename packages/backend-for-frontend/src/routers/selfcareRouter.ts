@@ -4,13 +4,13 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import {
   bffApi,
   selfcareV2InstitutionClientBuilder,
 } from "pagopa-interop-api-clients";
 import { TenantId, unsafeBrandId } from "pagopa-interop-models";
+import { z } from "zod";
 import { makeApiProblem } from "../model/errors.js";
 import {
   getSelfcareErrorMapper,
@@ -18,11 +18,6 @@ import {
 } from "../utilities/errorMappers.js";
 import { selfcareServiceBuilder } from "../services/selfcareService.js";
 import { config } from "../config/config.js";
-import {
-  toApiSelfcareUser,
-  toApiSelfcareProduct,
-  toApiSelfcareInstitution,
-} from "../api/selfcareApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
@@ -41,20 +36,15 @@ const selfcareRouter = (
 
   selfcareRouter
     .get("/users/:userId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const user = await selfcareService.getSelfcareUser(
-          ctx.authData.userId,
           req.params.userId,
-          ctx.authData.selfcareId,
-          ctx.logger
+          ctx
         );
 
-        return res
-          .status(200)
-          .json(toApiSelfcareUser(user, ctx.authData.organizationId))
-          .end();
+        return res.status(200).send(bffApi.User.parse(user));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -62,21 +52,21 @@ const selfcareRouter = (
           ctx.logger,
           `Error while retrieving user ${req.params.userId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
     .get("/selfcare/institutions/products", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const products = await selfcareService.getSelfcareInstitutionsProducts(
-          ctx.authData.userId,
-          ctx.authData.selfcareId,
-          ctx.logger
+          ctx
         );
 
-        return res.status(200).json(products.map(toApiSelfcareProduct)).end();
+        return res
+          .status(200)
+          .send(z.array(bffApi.SelfcareProduct).parse(products));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -84,23 +74,19 @@ const selfcareRouter = (
           ctx.logger,
           "Error retrieving products for institution"
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
     .get("/selfcare/institutions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const institutions = await selfcareService.getSelfcareInstitutions(
-          ctx.authData.userId,
-          ctx.logger
-        );
+        const institutions = await selfcareService.getSelfcareInstitutions(ctx);
 
         return res
           .status(200)
-          .json(institutions.map(toApiSelfcareInstitution))
-          .end();
+          .send(z.array(bffApi.SelfcareInstitution).parse(institutions));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -108,7 +94,7 @@ const selfcareRouter = (
           ctx.logger,
           `Error retrieving institutions`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 
@@ -124,7 +110,7 @@ const selfcareRouter = (
           ctx
         );
 
-        return res.status(200).json(results).end();
+        return res.status(200).send(bffApi.Users.parse(results));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -132,7 +118,7 @@ const selfcareRouter = (
           ctx.logger,
           `Error while retrieving users corresponding to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

@@ -722,7 +722,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/bff:
+  packages/backend-for-frontend:
     dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: 3.602.0

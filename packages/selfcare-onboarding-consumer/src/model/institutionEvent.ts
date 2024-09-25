@@ -11,6 +11,7 @@ const InstitutionEvent = z.object({
   subUnitCode: z.string().optional().nullish(), // AOO/UO ID
   subUnitType: SubUnitType.optional().nullish(),
   digitalAddress: z.string().trim().min(1),
+  institutionType: z.string().trim().min(1),
 });
 export type InstitutionEvent = z.infer<typeof InstitutionEvent>;
 
