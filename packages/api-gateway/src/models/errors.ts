@@ -1,6 +1,7 @@
 import {
   agreementApi,
   attributeRegistryApi,
+  authorizationApi,
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
@@ -20,6 +21,7 @@ export const errorCodes = {
   keyNotFound: "0010",
   attributeAlreadyExists: "0011",
   attributeNotFound: "0012",
+  clientNotFound: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -158,5 +160,15 @@ export function attributeNotFound(
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function clientNotFound(
+  clientId: authorizationApi.Client["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${clientId} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }

@@ -62,6 +62,7 @@ export const getEserviceErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
