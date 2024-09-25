@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { TenantId, UserId } from "pagopa-interop-models";
+import { TenantId } from "pagopa-interop-models";
 import {
   bffApi,
   selfcareV2ClientApi,
@@ -35,11 +35,13 @@ export function selfcareServiceBuilder(
   return {
     async getSelfcareUser(
       userIdQuery: string,
-      ctx: WithLogger<BffAppContext>
+      {
+        authData: { selfcareId: institutionId, userId, organizationId },
+        logger,
+        headers,
+      }: WithLogger<BffAppContext>
     ): Promise<bffApi.User> {
-      const institutionId = ctx.authData.selfcareId;
-      const userId = ctx.authData.userId;
-      ctx.logger.info(
+      logger.info(
         `Retrieving User with with istitution id ${institutionId}, user ${userId}`
       );
 
@@ -50,7 +52,7 @@ export function selfcareServiceBuilder(
           userId: userIdQuery,
         },
         headers: {
-          "X-Correlation-Id": ctx.headers["X-Correlation-Id"],
+          "X-Correlation-Id": headers["X-Correlation-Id"],
         },
       });
 
@@ -58,15 +60,15 @@ export function selfcareServiceBuilder(
       if (!user) {
         throw userNotFound(userIdQuery, institutionId);
       }
-      return toApiSelfcareUser(user, ctx.authData.organizationId);
+      return toApiSelfcareUser(user, organizationId);
     },
 
-    async getSelfcareInstitutionsProducts(
-      ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.SelfcareProduct[]> {
-      const institutionId = ctx.authData.selfcareId;
-      const userId = ctx.authData.userId;
-      ctx.logger.info(
+    async getSelfcareInstitutionsProducts({
+      authData: { selfcareId: institutionId, userId },
+      logger,
+      headers,
+    }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareProduct[]> {
+      logger.info(
         `Retrieving Products for Institution ${institutionId} and User ${userId}`
       );
       const products =
@@ -74,18 +76,18 @@ export function selfcareServiceBuilder(
           params: { institutionId },
           queries: { userId },
           headers: {
-            "X-Correlation-Id": ctx.headers["X-Correlation-Id"],
+            "X-Correlation-Id": headers["X-Correlation-Id"],
           },
         });
 
       return products.map(toApiSelfcareProduct);
     },
 
-    async getSelfcareInstitutions(
-      userId: UserId,
-      ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.SelfcareInstitution[]> {
-      const userId = ctx.authData.userId;
+    async getSelfcareInstitutions({
+      authData: { userId },
+      logger,
+      headers,
+    }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
 
       const institutions = await selfcareV2Client.getInstitutionsUsingGET({
