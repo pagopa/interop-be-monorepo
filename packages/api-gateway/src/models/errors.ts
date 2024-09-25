@@ -18,6 +18,7 @@ export const errorCodes = {
   attributeNotFoundInRegistry: "0008",
   eserviceDescriptorNotFound: "0009",
   keyNotFound: "0010",
+  attributeAlreadyExists: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -136,4 +137,15 @@ export function invalidAgreementState(
     `Root cause for Error "${error.title}": cannot retrieve agreement in DRAFT state`
   );
   return error;
+}
+
+export function attributeAlreadyExists(
+  name: attributeRegistryApi.CertifiedAttributeSeed["name"],
+  code: attributeRegistryApi.CertifiedAttributeSeed["code"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${name} with code ${code} already exists`,
+    code: "attributeAlreadyExists",
+    title: "Attribute already exists",
+  });
 }

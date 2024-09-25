@@ -14,6 +14,7 @@ import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
+  createCertifiedAttributeErrorMapper,
   emptyErrorMapper,
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
@@ -197,7 +198,11 @@ const apiGatewayRouter = (
 
           return res.status(200).send(attribute);
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            createCertifiedAttributeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

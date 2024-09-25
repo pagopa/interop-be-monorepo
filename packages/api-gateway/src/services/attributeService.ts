@@ -6,6 +6,8 @@ import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { AttributeProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAttribute } from "../api/attributeApiConverter.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import { attributeAlreadyExists } from "../models/errors.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: AttributeProcessClient,
@@ -52,16 +54,22 @@ export function attributeServiceBuilder(
         `Creating certified attribute with code ${attributeSeed.code}`
       );
 
-      const attribute = await attributeProcessClient.createCertifiedAttribute(
-        {
-          code: attributeSeed.code,
-          name: attributeSeed.name,
-          description: attributeSeed.description,
-        },
-        {
-          headers,
-        }
-      );
+      const attribute = await attributeProcessClient
+        .createCertifiedAttribute(
+          {
+            code: attributeSeed.code,
+            name: attributeSeed.name,
+            description: attributeSeed.description,
+          },
+          {
+            headers,
+          }
+        )
+        .catch((res) => {
+          throw clientStatusCodeToError(res, logger, {
+            409: attributeAlreadyExists(attributeSeed.name, attributeSeed.code),
+          });
+        });
 
       return toApiGatewayAttribute(attribute);
     },
