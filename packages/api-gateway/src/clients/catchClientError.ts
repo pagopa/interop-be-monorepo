@@ -6,12 +6,10 @@ import { ErrorCodes } from "../models/errors.js";
 const CatchableCodes = z.enum(["404", "403"]);
 type CatchableCodes = z.infer<typeof CatchableCodes>;
 const ClientError = z.object({
-  response: z
-    .object({
-      status: z.coerce.string(),
-    })
-    .optional(),
   message: z.string(),
+  response: z.object({
+    status: z.coerce.string().pipe(CatchableCodes),
+  }),
 });
 
 type StatusCodeErrorsMap = Record<
@@ -26,20 +24,23 @@ export function clientStatusCodeToError(
   const clientError = ClientError.safeParse(clientResult);
 
   if (clientError.success) {
-    const { response, message } = clientError.data;
-    const catchedCodeParse = CatchableCodes.safeParse(response?.status);
-    if (catchedCodeParse.success) {
-      const catchedCode = catchedCodeParse.data;
-      logger.warn(
-        `Catching API client error with code ${catchedCode} - original error: ${message}`
-      );
-      const error = statusCodesErrorMap[catchedCode];
-      if (error) {
-        return error;
-      }
+    const {
+      response: { status },
+      message,
+    } = clientError.data;
+    logger.warn(
+      `Catching API client error with code ${status} - original error: ${message}`
+    );
+    const error = statusCodesErrorMap[status];
+    if (error) {
+      return error;
     }
+  }
 
-    return genericError(message);
+  if (clientResult instanceof Error) {
+    return clientResult;
+    // Returning the original error as it is,
+    // so that it can thrown, logged and handled as it is
   }
 
   return genericError(
