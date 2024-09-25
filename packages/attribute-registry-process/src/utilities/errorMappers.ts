@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const getAttributesByNameErrorMapper = (
@@ -38,6 +39,7 @@ export const createDeclaredAttributesErrorMapper = (
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with("attributeDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createVerifiedAttributesErrorMapper = (
@@ -45,6 +47,7 @@ export const createVerifiedAttributesErrorMapper = (
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with("attributeDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createCertifiedAttributesErrorMapper = (
@@ -52,6 +55,7 @@ export const createCertifiedAttributesErrorMapper = (
 ): number =>
   match(error.code)
     .with("OrganizationIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("attributeDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createInternalCertifiedAttributesErrorMapper = (
@@ -59,4 +63,5 @@ export const createInternalCertifiedAttributesErrorMapper = (
 ): number =>
   match(error.code)
     .with("OrganizationIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("attributeDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
