@@ -83,10 +83,9 @@ export type ApiKey = z.infer<typeof ApiKey>;
 
 export type ValidationResult<T> = SuccessfulValidation<T> | FailedValidation;
 
-export type SuccessfulValidation<T> = { errors: undefined; data: T };
+export type SuccessfulValidation<T> = { data: T };
 export type FailedValidation = {
   errors: Array<ApiError<ErrorCodes>>;
-  data: undefined;
 };
 
 export const ClientAssertionValidationRequest = z.object({
