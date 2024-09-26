@@ -443,7 +443,7 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
       return platformAgreementEntries.data[0];
     } else {
       throw genericInternalError(
-        `Unable to parse platform state entries: result ${JSON.stringify(
+        `Unable to parse platform agreement entries: result ${JSON.stringify(
           platformAgreementEntries
         )} `
       );
