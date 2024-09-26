@@ -12,6 +12,7 @@ import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js"
 import {
   genericInternalError,
   PlatformStatesAgreementEntry,
+  PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
@@ -108,12 +109,12 @@ export const writeTokenStateEntryWithoutAgreement = async (
       PK: {
         S: tokenStateEntry.PK,
       },
-      descriptorState: {
-        S: tokenStateEntry.descriptorState!,
-      },
-      descriptorAudience: {
-        S: tokenStateEntry.descriptorAudience!,
-      },
+      // descriptorState: {
+      //   S: tokenStateEntry.descriptorState!,
+      // },
+      // descriptorAudience: {
+      //   S: tokenStateEntry.descriptorAudience!,
+      // },
       // descriptorVoucherLifespan: {
       //   N: tokenStateEntry.descriptorVoucherLifespan!.toString(),
       // },
@@ -141,9 +142,9 @@ export const writeTokenStateEntryWithoutAgreement = async (
       GSIPK_clientId_purposeId: {
         S: tokenStateEntry.GSIPK_clientId_purposeId!,
       },
-      GSIPK_eserviceId_descriptorId: {
-        S: tokenStateEntry.GSIPK_eserviceId_descriptorId!,
-      },
+      // GSIPK_eserviceId_descriptorId: {
+      //   S: tokenStateEntry.GSIPK_eserviceId_descriptorId!,
+      // },
       GSIPK_purposeId: {
         S: tokenStateEntry.GSIPK_purposeId!,
       },
@@ -228,4 +229,41 @@ export const readAgreementEntry = async (
     }
     return agreementEntry.data;
   }
+};
+
+// TODO: copied from catalog-platformstate-writer
+export const writeCatalogEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  catalogEntry: PlatformStatesCatalogEntry
+): Promise<void> => {
+  if (!config) {
+    fail();
+  }
+
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: catalogEntry.PK,
+      },
+      state: {
+        S: catalogEntry.state,
+      },
+      descriptorAudience: {
+        S: catalogEntry.descriptorAudience,
+      },
+      descriptorVoucherLifespan: {
+        N: catalogEntry.descriptorVoucherLifespan.toString(),
+      },
+      version: {
+        N: catalogEntry.version.toString(),
+      },
+      updatedAt: {
+        S: catalogEntry.updatedAt,
+      },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
 };

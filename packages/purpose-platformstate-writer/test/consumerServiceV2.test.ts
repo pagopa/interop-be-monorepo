@@ -14,6 +14,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockAgreement,
+  getMockDescriptor,
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test/index.js";
@@ -21,11 +22,14 @@ import {
   generateId,
   itemState,
   makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesAgreementPK,
+  makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
   NewPurposeVersionActivatedV2,
   PlatformStatesAgreementEntry,
+  PlatformStatesCatalogEntry,
   PlatformStatesPurposeEntry,
   Purpose,
   PurposeActivatedV2,
@@ -52,6 +56,7 @@ import {
 import {
   config,
   writeAgreementEntry,
+  writeCatalogEntry,
   writeTokenStateEntry,
   writeTokenStateEntryWithoutAgreement,
 } from "./utils.js";
@@ -377,10 +382,11 @@ describe("integration tests", () => {
         };
 
         // platform-states
-        const mockAgreement = getMockAgreement(
-          purpose.eserviceId,
-          purpose.consumerId
-        );
+        const mockDescriptor = getMockDescriptor();
+        const mockAgreement = {
+          ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
+          descriptorId: mockDescriptor.id,
+        };
         const catalogAgreementEntryPK = makePlatformStatesAgreementPK(
           mockAgreement.id
         );
@@ -399,6 +405,20 @@ describe("integration tests", () => {
         };
         await writeAgreementEntry(previousAgreementEntry, dynamoDBClient);
 
+        const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: purpose.eserviceId,
+          descriptorId: mockDescriptor.id,
+        });
+        const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+          PK: catalogEntryPK,
+          state: itemState.active,
+          descriptorAudience: "pagopa.it",
+          descriptorVoucherLifespan: mockDescriptor.voucherLifespan,
+          version: 2,
+          updatedAt: new Date().toISOString(),
+        };
+        await writeCatalogEntry(dynamoDBClient, previousDescriptorEntry);
+
         // token-generation-states
         const purposeId = purpose.id;
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
@@ -414,6 +434,10 @@ describe("integration tests", () => {
             GSIPK_consumerId_eserviceId: undefined,
             agreementId: undefined,
             agreementState: undefined,
+            GSIPK_eserviceId_descriptorId: undefined,
+            descriptorState: undefined,
+            descriptorAudience: undefined,
+            descriptorVoucherLifespan: undefined,
             updatedAt: new Date().toISOString(),
           };
         await writeTokenStateEntryWithoutAgreement(
@@ -434,6 +458,10 @@ describe("integration tests", () => {
             GSIPK_consumerId_eserviceId: undefined,
             agreementId: undefined,
             agreementState: undefined,
+            GSIPK_eserviceId_descriptorId: undefined,
+            descriptorState: undefined,
+            descriptorAudience: undefined,
+            descriptorVoucherLifespan: undefined,
             updatedAt: new Date().toISOString(),
           };
         await writeTokenStateEntryWithoutAgreement(
@@ -445,6 +473,10 @@ describe("integration tests", () => {
 
         const retrievedTokenStateEntries =
           await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: purpose.eserviceId,
+          descriptorId: mockDescriptor.id,
+        });
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
@@ -453,6 +485,11 @@ describe("integration tests", () => {
             GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
             agreementId: mockAgreement.id,
             agreementState: previousAgreementEntry.state,
+            GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
+            descriptorState: previousDescriptorEntry.state,
+            descriptorAudience: previousDescriptorEntry.descriptorAudience,
+            descriptorVoucherLifespan:
+              previousDescriptorEntry.descriptorVoucherLifespan,
           };
         const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -462,6 +499,11 @@ describe("integration tests", () => {
             GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
             agreementId: mockAgreement.id,
             agreementState: previousAgreementEntry.state,
+            GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
+            descriptorState: previousDescriptorEntry.state,
+            descriptorAudience: previousDescriptorEntry.descriptorAudience,
+            descriptorVoucherLifespan:
+              previousDescriptorEntry.descriptorVoucherLifespan,
           };
         expect(retrievedTokenStateEntries).toHaveLength(2);
         expect(retrievedTokenStateEntries).toEqual(
