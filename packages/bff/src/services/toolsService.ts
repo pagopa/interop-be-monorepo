@@ -42,6 +42,7 @@ import {
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
   multipleAgreementForEserviceAndConsumer,
+  organizationNotAllowed,
   purposeIdNotFoundInClientAssertion,
 } from "../model/domain/errors.js";
 import { TokenGenerationValidationStepFailure } from "../../../api-clients/dist/bffApi.js";
@@ -165,6 +166,15 @@ function handleValidationResults(
   };
 }
 
+function assertIsConsumer(
+  requesterId: string,
+  keyWithClient: authorizationApi.KeyWithClient
+) {
+  if (requesterId !== keyWithClient.client.consumerId) {
+    throw organizationNotAllowed(keyWithClient.client.id);
+  }
+}
+
 function getStepResult(
   prevStepErrors: Array<ApiError<string>>,
   currentStepErrors: Array<ApiError<string>>
@@ -196,7 +206,7 @@ async function retrieveKey(
       errors: [purposeIdNotFoundInClientAssertion()],
     };
   }
-  const client = await authorizationClient.token
+  const keyWithClient = await authorizationClient.token
     .getKeyWithClientByKeyId({
       params: {
         clientId: jwt.payload.sub,
@@ -206,7 +216,7 @@ async function retrieveKey(
     })
     .catch(() => undefined);
 
-  if (!client) {
+  if (!keyWithClient) {
     return {
       data: undefined,
       errors: [
@@ -215,17 +225,19 @@ async function retrieveKey(
     };
   }
 
+  assertIsConsumer(ctx.authData.organizationId, keyWithClient);
+
   const { encodedPem } = await authorizationClient.client.getClientKeyById({
     headers: ctx.headers,
     params: {
-      clientId: client.client.id,
+      clientId: keyWithClient.client.id,
       keyId: jwt.header.kid,
     },
   });
 
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
-  if (client.client.kind === authorizationApi.ClientKind.enum.API) {
+  if (keyWithClient.client.kind === authorizationApi.ClientKind.enum.API) {
     return {
       errors: undefined,
       data: {
@@ -234,7 +246,7 @@ async function retrieveKey(
         algorithm: "RS256",
         publicKey: encodedPem,
         clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
-        consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
+        consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
         purposeId,
       },
     };
@@ -268,7 +280,7 @@ async function retrieveKey(
       algorithm: "RS256",
       publicKey: encodedPem,
       purposeId,
-      consumerId: unsafeBrandId<TenantId>(client.client.consumerId),
+      consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
       agreementId: unsafeBrandId<AgreementId>(agreement.id),
       eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
       agreementState: agreementStateToItemState(agreement.state),

@@ -9,7 +9,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { toolsServiceBuilder } from "../services/toolsService.js";
 import { PagoPAInteropBeClients } from "../providers/clientProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
+import { toolsErrorMapper } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
 const toolsRouter = (
@@ -40,7 +40,7 @@ const toolsRouter = (
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
-        emptyErrorMapper,
+        toolsErrorMapper,
         ctx.logger,
         "Error validating token generation request"
       );

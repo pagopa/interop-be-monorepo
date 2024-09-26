@@ -27,6 +27,7 @@ export const errorCodes = {
   multipleAgreementForEserviceAndConsumer: "0020",
   purposeIdNotFoundInClientAssertion: "0021",
   clientAssertionPublicKeyNotFound: "0022",
+  organizationNotAllowed: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -236,5 +237,13 @@ export function clientAssertionPublicKeyNotFound(
     detail: `Public key with kid ${kid} not found for client ${clientId}`,
     code: "clientAssertionPublicKeyNotFound",
     title: "Client assertion public key not found",
+  });
+}
+
+export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization not allowed for client ${clientId}`,
+    code: "organizationNotAllowed",
+    title: "Organization not allowed",
   });
 }
