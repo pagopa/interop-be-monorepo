@@ -307,7 +307,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidClientIdFormat(notClientId));
     });
 
-    it("should not throw error if digest is undefined", async () => {
+    it("digestClaimNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {},
@@ -315,7 +315,10 @@ describe("validation test", () => {
           digest: undefined,
         },
       });
-      expect(() => verifyClientAssertion(jws, undefined)).not.toThrow();
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(digestClaimNotFound());
     });
 
     it("invalidDigestFormat", () => {
