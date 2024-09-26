@@ -27,6 +27,7 @@ import {
   getOrganizationErrorMapper,
   getOrganizationEservicesErrorMapper,
   getPurposeErrorMapper,
+  revokeTenantAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
@@ -570,7 +571,11 @@ const apiGatewayRouter = (
 
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            revokeTenantAttributeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

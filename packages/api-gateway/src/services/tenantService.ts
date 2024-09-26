@@ -1,5 +1,6 @@
 import { apiGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
+import { operationForbidden } from "pagopa-interop-models";
 import {
   toApiGatewayOrganization,
   toM2MTenantSeed,
@@ -13,6 +14,7 @@ import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   attributeByOriginNotFound,
+  tenantAttributeNotFound,
   tenantByOriginNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -150,14 +152,21 @@ export function tenantServiceBuilder(
         `Revoking attribute ${attributeCode} of tenant (${origin},${externalId})`
       );
 
-      await tenantProcessClient.m2m.m2mRevokeAttribute(undefined, {
-        headers,
-        params: {
-          origin,
-          externalId,
-          code: attributeCode,
-        },
-      });
+      await tenantProcessClient.m2m
+        .m2mRevokeAttribute(undefined, {
+          headers,
+          params: {
+            origin,
+            externalId,
+            code: attributeCode,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            403: operationForbidden,
+            404: tenantAttributeNotFound(origin, externalId, attributeCode),
+          });
+        });
     },
     upsertTenant: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,

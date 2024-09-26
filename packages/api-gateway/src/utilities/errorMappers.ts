@@ -63,6 +63,11 @@ export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getEserviceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -86,9 +91,12 @@ export const getOrganizationEservicesErrorMapper = (
     .with("attributeByOriginNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
+export const revokeTenantAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
   match(error.code)
-    .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantAttributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;

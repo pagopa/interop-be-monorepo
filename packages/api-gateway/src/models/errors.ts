@@ -25,6 +25,7 @@ export const errorCodes = {
   tenantNotFound: "0013",
   tenantByOriginNotFound: "0014",
   attributeByOriginNotFound: "0015",
+  tenantAttributeNotFound: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -228,6 +229,18 @@ export function attributeByOriginNotFound(
   return new ApiError({
     detail: `Attribute (${origin}, ${code}) not found`,
     code: "attributeByOriginNotFound",
+    title: "Attribute not found",
+  });
+}
+
+export function tenantAttributeNotFound(
+  origin: tenantApi.ExternalId["origin"],
+  externalId: tenantApi.ExternalId["value"],
+  attributeCode: attributeRegistryApi.Attribute["code"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeCode} for Institution (${origin}, ${externalId}) not found`,
+    code: "tenantAttributeNotFound",
     title: "Attribute not found",
   });
 }
