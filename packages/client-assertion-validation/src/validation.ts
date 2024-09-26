@@ -44,7 +44,6 @@ import {
   purposeIdNotProvided,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
-  unexpectedKeyType,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -193,27 +192,18 @@ export const validateClientKindAndPlatformState = (
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key.clientKind)
-    .with(clientKindTokenStates.api, () =>
-      ApiKey.safeParse(key).success
-        ? successfulValidation(jwt)
-        : failedValidation([unexpectedKeyType(clientKindTokenStates.api)])
-    )
+    .with(clientKindTokenStates.api, () => successfulValidation(jwt))
     .with(clientKindTokenStates.consumer, () => {
-      if (ConsumerKey.safeParse(key).success) {
-        const { errors: platformStateErrors } = validatePlatformState(
-          key as ConsumerKey
-        );
-        const purposeIdError = jwt.payload.purposeId
-          ? undefined
-          : purposeIdNotProvided();
+      const { errors: platformStateErrors } = validatePlatformState(
+        key as ConsumerKey
+      );
+      const purposeIdError = jwt.payload.purposeId
+        ? undefined
+        : purposeIdNotProvided();
 
-        if (!platformStateErrors && !purposeIdError) {
-          return successfulValidation(jwt);
-        }
-        return failedValidation([platformStateErrors, purposeIdError]);
+      if (!platformStateErrors && !purposeIdError) {
+        return successfulValidation(jwt);
       }
-      return failedValidation([
-        unexpectedKeyType(clientKindTokenStates.consumer),
-      ]);
+      return failedValidation([platformStateErrors, purposeIdError]);
     })
     .exhaustive();

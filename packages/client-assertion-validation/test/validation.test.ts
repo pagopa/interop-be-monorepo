@@ -4,7 +4,6 @@ import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   ClientId,
-  clientKindTokenStates,
   generateId,
   itemState,
   PurposeId,
@@ -44,7 +43,6 @@ import {
   tokenExpiredError,
   unexpectedClientAssertionPayload,
   purposeIdNotProvided,
-  unexpectedKeyType,
   invalidGrantType,
   invalidAssertionType,
 } from "../src/errors.js";
@@ -94,7 +92,7 @@ describe("validation test", () => {
     it("success client assertion", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -104,7 +102,7 @@ describe("validation test", () => {
     it("invalidAudienceFormat", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: { aud: "random" },
+        standardClaimsOverride: { aud: "random" },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -116,7 +114,7 @@ describe("validation test", () => {
     it("invalidAudience", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: { aud: ["random"] },
+        standardClaimsOverride: { aud: ["random"] },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -171,7 +169,7 @@ describe("validation test", () => {
     it("jtiNotFound", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: { jti: undefined },
+        standardClaimsOverride: { jti: undefined },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -185,7 +183,7 @@ describe("validation test", () => {
 
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: { key: 1 },
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -227,7 +225,7 @@ describe("validation test", () => {
     it("issuerNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { iss: undefined },
+        standardClaimsOverride: { iss: undefined },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -239,7 +237,7 @@ describe("validation test", () => {
     it("subjectNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { sub: undefined },
+        standardClaimsOverride: { sub: undefined },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -252,7 +250,7 @@ describe("validation test", () => {
       const subject = generateId<ClientId>();
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { sub: subject },
+        standardClaimsOverride: { sub: subject },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
@@ -266,7 +264,7 @@ describe("validation test", () => {
       const subject = "not a client id";
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { sub: subject },
+        standardClaimsOverride: { sub: subject },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, clientId);
@@ -279,7 +277,7 @@ describe("validation test", () => {
       const notPurposeId = "not a purpose id";
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           purposeId: notPurposeId,
         },
@@ -294,7 +292,7 @@ describe("validation test", () => {
       const notClientId = "not a client id";
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, notClientId);
@@ -306,7 +304,7 @@ describe("validation test", () => {
     it("should not throw error if digest is undefined", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           digest: undefined,
         },
@@ -317,7 +315,7 @@ describe("validation test", () => {
     it("digestClaimNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -329,7 +327,7 @@ describe("validation test", () => {
     it("invalidHashLength", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           digest: { alg: "SHA256", value: "TODO string of wrong length" },
         },
@@ -343,7 +341,7 @@ describe("validation test", () => {
     it("InvalidHashAlgorithm", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           digest: { alg: "wrong alg", value: value64chars },
         },
@@ -358,7 +356,7 @@ describe("validation test", () => {
       // TODO it seems this can't be tested because we need alg header to sign the mock jwt
       const jws = getMockClientAssertion({
         customHeader: { alg: undefined },
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -371,7 +369,7 @@ describe("validation test", () => {
       const notAllowedAlg = "RS512";
       const jws = getMockClientAssertion({
         customHeader: { alg: "RS512" },
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -383,7 +381,7 @@ describe("validation test", () => {
     it("InvalidKidFormat", () => {
       const jws = getMockClientAssertion({
         customHeader: { kid: "not-a-valid-kid" },
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -404,7 +402,7 @@ describe("validation test", () => {
 
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {
+        standardClaimsOverride: {
           iat: new Date().getTime() / 1000,
           exp: threeHourLater.getTime() / 1000,
         },
@@ -442,7 +440,7 @@ describe("validation test", () => {
 
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {
+        standardClaimsOverride: {
           iat: sixHoursAgo.getTime() / 1000,
           exp: threeHourAgo.getTime() / 1000,
         },
@@ -489,7 +487,7 @@ describe("validation test", () => {
       });
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {
+        standardClaimsOverride: {
           iat: threeHoursAgo.getTime() / 1000,
           exp: sixHoursLater.getTime() / 1000,
           nbf: threeHoursLater.getTime() / 1000,
@@ -569,64 +567,12 @@ describe("validation test", () => {
   });
 
   describe("validateClientKindAndPlatformState", () => {
-    it("unexpectedKeyType (consumerKey and clientKind.api)", () => {
-      const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        clientKind: clientKindTokenStates.api,
-      };
-      const { data: mockClientAssertion } = verifyClientAssertion(
-        getMockClientAssertion({
-          customHeader: {},
-          payload: {},
-          customClaims: {},
-        }),
-        undefined
-      );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
-        mockConsumerKey,
-        mockClientAssertion
-      );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedKeyType(mockConsumerKey.clientKind));
-    });
-
-    // it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
-    //   // How to test this? The goal is to pass an api key to validateClientKindAndPlatformState (with kind clientKindTokenStates.consumer)
-    //   const mockApiKey = {
-    //     ...getMockApiKey(),
-    //     clientKind: clientKindTokenStates.consumer,
-    //   };
-    //   const { data: mockClientAssertion } = verifyClientAssertion(
-    //     getMockClientAssertion({
-    //       customHeader: {},
-    //       payload: {},
-    //       customClaims: {},
-    //     }),
-    //     undefined
-    //   );
-    //   if (!mockClientAssertion) {
-    //     fail();
-    //   }
-    //   const { errors } = validateClientKindAndPlatformState(
-    //     // FIX
-    //     mockApiKey,
-    //     mockClientAssertion
-    //   );
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(unexpectedKeyType(mockApiKey.clientKind));
-    // });
-
     it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: { purposeId: generateId<PurposeId>() },
+          standardClaimsOverride: { purposeId: generateId<PurposeId>() },
           customClaims: {},
         }),
         undefined
@@ -649,7 +595,7 @@ describe("validation test", () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: { purposeId: generateId<PurposeId>() },
+          standardClaimsOverride: { purposeId: generateId<PurposeId>() },
           customClaims: {},
         }),
         undefined
@@ -671,7 +617,7 @@ describe("validation test", () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: {},
+          standardClaimsOverride: {},
           customClaims: {},
         }),
         undefined
@@ -691,7 +637,7 @@ describe("validation test", () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: { purposeId: undefined },
+          standardClaimsOverride: { purposeId: undefined },
           customClaims: {},
         }),
         undefined

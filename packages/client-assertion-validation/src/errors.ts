@@ -1,4 +1,4 @@
-import { ApiError, ClientKindTokenStates } from "pagopa-interop-models";
+import { ApiError } from "pagopa-interop-models";
 
 export const errorCodes = {
   clientAssertionValidationFailure: "0001",
@@ -7,7 +7,7 @@ export const errorCodes = {
   invalidGrantType: "0004",
   invalidAudienceFormat: "0005",
   invalidAudience: "0006",
-  invalidClientASsertionFormat: "0007",
+  invalidClientAssertionFormat: "0007",
   unexpectedClientAssertionPayload: "0008",
   jtiNotFound: "0009",
   issuedAtNotFound: "0010",
@@ -33,7 +33,6 @@ export const errorCodes = {
   algorithmNotAllowed: "0030",
   purposeIdNotProvided: "0031",
   invalidKidFormat: "0032",
-  unexpectedKeyType: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -93,7 +92,7 @@ export function invalidAudience(): ApiError<ErrorCodes> {
 export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid format for Client assertion`,
-    code: "invalidClientASsertionFormat",
+    code: "invalidClientAssertionFormat",
     title: "Invalid format for Client assertion",
   });
 }
@@ -255,14 +254,6 @@ export function digestClaimNotFound(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidDigestFormat(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Invalid format for digest claim",
-    code: "invalidDigestFormat",
-    title: "Invalid digest format",
-  });
-}
-
 export function invalidHashLength(alg: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid hash length for algorithm ${alg}`,
@@ -308,15 +299,5 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
     detail: "Unexpected format for kid",
     code: "invalidKidFormat",
     title: "Invalid KID format",
-  });
-}
-
-export function unexpectedKeyType(
-  clientKind: ClientKindTokenStates
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Key doesn't correspond to client kind: ${clientKind}`,
-    code: "unexpectedKeyType",
-    title: "Unexpected key type",
   });
 }
