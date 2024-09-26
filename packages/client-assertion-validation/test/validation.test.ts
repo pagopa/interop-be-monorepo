@@ -45,8 +45,10 @@ import {
   unexpectedClientAssertionPayload,
   purposeIdNotProvided,
   unexpectedKeyType,
+  invalidGrantType,
+  invalidAssertionType,
 } from "../src/errors.js";
-import { ConsumerKey } from "../src/types.js";
+import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
   getMockAccessTokenRequest,
   getMockApiKey,
@@ -63,34 +65,29 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    // it("invalidAssertionType", () => {
-    // TODO how to test this if "something-wrong" can't be assigned to the property?
-    // possible solution: the property is a string (not literal) and the check is done later
-    //   const wrongAssertionType = "something-wrong";
-    //   const request = {
-    //     ...getMockAccessTokenRequest(),
-    //     client_assertion_type: wrongAssertionType,
-    //   };
-    //   const { errors } = validateRequestParameters(request);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
-    // });
+    it("invalidAssertionType", () => {
+      const wrongAssertionType = "something-wrong";
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        client_assertion_type: wrongAssertionType,
+      };
+      const { errors } = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
+    });
 
-    // it("invalidGrantType", () => {
-    // TODO how to test this if "something-wrong" can't be assigned to the property?
-    // possible solution: the property is a string (not literal) and the check is done later
-    //   const wrongGrantType = "something-wrong";
-    //   const request = {
-    //     ...getMockAccessTokenRequest(),
-    //     grant_type: wrongGrantType,
-    //   };
-    //   // TODO: mock already checks grant type
-    //   const errors = validateRequestParameters(request);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
-    // });
+    it("invalidGrantType", () => {
+      const wrongGrantType = "something-wrong";
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        grant_type: wrongGrantType,
+      };
+      const { errors } = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
+    });
   });
 
   describe("verifyClientAssertion", () => {
