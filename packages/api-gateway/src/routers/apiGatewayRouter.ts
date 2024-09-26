@@ -499,7 +499,9 @@ const apiGatewayRouter = (
             req.params.organizationId
           );
 
-          return res.status(200).send(organization);
+          return res
+            .status(200)
+            .send(apiGatewayApi.Organization.parse(organization));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -559,7 +561,7 @@ const apiGatewayRouter = (
             attributeCode: req.query.attributeCode,
           });
 
-          return res.status(200).send(eservices);
+          return res.status(200).send(apiGatewayApi.EServices.parse(eservices));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
