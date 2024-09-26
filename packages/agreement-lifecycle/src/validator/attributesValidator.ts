@@ -20,12 +20,14 @@ const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
   consumerAttributeIds: Array<TenantAttribute["id"]>
 ): boolean =>
-  descriptorAttributes.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return (
-      attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
-    );
-  });
+  descriptorAttributes
+    .filter((attGroup) => attGroup.length > 0)
+    .every((attributeList) => {
+      const attributes = attributeList.map((a) => a.id);
+      return (
+        attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
+      );
+    });
 
 export const certifiedAttributesSatisfied = (
   descriptor: DescriptorWithOnlyAttributes,
