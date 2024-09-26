@@ -38,13 +38,14 @@ export const getAttributeErrorMapper = (error: ApiError<ErrorCodes>): number =>
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("missingActivePurposeVersion", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementByPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "activeAgreementByEserviceAndConsumerNotFound",
       () => HTTP_STATUS_NOT_FOUND

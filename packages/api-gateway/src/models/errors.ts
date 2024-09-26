@@ -11,7 +11,7 @@ import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 export const errorCodes = {
   agreementNotFound: "0001",
   producerAndConsumerParamMissing: "0002",
-  missingActivePurposeVersion: "0003",
+  purposeNotFound: "0003",
   activeAgreementByEserviceAndConsumerNotFound: "0004",
   multipleAgreementForEserviceAndConsumer: "0005",
   eserviceNotFound: "0006",
@@ -39,13 +39,14 @@ export function producerAndConsumerParamMissing(): ApiError<ErrorCodes> {
 }
 
 export function missingActivePurposeVersion(
-  purposeId: purposeApi.Purpose["id"]
+  purposeId: purposeApi.Purpose["id"],
+  logger: Logger
 ): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `There is no active version for purpose ${purposeId}`,
-    code: "missingActivePurposeVersion",
-    title: "Missing active purpose version",
-  });
+  const error = purposeNotFound(purposeId);
+  logger.warn(
+    `Root cause for Error "${error.title}": there is no active version for purpose ${purposeId}`
+  );
+  return error;
 }
 
 export function activeAgreementByEserviceAndConsumerNotFound(
@@ -182,5 +183,15 @@ export function eserviceNotFound(
     detail: `EService ${eserviceId} not found`,
     code: "eserviceNotFound",
     title: "EService not found",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: purposeApi.Purpose["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
   });
 }
