@@ -300,7 +300,11 @@ const apiGatewayRouter = (
           );
           return res.status(200).send(descriptors);
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

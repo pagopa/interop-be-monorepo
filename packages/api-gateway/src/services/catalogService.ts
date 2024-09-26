@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
@@ -113,12 +114,19 @@ export function catalogServiceBuilder(
         `Retrieving Descriptor ${descriptorId} of EService ${eserviceId}`
       );
 
-      const eservice = await catalogProcessClient.getEServiceById({
-        headers,
-        params: {
-          eServiceId: eserviceId,
-        },
-      });
+      const eservice = await catalogProcessClient
+        .getEServiceById({
+          headers,
+          params: {
+            eServiceId: eserviceId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: eserviceNotFound(eserviceId),
+          });
+        });
+
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
       return toApiGatewayDescriptorIfNotDraft(descriptor, eserviceId, logger);
@@ -129,12 +137,18 @@ export function catalogServiceBuilder(
     ): Promise<apiGatewayApi.EServiceDescriptors> => {
       logger.info(`Retrieving Descriptors of EService ${eserviceId}`);
 
-      const eservice = await catalogProcessClient.getEServiceById({
-        headers,
-        params: {
-          eServiceId: eserviceId,
-        },
-      });
+      const eservice = await catalogProcessClient
+        .getEServiceById({
+          headers,
+          params: {
+            eServiceId: eserviceId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: eserviceNotFound(eserviceId),
+          });
+        });
 
       const descriptors = eservice.descriptors
         .filter(isNonDraft)
