@@ -40,10 +40,6 @@ export const getMockClientAssertion = ({
     exp: 60,
     jti: generateId(),
     iat: 5,
-    digest: {
-      alg: "SHA256",
-      value: value64chars,
-    },
   };
 
   const actualPayload = {
