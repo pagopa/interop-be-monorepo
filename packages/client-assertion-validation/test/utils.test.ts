@@ -7,7 +7,7 @@ describe("failedValidation", () => {
     const errors = [inactiveEService(), inactiveAgreement()];
     const result = failedValidation(errors);
     expect(result).toEqual({
-      data: undefined,
+      hasSucceeded: false,
       errors: [inactiveEService(), inactiveAgreement()],
     });
   });
@@ -15,35 +15,8 @@ describe("failedValidation", () => {
     const errors = [inactiveEService()];
     const result = failedValidation(errors);
     expect(result).toEqual({
-      data: undefined,
+      hasSucceeded: false,
       errors: [inactiveEService()],
-    });
-  });
-  it("array of errors or undefined", () => {
-    const errors = [inactiveEService(), inactiveAgreement(), undefined];
-    const result = failedValidation(errors);
-    expect(result).toEqual({
-      data: undefined,
-      errors: [inactiveEService(), inactiveAgreement()],
-    });
-  });
-  it("nested array of errors", () => {
-    const errors = [[inactiveEService(), inactiveAgreement()], undefined];
-    const result = failedValidation(errors);
-    expect(result).toEqual({
-      data: undefined,
-      errors: [inactiveEService(), inactiveAgreement()],
-    });
-  });
-  it("nested array of errors or undefined", () => {
-    const errors = [
-      [inactiveEService(), inactiveAgreement(), undefined],
-      undefined,
-    ];
-    const result = failedValidation(errors);
-    expect(result).toEqual({
-      data: undefined,
-      errors: [inactiveEService(), inactiveAgreement()],
     });
   });
 });
@@ -52,11 +25,11 @@ describe("successfulValidation", () => {
   it("string", () => {
     const resultString = "result";
     const result = successfulValidation(resultString);
-    expect(result).toEqual({ data: resultString, errors: undefined });
+    expect(result).toEqual({ data: resultString, hasSucceeded: true });
   });
   it("number", () => {
     const resultNumber = 1;
     const result = successfulValidation(resultNumber);
-    expect(result).toEqual({ data: resultNumber, errors: undefined });
+    expect(result).toEqual({ data: resultNumber, hasSucceeded: true });
   });
 });

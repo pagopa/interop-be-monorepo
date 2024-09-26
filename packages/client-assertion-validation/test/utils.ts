@@ -8,11 +8,15 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
+import { expect } from "vitest";
 import {
   ApiKey,
   ClientAssertionHeader,
   ClientAssertionValidationRequest,
   ConsumerKey,
+  FailedValidation,
+  SuccessfulValidation,
+  ValidationResult,
 } from ".././src/types.js";
 import {
   EXPECTED_CLIENT_ASSERTION_TYPE,
@@ -112,3 +116,15 @@ export const getMockAccessTokenRequest =
       grant_type: EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
     };
   };
+
+export function expectValidationFailed(
+  validationResult: ValidationResult<unknown>
+): asserts validationResult is FailedValidation {
+  expect(validationResult.hasSucceeded).toBe(false);
+}
+
+export function expectValidationSucceeded<T>(
+  validationResult: ValidationResult<T>
+): asserts validationResult is SuccessfulValidation<T> {
+  expect(validationResult.hasSucceeded).toBe(true);
+}

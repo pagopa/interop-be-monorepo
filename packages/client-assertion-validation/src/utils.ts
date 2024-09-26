@@ -1,12 +1,16 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable functional/immutable-data */
-import { ClientId, PurposeId, unsafeBrandId } from "pagopa-interop-models";
 import {
-  ValidationResult_,
+  ClientId,
+  itemState,
+  PurposeId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  ValidationResult,
   ValidatedKid,
   ValidatedAlg,
   ValidatedDigest,
-  ValidationErrors,
   ValidatedPurposeId,
   ValidatedSub,
   ValidatedIss,
@@ -14,6 +18,10 @@ import {
   ValidatedJti,
   ValidatedIat,
   ValidatedAud,
+  SuccessfulValidation,
+  FailedValidation,
+  ClientAssertionDigest,
+  ConsumerKey,
 } from "./types.js";
 import {
   expNotFound,
@@ -26,9 +34,6 @@ import {
   invalidSubject,
   invalidPurposeIdClaimFormat,
   kidNotFound,
-  inactiveAgreement,
-  inactiveEService,
-  inactivePurpose,
   invalidClientIdFormat,
   invalidSubjectFormat,
   algorithmNotFound,
@@ -38,6 +43,9 @@ import {
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
+  inactivePurpose,
+  inactiveEService,
+  inactiveAgreement,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -47,161 +55,180 @@ export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // T
 export const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
-export const validateJti = (jti?: string): ValidationResult_<ValidatedJti> => {
+export const failedValidation = (
+  errors: FailedValidation["errors"]
+): FailedValidation => ({
+  hasSucceeded: false,
+  errors,
+});
+
+export const successfulValidation = <T>(data: T): SuccessfulValidation<T> => ({
+  hasSucceeded: true,
+  data,
+});
+
+export const validateJti = (jti?: string): ValidationResult<ValidatedJti> => {
   if (!jti) {
-    return { _errors: [jtiNotFound()] };
+    return failedValidation([jtiNotFound()]);
   }
-  return jti as ValidatedJti;
+  return successfulValidation(jti as ValidatedJti);
 };
 
-export const validateIat = (iat?: number): ValidationResult_<ValidatedIat> => {
+export const validateIat = (iat?: number): ValidationResult<ValidatedIat> => {
   if (!iat) {
-    return { _errors: [issuedAtNotFound()] };
+    return failedValidation([issuedAtNotFound()]);
   }
-  return iat as ValidatedIat;
+  return successfulValidation(iat as ValidatedIat);
 };
 
-export const validateExp = (exp?: number): ValidationResult_<ValidatedExp> => {
+export const validateExp = (exp?: number): ValidationResult<ValidatedExp> => {
   if (!exp) {
-    return { _errors: [expNotFound()] };
+    return failedValidation([expNotFound()]);
   }
-  return exp as ValidatedExp;
+  return successfulValidation(exp as ValidatedExp);
 };
 
-export const validateIss = (iss?: string): ValidationResult_<ValidatedIss> => {
+export const validateIss = (iss?: string): ValidationResult<ValidatedIss> => {
   if (!iss) {
-    return { _errors: [issuerNotFound()] };
+    return failedValidation([issuerNotFound()]);
   }
-  return iss as ValidatedIss;
+  return successfulValidation(iss as ValidatedIss);
 };
 
 export const validateSub = (
   // TODO requires refactor
   sub?: string,
   clientId?: string
-): ValidationResult_<ValidatedSub> => {
+): ValidationResult<ValidatedSub> => {
   if (!sub) {
-    return { _errors: [subjectNotFound()] };
+    return failedValidation([subjectNotFound()]);
   }
   if (clientId) {
-    const validationErrors: ValidationErrors = { _errors: [] };
+    const FailedValidations: FailedValidation["errors"] = [];
 
     if (!ClientId.safeParse(clientId).success) {
-      validationErrors._errors.push(invalidClientIdFormat(clientId));
+      FailedValidations.push(invalidClientIdFormat(clientId));
     }
 
     if (!ClientId.safeParse(sub).success) {
-      validationErrors._errors.push(invalidSubjectFormat(sub));
+      FailedValidations.push(invalidSubjectFormat(sub));
     }
 
-    if (validationErrors._errors.length > 0) {
-      return validationErrors;
+    if (FailedValidations.length > 0) {
+      return failedValidation(FailedValidations);
     }
 
     // TODO: clientId undefined OK?
     if (sub !== clientId) {
-      return { _errors: [invalidSubject(sub)] };
+      return failedValidation([invalidSubject(sub)]);
     }
   }
-  return sub as ValidatedSub;
+  return successfulValidation(sub as ValidatedSub);
 };
 
 export const validatePurposeId = (
   purposeId?: string
-): ValidationResult_<ValidatedPurposeId | undefined> => {
+): ValidationResult<ValidatedPurposeId | undefined> => {
   if (purposeId && !PurposeId.safeParse(purposeId).success) {
-    return { _errors: [invalidPurposeIdClaimFormat(purposeId)] };
+    return failedValidation([invalidPurposeIdClaimFormat(purposeId)]);
   }
   const validatedPurposeId = purposeId
     ? unsafeBrandId<PurposeId>(purposeId)
     : undefined;
 
-  return validatedPurposeId as ValidatedPurposeId | undefined;
+  return successfulValidation(
+    validatedPurposeId as ValidatedPurposeId | undefined
+  );
 };
 
-export const validateKid = (kid?: string): ValidationResult_<ValidatedKid> => {
+export const validateKid = (kid?: string): ValidationResult<ValidatedKid> => {
   if (!kid) {
-    return { _errors: [kidNotFound()] };
+    return failedValidation([kidNotFound()]);
   }
   const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
   if (alphanumericRegex.test(kid)) {
-    return kid as ValidatedKid;
+    return successfulValidation(kid as ValidatedKid);
   }
-  return { _errors: [invalidKidFormat()] };
+  return failedValidation([invalidKidFormat()]);
 };
 
 export const validateAudience = (
   aud: string | string[] | undefined
-): ValidationResult_<ValidatedAud> => {
+): ValidationResult<ValidatedAud> => {
   if (aud === config.clientAssertionAudience) {
-    return [aud] as ValidatedAud;
+    return successfulValidation([aud] as ValidatedAud);
   }
 
   if (!Array.isArray(aud)) {
-    return { _errors: [invalidAudienceFormat()] };
+    return failedValidation([invalidAudienceFormat()]);
   }
   if (!aud.includes(config.clientAssertionAudience)) {
-    return { _errors: [invalidAudience()] };
+    return failedValidation([invalidAudience()]);
   }
-  return aud as ValidatedAud;
+  return successfulValidation(aud as ValidatedAud);
 };
 
 export const validateAlgorithm = (
   alg?: string
-): ValidationResult_<ValidatedAlg> => {
+): ValidationResult<ValidatedAlg> => {
   if (!alg) {
-    return { _errors: [algorithmNotFound()] };
+    return failedValidation([algorithmNotFound()]);
   }
   if (alg === ALLOWED_ALGORITHM) {
-    return alg as ValidatedAlg;
+    return successfulValidation(alg as ValidatedAlg);
   }
-  return { _errors: [algorithmNotAllowed(alg)] };
+  return failedValidation([algorithmNotAllowed(alg)]);
 };
 
 export const validateDigest = (
   digest?: object
-): ValidationResult_<ValidatedDigest> => {
+): ValidationResult<ValidatedDigest> => {
   if (!digest) {
-    return { _errors: [digestClaimNotFound()] };
+    return failedValidation([digestClaimNotFound()]);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return { _errors: [invalidDigestFormat()] };
+    return failedValidation([invalidDigestFormat()]);
   }
 
   const validatedDigest = result.data;
-  const validationErrors: ValidationErrors = { _errors: [] };
+  const failedValidations: FailedValidation["errors"] = [];
 
   if (validatedDigest.value.length !== 64) {
-    validationErrors._errors.push(invalidHashLength(validatedDigest.alg));
+    failedValidations.push(invalidHashLength(validatedDigest.alg));
   }
 
   if (validatedDigest.alg !== ALLOWED_DIGEST_ALGORITHM) {
-    validationErrors._errors.push(invalidHashAlgorithm());
+    failedValidations.push(invalidHashAlgorithm());
   }
 
-  if (validationErrors._errors.length > 0) {
-    return validationErrors;
+  if (failedValidations.length > 0) {
+    return failedValidation(failedValidations);
   }
 
-  return result.data as ValidatedDigest;
+  return successfulValidation(result.data as ValidatedDigest);
 };
 
-// export const validatePlatformState = (
-//   // TODO requires refactor
-//   key: ConsumerKey
-// ): ValidationResult<ConsumerKey> => {
-//   const agreementError =
-//     key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
+export const validatePlatformState = (
+  // TODO requires refactor
+  key: ConsumerKey
+): ValidationResult<ConsumerKey> => {
+  const validationErrors: FailedValidation["errors"] = [];
 
-//   const descriptorError =
-//     key.descriptorState !== itemState.active ? inactiveEService() : undefined;
+  if (key.agreementState !== itemState.active) {
+    validationErrors.push(inactiveAgreement());
+  }
 
-//   const purposeError =
-//     key.purposeState !== itemState.active ? inactivePurpose() : undefined;
+  if (key.descriptorState !== itemState.active) {
+    validationErrors.push(inactiveEService());
+  }
 
-//   if (!agreementError && !descriptorError && !purposeError) {
-//     return successfulValidation(key);
-//   }
-//   return failedValidation([agreementError, descriptorError, purposeError]);
-// };
+  if (key.purposeState !== itemState.active) {
+    validationErrors.push(inactivePurpose());
+  }
+
+  if (validationErrors.length === 0) {
+    return successfulValidation(key);
+  }
+  return failedValidation(validationErrors);
+};
