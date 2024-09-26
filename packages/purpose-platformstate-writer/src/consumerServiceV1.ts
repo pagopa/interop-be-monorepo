@@ -7,15 +7,19 @@ export async function handleMessageV1(
   _dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
-    .with({ type: "PurposeCreated" }, async (_msg) => Promise.resolve())
-    .with({ type: "PurposeVersionCreated" }, async (_msg) => Promise.resolve())
-    .with(
-      { type: "PurposeVersionActivated" },
-      { type: "PurposeVersionSuspended" },
-      async (_msg) => Promise.resolve()
+    // PurposeActivated, NewPurposeVersionActivated, PurposeVersionActivated, PurposeVersionUnsuspendedByConsumer, PurposeVersionUnsuspendedByProducer
+    .with({ type: "PurposeVersionActivated" }, async (_msg) =>
+      Promise.resolve()
     )
+    // PurposeVersionSuspendedByConsumer, PurposeVersionSuspendedByProducer
+    .with({ type: "PurposeVersionSuspended" }, async (_msg) =>
+      Promise.resolve()
+    )
+    // PurposeArchived
     .with({ type: "PurposeVersionArchived" }, async (_msg) => Promise.resolve())
     .with(
+      { type: "PurposeCreated" },
+      { type: "PurposeVersionCreated" },
       { type: "PurposeUpdated" },
       { type: "PurposeVersionWaitedForApproval" },
       { type: "PurposeVersionRejected" },
