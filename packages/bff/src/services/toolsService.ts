@@ -37,6 +37,8 @@ import {
 import { BffAppContext } from "../utilities/context.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
+  agreementDescriptorNotFound,
+  agreementNotFound,
   clientAssertionPublicKeyNotFound,
   ErrorCodes,
   eserviceDescriptorNotFound,
@@ -46,6 +48,7 @@ import {
   purposeIdNotFoundInClientAssertion,
 } from "../model/domain/errors.js";
 import { TokenGenerationValidationStepFailure } from "../../../api-clients/dist/bffApi.js";
+import { getLatestAgreement } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -68,7 +71,6 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data: jwt, errors: clientAssertionErrors } =
         verifyClientAssertion(clientAssertion, clientId);
-
       if (parametersErrors || clientAssertionErrors) {
         return handleValidationResults({
           clientAssertionErrors: [
@@ -83,34 +85,45 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         jwt,
         ctx
       );
-
       if (keyRetrieveErrors) {
         return handleValidationResults({
           keyRetrieveErrors,
         });
       }
 
+      const eservice = await retrieveTokenValidationEService(
+        clients,
+        key.purposeId,
+        ctx
+      );
+
       const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
         clientAssertion,
         key
       );
-
       if (clientSignatureErrors) {
-        return handleValidationResults({
-          clientSignatureErrors,
-        });
+        return handleValidationResults(
+          {
+            clientSignatureErrors,
+          },
+          key.clientKind,
+          eservice
+        );
       }
 
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
-
       if (platformStateErrors) {
-        return handleValidationResults({
-          platformStateErrors,
-        });
+        return handleValidationResults(
+          {
+            platformStateErrors,
+          },
+          key.clientKind,
+          eservice
+        );
       }
 
-      return handleValidationResults({});
+      return handleValidationResults({}, key.clientKind, eservice);
     },
   };
 }
@@ -357,6 +370,51 @@ function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
   }
 
   return purposeVersionStateToItemState(activePurposeVersion.state);
+}
+
+async function retrieveTokenValidationEService(
+  {
+    catalogProcessClient,
+    purposeProcessClient,
+    agreementProcessClient,
+  }: PagoPAInteropBeClients,
+  purposeId: string,
+  ctx: WithLogger<BffAppContext>
+): Promise<bffApi.TokenGenerationValidationEService> {
+  const purpose = await purposeProcessClient.getPurpose({
+    params: { id: purposeId },
+    headers: ctx.headers,
+  });
+
+  const eservice = await catalogProcessClient.getEServiceById({
+    params: { eServiceId: purpose.eserviceId },
+    headers: ctx.headers,
+  });
+
+  const agreement = await getLatestAgreement(
+    agreementProcessClient,
+    purpose.consumerId,
+    eservice,
+    ctx.headers
+  );
+  if (!agreement) {
+    throw agreementNotFound(purpose.consumerId);
+  }
+
+  const descriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!descriptor) {
+    throw agreementDescriptorNotFound(agreement.id);
+  }
+
+  return {
+    id: eservice.id,
+    descriptorId: descriptor.id,
+    version: descriptor.version,
+    name: eservice.name,
+  };
 }
 
 const agreementStateToItemState = (

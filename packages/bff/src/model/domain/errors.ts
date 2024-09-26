@@ -28,6 +28,7 @@ export const errorCodes = {
   purposeIdNotFoundInClientAssertion: "0021",
   clientAssertionPublicKeyNotFound: "0022",
   organizationNotAllowed: "0023",
+  agreementDescriptorNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -245,5 +246,15 @@ export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
     detail: `Organization not allowed for client ${clientId}`,
     code: "organizationNotAllowed",
     title: "Organization not allowed",
+  });
+}
+
+export function agreementDescriptorNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor for agreement ${agreementId} not found`,
+    code: "agreementDescriptorNotFound",
+    title: "Agreement descriptor not found",
   });
 }
