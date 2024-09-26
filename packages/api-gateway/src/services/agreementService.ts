@@ -43,6 +43,24 @@ export async function getAllAgreements(
   };
 }
 
+const retrieveAgreement = (
+  agreementProcessClient: AgreementProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  agreementId: agreementApi.Agreement["id"]
+): Promise<agreementApi.Agreement> =>
+  agreementProcessClient
+    .getAgreementById({
+      headers,
+      params: {
+        agreementId,
+      },
+    })
+    .catch((res) => {
+      throw clientStatusCodeToError(res, {
+        404: agreementNotFound(agreementId),
+      });
+    });
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
   agreementProcessClient: AgreementProcessClient,
@@ -73,18 +91,11 @@ export function agreementServiceBuilder(
       agreementId: agreementApi.Agreement["id"]
     ): Promise<apiGatewayApi.Agreement> => {
       logger.info(`Retrieving agreement by id = ${agreementId}`);
-      const agreement = await agreementProcessClient
-        .getAgreementById({
-          headers,
-          params: {
-            agreementId,
-          },
-        })
-        .catch((res) => {
-          throw clientStatusCodeToError(res, {
-            404: agreementNotFound(agreementId),
-          });
-        });
+      const agreement = await retrieveAgreement(
+        agreementProcessClient,
+        headers,
+        agreementId
+      );
 
       return toApiGatewayAgreementIfNotDraft(agreement, logger);
     },
@@ -95,18 +106,11 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Attributes> => {
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient
-        .getAgreementById({
-          headers,
-          params: {
-            agreementId,
-          },
-        })
-        .catch((res) => {
-          throw clientStatusCodeToError(res, {
-            404: agreementNotFound(agreementId),
-          });
-        });
+      const agreement = await retrieveAgreement(
+        agreementProcessClient,
+        headers,
+        agreementId
+      );
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         headers,
@@ -124,18 +128,11 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Purposes> => {
       logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient
-        .getAgreementById({
-          headers,
-          params: {
-            agreementId,
-          },
-        })
-        .catch((res) => {
-          throw clientStatusCodeToError(res, {
-            404: agreementNotFound(agreementId),
-          });
-        });
+      const agreement = await retrieveAgreement(
+        agreementProcessClient,
+        headers,
+        agreementId
+      );
 
       return await getAllPurposes(purposeProcessClient, headers, {
         eserviceId: agreement.eserviceId,
