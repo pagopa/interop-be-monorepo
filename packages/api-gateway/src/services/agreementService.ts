@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-identical-functions */
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import {
