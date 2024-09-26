@@ -329,7 +329,7 @@ const apiGatewayRouter = (
           req.query.limit
         );
 
-        return res.status(200).send(events);
+        return res.status(200).send(apiGatewayApi.Events.parse(events));
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).send(errorRes);
@@ -348,7 +348,7 @@ const apiGatewayRouter = (
             req.query.limit
           );
 
-          return res.status(200).send(events);
+          return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -368,7 +368,7 @@ const apiGatewayRouter = (
             req.query.limit
           );
 
-          return res.status(200).send(events);
+          return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -388,7 +388,7 @@ const apiGatewayRouter = (
             req.query.limit
           );
 
-          return res.status(200).send(events);
+          return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -409,7 +409,7 @@ const apiGatewayRouter = (
               req.query.limit
             );
 
-          return res.status(200).send(events);
+          return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
