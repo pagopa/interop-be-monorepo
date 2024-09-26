@@ -53,12 +53,9 @@ export function attributeServiceBuilder(
     ): Promise<bffApi.Attribute> {
       logger.info(`Creating verified attribute with name ${seed.name}`);
 
-      return attributeClient.createVerifiedAttribute(
-        toApiAttributeProcessSeed(seed),
-        {
-          headers,
-        }
-      );
+      return attributeClient.createVerifiedAttribute(seed, {
+        headers,
+      });
     },
 
     async createDeclaredAttribute(
@@ -67,12 +64,9 @@ export function attributeServiceBuilder(
     ): Promise<bffApi.Attribute> {
       logger.info(`Creating declared attribute with name ${seed.name}`);
 
-      return attributeClient.createDeclaredAttribute(
-        toApiAttributeProcessSeed(seed),
-        {
-          headers,
-        }
-      );
+      return attributeClient.createDeclaredAttribute(seed, {
+        headers,
+      });
     },
 
     async getAttributeById(
