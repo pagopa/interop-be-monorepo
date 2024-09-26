@@ -1610,6 +1610,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
+    suspendedByConsumer: false,
     versions: [...oldVersions, newPurposeVersion],
     updatedAt: new Date(),
   };
