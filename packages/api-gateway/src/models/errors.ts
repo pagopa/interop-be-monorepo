@@ -26,6 +26,8 @@ export const errorCodes = {
   tenantByOriginNotFound: "0014",
   attributeByOriginNotFound: "0015",
   tenantAttributeNotFound: "0016",
+  tenantOrAttributeNotFound: "0017",
+  certifiedAttributeAlreadyAssigned: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -229,7 +231,7 @@ export function attributeByOriginNotFound(
   return new ApiError({
     detail: `Attribute (${origin}, ${code}) not found`,
     code: "attributeByOriginNotFound",
-    title: "Attribute not found",
+    title: "Attribute by origin not found",
   });
 }
 
@@ -241,6 +243,30 @@ export function tenantAttributeNotFound(
   return new ApiError({
     detail: `Attribute ${attributeCode} for Institution (${origin}, ${externalId}) not found`,
     code: "tenantAttributeNotFound",
-    title: "Attribute not found",
+    title: "Institution attribute not found",
+  });
+}
+
+export function tenantOrAttributeNotFound(
+  origin: tenantApi.ExternalId["origin"],
+  externalId: tenantApi.ExternalId["value"],
+  attributeCode: attributeRegistryApi.Attribute["code"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Institution (${origin}, ${externalId}) or Attribute ${attributeCode} not found`,
+    code: "tenantOrAttributeNotFound",
+    title: "Institution or Attribute not found",
+  });
+}
+
+export function certifiedAttributeAlreadyAssigned(
+  origin: tenantApi.ExternalId["origin"],
+  externalId: tenantApi.ExternalId["value"],
+  attributeCode: attributeRegistryApi.Attribute["code"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified attribute ${attributeCode} already assigned to Institution (${origin}, ${externalId})`,
+    code: "certifiedAttributeAlreadyAssigned",
+    title: "Certified attribute already assigned",
   });
 }

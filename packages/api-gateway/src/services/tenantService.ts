@@ -14,9 +14,11 @@ import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   attributeByOriginNotFound,
+  certifiedAttributeAlreadyAssigned,
   tenantAttributeNotFound,
   tenantByOriginNotFound,
   tenantNotFound,
+  tenantOrAttributeNotFound,
 } from "../models/errors.js";
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
@@ -182,9 +184,21 @@ export function tenantServiceBuilder(
       );
 
       const tenantSeed = toM2MTenantSeed(origin, externalId, attributeCode);
-      await tenantProcessClient.m2m.m2mUpsertTenant(tenantSeed, {
-        headers,
-      });
+      await tenantProcessClient.m2m
+        .m2mUpsertTenant(tenantSeed, {
+          headers,
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            403: operationForbidden,
+            404: tenantOrAttributeNotFound(origin, externalId, attributeCode),
+            409: certifiedAttributeAlreadyAssigned(
+              origin,
+              externalId,
+              attributeCode
+            ),
+          });
+        });
     },
   };
 }
