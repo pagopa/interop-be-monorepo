@@ -31,10 +31,10 @@ import {
   invalidSubjectFormat,
   algorithmNotFound,
   algorithmNotAllowed,
-  invalidDigestFormat,
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
+  digestClaimNotFound,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -151,7 +151,7 @@ export const validateDigest = (
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([invalidDigestFormat()]);
+    return failedValidation([digestClaimNotFound()]);
   }
   const validatedDigest = result.data;
   const digestLengthError =

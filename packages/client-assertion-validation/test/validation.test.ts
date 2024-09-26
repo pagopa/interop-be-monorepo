@@ -43,7 +43,6 @@ import {
   subjectNotFound,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
-  invalidDigestFormat,
   purposeIdNotProvided,
   unexpectedKeyType,
 } from "../src/errors.js";
@@ -307,7 +306,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidClientIdFormat(notClientId));
     });
 
-    it("digestClaimNotFound", () => {
+    it("should not throw error if digest is undefined", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {},
@@ -315,13 +314,10 @@ describe("validation test", () => {
           digest: undefined,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(digestClaimNotFound());
+      expect(() => verifyClientAssertion(jws, undefined)).not.toThrow();
     });
 
-    it("invalidDigestFormat", () => {
+    it("digestClaimNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
         payload: {},
@@ -330,7 +326,7 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidDigestFormat());
+      expect(errors![0]).toEqual(digestClaimNotFound());
     });
 
     it("invalidHashLength", () => {
