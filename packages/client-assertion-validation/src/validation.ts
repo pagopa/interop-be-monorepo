@@ -55,7 +55,6 @@ export const validateRequestParameters = (
       ? invalidAssertionType(request.client_assertion_type)
       : undefined;
 
-  // TODO: this might be useless because ClientAssertionValidationRequest has the string hard coded
   const grantTypeError =
     request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE
       ? invalidGrantType(request.grant_type)
