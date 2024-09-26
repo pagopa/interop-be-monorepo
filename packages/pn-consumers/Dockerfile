@@ -18,7 +18,6 @@ COPY turbo.json /app/
 COPY ./packages/pn-consumers /app/packages/pn-consumers/
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
-COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
