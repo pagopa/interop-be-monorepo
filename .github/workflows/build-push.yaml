@@ -58,7 +58,7 @@ jobs:
           - image_name: key-readmodel-writer
             dockerfile_path: packages/key-readmodel-writer
           - image_name: backend-for-frontend
-            dockerfile_path: packages/bff
+            dockerfile_path: packages/backend-for-frontend
           - image_name: api-gateway
             dockerfile_path: packages/api-gateway
           - image_name: agreement-outbound-writer
@@ -71,6 +71,8 @@ jobs:
             dockerfile_path: packages/tenant-outbound-writer
           - image_name: compute-agreements-consumer
             dockerfile_path: packages/compute-agreements-consumer
+          - image_name: selfcare-onboarding-consumer
+            dockerfile_path: packages/selfcare-onboarding-consumer
           - image_name: producer-key-events-writer
             dockerfile_path: packages/producer-key-events-writer
           - image_name: producer-key-readmodel-writer
@@ -79,6 +81,8 @@ jobs:
             dockerfile_path: packages/producer-keychain-readmodel-writer
           - image_name: anac-certified-attributes-importer
             dockerfile_path: packages/anac-certified-attributes-importer
+          - image_name: one-trust-notices
+            dockerfile_path: packages/one-trust-notices
 
     steps:
       - name: Checkout repository

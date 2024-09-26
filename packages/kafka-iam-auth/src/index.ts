@@ -111,6 +111,28 @@ const kafkaCommitMessageOffsets = async (
   );
 };
 
+export async function resetPartitionsOffsets(
+  topics: string[],
+  kafka: Kafka,
+  consumer: Consumer
+): Promise<void> {
+  const admin = kafka.admin();
+
+  await admin.connect();
+
+  const fetchedTopics = await admin.fetchTopicMetadata({ topics });
+  fetchedTopics.topics.forEach((t) =>
+    t.partitions.forEach((p) =>
+      consumer.seek({
+        topic: t.name,
+        partition: p.partitionId,
+        offset: "-2",
+      })
+    )
+  );
+  await admin.disconnect();
+}
+
 async function oauthBearerTokenProvider(
   region: string,
   logger: Logger
@@ -131,17 +153,33 @@ async function oauthBearerTokenProvider(
 }
 
 const initKafka = (config: InteropKafkaConfig): Kafka => {
-  const kafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
+  const commonConfigProps = {
+    clientId: config.kafkaClientId,
+    brokers: config.kafkaBrokers,
+    logLevel: config.kafkaLogLevel,
+  };
+
+  const connectionStringKafkaConfig: KafkaConfig | undefined =
+    config.kafkaBrokerConnectionString
+      ? {
+          ...commonConfigProps,
+          reauthenticationThreshold: config.kafkaReauthenticationThreshold,
+          ssl: true,
+          sasl: {
+            mechanism: "plain",
+            username: "$ConnectionString",
+            password: config.kafkaBrokerConnectionString,
+          },
+        }
+      : undefined;
+
+  const iamAuthKafkaConfig: KafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
-        clientId: config.kafkaClientId,
-        brokers: config.kafkaBrokers,
-        logLevel: config.kafkaLogLevel,
+        ...commonConfigProps,
         ssl: false,
       }
     : {
-        clientId: config.kafkaClientId,
-        brokers: config.kafkaBrokers,
-        logLevel: config.kafkaLogLevel,
+        ...commonConfigProps,
         reauthenticationThreshold: config.kafkaReauthenticationThreshold,
         ssl: true,
         sasl: {
@@ -150,6 +188,15 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
             oauthBearerTokenProvider(config.awsRegion, genericLogger),
         },
       };
+
+  if (connectionStringKafkaConfig) {
+    genericLogger.warn(
+      "Using connection string mechanism for Kafka Broker authentication - this will override other mechanisms. If that is not desired, remove Kafka broker connection string from env variables."
+    );
+  }
+
+  const kafkaConfig: KafkaConfig =
+    connectionStringKafkaConfig ?? iamAuthKafkaConfig;
 
   return new Kafka({
     ...kafkaConfig,
@@ -207,6 +254,10 @@ const initConsumer = async (
     },
   });
 
+  if (config.resetConsumerOffsets) {
+    await resetPartitionsOffsets(topics, kafka, consumer);
+  }
+
   consumerKafkaEventsListener(consumer);
   errorEventsListener(consumer);
 
@@ -262,6 +313,7 @@ export const initProducer = async (
       kafkaReauthenticationThreshold:
         config.producerKafkaReauthenticationThreshold,
       awsRegion: config.awsRegion,
+      kafkaBrokerConnectionString: config.producerKafkaBrokerConnectionString,
     });
 
     const producer = kafka.producer({

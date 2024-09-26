@@ -205,7 +205,7 @@ const getAllAgreements = async (
   filters: AgreementQueryFilters
 ): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
-    .aggregate([getAgreementsFilters(filters)])
+    .aggregate([getAgreementsFilters(filters)], { allowDiskUse: true })
     .toArray();
 
   const result = z
@@ -263,7 +263,9 @@ async function searchTenantsByName(
   );
 
   const data = await agreements
-    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
+      allowDiskUse: true,
+    })
     .toArray();
 
   const result = z
@@ -281,8 +283,7 @@ async function searchTenantsByName(
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
-      aggregationPipeline,
-      false
+      aggregationPipeline
     ),
   };
 }
@@ -381,11 +382,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await agreements
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z.array(Agreement).safeParse(data.map((d) => d.data));
@@ -401,8 +401,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },
@@ -538,11 +537,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await eservices
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z
@@ -560,8 +558,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },
