@@ -96,6 +96,7 @@ const attributeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
+        ctx.logger.info(`Query params provided : ${JSON.stringify(req.query)}`);
         const { q, offset, limit, kinds, origin } = req.query;
 
         const attributes = await attributeService.getAttributes(
