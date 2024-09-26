@@ -256,13 +256,14 @@ export function purposeServiceBuilder(
     async createPurpose(
       createSeed: bffApi.PurposeSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<ReturnType<typeof purposeProcessClient.createPurpose>> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
       );
-      return await purposeProcessClient.createPurpose(createSeed, {
+      const result = await purposeProcessClient.createPurpose(createSeed, {
         headers,
       });
+      return { id: result.id };
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
