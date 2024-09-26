@@ -228,7 +228,7 @@ const apiGatewayRouter = (
             ctx,
             req.params.clientId
           );
-          return res.status(200).send(client);
+          return res.status(200).send(apiGatewayApi.Client.parse(client));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -246,7 +246,9 @@ const apiGatewayRouter = (
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
         try {
           const eservices = await catalogService.getEservices(ctx, req.query);
-          return res.status(200).send(eservices);
+          return res
+            .status(200)
+            .send(apiGatewayApi.CatalogEServices.parse(eservices));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -263,7 +265,7 @@ const apiGatewayRouter = (
             ctx,
             req.params.eserviceId
           );
-          return res.status(200).send(eservice);
+          return res.status(200).send(apiGatewayApi.EService.parse(eservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
