@@ -80,17 +80,14 @@ export const validateSub = (
   if (!sub) {
     return failedValidation([subjectNotFound()]);
   }
+
+  if (!ClientId.safeParse(sub).success) {
+    return failedValidation([invalidSubjectFormat(sub)]);
+  }
   if (clientId) {
-    const clientIdError = !ClientId.safeParse(clientId).success
-      ? invalidClientIdFormat(clientId)
-      : undefined;
-    const invalidSubFormatError = !ClientId.safeParse(sub).success
-      ? invalidSubjectFormat(sub)
-      : undefined;
-    if (clientIdError || invalidSubFormatError) {
-      return failedValidation([clientIdError, invalidSubFormatError]);
+    if (!ClientId.safeParse(clientId).success) {
+      return failedValidation([invalidClientIdFormat(clientId)]);
     }
-    // TODO: clientId undefined OK?
     if (sub !== clientId) {
       return failedValidation([invalidSubject(sub)]);
     }
