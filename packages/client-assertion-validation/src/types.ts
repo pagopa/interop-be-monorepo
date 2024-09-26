@@ -39,7 +39,7 @@ export const ClientAssertionPayload = z
     iss: z.string(),
     aud: z.array(z.string()),
     exp: z.number(),
-    digest: ClientAssertionDigest,
+    digest: ClientAssertionDigest.optional(),
     purposeId: PurposeId.optional(),
   })
   .strict();
