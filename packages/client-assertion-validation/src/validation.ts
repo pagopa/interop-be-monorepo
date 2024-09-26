@@ -47,45 +47,6 @@ import {
   unexpectedKeyType,
 } from "./errors.js";
 
-/*
-TEMPLATE for client assertion validation
-
-export const validateClientAssertion = async (
-  request: ClientAssertionValidationRequest,
-): Promise<ValidationResult<ClientAssertion>> => {
-  const { errors: parametersErrors } = validateRequestParameters(request);
-
-  const { errors: clientAssertionVerificationErrors, data: jwt } =
-    verifyClientAssertion(request.client_assertion, request.client_id);
-
-  // TO DO retrieve key
-
-
-  const { errors: clientAssertionSignatureErrors } =
-    verifyClientAssertionSignature(request.client_assertion, key);
-
-  if (
-    parametersErrors ||
-    clientAssertionVerificationErrors ||
-    clientAssertionSignatureErrors
-  ) {
-    return failedValidation([
-      parametersErrors,
-      clientAssertionVerificationErrors,
-      clientAssertionSignatureErrors,
-    ]);
-  }
-  const { errors: clientKindAndPlatormStateErrors } =
-    validateClientKindAndPlatformState(key, jwt);
-
-  if (clientKindAndPlatormStateErrors) {
-    return failedValidation([clientAssertionSignatureErrors]);
-  }
-
-  return successfulValidation(jwt);
-};
-*/
-
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest
 ): ValidationResult<ClientAssertionValidationRequest> => {

@@ -31,17 +31,16 @@ import {
   invalidSubjectFormat,
   algorithmNotFound,
   algorithmNotAllowed,
-  digestClaimNotFound,
-  invalidDigestFormat,
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
+  digestClaimNotFound,
 } from "./errors.js";
 import { config } from "./config.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
-  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
-export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
+  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials";
 export const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
@@ -80,17 +79,14 @@ export const validateSub = (
   if (!sub) {
     return failedValidation([subjectNotFound()]);
   }
+
+  if (!ClientId.safeParse(sub).success) {
+    return failedValidation([invalidSubjectFormat(sub)]);
+  }
   if (clientId) {
-    const clientIdError = !ClientId.safeParse(clientId).success
-      ? invalidClientIdFormat(clientId)
-      : undefined;
-    const invalidSubFormatError = !ClientId.safeParse(sub).success
-      ? invalidSubjectFormat(sub)
-      : undefined;
-    if (clientIdError || invalidSubFormatError) {
-      return failedValidation([clientIdError, invalidSubFormatError]);
+    if (!ClientId.safeParse(clientId).success) {
+      return failedValidation([invalidClientIdFormat(clientId)]);
     }
-    // TODO: clientId undefined OK?
     if (sub !== clientId) {
       return failedValidation([invalidSubject(sub)]);
     }
@@ -149,13 +145,13 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 
 export const validateDigest = (
   digest?: object
-): ValidationResult<ClientAssertionDigest> => {
+): ValidationResult<ClientAssertionDigest | undefined> => {
   if (!digest) {
-    return failedValidation([digestClaimNotFound()]);
+    return successfulValidation(digest);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([invalidDigestFormat()]);
+    return failedValidation([digestClaimNotFound()]);
   }
   const validatedDigest = result.data;
   const digestLengthError =
