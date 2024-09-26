@@ -191,7 +191,7 @@ const apiGatewayRouter = (
             req.body
           );
 
-          return res.status(200).send(attribute);
+          return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -210,7 +210,7 @@ const apiGatewayRouter = (
             req.params.attributeId
           );
 
-          return res.status(200).send(attribute);
+          return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
