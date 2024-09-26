@@ -7,7 +7,10 @@ import {
   PagoPAInteropBeClients,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toApiAttributeProcessSeed } from "../api/attributeApiConverter.js";
+import {
+  toApiAttributeProcessSeed,
+  toCompactAttribute,
+} from "../api/attributeApiConverter.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: AttributeProcessClient,
@@ -75,7 +78,7 @@ export function attributeServiceBuilder(
     async getAttributeById(
       attributeId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<attributeRegistryApi.Attribute> {
+    ): Promise<bffApi.Attribute> {
       logger.info(`Retrieving attribute with id ${attributeId}`);
       return attributeClient.getAttributeById({
         params: { attributeId },
@@ -87,7 +90,7 @@ export function attributeServiceBuilder(
       origin: string,
       code: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<attributeRegistryApi.Attribute> {
+    ): Promise<bffApi.Attribute> {
       logger.info(
         `Retrieving attribute with origin ${origin} and code ${code}`
       );
@@ -120,7 +123,7 @@ export function attributeServiceBuilder(
         headers,
       });
       return {
-        results: attributes.results,
+        results: attributes.results.map(toCompactAttribute),
         pagination: { offset, limit, totalCount: attributes.totalCount },
       };
     },

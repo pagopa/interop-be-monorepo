@@ -69,13 +69,15 @@ export function agreementServiceBuilder(
     async createAgreement(
       payload: bffApi.AgreementPayload,
       { headers, logger, authData }: WithLogger<BffAppContext>
-    ) {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(
         `Creating agreement with consumerId ${authData.organizationId} eserviceId ${payload.eserviceId} descriptorId ${payload.descriptorId}`
       );
-      return await agreementProcessClient.createAgreement(payload, {
+
+      const { id } = await agreementProcessClient.createAgreement(payload, {
         headers,
       });
+      return { id };
     },
 
     async getAgreements(

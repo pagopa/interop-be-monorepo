@@ -91,6 +91,7 @@ export function toBffCatalogDescriptorEService(
   agreement: agreementApi.Agreement | undefined,
   requesterTenant: tenantApi.Tenant
 ): bffApi.CatalogDescriptorEService {
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
     id: eservice.id,
     name: eservice.name,
@@ -101,12 +102,14 @@ export function toBffCatalogDescriptorEService(
     },
     description: eservice.description,
     technology: eservice.technology,
-    descriptors: getNotDraftDescriptor(eservice),
+    descriptors: getNotDraftDescriptor(eservice).map(toCompactDescriptor),
     agreement: agreement && toBffCompactAgreement(agreement, eservice),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: hasCertifiedAttributes(descriptor, requesterTenant),
     isSubscribed: isAgreementSubscribed(agreement),
-    activeDescriptor: getLatestActiveDescriptor(eservice),
+    activeDescriptor: activeDescriptor
+      ? toCompactDescriptor(activeDescriptor)
+      : undefined,
     mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
     riskAnalysis: eservice.riskAnalysis.map(
@@ -234,15 +237,13 @@ export function toBffCatalogApiProducerDescriptorEService(
 ): bffApi.ProducerDescriptorEService {
   const producerMail = getLatestTenantContactEmail(producer);
 
-  const notDraftDecriptors: bffApi.CompactDescriptor[] =
-    eservice.descriptors.filter(
-      (d) => d.state !== catalogApiDescriptorState.DRAFT
-    );
+  const notDraftDecriptors = eservice.descriptors
+    .filter((d) => d.state !== catalogApiDescriptorState.DRAFT)
+    .map(toCompactDescriptor);
 
-  const draftDescriptor: bffApi.CompactDescriptor | undefined =
-    eservice.descriptors.find(
-      (d) => d.state === catalogApiDescriptorState.DRAFT
-    );
+  const draftDescriptor = eservice.descriptors.find(
+    (d) => d.state === catalogApiDescriptorState.DRAFT
+  );
 
   return {
     id: eservice.id,
@@ -254,7 +255,9 @@ export function toBffCatalogApiProducerDescriptorEService(
       address: producerMail.address,
       description: producerMail.description,
     },
-    draftDescriptor,
+    draftDescriptor: draftDescriptor
+      ? toCompactDescriptor(draftDescriptor)
+      : undefined,
     riskAnalysis: eservice.riskAnalysis.map(
       toBffCatalogApiEserviceRiskAnalysis
     ),

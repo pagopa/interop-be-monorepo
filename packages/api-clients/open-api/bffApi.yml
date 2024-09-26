@@ -12626,6 +12626,8 @@ components:
         - AUTOMATIC
         - MANUAL
     Agreement:
+      type: object
+      additionalProperties: false
       properties:
         id:
           type: string
