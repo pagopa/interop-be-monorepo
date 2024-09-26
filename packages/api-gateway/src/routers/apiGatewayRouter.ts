@@ -425,7 +425,7 @@ const apiGatewayRouter = (
         try {
           const jwk = await authorizationService.getJWK(ctx, req.params.kid);
 
-          return res.status(200).send(jwk);
+          return res.status(200).send(apiGatewayApi.JWK.parse(jwk));
         } catch (error) {
           const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
