@@ -286,7 +286,9 @@ const apiGatewayRouter = (
             ctx,
             req.params.eserviceId
           );
-          return res.status(200).send(descriptors);
+          return res
+            .status(200)
+            .send(apiGatewayApi.EServiceDescriptors.parse(descriptors));
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -304,7 +306,9 @@ const apiGatewayRouter = (
             req.params.eserviceId,
             req.params.descriptorId
           );
-          return res.status(200).send(descriptor);
+          return res
+            .status(200)
+            .send(apiGatewayApi.EServiceDescriptor.parse(descriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
