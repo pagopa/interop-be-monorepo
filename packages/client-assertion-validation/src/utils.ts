@@ -40,8 +40,8 @@ import {
 import { config } from "./config.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
-  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
-export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
+  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials";
 export const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
