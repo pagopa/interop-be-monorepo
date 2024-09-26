@@ -16,11 +16,10 @@ import {
   getPurposeVersionByPurposeVersionId,
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
-  updatePurposeStateInPlatformStatesEntry,
-  updatePurposeStatesInTokenGenerationStatesTable,
-  updatePurposeVersionIdInPlatformStatesEntry,
-  updatePurposeVersionIdInTokenGenerationStatesTable,
+  updatePurposeDataInPlatformStatesEntry,
+  updatePurposeDataInTokenGenerationStatesTable,
   writePlatformPurposeEntry,
+  updatePurposeEntriesInTokenGenerationStatesTable,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -49,12 +48,12 @@ export async function handleMessageV2(
         existingPurposeEntry.version <= msg.version
       ) {
         // platform-states
-        await updatePurposeStateInPlatformStatesEntry(
+        await updatePurposeDataInPlatformStatesEntry({
           dynamoDBClient,
           primaryKey,
           purposeState,
-          msg.version
-        );
+          version: msg.version,
+        });
       } else {
         // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
@@ -70,15 +69,10 @@ export async function handleMessageV2(
       }
 
       // token-generation-states
-      // TODO: add missing updates
-      await updatePurposeStatesInTokenGenerationStatesTable(
+      await updatePurposeEntriesInTokenGenerationStatesTable(
         dynamoDBClient,
-        purpose.id,
-        purposeState
-      );
-      await updatePurposeVersionIdInTokenGenerationStatesTable(
-        dynamoDBClient,
-        purpose.id,
+        purpose,
+        purposeState,
         purpose.versions[0].id
       );
     })
@@ -127,30 +121,21 @@ export async function handleMessageV2(
           }
 
           // platform-states
-          await updatePurposeStateInPlatformStatesEntry(
+          await updatePurposeDataInPlatformStatesEntry({
             dynamoDBClient,
             primaryKey,
             purposeState,
-            msg.version
-          );
-          await updatePurposeVersionIdInPlatformStatesEntry(
-            dynamoDBClient,
-            primaryKey,
-            purposeVersion.id,
-            msg.version
-          );
+            version: msg.version,
+            purposeVersionId: purposeVersion.id,
+          });
 
           // token-generation-states
-          await updatePurposeStatesInTokenGenerationStatesTable(
+          await updatePurposeDataInTokenGenerationStatesTable({
             dynamoDBClient,
-            purpose.id,
-            purposeState
-          );
-          await updatePurposeVersionIdInTokenGenerationStatesTable(
-            dynamoDBClient,
-            purpose.id,
-            purposeVersion.id
-          );
+            purposeId: purpose.id,
+            purposeState,
+            purposeVersionId: purposeVersion.id,
+          });
         }
       }
     )
@@ -182,19 +167,19 @@ export async function handleMessageV2(
           return Promise.resolve();
         } else {
           // platform-states
-          await updatePurposeStateInPlatformStatesEntry(
+          await updatePurposeDataInPlatformStatesEntry({
             dynamoDBClient,
             primaryKey,
             purposeState,
-            msg.version
-          );
+            version: msg.version,
+          });
 
           // token-generation-states
-          await updatePurposeStatesInTokenGenerationStatesTable(
+          await updatePurposeDataInTokenGenerationStatesTable({
             dynamoDBClient,
-            purpose.id,
-            purposeState
-          );
+            purposeId: purpose.id,
+            purposeState,
+          });
         }
       }
     )
@@ -223,11 +208,11 @@ export async function handleMessageV2(
       await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
 
       // token-generation-states
-      await updatePurposeStatesInTokenGenerationStatesTable(
+      await updatePurposeDataInTokenGenerationStatesTable({
         dynamoDBClient,
-        purpose.id,
-        getPurposeStateFromPurposeVersions(purpose.versions)
-      );
+        purposeId: purpose.id,
+        purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+      });
     })
     .with(
       { type: "DraftPurposeDeleted" },

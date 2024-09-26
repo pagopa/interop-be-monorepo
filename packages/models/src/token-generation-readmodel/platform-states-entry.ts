@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  DescriptorId,
   EServiceId,
   PurposeId,
   PurposeVersionId,
@@ -33,6 +34,7 @@ type PlatformStatesBaseEntry = z.infer<typeof PlatformStatesBaseEntry>;
 export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
   descriptorAudience: z.string(),
+  descriptorVoucherLifespan: z.number(),
 });
 export type PlatformStatesCatalogEntry = z.infer<
   typeof PlatformStatesCatalogEntry
@@ -52,7 +54,7 @@ export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesAgreementPK,
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
   GSISK_agreementTimestamp: z.string().datetime(),
-  agreementDescriptorId: z.string(),
+  agreementDescriptorId: DescriptorId,
 });
 export type PlatformStatesAgreementEntry = z.infer<
   typeof PlatformStatesAgreementEntry

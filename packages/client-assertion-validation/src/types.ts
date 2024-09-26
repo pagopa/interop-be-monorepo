@@ -1,15 +1,19 @@
-import { authorizationManagementApi } from "pagopa-interop-api-clients";
 import {
   AgreementId,
   ApiError,
   ClientId,
   clientKindTokenStates,
   EServiceId,
+  ItemState,
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { ErrorCodes } from "./errors.js";
+import {
+  EXPECTED_CLIENT_ASSERTION_TYPE,
+  EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE,
+} from "./utils.js";
 
 export const ClientAssertionDigest = z
   .object({
@@ -22,7 +26,7 @@ export type ClientAssertionDigest = z.infer<typeof ClientAssertionDigest>;
 export const ClientAssertionHeader = z
   .object({
     kid: z.string(),
-    alg: z.string(), // TODO Enum, which values?
+    alg: z.string(),
   })
   .strict();
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
@@ -51,23 +55,24 @@ export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
 export const Key = z
   .object({
-    GSIPK_clientId: ClientId,
+    clientId: ClientId,
     consumerId: TenantId,
-    kidWithPurposeId: z.string(), // TODO which field of the table is mapped to this?
+    kid: z.string(),
+    purposeId: PurposeId,
     publicKey: z.string().min(1),
-    algorithm: z.literal("RS256"), // no field to map from the table. Is it extracted from publicKey field?
+    algorithm: z.literal("RS256"),
   })
   .strict();
 export type Key = z.infer<typeof Key>;
 
 export const ConsumerKey = Key.extend({
   clientKind: z.literal(clientKindTokenStates.consumer),
-  GSIPK_purposeId: PurposeId, // TODO is this naming ok?
-  purposeState: authorizationManagementApi.ClientComponentState,
+  purposeId: PurposeId,
+  purposeState: ItemState,
   agreementId: AgreementId,
-  agreementState: authorizationManagementApi.ClientComponentState,
-  eServiceId: EServiceId, // no field to map. Extract from GSIPK_eserviceId_descriptorId?
-  descriptorState: authorizationManagementApi.ClientComponentState,
+  agreementState: ItemState,
+  eServiceId: EServiceId,
+  descriptorState: ItemState,
 }).strict();
 export type ConsumerKey = z.infer<typeof ConsumerKey>;
 
@@ -83,3 +88,14 @@ export type FailedValidation = {
   errors: Array<ApiError<ErrorCodes>>;
   data: undefined;
 };
+
+export const ClientAssertionValidationRequest = z.object({
+  client_id: z.optional(z.string().uuid()),
+  client_assertion: z.string(),
+  client_assertion_type: z.literal(EXPECTED_CLIENT_ASSERTION_TYPE),
+  grant_type: z.literal(EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE),
+});
+
+export type ClientAssertionValidationRequest = z.infer<
+  typeof ClientAssertionValidationRequest
+>;
