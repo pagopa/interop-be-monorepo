@@ -8,6 +8,7 @@ import {
   S3Client,
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { FileManagerConfig } from "../config/fileManagerConfig.js";
 import { Logger, LoggerConfig } from "../index.js";
 import {
@@ -19,6 +20,11 @@ import {
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
+  buildS3Key: (
+    path: string,
+    resourceId: string | undefined,
+    fileName: string
+  ) => string;
   delete: (bucket: string, path: string, logger: Logger) => Promise<void>;
   copy: (
     bucket: string,
@@ -29,15 +35,35 @@ export type FileManager = {
     logger: Logger
   ) => Promise<string>;
   storeBytes: (
+    s3File: {
+      bucket: string;
+      path: string;
+      resourceId?: string;
+      name: string;
+      content: Buffer;
+    },
+    logger: Logger
+  ) => Promise<string>;
+  storeBytesByKey: (
     bucket: string,
-    path: string,
-    resourceId: string,
-    fileName: string,
+    key: string,
     fileContent: Buffer,
     logger: Logger
   ) => Promise<string>;
   get: (bucket: string, path: string, logger: Logger) => Promise<Uint8Array>;
   listFiles: (bucket: string, logger: Logger) => Promise<string[]>;
+  generateGetPresignedUrl: (
+    bucketName: string,
+    path: string,
+    fileName: string,
+    durationInMinutes: number
+  ) => Promise<string>;
+  generatePutPresignedUrl: (
+    bucketName: string,
+    path: string,
+    fileName: string,
+    durationInMinutes: number
+  ) => Promise<string>;
 };
 
 export function initFileManager(
@@ -54,11 +80,36 @@ export function initFileManager(
 
   const buildS3Key = (
     path: string,
-    resourceId: string,
+    resourceId: string | undefined,
     fileName: string
-  ): string => `${path}/${resourceId}/${fileName}`;
+  ): string =>
+    [path, resourceId, fileName].filter((s) => s && s.length > 0).join("/");
+
+  const store = async (
+    bucket: string,
+    key: string,
+    fileContent: Buffer
+  ): Promise<string> => {
+    try {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: fileContent,
+        })
+      );
+      return key;
+    } catch (error) {
+      throw fileManagerStoreBytesError(key, bucket, error);
+    }
+  };
 
   return {
+    buildS3Key: (
+      path: string,
+      resourceId: string | undefined,
+      fileName: string
+    ): string => buildS3Key(path, resourceId, fileName),
     delete: async (
       bucket: string,
       path: string,
@@ -140,28 +191,49 @@ export function initFileManager(
         throw fileManagerListFilesError(bucket, error);
       }
     },
-    storeBytes: async (
+    storeBytesByKey: async (
       bucket: string,
-      path: string,
-      resourceId: string,
-      fileName: string,
+      key: string,
       fileContent: Buffer,
       logger: Logger
     ): Promise<string> => {
-      const key = buildS3Key(path, resourceId, fileName);
       logger.info(`Storing file ${key} in bucket ${bucket}`);
-      try {
-        await client.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            Body: fileContent,
-          })
-        );
-        return key;
-      } catch (error) {
-        throw fileManagerStoreBytesError(key, bucket, error);
-      }
+      return store(bucket, key, fileContent);
+    },
+    storeBytes: async (
+      s3File: {
+        bucket: string;
+        path: string;
+        resourceId?: string;
+        name: string;
+        content: Buffer;
+      },
+      logger: Logger
+    ): Promise<string> => {
+      const key = buildS3Key(s3File.path, s3File.resourceId, s3File.name);
+      logger.info(`Storing file ${key} in bucket ${s3File.bucket}`);
+
+      return store(s3File.bucket, key, s3File.content);
+    },
+    generateGetPresignedUrl: async (
+      bucketName: string,
+      path: string,
+      fileName: string,
+      durationInMinutes: number
+    ): Promise<string> => {
+      const key: string = buildS3Key(path, undefined, fileName);
+      const command = new GetObjectCommand({ Bucket: bucketName, Key: key });
+      return getSignedUrl(client, command, { expiresIn: durationInMinutes });
+    },
+    generatePutPresignedUrl: async (
+      bucketName: string,
+      path: string,
+      fileName: string,
+      durationInMinutes: number
+    ): Promise<string> => {
+      const key: string = buildS3Key(path, undefined, fileName);
+      const command = new PutObjectCommand({ Bucket: bucketName, Key: key });
+      return getSignedUrl(client, command, { expiresIn: durationInMinutes });
     },
   };
 }

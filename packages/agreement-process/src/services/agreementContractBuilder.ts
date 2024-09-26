@@ -50,11 +50,15 @@ const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 const retrieveUser = async (
   selfcareV2Client: SelfcareV2UsersClient,
   selfcareId: SelfcareId,
-  id: UserId
+  id: UserId,
+  correlationId: string
 ): Promise<selfcareV2ClientApi.UserResponse> => {
   const user = await selfcareV2Client.getUserInfoUsingGET({
     queries: { institutionId: selfcareId },
     params: { id },
+    headers: {
+      "X-Correlation-Id": correlationId,
+    },
   });
 
   if (!user) {
@@ -142,7 +146,8 @@ const getAttributeInvolved = async (
 const getSubmissionInfo = async (
   selfcareV2Client: SelfcareV2UsersClient,
   consumer: Tenant,
-  agreement: Agreement
+  agreement: Agreement,
+  correlationId: string
 ): Promise<[string, Date]> => {
   const submission = agreement.stamps.submission;
   if (!submission) {
@@ -158,7 +163,8 @@ const getSubmissionInfo = async (
   const consumerUser: selfcareV2ClientApi.UserResponse = await retrieveUser(
     selfcareV2Client,
     consumerSelfcareId,
-    submission.who
+    submission.who,
+    correlationId
   );
   if (consumerUser.name && consumerUser.surname && consumerUser.taxCode) {
     return [
@@ -174,7 +180,8 @@ const getActivationInfo = async (
   selfcareV2Client: SelfcareV2UsersClient,
   producer: Tenant,
   consumer: Tenant,
-  agreement: Agreement
+  agreement: Agreement,
+  correlationId: string
 ): Promise<[string, Date]> => {
   const activation = agreement.stamps.activation;
   if (!activation) {
@@ -203,14 +210,16 @@ const getActivationInfo = async (
     user = await retrieveUser(
       selfcareV2Client,
       producerSelfcareId,
-      activation.who
+      activation.who,
+      correlationId
     );
   } catch (e) {
     if (isAxiosError(e) && e.response?.status === 404) {
       user = await retrieveUser(
         selfcareV2Client,
         consumerSelfcareId,
-        activation.who
+        activation.who,
+        correlationId
       );
     } else {
       throw e;
@@ -230,7 +239,8 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   readModelService: ReadModelService,
-  selfcareV2Client: SelfcareV2UsersClient
+  selfcareV2Client: SelfcareV2UsersClient,
+  correlationId: string
 ): Promise<AgreementContractPDFPayload> => {
   const getTenantText = (name: string, origin: string, value: string): string =>
     origin === "IPA" ? `"${name} (codice IPA: ${value})` : name;
@@ -312,13 +322,15 @@ const getPdfPayload = async (
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareV2Client,
     consumer,
-    agreement
+    agreement,
+    correlationId
   );
   const [activator, activationTimestamp] = await getActivationInfo(
     selfcareV2Client,
     producer,
     consumer,
-    agreement
+    agreement,
+    correlationId
   );
 
   const { certified, declared, verified } = await getAttributeInvolved(
@@ -353,7 +365,8 @@ export const contractBuilder = (
   fileManager: FileManager,
   selfcareV2Client: SelfcareV2UsersClient,
   config: AgreementProcessConfig,
-  logger: Logger
+  logger: Logger,
+  correlationId: string
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -378,7 +391,8 @@ export const contractBuilder = (
         consumer,
         producer,
         readModelService,
-        selfcareV2Client
+        selfcareV2Client,
+        correlationId
       );
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
@@ -395,11 +409,13 @@ export const contractBuilder = (
       );
 
       const documentPath = await fileManager.storeBytes(
-        config.s3Bucket,
-        `${config.agreementContractsPath}/${agreement.id}`,
-        documentId,
-        documentName,
-        pdfBuffer,
+        {
+          bucket: config.s3Bucket,
+          path: `${config.agreementContractsPath}/${agreement.id}`,
+          resourceId: documentId,
+          name: documentName,
+          content: pdfBuffer,
+        },
         logger
       );
 

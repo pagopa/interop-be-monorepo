@@ -121,8 +121,7 @@ export const authorizationMiddleware =
           // NOTE(gabro): this is fine, we don't need the type safety provided by Zod since this is a generic middleware.
           // Preserving the type-level machinery to check the correctness of the json body wrt the status code is not worth the effort.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-assertion
-          .json(problem as any)
-          .end()
+          .send(problem as any)
       );
     }
   };

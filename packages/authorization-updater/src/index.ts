@@ -151,8 +151,7 @@ export async function sendAgreementAuthUpdate(
           "AgreementSuspendedByPlatform",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByProducer",
-          "AgreementArchivedByConsumer",
-          "AgreementArchivedByUpgrade"
+          "AgreementArchivedByConsumer"
         ),
       },
       async (msg) => {
@@ -215,7 +214,8 @@ export async function sendAgreementAuthUpdate(
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementArchivedByUpgrade"
         ),
       },
       () => {
@@ -431,6 +431,17 @@ export async function sendAuthorizationAuthUpdate(
         correlationId
       );
     })
+    .with(
+      { type: "ProducerKeychainAdded" },
+      { type: "ProducerKeychainDeleted" },
+      { type: "ProducerKeychainKeyAdded" },
+      { type: "ProducerKeychainKeyDeleted" },
+      { type: "ProducerKeychainUserAdded" },
+      { type: "ProducerKeychainUserDeleted" },
+      { type: "ProducerKeychainEServiceAdded" },
+      { type: "ProducerKeychainEServiceRemoved" },
+      () => Promise.resolve
+    )
     .exhaustive();
 }
 
