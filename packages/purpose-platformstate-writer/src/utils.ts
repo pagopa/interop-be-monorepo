@@ -34,7 +34,6 @@ import {
   PurposeVersion,
   PurposeVersionId,
   purposeVersionState,
-  TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -130,7 +129,7 @@ export const deletePlatformPurposeEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readTokenEntriesByPurposeId = async (
+export const readTokenEntriesByGSIPKPurposeId = async (
   dynamoDBClient: DynamoDBClient,
   purposeId: PurposeId
 ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
@@ -188,12 +187,24 @@ export const readTokenEntriesByPurposeId = async (
   return await runPaginatedQuery(purposeId, dynamoDBClient, undefined);
 };
 
-export const updatePurposeStateInPlatformStatesEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesPurposePK,
-  state: ItemState,
-  version: number
-): Promise<void> => {
+export const updatePurposeDataInPlatformStatesEntry = async ({
+  dynamoDBClient,
+  primaryKey,
+  purposeState,
+  version,
+  purposeVersionId,
+}: {
+  dynamoDBClient: DynamoDBClient;
+  primaryKey: PlatformStatesPurposePK;
+  purposeState: ItemState;
+  version: number;
+  purposeVersionId?: PurposeVersionId;
+}): Promise<void> => {
+  const {
+    purposeVersionIdExpressionAttributeValues,
+    purposeVersionIdUpdateExpression,
+  } = getPurposeVersionIdUpdateQueryData(purposeVersionId);
+
   const input: UpdateItemInput = {
     ConditionExpression: "attribute_exists(PK)",
     Key: {
@@ -202,8 +213,9 @@ export const updatePurposeStateInPlatformStatesEntry = async (
       },
     },
     ExpressionAttributeValues: {
+      ...purposeVersionIdExpressionAttributeValues,
       ":newState": {
-        S: state,
+        S: purposeState,
       },
       ":newVersion": {
         N: version.toString(),
@@ -216,7 +228,8 @@ export const updatePurposeStateInPlatformStatesEntry = async (
       "#state": "state",
     },
     UpdateExpression:
-      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt",
+      "SET #state = :newState, version = :newVersion, updatedAt = :newUpdateAt" +
+      purposeVersionIdUpdateExpression,
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
@@ -230,7 +243,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
   purposeState: ItemState,
   purposeVersionId: PurposeVersionId
 ): Promise<void> => {
-  const entriesToUpdate = await readTokenEntriesByPurposeId(
+  const entriesToUpdate = await readTokenEntriesByGSIPKPurposeId(
     dynamoDBClient,
     purpose.id
   );
@@ -353,51 +366,54 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
   }
 };
 
-export const updatePurposeStatesInTokenGenerationStatesTable = async (
-  dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId,
-  purposeState: ItemState
-): Promise<void> => {
-  const entriesToUpdate = await readTokenEntriesByPurposeId(
+// TODO
+export const updatePurposeDataInTokenGenerationStatesTable = async ({
+  dynamoDBClient,
+  purposeId,
+  purposeState,
+  purposeVersionId,
+}: {
+  dynamoDBClient: DynamoDBClient;
+  purposeId: PurposeId;
+  purposeState: ItemState;
+  purposeVersionId?: PurposeVersionId;
+}): Promise<void> => {
+  const {
+    purposeVersionIdExpressionAttributeValues,
+    purposeVersionIdUpdateExpression,
+  } = getPurposeVersionIdUpdateQueryData(purposeVersionId);
+
+  const entriesToUpdate = await readTokenEntriesByGSIPKPurposeId(
     dynamoDBClient,
     purposeId
   );
 
   for (const entry of entriesToUpdate) {
-    await updatePurposeStateInTokenGenerationStatesTable(
-      dynamoDBClient,
-      entry.PK,
-      purposeState
-    );
+    const input: UpdateItemInput = {
+      ConditionExpression: "attribute_exists(GSIPK_purposeId)",
+      Key: {
+        PK: {
+          S: entry.PK,
+        },
+      },
+      ExpressionAttributeValues: {
+        ...purposeVersionIdExpressionAttributeValues,
+        ":newState": {
+          S: purposeState,
+        },
+        ":newUpdateAt": {
+          S: new Date().toISOString(),
+        },
+      },
+      UpdateExpression:
+        "SET purposeState = :newState, updatedAt = :newUpdateAt" +
+        purposeVersionIdUpdateExpression,
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "NONE",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
   }
-};
-
-export const updatePurposeStateInTokenGenerationStatesTable = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: TokenGenerationStatesClientKidPurposePK,
-  purposeState: ItemState
-): Promise<void> => {
-  const input: UpdateItemInput = {
-    ConditionExpression: "attribute_exists(GSIPK_purposeId)",
-    Key: {
-      PK: {
-        S: primaryKey,
-      },
-    },
-    ExpressionAttributeValues: {
-      ":newState": {
-        S: purposeState,
-      },
-      ":newUpdateAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    UpdateExpression: "SET purposeState = :newState, updatedAt = :newUpdateAt",
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-    ReturnValues: "NONE",
-  };
-  const command = new UpdateItemCommand(input);
-  await dynamoDBClient.send(command);
 };
 
 export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
@@ -432,76 +448,6 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
         )} `
       );
     }
-  }
-};
-
-// TODO: should create generic function to update?
-export const updatePurposeVersionIdInPlatformStatesEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesPurposePK,
-  purposeVersionId: PurposeVersionId,
-  version: number
-): Promise<void> => {
-  const input: UpdateItemInput = {
-    ConditionExpression: "attribute_exists(PK)",
-    Key: {
-      PK: {
-        S: primaryKey,
-      },
-    },
-    ExpressionAttributeValues: {
-      ":newPurposeVersionId": {
-        S: purposeVersionId,
-      },
-      ":newVersion": {
-        N: version.toString(),
-      },
-      ":newUpdateAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    UpdateExpression:
-      "SET purposeVersionId = :newPurposeVersionId, version = :newVersion, updatedAt = :newUpdateAt",
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-    ReturnValues: "NONE",
-  };
-  const command = new UpdateItemCommand(input);
-  await dynamoDBClient.send(command);
-};
-
-export const updatePurposeVersionIdInTokenGenerationStatesTable = async (
-  dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId,
-  purposeVersionId: PurposeVersionId
-): Promise<void> => {
-  const entriesToUpdate = await readTokenEntriesByPurposeId(
-    dynamoDBClient,
-    purposeId
-  );
-
-  for (const entry of entriesToUpdate) {
-    const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(GSIPK_purposeId)",
-      Key: {
-        PK: {
-          S: entry.PK,
-        },
-      },
-      ExpressionAttributeValues: {
-        ":newPurposeVersionId": {
-          S: purposeVersionId,
-        },
-        ":newUpdateAt": {
-          S: new Date().toISOString(),
-        },
-      },
-      UpdateExpression:
-        "SET purposeVersionId = :newPurposeVersionId, updatedAt = :newUpdateAt",
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      ReturnValues: "NONE",
-    };
-    const command = new UpdateItemCommand(input);
-    await dynamoDBClient.send(command);
   }
 };
 
@@ -541,3 +487,29 @@ export const getPurposeVersionByPurposeVersionId = (
   purposeVersionId: PurposeVersionId
 ): PurposeVersion | undefined =>
   purposeVersions.find((v) => v.id === purposeVersionId);
+
+const getPurposeVersionIdUpdateQueryData = (
+  purposeVersionId: PurposeVersionId | undefined
+): {
+  purposeVersionIdExpressionAttributeValues: Record<string, AttributeValue>;
+  purposeVersionIdUpdateExpression: string;
+} => {
+  const purposeVersionIdExpressionAttributeValues: Record<
+    string,
+    AttributeValue
+  > = purposeVersionId
+    ? {
+        ":newPurposeVersionId": {
+          S: purposeVersionId,
+        },
+      }
+    : {};
+  const purposeVersionIdUpdateExpression = purposeVersionId
+    ? ", purposeVersionId = :newPurposeVersionId"
+    : "";
+
+  return {
+    purposeVersionIdExpressionAttributeValues,
+    purposeVersionIdUpdateExpression,
+  };
+};
