@@ -9,19 +9,15 @@ import {
   ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
   genericInternalError,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
-import { afterEach, inject, vi } from "vitest";
+import { inject, vi } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 
 export const config = inject("tokenGenerationReadModelConfig");
-export const { cleanup } = setupTestContainersVitest();
-
-afterEach(cleanup);
 
 export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
   new Promise((resolve) => {

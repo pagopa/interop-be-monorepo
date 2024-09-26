@@ -85,7 +85,9 @@ async function getAttributes({
   limit: number;
 }): Promise<ListResult<Attribute>> {
   const data = await attributes
-    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
+      allowDiskUse: true,
+    })
     .toArray();
   const result = z.array(Attribute).safeParse(data.map((d) => d.data));
   if (!result.success) {
@@ -99,8 +101,7 @@ async function getAttributes({
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       attributes,
-      aggregationPipeline,
-      false
+      aggregationPipeline
     ),
   };
 }
