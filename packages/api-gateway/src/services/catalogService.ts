@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-identical-functions */
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
@@ -50,6 +49,24 @@ export function getAllEservices(
   );
 }
 
+const retrieveEservice = async (
+  catalogProcessClient: CatalogProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  eserviceId: catalogApi.EService["id"]
+): Promise<catalogApi.EService> =>
+  await catalogProcessClient
+    .getEServiceById({
+      headers,
+      params: {
+        eServiceId: eserviceId,
+      },
+    })
+    .catch((res) => {
+      throw clientStatusCodeToError(res, {
+        404: eserviceNotFound(eserviceId),
+      });
+    });
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
@@ -84,18 +101,11 @@ export function catalogServiceBuilder(
       eserviceId: catalogApi.EService["id"]
     ): Promise<apiGatewayApi.EService> => {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eservice = await catalogProcessClient
-        .getEServiceById({
-          headers,
-          params: {
-            eServiceId: eserviceId,
-          },
-        })
-        .catch((res) => {
-          throw clientStatusCodeToError(res, {
-            404: eserviceNotFound(eserviceId),
-          });
-        });
+      const eservice = await retrieveEservice(
+        catalogProcessClient,
+        headers,
+        eserviceId
+      );
 
       return enhanceEservice(
         tenantProcessClient,
@@ -114,18 +124,11 @@ export function catalogServiceBuilder(
         `Retrieving Descriptor ${descriptorId} of EService ${eserviceId}`
       );
 
-      const eservice = await catalogProcessClient
-        .getEServiceById({
-          headers,
-          params: {
-            eServiceId: eserviceId,
-          },
-        })
-        .catch((res) => {
-          throw clientStatusCodeToError(res, {
-            404: eserviceNotFound(eserviceId),
-          });
-        });
+      const eservice = await retrieveEservice(
+        catalogProcessClient,
+        headers,
+        eserviceId
+      );
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
@@ -137,18 +140,11 @@ export function catalogServiceBuilder(
     ): Promise<apiGatewayApi.EServiceDescriptors> => {
       logger.info(`Retrieving Descriptors of EService ${eserviceId}`);
 
-      const eservice = await catalogProcessClient
-        .getEServiceById({
-          headers,
-          params: {
-            eServiceId: eserviceId,
-          },
-        })
-        .catch((res) => {
-          throw clientStatusCodeToError(res, {
-            404: eserviceNotFound(eserviceId),
-          });
-        });
+      const eservice = await retrieveEservice(
+        catalogProcessClient,
+        headers,
+        eserviceId
+      );
 
       const descriptors = eservice.descriptors
         .filter(isNonDraft)
