@@ -2665,7 +2665,7 @@ components:
         code:
           type: string
           description: source identifier
-          pattern: '[a-z0-9 \-]{,48}'
+          pattern: '^[a-zA-Z0-9\-_]+$'
           maxLength: 48
         origin:
           $ref: "#/components/schemas/Origin"
