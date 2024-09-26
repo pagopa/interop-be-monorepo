@@ -67,7 +67,7 @@ services:
     image: amazon/aws-cli
     working_dir: /home/tables
     volumes:
-      - ./dynamoDB-tables:/home/tables
+      - ./dynamo-db/schema:/home/tables
     environment:
       AWS_ACCESS_KEY_ID: keyid
       AWS_SECRET_ACCESS_KEY: key
