@@ -168,6 +168,7 @@ export function purposeServiceBuilder(
       waitingForApprovalVersion,
       suspendedByConsumer: purpose.suspendedByConsumer,
       suspendedByProducer: purpose.suspendedByProducer,
+      freeOfChargeReason: purpose.freeOfChargeReason,
       isFreeOfCharge: purpose.isFreeOfCharge,
       dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
