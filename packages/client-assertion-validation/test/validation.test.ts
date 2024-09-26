@@ -86,6 +86,24 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
     });
+
+    it("invalidAssertionType and invalidGrantType", () => {
+      const wrongAssertionType = "something-wrong";
+      const wrongGrantType = "something-wrong";
+
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        client_assertion_type: wrongAssertionType,
+        grant_type: wrongGrantType,
+      };
+      const { errors } = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([
+        invalidAssertionType(wrongAssertionType),
+        invalidGrantType(wrongGrantType),
+      ]);
+    });
   });
 
   describe("verifyClientAssertion", () => {
@@ -234,6 +252,18 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(issuerNotFound());
     });
 
+    it("jtiNotFound and issuerNotFound", () => {
+      const jws = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { jti: undefined, iss: undefined },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([jtiNotFound(), issuerNotFound()]);
+    });
+
     it("subjectNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
@@ -329,7 +359,7 @@ describe("validation test", () => {
         customHeader: {},
         standardClaimsOverride: {},
         customClaims: {
-          digest: { alg: "SHA256", value: "TODO string of wrong length" },
+          digest: { alg: "SHA256", value: "string of wrong length" },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -350,6 +380,23 @@ describe("validation test", () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidHashAlgorithm());
+    });
+
+    it("invalidHashLength and invalidHashAlgorithm", () => {
+      const jws = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {
+          digest: { alg: "wrong alg", value: "string of wrong length" },
+        },
+      });
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([
+        invalidHashLength("wrong alg"),
+        invalidHashAlgorithm(),
+      ]);
     });
 
     it.skip("AlgorithmNotFound", () => {
@@ -540,7 +587,7 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(inactiveAgreement());
     });
-    it("inactiveAgreement", () => {
+    it("inactiveEservice", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
         descriptorState: itemState.inactive,
@@ -563,6 +610,24 @@ describe("validation test", () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(inactivePurpose());
+    });
+    it("inactiveAgreement and inactiveEservice and inactivePurpose", () => {
+      const mockKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        agreementState: itemState.inactive,
+        descriptorState: itemState.inactive,
+        purposeState: itemState.inactive,
+      };
+      validatePlatformState(mockKey);
+      const { errors } = validatePlatformState(mockKey);
+
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(3);
+      expect(errors).toEqual([
+        inactiveAgreement(),
+        inactiveEService(),
+        inactivePurpose(),
+      ]);
     });
   });
 
@@ -652,6 +717,31 @@ describe("validation test", () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(purposeIdNotProvided());
+    });
+
+    it("purposeIdNotProvided and plaformStateError", () => {
+      const mockConsumerKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        agreementState: itemState.inactive,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          standardClaimsOverride: { purposeId: undefined },
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([inactiveAgreement(), purposeIdNotProvided()]);
     });
   });
 });
