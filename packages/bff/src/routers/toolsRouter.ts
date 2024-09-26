@@ -35,8 +35,7 @@ const toolsRouter = (
       );
       return res
         .status(200)
-        .json(bffApi.TokenGenerationValidationResult.parse(result))
-        .end();
+        .send(bffApi.TokenGenerationValidationResult.parse(result));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -44,7 +43,7 @@ const toolsRouter = (
         ctx.logger,
         "Error validating token generation request"
       );
-      return res.status(errorRes.status).json(errorRes).end();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
