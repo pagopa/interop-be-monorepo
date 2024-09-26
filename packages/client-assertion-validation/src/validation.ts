@@ -107,9 +107,9 @@ export const verifyClientAssertion = (
       // means that we have all successfull validations in the tuple.
       // We force it with a type assertion that tells it exactly that.
       const successfullValidations = validations as {
-        [K in keyof typeof validations]: ((typeof validations)[K] & {
+        [K in keyof typeof validations]: (typeof validations)[K] & {
           hasSucceeded: true;
-        })["data"];
+        };
       };
 
       return successfulValidation({
