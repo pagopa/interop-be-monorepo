@@ -10,6 +10,12 @@ import {
   CatalogProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import {
+  attributeByOriginNotFound,
+  tenantByOriginNotFound,
+  tenantNotFound,
+} from "../models/errors.js";
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
 export async function getOrganization(
@@ -60,7 +66,11 @@ export function tenantServiceBuilder(
         attributeProcessClient,
         headers,
         tenantId
-      );
+      ).catch((res) => {
+        throw clientStatusCodeToError(res, {
+          404: tenantNotFound(tenantId),
+        });
+      });
     },
     getOrganizationEservices: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -76,21 +86,32 @@ export function tenantServiceBuilder(
         `Retrieving Organization EServices for origin ${origin} externalId ${externalId} attributeOrigin ${attributeOrigin} attributeCode ${attributeCode}`
       );
 
-      const tenant = await tenantProcessClient.tenant.getTenantByExternalId({
-        headers,
-        params: {
-          origin,
-          code: externalId,
-        },
-      });
+      const tenant = await tenantProcessClient.tenant
+        .getTenantByExternalId({
+          headers,
+          params: {
+            origin,
+            code: externalId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: tenantByOriginNotFound(origin, externalId),
+          });
+        });
 
-      const attribute =
-        await attributeProcessClient.getAttributeByOriginAndCode({
+      const attribute = await attributeProcessClient
+        .getAttributeByOriginAndCode({
           headers,
           params: {
             origin: attributeOrigin,
             code: attributeCode,
           },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: attributeByOriginNotFound(attributeOrigin, attributeCode),
+          });
         });
 
       const allEservices = await getAllEservices(

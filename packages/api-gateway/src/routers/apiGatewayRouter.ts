@@ -24,6 +24,8 @@ import {
   getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
   getJWKErrorMapper,
+  getOrganizationErrorMapper,
+  getOrganizationEservicesErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
@@ -525,7 +527,11 @@ const apiGatewayRouter = (
             .status(200)
             .send(apiGatewayApi.Organization.parse(organization));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getOrganizationErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -585,7 +591,11 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.EServices.parse(eservices));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getOrganizationEservicesErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

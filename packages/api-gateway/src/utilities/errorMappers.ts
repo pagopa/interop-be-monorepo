@@ -71,6 +71,21 @@ export const getEserviceDescriptorErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getOrganizationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getOrganizationEservicesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantByOriginNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeByOriginNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)

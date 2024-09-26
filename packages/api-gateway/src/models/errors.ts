@@ -4,6 +4,7 @@ import {
   authorizationApi,
   catalogApi,
   purposeApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
@@ -21,6 +22,9 @@ export const errorCodes = {
   keyNotFound: "0010",
   attributeAlreadyExists: "0011",
   clientNotFound: "0012",
+  tenantNotFound: "0013",
+  tenantByOriginNotFound: "0014",
+  attributeByOriginNotFound: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -193,5 +197,37 @@ export function purposeNotFound(
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function tenantNotFound(
+  tenantId: tenantApi.Tenant["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function tenantByOriginNotFound(
+  origin: tenantApi.ExternalId["origin"],
+  externalId: tenantApi.ExternalId["value"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant (${origin}, ${externalId}) not found`,
+    code: "tenantByOriginNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function attributeByOriginNotFound(
+  origin: attributeRegistryApi.Attribute["origin"],
+  code: attributeRegistryApi.Attribute["code"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute (${origin}, ${code}) not found`,
+    code: "attributeByOriginNotFound",
+    title: "Attribute not found",
   });
 }
