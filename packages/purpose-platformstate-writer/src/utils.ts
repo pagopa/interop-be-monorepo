@@ -276,6 +276,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
         !entry.agreementId ||
         !entry.agreementState);
 
+    // TODO: should the data from platform-states overwrite the data from token-generation-states?
     // Agreement data from platform-states
     const agreementExpressionAttributeValues: Record<string, AttributeValue> =
       isAgreementMissingInTokenTable
@@ -366,7 +367,6 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
   }
 };
 
-// TODO
 export const updatePurposeDataInTokenGenerationStatesTable = async ({
   dynamoDBClient,
   purposeId,
