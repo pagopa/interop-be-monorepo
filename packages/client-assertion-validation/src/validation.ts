@@ -85,58 +85,47 @@ export const verifyClientAssertion = (
       return failedValidation([unexpectedClientAssertionPayload()]);
     }
 
-    const kidValidation = validateKid(decoded.header.kid);
-    const algValidation = validateAlgorithm(decoded.header.alg);
-    const subValidation = validateSub(decoded.payload.sub, clientId);
-    const purposeIdValidation = validatePurposeId(decoded.payload.purposeId);
-    const jtiValidation = validateJti(decoded.payload.jti);
-    const iatValidation = validateIat(decoded.payload.iat);
-    const issValidation = validateIss(decoded.payload.iss);
-    const audValidation = validateAudience(decoded.payload.aud);
-    const expValidation = validateExp(decoded.payload.exp);
-    const digestValidation = validateDigest(decoded.payload.digest);
+    const validations = [
+      validateKid(decoded.header.kid),
+      validateAlgorithm(decoded.header.alg),
+      validateSub(decoded.payload.sub, clientId),
+      validatePurposeId(decoded.payload.purposeId),
+      validateJti(decoded.payload.jti),
+      validateIat(decoded.payload.iat),
+      validateIss(decoded.payload.iss),
+      validateAudience(decoded.payload.aud),
+      validateExp(decoded.payload.exp),
+      validateDigest(decoded.payload.digest),
+    ] as const;
 
-    const errors = [
-      kidValidation,
-      algValidation,
-      subValidation,
-      purposeIdValidation,
-      jtiValidation,
-      iatValidation,
-      issValidation,
-      audValidation,
-      expValidation,
-      digestValidation,
-    ]
+    const errors = validations
       .filter((validation) => !validation.hasSucceeded)
       .flatMap(({ errors }) => errors);
 
-    if (
-      kidValidation.hasSucceeded &&
-      algValidation.hasSucceeded &&
-      subValidation.hasSucceeded &&
-      purposeIdValidation.hasSucceeded &&
-      jtiValidation.hasSucceeded &&
-      iatValidation.hasSucceeded &&
-      issValidation.hasSucceeded &&
-      audValidation.hasSucceeded &&
-      expValidation.hasSucceeded &&
-      digestValidation.hasSucceeded
-    ) {
+    if (errors.length === 0) {
+      // ts-server does not understand that the errors being of lenght zero
+      // means that we have all successfull validations in the tuple.
+      // We force it with a type assertion that tells it exactly that.
+      const successfullValidations = validations as {
+        [K in keyof typeof validations]: ((typeof validations)[K] & {
+          hasSucceeded: true;
+        })["data"];
+      };
+
       return successfulValidation({
         header: {
-          kid: kidValidation.data,
-          alg: algValidation.data,
+          kid: successfullValidations[0].data,
+          alg: successfullValidations[1].data,
         },
         payload: {
-          sub: subValidation.data,
-          purposeId: purposeIdValidation.data,
-          jti: jtiValidation.data,
-          iat: iatValidation.data,
-          iss: issValidation.data,
-          aud: audValidation.data,
-          exp: expValidation.data,
-          digest: digestValidation.data,
+          sub: successfullValidations[2].data,
+          purposeId: successfullValidations[3].data,
+          jti: successfullValidations[4].data,
+          iat: successfullValidations[5].data,
+          iss: successfullValidations[6].data,
+          aud: successfullValidations[7].data,
+          exp: successfullValidations[8].data,
+          digest: successfullValidations[9].data,
         },
       } satisfies ValidatedClientAssertion);
     }
