@@ -1,6 +1,7 @@
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
+  Logger,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -99,7 +100,8 @@ export function catalogServiceBuilder(
         tenantProcessClient,
         attributeProcessClient,
         headers,
-        eservice
+        eservice,
+        logger
       );
     },
     getEserviceDescriptor: async (
@@ -119,7 +121,7 @@ export function catalogServiceBuilder(
       });
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
-      return toApiGatewayDescriptorIfNotDraft(descriptor);
+      return toApiGatewayDescriptorIfNotDraft(descriptor, eserviceId, logger);
     },
     getEserviceDescriptors: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -136,7 +138,7 @@ export function catalogServiceBuilder(
 
       const descriptors = eservice.descriptors
         .filter(isNonDraft)
-        .map((d) => toApiGatewayDescriptorIfNotDraft(d));
+        .map((d) => toApiGatewayDescriptorIfNotDraft(d, eserviceId, logger));
 
       return { descriptors };
     },
@@ -160,17 +162,24 @@ function retrieveEserviceDescriptor(
 }
 
 function getLatestNonDraftDescriptor(
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  logger: Logger
 ): NonDraftCatalogApiDescriptor {
   const latestNonDraftDescriptor = eservice.descriptors
     .filter(isNonDraft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 
-  assertAvailableDescriptorExists(latestNonDraftDescriptor, eservice.id);
+  assertAvailableDescriptorExists(
+    latestNonDraftDescriptor,
+    eservice.id,
+    logger
+  );
   assertNonDraftDescriptor(
     latestNonDraftDescriptor,
-    latestNonDraftDescriptor.id
+    latestNonDraftDescriptor.id,
+    eservice.id,
+    logger
   );
 
   return latestNonDraftDescriptor;
@@ -205,9 +214,13 @@ export async function enhanceEservice(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  logger: Logger
 ): Promise<apiGatewayApi.EService> {
-  const latestNonDraftDescriptor = getLatestNonDraftDescriptor(eservice);
+  const latestNonDraftDescriptor = getLatestNonDraftDescriptor(
+    eservice,
+    logger
+  );
   const descriptorAttributes = await getDescriptorAttributes(
     attributeProcessClient,
     headers,

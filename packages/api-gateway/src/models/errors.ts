@@ -15,13 +15,12 @@ export const errorCodes = {
   activeAgreementByEserviceAndConsumerNotFound: "0004",
   multipleAgreementForEserviceAndConsumer: "0005",
   eserviceNotFound: "0006",
-  unexpectedDescriptorState: "0007",
+  attributeNotFound: "0007",
   attributeNotFoundInRegistry: "0008",
   eserviceDescriptorNotFound: "0009",
   keyNotFound: "0010",
   attributeAlreadyExists: "0011",
-  attributeNotFound: "0012",
-  clientNotFound: "0013",
+  clientNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

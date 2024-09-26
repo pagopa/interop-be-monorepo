@@ -109,7 +109,8 @@ export function tenantServiceBuilder(
             tenantProcessClient,
             attributeProcessClient,
             headers,
-            eservice
+            eservice,
+            logger
           )
         )
       );
