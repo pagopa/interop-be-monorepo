@@ -1,2 +1,6 @@
 export * from "./validation.js";
-export * from "./types.js";
+export {
+  ClientAssertion,
+  ValidationResult,
+  ClientAssertionValidationRequest,
+} from "./types.js";

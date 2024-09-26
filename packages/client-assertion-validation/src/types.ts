@@ -53,6 +53,45 @@ export const ClientAssertion = z
   .strict();
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
 
+declare const brand: unique symbol;
+
+export type Brand<T, TBrand> = T & { [brand]: TBrand };
+
+export type ValidatedAlg = Brand<string, "alg">;
+export type ValidatedKid = Brand<string, "kid">;
+export type ValidatedSub = Brand<string, "sub">;
+export type ValidatedJti = Brand<string, "jti">;
+export type ValidatedIat = Brand<number, "iat">;
+export type ValidatedIss = Brand<string, "iss">;
+export type ValidatedAud = Brand<string[], "aud">;
+export type ValidatedExp = Brand<number, "exp">;
+export type ValidatedPurposeId = Brand<PurposeId, "purposeId">;
+export type ValidatedDigestValue = Brand<string, "value">;
+export type ValidatedDigest = Brand<
+  {
+    alg: ValidatedAlg;
+    value: ValidatedDigestValue;
+  },
+  "digest"
+>;
+
+export type ValidatedClientAssertion = {
+  header: {
+    alg: ValidatedAlg;
+    kid: ValidatedKid;
+  };
+  payload: {
+    sub: ValidatedSub;
+    jti: ValidatedJti;
+    iat: ValidatedIat;
+    iss: ValidatedIss;
+    aud: ValidatedAud;
+    exp: ValidatedExp;
+    digest: ValidatedDigest;
+    purposeId: ValidatedPurposeId | undefined;
+  };
+};
+
 export const Key = z
   .object({
     clientId: ClientId,
@@ -83,10 +122,10 @@ export type ApiKey = z.infer<typeof ApiKey>;
 
 export type ValidationResult<T> = SuccessfulValidation<T> | FailedValidation;
 
-export type SuccessfulValidation<T> = { errors: undefined; data: T };
+export type SuccessfulValidation<T> = { hasSucceeded: true; data: T };
 export type FailedValidation = {
+  hasSucceeded: false;
   errors: Array<ApiError<ErrorCodes>>;
-  data: undefined;
 };
 
 export const ClientAssertionValidationRequest = z.object({

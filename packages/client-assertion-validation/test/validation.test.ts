@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import crypto from "crypto";
-import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   ClientId,
@@ -46,9 +45,17 @@ import {
   invalidDigestFormat,
   purposeIdNotProvided,
   unexpectedKeyType,
+  invalidGrantType,
+  invalidAssertionType,
 } from "../src/errors.js";
-import { ConsumerKey } from "../src/types.js";
 import {
+  ApiKey,
+  ClientAssertionValidationRequest,
+  ConsumerKey,
+} from "../src/types.js";
+import {
+  expectValidationFailed,
+  expectValidationSucceeded,
   getMockAccessTokenRequest,
   getMockApiKey,
   getMockClientAssertion,
@@ -60,38 +67,38 @@ describe("validation test", () => {
   describe("validateRequestParameters", () => {
     it("success request parameters", () => {
       const request = getMockAccessTokenRequest();
-      const { errors } = validateRequestParameters(request);
-      expect(errors).toBeUndefined();
+      const validation = validateRequestParameters(request);
+      expect(validation.hasSucceeded).toBeTruthy();
     });
 
-    // it("invalidAssertionType", () => {
-    // TODO how to test this if "something-wrong" can't be assigned to the property?
-    // possible solution: the property is a string (not literal) and the check is done later
-    //   const wrongAssertionType = "something-wrong";
-    //   const request = {
-    //     ...getMockAccessTokenRequest(),
-    //     client_assertion_type: wrongAssertionType,
-    //   };
-    //   const { errors } = validateRequestParameters(request);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
-    // });
+    it("invalidAssertionType", () => {
+      const wrongAssertionType = "something-wrong";
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        // @ts-expect-error for testing
+        client_assertion_type: wrongAssertionType,
+      };
+      const validation = validateRequestParameters(request);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(
+        invalidAssertionType(wrongAssertionType)
+      );
+    });
 
-    // it("invalidGrantType", () => {
-    // TODO how to test this if "something-wrong" can't be assigned to the property?
-    // possible solution: the property is a string (not literal) and the check is done later
-    //   const wrongGrantType = "something-wrong";
-    //   const request = {
-    //     ...getMockAccessTokenRequest(),
-    //     grant_type: wrongGrantType,
-    //   };
-    //   // TODO: mock already checks grant type
-    //   const errors = validateRequestParameters(request);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
-    // });
+    it("invalidGrantType", () => {
+      const wrongGrantType = "something-wrong";
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        // @ts-expect-error for testing
+        grant_type: wrongGrantType,
+      };
+      // TODO: mock already checks grant type
+      const validation = validateRequestParameters(request);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidGrantType(wrongGrantType));
+    });
   });
 
   describe("verifyClientAssertion", () => {
@@ -101,8 +108,8 @@ describe("validation test", () => {
         payload: {},
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeUndefined();
+      const validation = verifyClientAssertion(a, undefined);
+      expect(validation.hasSucceeded).toBeTruthy();
     });
 
     it("invalidAudienceFormat", () => {
@@ -111,10 +118,12 @@ describe("validation test", () => {
         payload: { aud: "random" },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudienceFormat());
+      const validation = verifyClientAssertion(a, undefined);
+
+      expectValidationFailed(validation);
+
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidAudienceFormat());
     });
 
     it("invalidAudience", () => {
@@ -123,34 +132,34 @@ describe("validation test", () => {
         payload: { aud: ["random"] },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudience());
+      const validation = verifyClientAssertion(a, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidAudience());
     });
 
     it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not a jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+      const validation = verifyClientAssertion("not a jwt", undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidClientAssertionFormat());
     });
 
     it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not.a.jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+      const validation = verifyClientAssertion("not.a.jwt", undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidClientAssertionFormat());
     });
 
     it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion(
+      const validation = verifyClientAssertion(
         `${generateId()}.${generateId()}`,
         undefined
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidClientAssertionFormat());
     });
 
     it("unexpectedClientAssertionPayload", () => {
@@ -166,10 +175,10 @@ describe("validation test", () => {
       };
       const jws = jwt.sign("actualPayload", key, options);
 
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedClientAssertionPayload());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(unexpectedClientAssertionPayload());
     });
 
     it("jtiNotFound", () => {
@@ -178,10 +187,10 @@ describe("validation test", () => {
         payload: { jti: undefined },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(jtiNotFound());
+      const validation = verifyClientAssertion(a, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(jtiNotFound());
     });
 
     it.skip("iatNotFound", () => {
@@ -192,10 +201,10 @@ describe("validation test", () => {
         payload: {},
         customClaims: { key: 1 },
       });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(issuedAtNotFound());
+      const validation = verifyClientAssertion(a, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(issuedAtNotFound());
     });
 
     it("expNotFound", () => {
@@ -222,10 +231,10 @@ describe("validation test", () => {
         },
       };
       const jws = jwt.sign(payload, keySet.privateKey, options);
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(expNotFound());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(expNotFound());
     });
 
     it("issuerNotFound", () => {
@@ -234,10 +243,10 @@ describe("validation test", () => {
         payload: { iss: undefined },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(issuerNotFound());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(issuerNotFound());
     });
 
     it("subjectNotFound", () => {
@@ -246,10 +255,10 @@ describe("validation test", () => {
         payload: { sub: undefined },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(subjectNotFound());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(subjectNotFound());
     });
 
     it("invalidSubject", () => {
@@ -259,10 +268,10 @@ describe("validation test", () => {
         payload: { sub: subject },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidSubject(subject));
+      const validation = verifyClientAssertion(jws, generateId<ClientId>());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidSubject(subject));
     });
 
     it("invalidSubjectFormat", () => {
@@ -273,10 +282,10 @@ describe("validation test", () => {
         payload: { sub: subject },
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, clientId);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidSubjectFormat(subject));
+      const validation = verifyClientAssertion(jws, clientId);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidSubjectFormat(subject));
     });
 
     it("invalidPurposeIdClaimFormat", () => {
@@ -288,10 +297,12 @@ describe("validation test", () => {
           purposeId: notPurposeId,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidPurposeIdClaimFormat(notPurposeId));
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(
+        invalidPurposeIdClaimFormat(notPurposeId)
+      );
     });
 
     it("invalidClientIdFormat", () => {
@@ -301,10 +312,10 @@ describe("validation test", () => {
         payload: {},
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, notClientId);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientIdFormat(notClientId));
+      const validation = verifyClientAssertion(jws, notClientId);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidClientIdFormat(notClientId));
     });
 
     it("digestClaimNotFound", () => {
@@ -315,10 +326,10 @@ describe("validation test", () => {
           digest: undefined,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(digestClaimNotFound());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(digestClaimNotFound());
     });
 
     it("invalidDigestFormat", () => {
@@ -327,10 +338,10 @@ describe("validation test", () => {
         payload: {},
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidDigestFormat());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidDigestFormat());
     });
 
     it("invalidHashLength", () => {
@@ -341,10 +352,10 @@ describe("validation test", () => {
           digest: { alg: "SHA256", value: "TODO string of wrong length" },
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidHashLength("SHA256"));
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidHashLength("SHA256"));
     });
 
     it("InvalidHashAlgorithm", () => {
@@ -355,10 +366,10 @@ describe("validation test", () => {
           digest: { alg: "wrong alg", value: value64chars },
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidHashAlgorithm());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidHashAlgorithm());
     });
 
     it.skip("AlgorithmNotFound", () => {
@@ -368,10 +379,10 @@ describe("validation test", () => {
         payload: {},
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(algorithmNotFound());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(algorithmNotFound());
     });
 
     it("AlgorithmNotAllowed", () => {
@@ -381,10 +392,10 @@ describe("validation test", () => {
         payload: {},
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(algorithmNotAllowed(notAllowedAlg));
     });
 
     it("InvalidKidFormat", () => {
@@ -393,10 +404,10 @@ describe("validation test", () => {
         payload: {},
         customClaims: {},
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidKidFormat());
+      const validation = verifyClientAssertion(jws, undefined);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(invalidKidFormat());
     });
   });
 
@@ -428,8 +439,8 @@ describe("validation test", () => {
         ...getMockConsumerKey(),
         publicKey,
       };
-      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
-      expect(errors).toBeUndefined();
+      const validation = verifyClientAssertionSignature(jws, mockConsumerKey);
+      expect(validation.hasSucceeded).toBeTruthy();
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
@@ -466,20 +477,20 @@ describe("validation test", () => {
         ...getMockConsumerKey(),
         publicKey,
       };
-      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(tokenExpiredError());
+      const validation = verifyClientAssertionSignature(jws, mockConsumerKey);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(tokenExpiredError());
     });
     it("jsonWebTokenError", () => {
       const mockKey = getMockConsumerKey();
-      const { errors } = verifyClientAssertionSignature(
+      const validation = verifyClientAssertionSignature(
         "not-a-valid-jws",
         mockKey
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0].title).toEqual(jsonWebTokenError("").title);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0].title).toEqual(jsonWebTokenError("").title);
     });
     it("notBeforeError", () => {
       const threeHoursAgo = new Date();
@@ -513,14 +524,10 @@ describe("validation test", () => {
         publicKey,
       };
 
-      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(notBeforeError());
-    });
-    it.skip("clientAssertionSignatureVerificationFailure", () => {
-      // TODO: not sure when this happens
-      expect(1).toBe(1);
+      const validation = verifyClientAssertionSignature(jws, mockConsumerKey);
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(notBeforeError());
     });
   });
 
@@ -533,8 +540,8 @@ describe("validation test", () => {
         purposeState: itemState.active,
       };
       validatePlatformState(mockKey);
-      const { errors } = validatePlatformState(mockKey);
-      expect(errors).toBeUndefined();
+      const validation = validatePlatformState(mockKey);
+      expectValidationSucceeded(validation);
     });
 
     it("inactiveAgreement", () => {
@@ -543,11 +550,11 @@ describe("validation test", () => {
         agreementState: itemState.inactive,
       };
       validatePlatformState(mockKey);
-      const { errors } = validatePlatformState(mockKey);
+      const validation = validatePlatformState(mockKey);
 
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactiveAgreement());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(inactiveAgreement());
     });
     it("inactiveAgreement", () => {
       const mockKey: ConsumerKey = {
@@ -555,11 +562,11 @@ describe("validation test", () => {
         descriptorState: itemState.inactive,
       };
       validatePlatformState(mockKey);
-      const { errors } = validatePlatformState(mockKey);
+      const validation = validatePlatformState(mockKey);
 
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactiveEService());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(inactiveEService());
     });
     it("inactivePurpose", () => {
       const mockKey: ConsumerKey = {
@@ -567,11 +574,11 @@ describe("validation test", () => {
         purposeState: itemState.inactive,
       };
       validatePlatformState(mockKey);
-      const { errors } = validatePlatformState(mockKey);
+      const validation = validatePlatformState(mockKey);
 
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactivePurpose());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(inactivePurpose());
     });
   });
 
@@ -581,7 +588,7 @@ describe("validation test", () => {
         ...getMockConsumerKey(),
         clientKind: clientKindTokenStates.api,
       };
-      const { data: mockClientAssertion } = verifyClientAssertion(
+      const caValidation = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
           payload: {},
@@ -589,48 +596,52 @@ describe("validation test", () => {
         }),
         undefined
       );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
+
+      expectValidationSucceeded(caValidation);
+
+      const validation = validateClientKindAndPlatformState(
         mockConsumerKey,
-        mockClientAssertion
+        caValidation.data
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedKeyType(mockConsumerKey.clientKind));
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(
+        unexpectedKeyType(mockConsumerKey.clientKind)
+      );
     });
 
-    // it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
-    //   // How to test this? The goal is to pass an api key to validateClientKindAndPlatformState (with kind clientKindTokenStates.consumer)
-    //   const mockApiKey = {
-    //     ...getMockApiKey(),
-    //     clientKind: clientKindTokenStates.consumer,
-    //   };
-    //   const { data: mockClientAssertion } = verifyClientAssertion(
-    //     getMockClientAssertion({
-    //       customHeader: {},
-    //       payload: {},
-    //       customClaims: {},
-    //     }),
-    //     undefined
-    //   );
-    //   if (!mockClientAssertion) {
-    //     fail();
-    //   }
-    //   const { errors } = validateClientKindAndPlatformState(
-    //     // FIX
-    //     mockApiKey,
-    //     mockClientAssertion
-    //   );
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(unexpectedKeyType(mockApiKey.clientKind));
-    // });
+    it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
+      // How to test this? The goal is to pass an api key to validateClientKindAndPlatformState (with kind clientKindTokenStates.consumer)
+      const mockApiKey: ApiKey = {
+        ...getMockApiKey(),
+        // @ts-expect-error for testing
+        clientKind: clientKindTokenStates.consumer,
+      };
+      const caValidation = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          payload: {},
+          customClaims: {},
+        }),
+        undefined
+      );
+
+      expectValidationSucceeded(caValidation);
+
+      const validation = validateClientKindAndPlatformState(
+        mockApiKey,
+        caValidation.data
+      );
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(
+        unexpectedKeyType(mockApiKey.clientKind)
+      );
+    });
 
     it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
       const mockConsumerKey = getMockConsumerKey();
-      const { data: mockClientAssertion } = verifyClientAssertion(
+      const caValidation = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
           payload: { purposeId: generateId<PurposeId>() },
@@ -638,14 +649,14 @@ describe("validation test", () => {
         }),
         undefined
       );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
+
+      expectValidationSucceeded(caValidation);
+
+      const validation = validateClientKindAndPlatformState(
         mockConsumerKey,
-        mockClientAssertion
+        caValidation.data
       );
-      expect(errors).toBeUndefined();
+      expectValidationSucceeded(validation);
     });
 
     it("inactiveEService (consumerKey and clientKindTokenStates.consumer; invalid platform states)", () => {
@@ -653,7 +664,7 @@ describe("validation test", () => {
         ...getMockConsumerKey(),
         descriptorState: itemState.inactive,
       };
-      const { data: mockClientAssertion } = verifyClientAssertion(
+      const caValidation = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
           payload: { purposeId: generateId<PurposeId>() },
@@ -661,21 +672,21 @@ describe("validation test", () => {
         }),
         undefined
       );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
+
+      expectValidationSucceeded(caValidation);
+
+      const validation = validateClientKindAndPlatformState(
         mockConsumerKey,
-        mockClientAssertion
+        caValidation.data
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(inactiveEService());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(inactiveEService());
     });
 
     it("success (apiKey and clientKindTokenStates.api)", () => {
       const mockApiKey = getMockApiKey();
-      const { data: mockClientAssertion } = verifyClientAssertion(
+      const caValidation = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
           payload: {},
@@ -683,19 +694,21 @@ describe("validation test", () => {
         }),
         undefined
       );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
+
+      expectValidationSucceeded(caValidation);
+
+      const mockClientAssertion = caValidation.data;
+
+      const validation = validateClientKindAndPlatformState(
         mockApiKey,
         mockClientAssertion
       );
-      expect(errors).toBeUndefined();
+      expectValidationSucceeded(validation);
     });
 
     it("purposeIdNotProvided", () => {
       const mockConsumerKey = getMockConsumerKey();
-      const { data: mockClientAssertion } = verifyClientAssertion(
+      const caValidation = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
           payload: { purposeId: undefined },
@@ -703,16 +716,16 @@ describe("validation test", () => {
         }),
         undefined
       );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
+
+      expectValidationSucceeded(caValidation);
+
+      const validation = validateClientKindAndPlatformState(
         mockConsumerKey,
-        mockClientAssertion
+        caValidation.data
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(purposeIdNotProvided());
+      expectValidationFailed(validation);
+      expect(validation.errors).toHaveLength(1);
+      expect(validation.errors[0]).toEqual(purposeIdNotProvided());
     });
   });
 });
