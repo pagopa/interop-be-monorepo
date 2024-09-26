@@ -31,7 +31,6 @@ import {
   invalidSubjectFormat,
   algorithmNotFound,
   algorithmNotAllowed,
-  digestClaimNotFound,
   invalidDigestFormat,
   invalidHashLength,
   invalidHashAlgorithm,
@@ -146,9 +145,9 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 
 export const validateDigest = (
   digest?: object
-): ValidationResult<ClientAssertionDigest> => {
+): ValidationResult<ClientAssertionDigest | undefined> => {
   if (!digest) {
-    return failedValidation([digestClaimNotFound()]);
+    return successfulValidation(digest);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {

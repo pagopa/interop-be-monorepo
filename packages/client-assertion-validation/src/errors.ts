@@ -26,15 +26,14 @@ export const errorCodes = {
   inactiveEService: "0023",
   invalidClientIdFormat: "0024",
   invalidSubjectFormat: "0025",
-  digestClaimNotFound: "0026",
-  invalidDigestFormat: "0027",
-  invalidHashLength: "0028",
-  invalidHashAlgorithm: "0029",
-  algorithmNotFound: "0030",
-  algorithmNotAllowed: "0031",
-  purposeIdNotProvided: "0032",
-  invalidKidFormat: "0033",
-  unexpectedKeyType: "0034",
+  invalidDigestFormat: "0026",
+  invalidHashLength: "0027",
+  invalidHashAlgorithm: "0028",
+  algorithmNotFound: "0029",
+  algorithmNotAllowed: "0030",
+  purposeIdNotProvided: "0031",
+  invalidKidFormat: "0032",
+  unexpectedKeyType: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -245,14 +244,6 @@ export function invalidSubjectFormat(subject: string): ApiError<ErrorCodes> {
     detail: `Subject claim ${subject} is not a valid UUID`,
     code: "invalidSubjectFormat",
     title: "Invalid subject format",
-  });
-}
-
-export function digestClaimNotFound(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Digest claim not found`,
-    code: "digestClaimNotFound",
-    title: "Digest claim not found",
   });
 }
 
