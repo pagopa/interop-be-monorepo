@@ -16,18 +16,17 @@ export function zodiosValidationErrorToApiProblem(
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
   _next: NextFunction
-): void {
+): Response {
   const detail = `Incorrect value for ${zodError.context}`;
   const errors = zodError.error.map((e) => fromZodIssue(e));
 
-  res
+  return res
     .status(constants.HTTP_STATUS_BAD_REQUEST)
-    .json(
+    .send(
       makeApiProblem(
         badRequestError(detail, errors),
         () => constants.HTTP_STATUS_BAD_REQUEST,
         logger({ ...req.ctx })
       )
-    )
-    .send();
+    );
 }
