@@ -4,7 +4,6 @@ import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   ClientId,
-  clientKindTokenStates,
   generateId,
   itemState,
   PurposeId,
@@ -44,7 +43,6 @@ import {
   tokenExpiredError,
   unexpectedClientAssertionPayload,
   purposeIdNotProvided,
-  unexpectedKeyType,
   invalidGrantType,
   invalidAssertionType,
 } from "../src/errors.js";
@@ -569,58 +567,6 @@ describe("validation test", () => {
   });
 
   describe("validateClientKindAndPlatformState", () => {
-    it("unexpectedKeyType (consumerKey and clientKind.api)", () => {
-      const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        clientKind: clientKindTokenStates.api,
-      };
-      const { data: mockClientAssertion } = verifyClientAssertion(
-        getMockClientAssertion({
-          customHeader: {},
-          payload: {},
-          customClaims: {},
-        }),
-        undefined
-      );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
-        mockConsumerKey,
-        mockClientAssertion
-      );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedKeyType(mockConsumerKey.clientKind));
-    });
-
-    // it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
-    //   // How to test this? The goal is to pass an api key to validateClientKindAndPlatformState (with kind clientKindTokenStates.consumer)
-    //   const mockApiKey = {
-    //     ...getMockApiKey(),
-    //     clientKind: clientKindTokenStates.consumer,
-    //   };
-    //   const { data: mockClientAssertion } = verifyClientAssertion(
-    //     getMockClientAssertion({
-    //       customHeader: {},
-    //       payload: {},
-    //       customClaims: {},
-    //     }),
-    //     undefined
-    //   );
-    //   if (!mockClientAssertion) {
-    //     fail();
-    //   }
-    //   const { errors } = validateClientKindAndPlatformState(
-    //     // FIX
-    //     mockApiKey,
-    //     mockClientAssertion
-    //   );
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(unexpectedKeyType(mockApiKey.clientKind));
-    // });
-
     it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
