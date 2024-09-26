@@ -2928,7 +2928,7 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9\s\-_]+$'
           minLength: 2
-          maxLength: 16
+          maxLength: 24
         kind:
           $ref: "#/components/schemas/AttributeKind"
       required:
