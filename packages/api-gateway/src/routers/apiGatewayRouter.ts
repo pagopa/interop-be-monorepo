@@ -438,7 +438,7 @@ const apiGatewayRouter = (
       try {
         const purposes = await purposeService.getPurposes(ctx, req.query);
 
-        return res.status(200).send(purposes);
+        return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
         return res.status(errorRes.status).send(errorRes);
@@ -455,7 +455,7 @@ const apiGatewayRouter = (
             req.params.purposeId
           );
 
-          return res.status(200).send(purpose);
+          return res.status(200).send(apiGatewayApi.Purpose.parse(purpose));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -476,7 +476,7 @@ const apiGatewayRouter = (
             ctx,
             req.params.purposeId
           );
-          return res.status(200).send(agreement);
+          return res.status(200).send(apiGatewayApi.Agreement.parse(agreement));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
