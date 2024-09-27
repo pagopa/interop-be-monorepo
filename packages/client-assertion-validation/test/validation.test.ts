@@ -117,6 +117,53 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
+    it("wrong signature", () => {
+      const clientAssertion = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings = clientAssertion.split(".");
+      const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
+      const { errors } = verifyClientAssertion(
+        clientAssertionWithWrongSignature,
+        undefined
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("correctly formatted but invalid signature", () => {
+      const clientAssertion1 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const clientAssertion2 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings1 = clientAssertion1.split(".");
+      const subStrings2 = clientAssertion2.split(".");
+
+      const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
+      const { errors } = verifyClientAssertion(
+        clientAssertionWithWrongSignature,
+        undefined
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("malformed jwt", () => {
+      const { errors } = verifyClientAssertion(
+        "too.many.substrings.in.client.assertion",
+        undefined
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+    });
+
     it("invalidAudienceFormat", () => {
       const a = getMockClientAssertion({
         customHeader: {},
@@ -517,8 +564,83 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].title).toEqual(jsonWebTokenError("").title);
+      expect(errors![0]).toEqual(jsonWebTokenError("jwt malformed"));
     });
+
+    it("jsonWebTokenError - wrong signature", () => {
+      const mockKey = getMockConsumerKey();
+      const clientAssertion = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+
+      const subStrings = clientAssertion.split(".");
+      const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
+      const { errors } = verifyClientAssertionSignature(
+        clientAssertionWithWrongSignature,
+        mockKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        jsonWebTokenError(
+          "secretOrPublicKey must be an asymmetric key when using RS256"
+        )
+      );
+    });
+    it("jsonWebTokenError - malformed jwt", () => {
+      const mockKey = getMockConsumerKey();
+      const { errors } = verifyClientAssertionSignature(
+        "too.many.substrings.in.client.assertion",
+        mockKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(jsonWebTokenError("jwt malformed"));
+    });
+
+    it("correctly formatted signature but invalid", () => {
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const clientAssertion1 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+        keySet,
+      });
+
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+      };
+
+      const clientAssertion2 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings1 = clientAssertion1.split(".");
+      const subStrings2 = clientAssertion2.split(".");
+
+      const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
+      const { errors } = verifyClientAssertionSignature(
+        clientAssertionWithWrongSignature,
+        mockConsumerKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(jsonWebTokenError("invalid signature"));
+    });
+
     it("notBeforeError", () => {
       const threeHoursAgo = new Date();
       threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
