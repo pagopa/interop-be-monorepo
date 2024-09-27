@@ -74,7 +74,7 @@ services:
     command: dynamodb create-table
       --cli-input-json file://./platform-states.json
       --endpoint-url http://token-generation-readmodel:8000
-      --region eu-central-1
+      --region eu-south-1
 
   token-generation-states-table-init:
     depends_on:
@@ -90,7 +90,7 @@ services:
     command: dynamodb create-table
       --cli-input-json file://./token-generation-states.json
       --endpoint-url http://token-generation-readmodel:8000
-      --region eu-central-1
+      --region eu-south-1
 
   dynamodb-admin:
     image: "aaronshaf/dynamodb-admin"
