@@ -20,6 +20,7 @@ const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
   consumerAttributeIds: Array<TenantAttribute["id"]>
 ): boolean =>
+  descriptorAttributes.length > 0 &&
   descriptorAttributes.every((attributeList) => {
     const attributes = attributeList.map((a) => a.id);
     return (
