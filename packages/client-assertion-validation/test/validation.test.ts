@@ -222,7 +222,9 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedClientAssertionPayload());
+      expect(errors![0].code).toEqual(
+        unexpectedClientAssertionPayload("").code
+      );
     });
 
     it("jtiNotFound", () => {

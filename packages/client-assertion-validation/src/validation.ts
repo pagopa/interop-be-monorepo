@@ -77,7 +77,9 @@ export const verifyClientAssertion = (
     }
 
     if (typeof decoded.payload === "string") {
-      return failedValidation([unexpectedClientAssertionPayload()]);
+      return failedValidation([
+        unexpectedClientAssertionPayload("payload is a string"),
+      ]);
     }
 
     const { errors: jtiErrors, data: validatedJti } = validateJti(
@@ -153,7 +155,8 @@ export const verifyClientAssertion = (
       digestErrors,
     ]);
   } catch (error) {
-    return failedValidation([unexpectedClientAssertionPayload()]);
+    const message = error instanceof Error ? error.message : "generic error";
+    return failedValidation([unexpectedClientAssertionPayload(message)]);
   }
 };
 
@@ -179,6 +182,7 @@ export const verifyClientAssertionSignature = (
     } else if (error instanceof NotBeforeError) {
       return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
+      // TODO SIGNATURE INVALID Deve avere CUSTOM ERROR
       // TODO pattern matching with error.message ("jwt malformed", etc...)
       // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
       return failedValidation([jsonWebTokenError(error.message)]);
