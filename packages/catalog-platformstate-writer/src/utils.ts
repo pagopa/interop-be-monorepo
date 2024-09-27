@@ -157,7 +157,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "GSIPK_eserviceId_descriptorId",
+      IndexName: "Descriptor",
       KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: eserviceId_descriptorId },
