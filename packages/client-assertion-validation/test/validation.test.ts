@@ -394,7 +394,7 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(digestClaimNotFound());
+      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
     });
 
     it("invalidHashLength", () => {

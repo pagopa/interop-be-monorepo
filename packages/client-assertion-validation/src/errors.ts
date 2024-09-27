@@ -250,9 +250,9 @@ export function invalidSubjectFormat(subject: string): ApiError<ErrorCodes> {
   });
 }
 
-export function digestClaimNotFound(): ApiError<ErrorCodes> {
+export function digestClaimNotFound(message: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Digest claim not found`,
+    detail: `Digest claim not found. Reason: ${message}`,
     code: "digestClaimNotFound",
     title: "Digest claim not found",
   });

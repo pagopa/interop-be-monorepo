@@ -181,7 +181,7 @@ export const validateDigest = (
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([digestClaimNotFound()]);
+    return failedValidation([digestClaimNotFound(result.error.toString())]);
   }
   const validatedDigest = result.data;
   const digestLengthError =
