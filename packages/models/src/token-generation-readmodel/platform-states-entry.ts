@@ -2,17 +2,15 @@ import { z } from "zod";
 import {
   DescriptorId,
   EServiceId,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesAgreementPK,
+  PlatformStatesClientPK,
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesPurposePK,
   PurposeId,
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
-import {
-  PlatformStatesEServiceDescriptorPK,
-  PlatformStatesPurposePK,
-  PlatformStatesAgreementPK,
-  GSIPKConsumerIdEServiceId,
-  PlatformStatesClientPK,
-} from "./dynamoDB-keys.js";
 
 export const itemState = {
   active: "ACTIVE",
