@@ -748,7 +748,7 @@ describe("validation test", () => {
   });
 
   describe("validateClientKindAndPlatformState", () => {
-    it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
+    it("success (consumerKey with consumer client kind; valid platform states)", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
@@ -768,7 +768,7 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("inactiveEService (consumerKey and clientKindTokenStates.consumer; invalid platform states)", () => {
+    it("inactiveEService (consumerKey with consumer client kind; invalid platform states)", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
         descriptorState: itemState.inactive,
@@ -793,7 +793,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(inactiveEService());
     });
 
-    it("success (apiKey and clientKindTokenStates.api)", () => {
+    it("success (apiKey with api client kind)", () => {
       const mockApiKey = getMockApiKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
