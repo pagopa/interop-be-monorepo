@@ -43,7 +43,9 @@ export const writeCatalogEntry = async (
         S: catalogEntry.state,
       },
       descriptorAudience: {
-        S: catalogEntry.descriptorAudience,
+        L: catalogEntry.descriptorAudience.map((item) => ({
+          S: item,
+        })),
       },
       descriptorVoucherLifespan: {
         N: catalogEntry.descriptorVoucherLifespan.toString(),

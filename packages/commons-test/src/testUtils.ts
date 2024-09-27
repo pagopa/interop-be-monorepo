@@ -334,7 +334,7 @@ export const getMockTokenStatesClientPurposeEntry = (
         purposeId,
       }),
     descriptorState: itemState.inactive,
-    descriptorAudience: "pagopa.it",
+    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
     updatedAt: new Date().toISOString(),
     consumerId,
     agreementId,

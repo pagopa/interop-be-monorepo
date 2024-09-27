@@ -44,7 +44,11 @@ export const writeTokenStateEntry = async (
         S: tokenStateEntry.descriptorState!,
       },
       descriptorAudience: {
-        S: tokenStateEntry.descriptorAudience!,
+        L: tokenStateEntry.descriptorAudience
+          ? tokenStateEntry.descriptorAudience.map((item) => ({
+              S: item,
+            }))
+          : [],
       },
       updatedAt: {
         S: tokenStateEntry.updatedAt,
