@@ -813,7 +813,7 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("purposeIdNotProvided", () => {
+    it("purposeIdNotProvided for Client Kind Consumer", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
