@@ -23,12 +23,12 @@ export const value64chars = crypto.randomBytes(32).toString("hex");
 
 export const getMockClientAssertion = ({
   customHeader,
-  payload,
+  standardClaimsOverride,
   customClaims,
   keySet,
 }: {
   customHeader: Partial<ClientAssertionHeader>;
-  payload: Partial<jwt.JwtPayload>;
+  standardClaimsOverride: Partial<jwt.JwtPayload>;
   customClaims: { [k: string]: unknown };
   keySet?: crypto.KeyPairKeyObjectResult;
 }): string => {
@@ -40,15 +40,11 @@ export const getMockClientAssertion = ({
     exp: 60,
     jti: generateId(),
     iat: 5,
-    digest: {
-      alg: "SHA256",
-      value: value64chars,
-    },
   };
 
   const actualPayload = {
     ...defaultPayload,
-    ...payload,
+    ...standardClaimsOverride,
     ...customClaims,
   };
   const options: jwt.SignOptions = {
@@ -105,7 +101,7 @@ export const getMockAccessTokenRequest =
       client_assertion_type: EXPECTED_CLIENT_ASSERTION_TYPE,
       client_assertion: getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
         keySet,
       }),

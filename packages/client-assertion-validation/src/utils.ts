@@ -31,17 +31,17 @@ import {
   invalidSubjectFormat,
   algorithmNotFound,
   algorithmNotAllowed,
-  digestClaimNotFound,
-  invalidDigestFormat,
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
+  digestClaimNotFound,
+  clientAssertionInvalidClaim,
 } from "./errors.js";
 import { config } from "./config.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
-  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"; // TODO: env?
-export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials"; // TODO: env?
+  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials";
 export const ALLOWED_ALGORITHM = "RS256";
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
@@ -49,12 +49,21 @@ export const validateJti = (jti?: string): ValidationResult<string> => {
   if (!jti) {
     return failedValidation([jtiNotFound()]);
   }
+
+  if (typeof jti !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("jti", "string")]);
+  }
+
   return successfulValidation(jti);
 };
 
 export const validateIat = (iat?: number): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([issuedAtNotFound()]);
+  }
+
+  if (typeof iat !== "number") {
+    return failedValidation([clientAssertionInvalidClaim("iat", "number")]);
   }
   return successfulValidation(iat);
 };
@@ -63,6 +72,9 @@ export const validateExp = (exp?: number): ValidationResult<number> => {
   if (!exp) {
     return failedValidation([expNotFound()]);
   }
+  if (typeof exp !== "number") {
+    return failedValidation([clientAssertionInvalidClaim("exp", "number")]);
+  }
   return successfulValidation(exp);
 };
 
@@ -70,6 +82,11 @@ export const validateIss = (iss?: string): ValidationResult<string> => {
   if (!iss) {
     return failedValidation([issuerNotFound()]);
   }
+
+  if (typeof iss !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("iss", "string")]);
+  }
+
   return successfulValidation(iss);
 };
 
@@ -80,17 +97,14 @@ export const validateSub = (
   if (!sub) {
     return failedValidation([subjectNotFound()]);
   }
+
+  if (!ClientId.safeParse(sub).success) {
+    return failedValidation([invalidSubjectFormat(sub)]);
+  }
   if (clientId) {
-    const clientIdError = !ClientId.safeParse(clientId).success
-      ? invalidClientIdFormat(clientId)
-      : undefined;
-    const invalidSubFormatError = !ClientId.safeParse(sub).success
-      ? invalidSubjectFormat(sub)
-      : undefined;
-    if (clientIdError || invalidSubFormatError) {
-      return failedValidation([clientIdError, invalidSubFormatError]);
+    if (!ClientId.safeParse(clientId).success) {
+      return failedValidation([invalidClientIdFormat(clientId)]);
     }
-    // TODO: clientId undefined OK?
     if (sub !== clientId) {
       return failedValidation([invalidSubject(sub)]);
     }
@@ -114,7 +128,11 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
   if (!kid) {
     return failedValidation([kidNotFound()]);
   }
-  const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
+  if (typeof kid !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("kid", "string")]);
+  }
+
+  const alphanumericRegex = new RegExp("^[a-zA-Z0-9-_]+$");
   if (alphanumericRegex.test(kid)) {
     return successfulValidation(kid);
   }
@@ -131,6 +149,9 @@ export const validateAudience = (
   if (!Array.isArray(aud)) {
     return failedValidation([invalidAudienceFormat()]);
   }
+  if (!aud.every((item) => typeof item === "string")) {
+    return failedValidation([clientAssertionInvalidClaim("aud", "string")]);
+  }
   if (!aud.includes(config.clientAssertionAudience)) {
     return failedValidation([invalidAudience()]);
   }
@@ -141,6 +162,11 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
   if (!alg) {
     return failedValidation([algorithmNotFound()]);
   }
+
+  if (typeof alg !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("iat", "number")]);
+  }
+
   if (alg === ALLOWED_ALGORITHM) {
     return successfulValidation(alg);
   }
@@ -149,13 +175,13 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 
 export const validateDigest = (
   digest?: object
-): ValidationResult<ClientAssertionDigest> => {
+): ValidationResult<ClientAssertionDigest | undefined> => {
   if (!digest) {
-    return failedValidation([digestClaimNotFound()]);
+    return successfulValidation(digest);
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([invalidDigestFormat()]);
+    return failedValidation([digestClaimNotFound()]);
   }
   const validatedDigest = result.data;
   const digestLengthError =
