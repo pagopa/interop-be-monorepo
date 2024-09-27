@@ -36,10 +36,6 @@ export const buildDynamoDBTables = async (
           NonKeyAttributes: [],
           ProjectionType: "ALL",
         },
-        // ProvisionedThroughput: {
-        //   ReadCapacityUnits: 5,
-        //   WriteCapacityUnits: 5,
-        // },
       },
     ],
   };
@@ -125,10 +121,6 @@ export const buildDynamoDBTables = async (
   };
   const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
   await dynamoDBClient.send(command2);
-  // console.log(result);
-
-  // const tablesResult = await dynamoDBClient.listTables();
-  // console.log(tablesResult.TableNames);
 };
 
 export const deleteDynamoDBTables = async (
