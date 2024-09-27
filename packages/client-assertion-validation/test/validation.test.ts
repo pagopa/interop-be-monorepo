@@ -317,7 +317,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(subjectNotFound());
     });
 
-    it("invalidSubject", () => {
+    it("invalidSubject - Subject claim differs from clientID parameter", () => {
       const subject = generateId<ClientId>();
       const jws = getMockClientAssertion({
         customHeader: {},
