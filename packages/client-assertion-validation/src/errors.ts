@@ -33,6 +33,7 @@ export const errorCodes = {
   algorithmNotAllowed: "0030",
   purposeIdNotProvided: "0031",
   invalidKidFormat: "0032",
+  clientAssertionInvalidClaim: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -299,5 +300,16 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
     detail: "Unexpected format for kid",
     code: "invalidKidFormat",
     title: "Invalid KID format",
+  });
+}
+
+export function clientAssertionInvalidClaim(
+  claim: string,
+  requiredClaimType: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client assertion validation failure. Reason: ${claim} must be a ${requiredClaimType}`,
+    code: "clientAssertionInvalidClaim",
+    title: "Invalid claim type",
   });
 }
