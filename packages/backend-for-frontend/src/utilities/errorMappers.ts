@@ -12,6 +12,7 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -159,4 +160,17 @@ export const getProducerKeychainUsersErrorMapper = (
 ): number =>
   match(error.code)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const exportEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "notValidDescriptor",
+      "missingInterface",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -22,6 +22,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
   emptyErrorMapper,
+  exportEServiceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
@@ -663,7 +664,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            bffGetCatalogErrorMapper,
+            exportEServiceDescriptorErrorMapper,
             ctx.logger,
             `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
           );
