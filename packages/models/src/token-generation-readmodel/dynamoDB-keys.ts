@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   EServiceId,
   DescriptorId,
@@ -6,14 +5,18 @@ import {
   PurposeId,
   ClientId,
   TenantId,
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesAgreementPK,
+  PlatformStatesPurposePK,
+  PlatformStatesClientPK,
+  GSIPKConsumerIdEServiceId,
+  TokenGenerationStatesClientKidPurposePK,
+  TokenGenerationStatesClientKidPK,
+  GSIPKEServiceIdDescriptorId,
+  GSIPKClientIdPurposeId,
+  unsafeBrandId,
 } from "../brandedIds.js";
 
-export const PlatformStatesEServiceDescriptorPK = z
-  .string()
-  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
-export type PlatformStatesEServiceDescriptorPK = z.infer<
-  typeof PlatformStatesEServiceDescriptorPK
->;
 export const makePlatformStatesEServiceDescriptorPK = ({
   eserviceId,
   descriptorId,
@@ -23,50 +26,28 @@ export const makePlatformStatesEServiceDescriptorPK = ({
 }): PlatformStatesEServiceDescriptorPK =>
   `ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}` as PlatformStatesEServiceDescriptorPK;
 
-export const PlatformStatesAgreementPK = z
-  .string()
-  .brand(`AGREEMENT#agreementId`);
-export type PlatformStatesAgreementPK = z.infer<
-  typeof PlatformStatesAgreementPK
->;
 export const makePlatformStatesAgreementPK = (
   agreementId: AgreementId
 ): PlatformStatesAgreementPK =>
-  `AGREEMENT#${agreementId}` as PlatformStatesAgreementPK;
+  unsafeBrandId<PlatformStatesAgreementPK>(`AGREEMENT#${agreementId}`);
 
-export const PlatformStatesPurposePK = z.string().brand(`PURPOSE#purposeId`);
-export type PlatformStatesPurposePK = z.infer<typeof PlatformStatesPurposePK>;
 export const makePlatformStatesPurposePK = (
   purposeId: PurposeId
-): PlatformStatesPurposePK => `PURPOSE#${purposeId}` as PlatformStatesPurposePK;
+): PlatformStatesPurposePK =>
+  unsafeBrandId<PlatformStatesPurposePK>(`PURPOSE#${purposeId}`);
 
-export const PlatformStatesClientPK = z.string().brand(`CLIENT#clientId`);
-export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 export const makePlatformStatesClientPK = (
   clientId: ClientId
-): PlatformStatesClientPK => `CLIENT#${clientId}` as PlatformStatesClientPK;
+): PlatformStatesClientPK => unsafeBrandId(`CLIENT#${clientId}`);
 
-export const GSIPKConsumerIdEServiceId = z
-  .string()
-  .brand(`tenantId#eserviceId`);
-export type GSIPKConsumerIdEServiceId = z.infer<
-  typeof GSIPKConsumerIdEServiceId
->;
 export const makeGSIPKConsumerIdEServiceId = ({
   consumerId,
   eserviceId,
 }: {
   consumerId: TenantId;
   eserviceId: EServiceId;
-}): GSIPKConsumerIdEServiceId =>
-  `${consumerId}#${eserviceId}` as GSIPKConsumerIdEServiceId;
+}): GSIPKConsumerIdEServiceId => unsafeBrandId(`${consumerId}#${eserviceId}`);
 
-export const TokenGenerationStatesClientKidPurposePK = z
-  .string()
-  .brand(`CLIENTKIDPURPOSE#clientId#kid#purposeId`);
-export type TokenGenerationStatesClientKidPurposePK = z.infer<
-  typeof TokenGenerationStatesClientKidPurposePK
->;
 export const makeTokenGenerationStatesClientKidPurposePK = ({
   clientId,
   kid,
@@ -76,14 +57,8 @@ export const makeTokenGenerationStatesClientKidPurposePK = ({
   kid: string;
   purposeId: PurposeId;
 }): TokenGenerationStatesClientKidPurposePK =>
-  `CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}` as TokenGenerationStatesClientKidPurposePK;
+  unsafeBrandId(`CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}`);
 
-export const TokenGenerationStatesClientKidPK = z
-  .string()
-  .brand(`CLIENTKID#clientId#kid`);
-export type TokenGenerationStatesClientKidPK = z.infer<
-  typeof TokenGenerationStatesClientKidPK
->;
 export const makeTokenGenerationStatesClientKidPK = ({
   clientId,
   kid,
@@ -91,14 +66,8 @@ export const makeTokenGenerationStatesClientKidPK = ({
   clientId: ClientId;
   kid: string;
 }): TokenGenerationStatesClientKidPK =>
-  `CLIENTKID#${clientId}#${kid}` as TokenGenerationStatesClientKidPK;
+  unsafeBrandId(`CLIENTKID#${clientId}#${kid}`);
 
-export const GSIPKEServiceIdDescriptorId = z
-  .string()
-  .brand(`eserviceId#descriptorId`);
-export type GSIPKEServiceIdDescriptorId = z.infer<
-  typeof GSIPKEServiceIdDescriptorId
->;
 export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId,
   descriptorId,
@@ -106,15 +75,12 @@ export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
 }): GSIPKEServiceIdDescriptorId =>
-  `${eserviceId}#${descriptorId}` as GSIPKEServiceIdDescriptorId;
+  unsafeBrandId(`${eserviceId}#${descriptorId}`);
 
-export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
-export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 export const makeGSIPKClientIdPurposeId = ({
   clientId,
   purposeId,
 }: {
   clientId: ClientId;
   purposeId: PurposeId;
-}): GSIPKClientIdPurposeId =>
-  `${clientId}#${purposeId}` as GSIPKClientIdPurposeId;
+}): GSIPKClientIdPurposeId => unsafeBrandId(`${clientId}#${purposeId}`);

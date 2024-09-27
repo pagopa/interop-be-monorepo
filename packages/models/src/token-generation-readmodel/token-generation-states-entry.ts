@@ -3,18 +3,16 @@ import { ClientKind } from "../authorization/client.js";
 import {
   AgreementId,
   ClientId,
+  GSIPKClientIdPurposeId,
+  GSIPKConsumerIdEServiceId,
+  GSIPKEServiceIdDescriptorId,
   PurposeId,
   PurposeVersionId,
   TenantId,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientKidPurposePK,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
-import {
-  TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientKidPK,
-  GSIPKConsumerIdEServiceId,
-  GSIPKEServiceIdDescriptorId,
-  GSIPKClientIdPurposeId,
-} from "./dynamoDB-keys.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,
