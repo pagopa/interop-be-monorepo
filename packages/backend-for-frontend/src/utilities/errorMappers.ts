@@ -162,6 +162,18 @@ export const getProducerKeychainUsersErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createEServiceDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const exportEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

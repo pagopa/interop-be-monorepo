@@ -21,6 +21,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
+  createEServiceDocumentErrorMapper,
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -362,7 +363,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            createEServiceDocumentErrorMapper,
             ctx.logger,
             `Error creating eService document of kind ${req.body.kind} and name ${req.body.prettyName} for eService ${req.params.eServiceId} and descriptor ${req.params.descriptorId}`
           );
