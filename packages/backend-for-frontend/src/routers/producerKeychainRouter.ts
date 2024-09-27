@@ -82,7 +82,9 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error creating producer keychain with seed: ${JSON.stringify(req)}`
+          `Error creating producer keychain with seed: ${JSON.stringify(
+            req.body
+          )}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

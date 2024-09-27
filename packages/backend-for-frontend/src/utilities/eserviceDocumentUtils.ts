@@ -136,7 +136,7 @@ export const verifyAndCreateImportedDoc = async (
     throw genericError("Invalid file");
   }
 
-  const file = new File([entry.getData()], doc.prettyName, {
+  const file = new File([entry.getData()], doc.path, {
     type: mimeType,
   });
 
