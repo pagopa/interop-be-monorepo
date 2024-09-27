@@ -8,7 +8,7 @@ import {
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
-  toApiAttributeProcessSeed,
+  toApiCertifiedAttributeProcessSeed,
   toCompactAttribute,
 } from "../api/attributeApiConverter.js";
 
@@ -40,7 +40,7 @@ export function attributeServiceBuilder(
       logger.info(`Creating certified attribute with name ${seed.name}`);
 
       return attributeClient.createCertifiedAttribute(
-        toApiAttributeProcessSeed(seed),
+        toApiCertifiedAttributeProcessSeed(seed),
         {
           headers,
         }
