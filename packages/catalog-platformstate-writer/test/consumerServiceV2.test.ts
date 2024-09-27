@@ -70,7 +70,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("EServiceDescriptorActivated", () => {
-    it("should do no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("should do no operation if the existing table entry is more recent", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -168,7 +168,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
+    it("should update the entry if the incoming version is more recent than existing table entry", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -286,7 +286,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should not throw error if entry doesn't exist", async () => {
+    it("should do no operation if the table entry doesn't exist", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -380,7 +380,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("EServiceDescriptorArchived", () => {
-    it("should delete the entry from platform states", async () => {
+    it("should delete the entry from platform states and update token generation states", async () => {
       const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it"],
@@ -594,7 +594,7 @@ describe("integration tests V2 events", async () => {
         );
       });
 
-      it("should do no operation if the entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the existing table entry is more recent", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -689,7 +689,7 @@ describe("integration tests V2 events", async () => {
           ])
         );
       });
-      it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
+      it("should update the entry if incoming version is more recent than existing table entry", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it"],
@@ -792,7 +792,7 @@ describe("integration tests V2 events", async () => {
 
     describe("the previous descriptor becomes archived", () => {
       // these tests start with the basic flow for the current descriptor (simple write operation). Then, additional checks are added
-      it("should delete the entry", async () => {
+      it("should delete the entry in platform states and update the entries in token generation states", async () => {
         const archivedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           state: descriptorState.archived,
