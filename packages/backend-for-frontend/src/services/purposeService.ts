@@ -37,6 +37,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
+import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -162,17 +163,20 @@ export function purposeServiceBuilder(
         state: latestAgreement.state,
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
       },
-      currentVersion,
-      versions: purpose.versions,
+      currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
+      versions: purpose.versions.map(toBffApiPurposeVersion),
       clients,
-      waitingForApprovalVersion,
+      waitingForApprovalVersion:
+        waitingForApprovalVersion &&
+        toBffApiPurposeVersion(waitingForApprovalVersion),
       suspendedByConsumer: purpose.suspendedByConsumer,
       suspendedByProducer: purpose.suspendedByProducer,
       freeOfChargeReason: purpose.freeOfChargeReason,
       isFreeOfCharge: purpose.isFreeOfCharge,
       dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
-      rejectedVersion,
+      rejectedVersion:
+        rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
     };
   };
 
