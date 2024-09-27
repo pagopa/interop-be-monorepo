@@ -110,7 +110,7 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
   if (!kid) {
     return failedValidation([kidNotFound()]);
   }
-  const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
+  const alphanumericRegex = new RegExp("^[a-zA-Z0-9-_]+$");
   if (alphanumericRegex.test(kid)) {
     return successfulValidation(kid);
   }

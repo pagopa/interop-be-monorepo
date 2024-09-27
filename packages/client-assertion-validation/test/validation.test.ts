@@ -427,7 +427,7 @@ describe("validation test", () => {
 
     it("InvalidKidFormat", () => {
       const jws = getMockClientAssertion({
-        customHeader: { kid: "not-a-valid-kid" },
+        customHeader: { kid: "not a valid kid" },
         standardClaimsOverride: {},
         customClaims: {},
       });
