@@ -198,10 +198,6 @@ export const exportEServiceDescriptorErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "notValidDescriptor",
-      "missingInterface",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
