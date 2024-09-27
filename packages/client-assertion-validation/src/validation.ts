@@ -34,7 +34,7 @@ import {
   ValidationResult,
 } from "./types.js";
 import {
-  clientAssertionSignatureVerificationFailure,
+  unexpectedClientAssertionSignatureVerificationError,
   invalidAssertionType,
   invalidClientAssertionFormat,
   invalidClientAssertionSignatureType,
@@ -44,47 +44,7 @@ import {
   purposeIdNotProvided,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
-  unexpectedKeyType,
 } from "./errors.js";
-
-/*
-TEMPLATE for client assertion validation
-
-export const validateClientAssertion = async (
-  request: ClientAssertionValidationRequest,
-): Promise<ValidationResult<ClientAssertion>> => {
-  const { errors: parametersErrors } = validateRequestParameters(request);
-
-  const { errors: clientAssertionVerificationErrors, data: jwt } =
-    verifyClientAssertion(request.client_assertion, request.client_id);
-
-  // TO DO retrieve key
-
-
-  const { errors: clientAssertionSignatureErrors } =
-    verifyClientAssertionSignature(request.client_assertion, key);
-
-  if (
-    parametersErrors ||
-    clientAssertionVerificationErrors ||
-    clientAssertionSignatureErrors
-  ) {
-    return failedValidation([
-      parametersErrors,
-      clientAssertionVerificationErrors,
-      clientAssertionSignatureErrors,
-    ]);
-  }
-  const { errors: clientKindAndPlatormStateErrors } =
-    validateClientKindAndPlatformState(key, jwt);
-
-  if (clientKindAndPlatormStateErrors) {
-    return failedValidation([clientAssertionSignatureErrors]);
-  }
-
-  return successfulValidation(jwt);
-};
-*/
 
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest
@@ -94,7 +54,6 @@ export const validateRequestParameters = (
       ? invalidAssertionType(request.client_assertion_type)
       : undefined;
 
-  // TODO: this might be useless because ClientAssertionValidationRequest has the string hard coded
   const grantTypeError =
     request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE
       ? invalidGrantType(request.grant_type)
@@ -220,10 +179,13 @@ export const verifyClientAssertionSignature = (
     } else if (error instanceof NotBeforeError) {
       return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
+      // TODO pattern matching with error.message ("jwt malformed", etc...)
       // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
       return failedValidation([jsonWebTokenError(error.message)]);
     } else {
-      return failedValidation([clientAssertionSignatureVerificationFailure()]);
+      return failedValidation([
+        unexpectedClientAssertionSignatureVerificationError(),
+      ]);
     }
   }
 };
@@ -233,27 +195,18 @@ export const validateClientKindAndPlatformState = (
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
   match(key.clientKind)
-    .with(clientKindTokenStates.api, () =>
-      ApiKey.safeParse(key).success
-        ? successfulValidation(jwt)
-        : failedValidation([unexpectedKeyType(clientKindTokenStates.api)])
-    )
+    .with(clientKindTokenStates.api, () => successfulValidation(jwt))
     .with(clientKindTokenStates.consumer, () => {
-      if (ConsumerKey.safeParse(key).success) {
-        const { errors: platformStateErrors } = validatePlatformState(
-          key as ConsumerKey
-        );
-        const purposeIdError = jwt.payload.purposeId
-          ? undefined
-          : purposeIdNotProvided();
+      const { errors: platformStateErrors } = validatePlatformState(
+        key as ConsumerKey
+      );
+      const purposeIdError = jwt.payload.purposeId
+        ? undefined
+        : purposeIdNotProvided();
 
-        if (!platformStateErrors && !purposeIdError) {
-          return successfulValidation(jwt);
-        }
-        return failedValidation([platformStateErrors, purposeIdError]);
+      if (!platformStateErrors && !purposeIdError) {
+        return successfulValidation(jwt);
       }
-      return failedValidation([
-        unexpectedKeyType(clientKindTokenStates.consumer),
-      ]);
+      return failedValidation([platformStateErrors, purposeIdError]);
     })
     .exhaustive();

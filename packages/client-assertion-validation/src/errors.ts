@@ -1,41 +1,39 @@
-import { ApiError, ClientKindTokenStates } from "pagopa-interop-models";
+import { ApiError } from "pagopa-interop-models";
 
 export const errorCodes = {
   clientAssertionValidationFailure: "0001",
-  clientAssertionSignatureVerificationFailure: "0002",
-  platformStateVerificationFailure: "0003",
-  invalidAssertionType: "0004",
-  invalidGrantType: "0005",
-  invalidAudienceFormat: "0006",
-  invalidAudience: "0007",
-  invalidClientASsertionFormat: "0008",
-  unexpectedClientAssertionPayload: "0009",
-  jtiNotFound: "0010",
-  issuedAtNotFound: "0011",
-  expNotFound: "0012",
-  issuerNotFound: "0013",
-  subjectNotFound: "0014",
-  invalidSubject: "0015",
-  invalidPurposeIdClaimFormat: "0016",
-  kidNotFound: "0017",
-  invalidClientAssertionSignatureType: "0018",
-  tokenExpiredError: "0019",
-  jsonWebTokenError: "0020",
-  notBeforeError: "0021",
-  inactivePurpose: "0022",
-  inactiveAgreement: "0023",
-  inactiveEService: "0024",
-  invalidClientIdFormat: "0025",
-  invalidSubjectFormat: "0026",
-  digestClaimNotFound: "0027",
-  invalidDigestFormat: "0028",
-  invalidHashLength: "0029",
-  invalidHashAlgorithm: "0030",
-  algorithmNotFound: "0031",
-  algorithmNotAllowed: "0032",
-  purposeIdNotProvided: "0033",
-  invalidKidFormat: "0034",
-  unexpectedKeyType: "0035",
+  unexpectedClientAssertionSignatureVerificationError: "0002",
+  invalidAssertionType: "0003",
+  invalidGrantType: "0004",
+  invalidAudienceFormat: "0005",
+  invalidAudience: "0006",
+  invalidClientAssertionFormat: "0007",
+  unexpectedClientAssertionPayload: "0008",
+  jtiNotFound: "0009",
+  issuedAtNotFound: "0010",
+  expNotFound: "0011",
+  issuerNotFound: "0012",
+  subjectNotFound: "0013",
+  invalidSubject: "0014",
+  invalidPurposeIdClaimFormat: "0015",
+  kidNotFound: "0016",
+  invalidClientAssertionSignatureType: "0017",
+  tokenExpiredError: "0018",
+  jsonWebTokenError: "0019",
+  notBeforeError: "0020",
+  inactivePurpose: "0021",
+  inactiveAgreement: "0022",
+  inactiveEService: "0023",
+  invalidClientIdFormat: "0024",
+  invalidSubjectFormat: "0025",
+  digestClaimNotFound: "0026",
+  invalidHashLength: "0027",
+  invalidHashAlgorithm: "0028",
+  algorithmNotFound: "0029",
+  algorithmNotAllowed: "0030",
+  purposeIdNotProvided: "0031",
+  invalidKidFormat: "0032",
+  clientAssertionInvalidClaim: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -50,19 +48,11 @@ export function clientAssertionValidationFailure(
   });
 }
 
-export function clientAssertionSignatureVerificationFailure(): ApiError<ErrorCodes> {
+export function unexpectedClientAssertionSignatureVerificationError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature verification failed`,
-    code: "clientAssertionSignatureVerificationFailure",
-    title: "Client assertion signature verification failed",
-  });
-}
-
-export function platformStateVerificationFailure(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Platform state verification failed`,
-    code: "platformStateVerificationFailure",
-    title: "Platform state verification failed",
+    detail: `Unexpected client assertion signature verification error`,
+    code: "unexpectedClientAssertionSignatureVerificationError",
+    title: "Unexpected client assertion signature verification error",
   });
 }
 
@@ -103,7 +93,7 @@ export function invalidAudience(): ApiError<ErrorCodes> {
 export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid format for Client assertion`,
-    code: "invalidClientASsertionFormat",
+    code: "invalidClientAssertionFormat",
     title: "Invalid format for Client assertion",
   });
 }
@@ -265,14 +255,6 @@ export function digestClaimNotFound(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidDigestFormat(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Invalid format for digest claim",
-    code: "invalidDigestFormat",
-    title: "Invalid digest format",
-  });
-}
-
 export function invalidHashLength(alg: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid hash length for algorithm ${alg}`,
@@ -321,12 +303,13 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
   });
 }
 
-export function unexpectedKeyType(
-  clientKind: ClientKindTokenStates
+export function clientAssertionInvalidClaim(
+  claim: string,
+  requiredClaimType: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Key doesn't correspond to client kind: ${clientKind}`,
-    code: "unexpectedKeyType",
-    title: "Unexpected key type",
+    detail: `Client assertion validation failure. Reason: ${claim} must be a ${requiredClaimType}`,
+    code: "clientAssertionInvalidClaim",
+    title: "Invalid claim type",
   });
 }
