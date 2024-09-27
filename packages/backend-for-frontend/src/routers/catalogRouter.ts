@@ -24,6 +24,7 @@ import {
   createEServiceDocumentErrorMapper,
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
+  importEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
@@ -707,7 +708,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          importEServiceErrorMapper,
           ctx.logger,
           "Error importing eService"
         );

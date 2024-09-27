@@ -174,6 +174,25 @@ export const createEServiceDocumentErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const importEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number => {
+  // since verifyAndCreateEServiceDocument is shared, they throw the same errors
+  const baseMapperResult = createEServiceDocumentErrorMapper(error);
+
+  if (baseMapperResult === HTTP_STATUS_INTERNAL_SERVER_ERROR) {
+    return match(error.code)
+      .with(
+        "notValidDescriptor",
+        "invalidZipStructure",
+        () => HTTP_STATUS_BAD_REQUEST
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  }
+
+  return baseMapperResult;
+};
+
 export const exportEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
