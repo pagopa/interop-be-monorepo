@@ -66,8 +66,6 @@ describe("integration tests", () => {
     fail();
   }
   const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
     endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
@@ -87,7 +85,7 @@ describe("integration tests", () => {
 
   describe("Events V2", async () => {
     describe("PurposeActivated", () => {
-      it("no previous entry", async () => {
+      it("should insert the entry if it does not exist", async () => {
         const messageVersion = 1;
         const purpose: Purpose = {
           ...getMockPurpose(),
@@ -192,7 +190,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
         const purpose: Purpose = {
@@ -265,9 +263,10 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+      it("should update the entry: incoming message has version 3; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 3;
+
         const purpose: Purpose = {
           ...getMockPurpose(),
           versions: [getMockPurposeVersion(purposeVersionState.active)],
@@ -360,7 +359,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("should update token-generation-states entries with agreement data from platform-states table", async () => {
+      it("should update token-generation-states entries with the corresponding agreement and descriptor data from platform-states table", async () => {
         const messageVersion = 1;
 
         const purpose: Purpose = {
@@ -516,7 +515,7 @@ describe("integration tests", () => {
     });
 
     describe("NewPurposeVersionActivated", async () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
 
@@ -611,7 +610,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+      it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 3;
 
@@ -734,7 +733,8 @@ describe("integration tests", () => {
           ])
         );
       });
-      it("should not throw error if entry doesn't exist", async () => {
+
+      it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
         const purposeVersions: PurposeVersion[] = [
@@ -842,7 +842,7 @@ describe("integration tests", () => {
     });
 
     describe("PurposeVersionActivated", async () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
 
@@ -937,7 +937,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+      it("should update the entry: incoming message has version 3; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 3;
 
@@ -1053,7 +1053,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("should not throw error if entry doesn't exist", async () => {
+      it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
         const purpose: Purpose = {
@@ -1154,7 +1154,7 @@ describe("integration tests", () => {
     });
 
     describe("PurposeVersionSuspendedByConsumer", () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
 
@@ -1249,7 +1249,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByConsumer=true and suspendedByProducer=undefined", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the consumer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -1364,7 +1364,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByConsumer=true and suspendedByProducer=true", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the consumer and the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -1480,7 +1480,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("should not throw error if entry doesn't exist", async () => {
+      it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
         const purpose: Purpose = {
@@ -1586,7 +1586,7 @@ describe("integration tests", () => {
     });
 
     describe("PurposeVersionSuspendedByProducer", () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
 
@@ -1681,7 +1681,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByProducer=true and suspendedByConsumer=undefined", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -1796,7 +1796,8 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByProducer=true and suspendedByConsumer=true", async () => {
+      // FIX: duplicate description
+      it("should update the entry if the message version is more recent and the purpose is suspended by the consumer and the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -1912,7 +1913,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("should not throw error if entry doesn't exist", async () => {
+      it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
         const purpose: Purpose = {
@@ -2018,7 +2019,7 @@ describe("integration tests", () => {
     });
 
     describe("PurposeVersionUnsuspendedByConsumer", () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
 
@@ -2115,7 +2116,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByProducer=true and suspendedByConsumer=undefined", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -2232,7 +2233,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByProducer=true and suspendedByConsumer=true", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the consumer and the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -2350,7 +2351,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("should not throw error if entry doesn't exist", async () => {
+      it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
         const purpose: Purpose = {
@@ -2458,7 +2459,7 @@ describe("integration tests", () => {
     });
 
     describe("PurposeVersionUnsuspendedByProducer", () => {
-      it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
         const messageVersion = 1;
 
@@ -2555,7 +2556,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByProducer=true and suspendedByConsumer=undefined", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -2672,7 +2673,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("entry has to be updated if the message version is more recent: suspendedByProducer=true and suspendedByConsumer=true", async () => {
+      it("should update the entry if the message version is more recent and the purpose is suspended by the consumer and the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
@@ -2790,7 +2791,7 @@ describe("integration tests", () => {
         );
       });
 
-      it("should not throw error if entry doesn't exist", async () => {
+      it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
         const purpose: Purpose = {
@@ -2897,121 +2898,123 @@ describe("integration tests", () => {
       });
     });
 
-    it("PurposeArchived", async () => {
-      const previousEntryVersion = 1;
-      const messageVersion = 2;
+    describe("PurposeArchived", () => {
+      it("should delete the entry", async () => {
+        const previousEntryVersion = 1;
+        const messageVersion = 2;
 
-      const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
-      ];
-      const purpose: Purpose = {
-        ...getMockPurpose(),
-        versions: purposeVersions,
-      };
-      const purposeId = purpose.id;
-      const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
-
-      // platform-states
-      const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-      const previousStateEntry: PlatformStatesPurposeEntry = {
-        PK: purposeEntryPrimaryKey,
-        state: purposeState,
-        purposeVersionId: purposeVersions[0].id,
-        purposeEserviceId: purpose.eserviceId,
-        purposeConsumerId: purpose.consumerId,
-        version: previousEntryVersion,
-        updatedAt: mockDate.toISOString(),
-      };
-      await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
-
-      // token-generation-states
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          GSIPK_purposeId: purposeId,
-          purposeVersionId: purposeVersions[0].id,
-          purposeState,
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: purposeVersions,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+        const purposeId = purpose.id;
+        const purposeState = getPurposeStateFromPurposeVersions(
+          purpose.versions
+        );
 
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          GSIPK_purposeId: purposeId,
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousStateEntry: PlatformStatesPurposeEntry = {
+          PK: purposeEntryPrimaryKey,
+          state: purposeState,
           purposeVersionId: purposeVersions[0].id,
-          purposeState,
+          purposeEserviceId: purpose.eserviceId,
+          purposeConsumerId: purpose.consumerId,
+          version: previousEntryVersion,
+          updatedAt: mockDate.toISOString(),
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
 
-      const updatedPurpose: Purpose = {
-        ...purpose,
-        versions: [
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
-            ...purposeVersions[0],
-            state: purposeVersionState.archived,
-            updatedAt: new Date(),
-          },
-        ],
-      };
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            GSIPK_purposeId: purposeId,
+            purposeVersionId: purposeVersions[0].id,
+            purposeState,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
 
-      const payload: PurposeArchivedV2 = {
-        purpose: toPurposeV2(updatedPurpose),
-        versionId: purposeVersions[0].id,
-      };
-      const message: PurposeEventEnvelope = {
-        sequence_num: 1,
-        stream_id: purposeId,
-        version: messageVersion,
-        type: "PurposeArchived",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            GSIPK_purposeId: purposeId,
+            purposeVersionId: purposeVersions[0].id,
+            purposeState,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
 
-      await handleMessageV2(message, dynamoDBClient);
-
-      // platform-states
-      const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
-        dynamoDBClient,
-        purposeEntryPrimaryKey
-      );
-      expect(retrievedPlatformPurposeEntry).toBeUndefined();
-
-      // token-generation-states
-      const retrievedTokenStateEntries = await readTokenEntriesByGSIPKPurposeId(
-        dynamoDBClient,
-        purposeId
-      );
-      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry1,
-          purposeState: itemState.inactive,
-          updatedAt: new Date().toISOString(),
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: [
+            {
+              ...purposeVersions[0],
+              state: purposeVersionState.archived,
+              updatedAt: new Date(),
+            },
+          ],
         };
-      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry2,
-          purposeState: itemState.inactive,
-          updatedAt: new Date().toISOString(),
+
+        const payload: PurposeArchivedV2 = {
+          purpose: toPurposeV2(updatedPurpose),
+          versionId: purposeVersions[0].id,
         };
-      expect(retrievedTokenStateEntries).toHaveLength(2);
-      // TODO: not sure about purposeState if archived. For now it remains active.
-      expect(retrievedTokenStateEntries).toEqual(
-        expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
-        ])
-      );
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "PurposeArchived",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        expect(retrievedPlatformPurposeEntry).toBeUndefined();
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            purposeState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            purposeState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        // TODO: not sure about purposeState if archived. For now it remains active.
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry1,
+            expectedTokenStateEntry2,
+          ])
+        );
+      });
     });
   });
 });
