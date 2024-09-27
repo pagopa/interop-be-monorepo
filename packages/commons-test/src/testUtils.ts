@@ -330,7 +330,7 @@ export const getMockTokenStatesClientPurposeEntry = (
     descriptorState: itemState.inactive,
     descriptorAudience: "pagopa.it",
     updatedAt: new Date().toISOString(),
-    consumerId: generateId(),
+    consumerId: generateId<TenantId>(),
     agreementId: generateId<AgreementId>(),
     purposeVersionId: generateId<PurposeVersionId>(),
     GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
