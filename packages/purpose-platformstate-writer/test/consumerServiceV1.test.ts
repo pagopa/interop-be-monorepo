@@ -25,6 +25,7 @@ import {
   PurposeVersion,
   PurposeVersionArchivedV1,
   purposeVersionState,
+  PurposeVersionSuspendedV1,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import {
@@ -65,117 +66,430 @@ describe("integration tests for consumerServiceV1", () => {
   });
 
   describe("Events V1", async () => {
-    it("PurposeVersionArchived", async () => {
-      const previousEntryVersion = 1;
-      const messageVersion = 2;
+    describe("PurposeVersionSuspended", () => {
+      it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
+        const previousEntryVersion = 2;
+        const messageVersion = 1;
 
-      const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
-      ];
-      const purpose: Purpose = {
-        ...getMockPurpose(),
-        versions: purposeVersions,
-      };
-      const purposeId = purpose.id;
-      const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
-
-      // platform-states
-      const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-      const previousStateEntry: PlatformStatesPurposeEntry = {
-        PK: purposeEntryPrimaryKey,
-        state: purposeState,
-        purposeVersionId: purposeVersions[0].id,
-        purposeEserviceId: purpose.eserviceId,
-        purposeConsumerId: purpose.consumerId,
-        version: previousEntryVersion,
-        updatedAt: mockDate.toISOString(),
-      };
-      await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
-
-      // token-generation-states
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-          GSIPK_purposeId: purposeId,
-          purposeState,
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: purposeVersions,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+        const purposeId = purpose.id;
+        const purposeState = getPurposeStateFromPurposeVersions(
+          purpose.versions
+        );
 
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-          GSIPK_purposeId: purposeId,
-          purposeState,
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousPlatformEntry: PlatformStatesPurposeEntry = {
+          PK: purposeEntryPrimaryKey,
+          state: purposeState,
+          purposeVersionId: purposeVersions[0].id,
+          purposeEserviceId: purpose.eserviceId,
+          purposeConsumerId: purpose.consumerId,
+          version: previousEntryVersion,
+          updatedAt: mockDate.toISOString(),
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+        await writePlatformPurposeEntry(dynamoDBClient, previousPlatformEntry);
 
-      const updatedPurpose: Purpose = {
-        ...purpose,
-        versions: [
+        // token-generation-states
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: [
+            {
+              ...purposeVersions[0],
+              state: purposeVersionState.suspended,
+              suspendedAt: new Date(),
+            },
+          ],
+        };
+
+        const payload: PurposeVersionSuspendedV1 = {
+          purpose: toPurposeV1(updatedPurpose),
+        };
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "PurposeVersionSuspended",
+          event_version: 1,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV1(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        expect(retrievedPlatformPurposeEntry).toEqual(previousPlatformEntry);
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
+      });
+
+      // TODO: fix this. What do suspendedByConsumer and suspendedByProducer become?
+      it("should update the entry if the message version is more recent", async () => {
+        const previousEntryVersion = 1;
+        const messageVersion = 2;
+
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: purposeVersions,
+        };
+        const purposeId = purpose.id;
+        const purposeState = getPurposeStateFromPurposeVersions(
+          purpose.versions
+        );
+
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousStateEntry: PlatformStatesPurposeEntry = {
+          PK: purposeEntryPrimaryKey,
+          state: purposeState,
+          purposeVersionId: purposeVersions[0].id,
+          purposeEserviceId: purpose.eserviceId,
+          purposeConsumerId: purpose.consumerId,
+          version: previousEntryVersion,
+          updatedAt: mockDate.toISOString(),
+        };
+        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+
+        // token-generation-states
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+            purposeVersionId: purposeVersions[0].id,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: [
+            {
+              ...purposeVersions[0],
+              state: purposeVersionState.suspended,
+              suspendedAt: new Date(),
+            },
+          ],
+        };
+
+        const payload: PurposeVersionSuspendedV1 = {
+          purpose: toPurposeV1(updatedPurpose),
+        };
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "PurposeVersionSuspended",
+          event_version: 1,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV1(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
+          ...previousStateEntry,
+          state: itemState.inactive,
+          version: messageVersion,
+          updatedAt: new Date().toISOString(),
+        };
+        expect(retrievedPlatformPurposeEntry).toEqual(
+          expectedPlatformPurposeEntry
+        );
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            purposeState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            purposeState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry1,
+            expectedTokenStateEntry2,
+          ])
+        );
+      });
+
+      it("should not throw error if the entry doesn't exist", async () => {
+        const messageVersion = 1;
+
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: [getMockPurposeVersion(purposeVersionState.active)],
+        };
+        const purposeId = purpose.id;
+        const purposeState = getPurposeStateFromPurposeVersions(
+          purpose.versions
+        );
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousRetrievedPlatformPurposeEntry =
+          await readPlatformPurposeEntry(
+            dynamoDBClient,
+            purposeEntryPrimaryKey
+          );
+        expect(previousRetrievedPlatformPurposeEntry).toBeUndefined();
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            GSIPK_purposeId: purposeId,
+            purposeVersionId: purposeVersions[0].id,
+            purposeState,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            GSIPK_purposeId: purposeId,
+            purposeVersionId: purposeVersions[0].id,
+            purposeState,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+        const updatedPurposeVersions: PurposeVersion[] = [
           {
             ...purposeVersions[0],
-            state: purposeVersionState.archived,
-            updatedAt: new Date(),
+            state: purposeVersionState.suspended,
+            suspendedAt: new Date(),
           },
-        ],
-      };
+        ];
 
-      const payload: PurposeVersionArchivedV1 = {
-        purpose: toPurposeV1(updatedPurpose),
-      };
-      const message: PurposeEventEnvelope = {
-        sequence_num: 1,
-        stream_id: purposeId,
-        version: messageVersion,
-        type: "PurposeVersionArchived",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      await handleMessageV1(message, dynamoDBClient);
-
-      // platform-states
-      const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
-        dynamoDBClient,
-        purposeEntryPrimaryKey
-      );
-      expect(retrievedPlatformPurposeEntry).toBeUndefined();
-
-      // token-generation-states
-      const retrievedTokenStateEntries = await readTokenEntriesByGSIPKPurposeId(
-        dynamoDBClient,
-        purposeId
-      );
-      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry1,
-          purposeState: itemState.inactive,
-          updatedAt: new Date().toISOString(),
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: updatedPurposeVersions,
         };
-      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
-        {
-          ...previousTokenStateEntry2,
-          purposeState: itemState.inactive,
-          updatedAt: new Date().toISOString(),
+
+        const payload: PurposeVersionSuspendedV1 = {
+          purpose: toPurposeV1(updatedPurpose),
         };
-      expect(retrievedTokenStateEntries).toHaveLength(2);
-      expect(retrievedTokenStateEntries).toEqual(
-        expect.arrayContaining([
-          expectedTokenStateEntry1,
-          expectedTokenStateEntry2,
-        ])
-      );
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "PurposeVersionSuspended",
+          event_version: 1,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        expect(
+          async () => await handleMessageV1(message, dynamoDBClient)
+        ).not.toThrowError();
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        expect(retrievedPlatformPurposeEntry).toBeUndefined();
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            previousTokenStateEntry1,
+            previousTokenStateEntry2,
+          ])
+        );
+      });
+    });
+
+    describe("PurposeVersionArchived", () => {
+      it("should delete the entry", async () => {
+        const previousEntryVersion = 1;
+        const messageVersion = 2;
+
+        const purposeVersions: PurposeVersion[] = [
+          getMockPurposeVersion(purposeVersionState.active),
+        ];
+        const purpose: Purpose = {
+          ...getMockPurpose(),
+          versions: purposeVersions,
+        };
+        const purposeId = purpose.id;
+        const purposeState = getPurposeStateFromPurposeVersions(
+          purpose.versions
+        );
+
+        // platform-states
+        const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
+        const previousStateEntry: PlatformStatesPurposeEntry = {
+          PK: purposeEntryPrimaryKey,
+          state: purposeState,
+          purposeVersionId: purposeVersions[0].id,
+          purposeEserviceId: purpose.eserviceId,
+          purposeConsumerId: purpose.consumerId,
+          version: previousEntryVersion,
+          updatedAt: mockDate.toISOString(),
+        };
+        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+
+        // token-generation-states
+        const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+
+        const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+        const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+            GSIPK_purposeId: purposeId,
+            purposeState,
+          };
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+
+        const updatedPurpose: Purpose = {
+          ...purpose,
+          versions: [
+            {
+              ...purposeVersions[0],
+              state: purposeVersionState.archived,
+              updatedAt: new Date(),
+            },
+          ],
+        };
+
+        const payload: PurposeVersionArchivedV1 = {
+          purpose: toPurposeV1(updatedPurpose),
+        };
+        const message: PurposeEventEnvelope = {
+          sequence_num: 1,
+          stream_id: purposeId,
+          version: messageVersion,
+          type: "PurposeVersionArchived",
+          event_version: 1,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV1(message, dynamoDBClient);
+
+        // platform-states
+        const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
+          dynamoDBClient,
+          purposeEntryPrimaryKey
+        );
+        expect(retrievedPlatformPurposeEntry).toBeUndefined();
+
+        // token-generation-states
+        const retrievedTokenStateEntries =
+          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+        const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry1,
+            purposeState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+          {
+            ...previousTokenStateEntry2,
+            purposeState: itemState.inactive,
+            updatedAt: new Date().toISOString(),
+          };
+        expect(retrievedTokenStateEntries).toHaveLength(2);
+        expect(retrievedTokenStateEntries).toEqual(
+          expect.arrayContaining([
+            expectedTokenStateEntry1,
+            expectedTokenStateEntry2,
+          ])
+        );
+      });
     });
   });
 });
