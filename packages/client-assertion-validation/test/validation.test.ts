@@ -515,7 +515,7 @@ describe("validation test", () => {
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
-      // TODO: find out when the jwonwebtoken.verify function returns a string
+      // TODO: find out when the jsonwebtoken.verify function returns a string
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
@@ -834,7 +834,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(purposeIdNotProvided());
     });
 
-    it("purposeIdNotProvided and plaformStateError", () => {
+    it("purposeIdNotProvided and platformStateError", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
         agreementState: itemState.inactive,
