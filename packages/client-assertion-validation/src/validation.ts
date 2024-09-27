@@ -179,6 +179,7 @@ export const verifyClientAssertionSignature = (
     } else if (error instanceof NotBeforeError) {
       return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
+      // TODO pattern matching with error.message ("jwt malformed", etc...)
       // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
       return failedValidation([jsonWebTokenError(error.message)]);
     } else {
