@@ -39,12 +39,7 @@ import {
   readTokenEntriesByGSIPKPurposeId,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
-import {
-  config,
-  toPurposeV1,
-  toPurposeVersionV1,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config, toPurposeV1, writeTokenStateEntry } from "./utils.js";
 
 describe("integration tests for consumerServiceV1", () => {
   if (!config) {
@@ -52,8 +47,6 @@ describe("integration tests for consumerServiceV1", () => {
   }
 
   const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
     endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
