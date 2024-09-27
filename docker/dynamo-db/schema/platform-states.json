@@ -8,7 +8,7 @@
   "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
   "GlobalSecondaryIndexes": [
     {
-      "IndexName": "GSIPK_consumerId_eserviceId",
+      "IndexName": "Agreement",
       "KeySchema": [
         { "AttributeName": "GSIPK_consumerId_eserviceId", "KeyType": "HASH" },
         { "AttributeName": "GSISK_agreementTimestamp", "KeyType": "HASH" }
