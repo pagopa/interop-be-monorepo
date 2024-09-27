@@ -34,6 +34,7 @@ export const errorCodes = {
   purposeIdNotProvided: "0031",
   invalidKidFormat: "0032",
   clientAssertionInvalidClaim: "0033",
+  invalidSignature: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -314,5 +315,13 @@ export function clientAssertionInvalidClaim(
     detail: `Client assertion validation failure. Reason: ${claim} must be a ${requiredClaimType}`,
     code: "clientAssertionInvalidClaim",
     title: "Invalid claim type",
+  });
+}
+
+export function invalidSignature(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Client assertion signature is invalid",
+    code: "invalidSignature",
+    title: "Invalid signature",
   });
 }

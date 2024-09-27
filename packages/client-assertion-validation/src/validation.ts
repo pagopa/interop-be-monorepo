@@ -44,6 +44,7 @@ import {
   purposeIdNotProvided,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
+  invalidSignature,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -182,9 +183,9 @@ export const verifyClientAssertionSignature = (
     } else if (error instanceof NotBeforeError) {
       return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
-      // TODO SIGNATURE INVALID Deve avere CUSTOM ERROR
-      // TODO pattern matching with error.message ("jwt malformed", etc...)
-      // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
+      if (error.message === "invalid signature") {
+        return failedValidation([invalidSignature()]);
+      }
       return failedValidation([jsonWebTokenError(error.message)]);
     } else {
       return failedValidation([
