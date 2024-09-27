@@ -21,7 +21,7 @@ export const buildDynamoDBTables = async (
     BillingMode: "PAY_PER_REQUEST",
     GlobalSecondaryIndexes: [
       {
-        IndexName: "GSIPK_consumerId_eserviceId",
+        IndexName: "Agreement",
         KeySchema: [
           {
             AttributeName: "GSIPK_consumerId_eserviceId",
@@ -58,7 +58,7 @@ export const buildDynamoDBTables = async (
     BillingMode: "PAY_PER_REQUEST",
     GlobalSecondaryIndexes: [
       {
-        IndexName: "GSIPK_eserviceId_descriptorId",
+        IndexName: "Descriptor",
         KeySchema: [
           {
             AttributeName: "GSIPK_eserviceId_descriptorId",
@@ -71,7 +71,7 @@ export const buildDynamoDBTables = async (
         },
       },
       {
-        IndexName: "GSIPK_consumerId_eserviceId",
+        IndexName: "Agreement",
         KeySchema: [
           {
             AttributeName: "GSIPK_consumerId_eserviceId",
@@ -84,7 +84,7 @@ export const buildDynamoDBTables = async (
         },
       },
       {
-        IndexName: "GSIPK_purposeId",
+        IndexName: "Purpose",
         KeySchema: [{ AttributeName: "GSIPK_purposeId", KeyType: "HASH" }],
         Projection: {
           NonKeyAttributes: [],
@@ -92,7 +92,7 @@ export const buildDynamoDBTables = async (
         },
       },
       {
-        IndexName: "GSIPK_clientId",
+        IndexName: "Client",
         KeySchema: [{ AttributeName: "GSIPK_clientId", KeyType: "HASH" }],
         Projection: {
           NonKeyAttributes: [],
@@ -100,7 +100,7 @@ export const buildDynamoDBTables = async (
         },
       },
       {
-        IndexName: "GSIPK_kid",
+        IndexName: "Kid",
         KeySchema: [{ AttributeName: "GSIPK_kid", KeyType: "HASH" }],
         Projection: {
           NonKeyAttributes: [],
@@ -108,7 +108,7 @@ export const buildDynamoDBTables = async (
         },
       },
       {
-        IndexName: "GSIPK_clientId_purposeId",
+        IndexName: "ClientPurpose",
         KeySchema: [
           { AttributeName: "GSIPK_clientId_purposeId", KeyType: "HASH" },
         ],
