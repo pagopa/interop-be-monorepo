@@ -6,7 +6,7 @@ import { XMLParser } from "fast-xml-parser";
 import mime from "mime";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, genericError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { z } from "zod";
@@ -16,7 +16,6 @@ import {
   interfaceExtractingInfoError,
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
-  invalidZipStructure,
   openapiVersionNotRecognized,
 } from "../model/errors.js";
 import { CatalogProcessClient } from "../clients/clientsProvider.js";
@@ -132,7 +131,7 @@ export const verifyAndCreateImportedDoc = async (
 ): Promise<void> => {
   const entry = entriesMap.get(doc.path);
   if (!entry) {
-    throw invalidZipStructure("Error reading zip entry");
+    throw genericError("Invalid file");
   }
 
   const mimeType = mime.getType(doc.path) || "application/octet-stream";
