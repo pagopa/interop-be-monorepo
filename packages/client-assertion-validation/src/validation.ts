@@ -34,7 +34,7 @@ import {
   ValidationResult,
 } from "./types.js";
 import {
-  clientAssertionSignatureVerificationFailure,
+  unexpectedClientAssertionSignatureVerificationError,
   invalidAssertionType,
   invalidClientAssertionFormat,
   invalidClientAssertionSignatureType,
@@ -183,7 +183,9 @@ export const verifyClientAssertionSignature = (
       // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
       return failedValidation([jsonWebTokenError(error.message)]);
     } else {
-      return failedValidation([clientAssertionSignatureVerificationFailure()]);
+      return failedValidation([
+        unexpectedClientAssertionSignatureVerificationError(),
+      ]);
     }
   }
 };

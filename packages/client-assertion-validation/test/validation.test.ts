@@ -672,7 +672,7 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
     });
-    it.skip("clientAssertionSignatureVerificationFailure", () => {
+    it.skip("unexpectedClientAssertionSignatureVerificationError", () => {
       // TODO: not sure when this happens
       expect(1).toBe(1);
     });

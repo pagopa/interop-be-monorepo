@@ -2,7 +2,7 @@ import { ApiError } from "pagopa-interop-models";
 
 export const errorCodes = {
   clientAssertionValidationFailure: "0001",
-  clientAssertionSignatureVerificationFailure: "0002",
+  unexpectedClientAssertionSignatureVerificationError: "0002",
   invalidAssertionType: "0003",
   invalidGrantType: "0004",
   invalidAudienceFormat: "0005",
@@ -48,11 +48,11 @@ export function clientAssertionValidationFailure(
   });
 }
 
-export function clientAssertionSignatureVerificationFailure(): ApiError<ErrorCodes> {
+export function unexpectedClientAssertionSignatureVerificationError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion signature verification failed`,
-    code: "clientAssertionSignatureVerificationFailure",
-    title: "Client assertion signature verification failed",
+    detail: `Unexpected client assertion signature verification error`,
+    code: "unexpectedClientAssertionSignatureVerificationError",
+    title: "Unexpected client assertion signature verification error",
   });
 }
 
