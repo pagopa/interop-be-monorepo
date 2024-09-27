@@ -35,6 +35,7 @@ import {
   invalidHashAlgorithm,
   invalidKidFormat,
   digestClaimNotFound,
+  clientAssertionInvalidClaim,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -48,12 +49,21 @@ export const validateJti = (jti?: string): ValidationResult<string> => {
   if (!jti) {
     return failedValidation([jtiNotFound()]);
   }
+
+  if (typeof jti !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("jti", "string")]);
+  }
+
   return successfulValidation(jti);
 };
 
 export const validateIat = (iat?: number): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([issuedAtNotFound()]);
+  }
+
+  if (typeof iat !== "number") {
+    return failedValidation([clientAssertionInvalidClaim("iat", "number")]);
   }
   return successfulValidation(iat);
 };
@@ -62,6 +72,9 @@ export const validateExp = (exp?: number): ValidationResult<number> => {
   if (!exp) {
     return failedValidation([expNotFound()]);
   }
+  if (typeof exp !== "number") {
+    return failedValidation([clientAssertionInvalidClaim("exp", "number")]);
+  }
   return successfulValidation(exp);
 };
 
@@ -69,6 +82,11 @@ export const validateIss = (iss?: string): ValidationResult<string> => {
   if (!iss) {
     return failedValidation([issuerNotFound()]);
   }
+
+  if (typeof iss !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("iss", "string")]);
+  }
+
   return successfulValidation(iss);
 };
 
@@ -110,7 +128,11 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
   if (!kid) {
     return failedValidation([kidNotFound()]);
   }
-  const alphanumericRegex = new RegExp("^[a-zA-Z0-9]+$");
+  if (typeof kid !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("kid", "string")]);
+  }
+
+  const alphanumericRegex = new RegExp("^[a-zA-Z0-9-_]+$");
   if (alphanumericRegex.test(kid)) {
     return successfulValidation(kid);
   }
@@ -127,6 +149,9 @@ export const validateAudience = (
   if (!Array.isArray(aud)) {
     return failedValidation([invalidAudienceFormat()]);
   }
+  if (!aud.every((item) => typeof item === "string")) {
+    return failedValidation([clientAssertionInvalidClaim("aud", "string")]);
+  }
   if (!aud.includes(config.clientAssertionAudience)) {
     return failedValidation([invalidAudience()]);
   }
@@ -137,6 +162,11 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
   if (!alg) {
     return failedValidation([algorithmNotFound()]);
   }
+
+  if (typeof alg !== "string") {
+    return failedValidation([clientAssertionInvalidClaim("iat", "number")]);
+  }
+
   if (alg === ALLOWED_ALGORITHM) {
     return successfulValidation(alg);
   }
