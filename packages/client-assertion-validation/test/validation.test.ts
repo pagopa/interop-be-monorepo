@@ -154,14 +154,32 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("malformed jwt", () => {
-      const { errors } = verifyClientAssertion(
+    it("invalidClientAssertionFormat (malformed jwt)", () => {
+      const { errors: errors1 } = verifyClientAssertion(
         "too.many.substrings.in.client.assertion",
         undefined
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
+      expect(errors1).toBeDefined();
+      expect(errors1).toHaveLength(1);
+      expect(errors1![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors2 } = verifyClientAssertion("not a jwt", undefined);
+      expect(errors2).toBeDefined();
+      expect(errors2).toHaveLength(1);
+      expect(errors2![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors3 } = verifyClientAssertion("not.a.jwt", undefined);
+      expect(errors3).toBeDefined();
+      expect(errors3).toHaveLength(1);
+      expect(errors3![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors4 } = verifyClientAssertion(
+        "signature.missing",
+        undefined
+      );
+      expect(errors4).toBeDefined();
+      expect(errors4).toHaveLength(1);
+      expect(errors4![0]).toEqual(invalidClientAssertionFormat());
     });
 
     it("invalidAudienceFormat", () => {
@@ -186,30 +204,6 @@ describe("validation test", () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidAudience());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not a jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not.a.jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion(
-        `${generateId()}.${generateId()}`,
-        undefined
-      );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
     });
 
     it("unexpectedClientAssertionPayload", () => {
