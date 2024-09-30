@@ -42,36 +42,23 @@ export async function handleMessageV1(
             dynamoDBClient
           );
 
-          if (
-            existingCatalogEntry &&
-            existingCatalogEntry.version > msg.version
-          ) {
-            // Stops processing if the message is older than the catalog entry
-            return Promise.resolve();
-          } else if (
-            existingCatalogEntry &&
-            existingCatalogEntry.version <= msg.version
-          ) {
-            // suspended->published
+          if (existingCatalogEntry) {
+            if (existingCatalogEntry.version > msg.version) {
+              // Stops processing if the message is older than the catalog entry
+              return Promise.resolve();
+            } else {
+              // suspended->published
 
-            await updateDescriptorStateInPlatformStatesEntry(
-              dynamoDBClient,
-              eserviceDescriptorPK,
-              descriptorStateToItemState(descriptor.state),
-              msg.version
-            );
-
-            // token-generation-states
-            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-              eserviceId,
-              descriptorId: descriptor.id,
-            });
-            await updateDescriptorStateInTokenGenerationStatesTable(
-              eserviceId_descriptorId,
-              descriptorStateToItemState(descriptor.state),
-              dynamoDBClient
-            );
+              await updateDescriptorStateInPlatformStatesEntry(
+                dynamoDBClient,
+                eserviceDescriptorPK,
+                descriptorStateToItemState(descriptor.state),
+                msg.version
+              );
+            }
           } else {
+            // draft -> published
+
             const catalogEntry: PlatformStatesCatalogEntry = {
               PK: eserviceDescriptorPK,
               state: descriptorStateToItemState(descriptor.state),
@@ -82,18 +69,18 @@ export async function handleMessageV1(
             };
 
             await writeCatalogEntry(catalogEntry, dynamoDBClient);
-
-            // token-generation-states
-            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-              eserviceId,
-              descriptorId: descriptor.id,
-            });
-            await updateDescriptorStateInTokenGenerationStatesTable(
-              eserviceId_descriptorId,
-              descriptorStateToItemState(descriptor.state),
-              dynamoDBClient
-            );
           }
+
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptorStateToItemState(descriptor.state),
+            dynamoDBClient
+          );
         })
         .with(descriptorState.suspended, async () => {
           const existingCatalogEntry = await readCatalogEntry(
