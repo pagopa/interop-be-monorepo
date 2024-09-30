@@ -28,6 +28,7 @@ import {
 import {
   ApiKey,
   ClientAssertion,
+  ClientAssertionPayload,
   ClientAssertionValidationRequest,
   ConsumerKey,
   Key,
@@ -45,6 +46,7 @@ import {
   tokenExpiredError,
   unexpectedClientAssertionPayload,
   invalidSignature,
+  clientAssertionInvalidClaims,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -113,6 +115,7 @@ export const verifyClientAssertion = (
     const { errors: digestErrors, data: validatedDigest } = validateDigest(
       decoded.payload.digest
     );
+
     if (
       !jtiErrors &&
       !iatErrors &&
@@ -125,6 +128,15 @@ export const verifyClientAssertion = (
       !algErrors &&
       !digestErrors
     ) {
+      const payloadParseResult = ClientAssertionPayload.safeParse(
+        decoded.payload
+      );
+      if (!payloadParseResult.success) {
+        return failedValidation([
+          clientAssertionInvalidClaims(payloadParseResult.error.message),
+        ]);
+      }
+
       const result: ClientAssertion = {
         header: {
           kid: validatedKid,
