@@ -219,7 +219,9 @@ export const updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo 
                 S: catalogEntry.state,
               },
               ":descriptorAudience": {
-                S: catalogEntry.descriptorAudience,
+                L: catalogEntry.descriptorAudience.map((item) => ({
+                  S: item,
+                })),
               },
               ":descriptorVoucherLifespan": {
                 N: catalogEntry.descriptorVoucherLifespan.toString(),
@@ -271,7 +273,7 @@ export const readPlatformStateAgreementEntriesByConsumerIdEserviceId = async (
   ): Promise<PlatformStatesAgreementEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNamePlatform,
-      IndexName: "GSIPK_consumerId_eserviceId",
+      IndexName: "Agreement",
       KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: consumerId_eserviceId },
@@ -336,7 +338,7 @@ export const readTokenStateEntriesByConsumerIdEserviceId = async (
   ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "GSIPK_consumerId_eserviceId",
+      IndexName: "Agreement",
       KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: consumerId_eserviceId },
