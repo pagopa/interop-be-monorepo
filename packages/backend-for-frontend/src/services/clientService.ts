@@ -270,9 +270,14 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating consumer client with name ${seed.name}`);
 
-      return authorizationClient.client.createConsumerClient(seed, {
-        headers,
-      });
+      const { id } = await authorizationClient.client.createConsumerClient(
+        seed,
+        {
+          headers,
+        }
+      );
+
+      return { id };
     },
 
     async createApiClient(
@@ -281,9 +286,11 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating api client with name ${seed.name}`);
 
-      return authorizationClient.client.createApiClient(seed, {
+      const { id } = await authorizationClient.client.createApiClient(seed, {
         headers,
       });
+
+      return { id };
     },
   };
 }
