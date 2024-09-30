@@ -508,16 +508,18 @@ export function authorizationServiceBuilder(
         )
       );
 
+      userIds.forEach((userId) => {
+        if (client.data.users.includes(userId)) {
+          throw clientUserAlreadyAssigned(clientId, userId);
+        }
+      });
+
       const uniqueUserIds = Array.from(new Set(userIds));
       const updatedClient: Client = {
         ...client.data,
       };
 
       for (const [index, userId] of uniqueUserIds.entries()) {
-        if (client.data.users.includes(userId)) {
-          throw clientUserAlreadyAssigned(clientId, userId);
-        }
-
         // eslint-disable-next-line functional/immutable-data
         updatedClient.users.push(userId);
 
@@ -926,16 +928,18 @@ export function authorizationServiceBuilder(
         )
       );
 
+      userIds.forEach((userId) => {
+        if (producerKeychain.data.users.includes(userId)) {
+          throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
+        }
+      });
+
       const uniqueUserIds = Array.from(new Set(userIds));
       const updatedProducerKeychain: ProducerKeychain = {
         ...producerKeychain.data,
       };
 
       for (const [index, userId] of uniqueUserIds.entries()) {
-        if (producerKeychain.data.users.includes(userId)) {
-          throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
-        }
-
         // eslint-disable-next-line functional/immutable-data
         updatedProducerKeychain.users.push(userId);
 
