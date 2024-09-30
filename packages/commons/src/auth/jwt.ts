@@ -61,30 +61,26 @@ const getKey = async (
 
 export const verifyJwtToken = async (
   jwtToken: string,
+  jwksClients: jwksClient.JwksClient[],
   logger: Logger
 ): Promise<boolean> => {
-  const config = JWTConfig.parse(process.env);
-  const clients = config.wellKnownUrls.map((url) =>
-    jwksClient({
-      jwksUri: url,
-    })
-  );
-
   try {
+    const { acceptedAudiences } = JWTConfig.parse(process.env);
+
     const jwtHeader = decodeJwtTokenHeaders(jwtToken, logger);
     if (!jwtHeader?.kid) {
       logger.warn("Token verification failed: missing kid");
       return Promise.reject(false);
     }
 
-    const secret: Secret = await getKey(clients, jwtHeader.kid, logger);
+    const secret: Secret = await getKey(jwksClients, jwtHeader.kid, logger);
 
     return new Promise((resolve, _reject) => {
       jwt.verify(
         jwtToken,
         secret,
         {
-          audience: config.acceptedAudiences,
+          audience: acceptedAudiences,
         },
         function (err, _decoded) {
           if (err) {

@@ -5,6 +5,8 @@ import {
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
+import jwksClient, { JwksClient } from "jwks-rsa";
+import { JWTConfig } from "../config/index.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {
   try {
@@ -63,4 +65,18 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
       (prev, sortedKey) => ({ ...prev, [sortedKey]: jwk[sortedKey] }),
       {}
     );
+}
+
+export function getJwksClient(): JwksClient[] {
+  const config = JWTConfig.parse(process.env);
+  return config.wellKnownUrls.map((url) =>
+    jwksClient({
+      cache: true,
+      cacheMaxEntries: 50,
+      timeout: 30000,
+      cacheMaxAge: 3600000, // 60 minutes
+      jwksRequestsPerMinute: 30,
+      jwksUri: url,
+    })
+  );
 }
