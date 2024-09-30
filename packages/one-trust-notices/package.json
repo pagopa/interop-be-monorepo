@@ -1,0 +1,39 @@
+{
+  "name": "pagopa-interop-one-trust-notices",
+  "main": "./dist/index.js",
+  "type": "module",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability one trust notices job",
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --watch --loader ts-node/esm ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/html2json": "1.0.1",
+    "@types/lodash": "4.14.196",
+    "@types/node": "20.4.9",
+    "prettier": "2.8.8",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.648.0",
+    "@aws-sdk/util-dynamodb": "3.648.0",
+    "axios": "^1.7.4",
+    "html2json": "^1.0.2",
+    "lodash.isempty": "4.4.0",
+    "pagopa-interop-commons": "workspace:*",
+    "zod": "^3.23.8"
+  }
+}

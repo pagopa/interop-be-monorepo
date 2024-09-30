@@ -165,6 +165,8 @@ const errorCodes = {
   notAllowedPrivateKeyException: "10001",
   missingRequiredJWKClaim: "10002",
   invalidKey: "10003",
+  tooManyRequestsError: "10004",
+  notAllowedCertificateException: "10005",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -297,6 +299,16 @@ export function badRequestError(
   });
 }
 
+export function tooManyRequestsError(
+  organizationId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "tooManyRequestsError",
+    title: "Too Many Requests",
+    detail: `Requests limit exceeded for organization ${organizationId}`,
+  });
+}
+
 export function invalidClaim(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Claim not valid or missing: ${parseErrorMessage(error)}`,
@@ -351,6 +363,14 @@ export function notAllowedPrivateKeyException(): ApiError<CommonErrorCodes> {
     detail: `The received key is a private key`,
     code: "notAllowedPrivateKeyException",
     title: "Not allowed private key exception",
+  });
+}
+
+export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key is a certificate`,
+    code: "notAllowedCertificateException",
+    title: "Not allowed certificate exception",
   });
 }
 

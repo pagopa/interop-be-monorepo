@@ -108,11 +108,13 @@ export const riskAnalysisDocumentBuilder = (
       const documentName = createRiskAnalysisDocumentName();
 
       const documentPath = await fileManager.storeBytes(
-        config.s3Bucket,
-        config.riskAnalysisDocumentsPath,
-        documentId,
-        documentName,
-        pdfBuffer,
+        {
+          bucket: config.s3Bucket,
+          path: config.riskAnalysisDocumentsPath,
+          resourceId: documentId,
+          name: documentName,
+          content: pdfBuffer,
+        },
         logger
       );
 

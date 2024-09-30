@@ -51,7 +51,7 @@ describe("integration tests V2 events", async () => {
   }
   const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
+    region: "eu-south-1",
     endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
@@ -70,10 +70,10 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("EServiceDescriptorActivated", () => {
-    it("should do no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("should do no operation if the existing table entry is more recent", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.published,
         publishedAt: new Date(),
@@ -102,7 +102,7 @@ describe("integration tests V2 events", async () => {
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.inactive,
-        descriptorAudience: publishedDescriptor.audience[0],
+        descriptorAudience: publishedDescriptor.audience,
         descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -123,7 +123,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -137,7 +137,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -168,10 +168,10 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
+    it("should update the entry if the incoming version is more recent than existing table entry", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.published,
         publishedAt: new Date(),
@@ -201,7 +201,7 @@ describe("integration tests V2 events", async () => {
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPrimaryKey,
         state: itemState.inactive,
-        descriptorAudience: publishedDescriptor.audience[0],
+        descriptorAudience: publishedDescriptor.audience,
         descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -222,7 +222,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -236,7 +236,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -286,10 +286,10 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("should not throw error if entry doesn't exist", async () => {
+    it("should do no operation if the table entry doesn't exist", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.published,
         publishedAt: new Date(),
@@ -331,7 +331,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -345,7 +345,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -380,10 +380,10 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("EServiceDescriptorArchived", () => {
-    it("should delete the entry from platform states", async () => {
+    it("should delete the entry from platform states and update token generation states", async () => {
       const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.archived,
         publishedAt: new Date(),
@@ -414,7 +414,7 @@ describe("integration tests V2 events", async () => {
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: archivedDescriptor.audience[0],
+        descriptorAudience: archivedDescriptor.audience,
         descriptorVoucherLifespan: archivedDescriptor.voucherLifespan,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -439,7 +439,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.active,
-          descriptorAudience: archivedDescriptor.audience[0],
+          descriptorAudience: archivedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -448,7 +448,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
-          descriptorAudience: archivedDescriptor.audience[0],
+          descriptorAudience: archivedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -491,7 +491,7 @@ describe("integration tests V2 events", async () => {
       it("should add the entry if it doesn't exist", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
-          audience: ["pagopa.it"],
+          audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
           state: descriptorState.published,
           publishedAt: new Date(),
@@ -534,7 +534,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             descriptorState: itemState.inactive,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -543,7 +543,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             descriptorState: itemState.inactive,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -561,7 +561,7 @@ describe("integration tests V2 events", async () => {
         const expectedEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
@@ -594,10 +594,10 @@ describe("integration tests V2 events", async () => {
         );
       });
 
-      it("should do no operation if the entry already exists. Incoming has version 1; previous entry has version 2", async () => {
+      it("should do no operation if the existing table entry is more recent", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
-          audience: ["pagopa.it"],
+          audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
           state: descriptorState.published,
           publishedAt: new Date(),
@@ -628,7 +628,7 @@ describe("integration tests V2 events", async () => {
         const previousStateEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.active,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
@@ -654,7 +654,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             descriptorState: itemState.inactive,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -663,7 +663,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             descriptorState: itemState.inactive,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -689,10 +689,10 @@ describe("integration tests V2 events", async () => {
           ])
         );
       });
-      it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
+      it("should update the entry if incoming version is more recent than existing table entry", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
-          audience: ["pagopa.it"],
+          audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
           state: descriptorState.published,
           publishedAt: new Date(),
@@ -722,7 +722,7 @@ describe("integration tests V2 events", async () => {
         const previousStateEntry: PlatformStatesCatalogEntry = {
           PK: primaryKey,
           state: itemState.inactive,
-          descriptorAudience: publishedDescriptor.audience[0],
+          descriptorAudience: publishedDescriptor.audience,
           descriptorVoucherLifespan: publishedDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
@@ -746,7 +746,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             descriptorState: itemState.inactive,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -755,7 +755,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             descriptorState: itemState.inactive,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -792,11 +792,11 @@ describe("integration tests V2 events", async () => {
 
     describe("the previous descriptor becomes archived", () => {
       // these tests start with the basic flow for the current descriptor (simple write operation). Then, additional checks are added
-      it("should delete the entry", async () => {
+      it("should delete the entry in platform states and update the entries in token generation states", async () => {
         const archivedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           state: descriptorState.archived,
-          audience: ["pagopa.it"],
+          audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
           version: "1",
           publishedAt: new Date(),
@@ -806,7 +806,7 @@ describe("integration tests V2 events", async () => {
           ...getMockDescriptor(),
           archivedAt: new Date(),
           state: descriptorState.published,
-          audience: ["pagopa.it"],
+          audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
           version: "2",
         };
@@ -847,7 +847,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
             descriptorState: itemState.active,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -856,7 +856,7 @@ describe("integration tests V2 events", async () => {
           {
             ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
             descriptorState: itemState.active,
-            descriptorAudience: publishedDescriptor.audience[0],
+            descriptorAudience: publishedDescriptor.audience,
             GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
           };
         await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -905,7 +905,7 @@ describe("integration tests V2 events", async () => {
     it("should do no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.suspended,
         publishedAt: new Date(),
@@ -936,7 +936,7 @@ describe("integration tests V2 events", async () => {
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,
-        descriptorAudience: suspendedDescriptor.audience[0],
+        descriptorAudience: suspendedDescriptor.audience,
         descriptorVoucherLifespan: suspendedDescriptor.voucherLifespan,
         version: 2,
         updatedAt: new Date().toISOString(),
@@ -957,7 +957,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.active,
-          descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -971,7 +971,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
-          descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -1000,7 +1000,7 @@ describe("integration tests V2 events", async () => {
     it("should update the entry: incoming has version 3; previous entry has version 2", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.suspended,
         publishedAt: new Date(),
@@ -1031,7 +1031,7 @@ describe("integration tests V2 events", async () => {
       const previousStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.active,
-        descriptorAudience: suspendedDescriptor.audience[0],
+        descriptorAudience: suspendedDescriptor.audience,
         descriptorVoucherLifespan: suspendedDescriptor.voucherLifespan,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -1052,7 +1052,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.active,
-          descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -1066,7 +1066,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.active,
-          descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
@@ -1112,7 +1112,7 @@ describe("integration tests V2 events", async () => {
     it("should not throw error if entry doesn't exist", async () => {
       const suspendedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it"],
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
         interface: getMockDocument(),
         state: descriptorState.suspended,
         publishedAt: new Date(),
@@ -1155,7 +1155,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
-          descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -1169,7 +1169,7 @@ describe("integration tests V2 events", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
-          descriptorAudience: suspendedDescriptor.audience[0],
+          descriptorAudience: suspendedDescriptor.audience,
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
