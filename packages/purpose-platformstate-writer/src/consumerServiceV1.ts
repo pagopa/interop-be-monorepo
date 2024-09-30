@@ -3,7 +3,9 @@ import {
   fromPurposeV1,
   makePlatformStatesPurposePK,
   missingKafkaMessageDataError,
+  Purpose,
   PurposeEventEnvelopeV1,
+  PurposeV1,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -25,11 +27,7 @@ export async function handleMessageV1(
     )
     // PurposeVersionSuspendedByConsumer, PurposeVersionSuspendedByProducer
     .with({ type: "PurposeVersionSuspended" }, async (msg) => {
-      const purposeV1 = msg.data.purpose;
-      if (!purposeV1) {
-        throw missingKafkaMessageDataError("purpose", msg.type);
-      }
-      const purpose = fromPurposeV1(purposeV1);
+      const purpose = parsePurpose(msg.data.purpose, msg.type);
       const primaryKey = makePlatformStatesPurposePK(purpose.id);
       const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
       const existingPurposeEntry = await readPlatformPurposeEntry(
@@ -59,11 +57,7 @@ export async function handleMessageV1(
     })
     // PurposeArchived
     .with({ type: "PurposeVersionArchived" }, async (msg) => {
-      const purposeV1 = msg.data.purpose;
-      if (!purposeV1) {
-        throw missingKafkaMessageDataError("purpose", msg.type);
-      }
-      const purpose = fromPurposeV1(purposeV1);
+      const purpose = parsePurpose(msg.data.purpose, msg.type);
       const primaryKey = makePlatformStatesPurposePK(purpose.id);
 
       // platform-states
@@ -89,3 +83,13 @@ export async function handleMessageV1(
     )
     .exhaustive();
 }
+
+export const parsePurpose = (
+  purposeV1: PurposeV1 | undefined,
+  msgType: string
+): Purpose => {
+  if (!purposeV1) {
+    throw missingKafkaMessageDataError("purpose", msgType);
+  }
+  return fromPurposeV1(purposeV1);
+};
