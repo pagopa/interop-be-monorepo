@@ -1368,6 +1368,7 @@ components:
       required:
         - message
       type: object
+      additionalProperties: false
       properties:
         message:
           type: string
@@ -1375,6 +1376,7 @@ components:
     GeographicTaxonomyResource:
       title: GeographicTaxonomyResource
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -1385,6 +1387,7 @@ components:
     InstitutionDetailResource:
       title: InstitutionDetailResource
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -1465,6 +1468,7 @@ components:
     InstitutionResource:
       title: InstitutionResource
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -1545,6 +1549,7 @@ components:
         - name
         - reason
       type: object
+      additionalProperties: false
       properties:
         name:
           type: string
@@ -1558,6 +1563,7 @@ components:
         - status
         - title
       type: object
+      additionalProperties: false
       properties:
         detail:
           type: string
@@ -1585,6 +1591,7 @@ components:
     ProductResource:
       title: ProductResource
       type: object
+      additionalProperties: false
       properties:
         contractTemplatePath:
           type: string
@@ -1642,6 +1649,7 @@ components:
     PspDataResource:
       title: PspDataResource
       type: object
+      additionalProperties: false
       properties:
         abiCode:
           type: string
@@ -1662,6 +1670,7 @@ components:
     DpoDataResource:
       title: DpoDataResource
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -1679,6 +1688,7 @@ components:
     RootParentResource:
       title: RootParentResource
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1689,6 +1699,7 @@ components:
     CompanyInformationsResource:
       title: CompanyInformationsResource
       type: object
+      additionalProperties: false
       properties:
         businessRegisterPlace:
           type: string
@@ -1702,6 +1713,7 @@ components:
     AssistanceContactsResource:
       title: AssistanceContactsResource
       type: object
+      additionalProperties: false
       properties:
         supportEmail:
           type: string
@@ -1715,6 +1727,7 @@ components:
         - multiroleAllowed
         - roles
       type: object
+      additionalProperties: false
       properties:
         multiroleAllowed:
           type: boolean
@@ -1732,6 +1745,7 @@ components:
         - description
         - label
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -1745,6 +1759,7 @@ components:
     PageOfUserGroupResource:
       title: PageOfUserGroupResource
       type: object
+      additionalProperties: false
       properties:
         content:
           type: array
@@ -1770,6 +1785,7 @@ components:
     UserGroupResource:
       title: UserGroupResource
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1795,6 +1811,7 @@ components:
     UserResponse:
       title: UserResponse
       type: object
+      additionalProperties: false
       properties:
         email:
           type: string
@@ -1809,6 +1826,7 @@ components:
     UserResource:
       title: UserResource
       type: object
+      additionalProperties: false
       properties:
         email:
           type: string
@@ -1830,6 +1848,7 @@ components:
           description: User's surname
     Institution:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1916,9 +1935,9 @@ components:
           type: string
         rootParent:
           $ref: "#/components/schemas/RootParentResource"
-      additionalProperties: false
     Attribute:
       type: object
+      additionalProperties: false
       properties:
         origin:
           type: string
@@ -1932,6 +1951,7 @@ components:
         $ref: "#/components/schemas/Attribute"
     PaymentServiceProvider:
       type: object
+      additionalProperties: false
       properties:
         abiCode:
           type: string
@@ -1948,9 +1968,9 @@ components:
         vatNumberGroup:
           type: boolean
           description: true when vat number identify a group
-      additionalProperties: false
     DataProtectionOfficer:
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -1961,12 +1981,12 @@ components:
         pec:
           type: string
           description: Data protection officer digital address
-      additionalProperties: false
     GeographicTaxonomy:
       required:
         - code
         - desc
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -1974,10 +1994,10 @@ components:
         desc:
           type: string
           description: Description of the geographic taxonomy code
-      additionalProperties: false
     DelegationResponse:
       title: DelegationResponse
       type: object
+      additionalProperties: false
       properties:
         brokerId:
           type: string
@@ -2020,6 +2040,7 @@ components:
       required:
         - fiscalCode
       type: object
+      additionalProperties: false
       properties:
         fiscalCode:
           type: string
@@ -2027,6 +2048,7 @@ components:
     UserInfoResource:
       title: UserInfoResource
       type: object
+      additionalProperties: false
       properties:
         onboardedInstitutions:
           type: array
@@ -2038,6 +2060,7 @@ components:
     OnboardedInstitutionResource:
       title: OnboardedInstitutionResource
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -2074,6 +2097,7 @@ components:
     ProductInfo:
       title: ProductInfo
       type: object
+      additionalProperties: false
       properties:
         createdAt:
           type: string
@@ -2085,6 +2109,7 @@ components:
     InstitutionsResponse:
       title: InstitutionsResponse
       type: object
+      additionalProperties: false
       properties:
         institutions:
           type: array
@@ -2093,6 +2118,7 @@ components:
     InstitutionResponse:
       title: InstitutionResponse
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -2158,6 +2184,7 @@ components:
     AttributesResponse:
       title: AttributesResponse
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -2168,6 +2195,7 @@ components:
     DataProtectionOfficerResponse:
       title: DataProtectionOfficerResponse
       type: object
+      additionalProperties: false
       properties:
         address:
           type: string
@@ -2178,6 +2206,7 @@ components:
     GeoTaxonomies:
       title: GeoTaxonomies
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -2186,6 +2215,7 @@ components:
     GeographicTaxonomies:
       title: GeographicTaxonomies
       type: object
+      additionalProperties: false
       properties:
         code:
           type: string
@@ -2208,6 +2238,7 @@ components:
     PaymentServiceProviderResponse:
       title: PaymentServiceProviderResponse
       type: object
+      additionalProperties: false
       properties:
         abiCode:
           type: string
@@ -2222,6 +2253,7 @@ components:
     OnboardingsResponse:
       title: OnboardingsResponse
       type: object
+      additionalProperties: false
       properties:
         onboardings:
           type: array
@@ -2230,6 +2262,7 @@ components:
     OnboardingResponse:
       title: OnboardingResponse
       type: object
+      additionalProperties: false
       properties:
         billing:
           $ref: "#/components/schemas/BillingResponse"
@@ -2262,6 +2295,7 @@ components:
     BillingResponse:
       title: BillingResponse
       type: object
+      additionalProperties: false
       properties:
         publicServices:
           type: boolean

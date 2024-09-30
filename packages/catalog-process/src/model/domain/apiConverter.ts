@@ -141,7 +141,6 @@ export const documentToApiDocument = (
   contentType: document.contentType,
   prettyName: document.prettyName,
   path: document.path,
-  uploadDate: document.uploadDate,
   checksum: document.checksum,
 });
 

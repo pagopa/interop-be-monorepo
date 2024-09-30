@@ -4,7 +4,6 @@ import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
   ClientId,
-  clientKindTokenStates,
   generateId,
   itemState,
   PurposeId,
@@ -43,11 +42,13 @@ import {
   subjectNotFound,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
-  invalidDigestFormat,
   purposeIdNotProvided,
-  unexpectedKeyType,
+  invalidGrantType,
+  invalidAssertionType,
+  invalidSignature,
+  clientAssertionInvalidClaims,
 } from "../src/errors.js";
-import { ConsumerKey } from "../src/types.js";
+import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
   getMockAccessTokenRequest,
   getMockApiKey,
@@ -64,51 +65,142 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    // it("invalidAssertionType", () => {
-    // TODO how to test this if "something-wrong" can't be assigned to the property?
-    // possible solution: the property is a string (not literal) and the check is done later
-    //   const wrongAssertionType = "something-wrong";
-    //   const request = {
-    //     ...getMockAccessTokenRequest(),
-    //     client_assertion_type: wrongAssertionType,
-    //   };
-    //   const { errors } = validateRequestParameters(request);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
-    // });
+    it("invalidAssertionType", () => {
+      const wrongAssertionType = "something-wrong";
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        client_assertion_type: wrongAssertionType,
+      };
+      const { errors } = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAssertionType(wrongAssertionType));
+    });
 
-    // it("invalidGrantType", () => {
-    // TODO how to test this if "something-wrong" can't be assigned to the property?
-    // possible solution: the property is a string (not literal) and the check is done later
-    //   const wrongGrantType = "something-wrong";
-    //   const request = {
-    //     ...getMockAccessTokenRequest(),
-    //     grant_type: wrongGrantType,
-    //   };
-    //   // TODO: mock already checks grant type
-    //   const errors = validateRequestParameters(request);
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
-    // });
+    it("invalidGrantType", () => {
+      const wrongGrantType = "something-wrong";
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        grant_type: wrongGrantType,
+      };
+      const { errors } = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidGrantType(wrongGrantType));
+    });
+
+    it("invalidAssertionType and invalidGrantType", () => {
+      const wrongAssertionType = "something-wrong";
+      const wrongGrantType = "something-wrong";
+
+      const request: ClientAssertionValidationRequest = {
+        ...getMockAccessTokenRequest(),
+        client_assertion_type: wrongAssertionType,
+        grant_type: wrongGrantType,
+      };
+      const { errors } = validateRequestParameters(request);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([
+        invalidAssertionType(wrongAssertionType),
+        invalidGrantType(wrongGrantType),
+      ]);
+    });
   });
 
   describe("verifyClientAssertion", () => {
     it("success client assertion", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeUndefined();
     });
+    it("clientAssertionInvalidClaims", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {
+          wrongPayloadProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+    });
+
+    it("wrong signature", () => {
+      const clientAssertion = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings = clientAssertion.split(".");
+      const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
+      const { errors } = verifyClientAssertion(
+        clientAssertionWithWrongSignature,
+        undefined
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("correctly formatted but invalid signature", () => {
+      const clientAssertion1 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const clientAssertion2 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings1 = clientAssertion1.split(".");
+      const subStrings2 = clientAssertion2.split(".");
+
+      const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
+      const { errors } = verifyClientAssertion(
+        clientAssertionWithWrongSignature,
+        undefined
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("invalidClientAssertionFormat (malformed jwt)", () => {
+      const { errors: errors1 } = verifyClientAssertion(
+        "too.many.substrings.in.client.assertion",
+        undefined
+      );
+      expect(errors1).toBeDefined();
+      expect(errors1).toHaveLength(1);
+      expect(errors1![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors2 } = verifyClientAssertion("not a jwt", undefined);
+      expect(errors2).toBeDefined();
+      expect(errors2).toHaveLength(1);
+      expect(errors2![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors3 } = verifyClientAssertion("not.a.jwt", undefined);
+      expect(errors3).toBeDefined();
+      expect(errors3).toHaveLength(1);
+      expect(errors3![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors4 } = verifyClientAssertion(
+        "signature.missing",
+        undefined
+      );
+      expect(errors4).toBeDefined();
+      expect(errors4).toHaveLength(1);
+      expect(errors4![0]).toEqual(invalidClientAssertionFormat());
+    });
 
     it("invalidAudienceFormat", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: { aud: "random" },
+        standardClaimsOverride: { aud: "random" },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -120,37 +212,13 @@ describe("validation test", () => {
     it("invalidAudience", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: { aud: ["random"] },
+        standardClaimsOverride: { aud: ["random"] },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidAudience());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not a jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not.a.jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion(
-        `${generateId()}.${generateId()}`,
-        undefined
-      );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
     });
 
     it("unexpectedClientAssertionPayload", () => {
@@ -169,13 +237,15 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedClientAssertionPayload());
+      expect(errors![0].code).toEqual(
+        unexpectedClientAssertionPayload("").code
+      );
     });
 
     it("jtiNotFound", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: { jti: undefined },
+        standardClaimsOverride: { jti: undefined },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -189,7 +259,7 @@ describe("validation test", () => {
 
       const a = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: { key: 1 },
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -231,7 +301,7 @@ describe("validation test", () => {
     it("issuerNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { iss: undefined },
+        standardClaimsOverride: { iss: undefined },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -240,10 +310,22 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(issuerNotFound());
     });
 
+    it("jtiNotFound and issuerNotFound", () => {
+      const jws = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { jti: undefined, iss: undefined },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([jtiNotFound(), issuerNotFound()]);
+    });
+
     it("subjectNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { sub: undefined },
+        standardClaimsOverride: { sub: undefined },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -252,11 +334,11 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(subjectNotFound());
     });
 
-    it("invalidSubject", () => {
+    it("invalidSubject - Subject claim differs from clientID parameter", () => {
       const subject = generateId<ClientId>();
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { sub: subject },
+        standardClaimsOverride: { sub: subject },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, generateId<ClientId>());
@@ -270,7 +352,7 @@ describe("validation test", () => {
       const subject = "not a client id";
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: { sub: subject },
+        standardClaimsOverride: { sub: subject },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, clientId);
@@ -283,7 +365,7 @@ describe("validation test", () => {
       const notPurposeId = "not a purpose id";
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           purposeId: notPurposeId,
         },
@@ -298,7 +380,7 @@ describe("validation test", () => {
       const notClientId = "not a client id";
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, notClientId);
@@ -307,38 +389,35 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidClientIdFormat(notClientId));
     });
 
-    it("digestClaimNotFound", () => {
+    it("should not throw error if digest is undefined", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           digest: undefined,
         },
       });
-      const { errors } = verifyClientAssertion(jws, undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(digestClaimNotFound());
+      expect(() => verifyClientAssertion(jws, undefined)).not.toThrow();
     });
 
-    it("invalidDigestFormat", () => {
+    it("digestClaimNotFound", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidDigestFormat());
+      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
     });
 
     it("invalidHashLength", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
-          digest: { alg: "SHA256", value: "TODO string of wrong length" },
+          digest: { alg: "SHA256", value: "string of wrong length" },
         },
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -350,7 +429,7 @@ describe("validation test", () => {
     it("InvalidHashAlgorithm", () => {
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {
           digest: { alg: "wrong alg", value: value64chars },
         },
@@ -361,11 +440,28 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidHashAlgorithm());
     });
 
+    it("invalidHashLength and invalidHashAlgorithm", () => {
+      const jws = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {
+          digest: { alg: "wrong alg", value: "string of wrong length" },
+        },
+      });
+      const { errors } = verifyClientAssertion(jws, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([
+        invalidHashLength("wrong alg"),
+        invalidHashAlgorithm(),
+      ]);
+    });
+
     it.skip("AlgorithmNotFound", () => {
       // TODO it seems this can't be tested because we need alg header to sign the mock jwt
       const jws = getMockClientAssertion({
         customHeader: { alg: undefined },
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -378,7 +474,7 @@ describe("validation test", () => {
       const notAllowedAlg = "RS512";
       const jws = getMockClientAssertion({
         customHeader: { alg: "RS512" },
-        payload: {},
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -389,8 +485,8 @@ describe("validation test", () => {
 
     it("InvalidKidFormat", () => {
       const jws = getMockClientAssertion({
-        customHeader: { kid: "not-a-valid-kid" },
-        payload: {},
+        customHeader: { kid: "not a valid kid" },
+        standardClaimsOverride: {},
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(jws, undefined);
@@ -411,7 +507,7 @@ describe("validation test", () => {
 
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {
+        standardClaimsOverride: {
           iat: new Date().getTime() / 1000,
           exp: threeHourLater.getTime() / 1000,
         },
@@ -433,7 +529,7 @@ describe("validation test", () => {
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
-      // TODO: find out when the jwonwebtoken.verify function returns a string
+      // TODO: find out when the jsonwebtoken.verify function returns a string
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
@@ -449,7 +545,7 @@ describe("validation test", () => {
 
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {
+        standardClaimsOverride: {
           iat: sixHoursAgo.getTime() / 1000,
           exp: threeHourAgo.getTime() / 1000,
         },
@@ -479,8 +575,79 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].title).toEqual(jsonWebTokenError("").title);
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
+
+    it("jsonWebTokenError - wrong signature", () => {
+      const mockKey = getMockConsumerKey();
+      const clientAssertion = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+
+      const subStrings = clientAssertion.split(".");
+      const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
+      const { errors } = verifyClientAssertionSignature(
+        clientAssertionWithWrongSignature,
+        mockKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+    });
+    it("jsonWebTokenError - malformed jwt", () => {
+      const mockKey = getMockConsumerKey();
+      const { errors } = verifyClientAssertionSignature(
+        "too.many.substrings.in.client.assertion",
+        mockKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+    });
+
+    it("correctly formatted signature but invalid", () => {
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const clientAssertion1 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+        keySet,
+      });
+
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+      };
+
+      const clientAssertion2 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings1 = clientAssertion1.split(".");
+      const subStrings2 = clientAssertion2.split(".");
+
+      const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
+      const { errors } = verifyClientAssertionSignature(
+        clientAssertionWithWrongSignature,
+        mockConsumerKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(invalidSignature().code);
+    });
+
     it("notBeforeError", () => {
       const threeHoursAgo = new Date();
       threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
@@ -496,7 +663,7 @@ describe("validation test", () => {
       });
       const jws = getMockClientAssertion({
         customHeader: {},
-        payload: {
+        standardClaimsOverride: {
           iat: threeHoursAgo.getTime() / 1000,
           exp: sixHoursLater.getTime() / 1000,
           nbf: threeHoursLater.getTime() / 1000,
@@ -518,7 +685,7 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
     });
-    it.skip("clientAssertionSignatureVerificationFailure", () => {
+    it.skip("unexpectedClientAssertionSignatureVerificationError", () => {
       // TODO: not sure when this happens
       expect(1).toBe(1);
     });
@@ -549,7 +716,7 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(inactiveAgreement());
     });
-    it("inactiveAgreement", () => {
+    it("inactiveEservice", () => {
       const mockKey: ConsumerKey = {
         ...getMockConsumerKey(),
         descriptorState: itemState.inactive,
@@ -573,67 +740,33 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(inactivePurpose());
     });
+    it("inactiveAgreement and inactiveEservice and inactivePurpose", () => {
+      const mockKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        agreementState: itemState.inactive,
+        descriptorState: itemState.inactive,
+        purposeState: itemState.inactive,
+      };
+      validatePlatformState(mockKey);
+      const { errors } = validatePlatformState(mockKey);
+
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(3);
+      expect(errors).toEqual([
+        inactiveAgreement(),
+        inactiveEService(),
+        inactivePurpose(),
+      ]);
+    });
   });
 
   describe("validateClientKindAndPlatformState", () => {
-    it("unexpectedKeyType (consumerKey and clientKind.api)", () => {
-      const mockConsumerKey = {
-        ...getMockConsumerKey(),
-        clientKind: clientKindTokenStates.api,
-      };
-      const { data: mockClientAssertion } = verifyClientAssertion(
-        getMockClientAssertion({
-          customHeader: {},
-          payload: {},
-          customClaims: {},
-        }),
-        undefined
-      );
-      if (!mockClientAssertion) {
-        fail();
-      }
-      const { errors } = validateClientKindAndPlatformState(
-        mockConsumerKey,
-        mockClientAssertion
-      );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedKeyType(mockConsumerKey.clientKind));
-    });
-
-    // it("unexpectedKeyType (apiKey and clientKindTokenStates.consumer)", () => {
-    //   // How to test this? The goal is to pass an api key to validateClientKindAndPlatformState (with kind clientKindTokenStates.consumer)
-    //   const mockApiKey = {
-    //     ...getMockApiKey(),
-    //     clientKind: clientKindTokenStates.consumer,
-    //   };
-    //   const { data: mockClientAssertion } = verifyClientAssertion(
-    //     getMockClientAssertion({
-    //       customHeader: {},
-    //       payload: {},
-    //       customClaims: {},
-    //     }),
-    //     undefined
-    //   );
-    //   if (!mockClientAssertion) {
-    //     fail();
-    //   }
-    //   const { errors } = validateClientKindAndPlatformState(
-    //     // FIX
-    //     mockApiKey,
-    //     mockClientAssertion
-    //   );
-    //   expect(errors).toBeDefined();
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors![0]).toEqual(unexpectedKeyType(mockApiKey.clientKind));
-    // });
-
-    it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
+    it("success (consumerKey with consumer client kind; valid platform states)", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: { purposeId: generateId<PurposeId>() },
+          standardClaimsOverride: { purposeId: generateId<PurposeId>() },
           customClaims: {},
         }),
         undefined
@@ -648,7 +781,7 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("inactiveEService (consumerKey and clientKindTokenStates.consumer; invalid platform states)", () => {
+    it("inactiveEService (consumerKey with consumer client kind; invalid platform states)", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
         descriptorState: itemState.inactive,
@@ -656,7 +789,7 @@ describe("validation test", () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: { purposeId: generateId<PurposeId>() },
+          standardClaimsOverride: { purposeId: generateId<PurposeId>() },
           customClaims: {},
         }),
         undefined
@@ -673,12 +806,12 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(inactiveEService());
     });
 
-    it("success (apiKey and clientKindTokenStates.api)", () => {
+    it("success (apiKey with api client kind)", () => {
       const mockApiKey = getMockApiKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: {},
+          standardClaimsOverride: {},
           customClaims: {},
         }),
         undefined
@@ -693,12 +826,12 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("purposeIdNotProvided", () => {
+    it("purposeIdNotProvided for Client Kind Consumer", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
           customHeader: {},
-          payload: { purposeId: undefined },
+          standardClaimsOverride: { purposeId: undefined },
           customClaims: {},
         }),
         undefined
@@ -713,6 +846,31 @@ describe("validation test", () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(purposeIdNotProvided());
+    });
+
+    it("purposeIdNotProvided and platformStateError", () => {
+      const mockConsumerKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        agreementState: itemState.inactive,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        getMockClientAssertion({
+          customHeader: {},
+          standardClaimsOverride: { purposeId: undefined },
+          customClaims: {},
+        }),
+        undefined
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(2);
+      expect(errors).toEqual([inactiveAgreement(), purposeIdNotProvided()]);
     });
   });
 });

@@ -28,13 +28,14 @@ import {
 import {
   ApiKey,
   ClientAssertion,
+  ClientAssertionPayload,
   ClientAssertionValidationRequest,
   ConsumerKey,
   Key,
   ValidationResult,
 } from "./types.js";
 import {
-  clientAssertionSignatureVerificationFailure,
+  unexpectedClientAssertionSignatureVerificationError,
   invalidAssertionType,
   invalidClientAssertionFormat,
   invalidClientAssertionSignatureType,
@@ -44,47 +45,9 @@ import {
   purposeIdNotProvided,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
-  unexpectedKeyType,
+  invalidSignature,
+  clientAssertionInvalidClaims,
 } from "./errors.js";
-
-/*
-TEMPLATE for client assertion validation
-
-export const validateClientAssertion = async (
-  request: ClientAssertionValidationRequest,
-): Promise<ValidationResult<ClientAssertion>> => {
-  const { errors: parametersErrors } = validateRequestParameters(request);
-
-  const { errors: clientAssertionVerificationErrors, data: jwt } =
-    verifyClientAssertion(request.client_assertion, request.client_id);
-
-  // TO DO retrieve key
-
-
-  const { errors: clientAssertionSignatureErrors } =
-    verifyClientAssertionSignature(request.client_assertion, key);
-
-  if (
-    parametersErrors ||
-    clientAssertionVerificationErrors ||
-    clientAssertionSignatureErrors
-  ) {
-    return failedValidation([
-      parametersErrors,
-      clientAssertionVerificationErrors,
-      clientAssertionSignatureErrors,
-    ]);
-  }
-  const { errors: clientKindAndPlatormStateErrors } =
-    validateClientKindAndPlatformState(key, jwt);
-
-  if (clientKindAndPlatormStateErrors) {
-    return failedValidation([clientAssertionSignatureErrors]);
-  }
-
-  return successfulValidation(jwt);
-};
-*/
 
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest
@@ -94,7 +57,6 @@ export const validateRequestParameters = (
       ? invalidAssertionType(request.client_assertion_type)
       : undefined;
 
-  // TODO: this might be useless because ClientAssertionValidationRequest has the string hard coded
   const grantTypeError =
     request.grant_type !== EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE
       ? invalidGrantType(request.grant_type)
@@ -118,7 +80,9 @@ export const verifyClientAssertion = (
     }
 
     if (typeof decoded.payload === "string") {
-      return failedValidation([unexpectedClientAssertionPayload()]);
+      return failedValidation([
+        unexpectedClientAssertionPayload("payload is a string"),
+      ]);
     }
 
     const { errors: jtiErrors, data: validatedJti } = validateJti(
@@ -151,6 +115,7 @@ export const verifyClientAssertion = (
     const { errors: digestErrors, data: validatedDigest } = validateDigest(
       decoded.payload.digest
     );
+
     if (
       !jtiErrors &&
       !iatErrors &&
@@ -163,6 +128,15 @@ export const verifyClientAssertion = (
       !algErrors &&
       !digestErrors
     ) {
+      const payloadParseResult = ClientAssertionPayload.safeParse(
+        decoded.payload
+      );
+      if (!payloadParseResult.success) {
+        return failedValidation([
+          clientAssertionInvalidClaims(payloadParseResult.error.message),
+        ]);
+      }
+
       const result: ClientAssertion = {
         header: {
           kid: validatedKid,
@@ -194,7 +168,8 @@ export const verifyClientAssertion = (
       digestErrors,
     ]);
   } catch (error) {
-    return failedValidation([unexpectedClientAssertionPayload()]);
+    const message = error instanceof Error ? error.message : "generic error";
+    return failedValidation([unexpectedClientAssertionPayload(message)]);
   }
 };
 
@@ -220,10 +195,14 @@ export const verifyClientAssertionSignature = (
     } else if (error instanceof NotBeforeError) {
       return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
-      // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
+      if (error.message === "invalid signature") {
+        return failedValidation([invalidSignature()]);
+      }
       return failedValidation([jsonWebTokenError(error.message)]);
     } else {
-      return failedValidation([clientAssertionSignatureVerificationFailure()]);
+      return failedValidation([
+        unexpectedClientAssertionSignatureVerificationError(),
+      ]);
     }
   }
 };
@@ -232,28 +211,19 @@ export const validateClientKindAndPlatformState = (
   key: ApiKey | ConsumerKey,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
-  match(key.clientKind)
-    .with(clientKindTokenStates.api, () =>
-      ApiKey.safeParse(key).success
-        ? successfulValidation(jwt)
-        : failedValidation([unexpectedKeyType(clientKindTokenStates.api)])
+  match(key)
+    .with({ clientKind: clientKindTokenStates.api }, () =>
+      successfulValidation(jwt)
     )
-    .with(clientKindTokenStates.consumer, () => {
-      if (ConsumerKey.safeParse(key).success) {
-        const { errors: platformStateErrors } = validatePlatformState(
-          key as ConsumerKey
-        );
-        const purposeIdError = jwt.payload.purposeId
-          ? undefined
-          : purposeIdNotProvided();
+    .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
+      const { errors: platformStateErrors } = validatePlatformState(key);
+      const purposeIdError = jwt.payload.purposeId
+        ? undefined
+        : purposeIdNotProvided();
 
-        if (!platformStateErrors && !purposeIdError) {
-          return successfulValidation(jwt);
-        }
-        return failedValidation([platformStateErrors, purposeIdError]);
+      if (!platformStateErrors && !purposeIdError) {
+        return successfulValidation(jwt);
       }
-      return failedValidation([
-        unexpectedKeyType(clientKindTokenStates.consumer),
-      ]);
+      return failedValidation([platformStateErrors, purposeIdError]);
     })
     .exhaustive();

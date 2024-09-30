@@ -2,17 +2,15 @@ import { z } from "zod";
 import {
   DescriptorId,
   EServiceId,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesAgreementPK,
+  PlatformStatesClientPK,
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesPurposePK,
   PurposeId,
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
-import {
-  PlatformStatesEServiceDescriptorPK,
-  PlatformStatesPurposePK,
-  PlatformStatesAgreementPK,
-  GSIPKConsumerIdEServiceId,
-  PlatformStatesClientPK,
-} from "./dynamoDB-keys.js";
 
 export const itemState = {
   active: "ACTIVE",
@@ -33,7 +31,7 @@ type PlatformStatesBaseEntry = z.infer<typeof PlatformStatesBaseEntry>;
 
 export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
-  descriptorAudience: z.string(),
+  descriptorAudience: z.array(z.string()),
   descriptorVoucherLifespan: z.number(),
 });
 export type PlatformStatesCatalogEntry = z.infer<

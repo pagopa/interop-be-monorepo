@@ -1,0 +1,393 @@
+openapi: 3.0.3
+
+info:
+  title: Notification Notifier Micro Service
+  description: This service notifies organization about occurred platform events
+  version: "{{version}}"
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/notifier/{{version}}"
+    description: This service is the security supplier
+security:
+  - bearerAuth: []
+tags:
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: events
+    description: Returns events
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /status:
+    get:
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/events":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      tags:
+        - events
+      summary: Get list of events
+      description: Retrieves the list of events sent to the caller
+      operationId: getEventsFromId
+      parameters:
+        - name: lastEventId
+          in: query
+          description: returns organization events starting from this last received id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: the number of events returned by this response
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Events"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/events/eservices":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      tags:
+        - events
+      summary: Get list of events from all organizations partition
+      description: Retrieves the list of events from all organizations partition
+      operationId: getAllEservicesFromId
+      parameters:
+        - name: lastEventId
+          in: query
+          description: returns organization events starting from this last received id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: the number of events returned by this response
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Events"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/events/keys":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      tags:
+        - events
+      summary: Get list of keys events
+      description: Retrieves the list of keys events
+      operationId: getKeysEvents
+      parameters:
+        - name: lastEventId
+          in: query
+          description: returns events starting from this last received id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: the number of events returned by this response
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Events"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/events/agreements":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - events
+      summary: Get list of agreements events for all organizations
+      description: Get list of agreements events for all organizations
+      operationId: getAllAgreementsEventsFromId
+      parameters:
+        - name: lastEventId
+          in: query
+          description: returns events starting from this last received id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: the number of events returned by this response
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Events"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/events/producerKeys":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      tags:
+        - events
+      summary: Get list of the producer keys events
+      description: Retrieves the list of the keys events
+      operationId: getProducerKeysEvents
+      parameters:
+        - name: lastEventId
+          in: query
+          description: returns events starting from this last received id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: the number of events returned by this response
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Events"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      schema:
+        type: string
+    IpAddress:
+      in: header
+      name: X-Forwarded-For
+      schema:
+        type: string
+  schemas:
+    Events:
+      type: object
+      properties:
+        lastEventId:
+          type: integer
+          format: int64
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+      required:
+        - events
+    Event:
+      properties:
+        eventId:
+          type: integer
+          format: int64
+        eventType:
+          type: string
+        objectType:
+          $ref: "#/components/schemas/ObjectType"
+        objectId:
+          additionalProperties:
+            type: string
+      required:
+        - eventId
+        - eventType
+        - objectType
+        - objectId
+    ObjectType:
+      type: string
+      enum:
+        - AGREEMENT
+        - ESERVICE
+        - KEY
+        - PURPOSE
+        - AGREEMENT_VERIFIED_ATTRIBUTE
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+        - errors
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT

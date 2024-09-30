@@ -14,6 +14,7 @@ export const KafkaProducerConfig = AWSConfig.and(
       .number()
       .default(20)
       .transform((n) => n * 1000),
+    PRODUCER_KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
   })
 ).transform((c) => ({
   awsRegion: c.awsRegion,
@@ -24,5 +25,7 @@ export const KafkaProducerConfig = AWSConfig.and(
   producerKafkaLogLevel: logLevel[c.PRODUCER_KAFKA_LOG_LEVEL],
   producerKafkaReauthenticationThreshold:
     c.PRODUCER_KAFKA_REAUTHENTICATION_THRESHOLD,
+  producerKafkaBrokerConnectionString:
+    c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING,
 }));
 export type KafkaProducerConfig = z.infer<typeof KafkaProducerConfig>;

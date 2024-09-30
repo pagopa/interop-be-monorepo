@@ -1,0 +1,131 @@
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import { apiGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  AgreementProcessClient,
+  CatalogProcessClient,
+  PurposeProcessClient,
+} from "../clients/clientsProvider.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
+import {
+  toApiGatewayPurpose,
+  toPurposeProcessGetPurposesQueryParams,
+} from "../api/purposeApiConverter.js";
+import {
+  assertIsEserviceProducer,
+  assertOnlyOneAgreementForEserviceAndConsumerExists,
+} from "./validators.js";
+import { getAllAgreements } from "./agreementService.js";
+
+export async function getAllPurposes(
+  purposeProcessClient: PurposeProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
+): Promise<apiGatewayApi.Purposes> {
+  const getPurposesQueryParams = toPurposeProcessGetPurposesQueryParams({
+    eserviceId,
+    consumerId,
+  });
+
+  const purposes = await getAllFromPaginated<purposeApi.Purpose>(
+    async (offset, limit) =>
+      await purposeProcessClient.getPurposes({
+        headers,
+        queries: {
+          ...getPurposesQueryParams,
+          offset,
+          limit,
+        },
+      })
+  );
+
+  return { purposes: purposes.map(toApiGatewayPurpose) };
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function purposeServiceBuilder(
+  purposeProcessClient: PurposeProcessClient,
+  catalogProcessClient: CatalogProcessClient,
+  agreementProcessClient: AgreementProcessClient
+) {
+  return {
+    getPurpose: async (
+      {
+        logger,
+        headers,
+        authData: { organizationId },
+      }: WithLogger<ApiGatewayAppContext>,
+      purposeId: purposeApi.Purpose["id"]
+    ): Promise<apiGatewayApi.Purpose> => {
+      logger.info(`Retrieving Purpose ${purposeId}`);
+
+      const purpose = await purposeProcessClient.getPurpose({
+        headers,
+        params: {
+          id: purposeId,
+        },
+      });
+
+      if (purpose.consumerId !== organizationId) {
+        const eservice = await catalogProcessClient.getEServiceById({
+          headers,
+          params: {
+            eServiceId: purpose.eserviceId,
+          },
+        });
+
+        assertIsEserviceProducer(eservice, organizationId);
+      }
+
+      return toApiGatewayPurpose(purpose);
+    },
+
+    getPurposes: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
+    ): Promise<apiGatewayApi.Purposes> => {
+      logger.info(
+        `Retrieving Purposes for eservice ${eserviceId} and consumer ${consumerId}"`
+      );
+      return await getAllPurposes(purposeProcessClient, headers, {
+        eserviceId,
+        consumerId,
+      });
+    },
+
+    getAgreementByPurpose: async (
+      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      purposeId: purposeApi.Purpose["id"]
+    ): Promise<apiGatewayApi.Agreement> => {
+      logger.info(`Retrieving agreement by purpose ${purposeId}`);
+      const purpose = await purposeProcessClient.getPurpose({
+        headers,
+        params: {
+          id: purposeId,
+        },
+      });
+
+      const { agreements } = await getAllAgreements(
+        agreementProcessClient,
+        headers,
+        {
+          consumerId: purpose.consumerId,
+          eserviceId: purpose.eserviceId,
+          producerId: undefined,
+          descriptorId: undefined,
+          states: [
+            apiGatewayApi.AgreementState.Values.ACTIVE,
+            apiGatewayApi.AgreementState.Values.SUSPENDED,
+          ],
+        }
+      );
+
+      assertOnlyOneAgreementForEserviceAndConsumerExists(
+        agreements,
+        purpose.eserviceId,
+        purpose.consumerId
+      );
+
+      return agreements[0];
+    },
+  };
+}

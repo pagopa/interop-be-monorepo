@@ -15,6 +15,19 @@ export const eventV2TypeMapper = (
     .with("ClientUserDeleted", () => "user-removed")
     .with("ClientPurposeAdded", () => "client-purpose-added")
     .with("ClientPurposeRemoved", () => "client-purpose-removed")
+    .with(
+      "ProducerKeychainAdded",
+      "ProducerKeychainDeleted",
+      "ProducerKeychainKeyAdded",
+      "ProducerKeychainKeyDeleted",
+      "ProducerKeychainUserAdded",
+      "ProducerKeychainUserDeleted",
+      "ProducerKeychainEServiceAdded",
+      "ProducerKeychainEServiceRemoved",
+      () => {
+        throw new Error("Not implemented");
+      }
+    )
     .exhaustive();
 
 export const buildAuthorizationMessage = (
