@@ -455,6 +455,7 @@ components:
     Attribute:
       title: Attribute
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         id:
@@ -492,6 +493,7 @@ components:
     CertifiedAttributeSeed:
       title: AttributeSeed
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         name:
@@ -514,6 +516,7 @@ components:
     InternalCertifiedAttributeSeed:
       title: AttributeSeed
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         name:
@@ -542,6 +545,7 @@ components:
     AttributeSeed:
       title: AttributeSeed
       type: object
+      additionalProperties: false
       description: Models the attribute registry entry as payload response
       properties:
         name:
@@ -558,6 +562,7 @@ components:
     Attributes:
       title: AttributesResponse
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array

@@ -221,6 +221,9 @@ export const updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo 
               ":descriptorAudience": {
                 S: catalogEntry.descriptorAudience,
               },
+              ":descriptorVoucherLifespan": {
+                N: catalogEntry.descriptorVoucherLifespan.toString(),
+              },
               ":gsi": {
                 S: GSIPK_eserviceId_descriptorId,
               },
@@ -246,7 +249,7 @@ export const updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo 
         UpdateExpression:
           "SET agreementState = :newState, updatedAt = :newUpdateAt".concat(
             additionalDescriptorInfo
-              ? ", GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience"
+              ? ", GSI_eservice_id_descriptor_id = :gsi, descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
               : ""
           ),
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,

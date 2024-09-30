@@ -68,6 +68,60 @@ export type ClientId = z.infer<typeof ClientId>;
 export const SelfcareId = z.string().uuid().brand("SelfcareId");
 export type SelfcareId = z.infer<typeof SelfcareId>;
 
+export const ProducerKeychainId = z.string().uuid().brand("ProducerKeychainId");
+export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
+
+export const PlatformStatesEServiceDescriptorPK = z
+  .string()
+  .brand(`ESERVICEDESCRIPTOR#eServiceId#descriptorId`);
+export type PlatformStatesEServiceDescriptorPK = z.infer<
+  typeof PlatformStatesEServiceDescriptorPK
+>;
+
+export const PlatformStatesAgreementPK = z
+  .string()
+  .brand(`AGREEMENT#agreementId`);
+export type PlatformStatesAgreementPK = z.infer<
+  typeof PlatformStatesAgreementPK
+>;
+
+export const PlatformStatesPurposePK = z.string().brand(`PURPOSE#purposeId`);
+export type PlatformStatesPurposePK = z.infer<typeof PlatformStatesPurposePK>;
+
+export const PlatformStatesClientPK = z.string().brand(`CLIENT#clientId`);
+export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
+
+export const GSIPKConsumerIdEServiceId = z
+  .string()
+  .brand(`tenantId#eserviceId`);
+export type GSIPKConsumerIdEServiceId = z.infer<
+  typeof GSIPKConsumerIdEServiceId
+>;
+
+export const TokenGenerationStatesClientKidPurposePK = z
+  .string()
+  .brand(`CLIENTKIDPURPOSE#clientId#kid#purposeId`);
+export type TokenGenerationStatesClientKidPurposePK = z.infer<
+  typeof TokenGenerationStatesClientKidPurposePK
+>;
+
+export const TokenGenerationStatesClientKidPK = z
+  .string()
+  .brand(`CLIENTKID#clientId#kid`);
+export type TokenGenerationStatesClientKidPK = z.infer<
+  typeof TokenGenerationStatesClientKidPK
+>;
+
+export const GSIPKEServiceIdDescriptorId = z
+  .string()
+  .brand(`eserviceId#descriptorId`);
+export type GSIPKEServiceIdDescriptorId = z.infer<
+  typeof GSIPKEServiceIdDescriptorId
+>;
+
+export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
+export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -85,7 +139,17 @@ type IDS =
   | PurposeVersionDocumentId
   | ClientId
   | UserId
-  | SelfcareId;
+  | SelfcareId
+  | ProducerKeychainId
+  | PlatformStatesEServiceDescriptorPK
+  | PlatformStatesAgreementPK
+  | PlatformStatesPurposePK
+  | PlatformStatesClientPK
+  | GSIPKConsumerIdEServiceId
+  | TokenGenerationStatesClientKidPurposePK
+  | TokenGenerationStatesClientKidPK
+  | GSIPKEServiceIdDescriptorId
+  | GSIPKClientIdPurposeId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

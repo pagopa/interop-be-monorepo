@@ -239,6 +239,7 @@ export async function handleMessageV2(
         dynamoDBClient
       );
       if (!secondRetrievalCatalogEntry) {
+        // TODO double-check
         throw genericInternalError("Catalog entry not found");
       }
       if (secondRetrievalCatalogEntry.state !== catalogEntry.state) {

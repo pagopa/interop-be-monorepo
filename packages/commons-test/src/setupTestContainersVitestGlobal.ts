@@ -12,6 +12,7 @@ import {
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
@@ -27,8 +28,10 @@ import {
   TEST_MAILPIT_HTTP_PORT,
   dynamoDBContainer,
   TEST_DYNAMODB_PORT,
+  redisContainer,
+  TEST_REDIS_PORT,
 } from "./containerTestUtils.js";
-import { EmailManagerConfigTest } from "./testConfig.js";
+import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -36,7 +39,8 @@ declare module "vitest" {
     tokenGenerationReadModelConfig?: TokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
-    emailManagerConfig?: EmailManagerConfigTest;
+    redisRateLimiterConfig?: RedisRateLimiterConfig;
+    emailManagerConfig?: PecEmailManagerConfigTest;
   }
 }
 
@@ -55,7 +59,8 @@ export function setupTestContainersVitestGlobal() {
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
-  const emailManagerConfig = EmailManagerConfigTest.safeParse(process.env);
+  const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
+  const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const tokenGenerationReadModelConfig =
     TokenGenerationReadModelDbConfig.safeParse(process.env);
 
@@ -66,6 +71,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
+    let startedRedisContainer: StartedTestContainer | undefined;
     let startedDynamoDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
@@ -143,12 +149,20 @@ export function setupTestContainersVitestGlobal() {
       );
     }
 
+    if (redisRateLimiterConfig.success) {
+      startedRedisContainer = await redisContainer().start();
+      redisRateLimiterConfig.data.rateLimiterRedisPort =
+        startedRedisContainer.getMappedPort(TEST_REDIS_PORT);
+      provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
       await startedDynamoDbContainer?.stop();
+      await startedRedisContainer?.stop();
     };
   };
 }

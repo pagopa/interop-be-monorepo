@@ -24,7 +24,16 @@ import {
   TokenGenerationStatesClientPurposeEntry,
   descriptorState,
 } from "pagopa-interop-models";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   updateAgreementStateInPlatformStatesEntry,
   readAgreementEntry,
@@ -54,7 +63,14 @@ describe("utils", async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
   afterEach(async () => {
-    deleteDynamoDBTables(dynamoDBClient);
+    await deleteDynamoDBTables(dynamoDBClient);
+  });
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   describe("updateAgreementStateInPlatformStatesEntry", async () => {

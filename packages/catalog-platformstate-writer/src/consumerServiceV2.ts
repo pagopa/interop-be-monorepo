@@ -48,56 +48,41 @@ export async function handleMessageV2(
           primaryKeyCurrent,
           dynamoDBClient
         );
-        if (
-          existingCatalogEntryCurrent &&
-          existingCatalogEntryCurrent.version > msg.version
-        ) {
-          // Stops processing if the message is older than the catalog entry
-          return Promise.resolve();
-        } else if (
-          existingCatalogEntryCurrent &&
-          existingCatalogEntryCurrent.version <= msg.version
-        ) {
-          await updateDescriptorStateInPlatformStatesEntry(
-            dynamoDBClient,
-            primaryKeyCurrent,
-            descriptorStateToItemState(descriptor.state),
-            msg.version
-          );
-
-          // token-generation-states
-          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          });
-          await updateDescriptorStateInTokenGenerationStatesTable(
-            eserviceId_descriptorId,
-            descriptorStateToItemState(descriptor.state),
-            dynamoDBClient
-          );
+        if (existingCatalogEntryCurrent) {
+          if (existingCatalogEntryCurrent.version > msg.version) {
+            // Stops processing if the message is older than the catalog entry
+            return Promise.resolve();
+          } else {
+            await updateDescriptorStateInPlatformStatesEntry(
+              dynamoDBClient,
+              primaryKeyCurrent,
+              descriptorStateToItemState(descriptor.state),
+              msg.version
+            );
+          }
         } else {
           const catalogEntry: PlatformStatesCatalogEntry = {
             PK: primaryKeyCurrent,
             state: descriptorStateToItemState(descriptor.state),
-            descriptorAudience: descriptor.audience[0],
+            descriptorAudience: descriptor.audience,
             descriptorVoucherLifespan: descriptor.voucherLifespan,
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };
 
           await writeCatalogEntry(catalogEntry, dynamoDBClient);
-
-          // token-generation-states
-          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          });
-          await updateDescriptorStateInTokenGenerationStatesTable(
-            eserviceId_descriptorId,
-            descriptorStateToItemState(descriptor.state),
-            dynamoDBClient
-          );
         }
+
+        // token-generation-states
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptorStateToItemState(descriptor.state),
+          dynamoDBClient
+        );
       };
 
       await processCurrentDescriptor();
