@@ -101,6 +101,6 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
           .otherwise(() => 500),
       loggerInstance
     );
-    return res.status(problem.status).json(problem).end();
+    return res.status(problem.status).send(problem);
   }
 };

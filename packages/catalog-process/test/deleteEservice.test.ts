@@ -78,20 +78,24 @@ describe("delete eservice", () => {
     };
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      interfaceDocument.id,
-      interfaceDocument.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: interfaceDocument.id,
+        name: interfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 
     await fileManager.storeBytes(
-      config.s3Bucket,
-      config.eserviceDocumentsPath,
-      document.id,
-      document.name,
-      Buffer.from("testtest"),
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: document.id,
+        name: document.name,
+        content: Buffer.from("testtest"),
+      },
       genericLogger
     );
 

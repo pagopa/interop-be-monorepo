@@ -2,18 +2,16 @@ import { z } from "zod";
 import {
   AgreementId,
   ClientId,
+  GSIPKClientIdPurposeId,
+  GSIPKConsumerIdEServiceId,
+  GSIPKEServiceIdDescriptorId,
   PurposeId,
   PurposeVersionId,
   TenantId,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientKidPurposePK,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
-import {
-  TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientKidPK,
-  GSIPKConsumerIdEServiceId,
-  GSIPKEServiceIdDescriptorId,
-  GSIPKClientIdPurposeId,
-} from "./dynamoDB-keys.js";
 
 export const clientKindTokenStates = {
   consumer: "CONSUMER",
@@ -45,7 +43,7 @@ export const TokenGenerationStatesClientPurposeEntry =
     agreementState: ItemState.optional(),
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId.optional(),
     descriptorState: ItemState.optional(),
-    descriptorAudience: z.string().optional(),
+    descriptorAudience: z.array(z.string()).optional(),
     descriptorVoucherLifespan: z.number().optional(),
     GSIPK_purposeId: PurposeId.optional(),
     purposeState: ItemState.optional(),

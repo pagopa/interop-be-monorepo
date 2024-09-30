@@ -808,7 +808,7 @@ export function catalogServiceBuilder(
       if (
         descriptor.docs.some(
           (d) =>
-            d.id !== apiEServiceDescriptorDocumentUpdateSeed.id &&
+            d.id !== documentId &&
             d.prettyName === apiEServiceDescriptorDocumentUpdateSeed.prettyName
         )
       ) {
