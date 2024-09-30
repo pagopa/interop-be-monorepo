@@ -199,12 +199,12 @@ export const validateClientKindAndPlatformState = (
   key: ApiKey | ConsumerKey,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
-  match(key.clientKind)
-    .with(clientKindTokenStates.api, () => successfulValidation(jwt))
-    .with(clientKindTokenStates.consumer, () => {
-      const { errors: platformStateErrors } = validatePlatformState(
-        key as ConsumerKey
-      );
+  match(key)
+    .with({ clientKind: clientKindTokenStates.api }, () =>
+      successfulValidation(jwt)
+    )
+    .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
+      const { errors: platformStateErrors } = validatePlatformState(key);
       const purposeIdError = jwt.payload.purposeId
         ? undefined
         : purposeIdNotProvided();
