@@ -68,9 +68,15 @@ export function producerKeychainServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating producer keychain with name ${seed.name}`);
 
-      return authorizationClient.producerKeychain.createProducerKeychain(seed, {
-        headers,
-      });
+      const { id } =
+        await authorizationClient.producerKeychain.createProducerKeychain(
+          seed,
+          {
+            headers,
+          }
+        );
+
+      return { id };
     },
     async getProducerKeychainById(
       producerKeychainId: string,
