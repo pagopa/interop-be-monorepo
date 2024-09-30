@@ -321,11 +321,13 @@ describe("agreement consumer document", () => {
       const consumerDocument = agreement1.consumerDocuments[0];
 
       await fileManager.storeBytes(
-        config.s3Bucket,
-        `${config.consumerDocumentsPath}/${agreement1.id}`,
-        agreement1.consumerDocuments[0].id,
-        agreement1.consumerDocuments[0].name,
-        Buffer.from("test content"),
+        {
+          bucket: config.s3Bucket,
+          path: `${config.consumerDocumentsPath}/${agreement1.id}`,
+          resourceId: agreement1.consumerDocuments[0].id,
+          name: agreement1.consumerDocuments[0].name,
+          content: Buffer.from("test content"),
+        },
         genericLogger
       );
 

@@ -36,7 +36,7 @@
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
     "@zodios/core": "10.9.6",
-    "axios": "1.7.2",
+    "axios": "1.7.4",
     "connection-string": "4.4.0",
     "dotenv-flow": "4.1.0",
     "kafka-iam-auth": "workspace:*",

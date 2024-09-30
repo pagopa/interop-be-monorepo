@@ -23,7 +23,7 @@ export const toAgreementStateV1Notification = (input: AgreementState): string =>
     .with(agreementState.active, () => "Active")
     .with(
       agreementState.missingCertifiedAttributes,
-      () => "MissingCertifiedAttribute"
+      () => "MissingCertifiedAttributes"
     )
     .with(agreementState.rejected, () => "Rejected")
     .exhaustive();
