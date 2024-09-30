@@ -75,7 +75,7 @@ export async function handleMessageV1(
             const catalogEntry: PlatformStatesCatalogEntry = {
               PK: eserviceDescriptorPK,
               state: descriptorStateToItemState(descriptor.state),
-              descriptorAudience: descriptor.audience[0],
+              descriptorAudience: descriptor.audience,
               descriptorVoucherLifespan: descriptor.voucherLifespan,
               version: msg.version,
               updatedAt: new Date().toISOString(),
