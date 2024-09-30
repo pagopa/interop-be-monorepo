@@ -482,12 +482,6 @@ export const readCatalogEntry = async (
   }
 };
 
-export const getPurposeVersionByPurposeVersionId = (
-  purposeVersions: PurposeVersion[],
-  purposeVersionId: PurposeVersionId
-): PurposeVersion | undefined =>
-  purposeVersions.find((v) => v.id === purposeVersionId);
-
 const getPurposeVersionIdUpdateQueryData = (
   purposeVersionId: PurposeVersionId | undefined
 ): {
