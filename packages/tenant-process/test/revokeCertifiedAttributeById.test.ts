@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
+import {
+  attributeKind,
+  tenantAttributeType,
+  toReadModelAttribute,
+} from "pagopa-interop-models";
 import {
   generateId,
   Tenant,
@@ -110,7 +114,7 @@ describe("revokeCertifiedAttributeById", async () => {
       attributes: [
         {
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },

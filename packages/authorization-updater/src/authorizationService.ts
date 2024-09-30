@@ -381,7 +381,7 @@ export const authorizationServiceBuilder = (
         throw genericInternalError("eservice not found");
       }
 
-      const agreement = await readModelService.getAgreement(
+      const agreement = await readModelService.getLatestAgreement(
         eservice.id,
         purpose.consumerId
       );

@@ -11,7 +11,7 @@ import {
 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
-export const { cleanup, readModelRepository } = setupTestContainersVitest(
+export const { cleanup, readModelRepository } = await setupTestContainersVitest(
   inject("readModelConfig")
 );
 

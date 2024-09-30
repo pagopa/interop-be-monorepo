@@ -9,6 +9,7 @@ import {
   ClientId,
   EServiceEvent,
   EServiceId,
+  ProducerKeychainId,
   PurposeEvent,
   PurposeId,
   TenantEvent,
@@ -106,7 +107,7 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     : T extends "purpose"
     ? PurposeId
     : T extends '"authorization"'
-    ? ClientId
+    ? ClientId | ProducerKeychainId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -145,7 +146,7 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     : T extends "purpose"
     ? PurposeId
     : T extends '"authorization"'
-    ? ClientId
+    ? ClientId | ProducerKeychainId
     : never,
   version: number,
   schema: T,

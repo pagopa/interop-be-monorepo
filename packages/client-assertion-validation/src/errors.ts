@@ -33,7 +33,8 @@ export const errorCodes = {
   algorithmNotAllowed: "0030",
   purposeIdNotProvided: "0031",
   invalidKidFormat: "0032",
-  clientAssertionInvalidClaim: "0033",
+  clientAssertionInvalidClaims: "0033",
+  invalidSignature: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -98,9 +99,12 @@ export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
   });
 }
 
-export function unexpectedClientAssertionPayload(): ApiError<ErrorCodes> {
+export function unexpectedClientAssertionPayload(
+  message: string
+): ApiError<ErrorCodes> {
+  const extraDetails = message ? ` - ${message}` : "";
   return new ApiError({
-    detail: "Unexpected client assertion payload",
+    detail: "Unexpected client assertion payload" + extraDetails,
     code: "unexpectedClientAssertionPayload",
     title: "Invalid client assertion payload",
   });
@@ -247,9 +251,9 @@ export function invalidSubjectFormat(subject: string): ApiError<ErrorCodes> {
   });
 }
 
-export function digestClaimNotFound(): ApiError<ErrorCodes> {
+export function digestClaimNotFound(message: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Digest claim not found`,
+    detail: `Digest claim not found. Reason: ${message}`,
     code: "digestClaimNotFound",
     title: "Digest claim not found",
   });
@@ -303,13 +307,20 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
   });
 }
 
-export function clientAssertionInvalidClaim(
-  claim: string,
-  requiredClaimType: string
+export function clientAssertionInvalidClaims(
+  details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failure. Reason: ${claim} must be a ${requiredClaimType}`,
-    code: "clientAssertionInvalidClaim",
-    title: "Invalid claim type",
+    detail: `Client assertion validation failure. Reason: ${details}`,
+    code: "clientAssertionInvalidClaims",
+    title: "Invalid claims in header or payload",
+  });
+}
+
+export function invalidSignature(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Client assertion signature is invalid",
+    code: "invalidSignature",
+    title: "Invalid signature",
   });
 }

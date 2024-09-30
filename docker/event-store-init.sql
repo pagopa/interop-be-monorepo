@@ -111,3 +111,11 @@ create table "authorization".events (
     PRIMARY KEY (sequence_num),
     UNIQUE (stream_id, version)
 );
+
+
+create schema notification_event;
+CREATE TABLE notification_event.producer_keys_events (
+	event_id serial4 NOT NULL,
+	kid varchar NOT NULL,
+	event_type varchar NOT NULL
+);

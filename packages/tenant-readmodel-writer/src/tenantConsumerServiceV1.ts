@@ -64,7 +64,6 @@ export async function handleMessageV1(
         {
           $set: {
             "data.selfcareId": msg.data.selfcareId,
-            "data.onboardedAt": new Date().toISOString(),
             "metadata.version": msg.version,
           },
         }
