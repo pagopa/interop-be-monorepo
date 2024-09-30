@@ -45,6 +45,8 @@ import {
   purposeIdNotProvided,
   invalidGrantType,
   invalidAssertionType,
+  invalidSignature,
+  clientAssertionInvalidClaims,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
@@ -115,6 +117,19 @@ describe("validation test", () => {
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeUndefined();
+    });
+    it("clientAssertionInvalidClaims", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {
+          wrongPayloadProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
     });
 
     it("wrong signature", () => {
@@ -222,7 +237,9 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedClientAssertionPayload());
+      expect(errors![0].code).toEqual(
+        unexpectedClientAssertionPayload("").code
+      );
     });
 
     it("jtiNotFound", () => {
@@ -392,7 +409,7 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(digestClaimNotFound());
+      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
     });
 
     it("invalidHashLength", () => {
@@ -512,7 +529,7 @@ describe("validation test", () => {
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
-      // TODO: find out when the jwonwebtoken.verify function returns a string
+      // TODO: find out when the jsonwebtoken.verify function returns a string
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
@@ -558,7 +575,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(jsonWebTokenError("jwt malformed"));
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
 
     it("jsonWebTokenError - wrong signature", () => {
@@ -577,11 +594,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(
-        jsonWebTokenError(
-          "secretOrPublicKey must be an asymmetric key when using RS256"
-        )
-      );
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
     it("jsonWebTokenError - malformed jwt", () => {
       const mockKey = getMockConsumerKey();
@@ -591,7 +604,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(jsonWebTokenError("jwt malformed"));
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
 
     it("correctly formatted signature but invalid", () => {
@@ -632,7 +645,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(jsonWebTokenError("invalid signature"));
+      expect(errors![0].code).toEqual(invalidSignature().code);
     });
 
     it("notBeforeError", () => {
@@ -835,7 +848,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(purposeIdNotProvided());
     });
 
-    it("purposeIdNotProvided and plaformStateError", () => {
+    it("purposeIdNotProvided and platformStateError", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
         agreementState: itemState.inactive,

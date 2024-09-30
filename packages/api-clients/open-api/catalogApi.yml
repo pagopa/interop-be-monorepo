@@ -1095,6 +1095,7 @@ components:
   schemas:
     ResourceId:
       type: object
+      additionalProperties: false
       required:
         - id
       properties:
@@ -1103,6 +1104,7 @@ components:
           format: uuid
     EServiceSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - description
@@ -1126,6 +1128,7 @@ components:
           $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
     UpdateEServiceSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - description
@@ -1152,6 +1155,7 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1190,6 +1194,7 @@ components:
         - attributes
         - docs
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1233,6 +1238,7 @@ components:
         - agreementApprovalPolicy
         - attributes
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1265,6 +1271,7 @@ components:
           $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
+      additionalProperties: false
       properties:
         voucherLifespan:
           type: integer
@@ -1294,6 +1301,7 @@ components:
         - checksum
         - serverUrls
       type: object
+      additionalProperties: false
       properties:
         documentId:
           type: string
@@ -1318,6 +1326,7 @@ components:
       required:
         - prettyName
       type: object
+      additionalProperties: false
       properties:
         prettyName:
           type: string
@@ -1349,6 +1358,7 @@ components:
         - verified
     AttributeSeed:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string
@@ -1369,6 +1379,7 @@ components:
         - MANUAL
     Organization:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1380,6 +1391,7 @@ components:
           type: string
     EServiceRiskAnalysisSeed:
       type: object
+      additionalProperties: false
       required:
         - name
         - riskAnalysisForm
@@ -1390,6 +1402,7 @@ components:
           $ref: "#/components/schemas/EServiceRiskAnalysisFormSeed"
     EServiceRiskAnalysisFormSeed:
       type: object
+      additionalProperties: false
       properties:
         version:
           type: string
@@ -1407,6 +1420,7 @@ components:
         - answers
     EService:
       type: object
+      additionalProperties: false
       required:
         - id
         - producerId
@@ -1447,6 +1461,7 @@ components:
         - DELIVER
     EServiceRiskAnalysis:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1465,6 +1480,7 @@ components:
           format: date-time
     EServiceRiskAnalysisForm:
       type: object
+      additionalProperties: false
       required:
         - id
         - version
@@ -1486,6 +1502,7 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
     EServiceRiskAnalysisSingleAnswer:
       type: object
+      additionalProperties: false
       required:
         - id
         - key
@@ -1499,6 +1516,7 @@ components:
           type: string
     EServiceRiskAnalysisMultiAnswer:
       type: object
+      additionalProperties: false
       required:
         - id
         - key
@@ -1515,6 +1533,7 @@ components:
             type: string
     EServiceConsumers:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1528,6 +1547,7 @@ components:
         - totalCount
     EServiceConsumer:
       type: object
+      additionalProperties: false
       required:
         - descriptorVersion
         - descriptorState
@@ -1548,6 +1568,7 @@ components:
           type: string
     EServices:
       type: object
+      additionalProperties: false
       properties:
         results:
           type: array
@@ -1561,6 +1582,7 @@ components:
         - totalCount
     EServiceDoc:
       type: object
+      additionalProperties: false
       required:
         - id
         - name
@@ -1584,6 +1606,7 @@ components:
           type: string
     EServiceDescriptionSeed:
       type: object
+      additionalProperties: false
       properties:
         description:
           type: string
@@ -1593,6 +1616,7 @@ components:
         - description
     EServiceDescriptor:
       type: object
+      additionalProperties: false
       required:
         - id
         - version
@@ -1661,6 +1685,7 @@ components:
           $ref: "#/components/schemas/Attributes"
     Attribute:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: string

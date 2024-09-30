@@ -43,7 +43,9 @@ export const writeCatalogEntry = async (
         S: catalogEntry.state,
       },
       descriptorAudience: {
-        S: catalogEntry.descriptorAudience,
+        L: catalogEntry.descriptorAudience.map((item) => ({
+          S: item,
+        })),
       },
       descriptorVoucherLifespan: {
         N: catalogEntry.descriptorVoucherLifespan.toString(),
@@ -157,7 +159,7 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "GSIPK_eserviceId_descriptorId",
+      IndexName: "Descriptor",
       KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: eserviceId_descriptorId },

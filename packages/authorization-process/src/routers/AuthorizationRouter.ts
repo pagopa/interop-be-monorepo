@@ -10,7 +10,12 @@ import {
   initDB,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { PurposeId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  PurposeId,
+  UserId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   authorizationApi,
   selfcareV2InstitutionClientBuilder,
@@ -23,10 +28,11 @@ import {
   clientToApiClient,
   clientToApiClientWithKeys,
   keyToApiKey,
+  producerKeychainToApiProducerKeychain,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
-  addUserErrorMapper,
+  addClientUserErrorMapper,
   deleteClientErrorMapper,
   getClientsErrorMapper,
   createApiClientErrorMapper,
@@ -37,11 +43,24 @@ import {
   getClientKeysErrorMapper,
   getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
-  removeUserErrorMapper,
+  removeClientUserErrorMapper,
   createKeysErrorMapper,
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
   addClientPurposeErrorMapper,
+  createProducerKeychainErrorMapper,
+  getProducerKeychainsErrorMapper,
+  deleteProducerKeychainErrorMapper,
+  createProducerKeychainKeyErrorMapper,
+  deleteProducerKeychainKeyByIdErrorMapper,
+  getProducerKeychainKeysErrorMapper,
+  getProducerKeychainKeyErrorMapper,
+  getProducerKeychainUsersErrorMapper,
+  addProducerKeychainUserErrorMapper,
+  removeProducerKeychainUserErrorMapper,
+  removeProducerKeychainEServiceErrorMapper,
+  addPurposeKeychainEServiceErrorMapper,
+  getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -84,17 +103,14 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+          return res.status(200).send(clientToApiClient(client, { showUsers }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createConsumerClientErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -111,17 +127,14 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+          return res.status(200).send(clientToApiClient(client, { showUsers }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createApiClientErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -160,24 +173,21 @@ const authorizationRouter = (
             limit,
             logger: ctx.logger,
           });
-          return res
-            .status(200)
-            .json({
-              results: clients.results.map((client) =>
-                clientToApiClientWithKeys(client, {
-                  showUsers: ctx.authData.organizationId === client.consumerId,
-                })
-              ),
-              totalCount: clients.totalCount,
-            })
-            .end();
+          return res.status(200).send({
+            results: clients.results.map((client) =>
+              clientToApiClientWithKeys(client, {
+                showUsers: ctx.authData.organizationId === client.consumerId,
+              })
+            ),
+            totalCount: clients.totalCount,
+          });
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientsWithKeysErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -209,24 +219,21 @@ const authorizationRouter = (
             limit,
             logger: ctx.logger,
           });
-          return res
-            .status(200)
-            .json({
-              results: clients.results.map((client) =>
-                clientToApiClient(client, {
-                  showUsers: ctx.authData.organizationId === client.consumerId,
-                })
-              ),
-              totalCount: clients.totalCount,
-            })
-            .end();
+          return res.status(200).send({
+            results: clients.results.map((client) =>
+              clientToApiClient(client, {
+                showUsers: ctx.authData.organizationId === client.consumerId,
+              })
+            ),
+            totalCount: clients.totalCount,
+          });
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientsErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -247,17 +254,14 @@ const authorizationRouter = (
               organizationId: ctx.authData.organizationId,
               logger: ctx.logger,
             });
-          return res
-            .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+          return res.status(200).send(clientToApiClient(client, { showUsers }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -273,14 +277,14 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteClientErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -300,14 +304,14 @@ const authorizationRouter = (
             organizationId: ctx.authData.organizationId,
             logger: ctx.logger,
           });
-          return res.status(200).json(users).end();
+          return res.status(200).send(users);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientUsersErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -317,21 +321,21 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.removeUser({
+          await authorizationService.removeClientUser({
             clientId: unsafeBrandId(req.params.clientId),
             userIdToRemove: unsafeBrandId(req.params.userId),
             organizationId: ctx.authData.organizationId,
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            removeUserErrorMapper,
+            removeClientUserErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -341,26 +345,24 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client, showUsers } = await authorizationService.addUser(
-            {
-              clientId: unsafeBrandId(req.params.clientId),
-              userId: unsafeBrandId(req.params.userId),
-              authData: req.ctx.authData,
-            },
-            req.ctx.correlationId,
-            ctx.logger
-          );
-          return res
-            .status(200)
-            .json(clientToApiClient(client, { showUsers }))
-            .end();
+          const { client, showUsers } =
+            await authorizationService.addClientUser(
+              {
+                clientId: unsafeBrandId(req.params.clientId),
+                userId: unsafeBrandId(req.params.userId),
+                authData: req.ctx.authData,
+              },
+              req.ctx.correlationId,
+              ctx.logger
+            );
+          return res.status(200).send(clientToApiClient(client, { showUsers }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addUserErrorMapper,
+            addClientUserErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -379,15 +381,14 @@ const authorizationRouter = (
           });
           return res
             .status(200)
-            .json({ keys: client.keys.map((key) => keyToApiKey(key)) })
-            .end();
+            .send({ keys: client.keys.map((key) => keyToApiKey(key)) });
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             createKeysErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -411,15 +412,14 @@ const authorizationRouter = (
 
           return res
             .status(200)
-            .json({ keys: keys.map((key) => keyToApiKey(key)) })
-            .end();
+            .send({ keys: keys.map((key) => keyToApiKey(key)) });
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientKeysErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -441,14 +441,14 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).json(keyToApiKey(key)).end();
+          return res.status(200).send(keyToApiKey(key));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getClientKeyErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -465,14 +465,14 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteClientKeyByIdErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -489,14 +489,14 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             addClientPurposeErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -513,14 +513,14 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             removeClientPurposeErrorMapper,
             ctx.logger
           );
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -535,10 +535,10 @@ const authorizationRouter = (
             correlationId: ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(204).end();
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );
@@ -551,6 +551,385 @@ const authorizationRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (_req, res) => res.status(501).send()
   );
+
+  const authorizationProducerKeychainRouter = ctx.router(
+    authorizationApi.producerKeychainApi.api,
+    {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    }
+  );
+  authorizationProducerKeychainRouter
+    .post(
+      "/producerKeychains",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { producerKeychain, showUsers } =
+            await authorizationService.createProducerKeychain({
+              producerKeychainSeed: req.body,
+              organizationId: ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res.status(200).send(
+            producerKeychainToApiProducerKeychain(producerKeychain, {
+              showUsers,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createProducerKeychainErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producerKeychains",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { name, userIds, producerId, eserviceId, offset, limit } =
+            req.query;
+          const producerKeychains =
+            await authorizationService.getProducerKeychains({
+              filters: {
+                name,
+                userIds: userIds?.map(unsafeBrandId<UserId>),
+                producerId: unsafeBrandId(producerId),
+                eserviceId: eserviceId
+                  ? unsafeBrandId<EServiceId>(eserviceId)
+                  : undefined,
+              },
+              authData: req.ctx.authData,
+              offset,
+              limit,
+              logger: ctx.logger,
+            });
+          return res.status(200).send({
+            results: producerKeychains.results.map((producerKeychain) =>
+              producerKeychainToApiProducerKeychain(producerKeychain, {
+                showUsers:
+                  ctx.authData.organizationId === producerKeychain.producerId,
+              })
+            ),
+            totalCount: producerKeychains.totalCount,
+          });
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainsErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { producerKeychain, showUsers } =
+            await authorizationService.getProducerKeychainById({
+              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+              organizationId: ctx.authData.organizationId,
+              logger: ctx.logger,
+            });
+          return res.status(200).send(
+            producerKeychainToApiProducerKeychain(producerKeychain, {
+              showUsers,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.deleteProducerKeychain({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteProducerKeychainErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/users",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const users = await authorizationService.getProducerKeychainUsers({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+          return res.status(200).send(users);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainUsersErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/producerKeychains/:producerKeychainId/users/:userId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { producerKeychain, showUsers } =
+            await authorizationService.addProducerKeychainUser(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                userId: unsafeBrandId(req.params.userId),
+                authData: req.ctx.authData,
+              },
+              req.ctx.correlationId,
+              ctx.logger
+            );
+          return res.status(200).send(
+            producerKeychainToApiProducerKeychain(producerKeychain, {
+              showUsers,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addProducerKeychainUserErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/users/:userId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeProducerKeychainUser({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            userIdToRemove: unsafeBrandId(req.params.userId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeProducerKeychainUserErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/producerKeychains/:producerKeychainId/keys",
+      authorizationMiddleware([ADMIN_ROLE, SECURITY_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const producerKeychain =
+            await authorizationService.createProducerKeychainKey({
+              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+              authData: req.ctx.authData,
+              keySeed: req.body,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res.status(200).send({
+            keys: producerKeychain.keys.map(keyToApiKey),
+          });
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createProducerKeychainKeyErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/keys",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const keys = await authorizationService.getProducerKeychainKeys({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            userIds: req.query.userIds.map(unsafeBrandId<UserId>),
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+
+          return res.status(200).send({ keys: keys.map(keyToApiKey) });
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainKeysErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producerKeychains/:producerKeychainId/keys/:keyId",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const key = await authorizationService.getProducerKeychainKeyById({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            kid: req.params.keyId,
+            organizationId: ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+
+          return res.status(200).send(keyToApiKey(key));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainKeyErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/keys/:keyId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeProducerKeychainKeyById({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            keyIdToRemove: unsafeBrandId(req.params.keyId),
+            authData: ctx.authData,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteProducerKeychainKeyByIdErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/producerKeychains/:producerKeychainId/eservices",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.addProducerKeychainEService({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            seed: req.body,
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addPurposeKeychainEServiceErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/producerKeychains/:producerKeychainId/eservices/:eserviceId",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await authorizationService.removeProducerKeychainEService({
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            eserviceIdToRemove: unsafeBrandId(req.params.eserviceId),
+            organizationId: ctx.authData.organizationId,
+            correlationId: ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeProducerKeychainEServiceErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   const tokenGenerationRouter = ctx.router(
     authorizationApi.tokenGenerationApi.api,
@@ -576,26 +955,24 @@ const authorizationRouter = (
             kid: req.params.keyId,
             logger: ctx.logger,
           });
-        return res
-          .status(200)
-          .json({
-            key: jwkKey,
-            client,
-          })
-          .end();
+        return res.status(200).send({
+          key: jwkKey,
+          client,
+        });
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getClientKeyWithClientErrorMapper,
           ctx.logger
         );
-        return res.status(errorRes.status).json(errorRes).end();
+        return res.status(errorRes.status).send(errorRes);
       }
     }
   );
   return [
     authorizationClientRouter,
     authorizationUserRouter,
+    authorizationProducerKeychainRouter,
     tokenGenerationRouter,
   ];
 };

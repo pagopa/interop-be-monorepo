@@ -13,6 +13,7 @@ import {
   fromTenantKindV2,
   toTenantV2,
   toReadModelAttribute,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, beforeAll, vi, afterAll, it, expect } from "vitest";
 import {
@@ -104,7 +105,7 @@ describe("addCertifiedAttribute", async () => {
       attributes: [
         {
           id: unsafeBrandId(tenantAttributeSeed.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
@@ -207,7 +208,7 @@ describe("addCertifiedAttribute", async () => {
       attributes: [
         {
           id: unsafeBrandId(tenantAttributeSeed.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
@@ -223,7 +224,7 @@ describe("addCertifiedAttribute", async () => {
       attributes: [
         {
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],

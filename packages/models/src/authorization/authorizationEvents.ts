@@ -24,6 +24,14 @@ import {
   ClientPurposeRemovedV2,
   ClientUserAddedV2,
   ClientUserDeletedV2,
+  ProducerKeychainAddedV2,
+  ProducerKeychainDeletedV2,
+  ProducerKeychainEServiceAddedV2,
+  ProducerKeychainEServiceRemovedV2,
+  ProducerKeychainKeyAddedV2,
+  ProducerKeychainKeyDeletedV2,
+  ProducerKeychainUserAddedV2,
+  ProducerKeychainUserDeletedV2,
 } from "../gen/v2/authorization/events.js";
 
 export function authorizationEventToBinaryData(
@@ -90,6 +98,30 @@ export function authorizationEventToBinaryDataV2(
     )
     .with({ type: "ClientPurposeRemoved" }, ({ data }) =>
       ClientPurposeRemovedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainAdded" }, ({ data }) =>
+      ProducerKeychainAddedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainDeleted" }, ({ data }) =>
+      ProducerKeychainDeletedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainKeyAdded" }, ({ data }) =>
+      ProducerKeychainKeyAddedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainKeyDeleted" }, ({ data }) =>
+      ProducerKeychainKeyDeletedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainUserAdded" }, ({ data }) =>
+      ProducerKeychainUserAddedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainUserDeleted" }, ({ data }) =>
+      ProducerKeychainUserDeletedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainEServiceAdded" }, ({ data }) =>
+      ProducerKeychainEServiceAddedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainEServiceRemoved" }, ({ data }) =>
+      ProducerKeychainEServiceRemovedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -193,6 +225,46 @@ export const AuthorizationEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("ClientPurposeRemoved"),
     data: protobufDecoder(ClientPurposeRemovedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainAdded"),
+    data: protobufDecoder(ProducerKeychainAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainDeleted"),
+    data: protobufDecoder(ProducerKeychainDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainKeyAdded"),
+    data: protobufDecoder(ProducerKeychainKeyAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainKeyDeleted"),
+    data: protobufDecoder(ProducerKeychainKeyDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainUserAdded"),
+    data: protobufDecoder(ProducerKeychainUserAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainUserDeleted"),
+    data: protobufDecoder(ProducerKeychainUserDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainEServiceAdded"),
+    data: protobufDecoder(ProducerKeychainEServiceAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainEServiceRemoved"),
+    data: protobufDecoder(ProducerKeychainEServiceRemovedV2),
   }),
 ]);
 export type AuthorizationEventV2 = z.infer<typeof AuthorizationEventV2>;

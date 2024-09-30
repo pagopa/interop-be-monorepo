@@ -28,6 +28,7 @@ import {
 import {
   ApiKey,
   ClientAssertion,
+  ClientAssertionPayload,
   ClientAssertionValidationRequest,
   ConsumerKey,
   Key,
@@ -44,6 +45,8 @@ import {
   purposeIdNotProvided,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
+  invalidSignature,
+  clientAssertionInvalidClaims,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -77,7 +80,9 @@ export const verifyClientAssertion = (
     }
 
     if (typeof decoded.payload === "string") {
-      return failedValidation([unexpectedClientAssertionPayload()]);
+      return failedValidation([
+        unexpectedClientAssertionPayload("payload is a string"),
+      ]);
     }
 
     const { errors: jtiErrors, data: validatedJti } = validateJti(
@@ -110,6 +115,7 @@ export const verifyClientAssertion = (
     const { errors: digestErrors, data: validatedDigest } = validateDigest(
       decoded.payload.digest
     );
+
     if (
       !jtiErrors &&
       !iatErrors &&
@@ -122,6 +128,15 @@ export const verifyClientAssertion = (
       !algErrors &&
       !digestErrors
     ) {
+      const payloadParseResult = ClientAssertionPayload.safeParse(
+        decoded.payload
+      );
+      if (!payloadParseResult.success) {
+        return failedValidation([
+          clientAssertionInvalidClaims(payloadParseResult.error.message),
+        ]);
+      }
+
       const result: ClientAssertion = {
         header: {
           kid: validatedKid,
@@ -153,7 +168,8 @@ export const verifyClientAssertion = (
       digestErrors,
     ]);
   } catch (error) {
-    return failedValidation([unexpectedClientAssertionPayload()]);
+    const message = error instanceof Error ? error.message : "generic error";
+    return failedValidation([unexpectedClientAssertionPayload(message)]);
   }
 };
 
@@ -179,8 +195,9 @@ export const verifyClientAssertionSignature = (
     } else if (error instanceof NotBeforeError) {
       return failedValidation([notBeforeError()]);
     } else if (error instanceof JsonWebTokenError) {
-      // TODO pattern matching with error.message ("jwt malformed", etc...)
-      // TODO: this might overlap with invalidClientAssertionFormat raised inside verifyClientAssertion
+      if (error.message === "invalid signature") {
+        return failedValidation([invalidSignature()]);
+      }
       return failedValidation([jsonWebTokenError(error.message)]);
     } else {
       return failedValidation([
@@ -194,12 +211,12 @@ export const validateClientKindAndPlatformState = (
   key: ApiKey | ConsumerKey,
   jwt: ClientAssertion
 ): ValidationResult<ClientAssertion> =>
-  match(key.clientKind)
-    .with(clientKindTokenStates.api, () => successfulValidation(jwt))
-    .with(clientKindTokenStates.consumer, () => {
-      const { errors: platformStateErrors } = validatePlatformState(
-        key as ConsumerKey
-      );
+  match(key)
+    .with({ clientKind: clientKindTokenStates.api }, () =>
+      successfulValidation(jwt)
+    )
+    .with({ clientKind: clientKindTokenStates.consumer }, (key) => {
+      const { errors: platformStateErrors } = validatePlatformState(key);
       const purposeIdError = jwt.payload.purposeId
         ? undefined
         : purposeIdNotProvided();
