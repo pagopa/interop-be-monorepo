@@ -9433,6 +9433,7 @@ paths:
           application/json:
             schema:
               type: array
+              minItems: 1
               items:
                 type: string
                 format: uuid
@@ -10989,6 +10990,7 @@ paths:
           application/json:
             schema:
               type: array
+              minItems: 1
               items:
                 type: string
                 format: uuid
