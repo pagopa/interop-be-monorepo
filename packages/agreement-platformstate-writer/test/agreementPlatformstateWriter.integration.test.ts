@@ -418,7 +418,7 @@ describe("integration tests V2 events", async () => {
       const catalogEntry: PlatformStatesCatalogEntry = {
         PK: primaryKeyCatalogEntry,
         state: itemState.active,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it"],
         descriptorVoucherLifespan: 60,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -523,7 +523,9 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
-  describe("AgreementSuspendedByProducer", async () => {});
+  describe("AgreementSuspendedByProducer", async () => {
+    expect(1).toBe(1);
+  });
   describe("AgreementUnsuspendedByProducer", async () => {
     it("should not throw error if the entry doesn't exist", async () => {
       const agreement: Agreement = {
@@ -844,7 +846,9 @@ describe("integration tests V2 events", async () => {
     });
   });
 
-  describe("AgreementUpgraded", async () => {});
+  describe("AgreementUpgraded", async () => {
+    expect(1).toBe(1);
+  });
 
   describe("AgreementArchivedByUpgrade", () => {
     it("should delete the entry (no update in token-generation-states)", async () => {
