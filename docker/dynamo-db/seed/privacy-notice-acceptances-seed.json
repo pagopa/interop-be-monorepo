@@ -1,0 +1,42 @@
+{
+  "privacy-notice-acceptances": [
+    {
+      "PutRequest": {
+        "Item": {
+          "pnIdWithUserId": {
+            "S": "0df21ff6-3e8f-4320-af8f-23dea9135d57"
+          },
+          "versionNumber": {
+            "N": "3"
+          },
+          "acceptedAt": {
+            "S": "2024-04-17T08:52:24.995218Z"
+          },
+          "privacyNoticeId": {
+            "S": "0df21ff6-3e8f-4320-af8f-23dea9135d57"
+          },
+          "userId": {
+            "S": "7d7eab7b-fd79-438c-9ce6-019df34796ef"
+          },
+          "version": {
+            "M": {
+              "kind": {
+                "M": {
+                  "PP": {
+                    "S": "PP"
+                  }
+                }
+              },
+              "version": {
+                "N": "3"
+              },
+              "versionId": {
+                "S": "f4090e0b-5c3f-4cc5-ba46-b17af6a79561"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

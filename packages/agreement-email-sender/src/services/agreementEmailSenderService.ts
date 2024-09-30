@@ -15,6 +15,7 @@ import {
   HtmlTemplateService,
   Logger,
   dateAtRomeZone,
+  getLatestTenantMailOfKind,
 } from "pagopa-interop-commons";
 import {
   descriptorNotFound,
@@ -27,8 +28,9 @@ import {
 import { ReadModelService } from "./readModelService.js";
 
 export const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
-  const digitalAddress = tenant.mails.find(
-    (m) => m.kind === tenantMailKind.DigitalAddress
+  const digitalAddress = getLatestTenantMailOfKind(
+    tenant.mails,
+    tenantMailKind.DigitalAddress
   );
   if (!digitalAddress) {
     throw tenantDigitalAddressNotFound(tenant.id);
@@ -132,9 +134,10 @@ export async function senderAgreementSubmissionEmail({
     "submission"
   );
 
-  const producerEmail = [...producer.mails]
-    .filter((m) => m.kind === "CONTACT_EMAIL")
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  const producerEmail = getLatestTenantMailOfKind(
+    producer.mails,
+    tenantMailKind.ContactEmail
+  );
 
   if (!producerEmail) {
     logger.warn(
@@ -161,7 +164,7 @@ export async function senderAgreementSubmissionEmail({
     await emailManager.send(mail.from, mail.to, mail.subject, mail.body);
     logger.info(`Email sent for agreement ${agreement.id} submission`);
   } catch (err) {
-    logger.error(`Error sending email for agreement ${agreement.id}: ${err}`);
+    logger.warn(`Error sending email for agreement ${agreement.id}: ${err}`);
   }
 }
 

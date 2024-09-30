@@ -46,6 +46,7 @@ import {
   clientKindTokenStates,
   AgreementId,
   PurposeVersionId,
+  ProducerKeychain,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -62,6 +63,10 @@ export function randomArrayItem<T>(array: T[]): T {
 
 export function randomBoolean(): boolean {
   return Math.random() < 0.5;
+}
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const getRandomAuthData = (
@@ -278,6 +283,17 @@ export const getMockClient = (): Client => ({
   keys: [],
 });
 
+export const getMockProducerKeychain = (): ProducerKeychain => ({
+  id: generateId(),
+  producerId: generateId(),
+  name: "Test producer keychain",
+  eservices: [],
+  description: "producer keychain description",
+  users: [],
+  createdAt: new Date(),
+  keys: [],
+});
+
 export const getMockKey = (): Key => ({
   userId: generateId(),
   name: "test key",
@@ -304,6 +320,12 @@ export const getMockTokenStatesClientPurposeEntry = (
 ): TokenGenerationStatesClientPurposeEntry => {
   const clientId = generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
+  const consumerId = generateId<TenantId>();
+  const eserviceId = generateId<EServiceId>();
+  const descriptorId = generateId<DescriptorId>();
+  const agreementId = generateId<AgreementId>();
+  const purposeVersionId = generateId<PurposeVersionId>();
+
   return {
     PK:
       tokenStateEntryPK ||
@@ -313,14 +335,14 @@ export const getMockTokenStatesClientPurposeEntry = (
         purposeId,
       }),
     descriptorState: itemState.inactive,
-    descriptorAudience: "pagopa.it",
+    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
     updatedAt: new Date().toISOString(),
-    consumerId: generateId(),
-    agreementId: generateId<AgreementId>(),
-    purposeVersionId: generateId<PurposeVersionId>(),
+    consumerId,
+    agreementId,
+    purposeVersionId,
     GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-      consumerId: generateId<TenantId>(),
-      eserviceId: generateId<EServiceId>(),
+      consumerId,
+      eserviceId,
     }),
     clientKind: clientKindTokenStates.consumer,
     publicKey: "PEM",
@@ -328,8 +350,8 @@ export const getMockTokenStatesClientPurposeEntry = (
     GSIPK_kid: "KID",
     agreementState: "ACTIVE",
     GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-      eserviceId: generateId<EServiceId>(),
-      descriptorId: generateId<DescriptorId>(),
+      eserviceId,
+      descriptorId,
     }),
     GSIPK_purposeId: purposeId,
     purposeState: itemState.inactive,

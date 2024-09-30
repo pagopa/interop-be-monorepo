@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
 import {

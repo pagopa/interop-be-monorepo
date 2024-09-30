@@ -44,7 +44,7 @@ import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  setupTestContainersVitest(
+  await setupTestContainersVitest(
     inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
@@ -139,11 +139,13 @@ export async function uploadDocument(
 ): Promise<void> {
   const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
   await fileManager.storeBytes(
-    config.s3Bucket,
-    documentDestinationPath,
-    documentId,
-    name,
-    Buffer.from("large-document-file"),
+    {
+      bucket: config.s3Bucket,
+      path: documentDestinationPath,
+      resourceId: documentId,
+      name,
+      content: Buffer.from("large-document-file"),
+    },
     genericLogger
   );
   expect(
