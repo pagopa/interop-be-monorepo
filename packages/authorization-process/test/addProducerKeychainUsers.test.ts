@@ -47,26 +47,26 @@ const mockSelfCareUsers: selfcareV2ClientApi.UserResource = {
   surname: "surname_test",
 };
 
-describe("addProducerKeychainUser", () => {
-  it("should write on event-store when adding a user to a producer keychain", async () => {
+describe("addProducerKeychainUsers", () => {
+  it("should write on event-store when adding multiple users to a producer keychain", async () => {
     const producerId: TenantId = generateId();
-    const userIdToAdd: UserId = generateId();
-    const userId: UserId = generateId();
+    const users: UserId[] = [generateId()];
+    const userIdsToAdd: UserId[] = [generateId(), generateId()];
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId,
-      users: [userId],
+      users,
     };
 
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    await authorizationService.addProducerKeychainUser(
+    await authorizationService.addProducerKeychainUsers(
       {
         producerKeychainId: mockProducerKeychain.id,
-        userId: userIdToAdd,
+        userIds: userIdsToAdd,
         authData: getRandomAuthData(producerId),
       },
       generateId(),
@@ -79,7 +79,7 @@ describe("addProducerKeychainUser", () => {
 
     expect(writtenEvent).toMatchObject({
       stream_id: mockProducerKeychain.id,
-      version: "1",
+      version: "2",
       type: "ProducerKeychainUserAdded",
       event_version: 2,
     });
@@ -91,16 +91,16 @@ describe("addProducerKeychainUser", () => {
 
     const expectedProducerKeychain: ProducerKeychain = {
       ...mockProducerKeychain,
-      users: [userId, userIdToAdd],
+      users: [...users, ...userIdsToAdd],
     };
 
     expect(writtenPayload).toEqual({
-      userId: userIdToAdd,
+      userId: userIdsToAdd.at(-1),
       producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {
-    const userIdToAdd: UserId = generateId();
+    const userIdsToAdd: UserId[] = [generateId()];
     const producerId: TenantId = generateId();
 
     const mockProducerKeychain: ProducerKeychain = {
@@ -112,10 +112,10 @@ describe("addProducerKeychainUser", () => {
     await addOneProducerKeychain(getMockProducerKeychain());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.addProducerKeychainUser(
+      authorizationService.addProducerKeychainUsers(
         {
           producerKeychainId: mockProducerKeychain.id,
-          userId: userIdToAdd,
+          userIds: userIdsToAdd,
           authData: getRandomAuthData(producerId),
         },
         generateId(),
@@ -123,31 +123,36 @@ describe("addProducerKeychainUser", () => {
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
-  it("should throw producerKeychainUserAlreadyAssigned if the user already exists in the producer keychain", async () => {
+  it("should throw producerKeychainUserAlreadyAssigned if one of the users passed already exists in the producer keychain", async () => {
     const producerId: TenantId = generateId();
-    const userId: UserId = generateId();
+    const userIdAlreadyAssigned: UserId = generateId();
+
+    const users: UserId[] = [generateId(), userIdAlreadyAssigned];
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId,
-      users: [userId],
+      users,
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.addProducerKeychainUser(
+      authorizationService.addProducerKeychainUsers(
         {
           producerKeychainId: mockProducerKeychain.id,
-          userId,
+          userIds: [userIdAlreadyAssigned],
           authData: getRandomAuthData(producerId),
         },
         generateId(),
         genericLogger
       )
     ).rejects.toThrowError(
-      producerKeychainUserAlreadyAssigned(mockProducerKeychain.id, userId)
+      producerKeychainUserAlreadyAssigned(
+        mockProducerKeychain.id,
+        userIdAlreadyAssigned
+      )
     );
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
@@ -163,10 +168,10 @@ describe("addProducerKeychainUser", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.addProducerKeychainUser(
+      authorizationService.addProducerKeychainUsers(
         {
           producerKeychainId: mockProducerKeychain.id,
-          userId: userIdToAdd,
+          userIds: [userIdToAdd],
           authData: getRandomAuthData(organizationId),
         },
         generateId(),
@@ -179,7 +184,7 @@ describe("addProducerKeychainUser", () => {
       )
     );
   });
-  it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {
+  it("should throw userWithoutSecurityPrivileges if one of the Security users is not found", async () => {
     const producerId: TenantId = generateId();
 
     const authData: AuthData = {
@@ -204,10 +209,10 @@ describe("addProducerKeychainUser", () => {
     mockSelfcareV2ClientCall([]);
 
     expect(
-      authorizationService.addProducerKeychainUser(
+      authorizationService.addProducerKeychainUsers(
         {
           producerKeychainId: mockProducerKeychain.id,
-          userId: generateId(),
+          userIds: [generateId()],
           authData,
         },
         generateId(),
