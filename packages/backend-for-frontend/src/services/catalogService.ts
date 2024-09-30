@@ -943,17 +943,20 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating document ${documentId} of descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      return await catalogProcessClient.updateEServiceDocumentById(
-        updateEServiceDescriptorDocumentSeed,
-        {
-          params: {
-            eServiceId,
-            descriptorId,
-            documentId,
-          },
-          headers,
-        }
-      );
+      const { id, name, contentType, prettyName } =
+        await catalogProcessClient.updateEServiceDocumentById(
+          updateEServiceDescriptorDocumentSeed,
+          {
+            params: {
+              eServiceId,
+              descriptorId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return { id, name, contentType, prettyName };
     },
     exportEServiceDescriptor: async (
       eserviceId: EServiceId,
