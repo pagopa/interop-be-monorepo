@@ -1,8 +1,8 @@
 import {
-  Logger,
   ReadModelRepository,
   initSesMailManager,
   logger,
+  withExecutionTime,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "./configs/config.js";
@@ -59,24 +59,6 @@ async function main(): Promise<void> {
   loggerInstance.info("End of program.");
 
   process.exit(0);
-}
-
-/**
- * Calls a function and logs the execution time.
- *
- * @param fn The function to call
- * @returns The result of the function
- */
-export async function withExecutionTime(
-  fn: () => void | Promise<void>,
-  logger: Logger
-): Promise<void> {
-  const t0 = performance.now();
-  await fn();
-  const t1 = performance.now();
-  const executionTimeMs = t1 - t0;
-  const executionTimeSeconds = Math.round((executionTimeMs / 1000) * 10) / 10;
-  logger.info(`Execution time: ${executionTimeSeconds}s`);
 }
 
 await withExecutionTime(main, loggerInstance);
