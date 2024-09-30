@@ -50,6 +50,8 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+app.disable("etag");
+
 app.use(loggerMiddleware(serviceName));
 
 app.use(multerMiddleware);
