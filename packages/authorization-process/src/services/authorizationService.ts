@@ -364,11 +364,11 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
-      const isCallerSecurity = authData.userRoles.includes(
+      const hasSecurityRole = authData.userRoles.includes(
         userRoles.SECURITY_ROLE
       );
 
-      if (isCallerSecurity && !client.data.users.includes(authData.userId)) {
+      if (hasSecurityRole && !client.data.users.includes(authData.userId)) {
         throw userNotAllowedOnClient(authData.userId, client.data.id);
       }
 
@@ -380,7 +380,7 @@ export function authorizationServiceBuilder(
         throw clientKeyNotFound(keyIdToRemove, client.data.id);
       }
 
-      if (isCallerSecurity && keyToRemove.userId !== authData.userId) {
+      if (hasSecurityRole && keyToRemove.userId !== authData.userId) {
         throw userNotAllowedToDeleteClientKey(
           authData.userId,
           client.data.id,
@@ -1093,12 +1093,12 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
-      const isCallerSecurity = authData.userRoles.includes(
+      const hasSecurityRole = authData.userRoles.includes(
         userRoles.SECURITY_ROLE
       );
 
       if (
-        isCallerSecurity &&
+        hasSecurityRole &&
         !producerKeychain.data.users.includes(authData.userId)
       ) {
         throw userNotAllowedOnProducerKeychain(
@@ -1115,7 +1115,7 @@ export function authorizationServiceBuilder(
         throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
       }
 
-      if (isCallerSecurity && keyToRemove.userId !== authData.userId) {
+      if (hasSecurityRole && keyToRemove.userId !== authData.userId) {
         throw userNotAllowedToDeleteProducerKeychainKey(
           authData.userId,
           producerKeychain.data.id,
