@@ -340,16 +340,16 @@ const authorizationRouter = (
       }
     )
     .post(
-      "/clients/:clientId/users/:userId",
+      "/clients/:clientId/users",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.addClientUser(
+            await authorizationService.addClientUsers(
               {
                 clientId: unsafeBrandId(req.params.clientId),
-                userId: unsafeBrandId(req.params.userId),
+                userIds: req.body.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,
@@ -717,18 +717,18 @@ const authorizationRouter = (
       }
     )
     .post(
-      "/producerKeychains/:producerKeychainId/users/:userId",
+      "/producerKeychains/:producerKeychainId/users",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const { producerKeychain, showUsers } =
-            await authorizationService.addProducerKeychainUser(
+            await authorizationService.addProducerKeychainUsers(
               {
                 producerKeychainId: unsafeBrandId(
                   req.params.producerKeychainId
                 ),
-                userId: unsafeBrandId(req.params.userId),
+                userIds: req.body.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,

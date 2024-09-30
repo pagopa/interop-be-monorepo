@@ -338,20 +338,19 @@ paths:
   "/clients/{clientId}/users":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of Client the users belong to
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - client
       summary: List client users
       description: List client users
       operationId: getClientUsers
-      parameters:
-        - name: clientId
-          in: path
-          description: ID of Client the users belong to
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: Request succeed
@@ -377,6 +376,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    post:
+      tags:
+        - client
+      summary: Add users to a Client
+      operationId: addUsers
+      requestBody:
+        required: true
+        description: List of users ids to add
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+      responses:
+        "200":
+          description: Users added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Add users to a Client
   "/clients/{clientId}/users/{userId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -427,43 +473,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    post:
-      tags:
-        - client
-      summary: Add a user to a Client
-      operationId: addUser
-      responses:
-        "200":
-          description: User added
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Client"
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Missing Required Information
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      description: Add a user to a Client
   "/clients/{clientId}/keys":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1045,20 +1054,19 @@ paths:
   "/producerKeychains/{producerKeychainId}/users":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: producerKeychainId
+        in: path
+        description: ID of the producer keychain the users belong to
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - producerKeychain
       summary: List Producer Keychain users
       description: List Producer Keychain users
-      operationId: getProducerKeychainUsers
-      parameters:
-        - name: producerKeychainId
-          in: path
-          description: ID of Producer Keychain the users belong to
-          required: true
-          schema:
-            type: string
-            format: uuid
+      operationId: getProducerKeychainUsers      
       responses:
         "200":
           description: Request succeed
@@ -1084,6 +1092,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    post:
+      tags:
+        - producerKeychain
+      summary: Add users to a Producer Keychain
+      operationId: addProducerKeychainUsers
+      requestBody:
+        required: true
+        description: List of users ids to add
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+      responses:
+        "200":
+          description: Users added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychain"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Add users to a Producer Keychain
   "/producerKeychains/{producerKeychainId}/users/{userId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1134,43 +1189,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    post:
-      tags:
-        - producerKeychain
-      summary: Add a user to a Producer Keychain
-      operationId: addProducerKeychainUser
-      responses:
-        "200":
-          description: User added
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProducerKeychain"
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Missing Required Information
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      description: Add a user to a Producer Keychain
   "/producerKeychains/{producerKeychainId}/keys":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

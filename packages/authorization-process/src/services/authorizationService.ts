@@ -478,46 +478,59 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async addClientUser(
+    async addClientUsers(
       {
         clientId,
-        userId,
+        userIds,
         authData,
       }: {
         clientId: ClientId;
-        userId: UserId;
+        userIds: UserId[];
         authData: AuthData;
       },
       correlationId: string,
       logger: Logger
     ): Promise<{ client: Client; showUsers: boolean }> {
-      logger.info(`Binding client ${clientId} with user ${userId}`);
+      logger.info(`Binding client ${clientId} with user ${userIds.join(",")}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
-        requesterUserId: authData.userId,
-        consumerId: authData.organizationId,
-        selfcareV2InstitutionClient,
-        userIdToCheck: userId,
-        correlationId,
-      });
-      if (client.data.users.includes(userId)) {
-        throw clientUserAlreadyAssigned(clientId, userId);
-      }
-      const updatedClient: Client = {
-        ...client.data,
-        users: [...client.data.users, userId],
-      };
 
-      await repository.createEvent(
-        toCreateEventClientUserAdded(
-          userId,
-          updatedClient,
-          client.metadata.version,
-          correlationId
+      await Promise.all(
+        userIds.map((userId) =>
+          assertUserSelfcareSecurityPrivileges({
+            selfcareId: authData.selfcareId,
+            requesterUserId: authData.userId,
+            consumerId: authData.organizationId,
+            selfcareV2InstitutionClient,
+            userIdToCheck: userId,
+            correlationId,
+          })
         )
       );
+
+      const uniqueUserIds = Array.from(new Set(userIds));
+      const updatedClient: Client = {
+        ...client.data,
+      };
+
+      for (const [index, userId] of uniqueUserIds.entries()) {
+        if (client.data.users.includes(userId)) {
+          throw clientUserAlreadyAssigned(clientId, userId);
+        }
+
+        // eslint-disable-next-line functional/immutable-data
+        updatedClient.users.push(userId);
+
+        await repository.createEvent(
+          toCreateEventClientUserAdded(
+            userId,
+            updatedClient,
+            client.metadata.version + index,
+            correlationId
+          )
+        );
+      }
+
       return {
         client: updatedClient,
         showUsers: true,
@@ -873,21 +886,23 @@ export function authorizationServiceBuilder(
       );
       return producerKeychain.data.users;
     },
-    async addProducerKeychainUser(
+    async addProducerKeychainUsers(
       {
         producerKeychainId,
-        userId,
+        userIds,
         authData,
       }: {
         producerKeychainId: ProducerKeychainId;
-        userId: UserId;
+        userIds: UserId[];
         authData: AuthData;
       },
       correlationId: string,
       logger: Logger
     ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
       logger.info(
-        `Binding producer keychain ${producerKeychainId} with user ${userId}`
+        `Binding producer keychain ${producerKeychainId} with users ${userIds.join(
+          ", "
+        )}`
       );
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -897,30 +912,43 @@ export function authorizationServiceBuilder(
         authData.organizationId,
         producerKeychain.data
       );
-      await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
-        requesterUserId: authData.userId,
-        consumerId: authData.organizationId,
-        selfcareV2InstitutionClient,
-        userIdToCheck: userId,
-        correlationId,
-      });
-      if (producerKeychain.data.users.includes(userId)) {
-        throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
-      }
-      const updatedProducerKeychain: ProducerKeychain = {
-        ...producerKeychain.data,
-        users: [...producerKeychain.data.users, userId],
-      };
 
-      await repository.createEvent(
-        toCreateEventProducerKeychainUserAdded(
-          userId,
-          updatedProducerKeychain,
-          producerKeychain.metadata.version,
-          correlationId
+      await Promise.all(
+        userIds.map((userId) =>
+          assertUserSelfcareSecurityPrivileges({
+            selfcareId: authData.selfcareId,
+            requesterUserId: authData.userId,
+            consumerId: authData.organizationId,
+            userIdToCheck: userId,
+            selfcareV2InstitutionClient,
+            correlationId,
+          })
         )
       );
+
+      const uniqueUserIds = Array.from(new Set(userIds));
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+      };
+
+      for (const [index, userId] of uniqueUserIds.entries()) {
+        if (producerKeychain.data.users.includes(userId)) {
+          throw producerKeychainUserAlreadyAssigned(producerKeychainId, userId);
+        }
+
+        // eslint-disable-next-line functional/immutable-data
+        updatedProducerKeychain.users.push(userId);
+
+        await repository.createEvent(
+          toCreateEventProducerKeychainUserAdded(
+            userId,
+            updatedProducerKeychain,
+            producerKeychain.metadata.version + index,
+            correlationId
+          )
+        );
+      }
+
       return {
         producerKeychain: updatedProducerKeychain,
         showUsers: true,
