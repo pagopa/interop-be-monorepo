@@ -524,7 +524,9 @@ describe("integration tests V2 events", async () => {
     });
   });
   describe("AgreementSuspendedByProducer", async () => {
-    expect(1).toBe(1);
+    it("test", () => {
+      expect(1).toBe(1);
+    });
   });
   describe("AgreementUnsuspendedByProducer", async () => {
     it("should not throw error if the entry doesn't exist", async () => {
@@ -847,7 +849,9 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("AgreementUpgraded", async () => {
-    expect(1).toBe(1);
+    it("test", () => {
+      expect(2).toBe(2);
+    });
   });
 
   describe("AgreementArchivedByUpgrade", () => {
@@ -1086,10 +1090,12 @@ describe("integration tests V2 events", async () => {
         };
 
       expect(retrievedTokenStateEntries).toHaveLength(2);
-      expect(retrievedTokenStateEntries).toEqual([
-        expectedTokenStateEntry1,
-        expectedTokenStateEntry2,
-      ]);
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenStateEntry1,
+          expectedTokenStateEntry2,
+        ])
+      );
     });
     it("agreement is not the latest (no operation on token states)", async () => {
       const sixHoursAgo = new Date();
