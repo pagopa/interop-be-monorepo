@@ -1,0 +1,35 @@
+{
+  "name": "pagopa-interop-ipa-certified-attributes-importer",
+  "main": "./dist/index.js",
+  "type": "module",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability ipa certified attributes importer",
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --watch --loader ts-node/esm ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/node": "20.4.9",
+    "@types/uuid": "9.0.8",
+    "prettier": "2.8.8",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
+  },
+  "dependencies": {
+    "axios": "^1.7.4",
+    "uuid": "10.0.0",
+    "pagopa-interop-commons": "workspace:*",
+    "zod": "^3.23.8"
+  }
+}
