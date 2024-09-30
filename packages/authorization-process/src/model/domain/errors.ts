@@ -37,7 +37,8 @@ export const errorCodes = {
   producerKeyNotFound: "0024",
   organizationNotAllowedOnEService: "0025",
   eserviceAlreadyLinkedToProducerKeychain: "0026",
-  userNotAllowedToDeleteProducerKeychainKey: "0027",
+  userNotAllowedToDeleteClientKey: "0027",
+  userNotAllowedToDeleteProducerKeychainKey: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -258,6 +259,18 @@ export function userNotAllowedOnProducerKeychain(
     detail: `User ${userId} is not allowed on producer keychain ${producerKeychain}`,
     code: "userNotAllowedOnProducerKeychain",
     title: "User not allowed on producer keychain",
+  });
+}
+
+export function userNotAllowedToDeleteClientKey(
+  userId: UserId,
+  client: ClientId,
+  kid: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is not allowed to delete client (${client}) key ${kid}`,
+    code: "userNotAllowedToDeleteClientKey",
+    title: "User not allowed to delete producer keychain key",
   });
 }
 
