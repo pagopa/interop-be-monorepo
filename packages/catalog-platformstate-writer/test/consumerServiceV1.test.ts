@@ -174,7 +174,7 @@ describe("V1 events", async () => {
           ])
         );
       });
-      it("(suspended -> published) should update the entry if msg.version >= existing version", async () => {
+      it("(suspended -> published) should update the entry if incoming version is more recent than existing table entry", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -288,7 +288,7 @@ describe("V1 events", async () => {
         );
       });
 
-      it("(published) should do no operation if msg.version < existing version", async () => {
+      it("(published) should do no operation if existing table entry is more recent than incoming version", async () => {
         const publishedDescriptor: Descriptor = {
           ...getMockDescriptor(),
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
@@ -646,7 +646,7 @@ describe("V1 events", async () => {
       });
     });
 
-    it("(published -> archived) should update the entry", async () => {
+    it("(published -> archived) should remove the entry from platform states and update the entry in token generation states", async () => {
       const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
