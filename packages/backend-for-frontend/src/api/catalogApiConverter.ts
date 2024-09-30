@@ -1,6 +1,5 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
-import { DescriptorWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -8,7 +7,11 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { EServiceAttribute, unsafeBrandId } from "pagopa-interop-models";
+import {
+  Descriptor,
+  EServiceAttribute,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -274,16 +277,14 @@ export function toEserviceAttribute(
   }));
 }
 
-export function toDescriptorWithOnlyAttributes(
-  descriptor: catalogApi.EServiceDescriptor
-): DescriptorWithOnlyAttributes {
+export function descriptorAttributesFromApi(
+  catalogApiDescriptorAttributes: catalogApi.EServiceDescriptor["attributes"]
+): Descriptor["attributes"] {
   return {
-    ...descriptor,
-    attributes: {
-      certified: descriptor.attributes.certified.map(toEserviceAttribute),
-      declared: descriptor.attributes.declared.map(toEserviceAttribute),
-      verified: descriptor.attributes.verified.map(toEserviceAttribute),
-    },
+    certified:
+      catalogApiDescriptorAttributes.certified.map(toEserviceAttribute),
+    declared: catalogApiDescriptorAttributes.declared.map(toEserviceAttribute),
+    verified: catalogApiDescriptorAttributes.verified.map(toEserviceAttribute),
   };
 }
 
