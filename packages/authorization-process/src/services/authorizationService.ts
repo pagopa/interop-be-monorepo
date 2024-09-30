@@ -364,6 +364,14 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
+      const isCallerSecurity = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
+      if (isCallerSecurity && !client.data.users.includes(authData.userId)) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
+
       const keyToRemove = client.data.keys.find(
         (key) => key.kid === keyIdToRemove
       );
@@ -372,20 +380,7 @@ export function authorizationServiceBuilder(
         throw clientKeyNotFound(keyIdToRemove, client.data.id);
       }
 
-      if (!client.data.users.includes(authData.userId)) {
-        throw userNotAllowedOnClient(authData.userId, client.data.id);
-      }
-
-      const isCallerAdmin = authData.userRoles.includes(userRoles.ADMIN_ROLE);
-      const isCallerSecurity = authData.userRoles.includes(
-        userRoles.SECURITY_ROLE
-      );
-
-      const canRemoveKey =
-        isCallerAdmin ||
-        (isCallerSecurity && keyToRemove.userId === authData.userId);
-
-      if (!canRemoveKey) {
+      if (isCallerSecurity && keyToRemove.userId !== authData.userId) {
         throw userNotAllowedToDeleteClientKey(
           authData.userId,
           client.data.id,
@@ -1098,7 +1093,14 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
-      if (!producerKeychain.data.users.includes(authData.userId)) {
+      const isCallerSecurity = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
+      if (
+        isCallerSecurity &&
+        !producerKeychain.data.users.includes(authData.userId)
+      ) {
         throw userNotAllowedOnProducerKeychain(
           authData.userId,
           producerKeychain.data.id
@@ -1113,16 +1115,7 @@ export function authorizationServiceBuilder(
         throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
       }
 
-      const isCallerAdmin = authData.userRoles.includes(userRoles.ADMIN_ROLE);
-      const isCallerSecurity = authData.userRoles.includes(
-        userRoles.SECURITY_ROLE
-      );
-
-      const canRemoveKey =
-        isCallerAdmin ||
-        (isCallerSecurity && keyToRemove.userId === authData.userId);
-
-      if (!canRemoveKey) {
+      if (isCallerSecurity && keyToRemove.userId !== authData.userId) {
         throw userNotAllowedToDeleteProducerKeychainKey(
           authData.userId,
           producerKeychain.data.id,
