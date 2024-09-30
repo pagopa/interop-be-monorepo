@@ -46,6 +46,7 @@ import {
   invalidGrantType,
   invalidAssertionType,
   invalidSignature,
+  clientAssertionInvalidClaims,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
@@ -116,6 +117,19 @@ describe("validation test", () => {
       });
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeUndefined();
+    });
+    it("clientAssertionInvalidClaims", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {
+          wrongPayloadProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
     });
 
     it("wrong signature", () => {
