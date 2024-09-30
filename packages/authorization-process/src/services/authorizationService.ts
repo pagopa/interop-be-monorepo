@@ -58,6 +58,7 @@ import {
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
   eserviceAlreadyLinkedToProducerKeychain,
+  userNotAllowedToDeleteProducerKeychainKey,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -1080,10 +1081,7 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
-      if (
-        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
-        !producerKeychain.data.users.includes(authData.userId)
-      ) {
+      if (!producerKeychain.data.users.includes(authData.userId)) {
         throw userNotAllowedOnProducerKeychain(
           authData.userId,
           producerKeychain.data.id
@@ -1096,6 +1094,23 @@ export function authorizationServiceBuilder(
 
       if (!keyToRemove) {
         throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
+      }
+
+      const isCallerAdmin = authData.userRoles.includes(userRoles.ADMIN_ROLE);
+      const isCallerSecurity = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
+      const canRemoveKey =
+        isCallerAdmin ||
+        (isCallerSecurity && keyToRemove.userId === authData.userId);
+
+      if (!canRemoveKey) {
+        throw userNotAllowedToDeleteProducerKeychainKey(
+          authData.userId,
+          producerKeychain.data.id,
+          keyToRemove.kid
+        );
       }
 
       const updatedProducerKeychain: ProducerKeychain = {
