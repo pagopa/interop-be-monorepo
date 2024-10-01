@@ -37,13 +37,14 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
-import {
-  readCatalogEntry,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  writeCatalogEntry,
-} from "../src/utils.js";
+import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { config, sleep, writeTokenStateEntry } from "./utils.js";
+import {
+  config,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
+  sleep,
+  writeTokenStateEntry,
+} from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   if (!config) {
