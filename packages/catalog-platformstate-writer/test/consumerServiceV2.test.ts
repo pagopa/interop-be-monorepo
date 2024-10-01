@@ -36,15 +36,12 @@ import {
   getMockTokenStatesClientPurposeEntry,
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import {
-  config,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  sleep,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config, sleep } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   if (!config) {

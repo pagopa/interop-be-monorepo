@@ -28,6 +28,9 @@ import {
   getMockTokenStatesClientPurposeEntry,
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
+  readAllTokenStateItems,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import {
   deleteCatalogEntry,
@@ -37,12 +40,7 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "../src/utils.js";
-import {
-  config,
-  readAllTokenStateItems,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config } from "./utils.js";
 
 describe("utils tests", async () => {
   if (!config) {
