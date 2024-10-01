@@ -36,8 +36,8 @@ export const AgreementAttributeSQL = z.object({
 export type AgreementAttributeSQL = z.infer<typeof AgreementAttributeSQL>;
 
 export const agreementDocumentKind = {
-  descriptorInterface: "CONTRACT",
-  descriptorDocument: "DOCUMENT",
+  agreementContract: "CONTRACT",
+  agreementConsumerDocument: "DOCUMENT",
 } as const;
 export const AgreementDocumentKind = z.enum([
   Object.values(agreementDocumentKind)[0],
