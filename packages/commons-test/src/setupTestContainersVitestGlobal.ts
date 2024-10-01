@@ -142,6 +142,8 @@ export function setupTestContainersVitestGlobal() {
       startedDynamoDbContainer = await dynamoDBContainer().start();
       tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbPort =
         startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT);
+      tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbHost =
+        startedDynamoDbContainer.getHost();
 
       provide(
         "tokenGenerationReadModelConfig",
