@@ -1,0 +1,30 @@
+meta {
+  name: Consumers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/consumers?q=test&offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  q: test
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

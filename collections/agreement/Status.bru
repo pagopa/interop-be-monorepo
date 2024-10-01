@@ -1,0 +1,23 @@
+meta {
+  name: Status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-agreement}}/status
+  body: none
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  X-Correlation-Id: {{correlation-id}}
+  ~: 
+}

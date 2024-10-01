@@ -1,0 +1,30 @@
+meta {
+  name: Add Declared Attribute
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{host-bff}}/tenants/attributes/declared
+  body: json
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "id": "d8fa4097-d3cb-42ea-a82b-c99e4c7506fd"
+  }
+}

@@ -1,0 +1,52 @@
+meta {
+  name: Create Descriptor
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: beca18e4-eacf-4bd1-985a-900aac3406e2
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "description": "testone testone",
+      "audience": [
+          "string"
+      ],
+      "voucherLifespan": 86400,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 100,
+      "agreementApprovalPolicy": "AUTOMATIC",
+      "attributes": {
+          "certified": [
+          ],
+          "declared": [
+          ],
+          "verified": [
+          ]
+      },
+      "docs": []
+  }
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Activate Agreement
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/activate
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: a3d64132-73be-492d-919c-8f9d52f1cb0d
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

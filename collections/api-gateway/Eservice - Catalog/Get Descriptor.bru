@@ -1,0 +1,29 @@
+meta {
+  name: Get Descriptor
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-api-gw}}/eservices/:eserviceId/descriptors/:descriptorId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 399b3a26-fe2f-4a65-830f-3cd16e00c114
+  descriptorId: 82549420-93df-4840-bda0-3731a8a1a811
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Get Organization
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-api-gw}}/organizations/:organizationId
+  body: none
+  auth: none
+}
+
+params:path {
+  organizationId: 69e2865e-65ab-4e48-a638-2037a9ee2ee8
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

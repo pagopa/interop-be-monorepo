@@ -1,0 +1,28 @@
+meta {
+  name: Get Purpose Agreement
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-api-gw}}/purposes/:purposeId/agreement
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: 474090cc-6dfb-4679-aefe-bfa6e6c04f63
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

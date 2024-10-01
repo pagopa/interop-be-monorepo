@@ -1,0 +1,31 @@
+meta {
+  name: Clone Descriptor
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/clone
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: 1b3e99e8-077e-470e-8c45-06c9b406a34b
+  descriptorId: 6a8e64c6-08bb-43a4-bc85-8071dce74d72
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

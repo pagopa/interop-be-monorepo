@@ -1,0 +1,38 @@
+meta {
+  name: Update Descriptor Document
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:3000/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 17f8a7a9-9da2-462e-b327-471ed63d5aa0
+  descriptorId: f87ac8f1-3f23-4fb4-ac24-71e9316ba5a1
+  documentId: 3fa80f34-5118-4552-b3fc-2c963f66afa8
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "prettyName": "UPDATED TEST FILE NAME"
+  }
+}

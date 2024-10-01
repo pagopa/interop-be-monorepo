@@ -1,0 +1,32 @@
+meta {
+  name: Create API Client
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-authorization}}/clientsApi
+  body: json
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Length: 0
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "name": "testone",
+      "members": []
+  }
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Get Keys Events
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-api-gw}}/events/keys?lastEventId=100&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  lastEventId: 100
+  limit: 10
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT-M2M}}
+}

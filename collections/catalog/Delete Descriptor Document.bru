@@ -1,0 +1,32 @@
+meta {
+  name: Delete Descriptor Document
+  type: http
+  seq: 13
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 1b3e99e8-077e-470e-8c45-06c9b406a34b
+  descriptorId: 6a8e64c6-08bb-43a4-bc85-8071dce74d72
+  documentId: 5d6d2677-f6b3-4c2a-ae25-d9685cb464b0
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

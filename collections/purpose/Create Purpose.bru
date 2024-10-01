@@ -1,0 +1,37 @@
+meta {
+  name: Create Purpose
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-purpose}}/purposes
+  body: json
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Length: 0
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId": "399b3a26-fe2f-4a65-830f-3cd16e00c114",
+      "consumerId": "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+      "title": "{{$randomLoremWords}}",
+      "description": "{{$randomLoremSentence}}",
+      "isFreeOfCharge": {{$randomBoolean}},
+      "dailyCalls": {{$randomInt}},
+      "freeOfChargeReason": "{{$randomLoremSentence}}"
+  }
+}

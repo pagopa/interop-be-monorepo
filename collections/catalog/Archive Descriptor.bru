@@ -1,0 +1,31 @@
+meta {
+  name: Archive Descriptor
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/archive
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 4c7fec08-1582-41c4-878a-6e5bc3d315b6
+  descriptorId: ef598070-7210-4b0b-8b6d-574c323e7d18
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

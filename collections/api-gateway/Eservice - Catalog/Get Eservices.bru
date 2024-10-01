@@ -1,0 +1,29 @@
+meta {
+  name: Get Eservices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-api-gw}}/eservices?offset=4&limit=2
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 4
+  limit: 2
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

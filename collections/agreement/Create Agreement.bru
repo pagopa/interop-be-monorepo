@@ -1,0 +1,32 @@
+meta {
+  name: Create Agreement
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-agreement}}/agreements
+  body: json
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId":"350d3586-11e3-4757-b5d3-055d70971ad3",
+      "descriptorId":"ee6a9d4d-d1e0-4f7a-b2a3-1caa1f686239"
+  }
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Producers Eservice Descriptor
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-bff}}/producers/eservices/:eserviceId/descriptors/:descriptorId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 2ad26608-d4eb-492b-bbd9-072abbf60102
+  descriptorId: 3ec64a3a-d4d4-4f78-b8b9-2c1fd02f1c88
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

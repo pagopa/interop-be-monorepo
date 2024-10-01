@@ -1,0 +1,29 @@
+meta {
+  name: Revoke Verified Attribute
+  type: http
+  seq: 17
+}
+
+delete {
+  url: {{host-bff}}/tenants/:tenantId/attributes/verified/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: 0cf1db41-3085-43a6-9e4c-57e0fb81a916
+  attributeId: e7e06185-f8b9-4fbd-852b-ede8be523962
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

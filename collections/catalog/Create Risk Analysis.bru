@@ -1,0 +1,44 @@
+meta {
+  name: Create Risk Analysis
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/riskAnalysis
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: fabd299b-3559-40b5-8407-a0647b6ba1fb
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "name": "Test risk analysis",
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "purpose": ["INSTITUTIONAL"],
+              "institutionalPurpose":["MyPurpose"],
+              "invalid": ["test"]
+          }
+      }
+  }
+}

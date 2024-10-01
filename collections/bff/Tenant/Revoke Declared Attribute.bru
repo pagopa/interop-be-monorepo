@@ -1,0 +1,28 @@
+meta {
+  name: Revoke Declared Attribute
+  type: http
+  seq: 15
+}
+
+delete {
+  url: {{host-bff}}/tenants/attributes/declared/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  attributeId: d8fa4097-d3cb-42ea-a82b-c99e4c7506fd
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

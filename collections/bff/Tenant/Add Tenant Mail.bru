@@ -1,0 +1,35 @@
+meta {
+  name: Add Tenant Mail
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-bff}}/tenants/:tenantId/mails
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: 69e2865e-65ab-4e48-a638-2037a9ee2ee7
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "kind": "CONTACT_EMAIL",
+      "address": "{{$randomEmail}}"
+  }
+}

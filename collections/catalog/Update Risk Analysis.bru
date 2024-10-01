@@ -1,0 +1,44 @@
+meta {
+  name: Update Risk Analysis
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/riskAnalysis/:riskAnalysisId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 52b1ed57-44ce-4402-8674-8b286d992f55
+  riskAnalysisId: cb2fcc56-cc1f-4f59-85aa-1c8466dc7413
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "name": "UPDATED RISK ANALYSIS",
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "purpose": ["OTHER"],
+              "otherPurpose":["another purpose!"]
+          }
+      }
+  }
+}

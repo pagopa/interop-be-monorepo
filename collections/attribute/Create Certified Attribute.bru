@@ -1,0 +1,32 @@
+meta {
+  name: Create Certified Attribute
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-attribute}}/certifiedAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Accept: application/json
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+      "name":"test attribute",
+      "description": "test attribute description",
+      "code": "123"
+  }
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Tenants
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-bff}}/tenants?limit=2&name=test
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 2
+  name: test
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

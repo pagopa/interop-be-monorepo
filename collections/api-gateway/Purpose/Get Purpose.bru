@@ -1,0 +1,28 @@
+meta {
+  name: Get Purpose
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-api-gw}}/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: 20be4dea-96fc-43cf-9608-f6b32d50459a
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

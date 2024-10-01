@@ -1,0 +1,30 @@
+meta {
+  name: Publish Descriptor
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/publish
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: bd341631-cc6b-4d6a-8a01-0c619a00ed3a
+  descriptorId: 7b119cdc-4b7c-44e7-87aa-c652e11bea87
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Length: 0
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

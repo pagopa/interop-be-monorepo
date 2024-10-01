@@ -1,0 +1,28 @@
+meta {
+  name: Get Eservice
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-api-gw}}/eservices/:eserviceId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 350d3586-11e3-4757-b5d3-055d70971ad3
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+  X-Correlation-Id: {{correlation-id}}
+}

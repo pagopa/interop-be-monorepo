@@ -1,0 +1,24 @@
+meta {
+  name: Get Attributes
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-attribute}}/attributes
+  body: json
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Accept: application/json
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
