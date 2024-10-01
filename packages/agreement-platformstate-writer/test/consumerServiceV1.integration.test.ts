@@ -73,7 +73,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("AgreementActivated", () => {
-    it.only("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -162,7 +162,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it.only("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+    it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -268,7 +268,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it.only("should add the entry if it doesn't exist", async () => {
+    it("should add the entry if it doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -379,7 +379,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it.only("should add the entry if it doesn't exist - and add descriptor info to token-generation-states entry if missing", async () => {
+    it("should add the entry if it doesn't exist - and add descriptor info to token-generation-states entry if missing", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -564,7 +564,7 @@ describe("integration tests V1 events", async () => {
 
       // TODO when the agreement entry is not found it gets mapped to first activation, so the entry is added
     });
-    it.only("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
+    it("should update the entry (agreement is not the latest -> no operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -698,7 +698,7 @@ describe("integration tests V1 events", async () => {
       //   ])
       // );
     });
-    it.only("should update the entry (agreement is the latest -> update in token states)", async () => {
+    it("should update the entry (agreement is the latest -> update in token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -853,7 +853,7 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("Agreement Updated (archived by consumer or by upgrade)", () => {
-    it.only("agreement is the latest (includes operation on token states)", async () => {
+    it("agreement is the latest (includes operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
@@ -994,7 +994,7 @@ describe("integration tests V1 events", async () => {
         ])
       );
     });
-    it.only("agreement is not the latest (no operation on token states)", async () => {
+    it("agreement is not the latest (no operation on token states)", async () => {
       const sixHoursAgo = new Date();
       sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
