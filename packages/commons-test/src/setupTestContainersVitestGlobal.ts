@@ -16,6 +16,7 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -33,10 +34,18 @@ import {
 } from "./containerTestUtils.js";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
+const EnhancedTokenGenerationReadModelDbConfig =
+  TokenGenerationReadModelDbConfig.and(
+    z.object({ tokenGenerationReadModelDbPort: z.number() })
+  );
+type EnhancedTokenGenerationReadModelDbConfig = z.infer<
+  typeof EnhancedTokenGenerationReadModelDbConfig
+>;
+
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
-    tokenGenerationReadModelConfig?: TokenGenerationReadModelDbConfig;
+    tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
@@ -140,15 +149,12 @@ export function setupTestContainersVitestGlobal() {
     // Setting up the DynamoDB container if the config is provided
     if (tokenGenerationReadModelConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
-      tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbPort =
-        startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT);
-      tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbHost =
-        startedDynamoDbContainer.getHost();
 
-      provide(
-        "tokenGenerationReadModelConfig",
-        tokenGenerationReadModelConfig.data
-      );
+      provide("tokenGenerationReadModelConfig", {
+        ...tokenGenerationReadModelConfig.data,
+        tokenGenerationReadModelDbPort:
+          startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
+      });
     }
 
     if (redisRateLimiterConfig.success) {

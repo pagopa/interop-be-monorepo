@@ -49,11 +49,7 @@ describe("utils tests", async () => {
   const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
     region: "eu-central-1",
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      config.tokenGenerationReadModelDbPort
-    }`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
