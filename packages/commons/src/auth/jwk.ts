@@ -71,6 +71,7 @@ export function getJwksClients(config: JWTConfig): JwksClient[] {
   return config.wellKnownUrls.map((url) =>
     jwksClient({
       cache: true,
+      rateLimit: true,
       cacheMaxEntries: 50,
       timeout: 30000,
       cacheMaxAge: 3600000, // 60 minutes
