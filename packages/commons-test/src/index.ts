@@ -8,3 +8,4 @@ export * from "./setupTestContainersVitestGlobal.js";
 export * from "./protobufConvertersToV1/catalogProtobufConverterToV1.js";
 export * from "./protobufConvertersToV1/agreementProtobufConverterToV1.js";
 export * from "./setupDynamoDBtables.js";
+export * from "./tokenGenerationReadmodelUtils.js";
