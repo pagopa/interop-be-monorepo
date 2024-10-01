@@ -35,6 +35,7 @@ import {
   toCompactDescriptor,
 } from "../api/catalogApiConverter.js";
 import {
+  toBffAgreementConsumerDocument,
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
@@ -697,7 +698,9 @@ export async function enrichAgreement(
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
     isContractPresent: agreement.contract !== undefined,
-    consumerDocuments: agreement.consumerDocuments,
+    consumerDocuments: agreement.consumerDocuments.map((doc) =>
+      toBffAgreementConsumerDocument(doc)
+    ),
     createdAt: agreement.createdAt,
     updatedAt: agreement.updatedAt,
     suspendedAt: agreement.suspendedAt,
