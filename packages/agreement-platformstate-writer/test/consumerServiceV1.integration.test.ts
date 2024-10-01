@@ -55,7 +55,7 @@ describe("integration tests V1 events", async () => {
     fail();
   }
   const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
