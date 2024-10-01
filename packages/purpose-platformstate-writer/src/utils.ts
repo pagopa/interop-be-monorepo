@@ -140,7 +140,7 @@ export const readTokenEntriesByGSIPKPurposeId = async (
   ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "GSIPK_purposeId",
+      IndexName: "Purpose",
       KeyConditionExpression: `GSIPK_purposeId = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: purposeId },
@@ -424,7 +424,7 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
 ): Promise<PlatformStatesAgreementEntry | undefined> => {
   const input: QueryInput = {
     TableName: config.tokenGenerationReadModelTableNamePlatform,
-    IndexName: "GSIPK_consumerId_eserviceId",
+    IndexName: "Agreement",
     KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
     ExpressionAttributeValues: {
       ":gsiValue": { S: gsiPKConsumerIdEServiceId },
