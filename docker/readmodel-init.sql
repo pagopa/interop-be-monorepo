@@ -112,13 +112,25 @@ CREATE TABLE readmodel.agreement(
   suspended_by_producer timestamp with time zone,
   suspended_by_platform timestamp with time zone,
   created_at timestamp with time zone,
-  updatedAt timestamp with time zone,
+  updated_at timestamp with time zone,
   consumer_notes varchar,
-  -- to do contract
-  -- to do stamps
   rejection_reason varchar,
-  suspended_at timestamp with time zone
-);
+  suspended_at timestamp with time zone,
+  submission_by uuid,
+  submission_at timestamp with time zone,
+  activation_by uuid,
+  activation_at timestamp with time zone,
+  rejection_by uuid,
+  rejection_at timestamp with time zone,
+  suspension_by_producer_by uuid,
+  suspension_by_producer_at timestamp with time zone,
+  suspension_by_consumer_by uuid,
+  suspension_by_consumer_at timestamp with time zone,
+  upgrade_by uuid,
+  upgrade_at timestamp with time zone
+  archiving_by uuid,
+  archiving_at timestamp with time zone
+  );
 
 CREATE TABLE readmodel.agreement_attribute(
   attribute_id uuid,
@@ -133,5 +145,6 @@ CREATE TABLE readmodel.agreement_consumer_document(
   pretty_name varchar,
   content_type varchar,
   path varchar,
-  created_at timestamp with time zone
+  created_at timestamp with time zone,
+  kind = varchar --consumerDoc / contract
 );
