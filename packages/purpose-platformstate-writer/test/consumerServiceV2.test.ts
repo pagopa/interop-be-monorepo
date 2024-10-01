@@ -411,7 +411,7 @@ describe("integration tests", () => {
         const previousDescriptorEntry: PlatformStatesCatalogEntry = {
           PK: catalogEntryPK,
           state: itemState.active,
-          descriptorAudience: "pagopa.it",
+          descriptorAudience: ["pagopa.it"],
           descriptorVoucherLifespan: mockDescriptor.voucherLifespan,
           version: 2,
           updatedAt: new Date().toISOString(),
@@ -1796,7 +1796,6 @@ describe("integration tests", () => {
         );
       });
 
-      // FIX: duplicate description
       it("should update the entry if the message version is more recent and the purpose is suspended by the consumer and the producer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
