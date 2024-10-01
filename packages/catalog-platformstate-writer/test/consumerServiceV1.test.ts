@@ -35,12 +35,13 @@ import {
 } from "pagopa-interop-commons-test";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
+import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
 import {
-  readCatalogEntry,
+  config,
   readTokenStateEntriesByEserviceIdAndDescriptorId,
-  writeCatalogEntry,
-} from "../src/utils.js";
-import { config, sleep, writeTokenStateEntry } from "./utils.js";
+  sleep,
+  writeTokenStateEntry,
+} from "./utils.js";
 
 describe("V1 events", async () => {
   if (!config) {
