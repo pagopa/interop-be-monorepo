@@ -29,3 +29,15 @@ export function toBffCompactAgreement(
     canBeUpgraded: isAgreementUpgradable(eservice, agreement),
   };
 }
+
+export function toBffAgreementConsumerDocument(
+  doc: agreementApi.Document
+): bffApi.Document {
+  return {
+    id: doc.id,
+    name: doc.name,
+    prettyName: doc.prettyName,
+    contentType: doc.contentType,
+    createdAt: doc.createdAt,
+  };
+}
