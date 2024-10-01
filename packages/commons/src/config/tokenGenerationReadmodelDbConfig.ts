@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const TokenGenerationReadModelDbConfig = z
   .object({
-    TOKEN_GENERATION_READMODEL_HOST: z.string(),
-    TOKEN_GENERATION_READMODEL_PORT: z.coerce.number().min(1001),
+    TOKEN_GENERATION_READMODEL_HOST: z.string().optional(),
+    TOKEN_GENERATION_READMODEL_PORT: z.coerce.number().min(1001).optional(),
     TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM: z.string(),
     TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
   })
