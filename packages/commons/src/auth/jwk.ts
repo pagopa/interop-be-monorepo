@@ -67,8 +67,7 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
     );
 }
 
-export function getJwksClient(): JwksClient[] {
-  const config = JWTConfig.parse(process.env);
+export function getJwksClient(config: JWTConfig): JwksClient[] {
   return config.wellKnownUrls.map((url) =>
     jwksClient({
       cache: true,

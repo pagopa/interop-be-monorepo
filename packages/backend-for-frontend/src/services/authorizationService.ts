@@ -54,7 +54,7 @@ export function authorizationServiceBuilder(
   allowList: string[],
   rateLimiter: RateLimiter
 ) {
-  const jwksClients = getJwksClient();
+  const jwksClients = getJwksClient(config);
 
   const readJwt = async (
     identityToken: string,
