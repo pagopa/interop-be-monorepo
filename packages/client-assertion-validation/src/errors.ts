@@ -102,9 +102,8 @@ export function invalidClientAssertionFormat(): ApiError<ErrorCodes> {
 export function unexpectedClientAssertionPayload(
   message: string
 ): ApiError<ErrorCodes> {
-  const extraDetails = message ? ` - ${message}` : "";
   return new ApiError({
-    detail: "Unexpected client assertion payload" + extraDetails,
+    detail: `Unexpected client assertion payload: ${message}`,
     code: "unexpectedClientAssertionPayload",
     title: "Invalid client assertion payload",
   });
