@@ -1,6 +1,10 @@
 import jwt, { JwtHeader, JwtPayload, Secret } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { invalidClaim, jwtDecodingError } from "pagopa-interop-models";
+import {
+  invalidClaim,
+  jwtDecodingError,
+  jwksSigningKeyError,
+} from "pagopa-interop-models";
 import { JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
@@ -59,7 +63,7 @@ const getKey = async (
   }
 
   logger.error(`Error getting signing key`);
-  return Promise.reject();
+  throw jwksSigningKeyError();
 };
 
 export const verifyJwtToken = async (

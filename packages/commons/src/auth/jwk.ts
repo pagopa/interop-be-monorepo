@@ -72,10 +72,7 @@ export function getJwksClients(config: JWTConfig): JwksClient[] {
     jwksClient({
       cache: true,
       rateLimit: true,
-      cacheMaxEntries: 50,
-      timeout: 30000,
-      cacheMaxAge: 3600000, // 60 minutes
-      jwksRequestsPerMinute: 30,
+      cacheMaxAge: 60000, // 1 minute
       jwksUri: url,
     })
   );

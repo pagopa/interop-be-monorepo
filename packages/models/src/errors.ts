@@ -167,6 +167,7 @@ const errorCodes = {
   invalidKey: "10003",
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
+  jwksSigningKeyError: "10006",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -355,6 +356,14 @@ export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
     )}`,
     code: "jwkDecodingError",
     title: "JWK decoding error",
+  });
+}
+
+export function jwksSigningKeyError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error getting signing key`,
+    code: "jwksSigningKeyError",
+    title: "JWK signing key error",
   });
 }
 
