@@ -32,25 +32,19 @@ import {
   getMockTokenStatesClientPurposeEntry,
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
 } from "pagopa-interop-commons-test";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { writeTokenStateEntry } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
-import {
-  config,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  sleep,
-  writeTokenStateEntry,
-} from "./utils.js";
-
+import { config, sleep } from "./utils.js";
 describe("V1 events", async () => {
   if (!config) {
     fail();
   }
   const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);

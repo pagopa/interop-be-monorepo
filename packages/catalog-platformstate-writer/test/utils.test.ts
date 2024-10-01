@@ -28,6 +28,9 @@ import {
   getMockTokenStatesClientPurposeEntry,
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
+  readAllTokenStateItems,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import {
   deleteCatalogEntry,
@@ -37,12 +40,7 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "../src/utils.js";
-import {
-  config,
-  readAllTokenStateItems,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config } from "./utils.js";
 
 describe("utils tests", async () => {
   if (!config) {
@@ -51,11 +49,7 @@ describe("utils tests", async () => {
   const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
     region: "eu-central-1",
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      config.tokenGenerationReadModelDbPort
-    }`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);

@@ -56,9 +56,8 @@ describe("integration tests V2 events", async () => {
   if (!config) {
     fail();
   }
+  config.tokenGenerationReadModelDbHost;
   const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
     endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
