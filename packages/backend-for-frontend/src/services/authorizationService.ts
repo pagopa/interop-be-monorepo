@@ -16,11 +16,12 @@ import {
   USER_ROLES,
   WithLogger,
   decodeJwtToken,
+  getJwksClients,
   userRoles,
   verifyJwtToken,
-  getJwksClient,
 } from "pagopa-interop-commons";
 import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   missingClaim,
@@ -28,9 +29,8 @@ import {
   tenantLoginNotAllowed,
   tokenVerificationFailed,
 } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { validateSamlResponse } from "../utilities/samlValidator.js";
 import { BffAppContext } from "../utilities/context.js";
+import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
@@ -54,7 +54,7 @@ export function authorizationServiceBuilder(
   allowList: string[],
   rateLimiter: RateLimiter
 ) {
-  const jwksClients = getJwksClient(config);
+  const jwksClients = getJwksClients(config);
 
   const readJwt = async (
     identityToken: string,
@@ -64,7 +64,7 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(identityToken, jwksClients, logger);
+    const verified = await verifyJwtToken(identityToken, jwksClients, config, logger);
     if (!verified) {
       throw tokenVerificationFailed();
     }

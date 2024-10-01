@@ -6,8 +6,8 @@ import {
   missingHeader,
   unauthorizedError,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
-import { ExpressContext, getJwksClient, JWTConfig } from "../index.js";
+import { match, P } from "ts-pattern";
+import { ExpressContext, getJwksClients, JWTConfig } from "../index.js";
 import { Logger, logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
@@ -20,7 +20,7 @@ export const authenticationMiddleware: (
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
   (config: JWTConfig) =>
   async (req, res, next): Promise<unknown> => {
-    const jwksClients = getJwksClient(config);
+    const jwksClients = getJwksClients(config);
 
     const addCtxAuthData = async (
       authHeader: string,
@@ -38,7 +38,7 @@ export const authenticationMiddleware: (
       }
 
       const jwtToken = authorizationHeader[1];
-      const valid = await verifyJwtToken(jwtToken, jwksClients, logger);
+      const valid = await verifyJwtToken(jwtToken, jwksClients, config, logger);
       if (!valid) {
         throw unauthorizedError("Invalid token");
       }

@@ -1,11 +1,11 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
+import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   invalidKey,
   jwkDecodingError,
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
-import jwksClient, { JwksClient } from "jwks-rsa";
 import { JWTConfig } from "../config/index.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {
@@ -67,7 +67,7 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
     );
 }
 
-export function getJwksClient(config: JWTConfig): JwksClient[] {
+export function getJwksClients(config: JWTConfig): JwksClient[] {
   return config.wellKnownUrls.map((url) =>
     jwksClient({
       cache: true,

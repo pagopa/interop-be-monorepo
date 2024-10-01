@@ -62,10 +62,11 @@ const getKey = async (
 export const verifyJwtToken = async (
   jwtToken: string,
   jwksClients: jwksClient.JwksClient[],
+  config: JWTConfig,
   logger: Logger
 ): Promise<boolean> => {
   try {
-    const { acceptedAudiences } = JWTConfig.parse(process.env);
+    const { acceptedAudiences } = config;
 
     const jwtHeader = decodeJwtTokenHeaders(jwtToken, logger);
     if (!jwtHeader?.kid) {
