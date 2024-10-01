@@ -165,7 +165,7 @@ const clientRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await clientService.addUsersToClient(
-          req.body,
+          req.body.userIds,
           req.params.clientId,
           ctx
         );
@@ -176,7 +176,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error adding users ${req.body.join(",")} to client ${
+          `Error adding users ${req.body.userIds.join(",")} to client ${
             req.params.clientId
           }`
         );

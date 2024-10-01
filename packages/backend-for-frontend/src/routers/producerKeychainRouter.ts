@@ -293,7 +293,7 @@ const producerKeychainRouter = (
 
       try {
         await producerKeychainService.addProducerKeychainUsers(
-          req.body,
+          req.body.userIds,
           req.params.producerKeychainId,
           ctx
         );
@@ -304,9 +304,9 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error adding users ${req.body.join(",")} to producer keychain ${
-            req.params.producerKeychainId
-          }`
+          `Error adding users ${req.body.userIds.join(
+            ","
+          )} to producer keychain ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

@@ -139,10 +139,13 @@ export function clientServiceBuilder(
     ): Promise<void> {
       logger.info(`Add users ${userIds.join(",")} to client ${clientId}`);
 
-      await authorizationClient.client.addUsers(userIds, {
-        params: { clientId },
-        headers,
-      });
+      await authorizationClient.client.addUsers(
+        { userIds },
+        {
+          params: { clientId },
+          headers,
+        }
+      );
     },
 
     async createKeys(

@@ -349,7 +349,7 @@ const authorizationRouter = (
             await authorizationService.addClientUsers(
               {
                 clientId: unsafeBrandId(req.params.clientId),
-                userIds: req.body.map(unsafeBrandId<UserId>),
+                userIds: req.body.userIds.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,
@@ -728,7 +728,7 @@ const authorizationRouter = (
                 producerKeychainId: unsafeBrandId(
                   req.params.producerKeychainId
                 ),
-                userIds: req.body.map(unsafeBrandId<UserId>),
+                userIds: req.body.userIds.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,

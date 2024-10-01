@@ -264,7 +264,7 @@ export function producerKeychainServiceBuilder(
       );
 
       await authorizationClient.producerKeychain.addProducerKeychainUsers(
-        userIds,
+        { userIds },
         {
           params: { producerKeychainId },
           headers,

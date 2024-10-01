@@ -9432,11 +9432,17 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              minItems: 1
-              items:
-                type: string
-                format: uuid
+              type: object
+              additionalProperties: false
+              required:
+                - userIds
+              properties:
+                userIds:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    format: uuid             
       responses:
         "200":
           description: Users added
@@ -10989,11 +10995,17 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              minItems: 1
-              items:
-                type: string
-                format: uuid
+              type: object
+              additionalProperties: false
+              required:
+                - userIds
+              properties:
+                userIds:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    format: uuid    
       responses:
         "204":
           description: Users added
