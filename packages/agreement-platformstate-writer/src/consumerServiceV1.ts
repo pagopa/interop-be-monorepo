@@ -173,10 +173,6 @@ const handleActivationOrSuspension = async (
     });
     const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
 
-    if (!catalogEntry) {
-      // TODO double-check
-      throw genericInternalError("Catalog entry not found");
-    }
     const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
       eserviceId: agreement.eserviceId,
       descriptorId: agreement.descriptorId,
