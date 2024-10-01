@@ -55,9 +55,7 @@ describe("utils", async () => {
     fail();
   }
   const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
