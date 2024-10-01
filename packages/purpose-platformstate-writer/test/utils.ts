@@ -8,20 +8,16 @@ import {
   PutItemCommand,
   PutItemInput,
 } from "@aws-sdk/client-dynamodb";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
   genericInternalError,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
+import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 export const config = inject("tokenGenerationReadModelConfig");
-export const { cleanup } = setupTestContainersVitest();
-
-afterEach(cleanup);
 
 // TODO: same function as catalog-platformstate-writer
 export const writeTokenStateEntry = async (
@@ -41,7 +37,9 @@ export const writeTokenStateEntry = async (
         S: tokenStateEntry.descriptorState!,
       },
       descriptorAudience: {
-        S: tokenStateEntry.descriptorAudience!,
+        L: tokenStateEntry.descriptorAudience!.map((item) => ({
+          S: item,
+        })),
       },
       // descriptorVoucherLifespan: {
       //   N: tokenStateEntry.descriptorVoucherLifespan!.toString(),
@@ -250,7 +248,9 @@ export const writeCatalogEntry = async (
         S: catalogEntry.state,
       },
       descriptorAudience: {
-        S: catalogEntry.descriptorAudience,
+        L: catalogEntry.descriptorAudience.map((item) => ({
+          S: item,
+        })),
       },
       descriptorVoucherLifespan: {
         N: catalogEntry.descriptorVoucherLifespan.toString(),
