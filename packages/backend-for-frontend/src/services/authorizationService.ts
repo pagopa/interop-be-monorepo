@@ -64,12 +64,17 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(identityToken, jwksClients, config, logger);
+    const verified = await verifyJwtToken(
+      identityToken,
+      jwksClients,
+      config,
+      logger
+    );
     if (!verified) {
       throw tokenVerificationFailed();
     }
 
-    const decoded = decodeJwtToken(identityToken);
+    const decoded = decodeJwtToken(identityToken, logger);
 
     const userRoles: string[] = decoded?.organization?.roles
       ? decoded.organization.roles.map((r: { role: string }) => r.role)

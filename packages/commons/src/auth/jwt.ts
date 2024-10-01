@@ -6,31 +6,34 @@ import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
 export const decodeJwtToken = (
   jwtToken: string,
-  logger?: Logger
+  logger: Logger
 ): JwtPayload | null => {
   try {
     return jwt.decode(jwtToken, { json: true });
   } catch (err) {
-    logger?.error(`Error decoding JWT token: ${err}`);
+    logger.error(`Error decoding JWT token: ${err}`);
     throw jwtDecodingError(err);
   }
 };
 
 export const decodeJwtTokenHeaders = (
   jwtToken: string,
-  logger?: Logger
+  logger: Logger
 ): JwtHeader | undefined => {
   try {
     const decoded = jwt.decode(jwtToken, { complete: true });
     return decoded?.header;
   } catch (err) {
-    logger?.error(`Error decoding JWT token: ${err}`);
+    logger.error(`Error decoding JWT token: ${err}`);
     throw jwtDecodingError(err);
   }
 };
 
-export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
-  const decoded = decodeJwtToken(jwtToken);
+export const readAuthDataFromJwtToken = (
+  jwtToken: string,
+  logger: Logger
+): AuthData => {
+  const decoded = decodeJwtToken(jwtToken, logger);
   const token = AuthToken.safeParse(decoded);
   if (token.success === false) {
     throw invalidClaim(token.error);

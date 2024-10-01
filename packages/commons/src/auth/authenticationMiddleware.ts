@@ -43,7 +43,7 @@ export const authenticationMiddleware: (
         throw unauthorizedError("Invalid token");
       }
 
-      const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
+      const authData: AuthData = readAuthDataFromJwtToken(jwtToken, logger);
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = authData;
       next();
