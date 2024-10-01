@@ -56,7 +56,6 @@ describe("integration tests V2 events", async () => {
   if (!config) {
     fail();
   }
-  config.tokenGenerationReadModelDbHost;
   const dynamoDBClient = new DynamoDBClient({
     endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
   });
