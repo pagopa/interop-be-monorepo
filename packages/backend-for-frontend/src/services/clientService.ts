@@ -7,6 +7,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
+import { UserId } from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
@@ -171,11 +172,17 @@ export function clientServiceBuilder(
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
-      const { keys } = await authorizationClient.client.getClientKeys({
-        params: { clientId },
-        queries: { userIds },
-        headers,
-      });
+      const [{ keys }, { users }] = await Promise.all([
+        authorizationClient.client.getClientKeys({
+          params: { clientId },
+          queries: { userIds },
+          headers,
+        }),
+        authorizationClient.client.getClient({
+          params: { clientId },
+          headers,
+        }),
+      ]);
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
@@ -183,6 +190,7 @@ export function clientServiceBuilder(
             selfcareUsersClient,
             k,
             authData.selfcareId,
+            users,
             headers["X-Correlation-Id"]
           )
         )
@@ -238,14 +246,22 @@ export function clientServiceBuilder(
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
-      const key = await authorizationClient.client.getClientKeyById({
-        params: { clientId, keyId },
-        headers,
-      });
+      const [key, { users }] = await Promise.all([
+        authorizationClient.client.getClientKeyById({
+          params: { clientId, keyId },
+          headers,
+        }),
+        authorizationClient.client.getClient({
+          params: { clientId },
+          headers,
+        }),
+      ]);
+
       return decorateKey(
         selfcareUsersClient,
         key,
         selfcareId,
+        users,
         headers["X-Correlation-Id"]
       );
     },
@@ -387,6 +403,7 @@ export async function decorateKey(
   selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string,
+  members: string[],
   correlationId: string
 ): Promise<bffApi.PublicKey> {
   const user = await getSelfcareUserById(
@@ -401,7 +418,7 @@ export async function decorateKey(
     name: key.name,
     keyId: key.kid,
     createdAt: key.createdAt,
-    isOrphan: user.id === undefined,
+    isOrphan: !members.includes(key.userId) || user.id === undefined,
   };
 }
 
