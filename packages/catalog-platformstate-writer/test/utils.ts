@@ -2,15 +2,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
+  AttributeValue,
   DynamoDBClient,
   PutItemCommand,
   PutItemInput,
+  QueryCommand,
+  QueryCommandOutput,
+  QueryInput,
   ScanCommand,
   ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import {
   genericInternalError,
+  GSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { inject, vi } from "vitest";
@@ -132,4 +137,66 @@ export const readAllTokenStateItems = async (
     }
     return tokenStateEntries.data;
   }
+};
+
+export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
+  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+  dynamoDBClient: DynamoDBClient
+): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  const runPaginatedQuery = async (
+    eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+    const input: QueryInput = {
+      TableName: config!.tokenGenerationReadModelTableNameTokenGeneration,
+      IndexName: "Descriptor",
+      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
+      ExpressionAttributeValues: {
+        ":gsiValue": { S: eserviceId_descriptorId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+    };
+    const command = new QueryCommand(input);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read token state entries: result ${JSON.stringify(data)} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const tokenStateEntries = z
+        .array(TokenGenerationStatesClientPurposeEntry)
+        .safeParse(unmarshalledItems);
+
+      if (!tokenStateEntries.success) {
+        throw genericInternalError(
+          `Unable to parse token state entry item: result ${JSON.stringify(
+            tokenStateEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      if (!data.LastEvaluatedKey) {
+        return tokenStateEntries.data;
+      } else {
+        return [
+          ...tokenStateEntries.data,
+          ...(await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
+    }
+  };
+
+  return await runPaginatedQuery(
+    eserviceId_descriptorId,
+    dynamoDBClient,
+    undefined
+  );
 };
