@@ -65,7 +65,7 @@ describe("integration tests for consumerServiceV1", () => {
     vi.useRealTimers();
   });
 
-  describe("Events V1", async () => {
+  describe("integration tests events V1", async () => {
     describe("PurposeVersionSuspended", () => {
       it("should do no operation if the entry already exists: incoming message has version 1; previous entry has version 2", async () => {
         const previousEntryVersion = 2;
