@@ -94,7 +94,7 @@ services:
 
   dynamodb-admin:
     image: "aaronshaf/dynamodb-admin"
-    container_name: dynamodb-admin
+    container_name: dynamodb-admin_token-generation-readmodel
     depends_on:
       - token-generation-readmodel
     restart: always
