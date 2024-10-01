@@ -7,7 +7,6 @@ import {
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
-import { UserId } from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
