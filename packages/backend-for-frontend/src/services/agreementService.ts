@@ -154,7 +154,7 @@ export function agreementServiceBuilder(
       const documentContent = Buffer.from(await doc.doc.arrayBuffer());
       const documentId = randomUUID();
 
-      await fileManager.storeBytes(
+      const storagePath = await fileManager.storeBytes(
         {
           bucket: config.consumerDocumentsContainer,
           path: documentPath,
@@ -170,7 +170,7 @@ export function agreementServiceBuilder(
         prettyName: doc.prettyName,
         name: doc.doc.name,
         contentType: doc.doc.type,
-        path: documentPath,
+        path: storagePath,
       };
 
       await agreementProcessClient.addAgreementConsumerDocument(seed, {
