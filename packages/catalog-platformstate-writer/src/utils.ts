@@ -148,8 +148,9 @@ export const updateDescriptorStateInPlatformStatesEntry = async (
   await dynamoDBClient.send(command);
 };
 
-export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
+export const updateDescriptorStateInTokenGenerationStatesTable = async (
   eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+  descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
   const runPaginatedQuery = async (
@@ -188,6 +189,12 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
         );
       }
 
+      await updateDescriptorStateEntriesInTokenGenerationStatesTable(
+        descriptorState,
+        dynamoDBClient,
+        tokenStateEntries.data
+      );
+
       if (!data.LastEvaluatedKey) {
         return tokenStateEntries.data;
       } else {
@@ -210,17 +217,11 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
   );
 };
 
-export const updateDescriptorStateInTokenGenerationStatesTable = async (
-  eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+const updateDescriptorStateEntriesInTokenGenerationStatesTable = async (
   descriptorState: ItemState,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  entriesToUpdate: TokenGenerationStatesClientPurposeEntry[]
 ): Promise<void> => {
-  const entriesToUpdate =
-    await readTokenStateEntriesByEserviceIdAndDescriptorId(
-      eserviceId_descriptorId,
-      dynamoDBClient
-    );
-
   for (const entry of entriesToUpdate) {
     const input: UpdateItemInput = {
       ConditionExpression: "attribute_exists(GSIPK_eserviceId_descriptorId)",
