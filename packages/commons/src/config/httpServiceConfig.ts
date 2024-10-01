@@ -14,10 +14,7 @@ export const JWTConfig = z
       .transform((s) => s.split(","))
       .pipe(z.array(z.string())),
 
-    /* If JWKS_CACHE_MAX_AGE not provided using 10 minute like default value: 
-       https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration 
-    */
-    JWKS_CACHE_MAX_AGE: z.coerce.number().optional().default(600000),
+    JWKS_CACHE_MAX_AGE: z.coerce.number().optional(),
   })
   .transform((c) => ({
     wellKnownUrls: c.WELL_KNOWN_URLS,

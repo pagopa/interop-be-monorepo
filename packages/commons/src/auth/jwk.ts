@@ -72,8 +72,11 @@ export function getJwksClients(config: JWTConfig): JwksClient[] {
     jwksClient({
       cache: true,
       rateLimit: true,
-      cacheMaxAge: config.jwksCacheMaxAge,
       jwksUri: url,
+      /* If JWKS_CACHE_MAX_AGE not provided using 10 minute like default value: 
+      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration 
+      */
+      cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
     })
   );
 }
