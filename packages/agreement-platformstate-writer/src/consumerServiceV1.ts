@@ -188,8 +188,7 @@ const handleActivationOrSuspension = async (
       agreementState: agreement.state,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
-      descriptorState: catalogEntry.state,
-      descriptorAudience: catalogEntry.descriptorAudience,
+      catalogEntry,
     });
   }
 };
