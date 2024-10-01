@@ -33,7 +33,6 @@ import {
   deleteCatalogEntry,
   descriptorStateToItemState,
   readCatalogEntry,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
@@ -41,6 +40,7 @@ import {
 import {
   config,
   readAllTokenStateItems,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
   writeTokenStateEntry,
 } from "./utils.js";
 
