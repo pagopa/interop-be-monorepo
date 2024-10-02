@@ -162,9 +162,6 @@ export async function handleMessageV2(
         dynamoDBClient
       );
 
-      if (agreementEntry && agreementEntry.version > msg.version) {
-        return Promise.resolve();
-      }
       const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
         eserviceId: agreement.eserviceId,
         descriptorId: agreement.descriptorId,
@@ -174,6 +171,7 @@ export async function handleMessageV2(
         dynamoDBClient
       );
       if (!catalogEntry) {
+        // TODO double-check
         throw genericInternalError("Catalog entry not found");
       }
 
@@ -182,13 +180,17 @@ export async function handleMessageV2(
         eserviceId: agreement.eserviceId,
       });
 
-      if (agreementEntry && agreementEntry.version <= msg.version) {
-        await updateAgreementStateInPlatformStatesEntry(
-          dynamoDBClient,
-          primaryKey,
-          agreementStateToItemState(agreement.state),
-          msg.version
-        );
+      if (agreementEntry) {
+        if (agreementEntry.version > msg.version) {
+          return Promise.resolve();
+        } else {
+          await updateAgreementStateInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKey,
+            agreementStateToItemState(agreement.state),
+            msg.version
+          );
+        }
       } else {
         const newAgreementEntry: PlatformStatesAgreementEntry = {
           PK: primaryKey,
@@ -204,6 +206,7 @@ export async function handleMessageV2(
 
         await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
       }
+
       const doOperationOnTokenStates = async (): Promise<void> => {
         if (
           await isAgreementTheLatest(
