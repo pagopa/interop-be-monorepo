@@ -1,7 +1,7 @@
 meta {
   name: Add Descriptors Document
   type: http
-  seq: 13
+  seq: 18
 }
 
 post {
@@ -11,8 +11,8 @@ post {
 }
 
 params:path {
-  eserviceId: 20f1c1e1-9e4a-4225-a88b-ac195956a0e3
-  descriptorId: 9c8020eb-821c-4869-96bd-4efe57228ef5
+  eserviceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
 }
 
 headers {
@@ -40,4 +40,8 @@ body:json {
           "server urls 2"
       ]
   }
+}
+
+vars:post-response {
+  interfaceId: res.body.descriptors[0].interface.id
 }

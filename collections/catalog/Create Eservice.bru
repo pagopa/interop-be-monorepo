@@ -32,6 +32,11 @@ body:json {
   }
 }
 
+vars:post-response {
+  eServiceId: res.body.id
+  descriptorId: res.body.descriptors[0].id
+}
+
 script:pre-request {
   const random = Math.round(Math.random() * 100)
   

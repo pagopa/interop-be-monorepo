@@ -1,7 +1,7 @@
 meta {
   name: Get eservice
   type: http
-  seq: 12
+  seq: 2
 }
 
 get {
@@ -11,7 +11,7 @@ get {
 }
 
 params:path {
-  eserviceId: ee857885-deb3-4f8b-a08b-9525dfd508cf
+  eserviceId: {{eServiceId}}
 }
 
 headers {
@@ -22,4 +22,8 @@ headers {
   X-Correlation-Id: {{correlation-id}}
   Content-Type: application/json
   ~Connection: keep-alive
+}
+
+vars:post-response {
+  riskAnalysisId: res.body.riskAnalysis[0].id
 }

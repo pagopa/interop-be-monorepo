@@ -1,7 +1,7 @@
 meta {
   name: Create Risk Analysis
   type: http
-  seq: 4
+  seq: 5
 }
 
 post {
@@ -11,7 +11,7 @@ post {
 }
 
 params:path {
-  eServiceId: fabd299b-3559-40b5-8407-a0647b6ba1fb
+  eServiceId: {{eServiceId}}
 }
 
 headers {
@@ -32,8 +32,7 @@ body:json {
           "version": "3.0",
           "answers": {
               "purpose": ["INSTITUTIONAL"],
-              "institutionalPurpose":["MyPurpose"],
-              "invalid": ["test"]
+              "institutionalPurpose":["MyPurpose"]
           }
       }
   }

@@ -1,12 +1,12 @@
 meta {
-  name: Delete Descriptor
+  name: Suspend Descriptor
   type: http
-  seq: 11
+  seq: 13
 }
 
-delete {
-  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId
-  body: json
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/suspend
+  body: none
   auth: none
 }
 
@@ -17,7 +17,7 @@ params:path {
 
 headers {
   Cache-Control: no-cache
-  Content-Type: application/json
+  Content-Length: 0
   Accept: */*
   Accept-Encoding: gzip, deflate, br
   Connection: keep-alive
