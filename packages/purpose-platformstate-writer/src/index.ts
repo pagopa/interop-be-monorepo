@@ -8,7 +8,6 @@ import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
-// TODO: should this use the config in the aws.config.local?
 const dynamoDBClient = new DynamoDBClient();
 async function processMessage({
   message,
