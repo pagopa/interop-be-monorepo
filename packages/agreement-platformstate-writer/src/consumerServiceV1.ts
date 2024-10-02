@@ -129,29 +129,25 @@ const handleActivationOrSuspension = async (
     eserviceId: agreement.eserviceId,
   });
 
-  if (
-    existingAgreementEntry &&
-    existingAgreementEntry.version > incomingVersion
-  ) {
-    // Stops processing if the message is older than the agreement entry
-    return Promise.resolve();
-  } else if (
-    existingAgreementEntry &&
-    existingAgreementEntry.version <= incomingVersion
-  ) {
-    await updateAgreementStateInPlatformStatesEntry(
-      dynamoDBClient,
-      primaryKey,
-      agreementStateToItemState(agreement.state),
-      incomingVersion
-    );
+  if (existingAgreementEntry) {
+    if (existingAgreementEntry.version > incomingVersion) {
+      // Stops processing if the message is older than the agreement entry
+      return Promise.resolve();
+    } else {
+      await updateAgreementStateInPlatformStatesEntry(
+        dynamoDBClient,
+        primaryKey,
+        agreementStateToItemState(agreement.state),
+        incomingVersion
+      );
 
-    // token-generation-states
-    await updateAgreementStateInTokenGenerationStatesTable(
-      GSIPK_consumerId_eserviceId,
-      agreement.state,
-      dynamoDBClient
-    );
+      // token-generation-states
+      await updateAgreementStateInTokenGenerationStatesTable(
+        GSIPK_consumerId_eserviceId,
+        agreement.state,
+        dynamoDBClient
+      );
+    }
   } else {
     const agreementEntry: PlatformStatesAgreementEntry = {
       PK: primaryKey,
