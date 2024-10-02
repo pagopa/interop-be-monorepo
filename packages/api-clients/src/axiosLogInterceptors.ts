@@ -32,13 +32,21 @@ export function configureAxiosLogInterceptors(
           prefixText: getPrefix(response.config.headers, clientName),
         }
       ) as AxiosResponse,
-    (error: AxiosError): Promise<AxiosError> =>
-      AxiosLogger.errorLogger(
+    (error: AxiosError): Promise<AxiosError> => {
+      const prefixText = getPrefix(error.config?.headers, clientName);
+      if ("errors" in error && Array.isArray(error.errors)) {
+        error.errors.forEach((err) =>
+          genericLogger.error(`[${prefixText}] ${err}`)
+        );
+      }
+
+      return AxiosLogger.errorLogger(
         error as Parameters<typeof AxiosLogger.errorLogger>[0],
         {
           logger: genericLogger.error,
-          prefixText: getPrefix(error.config?.headers, clientName),
+          prefixText,
         }
-      ) as Promise<AxiosError>
+      ) as Promise<AxiosError>;
+    }
   );
 }

@@ -6,6 +6,7 @@ import {
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
+import { Logger } from "pagopa-interop-commons";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
   attributeNotFoundInRegistry,
@@ -19,10 +20,11 @@ import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
 export function assertAgreementStateNotDraft(
   agreementState: agreementApi.AgreementState,
-  agreementId: agreementApi.Agreement["id"]
+  agreementId: agreementApi.Agreement["id"],
+  logger: Logger
 ): asserts agreementState is apiGatewayApi.AgreementState {
   if (agreementState === agreementApi.AgreementState.Values.DRAFT) {
-    throw invalidAgreementState(agreementState, agreementId);
+    throw invalidAgreementState(agreementId, logger);
   }
 }
 

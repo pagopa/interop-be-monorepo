@@ -4,10 +4,11 @@ import {
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
-  invalidAgreementState: "0001",
+  agreementNotFound: "0001",
   producerAndConsumerParamMissing: "0002",
   missingActivePurposeVersion: "0003",
   activeAgreementByEserviceAndConsumerNotFound: "0004",
@@ -21,18 +22,10 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-export function invalidAgreementState(
-  state: agreementApi.AgreementState,
-  agreementId: agreementApi.Agreement["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Cannot retrieve agreement in ${state} state - id: ${agreementId}`,
-    code: "invalidAgreementState",
-    title: "Invalid agreement state",
-  });
-}
+export const makeApiProblem = makeApiProblemBuilder(
+  errorCodes,
+  false // API Gateway shall not let Problem errors from other services to pass through
+);
 
 export function producerAndConsumerParamMissing(): ApiError<ErrorCodes> {
   return new ApiError({
@@ -122,4 +115,25 @@ export function keyNotFound(kId: string): ApiError<ErrorCodes> {
     code: "keyNotFound",
     title: "Key not found",
   });
+}
+
+export function agreementNotFound(
+  agreementId: agreementApi.Agreement["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} not found`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
+  });
+}
+
+export function invalidAgreementState(
+  agreementId: agreementApi.Agreement["id"],
+  logger: Logger
+): ApiError<ErrorCodes> {
+  const error = agreementNotFound(agreementId);
+  logger.warn(
+    `Root cause for Error "${error.title}": cannot retrieve agreement in DRAFT state`
+  );
+  return error;
 }
