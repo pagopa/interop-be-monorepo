@@ -30,18 +30,18 @@ export async function handleMessageV1(
   dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
-    .with(
-      { type: "AgreementActivated" },
-      { type: "AgreementSuspended" },
-      async (msg) => {
-        const agreement = parseAgreement(msg.data.agreement);
-        await handleActivationOrSuspension(
-          agreement,
-          dynamoDBClient,
-          msg.version
-        );
-      }
-    )
+    .with({ type: "AgreementActivated" }, async (msg) => {
+      const agreement = parseAgreement(msg.data.agreement);
+      await handleFirstActivation(agreement, dynamoDBClient, msg.version);
+    })
+    .with({ type: "AgreementSuspended" }, async (msg) => {
+      const agreement = parseAgreement(msg.data.agreement);
+      await handleActivationOrSuspension(
+        agreement,
+        dynamoDBClient,
+        msg.version
+      );
+    })
     .with({ type: "AgreementUpdated" }, async (msg) => {
       const agreement = parseAgreement(msg.data.agreement);
 
@@ -109,7 +109,7 @@ const parseAgreement = (agreementV1: AgreementV1 | undefined): Agreement => {
   return fromAgreementV1(agreementV1);
 };
 
-const handleActivationOrSuspension = async (
+const handleFirstActivation = async (
   agreement: Agreement,
   dynamoDBClient: DynamoDBClient,
   incomingVersion: number
@@ -171,6 +171,65 @@ const handleActivationOrSuspension = async (
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
   });
+};
+
+const handleActivationOrSuspension = async (
+  agreement: Agreement,
+  dynamoDBClient: DynamoDBClient,
+  incomingVersion: number
+): Promise<void> => {
+  const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+
+  const existingAgreementEntry = await readAgreementEntry(
+    primaryKey,
+    dynamoDBClient
+  );
+  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
+
+  if (existingAgreementEntry) {
+    if (existingAgreementEntry.version > incomingVersion) {
+      // Stops processing if the message is older than the agreement entry
+      return Promise.resolve();
+    } else {
+      await updateAgreementStateInPlatformStatesEntry(
+        dynamoDBClient,
+        primaryKey,
+        agreementStateToItemState(agreement.state),
+        incomingVersion
+      );
+    }
+  }
+
+  const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+  });
+  const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
+
+  const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+  });
+
+  if (
+    await isAgreementTheLatest(
+      GSIPK_consumerId_eserviceId,
+      agreement.id,
+      dynamoDBClient
+    )
+  ) {
+    // token-generation-states
+    await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+      GSIPK_consumerId_eserviceId,
+      agreementState: agreement.state,
+      dynamoDBClient,
+      GSIPK_eserviceId_descriptorId,
+      catalogEntry,
+    });
+  }
 };
 
 const handleArchiving = async (
