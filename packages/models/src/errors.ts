@@ -155,6 +155,14 @@ export function makeApiProblemBuilder<T extends string>(
           }
         }
       )
+      .with(P.instanceOf(ZodError), (error) => {
+        // Zod errors shall always be catched and handled throwing
+        // an ApiError. If a ZodError arrives here we log it and
+        // return a generic problem
+        const zodError = fromZodError(error);
+        logger.error(makeProblemLogString(genericProblem, zodError));
+        return genericProblem;
+      })
       .otherwise((error: unknown): Problem => {
         logger.error(makeProblemLogString(genericProblem, error));
         return genericProblem;
