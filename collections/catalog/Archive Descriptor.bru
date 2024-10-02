@@ -1,0 +1,27 @@
+meta {
+  name: Archive Descriptor
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/archive
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

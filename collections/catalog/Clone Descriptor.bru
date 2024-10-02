@@ -1,0 +1,27 @@
+meta {
+  name: Clone Descriptor
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/clone
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
