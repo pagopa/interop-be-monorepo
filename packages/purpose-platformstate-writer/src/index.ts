@@ -9,11 +9,7 @@ import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 
 // TODO: should this use the config in the aws.config.local?
-const dynamoDBClient = new DynamoDBClient({
-  credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-  region: "eu-central-1",
-  endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
-});
+const dynamoDBClient = new DynamoDBClient();
 async function processMessage({
   message,
   partition,
