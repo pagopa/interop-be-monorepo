@@ -82,9 +82,12 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
-export function makeApiProblemBuilder<T extends string>(errors: {
-  [K in T]: string;
-}): MakeApiProblemFn<T> {
+export function makeApiProblemBuilder<T extends string>(
+  errors: {
+    [K in T]: string;
+  },
+  problemErrorsPassthrough: boolean = true
+): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
   return (error, httpMapper, logger, operationalMsg) => {
     const makeProblem = (
@@ -102,46 +105,60 @@ export function makeApiProblemBuilder<T extends string>(errors: {
       })),
     });
 
-    return (
-      match<unknown, Problem>(error)
-        .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-          const problem = makeProblem(httpMapper(error), error);
-          logger.warn(makeProblemLogString(problem, error));
-          return problem;
-        })
-        // this case is to allow a passthrough of PROBLEM errors in the BFF
-        .with(
-          {
-            response: {
+    const genericProblem = makeProblem(500, genericError("Unexpected error"));
+
+    return match<unknown, Problem>(error)
+      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
+        const problem = makeProblem(httpMapper(error), error);
+        logger.warn(makeProblemLogString(problem, error));
+        return problem;
+      })
+      .with(
+        /* this case is to allow a passthrough of Problem errors, so that
+           services that call other interop services can forward Problem errors
+           as they are, without the need to explicitly handle them */
+        {
+          response: {
+            status: P.number,
+            data: {
+              type: "about:blank",
+              title: P.string,
               status: P.number,
-              data: {
-                type: "about:blank",
-                title: P.string,
-                status: P.number,
+              detail: P.string,
+              errors: P.array({
+                code: P.string,
                 detail: P.string,
-                errors: P.array({
-                  code: P.string,
-                  detail: P.string,
-                }),
-                correlationId: P.string.optional(),
-              },
+              }),
+              correlationId: P.string.optional(),
             },
           },
-          (e) => {
-            const receivedProblem: Problem = e.response.data;
-            if (operationalMsg) {
-              logger.warn(operationalMsg);
-            }
-            logger.warn(makeProblemLogString(receivedProblem, error));
-            return e.response.data;
+        },
+        (e) => {
+          const receivedProblem: Problem = e.response.data;
+          if (operationalMsg) {
+            logger.warn(operationalMsg);
           }
-        )
-        .otherwise((error: unknown) => {
-          const problem = makeProblem(500, genericError("Unexpected error"));
-          logger.error(makeProblemLogString(problem, error));
-          return problem;
-        })
-    );
+
+          if (problemErrorsPassthrough) {
+            logger.warn(makeProblemLogString(receivedProblem, error));
+            return receivedProblem;
+          } else {
+            logger.warn(
+              makeProblemLogString(
+                genericProblem,
+                `${receivedProblem.title}, code ${
+                  receivedProblem.errors.at(0)?.code
+                }, ${receivedProblem.errors.at(0)?.detail}`
+              )
+            );
+            return genericProblem;
+          }
+        }
+      )
+      .otherwise((error: unknown): Problem => {
+        logger.error(makeProblemLogString(genericProblem, error));
+        return genericProblem;
+      });
   };
 }
 
