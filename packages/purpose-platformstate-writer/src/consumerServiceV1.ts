@@ -1,13 +1,13 @@
 import { match } from "ts-pattern";
 import {
   fromPurposeV1,
-  itemState,
   makePlatformStatesPurposePK,
   missingKafkaMessageDataError,
   PlatformStatesPurposeEntry,
   Purpose,
   PurposeEventEnvelopeV1,
   PurposeV1,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -43,6 +43,11 @@ export async function handleMessageV1(
       );
       const purposeVersion = purpose.versions
         .slice()
+        .filter(
+          (v) =>
+            v.state === purposeVersionState.active ||
+            v.state === purposeVersionState.suspended
+        )
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
       if (existingPurposeEntry && existingPurposeEntry.version > msg.version) {
         // Stops processing if the message is older than the purpose entry
