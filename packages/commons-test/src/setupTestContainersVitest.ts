@@ -182,6 +182,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none(
         'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
       );
+      await postgresDB?.none(
+        "TRUNCATE TABLE delegation.events RESTART IDENTITY"
+      );
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(

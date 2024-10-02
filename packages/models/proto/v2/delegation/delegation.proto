@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package delegation.v2;
+
+message DelegationV2 {
+  string id = 1;
+  string delegatorId = 2;
+  string delegateId = 3;
+  string eserviceId = 4;
+  int64 createdAt = 5;
+  int64 submittedAt = 6;
+  int64 approvedAt = 7;
+  int64 rejectedAt = 8;
+  string rejectionReason = 9;
+  int64 revokedAt = 10;
+  DelegationStateV2 state = 11;
+  DelegationKindV2 kind = 12;
+}
+
+enum DelegationStateV2 {
+  WAITINGFORAPPROVAL= 0;
+  APPROVED= 1;
+  REJECTED= 2;
+  REVOKED= 3;
+}
+
+enum DelegationKindV2 {
+  LEADORGANIZATION = 0;
+  REPRESENTATIVEUSER = 1;
+}
