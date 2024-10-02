@@ -50,43 +50,23 @@ export async function handleMessageV1(
         existingPurposeEntry &&
         existingPurposeEntry.version <= msg.version
       ) {
-        if (existingPurposeEntry.purposeVersionId === purposeVersion.id) {
-          // suspended -> active
-          // platform-states
-          await updatePurposeDataInPlatformStatesEntry({
-            dynamoDBClient,
-            primaryKey,
-            purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
-            version: msg.version,
-          });
+        // platform-states
+        await updatePurposeDataInPlatformStatesEntry({
+          dynamoDBClient,
+          primaryKey,
+          purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+          version: msg.version,
+          purposeVersionId: purposeVersion.id,
+        });
 
-          // token-generation-states
-          await updatePurposeDataInTokenGenerationStatesTable({
-            dynamoDBClient,
-            purposeId: purpose.id,
-            purposeState,
-          });
-        } else {
-          // waitingForApproval -> active
-          // platform-states
-          await updatePurposeDataInPlatformStatesEntry({
-            dynamoDBClient,
-            primaryKey,
-            purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
-            version: msg.version,
-            purposeVersionId: purposeVersion.id,
-          });
-
-          // token-generation-states
-          await updatePurposeDataInTokenGenerationStatesTable({
-            dynamoDBClient,
-            purposeId: purpose.id,
-            purposeState,
-            purposeVersionId: purposeVersion.id,
-          });
-        }
+        // token-generation-states
+        await updatePurposeDataInTokenGenerationStatesTable({
+          dynamoDBClient,
+          purposeId: purpose.id,
+          purposeState,
+          purposeVersionId: purposeVersion.id,
+        });
       } else {
-        // draft -> active
         // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
           PK: primaryKey,
