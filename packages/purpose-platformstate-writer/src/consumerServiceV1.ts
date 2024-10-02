@@ -1,6 +1,7 @@
 import { match } from "ts-pattern";
 import {
   fromPurposeV1,
+  itemState,
   makePlatformStatesPurposePK,
   missingKafkaMessageDataError,
   PlatformStatesPurposeEntry,
@@ -50,22 +51,39 @@ export async function handleMessageV1(
         existingPurposeEntry &&
         existingPurposeEntry.version <= msg.version
       ) {
-        // platform-states
-        await updatePurposeDataInPlatformStatesEntry({
-          dynamoDBClient,
-          primaryKey,
-          purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
-          version: msg.version,
-          purposeVersionId: purposeVersion.id,
-        });
+        if (existingPurposeEntry.state === itemState.inactive) {
+          // platform-states
+          await updatePurposeDataInPlatformStatesEntry({
+            dynamoDBClient,
+            primaryKey,
+            purposeState,
+            version: msg.version,
+          });
 
-        // token-generation-states
-        await updatePurposeDataInTokenGenerationStatesTable({
-          dynamoDBClient,
-          purposeId: purpose.id,
-          purposeState,
-          purposeVersionId: purposeVersion.id,
-        });
+          // token-generation-states
+          await updatePurposeDataInTokenGenerationStatesTable({
+            dynamoDBClient,
+            purposeId: purpose.id,
+            purposeState,
+          });
+        } else {
+          // platform-states
+          await updatePurposeDataInPlatformStatesEntry({
+            dynamoDBClient,
+            primaryKey,
+            purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+            version: msg.version,
+            purposeVersionId: purposeVersion.id,
+          });
+
+          // token-generation-states
+          await updatePurposeDataInTokenGenerationStatesTable({
+            dynamoDBClient,
+            purposeId: purpose.id,
+            purposeState,
+            purposeVersionId: purposeVersion.id,
+          });
+        }
       } else {
         // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
