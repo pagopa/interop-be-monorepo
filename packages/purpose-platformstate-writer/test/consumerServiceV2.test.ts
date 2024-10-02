@@ -58,7 +58,6 @@ import {
   writeAgreementEntry,
   writeCatalogEntry,
   writeTokenStateEntry,
-  writeTokenStateEntryWithoutAgreement,
 } from "./utils.js";
 
 describe("integration tests", () => {
@@ -447,10 +446,7 @@ describe("integration tests", () => {
             descriptorVoucherLifespan: undefined,
             updatedAt: new Date().toISOString(),
           };
-        await writeTokenStateEntryWithoutAgreement(
-          dynamoDBClient,
-          previousTokenStateEntry1
-        );
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
 
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
@@ -471,10 +467,7 @@ describe("integration tests", () => {
             descriptorVoucherLifespan: undefined,
             updatedAt: new Date().toISOString(),
           };
-        await writeTokenStateEntryWithoutAgreement(
-          dynamoDBClient,
-          previousTokenStateEntry2
-        );
+        await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
 
         await handleMessageV2(message, dynamoDBClient);
 
