@@ -140,13 +140,6 @@ const handleActivationOrSuspension = async (
         agreementStateToItemState(agreement.state),
         incomingVersion
       );
-
-      // token-generation-states
-      await updateAgreementStateInTokenGenerationStatesTable(
-        GSIPK_consumerId_eserviceId,
-        agreement.state,
-        dynamoDBClient
-      );
     }
   } else {
     const agreementEntry: PlatformStatesAgreementEntry = {
@@ -162,27 +155,26 @@ const handleActivationOrSuspension = async (
     };
 
     await writeAgreementEntry(agreementEntry, dynamoDBClient);
-
-    const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-    const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
-
-    const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-      eserviceId: agreement.eserviceId,
-      descriptorId: agreement.descriptorId,
-    });
-
-    // token-generation-states
-    await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
-      GSIPK_consumerId_eserviceId,
-      agreementState: agreement.state,
-      dynamoDBClient,
-      GSIPK_eserviceId_descriptorId,
-      catalogEntry,
-    });
   }
+  const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+  });
+  const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
+
+  const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+  });
+
+  // token-generation-states
+  await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+    GSIPK_consumerId_eserviceId,
+    agreementState: agreement.state,
+    dynamoDBClient,
+    GSIPK_eserviceId_descriptorId,
+    catalogEntry,
+  });
 };
 
 const handleArchiving = async (
