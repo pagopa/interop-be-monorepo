@@ -35,6 +35,8 @@ import {
   toCompactDescriptor,
 } from "../api/catalogApiConverter.js";
 import {
+  toBffAgreementConsumerDocument,
+  toBffAttribute,
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
@@ -153,7 +155,7 @@ export function agreementServiceBuilder(
       const documentContent = Buffer.from(await doc.doc.arrayBuffer());
       const documentId = randomUUID();
 
-      await fileManager.storeBytes(
+      const storagePath = await fileManager.storeBytes(
         {
           bucket: config.consumerDocumentsContainer,
           path: documentPath,
@@ -169,7 +171,7 @@ export function agreementServiceBuilder(
         prettyName: doc.prettyName,
         name: doc.doc.name,
         contentType: doc.doc.type,
-        path: documentPath,
+        path: storagePath,
       };
 
       await agreementProcessClient.addAgreementConsumerDocument(seed, {
@@ -690,14 +692,16 @@ export async function enrichAgreement(
         : undefined,
     },
     state: agreement.state,
-    verifiedAttributes: agreementVerifiedAttrs,
-    certifiedAttributes: agreementCertifiedAttrs,
-    declaredAttributes: agreementDeclaredAttrs,
+    verifiedAttributes: agreementVerifiedAttrs.map((a) => toBffAttribute(a)),
+    certifiedAttributes: agreementCertifiedAttrs.map((a) => toBffAttribute(a)),
+    declaredAttributes: agreementDeclaredAttrs.map((a) => toBffAttribute(a)),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
     isContractPresent: agreement.contract !== undefined,
-    consumerDocuments: agreement.consumerDocuments,
+    consumerDocuments: agreement.consumerDocuments.map((doc) =>
+      toBffAgreementConsumerDocument(doc)
+    ),
     createdAt: agreement.createdAt,
     updatedAt: agreement.updatedAt,
     suspendedAt: agreement.suspendedAt,
