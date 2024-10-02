@@ -21,7 +21,7 @@ export const errorCodes = {
   agreementNotFound: "0012",
   eserviceDescriptorNotFound: "0013",
   purposeDraftVersionNotFound: "0014",
-  invalidRiskAnalysisContentType: "0015",
+  dynamoReadingError: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
   noDescriptorInEservice: "0018",
@@ -39,10 +39,9 @@ export const errorCodes = {
   contractNotFound: "0030",
   contractException: "0031",
   notValidDescriptor: "0032",
-  dynamoReadingError: "0033",
-  privacyNoticeNotFoundInConfiguration: "0034",
-  privacyNoticeNotFound: "0035",
-  privacyNoticeVersionIsNotTheLatest: "0036",
+  privacyNoticeNotFoundInConfiguration: "0033",
+  privacyNoticeNotFound: "0034",
+  privacyNoticeVersionIsNotTheLatest: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -237,18 +236,6 @@ export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidRiskAnalysisContentType(
-  contentType: string,
-  purposeId: string,
-  versionId: string,
-  documentId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Invalid contentType ${contentType} for document ${documentId} from purpose ${purposeId} and version ${versionId}`,
-    code: "invalidRiskAnalysisContentType",
-    title: "Invalid Risk Analysis content type",
-  });
-}
 export function eserviceRiskNotFound(
   eserviceId: string,
   riskAnalysisId: string
