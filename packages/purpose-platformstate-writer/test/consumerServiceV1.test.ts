@@ -399,7 +399,7 @@ describe("integration tests for consumerServiceV1", () => {
         );
       });
 
-      it.only("should set the entry state to active if the message version is newer and the state is suspended", async () => {
+      it("should set the entry state to active if the message version is newer and the state is suspended", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
 
