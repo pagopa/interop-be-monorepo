@@ -1,4 +1,9 @@
-import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  bffApi,
+  catalogApi,
+} from "pagopa-interop-api-clients";
 import { isAgreementUpgradable } from "../services/validators.js";
 
 export function toBffCompactOrganization(
@@ -39,5 +44,19 @@ export function toBffAgreementConsumerDocument(
     prettyName: doc.prettyName,
     contentType: doc.contentType,
     createdAt: doc.createdAt,
+  };
+}
+
+export function toBffAttribute(
+  attribute: attributeRegistryApi.Attribute
+):
+  | bffApi.VerifiedAttribute
+  | bffApi.DeclaredAttribute
+  | bffApi.CertifiedAttribute {
+  return {
+    id: attribute.id,
+    description: attribute.description,
+    name: attribute.name,
+    creationTime: attribute.creationTime,
   };
 }

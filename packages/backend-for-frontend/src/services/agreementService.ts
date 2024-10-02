@@ -36,6 +36,7 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   toBffAgreementConsumerDocument,
+  toBffAttribute,
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
@@ -691,9 +692,9 @@ export async function enrichAgreement(
         : undefined,
     },
     state: agreement.state,
-    verifiedAttributes: agreementVerifiedAttrs,
-    certifiedAttributes: agreementCertifiedAttrs,
-    declaredAttributes: agreementDeclaredAttrs,
+    verifiedAttributes: agreementVerifiedAttrs.map((a) => toBffAttribute(a)),
+    certifiedAttributes: agreementCertifiedAttrs.map((a) => toBffAttribute(a)),
+    declaredAttributes: agreementDeclaredAttrs.map((a) => toBffAttribute(a)),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
