@@ -76,11 +76,7 @@ export async function handleMessageV1(
         .with(agreementState.active, async () => {
           // this case is for agreement upgraded
           const agreement = parseAgreement(msg.data.agreement);
-          await handleActivationOrSuspension(
-            agreement,
-            dynamoDBClient,
-            msg.version
-          );
+          await handleUpgrade(agreement, dynamoDBClient, msg.version);
         })
         .with(
           agreementState.draft,
@@ -204,4 +200,93 @@ const handleArchiving = async (
   }
 
   await deleteAgreementEntry(primaryKey, dynamoDBClient);
+};
+
+const handleUpgrade = async (
+  agreement: Agreement,
+  dynamoDBClient: DynamoDBClient,
+  msgVersion: number
+): Promise<void> => {
+  const primaryKey = makePlatformStatesAgreementPK(agreement.id);
+  const agreementEntry = await readAgreementEntry(primaryKey, dynamoDBClient);
+
+  const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+  });
+  const catalogEntry = await readCatalogEntry(pkCatalogEntry, dynamoDBClient);
+  if (!catalogEntry) {
+    // TODO double-check
+    throw genericInternalError("Catalog entry not found");
+  }
+
+  const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
+
+  if (agreementEntry) {
+    if (agreementEntry.version > msgVersion) {
+      return Promise.resolve();
+    } else {
+      await updateAgreementStateInPlatformStatesEntry(
+        dynamoDBClient,
+        primaryKey,
+        agreementStateToItemState(agreement.state),
+        msgVersion
+      );
+    }
+  } else {
+    const newAgreementEntry: PlatformStatesAgreementEntry = {
+      PK: primaryKey,
+      state: agreementStateToItemState(agreement.state),
+      version: msgVersion,
+      updatedAt: new Date().toISOString(),
+      GSIPK_consumerId_eserviceId,
+      GSISK_agreementTimestamp:
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        agreement.stamps.activation!.when.toISOString(),
+      agreementDescriptorId: agreement.descriptorId,
+    };
+
+    await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
+  }
+
+  const doOperationOnTokenStates = async (): Promise<void> => {
+    if (
+      await isAgreementTheLatest(
+        GSIPK_consumerId_eserviceId,
+        agreement.id,
+        dynamoDBClient
+      )
+    ) {
+      // token-generation-states only if agreement is the latest
+      const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+      });
+
+      await updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo({
+        GSIPK_consumerId_eserviceId,
+        agreementState: agreement.state,
+        dynamoDBClient,
+        GSIPK_eserviceId_descriptorId,
+        catalogEntry,
+      });
+    }
+  };
+
+  await doOperationOnTokenStates();
+
+  const secondRetrievalCatalogEntry = await readCatalogEntry(
+    pkCatalogEntry,
+    dynamoDBClient
+  );
+  if (!secondRetrievalCatalogEntry) {
+    // TODO double-check
+    throw genericInternalError("Catalog entry not found");
+  }
+  if (secondRetrievalCatalogEntry.state !== catalogEntry.state) {
+    await doOperationOnTokenStates();
+  }
 };
