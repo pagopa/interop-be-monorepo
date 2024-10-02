@@ -15,6 +15,8 @@ export * from "./attribute/attributeEvents.js";
 export * from "./attribute/protobufConverterFromV1.js";
 export * from "./attribute/protobufConverterToV1.js";
 
+export * from "./delegation/delegation.js";
+
 export * from "./email/email.js";
 
 export * from "./eservice/eservice.js";
