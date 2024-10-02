@@ -198,7 +198,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purpose.id);
-        const previousStateEntry: PlatformStatesPurposeEntry = {
+        const previousPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
           state: getPurposeStateFromPurposeVersions(purpose.versions),
           purposeVersionId: purpose.versions[0].id,
@@ -207,7 +207,10 @@ describe("integration tests for consumerServiceV1", () => {
           version: previousEntryVersion,
           updatedAt: mockDate.toISOString(),
         };
-        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+        await writePlatformPurposeEntry(
+          dynamoDBClient,
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const purposeId = purpose.id;
@@ -234,7 +237,9 @@ describe("integration tests for consumerServiceV1", () => {
           dynamoDBClient,
           purposeEntryPrimaryKey
         );
-        expect(retrievedPlatformPurposeEntry).toEqual(previousStateEntry);
+        expect(retrievedPlatformPurposeEntry).toEqual(
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const retrievedTokenStateEntries =
@@ -273,7 +278,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-        const previousStateEntry: PlatformStatesPurposeEntry = {
+        const previousPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
           state: purposeState,
           purposeVersionId: purposeVersions[0].id,
@@ -282,7 +287,10 @@ describe("integration tests for consumerServiceV1", () => {
           version: previousEntryVersion,
           updatedAt: mockDate.toISOString(),
         };
-        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+        await writePlatformPurposeEntry(
+          dynamoDBClient,
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
@@ -341,7 +349,7 @@ describe("integration tests for consumerServiceV1", () => {
           purposeEntryPrimaryKey
         );
         const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
-          ...previousStateEntry,
+          ...previousPlatformPurposeEntry,
           state: itemState.active,
           purposeVersionId: purposeVersions[1].id,
           version: messageVersion,
@@ -397,7 +405,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-        const previousPlatformEntry: PlatformStatesPurposeEntry = {
+        const previousPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
           state: purposeState,
           purposeVersionId: purposeVersions[0].id,
@@ -406,7 +414,10 @@ describe("integration tests for consumerServiceV1", () => {
           version: previousEntryVersion,
           updatedAt: mockDate.toISOString(),
         };
-        await writePlatformPurposeEntry(dynamoDBClient, previousPlatformEntry);
+        await writePlatformPurposeEntry(
+          dynamoDBClient,
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
@@ -458,7 +469,9 @@ describe("integration tests for consumerServiceV1", () => {
           dynamoDBClient,
           purposeEntryPrimaryKey
         );
-        expect(retrievedPlatformPurposeEntry).toEqual(previousPlatformEntry);
+        expect(retrievedPlatformPurposeEntry).toEqual(
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const retrievedTokenStateEntries =
@@ -491,7 +504,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-        const previousStateEntry: PlatformStatesPurposeEntry = {
+        const previousPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
           state: purposeState,
           purposeVersionId: purposeVersions[0].id,
@@ -500,7 +513,10 @@ describe("integration tests for consumerServiceV1", () => {
           version: previousEntryVersion,
           updatedAt: mockDate.toISOString(),
         };
-        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+        await writePlatformPurposeEntry(
+          dynamoDBClient,
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
@@ -553,7 +569,7 @@ describe("integration tests for consumerServiceV1", () => {
           purposeEntryPrimaryKey
         );
         const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
-          ...previousStateEntry,
+          ...previousPlatformPurposeEntry,
           state: itemState.inactive,
           version: messageVersion,
           updatedAt: new Date().toISOString(),
@@ -709,7 +725,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // platform-states
         const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-        const previousStateEntry: PlatformStatesPurposeEntry = {
+        const previousPlatformPurposeEntry: PlatformStatesPurposeEntry = {
           PK: purposeEntryPrimaryKey,
           state: purposeState,
           purposeVersionId: purposeVersions[0].id,
@@ -718,7 +734,10 @@ describe("integration tests for consumerServiceV1", () => {
           version: previousEntryVersion,
           updatedAt: mockDate.toISOString(),
         };
-        await writePlatformPurposeEntry(dynamoDBClient, previousStateEntry);
+        await writePlatformPurposeEntry(
+          dynamoDBClient,
+          previousPlatformPurposeEntry
+        );
 
         // token-generation-states
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
