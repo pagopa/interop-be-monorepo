@@ -37,6 +37,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { contentTypes } from "../utilities/mimeTypes.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
+import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -162,16 +163,20 @@ export function purposeServiceBuilder(
         state: latestAgreement.state,
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
       },
-      currentVersion,
-      versions: purpose.versions,
+      currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
+      versions: purpose.versions.map(toBffApiPurposeVersion),
       clients,
-      waitingForApprovalVersion,
+      waitingForApprovalVersion:
+        waitingForApprovalVersion &&
+        toBffApiPurposeVersion(waitingForApprovalVersion),
       suspendedByConsumer: purpose.suspendedByConsumer,
       suspendedByProducer: purpose.suspendedByProducer,
+      freeOfChargeReason: purpose.freeOfChargeReason,
       isFreeOfCharge: purpose.isFreeOfCharge,
       dailyCallsPerConsumer: currentDescriptor.dailyCallsPerConsumer,
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
-      rejectedVersion,
+      rejectedVersion:
+        rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
     };
   };
 
@@ -255,13 +260,14 @@ export function purposeServiceBuilder(
     async createPurpose(
       createSeed: bffApi.PurposeSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<ReturnType<typeof purposeProcessClient.createPurpose>> {
+    ): Promise<bffApi.CreatedResource> {
       logger.info(
         `Creating purpose with eService ${createSeed.eserviceId} and consumer ${createSeed.consumerId}`
       );
-      return await purposeProcessClient.createPurpose(createSeed, {
+      const result = await purposeProcessClient.createPurpose(createSeed, {
         headers,
       });
+      return { id: result.id };
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,

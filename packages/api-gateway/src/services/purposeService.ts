@@ -93,12 +93,12 @@ export function purposeServiceBuilder(
     },
 
     getAgreementByPurpose: async (
-      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      ctx: WithLogger<ApiGatewayAppContext>,
       purposeId: purposeApi.Purpose["id"]
     ): Promise<apiGatewayApi.Agreement> => {
-      logger.info(`Retrieving agreement by purpose ${purposeId}`);
+      ctx.logger.info(`Retrieving agreement by purpose ${purposeId}`);
       const purpose = await purposeProcessClient.getPurpose({
-        headers,
+        headers: ctx.headers,
         params: {
           id: purposeId,
         },
@@ -106,7 +106,7 @@ export function purposeServiceBuilder(
 
       const { agreements } = await getAllAgreements(
         agreementProcessClient,
-        headers,
+        ctx,
         {
           consumerId: purpose.consumerId,
           eserviceId: purpose.eserviceId,
