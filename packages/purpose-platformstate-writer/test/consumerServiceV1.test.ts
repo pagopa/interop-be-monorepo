@@ -456,8 +456,9 @@ describe("integration tests for consumerServiceV1", () => {
         const updatedPurpose: Purpose = {
           ...purpose,
           versions: [
+            purposeVersions[0],
             {
-              ...purposeVersions[0],
+              ...purposeVersions[1],
               state: purposeVersionState.active,
               suspendedAt: undefined,
               updatedAt: new Date(),
@@ -767,7 +768,6 @@ describe("integration tests for consumerServiceV1", () => {
         );
       });
 
-      // TODO: fix this. What do suspendedByConsumer and suspendedByProducer become?
       it("should update the entry if the message version is newer", async () => {
         const previousEntryVersion = 1;
         const messageVersion = 2;
