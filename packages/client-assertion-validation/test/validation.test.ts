@@ -397,7 +397,9 @@ describe("validation test", () => {
           digest: undefined,
         },
       });
-      expect(() => verifyClientAssertion(jws, undefined)).not.toThrow();
+
+      const verifiedClientAssertion = verifyClientAssertion(jws, undefined);
+      expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
     it("digestClaimNotFound", () => {
