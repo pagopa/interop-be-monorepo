@@ -570,7 +570,6 @@ const eservicesRouter = (
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
-          // TODO test it
           return res
             .status(200)
             .send(
