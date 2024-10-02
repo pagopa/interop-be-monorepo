@@ -1,28 +1,24 @@
 meta {
-  name: Create Descriptor
+  name: Edit Eservice Descriptor
   type: http
-  seq: 6
+  seq: 19
 }
 
-post {
-  url: {{host-catalog}}/eservices/:eserviceId/descriptors
+put {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId
   body: json
   auth: none
 }
 
 params:path {
-  eserviceId: 9da2507b-55ce-400c-8aaf-24a2f7763e73
+  descriptorId: fbee578e-35b0-4e78-bba8-b14ffe6b8611
+  eServiceId: 881b0680-b6d4-4ae3-b0a3-6c4595fbdf76
 }
 
 headers {
-  Cache-Control: no-cache
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
+  Accept: application/json
 }
 
 body:json {
@@ -42,7 +38,6 @@ body:json {
           ],
           "verified": [
           ]
-      },
-      "docs": []
+      }
   }
 }

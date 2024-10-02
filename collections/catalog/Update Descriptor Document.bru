@@ -1,26 +1,24 @@
 meta {
   name: Update Descriptor Document
   type: http
-  seq: 14
+  seq: 15
 }
 
 post {
-  url: http://localhost:3000/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: 17f8a7a9-9da2-462e-b327-471ed63d5aa0
-  descriptorId: f87ac8f1-3f23-4fb4-ac24-71e9316ba5a1
-  documentId: 3fa80f34-5118-4552-b3fc-2c963f66afa8
+  eServiceId: 9da2507b-55ce-400c-8aaf-24a2f7763e73
+  descriptorId: 45cc6222-0538-49bf-ac36-d62ebf726a74
+  documentId: 5d6d2677-f6b3-4c2a-ae25-d9685cb464b0
 }
 
 headers {
   Cache-Control: no-cache
   Content-Type: application/json
-  Content-Length: <calculated when request is sent>
-  Host: <calculated when request is sent>
   Accept: */*
   Accept-Encoding: gzip, deflate, br
   Connection: keep-alive

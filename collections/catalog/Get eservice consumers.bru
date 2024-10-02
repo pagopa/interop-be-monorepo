@@ -1,17 +1,17 @@
 meta {
-  name: Get eservice
+  name: Get eservice consumers
   type: http
-  seq: 12
+  seq: 18
 }
 
 get {
-  url: {{host-catalog}}/eservices/:eserviceId
+  url: {{host-catalog}}/eservices/:eserviceId/consumers
   body: json
   auth: none
 }
 
 params:path {
-  eserviceId: ee857885-deb3-4f8b-a08b-9525dfd508cf
+  eserviceId: 8e9a8e84-3c8d-411f-b5b6-25c2046289b5
 }
 
 headers {

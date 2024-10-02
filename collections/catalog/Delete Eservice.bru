@@ -1,13 +1,17 @@
 meta {
-  name: Create Eservice
+  name: Delete Eservice
   type: http
-  seq: 1
+  seq: 17
 }
 
-post {
-  url: {{host-catalog}}/eservices
+delete {
+  url: {{host-catalog}}/eservices/:eServiceId
   body: json
   auth: none
+}
+
+params:path {
+  eServiceId: 8e9a8e84-3c8d-411f-b5b6-25c2046289b5
 }
 
 headers {
@@ -18,7 +22,7 @@ headers {
 
 body:json {
   {
-      "name": "{{randomName}}",
+      "name": "{{name}}",
       "description": "this is a test again",
       "technology": "REST",
       "mode": "DELIVER",
@@ -35,5 +39,5 @@ body:json {
 script:pre-request {
   const random = Math.round(Math.random() * 100)
   
-  bru.setVar("randomName",`test name ${random}`)
+  bru.setVar("name",`test name ${random}`)
 }

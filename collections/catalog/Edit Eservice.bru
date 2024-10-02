@@ -1,0 +1,30 @@
+meta {
+  name: Edit Eservice
+  type: http
+  seq: 16
+}
+
+put {
+  url: {{host-catalog}}/eservices/:eServiceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 0757f790-a3c2-41e2-bc10-e31a4d3ebb8e
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Accept: application/json
+}
+
+body:json {
+  {
+      "name": "Weber - Ledner",
+      "description": "this is a test again",
+      "technology": "REST",
+      "mode": "DELIVER"
+  }
+}
