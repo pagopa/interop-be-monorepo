@@ -276,9 +276,15 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
-      const payload = {
-        ...createSeed,
+      const payload: purposeApi.EServicePurposeSeed = {
         eServiceId: createSeed.eserviceId,
+        consumerId: createSeed.consumerId,
+        riskAnalysisId: createSeed.riskAnalysisId,
+        title: createSeed.title,
+        description: createSeed.description,
+        isFreeOfCharge: createSeed.isFreeOfCharge,
+        freeOfChargeReason: createSeed.freeOfChargeReason,
+        dailyCalls: createSeed.dailyCalls,
       };
 
       const { id } = await purposeProcessClient.createPurposeFromEService(
