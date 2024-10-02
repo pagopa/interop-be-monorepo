@@ -1685,6 +1685,12 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
       uuid:
         specifier: 10.0.0
         version: 10.0.0
