@@ -1,0 +1,34 @@
+meta {
+  name: Update Descriptor Document
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
+  documentId: {{interfaceId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "prettyName": "UPDATED TEST FILE NAME"
+  }
+}

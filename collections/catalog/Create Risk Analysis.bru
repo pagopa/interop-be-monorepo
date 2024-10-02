@@ -1,0 +1,39 @@
+meta {
+  name: Create Risk Analysis
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/riskAnalysis
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eServiceId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "name": "Test risk analysis",
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "purpose": ["INSTITUTIONAL"],
+              "institutionalPurpose":["MyPurpose"]
+          }
+      }
+  }
+}

@@ -2,6 +2,7 @@ import { apiGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { NotifierEventsClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
+import { notifierEventsToApiGatewayEvents } from "../api/eventsApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notifierEventsServiceBuilder(
@@ -17,13 +18,15 @@ export function notifierEventsServiceBuilder(
         `Retrieving Notifier Events - lastEventId: ${lastEventId} - limit ${limit}`
       );
 
-      return await notifierEventsClient.getEventsFromId({
+      const events = await notifierEventsClient.getEventsFromId({
         headers,
         queries: {
           lastEventId,
           limit,
         },
       });
+
+      return notifierEventsToApiGatewayEvents(events);
     },
     getEservicesEventsFromId: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -34,13 +37,15 @@ export function notifierEventsServiceBuilder(
         `Retrieving EServices Notifier Events - lastEventId: ${lastEventId} - limit ${limit}`
       );
 
-      return await notifierEventsClient.getAllEservicesFromId({
+      const events = await notifierEventsClient.getAllEservicesFromId({
         headers,
         queries: {
           lastEventId,
           limit,
         },
       });
+
+      return notifierEventsToApiGatewayEvents(events);
     },
     getAgreementsEventsFromId: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -51,13 +56,15 @@ export function notifierEventsServiceBuilder(
         `Retrieving Agreements Notifier Events - lastEventId: ${lastEventId} - limit ${limit}`
       );
 
-      return await notifierEventsClient.getAllAgreementsEventsFromId({
+      const events = await notifierEventsClient.getAllAgreementsEventsFromId({
         headers,
         queries: {
           lastEventId,
           limit,
         },
       });
+
+      return notifierEventsToApiGatewayEvents(events);
     },
     getKeysEventsFromId: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -68,13 +75,15 @@ export function notifierEventsServiceBuilder(
         `Retrieving Keys Notifier Events - lastEventId: ${lastEventId} - limit ${limit}`
       );
 
-      return await notifierEventsClient.getKeysEvents({
+      const events = await notifierEventsClient.getKeysEvents({
         headers,
         queries: {
           lastEventId,
           limit,
         },
       });
+
+      return notifierEventsToApiGatewayEvents(events);
     },
     getProducerKeysEventsFromId: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -85,13 +94,15 @@ export function notifierEventsServiceBuilder(
         `Retrieving Producer Keys Notifier Events - lastEventId: ${lastEventId} - limit ${limit}`
       );
 
-      return await notifierEventsClient.getProducerKeysEvents({
+      const events = await notifierEventsClient.getProducerKeysEvents({
         headers,
         queries: {
           lastEventId,
           limit,
         },
       });
+
+      return notifierEventsToApiGatewayEvents(events);
     },
   };
 }
