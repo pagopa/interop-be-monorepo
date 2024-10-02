@@ -66,7 +66,7 @@ describe("integration tests", () => {
     fail();
   }
   const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
@@ -2287,7 +2287,7 @@ describe("integration tests", () => {
           versions: [
             {
               ...purposeVersions[0],
-              // TODO: not sure what the state becomes
+              state: purposeVersionState.active,
               suspendedAt: undefined,
               updatedAt: new Date(),
             },
@@ -2727,7 +2727,7 @@ describe("integration tests", () => {
           versions: [
             {
               ...purposeVersions[0],
-              // TODO: not sure what the state becomes
+              state: purposeVersionState.active,
               suspendedAt: undefined,
               updatedAt: new Date(),
             },
@@ -3006,7 +3006,6 @@ describe("integration tests", () => {
             updatedAt: new Date().toISOString(),
           };
         expect(retrievedTokenStateEntries).toHaveLength(2);
-        // TODO: not sure about purposeState if archived. For now it remains active.
         expect(retrievedTokenStateEntries).toEqual(
           expect.arrayContaining([
             expectedTokenStateEntry1,
