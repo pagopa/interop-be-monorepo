@@ -49,7 +49,7 @@ describe("integration tests for consumerServiceV1", () => {
   }
 
   const dynamoDBClient = new DynamoDBClient({
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${config.tokenGenerationReadModelDbPort}`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
