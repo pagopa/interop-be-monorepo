@@ -36,20 +36,19 @@ export async function handleMessageV2(
           msgType: msg.type,
         });
 
-      if (existingPurposeEntry && existingPurposeEntry.version > msg.version) {
-        // Stops processing if the message is older than the purpose entry
-        return Promise.resolve();
-      } else if (
-        existingPurposeEntry &&
-        existingPurposeEntry.version <= msg.version
-      ) {
-        // platform-states
-        await updatePurposeDataInPlatformStatesEntry({
-          dynamoDBClient,
-          primaryKey,
-          purposeState,
-          version: msg.version,
-        });
+      if (existingPurposeEntry) {
+        if (existingPurposeEntry.version > msg.version) {
+          // Stops processing if the message is older than the purpose entry
+          return Promise.resolve();
+        } else {
+          // platform-states
+          await updatePurposeDataInPlatformStatesEntry({
+            dynamoDBClient,
+            primaryKey,
+            purposeState,
+            version: msg.version,
+          });
+        }
       } else {
         // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
