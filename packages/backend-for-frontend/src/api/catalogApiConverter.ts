@@ -123,21 +123,19 @@ export function toBffCatalogDescriptorEService(
 
 export function toBffCatalogApiDescriptorAttribute(
   attributes: attributeRegistryApi.Attribute[],
-  descriptorAttributes: catalogApi.Attribute[]
-): bffApi.DescriptorAttribute[] {
-  return descriptorAttributes.map((attribute) => {
-    const foundAttribute = attributes.find((att) => att.id === attribute.id);
-    if (!foundAttribute) {
-      throw attributeNotExists(unsafeBrandId(attribute.id));
-    }
+  attribute: catalogApi.Attribute
+): bffApi.DescriptorAttribute {
+  const foundAttribute = attributes.find((att) => att.id === attribute.id);
+  if (!foundAttribute) {
+    throw attributeNotExists(unsafeBrandId(attribute.id));
+  }
 
-    return {
-      id: attribute.id,
-      name: foundAttribute.name,
-      description: foundAttribute.description,
-      explicitAttributeVerification: attribute.explicitAttributeVerification,
-    };
-  });
+  return {
+    id: attribute.id,
+    name: foundAttribute.name,
+    description: foundAttribute.description,
+    explicitAttributeVerification: attribute.explicitAttributeVerification,
+  };
 }
 
 export function toBffCatalogApiDescriptorDoc(
@@ -288,29 +286,34 @@ export function descriptorAttributesFromApi(
   };
 }
 
+function toBffCatalogApiDescriptorAttributeGroups(
+  attributes: attributeRegistryApi.Attribute[],
+  descriptorAttributesGroups: catalogApi.Attribute[][]
+): bffApi.DescriptorAttribute[][] {
+  return descriptorAttributesGroups.map((attributeGroup) =>
+    attributeGroup.map((attribute) =>
+      toBffCatalogApiDescriptorAttribute(attributes, attribute)
+    )
+  );
+}
+
 export function toBffCatalogApiDescriptorAttributes(
   attributes: attributeRegistryApi.Attribute[],
   descriptor: catalogApi.EServiceDescriptor
 ): bffApi.DescriptorAttributes {
   return {
-    certified: [
-      toBffCatalogApiDescriptorAttribute(
-        attributes,
-        descriptor.attributes.certified.flat()
-      ),
-    ],
-    declared: [
-      toBffCatalogApiDescriptorAttribute(
-        attributes,
-        descriptor.attributes.declared.flat()
-      ),
-    ],
-    verified: [
-      toBffCatalogApiDescriptorAttribute(
-        attributes,
-        descriptor.attributes.verified.flat()
-      ),
-    ],
+    certified: toBffCatalogApiDescriptorAttributeGroups(
+      attributes,
+      descriptor.attributes.certified
+    ),
+    declared: toBffCatalogApiDescriptorAttributeGroups(
+      attributes,
+      descriptor.attributes.declared
+    ),
+    verified: toBffCatalogApiDescriptorAttributeGroups(
+      attributes,
+      descriptor.attributes.verified
+    ),
   };
 }
 
