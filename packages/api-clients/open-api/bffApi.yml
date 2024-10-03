@@ -12559,14 +12559,14 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     delete:
-      description: Deletes a delegation
+      description: Revokes a delegation
       tags:
         - delegation
-      summary: Delete a delegation
-      operationId: deleteDelegation
+      summary: Revoke a delegation
+      operationId: revokeDelegation
       responses:
         "204":
-          description: Delegation deleted
+          description: Delegation revoked
           headers:
             "X-Rate-Limit-Limit":
               schema:
