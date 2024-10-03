@@ -556,6 +556,18 @@ export const readCatalogEntry = async (
   }
 };
 
+export const getLastSuspendedOrActivatedPurposeVersion = (
+  purposeVersions: PurposeVersion[]
+): PurposeVersion =>
+  purposeVersions
+    .slice()
+    .filter(
+      (v) =>
+        v.state === purposeVersionState.active ||
+        v.state === purposeVersionState.suspended
+    )
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
 const getPurposeVersionIdUpdateQueryData = (
   purposeVersionId: PurposeVersionId | undefined
 ): {
