@@ -36,12 +36,12 @@ import {
   purposeVersionState,
   PurposeVersionSuspendedV1,
   TokenGenerationStatesClientPurposeEntry,
-  toPurposeV1,
 } from "pagopa-interop-models";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockTokenStatesClientPurposeEntry,
+  toPurposeV1,
 } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
