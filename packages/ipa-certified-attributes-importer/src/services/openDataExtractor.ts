@@ -8,9 +8,9 @@ import { config } from "../config/config.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
-type InstitutionKind = "Agency" | "AOO" | "UO";
+export type InstitutionKind = "Agency" | "AOO" | "UO";
 
-type Institution = {
+export type Institution = {
   id: string;
   originId: string;
   taxCode: string;
@@ -24,7 +24,14 @@ type Institution = {
   classification: Classification;
 };
 
-const fields_name = [
+export type Category = {
+  code: string;
+  name: string;
+  kind: InstitutionKind;
+  origin: string;
+};
+
+const institutionsFields = [
   "Codice_IPA",
   "Denominazione_ente",
   "Denominazione_aoo",
@@ -38,14 +45,21 @@ const fields_name = [
   "Codice_uni_aoo",
   "Codice_uni_uo",
 ] as const;
-type FieldName = (typeof fields_name)[number];
+type InstitutionsFields = (typeof institutionsFields)[number];
 
-function fieldExtractor(
+const categoriesFields = [
+  "Codice_categoria",
+  "Nome_categoria",
+  "Tipologia_categoria",
+] as const;
+type CategoriesFields = (typeof categoriesFields)[number];
+
+function fieldExtractor<K>(
   record: unknown[],
-  fields: Map<string, number>
-): <T>(field_name: FieldName, decoder: z.ZodSchema<T>) => T | undefined {
-  return (fields_name, decoder) => {
-    const valueIndex = fields.get(fields_name);
+  fields: Map<K, number>
+): <T>(key: K, decoder: z.ZodSchema<T>) => T | undefined {
+  return (key, decoder) => {
+    const valueIndex = fields.get(key);
     if (!valueIndex) {
       return undefined;
     }
@@ -59,22 +73,70 @@ function fieldExtractor(
   };
 }
 
-export async function extractInstitutionsData(
-  url: string,
-  institutionKind: InstitutionKind,
-  institutionsDetails: Map<string, { category: string; kind: string }>
-): Promise<Institution[]> {
-  const response = await axios.get(url);
+export async function getAllCategories(): Promise<Category[]> {
+  const response = await axios.get(config.institutionsCategoriesUrl);
 
-  const fields: Map<string, number> = new Map(
+  const fields: Map<CategoriesFields, number> = new Map(
     (response.data.fields as Array<{ id: string }>)
       .map<[string, number]>((f, index) => [f.id, index])
-      .filter(([f, _]) => (fields_name as readonly string[]).includes(f))
+      .filter(([f, _]) => (categoriesFields as readonly string[]).includes(f))
+      .map(([f, i]) => [f as CategoriesFields, i])
   );
 
   return (response.data.records as Array<any>).reduce(
     (accumulator, record: any[]) => {
-      const extractor = fieldExtractor(record, fields);
+      const extractor = fieldExtractor<CategoriesFields>(record, fields);
+
+      const code = extractor("Codice_categoria", z.string());
+      if (!code) {
+        return accumulator;
+      }
+
+      const name = extractor("Nome_categoria", z.string());
+      if (!name) {
+        return accumulator;
+      }
+
+      const kind = extractor("Tipologia_categoria", z.string());
+      if (!kind) {
+        return accumulator;
+      }
+
+      accumulator.push({
+        code,
+        name,
+        kind,
+        origin: config.ipaOrigin,
+      });
+
+      return accumulator;
+    },
+    []
+  );
+}
+
+export async function getAllInstitutions(
+  institutionKind: InstitutionKind,
+  institutionsDetails: Map<string, { category: string; kind: string }>
+): Promise<Institution[]> {
+  const url = match(institutionKind)
+    .with("Agency", () => config.institutionsUrl)
+    .with("AOO", () => config.aooUrl)
+    .with("UO", () => config.uoUrl)
+    .exhaustive();
+
+  const response = await axios.get(url);
+
+  const fields: Map<InstitutionsFields, number> = new Map(
+    (response.data.fields as Array<{ id: string }>)
+      .map<[string, number]>((f, index) => [f.id, index])
+      .filter(([f, _]) => (institutionsFields as readonly string[]).includes(f))
+      .map(([f, i]) => [f as InstitutionsFields, i])
+  );
+
+  return (response.data.records as Array<any>).reduce(
+    (accumulator, record: any[]) => {
+      const extractor = fieldExtractor<InstitutionsFields>(record, fields);
 
       const taxCode = extractor("Codice_fiscale_ente", z.string());
       if (!taxCode) {
@@ -82,7 +144,7 @@ export async function extractInstitutionsData(
       }
 
       const originId = extractor(
-        match<InstitutionKind, FieldName>(institutionKind)
+        match<InstitutionKind, InstitutionsFields>(institutionKind)
           .with("Agency", () => "Codice_IPA")
           .with("AOO", () => "Codice_uni_aoo")
           .with("UO", () => "Codice_uni_uo")
