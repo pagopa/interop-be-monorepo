@@ -83,7 +83,7 @@ describe("integration tests for events V2", () => {
   });
 
   describe("PurposeActivated", () => {
-    it("should insert the entry if it does not exist", async () => {
+    it("should insert the entry in platform states if it doesn't exist and update token generation states", async () => {
       const messageVersion = 1;
       const purpose: Purpose = {
         ...getMockPurpose(),
