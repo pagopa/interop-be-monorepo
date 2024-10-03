@@ -62,7 +62,7 @@ const validateSignature = (saml: SAMLResponse): void => {
   }
 };
 
-export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
+export const validateSaml = (samlResponse: string): SAMLResponse => {
   const xml = new XMLParser({
     ignoreDeclaration: true,
     removeNSPrefix: true,
