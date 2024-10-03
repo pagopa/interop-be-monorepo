@@ -12001,7 +12001,7 @@ paths:
         description: payload for delegation creation
         required: true
       description: creates the delegation
-  "/leadOrganization/delegations/:delegationId/approve":
+  "/leadOrganization/delegations/{delegationId}/approve":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -12110,7 +12110,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/leadOrganization/delegations/:delegationId/reject":
+  "/leadOrganization/delegations/{delegationId}/reject":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
