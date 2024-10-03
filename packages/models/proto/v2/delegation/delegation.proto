@@ -18,13 +18,13 @@ message DelegationV2 {
 }
 
 enum DelegationStateV2 {
-  WAITINGFORAPPROVAL= 0;
+  WAITING_FOR_APPROVAL= 0;
   APPROVED= 1;
   REJECTED= 2;
   REVOKED= 3;
 }
 
 enum DelegationKindV2 {
-  LEADORGANIZATION = 0;
-  REPRESENTATIVEUSER = 1;
+  LEAD_ORGANIZATION = 0;
+  REPRESENTATIVE_USER = 1;
 }
