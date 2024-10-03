@@ -258,6 +258,7 @@ export function authorizationServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.SessionToken> => {
       logger.info("Calling get SAML2 token");
+
       const decodedSaml = Buffer.from(saml2, "base64").toString();
       validateSaml(decodedSaml);
 
