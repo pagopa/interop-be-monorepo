@@ -1,4 +1,3 @@
-import { TenantWithOnlyAttributes } from "pagopa-interop-agreement-lifecycle";
 import {
   attributeRegistryApi,
   bffApi,
@@ -8,6 +7,7 @@ import { isDefined } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
+  Tenant,
   TenantAttribute,
   TenantMail,
   VerifiedTenantAttribute,
@@ -61,13 +61,10 @@ export function toTenantAttribute(
   );
 }
 
-export function toTenantWithOnlyAttributes(
-  tenant: tenantApi.Tenant
-): TenantWithOnlyAttributes {
-  return {
-    ...tenant,
-    attributes: tenant.attributes.map(toTenantAttribute).flat(),
-  };
+export function tenantAttributesFromApi(
+  tenantApiAttributes: tenantApi.Tenant["attributes"]
+): Tenant["attributes"] {
+  return tenantApiAttributes.map(toTenantAttribute).flat();
 }
 
 export const toBffApiRequesterCertifiedAttributes = (
