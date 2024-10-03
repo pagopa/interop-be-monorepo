@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import {
@@ -270,7 +271,6 @@ describe("utils tests", async () => {
       const purposeId = generateId<PurposeId>();
       const tokenEntriesLength = 2000;
 
-      // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
@@ -350,7 +350,6 @@ describe("utils tests", async () => {
       const tokenEntriesLength = 2000;
 
       const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
-      // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
