@@ -41,6 +41,7 @@ export * from "./purpose/purposeReadModelAdapter.js";
 export * from "./purpose/protobufConverterFromV1.js";
 export * from "./purpose/protobufConverterFromV2.js";
 export * from "./purpose/protobufConverterToV2.js";
+export * from "./purpose/protobufConverterToV1.js";
 
 export * from "./authorization/client.js";
 export * from "./authorization/key.js";

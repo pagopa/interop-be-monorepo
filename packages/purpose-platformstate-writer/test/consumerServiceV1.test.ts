@@ -36,6 +36,7 @@ import {
   purposeVersionState,
   PurposeVersionSuspendedV1,
   TokenGenerationStatesClientPurposeEntry,
+  toPurposeV1,
 } from "pagopa-interop-models";
 import {
   buildDynamoDBTables,
@@ -51,7 +52,6 @@ import {
 } from "../src/utils.js";
 import {
   config,
-  toPurposeV1,
   writeAgreementEntry,
   writeCatalogEntry,
   writeTokenStateEntry,

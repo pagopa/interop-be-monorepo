@@ -40,10 +40,11 @@ import {
   purposeVersionState,
   toPurposeV2,
   toReadModelPurpose,
+  toPurposeV1,
+  toPurposeVersionV1,
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
-import { toPurposeV1, toPurposeVersionV1 } from "./protobufConverterToV1.js";
 import { purposes } from "./utils.js";
 
 describe("Integration tests", async () => {

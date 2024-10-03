@@ -1,16 +1,18 @@
 import { match } from "ts-pattern";
 import {
+  PurposeStateV1,
+  PurposeV1,
+  PurposeVersionDocumentV1,
+  PurposeVersionV1,
+} from "../gen/v1/purpose/purpose.js";
+import { dateToBigInt } from "../utils.js";
+import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionState,
   purposeVersionState,
-  dateToBigInt,
-  PurposeStateV1,
-  PurposeV1,
-  PurposeVersionDocumentV1,
-  PurposeVersionV1,
-} from "pagopa-interop-models";
+} from "./purpose.js";
 
 export const toPurposeVersionStateV1 = (
   input: PurposeVersionState
