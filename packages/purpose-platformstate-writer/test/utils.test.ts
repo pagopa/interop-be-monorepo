@@ -182,7 +182,7 @@ describe("utils tests", async () => {
   });
 
   describe("deletePlatformPurposeEntry", async () => {
-    it("should not throw error if previous entry doesn't exist", async () => {
+    it("should do no operation if previous entry doesn't exist", async () => {
       const primaryKey = makePlatformStatesPurposePK(generateId());
       expect(
         deletePlatformPurposeEntry(dynamoDBClient, primaryKey)
@@ -345,7 +345,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should return first page of entries if they exist (with pagination)", async () => {
+    it("should return all entries if they exist (with pagination)", async () => {
       const purposeId = generateId<PurposeId>();
       const tokenEntriesLength = 2000;
 
@@ -531,7 +531,7 @@ describe("utils tests", async () => {
   });
 
   describe("updatePurposeDataInTokenGenerationStatesTable", async () => {
-    it("should do nothing if previous entry doesn't exist", async () => {
+    it("should do nothing if previous entries don't exist", async () => {
       const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
       expect(tokenStateEntries).toEqual([]);
       const purpose: Purpose = {
@@ -704,7 +704,7 @@ describe("utils tests", async () => {
       expect(tokenStateEntriesAfterUpdate).toEqual([]);
     });
 
-    it("should update entries with purpose state and version id if platform states entries don't exist", async () => {
+    it("should update entries with purpose state and version id if corresponding platform states entries don't exist", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
