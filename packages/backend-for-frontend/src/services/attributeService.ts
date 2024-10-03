@@ -8,7 +8,7 @@ import {
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
-  toApiAttributeProcessSeed,
+  toApiCertifiedAttributeProcessSeed,
   toCompactAttribute,
 } from "../api/attributeApiConverter.js";
 
@@ -40,7 +40,7 @@ export function attributeServiceBuilder(
       logger.info(`Creating certified attribute with name ${seed.name}`);
 
       return attributeClient.createCertifiedAttribute(
-        toApiAttributeProcessSeed(seed),
+        toApiCertifiedAttributeProcessSeed(seed),
         {
           headers,
         }
@@ -53,12 +53,9 @@ export function attributeServiceBuilder(
     ): Promise<bffApi.Attribute> {
       logger.info(`Creating verified attribute with name ${seed.name}`);
 
-      return attributeClient.createVerifiedAttribute(
-        toApiAttributeProcessSeed(seed),
-        {
-          headers,
-        }
-      );
+      return attributeClient.createVerifiedAttribute(seed, {
+        headers,
+      });
     },
 
     async createDeclaredAttribute(
@@ -67,12 +64,9 @@ export function attributeServiceBuilder(
     ): Promise<bffApi.Attribute> {
       logger.info(`Creating declared attribute with name ${seed.name}`);
 
-      return attributeClient.createDeclaredAttribute(
-        toApiAttributeProcessSeed(seed),
-        {
-          headers,
-        }
-      );
+      return attributeClient.createDeclaredAttribute(seed, {
+        headers,
+      });
     },
 
     async getAttributeById(
