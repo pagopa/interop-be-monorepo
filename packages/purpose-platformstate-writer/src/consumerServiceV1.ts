@@ -68,7 +68,7 @@ export async function handleMessageV1(
         const purposeEntry: PlatformStatesPurposeEntry = {
           PK: primaryKey,
           state: purposeState,
-          purposeVersionId: purpose.versions[0].id, // always length == 1
+          purposeVersionId: purposeVersion.id,
           purposeEserviceId: purpose.eserviceId,
           purposeConsumerId: purpose.consumerId,
           version: msg.version,
@@ -81,7 +81,7 @@ export async function handleMessageV1(
           dynamoDBClient,
           purpose,
           purposeState,
-          purpose.versions[0].id
+          purposeVersion.id
         );
       }
     })
