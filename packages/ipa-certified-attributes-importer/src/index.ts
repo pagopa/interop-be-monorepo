@@ -1,9 +1,18 @@
-import { ReadModelRepository, logger } from "pagopa-interop-commons";
+import { createHash } from "crypto";
+import {
+  ReadModelRepository,
+  logger,
+  removeDuplicateObjectsBy,
+} from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
-import axios from "axios";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { Category, Institution, getAllCategories, getAllInstitutions } from "./services/openDataExtractor.js";
+import {
+  Category,
+  Institution,
+  getAllCategories,
+  getAllInstitutions,
+} from "./services/openDataExtractor.js";
 
 const loggerInstance = logger({
   serviceName: "ipa-certified-attributes-importer",
@@ -46,59 +55,76 @@ async function loadOpenData(): Promise<OpenData> {
   };
 }
 
+type InternalCertifiedAttribute = {
+  code: string;
+  description: string;
+  origin: string;
+  name: string;
+};
+
+async function loadCertifiedAttributes(
+  data: OpenData
+): Promise<InternalCertifiedAttribute[]> {
+  const attributesSeedsCategoriesNames = data.categories.map((c) => ({
+    code: c.code,
+    description: c.name,
+    name: c.name,
+    origin: c.origin,
+  }));
+
+  const attributeSeedsCategoriesKinds = removeDuplicateObjectsBy(
+    data.categories,
+    (c) => c.kind
+  ).map((c) => ({
+    code: createHash("sha256").update(c.kind).digest("hex"),
+    description: c.kind,
+    name: c.name,
+    origin: c.origin,
+  }));
+
+  const attributeSeedsCategories = [
+    ...attributesSeedsCategoriesNames,
+    ...attributeSeedsCategoriesKinds,
+  ];
+
+  const attributeSeedsInstitutions = [
+    ...data.institutions,
+    ...data.uo,
+    ...data.aoo,
+  ].map((i) => ({
+    code: i.originId,
+    description: i.description,
+    origin: i.origin,
+    name: i.description,
+  }));
+
+  return [...attributeSeedsCategories, ...attributeSeedsInstitutions];
+}
+
 try {
-  type IPAData = {
-    codice: string;
-  };
-
-  // eslint-disable-next-line functional/no-let, prefer-const, sonarjs/no-unused-collection
-  let ipalist: IPAData[] = [];
-
   const openData = await loadOpenData();
-
-  for (const endpoint of config.IPAEndpoints) {
-    loggerInstance.info(`Processing endpoint ${endpoint}`);
-
-    const ipaCertifiedAttributes = await axios.get(endpoint);
-
-    if (!ipaCertifiedAttributes.data.fields) {
-      loggerInstance.error("Fields not found");
-      throw new Error("Fields not found");
-    }
-
-    if (!ipaCertifiedAttributes.data.records) {
-      loggerInstance.error("Records not found");
-      throw new Error("Records not found");
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const field = (ipaCertifiedAttributes.data.fields as any[])
-      .map((f, index) => [f, index])
-      .find(([f, _]) => f.id === "Codice_IPA");
-
-    if (!field) {
-      loggerInstance.error("Codice_IPA field not found");
-      throw new Error("Codice_IPA field not found");
-    }
-
-    const [, position] = field;
-
-    const ipaDataList = ipaCertifiedAttributes.data.records.map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (record: any[]) => ({
-        codice: record[position],
-      })
-    );
-
-    // eslint-disable-next-line functional/immutable-data
-    ipalist = [...ipalist, ...ipaDataList];
-  }
+  const attributes = await loadCertifiedAttributes(openData);
 
   const readModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
 
   const ipaTenants = await readModelService.getIPATenants();
+
+  for (const tenant of ipaTenants) {
+    const tenantInstitutions = openData.institutions.filter(
+      (i) => i.originId === tenant.externalId.value
+    );
+    const tenantAoo = openData.aoo.filter(
+      (i) => i.originId === tenant.externalId.value
+    );
+    const tenantUo = openData.uo.filter(
+      (i) => i.originId === tenant.externalId.value
+    );
+    const tenantCategories = openData.categories.filter(
+      (c) => c.origin === tenant.externalId.value
+    );
+  }
 
   for (const ipaTenant of ipaTenants) {
     const ipaData = ipalist.find(
