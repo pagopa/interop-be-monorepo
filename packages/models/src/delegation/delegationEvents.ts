@@ -35,7 +35,7 @@ export const DelegationEventV2 = z.discriminatedUnion("type", [
 
 export type DelegationEventV2 = z.infer<typeof DelegationEventV2>;
 
-export function delegationEventToBinaryDataV1(
+export function delegationEventToBinaryDataV2(
   event: DelegationEventV2
 ): Uint8Array {
   return match(event)
@@ -54,7 +54,32 @@ export function delegationEventToBinaryDataV1(
     .exhaustive();
 }
 
+const eventV2 = z
+  .object({
+    event_version: z.literal(2),
+  })
+  .passthrough();
+
+export const DelegationEvent = z
+  .discriminatedUnion("event_version", [eventV2])
+  .transform((obj, ctx) => {
+    const res = match(obj)
+      .with({ event_version: 2 }, () => DelegationEventV2.safeParse(obj))
+      .exhaustive();
+
+    if (!res.success) {
+      res.error.issues.forEach(ctx.addIssue);
+      return z.NEVER;
+    }
+    return res.data;
+  });
+
+export type DelegationEvent = z.infer<typeof DelegationEvent>;
+
 export const DelegationEventEnvelopeV2 = EventEnvelope(DelegationEventV2);
 export type DelegationEventEnvelopeV2 = z.infer<
   typeof DelegationEventEnvelopeV2
 >;
+
+export const DelegationEventEnvelope = EventEnvelope(DelegationEvent);
+export type DelegationEventEnvelope = z.infer<typeof DelegationEventEnvelope>;
