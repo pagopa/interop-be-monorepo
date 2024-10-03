@@ -46,7 +46,7 @@ import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
-  readTokenEntriesByGSIPKPurposeId,
+  readAllTokenEntriesByGSIPKPurposeId,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
 import {
@@ -118,7 +118,7 @@ describe("integration tests for consumerServiceV1", () => {
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
+          purposeId,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
@@ -131,7 +131,7 @@ describe("integration tests for consumerServiceV1", () => {
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
+          purposeId,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -166,7 +166,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states;
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
@@ -257,7 +257,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
 
         expect(retrievedTokenStateEntries).toHaveLength(2);
         expect(retrievedTokenStateEntries).toEqual(
@@ -375,7 +375,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
@@ -498,7 +498,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
@@ -626,7 +626,7 @@ describe("integration tests for consumerServiceV1", () => {
         await handleMessageV1(message, dynamoDBClient);
 
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: purpose.eserviceId,
           descriptorId: mockDescriptor.id,
@@ -758,7 +758,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         expect(retrievedTokenStateEntries).toHaveLength(2);
         expect(retrievedTokenStateEntries).toEqual(
           expect.arrayContaining([
@@ -862,7 +862,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
@@ -884,7 +884,6 @@ describe("integration tests for consumerServiceV1", () => {
         );
       });
 
-      // TODO: is this case needed?
       it("should not throw error if the entry doesn't exist", async () => {
         const messageVersion = 1;
 
@@ -913,7 +912,7 @@ describe("integration tests for consumerServiceV1", () => {
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
+          purposeId,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
@@ -927,7 +926,7 @@ describe("integration tests for consumerServiceV1", () => {
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
+          purposeId,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -977,7 +976,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         expect(retrievedTokenStateEntries).toHaveLength(2);
         expect(retrievedTokenStateEntries).toEqual(
           expect.arrayContaining([
@@ -1025,7 +1024,7 @@ describe("integration tests for consumerServiceV1", () => {
         const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
+          purposeId,
         });
         const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1038,7 +1037,7 @@ describe("integration tests for consumerServiceV1", () => {
         const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
           clientId: generateId(),
           kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
+          purposeId,
         });
         const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
           {
@@ -1083,7 +1082,7 @@ describe("integration tests for consumerServiceV1", () => {
 
         // token-generation-states
         const retrievedTokenStateEntries =
-          await readTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
+          await readAllTokenEntriesByGSIPKPurposeId(dynamoDBClient, purposeId);
         const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
           {
             ...previousTokenStateEntry1,
