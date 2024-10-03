@@ -25,14 +25,6 @@ export async function handleMessageV1(
   dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
-    // PurposeActivated
-    // NewPurposeVersionActivated, PurposeVersionActivated,
-    // PurposeVersionUnsuspendedByConsumer, PurposeVersionUnsuspendedByProducer
-    /*
-    PurposeActivated(purpose): draft ->
-    PurposeVersionActivated: waiting for approval -> 
-    ...UnsuspendedBy...: suspended ->
-    */
     .with({ type: "PurposeVersionActivated" }, async (msg) => {
       const purpose = parsePurpose(msg.data.purpose, msg.type);
       const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
@@ -94,7 +86,6 @@ export async function handleMessageV1(
         );
       }
     })
-    // PurposeVersionSuspendedByConsumer, PurposeVersionSuspendedByProducer
     .with({ type: "PurposeVersionSuspended" }, async (msg) => {
       const purpose = parsePurpose(msg.data.purpose, msg.type);
       const primaryKey = makePlatformStatesPurposePK(purpose.id);
@@ -124,7 +115,6 @@ export async function handleMessageV1(
         });
       }
     })
-    // PurposeArchived
     .with({ type: "PurposeVersionArchived" }, async (msg) => {
       const purpose = parsePurpose(msg.data.purpose, msg.type);
       const primaryKey = makePlatformStatesPurposePK(purpose.id);
