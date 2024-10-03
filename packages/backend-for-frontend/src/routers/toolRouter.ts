@@ -12,17 +12,17 @@ import { toolsErrorMapper } from "../utilities/errorMappers.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../model/errors.js";
 
-const toolsRouter = (
+const toolRouter = (
   ctx: ZodiosContext,
   clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const toolsRouter = ctx.router(bffApi.toolsApi.api, {
+  const toolRouter = ctx.router(bffApi.toolsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
   const toolsService = toolsServiceBuilder(clients);
 
-  toolsRouter.post("/tools/validateTokenGeneration", async (req, res) => {
+  toolRouter.post("/tools/validateTokenGeneration", async (req, res) => {
     const ctx = fromBffAppContext(req.ctx, req.headers);
 
     try {
@@ -47,7 +47,7 @@ const toolsRouter = (
     }
   });
 
-  return toolsRouter;
+  return toolRouter;
 };
 
-export default toolsRouter;
+export default toolRouter;
