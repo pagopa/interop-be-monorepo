@@ -21,6 +21,7 @@ import {
   updatePurposeDataInTokenGenerationStatesTable,
   writePlatformPurposeEntry,
   updatePurposeEntriesInTokenGenerationStatesTable,
+  getLastSuspendedOrActivatedPurposeVersion,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -35,6 +36,10 @@ export async function handleMessageV2(
           purposeV2: msg.data.purpose,
           msgType: msg.type,
         });
+
+      const purposeVersion = getLastSuspendedOrActivatedPurposeVersion(
+        purpose.versions
+      );
 
       if (existingPurposeEntry) {
         if (existingPurposeEntry.version > msg.version) {
@@ -54,7 +59,7 @@ export async function handleMessageV2(
         const purposeEntry: PlatformStatesPurposeEntry = {
           PK: primaryKey,
           state: purposeState,
-          purposeVersionId: purpose.versions[0].id, // always length == 1
+          purposeVersionId: purposeVersion.id,
           purposeEserviceId: purpose.eserviceId,
           purposeConsumerId: purpose.consumerId,
           version: msg.version,
@@ -68,7 +73,7 @@ export async function handleMessageV2(
         dynamoDBClient,
         purpose,
         purposeState,
-        purpose.versions[0].id
+        purposeVersion.id
       );
     })
     .with(
