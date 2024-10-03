@@ -14,6 +14,7 @@ export const KafkaConfig = z
       .number()
       .default(20)
       .transform((n) => n * 1000),
+    KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
   })
   .and(AWSConfig)
   .transform((c) => ({
@@ -23,5 +24,6 @@ export const KafkaConfig = z
     kafkaDisableAwsIamAuth: c.KAFKA_DISABLE_AWS_IAM_AUTH === "true",
     kafkaLogLevel: logLevel[c.KAFKA_LOG_LEVEL],
     kafkaReauthenticationThreshold: c.KAFKA_REAUTHENTICATION_THRESHOLD,
+    kafkaBrokerConnectionString: c.KAFKA_BROKER_CONNECTION_STRING,
   }));
 export type KafkaConfig = z.infer<typeof KafkaConfig>;

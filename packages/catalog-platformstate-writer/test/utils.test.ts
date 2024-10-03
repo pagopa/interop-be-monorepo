@@ -28,21 +28,19 @@ import {
   getMockTokenStatesClientPurposeEntry,
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  readTokenStateEntriesByEserviceIdAndDescriptorId,
+  readAllTokenStateItems,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
   readCatalogEntry,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "../src/utils.js";
-import {
-  config,
-  readAllTokenStateItems,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config } from "./utils.js";
 
 describe("utils tests", async () => {
   if (!config) {
@@ -51,11 +49,7 @@ describe("utils tests", async () => {
   const dynamoDBClient = new DynamoDBClient({
     credentials: { accessKeyId: "key", secretAccessKey: "secret" },
     region: "eu-central-1",
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    endpoint: `http://${config.tokenGenerationReadModelDbHost}:${
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      config.tokenGenerationReadModelDbPort
-    }`,
+    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
   });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
@@ -98,7 +92,7 @@ describe("utils tests", async () => {
       const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         descriptorVoucherLifespan: 60,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -135,7 +129,7 @@ describe("utils tests", async () => {
       const catalogEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         descriptorVoucherLifespan: 100,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -155,7 +149,7 @@ describe("utils tests", async () => {
         PK: primaryKey,
         state: itemState.inactive,
         descriptorVoucherLifespan: 100,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -190,7 +184,7 @@ describe("utils tests", async () => {
       const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         descriptorVoucherLifespan: 100,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -224,7 +218,7 @@ describe("utils tests", async () => {
       const previousCatalogStateEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         descriptorVoucherLifespan: 100,
         version: 1,
         updatedAt: new Date().toISOString(),
@@ -271,7 +265,7 @@ describe("utils tests", async () => {
       const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
         descriptorState: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
@@ -299,7 +293,7 @@ describe("utils tests", async () => {
       const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
         descriptorState: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
       await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
@@ -339,7 +333,7 @@ describe("utils tests", async () => {
       const tokenStateEntry1: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
         descriptorState: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
       await writeTokenStateEntry(tokenStateEntry1, dynamoDBClient);
@@ -352,7 +346,7 @@ describe("utils tests", async () => {
       const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry = {
         ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
         descriptorState: itemState.inactive,
-        descriptorAudience: "pagopa.it",
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
       };
       await writeTokenStateEntry(tokenStateEntry2, dynamoDBClient);
@@ -387,7 +381,7 @@ describe("utils tests", async () => {
         const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
           descriptorState: itemState.inactive,
-          descriptorAudience: "pagopa.it",
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
@@ -442,7 +436,7 @@ describe("utils tests", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
           descriptorState: itemState.inactive,
-          descriptorAudience: "pagopa.it",
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
@@ -456,7 +450,7 @@ describe("utils tests", async () => {
         {
           ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
           descriptorState: itemState.inactive,
-          descriptorAudience: "pagopa.it",
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);

@@ -43,6 +43,8 @@ export * from "./purpose/protobufConverterFromV2.js";
 export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./authorization/client.js";
+export * from "./authorization/key.js";
+export * from "./authorization/producerKeychain.js";
 export * from "./authorization/authorizationEvents.js";
 export * from "./authorization/protobufConverterFromV1.js";
 export * from "./authorization/protobufConverterToV1.js";

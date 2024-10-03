@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { attributeKind, toReadModelAttribute } from "pagopa-interop-models";
+import {
+  attributeKind,
+  tenantAttributeType,
+  toReadModelAttribute,
+} from "pagopa-interop-models";
 
 import {
   writeInReadmodel,
@@ -87,7 +91,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       attributes: [
         {
           id: unsafeBrandId(attribute.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
@@ -102,7 +106,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       attributes: [
         {
           id: unsafeBrandId(attribute.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
         },
@@ -144,7 +148,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       attributes: [
         {
           id: unsafeBrandId(attribute.id),
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
@@ -159,7 +163,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       attributes: [
         {
           id: attribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],

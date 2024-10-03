@@ -1,0 +1,59 @@
+{
+  "TableName": "token-generation-states",
+  "AttributeDefinitions": [
+    { "AttributeName": "PK", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_eserviceId_descriptorId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_consumerId_eserviceId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_purposeId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_clientId", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_kid", "AttributeType": "S" },
+    { "AttributeName": "GSIPK_clientId_purposeId", "AttributeType": "S" }
+  ],
+  "KeySchema": [{ "AttributeName": "PK", "KeyType": "HASH" }],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "Descriptor",
+      "KeySchema": [
+        { "AttributeName": "GSIPK_eserviceId_descriptorId", "KeyType": "HASH" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "Agreement",
+      "KeySchema": [
+        {
+          "AttributeName": "GSIPK_consumerId_eserviceId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "Purpose",
+      "KeySchema": [{ "AttributeName": "GSIPK_purposeId", "KeyType": "HASH" }],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "Client",
+      "KeySchema": [{ "AttributeName": "GSIPK_clientId", "KeyType": "HASH" }],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "Kid",
+      "KeySchema": [{ "AttributeName": "GSIPK_kid", "KeyType": "HASH" }],
+      "Projection": { "ProjectionType": "ALL" }
+    },
+    {
+      "IndexName": "ClientPurpose",
+      "KeySchema": [
+        { "AttributeName": "GSIPK_clientId_purposeId", "KeyType": "HASH" }
+      ],
+      "Projection": { "ProjectionType": "ALL" }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 10,
+    "WriteCapacityUnits": 5
+  },
+  "BillingMode": "PAY_PER_REQUEST"
+}

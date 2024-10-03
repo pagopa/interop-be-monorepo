@@ -45,6 +45,8 @@ import {
   purposeIdNotProvided,
   invalidGrantType,
   invalidAssertionType,
+  invalidSignature,
+  clientAssertionInvalidClaims,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
@@ -116,6 +118,84 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeUndefined();
     });
+    it("clientAssertionInvalidClaims", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {
+          wrongPayloadProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+    });
+
+    it("wrong signature", () => {
+      const clientAssertion = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings = clientAssertion.split(".");
+      const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
+      const { errors } = verifyClientAssertion(
+        clientAssertionWithWrongSignature,
+        undefined
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("correctly formatted but invalid signature", () => {
+      const clientAssertion1 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const clientAssertion2 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings1 = clientAssertion1.split(".");
+      const subStrings2 = clientAssertion2.split(".");
+
+      const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
+      const { errors } = verifyClientAssertion(
+        clientAssertionWithWrongSignature,
+        undefined
+      );
+      expect(errors).toBeUndefined();
+    });
+
+    it("invalidClientAssertionFormat (malformed jwt)", () => {
+      const { errors: errors1 } = verifyClientAssertion(
+        "too.many.substrings.in.client.assertion",
+        undefined
+      );
+      expect(errors1).toBeDefined();
+      expect(errors1).toHaveLength(1);
+      expect(errors1![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors2 } = verifyClientAssertion("not a jwt", undefined);
+      expect(errors2).toBeDefined();
+      expect(errors2).toHaveLength(1);
+      expect(errors2![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors3 } = verifyClientAssertion("not.a.jwt", undefined);
+      expect(errors3).toBeDefined();
+      expect(errors3).toHaveLength(1);
+      expect(errors3![0]).toEqual(invalidClientAssertionFormat());
+
+      const { errors: errors4 } = verifyClientAssertion(
+        "signature.missing",
+        undefined
+      );
+      expect(errors4).toBeDefined();
+      expect(errors4).toHaveLength(1);
+      expect(errors4![0]).toEqual(invalidClientAssertionFormat());
+    });
 
     it("invalidAudienceFormat", () => {
       const a = getMockClientAssertion({
@@ -141,30 +221,6 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidAudience());
     });
 
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not a jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion("not.a.jwt", undefined);
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
-    it("invalidClientAssertionFormat", () => {
-      const { errors } = verifyClientAssertion(
-        `${generateId()}.${generateId()}`,
-        undefined
-      );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidClientAssertionFormat());
-    });
-
     it("unexpectedClientAssertionPayload", () => {
       const key = crypto.generateKeyPairSync("rsa", {
         modulusLength: 2048,
@@ -181,7 +237,9 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(unexpectedClientAssertionPayload());
+      expect(errors![0].code).toEqual(
+        unexpectedClientAssertionPayload("").code
+      );
     });
 
     it("jtiNotFound", () => {
@@ -276,7 +334,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(subjectNotFound());
     });
 
-    it("invalidSubject", () => {
+    it("invalidSubject - Subject claim differs from clientID parameter", () => {
       const subject = generateId<ClientId>();
       const jws = getMockClientAssertion({
         customHeader: {},
@@ -339,7 +397,9 @@ describe("validation test", () => {
           digest: undefined,
         },
       });
-      expect(() => verifyClientAssertion(jws, undefined)).not.toThrow();
+
+      const verifiedClientAssertion = verifyClientAssertion(jws, undefined);
+      expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
     it("digestClaimNotFound", () => {
@@ -351,7 +411,7 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(jws, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(digestClaimNotFound());
+      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
     });
 
     it("invalidHashLength", () => {
@@ -471,7 +531,7 @@ describe("validation test", () => {
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
-      // TODO: find out when the jwonwebtoken.verify function returns a string
+      // TODO: find out when the jsonwebtoken.verify function returns a string
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
@@ -517,8 +577,79 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].title).toEqual(jsonWebTokenError("").title);
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
+
+    it("jsonWebTokenError - wrong signature", () => {
+      const mockKey = getMockConsumerKey();
+      const clientAssertion = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+
+      const subStrings = clientAssertion.split(".");
+      const clientAssertionWithWrongSignature = `${subStrings[0]}.${subStrings[1]}.wrong-signature`;
+      const { errors } = verifyClientAssertionSignature(
+        clientAssertionWithWrongSignature,
+        mockKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+    });
+    it("jsonWebTokenError - malformed jwt", () => {
+      const mockKey = getMockConsumerKey();
+      const { errors } = verifyClientAssertionSignature(
+        "too.many.substrings.in.client.assertion",
+        mockKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+    });
+
+    it("correctly formatted signature but invalid", () => {
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const clientAssertion1 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+        keySet,
+      });
+
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+      };
+
+      const clientAssertion2 = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const subStrings1 = clientAssertion1.split(".");
+      const subStrings2 = clientAssertion2.split(".");
+
+      const clientAssertionWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
+      const { errors } = verifyClientAssertionSignature(
+        clientAssertionWithWrongSignature,
+        mockConsumerKey
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(invalidSignature().code);
+    });
+
     it("notBeforeError", () => {
       const threeHoursAgo = new Date();
       threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
@@ -556,7 +687,7 @@ describe("validation test", () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(notBeforeError());
     });
-    it.skip("clientAssertionSignatureVerificationFailure", () => {
+    it.skip("unexpectedClientAssertionSignatureVerificationError", () => {
       // TODO: not sure when this happens
       expect(1).toBe(1);
     });
@@ -632,7 +763,7 @@ describe("validation test", () => {
   });
 
   describe("validateClientKindAndPlatformState", () => {
-    it("success (consumerKey and clientKindTokenStates.consumer; valid platform states)", () => {
+    it("success (consumerKey with consumer client kind; valid platform states)", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
@@ -652,7 +783,7 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("inactiveEService (consumerKey and clientKindTokenStates.consumer; invalid platform states)", () => {
+    it("inactiveEService (consumerKey with consumer client kind; invalid platform states)", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
         descriptorState: itemState.inactive,
@@ -677,7 +808,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(inactiveEService());
     });
 
-    it("success (apiKey and clientKindTokenStates.api)", () => {
+    it("success (apiKey with api client kind)", () => {
       const mockApiKey = getMockApiKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
@@ -697,7 +828,7 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("purposeIdNotProvided", () => {
+    it("purposeIdNotProvided for Client Kind Consumer", () => {
       const mockConsumerKey = getMockConsumerKey();
       const { data: mockClientAssertion } = verifyClientAssertion(
         getMockClientAssertion({
@@ -719,7 +850,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(purposeIdNotProvided());
     });
 
-    it("purposeIdNotProvided and plaformStateError", () => {
+    it("purposeIdNotProvided and platformStateError", () => {
       const mockConsumerKey: ConsumerKey = {
         ...getMockConsumerKey(),
         agreementState: itemState.inactive,
