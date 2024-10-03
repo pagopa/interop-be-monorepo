@@ -49,7 +49,7 @@ export const getMockClientAssertion = ({
   };
   const options: jwt.SignOptions = {
     header: {
-      kid: "TODO",
+      kid: "kid",
       alg: "RS256",
       ...customHeader,
     },
