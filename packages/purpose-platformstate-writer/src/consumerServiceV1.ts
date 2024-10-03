@@ -41,29 +41,28 @@ export async function handleMessageV1(
             v.state === purposeVersionState.suspended
         )
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-      if (existingPurposeEntry && existingPurposeEntry.version > msg.version) {
-        // Stops processing if the message is older than the purpose entry
-        return Promise.resolve();
-      } else if (
-        existingPurposeEntry &&
-        existingPurposeEntry.version <= msg.version
-      ) {
-        // platform-states
-        await updatePurposeDataInPlatformStatesEntry({
-          dynamoDBClient,
-          primaryKey,
-          purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
-          version: msg.version,
-          purposeVersionId: purposeVersion.id,
-        });
+      if (existingPurposeEntry) {
+        if (existingPurposeEntry.version > msg.version) {
+          // Stops processing if the message is older than the purpose entry
+          return Promise.resolve();
+        } else {
+          // platform-states
+          await updatePurposeDataInPlatformStatesEntry({
+            dynamoDBClient,
+            primaryKey,
+            purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+            version: msg.version,
+            purposeVersionId: purposeVersion.id,
+          });
 
-        // token-generation-states
-        await updatePurposeDataInTokenGenerationStatesTable({
-          dynamoDBClient,
-          purposeId: purpose.id,
-          purposeState,
-          purposeVersionId: purposeVersion.id,
-        });
+          // token-generation-states
+          await updatePurposeDataInTokenGenerationStatesTable({
+            dynamoDBClient,
+            purposeId: purpose.id,
+            purposeState,
+            purposeVersionId: purposeVersion.id,
+          });
+        }
       } else {
         // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
