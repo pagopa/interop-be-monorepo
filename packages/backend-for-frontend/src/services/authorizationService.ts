@@ -227,14 +227,13 @@ export function authorizationServiceBuilder(
       };
     },
     samlLoginCallback: async (
-      saml: string,
+      samlResponse: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<string> => {
       logger.info("Calling Support SAML");
 
-      const samlResponse = Buffer.from(saml, "base64").toString();
-
-      validateSamlResponse(samlResponse);
+      const decodedSaml = Buffer.from(samlResponse, "base64").toString();
+      validateSamlResponse(decodedSaml);
 
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
