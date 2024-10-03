@@ -25,10 +25,8 @@ import {
   agreementDescriptorNotFound,
   contractException,
   contractNotFound,
-  invalidContentType,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { contentTypes } from "../utilities/mimeTypes.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import {
   toCompactEservice,
@@ -196,8 +194,6 @@ export function agreementServiceBuilder(
           params: { agreementId, documentId },
           headers,
         });
-
-      assertContentMediaType(document.contentType, agreementId, documentId);
 
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
@@ -788,15 +784,6 @@ export function getCurrentDescriptor(
   return descriptor;
 }
 
-function assertContentMediaType(
-  contentType: string,
-  agreementId: string,
-  documentId: string
-): void {
-  if (!contentTypes.includes(contentType)) {
-    throw invalidContentType(contentType, agreementId, documentId);
-  }
-}
 const emptyPagination = (offset: number, limit: number) => ({
   pagination: {
     limit,
