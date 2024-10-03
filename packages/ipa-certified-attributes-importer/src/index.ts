@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
-import { extractInstitutionsData } from "./services/openDataExtractor.js";
+import { Category, Institution, getAllCategories, getAllInstitutions } from "./services/openDataExtractor.js";
 
 const loggerInstance = logger({
   serviceName: "ipa-certified-attributes-importer",
@@ -11,6 +11,40 @@ const loggerInstance = logger({
 });
 
 loggerInstance.info("Starting ipa-certified-attributes-importer");
+
+type OpenData = {
+  institutions: Institution[];
+  aoo: Institution[];
+  uo: Institution[];
+  categories: Category[];
+};
+
+async function loadOpenData(): Promise<OpenData> {
+  const institutions = await getAllInstitutions("Agency", new Map());
+
+  const institutionsDetails = new Map(
+    institutions.map((institution) => [
+      institution.originId,
+      {
+        category: institution.category,
+        kind: institution.kind,
+      },
+    ])
+  );
+
+  const aoo = await getAllInstitutions("AOO", institutionsDetails);
+
+  const uo = await getAllInstitutions("UO", institutionsDetails);
+
+  const categories = await getAllCategories();
+
+  return {
+    institutions,
+    aoo,
+    uo,
+    categories,
+  };
+}
 
 try {
   type IPAData = {
@@ -20,7 +54,7 @@ try {
   // eslint-disable-next-line functional/no-let, prefer-const, sonarjs/no-unused-collection
   let ipalist: IPAData[] = [];
 
-  const institutions = await exractInstitutionsData(config.institutionsUrl);
+  const openData = await loadOpenData();
 
   for (const endpoint of config.IPAEndpoints) {
     loggerInstance.info(`Processing endpoint ${endpoint}`);

@@ -21,7 +21,7 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
       aooUrl: c.AOO_URL,
       uoUrl: c.UO_URL,
       institutionsCategoriesUrl: c.INSTITUTIONS_CATEGORIES_URL,
-      ipaOrigin: c.IPA_ORIGIN
+      ipaOrigin: c.IPA_ORIGIN,
     }))
 );
 
