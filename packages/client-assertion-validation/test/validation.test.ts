@@ -118,7 +118,41 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeUndefined();
     });
-    it("clientAssertionInvalidClaims", () => {
+
+    it("clientAssertionInvalidClaims - header", () => {
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const payload = {
+        iss: generateId<ClientId>(),
+        sub: generateId<ClientId>(),
+        aud: ["test.interop.pagopa.it"],
+        jti: generateId(),
+        iat: 5,
+        exp: 10,
+        digest: {
+          alg: "SHA256",
+          value: value64chars,
+        },
+      };
+
+      const options = {
+        header: {
+          kid: "kid",
+          alg: "RS256",
+          invalidHeaderProp: "wrong",
+        },
+      };
+      const jws = jwt.sign(payload, keySet.privateKey, options);
+      const { errors } = verifyClientAssertion(jws, undefined);
+
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+    });
+
+    it("clientAssertionInvalidClaims - payload", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: {},
@@ -287,7 +321,7 @@ describe("validation test", () => {
 
       const options: jwt.SignOptions = {
         header: {
-          kid: "TODO",
+          kid: "kid",
           alg: "RS256",
         },
       };

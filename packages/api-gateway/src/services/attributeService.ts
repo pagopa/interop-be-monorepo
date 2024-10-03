@@ -6,6 +6,8 @@ import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { AttributeProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAttribute } from "../api/attributeApiConverter.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import { attributeAlreadyExists, attributeNotFound } from "../models/errors.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: AttributeProcessClient,
@@ -35,12 +37,18 @@ export function attributeServiceBuilder(
     ): Promise<apiGatewayApi.Attribute> => {
       logger.info(`Retrieving attribute ${attributeId}`);
 
-      const attribute = await attributeProcessClient.getAttributeById({
-        headers,
-        params: {
-          attributeId,
-        },
-      });
+      const attribute = await attributeProcessClient
+        .getAttributeById({
+          headers,
+          params: {
+            attributeId,
+          },
+        })
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            404: attributeNotFound(attributeId),
+          });
+        });
 
       return toApiGatewayAttribute(attribute);
     },
@@ -52,16 +60,22 @@ export function attributeServiceBuilder(
         `Creating certified attribute with code ${attributeSeed.code}`
       );
 
-      const attribute = await attributeProcessClient.createCertifiedAttribute(
-        {
-          code: attributeSeed.code,
-          name: attributeSeed.name,
-          description: attributeSeed.description,
-        },
-        {
-          headers,
-        }
-      );
+      const attribute = await attributeProcessClient
+        .createCertifiedAttribute(
+          {
+            code: attributeSeed.code,
+            name: attributeSeed.name,
+            description: attributeSeed.description,
+          },
+          {
+            headers,
+          }
+        )
+        .catch((res) => {
+          throw clientStatusCodeToError(res, {
+            409: attributeAlreadyExists(attributeSeed.name, attributeSeed.code),
+          });
+        });
 
       return toApiGatewayAttribute(attribute);
     },

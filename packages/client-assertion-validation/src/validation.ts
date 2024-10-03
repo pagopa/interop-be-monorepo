@@ -28,6 +28,7 @@ import {
 import {
   ApiKey,
   ClientAssertion,
+  ClientAssertionHeader,
   ClientAssertionPayload,
   ClientAssertionValidationRequest,
   ConsumerKey,
@@ -137,10 +138,18 @@ export const verifyClientAssertion = (
         ]);
       }
 
+      const headerParseResult = ClientAssertionHeader.safeParse(decoded.header);
+      if (!headerParseResult.success) {
+        return failedValidation([
+          clientAssertionInvalidClaims(headerParseResult.error.message),
+        ]);
+      }
+
       const result: ClientAssertion = {
         header: {
           kid: validatedKid,
           alg: validatedAlg,
+          typ: decoded.header.typ,
         },
         payload: {
           sub: validatedSub,

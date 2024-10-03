@@ -12,6 +12,7 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -107,13 +108,6 @@ export const getAgreementContractErrorMapper = (
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getAgreementConsumerDocumentErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("invalidContentType", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const activateAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -159,4 +153,44 @@ export const getProducerKeychainUsersErrorMapper = (
 ): number =>
   match(error.code)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createEServiceDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const importEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number => {
+  // since verifyAndCreateEServiceDocument is shared, they throw the same errors
+  const baseMapperResult = createEServiceDocumentErrorMapper(error);
+
+  if (baseMapperResult === HTTP_STATUS_INTERNAL_SERVER_ERROR) {
+    return match(error.code)
+      .with(
+        "notValidDescriptor",
+        "invalidZipStructure",
+        () => HTTP_STATUS_BAD_REQUEST
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  }
+
+  return baseMapperResult;
+};
+
+export const exportEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
