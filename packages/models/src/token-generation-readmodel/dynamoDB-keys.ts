@@ -24,7 +24,9 @@ export const makePlatformStatesEServiceDescriptorPK = ({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
 }): PlatformStatesEServiceDescriptorPK =>
-  `ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}` as PlatformStatesEServiceDescriptorPK;
+  unsafeBrandId<PlatformStatesEServiceDescriptorPK>(
+    `ESERVICEDESCRIPTOR#${eserviceId}#${descriptorId}`
+  );
 
 export const makePlatformStatesAgreementPK = (
   agreementId: AgreementId
@@ -38,7 +40,8 @@ export const makePlatformStatesPurposePK = (
 
 export const makePlatformStatesClientPK = (
   clientId: ClientId
-): PlatformStatesClientPK => unsafeBrandId(`CLIENT#${clientId}`);
+): PlatformStatesClientPK =>
+  unsafeBrandId<PlatformStatesClientPK>(`CLIENT#${clientId}`);
 
 export const makeGSIPKConsumerIdEServiceId = ({
   consumerId,
@@ -46,7 +49,8 @@ export const makeGSIPKConsumerIdEServiceId = ({
 }: {
   consumerId: TenantId;
   eserviceId: EServiceId;
-}): GSIPKConsumerIdEServiceId => unsafeBrandId(`${consumerId}#${eserviceId}`);
+}): GSIPKConsumerIdEServiceId =>
+  unsafeBrandId<GSIPKConsumerIdEServiceId>(`${consumerId}#${eserviceId}`);
 
 export const makeTokenGenerationStatesClientKidPurposePK = ({
   clientId,
@@ -57,7 +61,9 @@ export const makeTokenGenerationStatesClientKidPurposePK = ({
   kid: string;
   purposeId: PurposeId;
 }): TokenGenerationStatesClientKidPurposePK =>
-  unsafeBrandId(`CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}`);
+  unsafeBrandId<TokenGenerationStatesClientKidPurposePK>(
+    `CLIENTKIDPURPOSE#${clientId}#${kid}#${purposeId}`
+  );
 
 export const makeTokenGenerationStatesClientKidPK = ({
   clientId,
@@ -66,7 +72,9 @@ export const makeTokenGenerationStatesClientKidPK = ({
   clientId: ClientId;
   kid: string;
 }): TokenGenerationStatesClientKidPK =>
-  unsafeBrandId(`CLIENTKID#${clientId}#${kid}`);
+  unsafeBrandId<TokenGenerationStatesClientKidPK>(
+    `CLIENTKID#${clientId}#${kid}`
+  );
 
 export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId,
@@ -75,7 +83,7 @@ export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
 }): GSIPKEServiceIdDescriptorId =>
-  unsafeBrandId(`${eserviceId}#${descriptorId}`);
+  unsafeBrandId<GSIPKEServiceIdDescriptorId>(`${eserviceId}#${descriptorId}`);
 
 export const makeGSIPKClientIdPurposeId = ({
   clientId,
@@ -83,4 +91,5 @@ export const makeGSIPKClientIdPurposeId = ({
 }: {
   clientId: ClientId;
   purposeId: PurposeId;
-}): GSIPKClientIdPurposeId => unsafeBrandId(`${clientId}#${purposeId}`);
+}): GSIPKClientIdPurposeId =>
+  unsafeBrandId<GSIPKClientIdPurposeId>(`${clientId}#${purposeId}`);
