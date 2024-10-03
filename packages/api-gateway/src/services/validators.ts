@@ -60,19 +60,27 @@ export function assertOnlyOneAgreementForEserviceAndConsumerExists(
 
 export function assertAvailableDescriptorExists(
   descriptor: catalogApi.EServiceDescriptor | undefined,
-  eserviceId: apiGatewayApi.EService["id"]
+  eserviceId: apiGatewayApi.EService["id"],
+  logger: Logger
 ): asserts descriptor is NonNullable<catalogApi.EServiceDescriptor> {
   if (!descriptor) {
-    throw missingAvailableDescriptor(eserviceId);
+    throw missingAvailableDescriptor(eserviceId, logger);
   }
 }
 
 export function assertNonDraftDescriptor(
   descriptor: catalogApi.EServiceDescriptor,
-  descriptorId: catalogApi.EServiceDescriptor["id"]
+  descriptorId: catalogApi.EServiceDescriptor["id"],
+  eserviceId: catalogApi.EService["id"],
+  logger: Logger
 ): asserts descriptor is NonDraftCatalogApiDescriptor {
   if (descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT) {
-    throw unexpectedDescriptorState(descriptor.state, descriptorId);
+    throw unexpectedDescriptorState(
+      descriptor.state,
+      eserviceId,
+      descriptorId,
+      logger
+    );
   }
 }
 
