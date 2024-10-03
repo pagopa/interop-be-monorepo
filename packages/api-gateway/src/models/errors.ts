@@ -1,6 +1,7 @@
 import {
   agreementApi,
   attributeRegistryApi,
+  authorizationApi,
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
@@ -13,11 +14,13 @@ export const errorCodes = {
   missingActivePurposeVersion: "0003",
   activeAgreementByEserviceAndConsumerNotFound: "0004",
   multipleAgreementForEserviceAndConsumer: "0005",
-  missingAvailableDescriptor: "0006",
-  unexpectedDescriptorState: "0007",
+  eserviceNotFound: "0006",
+  attributeNotFound: "0007",
   attributeNotFoundInRegistry: "0008",
   eserviceDescriptorNotFound: "0009",
   keyNotFound: "0010",
+  attributeAlreadyExists: "0011",
+  clientNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -68,24 +71,27 @@ export function multipleAgreementForEserviceAndConsumer(
 }
 
 export function missingAvailableDescriptor(
-  eserviceId: catalogApi.EService["id"]
+  eserviceId: catalogApi.EService["id"],
+  logger: Logger
 ): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No available descriptors for EService ${eserviceId}`,
-    code: "missingAvailableDescriptor",
-    title: "Missing available descriptor",
-  });
+  const error = eserviceNotFound(eserviceId);
+  logger.warn(
+    `Root cause for Error "${error.title}": no available descriptors for EService ${eserviceId}`
+  );
+  return error;
 }
 
 export function unexpectedDescriptorState(
   state: catalogApi.EServiceDescriptorState,
-  descriptorId: catalogApi.EServiceDescriptor["id"]
+  eserviceId: catalogApi.EService["id"],
+  descriptorId: catalogApi.EServiceDescriptor["id"],
+  logger: Logger
 ): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected Descriptor state: ${state} - id: ${descriptorId}`,
-    code: "unexpectedDescriptorState",
-    title: "Unexpected descriptor state",
-  });
+  const error = eserviceDescriptorNotFound(eserviceId, descriptorId);
+  logger.warn(
+    `Root cause for Error "${error.title}": Unexpected Descriptor state: ${state} for Descriptor ${descriptorId}`
+  );
+  return error;
 }
 
 export function attributeNotFoundInRegistry(
@@ -136,4 +142,45 @@ export function invalidAgreementState(
     `Root cause for Error "${error.title}": cannot retrieve agreement in DRAFT state`
   );
   return error;
+}
+
+export function attributeAlreadyExists(
+  name: attributeRegistryApi.Attribute["name"],
+  code: attributeRegistryApi.Attribute["code"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${name} with code ${code} already exists`,
+    code: "attributeAlreadyExists",
+    title: "Attribute already exists",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: attributeRegistryApi.Attribute["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
+  });
+}
+
+export function clientNotFound(
+  clientId: authorizationApi.Client["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${clientId} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
+  });
+}
+
+export function eserviceNotFound(
+  eserviceId: catalogApi.EService["id"]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} not found`,
+    code: "eserviceNotFound",
+    title: "EService not found",
+  });
 }
