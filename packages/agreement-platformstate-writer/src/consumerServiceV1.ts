@@ -251,11 +251,11 @@ const handleArchiving = async (
   ) {
     // token-generation-states only if agreement is the latest
 
-    await updateAgreementStateInTokenGenerationStatesTable(
+    await updateAgreementStateInTokenGenerationStatesTable({
       GSIPK_consumerId_eserviceId,
-      agreement.state,
-      dynamoDBClient
-    );
+      agreementState: agreement.state,
+      dynamoDBClient,
+    });
   }
 
   await deleteAgreementEntry(primaryKey, dynamoDBClient);

@@ -14,6 +14,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import {
   genericInternalError,
+  GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
@@ -177,6 +178,68 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
 
   return await runPaginatedQuery(
     eserviceId_descriptorId,
+    dynamoDBClient,
+    undefined
+  );
+};
+
+export const readTokenStateEntriesByConsumerIdEserviceId = async (
+  consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+  dynamoDBClient: DynamoDBClient
+): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  const runPaginatedQuery = async (
+    consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+    const input: QueryInput = {
+      TableName: "token-generation-states",
+      IndexName: "Agreement",
+      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
+      ExpressionAttributeValues: {
+        ":gsiValue": { S: consumerId_eserviceId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+    };
+    const command = new QueryCommand(input);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read token state entries: result ${JSON.stringify(data)} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const tokenStateEntries = z
+        .array(TokenGenerationStatesClientPurposeEntry)
+        .safeParse(unmarshalledItems);
+
+      if (!tokenStateEntries.success) {
+        throw genericInternalError(
+          `Unable to parse token state entry item: result ${JSON.stringify(
+            tokenStateEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      if (!data.LastEvaluatedKey) {
+        return tokenStateEntries.data;
+      } else {
+        return [
+          ...tokenStateEntries.data,
+          ...(await runPaginatedQuery(
+            consumerId_eserviceId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
+    }
+  };
+
+  return await runPaginatedQuery(
+    consumerId_eserviceId,
     dynamoDBClient,
     undefined
   );

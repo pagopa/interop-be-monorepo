@@ -37,12 +37,9 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   toAgreementV1,
-} from "pagopa-interop-commons-test";
-import {
-  readAgreementEntry,
   readTokenStateEntriesByConsumerIdEserviceId,
-  writeAgreementEntry,
-} from "../src/utils.js";
+} from "pagopa-interop-commons-test";
+import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   config,

@@ -40,12 +40,9 @@ import {
   getMockAgreement,
   buildDynamoDBTables,
   deleteDynamoDBTables,
-} from "pagopa-interop-commons-test";
-import {
-  readAgreementEntry,
   readTokenStateEntriesByConsumerIdEserviceId,
-  writeAgreementEntry,
-} from "../src/utils.js";
+} from "pagopa-interop-commons-test";
+import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   config,
