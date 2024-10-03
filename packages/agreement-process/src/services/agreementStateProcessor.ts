@@ -45,18 +45,22 @@ const nextStateFromDraft = (
   if (agreement.consumerId === agreement.producerId) {
     return active;
   }
-  if (!certifiedAttributesSatisfied(descriptor, tenant)) {
+  if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
     return missingCertifiedAttributes;
   }
 
   if (
     descriptor.agreementApprovalPolicy === agreementApprovalPolicy.automatic &&
-    declaredAttributesSatisfied(descriptor, tenant) &&
-    verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)
+    declaredAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
+    verifiedAttributesSatisfied(
+      agreement.producerId,
+      descriptor.attributes,
+      tenant.attributes
+    )
   ) {
     return active;
   }
-  if (declaredAttributesSatisfied(descriptor, tenant)) {
+  if (declaredAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
     return pending;
   }
   return draft;
@@ -67,13 +71,19 @@ const nextStateFromPending = (
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (!certifiedAttributesSatisfied(descriptor, tenant)) {
+  if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
     return missingCertifiedAttributes;
   }
-  if (!declaredAttributesSatisfied(descriptor, tenant)) {
+  if (!declaredAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
     return draft;
   }
-  if (!verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)) {
+  if (
+    !verifiedAttributesSatisfied(
+      agreement.producerId,
+      descriptor.attributes,
+      tenant.attributes
+    )
+  ) {
     return pending;
   }
   return active;
@@ -88,9 +98,13 @@ const nextStateFromActiveOrSuspended = (
     return active;
   }
   if (
-    certifiedAttributesSatisfied(descriptor, tenant) &&
-    declaredAttributesSatisfied(descriptor, tenant) &&
-    verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)
+    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
+    declaredAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
+    verifiedAttributesSatisfied(
+      agreement.producerId,
+      descriptor.attributes,
+      tenant.attributes
+    )
   ) {
     return active;
   }
@@ -101,7 +115,7 @@ const nextStateFromMissingCertifiedAttributes = (
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (certifiedAttributesSatisfied(descriptor, tenant)) {
+  if (certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
     return draft;
   }
   return missingCertifiedAttributes;

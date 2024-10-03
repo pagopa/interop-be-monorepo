@@ -130,13 +130,13 @@ export const verifyAndCreateImportedDoc = async (
   // eslint-disable-next-line max-params
 ): Promise<void> => {
   const entry = entriesMap.get(doc.path);
-
-  const mimeType = mime.getType(doc.path) || "application/octet-stream";
-  if (entry === undefined) {
+  if (!entry) {
     throw genericError("Invalid file");
   }
 
-  const file = new File([entry.getData()], doc.prettyName, {
+  const mimeType = mime.getType(doc.path) || "application/octet-stream";
+
+  const file = new File([entry.getData()], doc.path, {
     type: mimeType,
   });
 

@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { bffApi, attributeRegistryApi } from "pagopa-interop-api-clients";
 
-export const toApiAttributeProcessSeed = (
+export const toApiCertifiedAttributeProcessSeed = (
   seed: bffApi.AttributeSeed
 ): attributeRegistryApi.CertifiedAttributeSeed => ({
   ...seed,
