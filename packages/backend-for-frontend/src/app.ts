@@ -7,7 +7,7 @@ import {
   initRedisRateLimiter,
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
-import bodyParser from "body-parser";
+import express from "express";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -60,7 +60,7 @@ app.use(multerMiddleware);
 app.use(fromFilesToBodyMiddleware);
 
 // parse application/x-www-form-urlencoded and put it in req.body
-app.use(bodyParser.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(contextMiddleware(serviceName, true));
 
