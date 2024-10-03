@@ -1,0 +1,27 @@
+meta {
+  name: Publish Descriptor
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/publish
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Length: 0
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

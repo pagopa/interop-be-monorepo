@@ -14,7 +14,6 @@ import {
   activateAgreementErrorMapper,
   emptyErrorMapper,
   getAgreementByIdErrorMapper,
-  getAgreementConsumerDocumentErrorMapper,
   getAgreementContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -309,7 +308,7 @@ const agreementRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getAgreementConsumerDocumentErrorMapper,
+            emptyErrorMapper,
             ctx.logger,
             `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
