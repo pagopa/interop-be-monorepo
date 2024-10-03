@@ -1,0 +1,43 @@
+meta {
+  name: Delete Eservice
+  type: http
+  seq: 22
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eServiceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eServiceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Accept: application/json
+}
+
+body:json {
+  {
+      "name": "{{name}}",
+      "description": "this is a test again",
+      "technology": "REST",
+      "mode": "DELIVER",
+      "descriptor": {
+          "audience": [ "string" ],
+          "voucherLifespan": 86400,
+          "dailyCallsPerConsumer": 100,
+          "dailyCallsTotal": 100,
+          "agreementApprovalPolicy": "MANUAL"
+      }
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("name",`test name ${random}`)
+}

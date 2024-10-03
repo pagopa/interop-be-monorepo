@@ -20,11 +20,6 @@ import {
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
-  buildS3Key: (
-    path: string,
-    resourceId: string | undefined,
-    fileName: string
-  ) => string;
   delete: (bucket: string, path: string, logger: Logger) => Promise<void>;
   copy: (
     bucket: string,
@@ -105,11 +100,6 @@ export function initFileManager(
   };
 
   return {
-    buildS3Key: (
-      path: string,
-      resourceId: string | undefined,
-      fileName: string
-    ): string => buildS3Key(path, resourceId, fileName),
     delete: async (
       bucket: string,
       path: string,
