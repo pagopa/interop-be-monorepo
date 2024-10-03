@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
-  AttributeValue,
   DynamoDBClient,
   GetItemCommand,
   GetItemCommandOutput,
@@ -13,100 +12,11 @@ import {
   genericInternalError,
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
-  TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 export const config = inject("tokenGenerationReadModelConfig");
-
-export const writeTokenStateEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  tokenStateEntry: TokenGenerationStatesClientPurposeEntry
-): Promise<void> => {
-  if (!config) {
-    fail();
-  }
-
-  const agreementItems: Record<string, AttributeValue> =
-    tokenStateEntry.GSIPK_consumerId_eserviceId
-      ? {
-          agreementId: {
-            S: tokenStateEntry.agreementId!,
-          },
-          agreementState: {
-            S: tokenStateEntry.agreementState!,
-          },
-          GSIPK_consumerId_eserviceId: {
-            S: tokenStateEntry.GSIPK_consumerId_eserviceId,
-          },
-        }
-      : {};
-  const descriptorItems: Record<string, AttributeValue> =
-    tokenStateEntry.GSIPK_eserviceId_descriptorId
-      ? {
-          descriptorState: {
-            S: tokenStateEntry.descriptorState!,
-          },
-          descriptorAudience: {
-            L: tokenStateEntry.descriptorAudience!.map((item) => ({
-              S: item,
-            })),
-          },
-          // descriptorVoucherLifespan: {
-          //   N: tokenStateEntry.descriptorVoucherLifespan!.toString(),
-          // },
-          GSIPK_eserviceId_descriptorId: {
-            S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
-          },
-        }
-      : {};
-  const items: Record<string, AttributeValue> = {
-    ...agreementItems,
-    ...descriptorItems,
-    PK: {
-      S: tokenStateEntry.PK,
-    },
-    updatedAt: {
-      S: tokenStateEntry.updatedAt,
-    },
-    consumerId: {
-      S: tokenStateEntry.consumerId,
-    },
-    purposeVersionId: {
-      S: tokenStateEntry.purposeVersionId!,
-    },
-    clientKind: {
-      S: tokenStateEntry.clientKind,
-    },
-    publicKey: {
-      S: tokenStateEntry.publicKey,
-    },
-    GSIPK_clientId: {
-      S: tokenStateEntry.GSIPK_clientId,
-    },
-    GSIPK_kid: {
-      S: tokenStateEntry.GSIPK_kid,
-    },
-    GSIPK_clientId_purposeId: {
-      S: tokenStateEntry.GSIPK_clientId_purposeId!,
-    },
-    GSIPK_purposeId: {
-      S: tokenStateEntry.GSIPK_purposeId!,
-    },
-    purposeState: {
-      S: tokenStateEntry.purposeState!,
-    },
-  };
-
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: items,
-    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-  };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
-};
 
 // TODO: same function as agreement-platformstate-writer
 export const writeAgreementEntry = async (

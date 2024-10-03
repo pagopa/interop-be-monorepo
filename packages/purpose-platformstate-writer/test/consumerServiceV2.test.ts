@@ -17,6 +17,7 @@ import {
   getMockDescriptor,
   getMockPurpose,
   getMockPurposeVersion,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -53,12 +54,7 @@ import {
   readAllTokenEntriesByGSIPKPurposeId,
   writePlatformPurposeEntry,
 } from "../src/utils.js";
-import {
-  config,
-  writeAgreementEntry,
-  writeCatalogEntry,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config, writeAgreementEntry, writeCatalogEntry } from "./utils.js";
 
 describe("integration tests for events V2", () => {
   if (!config) {
@@ -125,7 +121,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -138,7 +134,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -230,7 +226,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -238,7 +234,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -310,7 +306,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -318,7 +314,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -443,7 +439,7 @@ describe("integration tests for events V2", () => {
           descriptorVoucherLifespan: undefined,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -464,7 +460,7 @@ describe("integration tests for events V2", () => {
           descriptorVoucherLifespan: undefined,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       await handleMessageV2(message, dynamoDBClient);
 
@@ -487,6 +483,7 @@ describe("integration tests for events V2", () => {
           descriptorAudience: previousDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
             previousDescriptorEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
         };
       const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -501,6 +498,7 @@ describe("integration tests for events V2", () => {
           descriptorAudience: previousDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
             previousDescriptorEntry.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenStateEntries).toHaveLength(2);
       expect(retrievedTokenStateEntries).toEqual(
@@ -551,7 +549,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -560,7 +558,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -650,7 +648,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -659,7 +657,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -768,7 +766,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -781,7 +779,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -877,7 +875,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -886,7 +884,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -975,7 +973,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -984,7 +982,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1091,7 +1089,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -1104,7 +1102,7 @@ describe("integration tests for events V2", () => {
           GSIPK_purposeId: purposeId,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1188,7 +1186,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1197,7 +1195,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1286,7 +1284,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1295,7 +1293,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1396,7 +1394,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -1410,7 +1408,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurposeVersions: PurposeVersion[] = [
         {
@@ -1503,7 +1501,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1512,7 +1510,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1601,7 +1599,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1610,7 +1608,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1711,7 +1709,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -1725,7 +1723,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurposeVersions: PurposeVersion[] = [
         {
@@ -1819,7 +1817,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1828,7 +1826,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1919,7 +1917,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -1928,7 +1926,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -2031,7 +2029,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -2045,7 +2043,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurposeVersions: PurposeVersion[] = [
         {
@@ -2140,7 +2138,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -2149,7 +2147,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -2240,7 +2238,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
         {
@@ -2249,7 +2247,7 @@ describe("integration tests for events V2", () => {
           purposeState,
           purposeVersionId: purposeVersions[0].id,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -2352,7 +2350,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -2366,7 +2364,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurposeVersions: PurposeVersion[] = [
         {
@@ -2465,7 +2463,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry1);
+      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
 
       const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
         clientId: generateId(),
@@ -2479,7 +2477,7 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           purposeState,
         };
-      await writeTokenStateEntry(dynamoDBClient, previousTokenStateEntry2);
+      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
 
       const updatedPurpose: Purpose = {
         ...purpose,
