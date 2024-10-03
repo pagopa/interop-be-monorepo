@@ -14,10 +14,12 @@ import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
+  createCertifiedAttributeErrorMapper,
   emptyErrorMapper,
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
+  getAttributeErrorMapper,
   getClientErrorMapper,
   getEserviceDescriptorErrorMapper,
   getEserviceErrorMapper,
@@ -201,7 +203,11 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            createCertifiedAttributeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -220,7 +226,11 @@ const apiGatewayRouter = (
 
           return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getAttributeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -298,7 +308,11 @@ const apiGatewayRouter = (
             .status(200)
             .send(apiGatewayApi.EServiceDescriptors.parse(descriptors));
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx.logger);
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

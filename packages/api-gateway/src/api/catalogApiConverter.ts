@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   catalogApi,
 } from "pagopa-interop-api-clients";
+import { Logger } from "pagopa-interop-commons";
 import {
   assertNonDraftDescriptor,
   assertRegistryAttributeExists,
@@ -94,9 +95,11 @@ export function toApiGatewayDescriptorDocument(
 }
 
 export function toApiGatewayDescriptorIfNotDraft(
-  descriptor: catalogApi.EServiceDescriptor
+  descriptor: catalogApi.EServiceDescriptor,
+  eserviceId: catalogApi.EService["id"],
+  logger: Logger
 ): apiGatewayApi.EServiceDescriptor {
-  assertNonDraftDescriptor(descriptor, descriptor.id);
+  assertNonDraftDescriptor(descriptor, descriptor.id, eserviceId, logger);
 
   return {
     id: descriptor.id,
