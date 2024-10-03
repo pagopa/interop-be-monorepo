@@ -227,10 +227,12 @@ export function authorizationServiceBuilder(
       };
     },
     samlLoginCallback: async (
-      samlResponse: string,
+      saml: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<string> => {
       logger.info("Calling Support SAML");
+
+      const samlResponse = Buffer.from(saml, "base64").toString();
 
       validateSaml(samlResponse);
 
