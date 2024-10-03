@@ -8,6 +8,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockTokenStatesClientPurposeEntry,
+  readTokenStateEntriesByConsumerIdEserviceId,
 } from "pagopa-interop-commons-test";
 import {
   makePlatformStatesAgreementPK,
@@ -22,7 +23,6 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
   makeGSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientPurposeEntry,
-  descriptorState,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -40,7 +40,6 @@ import {
   writeAgreementEntry,
   deleteAgreementEntry,
   agreementStateToItemState,
-  readTokenStateEntriesByConsumerIdEserviceId,
   updateAgreementStateInTokenGenerationStatesTable,
 } from "../src/utils.js";
 import {
@@ -409,11 +408,11 @@ describe("utils", async () => {
       const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
       expect(tokenStateEntries).toEqual([]);
       expect(
-        updateAgreementStateInTokenGenerationStatesTable(
+        updateAgreementStateInTokenGenerationStatesTable({
           GSIPK_consumerId_eserviceId,
-          descriptorState.archived,
-          dynamoDBClient
-        )
+          agreementState: agreementState.archived,
+          dynamoDBClient,
+        })
       ).resolves.not.toThrowError();
       const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
         dynamoDBClient
@@ -453,11 +452,11 @@ describe("utils", async () => {
           GSIPK_consumerId_eserviceId,
         };
       await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
-      await updateAgreementStateInTokenGenerationStatesTable(
+      await updateAgreementStateInTokenGenerationStatesTable({
         GSIPK_consumerId_eserviceId,
-        agreementState.active,
-        dynamoDBClient
-      );
+        agreementState: agreementState.active,
+        dynamoDBClient,
+      });
       const retrievedTokenStateEntries =
         await readTokenStateEntriesByConsumerIdEserviceId(
           GSIPK_consumerId_eserviceId,
