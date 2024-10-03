@@ -7,14 +7,18 @@ import {
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
-import { producerAndConsumerParamMissing } from "../models/errors.js";
+import {
+  agreementNotFound,
+  producerAndConsumerParamMissing,
+} from "../models/errors.js";
 import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
 import { toApiGatewayAgreementAttributes } from "../api/attributeApiConverter.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { getAllPurposes } from "./purposeService.js";
 
 export async function getAllAgreements(
   agreementProcessClient: AgreementProcessClient,
-  headers: ApiGatewayAppContext["headers"],
+  { headers, logger }: WithLogger<ApiGatewayAppContext>,
   queryParams: apiGatewayApi.GetAgreementsQueryParams
 ): Promise<apiGatewayApi.Agreements> {
   const getAgreementsQueryParams =
@@ -31,8 +35,30 @@ export async function getAllAgreements(
         },
       })
   );
-  return { agreements: agreements.map(toApiGatewayAgreementIfNotDraft) };
+  return {
+    agreements: agreements.map((agreement) =>
+      toApiGatewayAgreementIfNotDraft(agreement, logger)
+    ),
+  };
 }
+
+const retrieveAgreement = (
+  agreementProcessClient: AgreementProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  agreementId: agreementApi.Agreement["id"]
+): Promise<agreementApi.Agreement> =>
+  agreementProcessClient
+    .getAgreementById({
+      headers,
+      params: {
+        agreementId,
+      },
+    })
+    .catch((res) => {
+      throw clientStatusCodeToError(res, {
+        404: agreementNotFound(agreementId),
+      });
+    });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
@@ -42,13 +68,13 @@ export function agreementServiceBuilder(
 ) {
   return {
     getAgreements: async (
-      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      ctx: WithLogger<ApiGatewayAppContext>,
       queryParams: apiGatewayApi.GetAgreementsQueryParams
     ): Promise<apiGatewayApi.Agreements> => {
       const { producerId, consumerId, eserviceId, descriptorId, states } =
         queryParams;
 
-      logger.info(
+      ctx.logger.info(
         `Retrieving agreements for producerId ${producerId} consumerId ${consumerId} eServiceId ${eserviceId} descriptorId ${descriptorId} states ${states}`
       );
 
@@ -56,11 +82,7 @@ export function agreementServiceBuilder(
         throw producerAndConsumerParamMissing();
       }
 
-      return await getAllAgreements(
-        agreementProcessClient,
-        headers,
-        queryParams
-      );
+      return await getAllAgreements(agreementProcessClient, ctx, queryParams);
     },
 
     getAgreementById: async (
@@ -68,14 +90,13 @@ export function agreementServiceBuilder(
       agreementId: agreementApi.Agreement["id"]
     ): Promise<apiGatewayApi.Agreement> => {
       logger.info(`Retrieving agreement by id = ${agreementId}`);
-      const agreement = await agreementProcessClient.getAgreementById({
+      const agreement = await retrieveAgreement(
+        agreementProcessClient,
         headers,
-        params: {
-          agreementId,
-        },
-      });
+        agreementId
+      );
 
-      return toApiGatewayAgreementIfNotDraft(agreement);
+      return toApiGatewayAgreementIfNotDraft(agreement, logger);
     },
 
     getAgreementAttributes: async (
@@ -84,12 +105,11 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Attributes> => {
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient.getAgreementById({
+      const agreement = await retrieveAgreement(
+        agreementProcessClient,
         headers,
-        params: {
-          agreementId,
-        },
-      });
+        agreementId
+      );
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         headers,
@@ -107,12 +127,11 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Purposes> => {
       logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient.getAgreementById({
+      const agreement = await retrieveAgreement(
+        agreementProcessClient,
         headers,
-        params: {
-          agreementId,
-        },
-      });
+        agreementId
+      );
 
       return await getAllPurposes(purposeProcessClient, headers, {
         eserviceId: agreement.eserviceId,
