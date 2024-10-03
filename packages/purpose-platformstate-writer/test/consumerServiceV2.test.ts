@@ -1878,7 +1878,7 @@ describe("integration tests for events V2", () => {
       );
     });
 
-    it("should update the entry if the message version is more recent and the purpose is unsuspended by the producer", async () => {
+    it("should update the entry if the message version is more recent and the purpose is unsuspended by the consumer", async () => {
       const previousEntryVersion = 1;
       const messageVersion = 2;
 
