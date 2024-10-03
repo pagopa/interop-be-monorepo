@@ -122,6 +122,12 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
+export const GSIPKClientId = z.string().brand("clientId");
+export type GSIPKClientId = z.infer<typeof GSIPKClientId>;
+
+export const GSIPKKid = z.string().brand("kid");
+export type GSIPKKid = z.infer<typeof GSIPKKid>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -149,7 +155,9 @@ type IDS =
   | TokenGenerationStatesClientKidPurposePK
   | TokenGenerationStatesClientKidPK
   | GSIPKEServiceIdDescriptorId
-  | GSIPKClientIdPurposeId;
+  | GSIPKClientIdPurposeId
+  | GSIPKKid
+  | GSIPKClientId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
