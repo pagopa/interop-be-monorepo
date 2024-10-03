@@ -21,7 +21,10 @@ import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogErrorMapper,
+  createEServiceDocumentErrorMapper,
   emptyErrorMapper,
+  exportEServiceDescriptorErrorMapper,
+  importEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
@@ -361,7 +364,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            createEServiceDocumentErrorMapper,
             ctx.logger,
             `Error creating eService document of kind ${req.body.kind} and name ${req.body.prettyName} for eService ${req.params.eServiceId} and descriptor ${req.params.descriptorId}`
           );
@@ -663,7 +666,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            bffGetCatalogErrorMapper,
+            exportEServiceDescriptorErrorMapper,
             ctx.logger,
             `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
           );
@@ -705,7 +708,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          importEServiceErrorMapper,
           ctx.logger,
           "Error importing eService"
         );

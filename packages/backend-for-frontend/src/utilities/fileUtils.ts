@@ -166,11 +166,7 @@ export async function createDescriptorDocumentZipFile(
   // Add interface file to the zip
   const interfaceFile = await fileManager.get(
     s3BucketName,
-    fileManager.buildS3Key(
-      interfaceDocument.path,
-      interfaceDocument.id,
-      interfaceDocument.name
-    ),
+    interfaceDocument.path,
     logger
   );
 
@@ -186,8 +182,7 @@ export async function createDescriptorDocumentZipFile(
   // Add descriptor's document files to the zip
   const documentFilesContent: FileData[] = await Promise.all(
     descriptor.docs.map(async (doc) => {
-      const s3Key = fileManager.buildS3Key(doc.path, doc.id, doc.name);
-      const file = await fileManager.get(s3BucketName, s3Key, logger);
+      const file = await fileManager.get(s3BucketName, doc.path, logger);
       return { id: doc.id, file };
     })
   );
