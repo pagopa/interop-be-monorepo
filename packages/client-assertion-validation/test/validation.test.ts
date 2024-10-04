@@ -614,7 +614,7 @@ describe("validation test", () => {
       expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
 
-    it("jsonWebTokenError - wrong signature", () => {
+    it("invalidSignature", () => {
       const mockKey = getMockConsumerKey();
       const clientAssertion = getMockClientAssertion({
         customHeader: {},
@@ -630,7 +630,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+      expect(errors![0]).toEqual(invalidSignature());
     });
     it("jsonWebTokenError - malformed jwt", () => {
       const mockKey = getMockConsumerKey();
@@ -681,7 +681,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(invalidSignature().code);
+      expect(errors![0]).toEqual(invalidSignature());
     });
 
     it("notBeforeError", () => {

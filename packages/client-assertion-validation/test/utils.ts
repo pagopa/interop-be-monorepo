@@ -68,9 +68,14 @@ export const getMockClientAssertion = ({
 export const getMockConsumerKey = (): ConsumerKey => ({
   clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
-  kid: "",
+  kid: "kid",
   purposeId: generateId<PurposeId>(),
-  publicKey: "TODO",
+  publicKey: crypto
+    .generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    })
+    .publicKey.export({ type: "pkcs1", format: "pem" })
+    .toString("base64url"),
   algorithm: "RS256",
   clientKind: clientKindTokenStates.consumer,
   purposeState: itemState.active,
@@ -83,9 +88,14 @@ export const getMockConsumerKey = (): ConsumerKey => ({
 export const getMockApiKey = (): ApiKey => ({
   clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
-  kid: "",
+  kid: "kid",
   purposeId: generateId<PurposeId>(),
-  publicKey: "TODO",
+  publicKey: crypto
+    .generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    })
+    .publicKey.export({ type: "pkcs1", format: "pem" })
+    .toString("base64url"),
   algorithm: "RS256",
   clientKind: clientKindTokenStates.api,
 });
