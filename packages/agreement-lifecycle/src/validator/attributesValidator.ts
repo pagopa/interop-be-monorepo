@@ -1,7 +1,5 @@
 import {
   Descriptor,
-  CompactTenant,
-  Tenant,
   TenantId,
   EServiceAttribute,
   TenantAttribute,
@@ -11,59 +9,52 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "../filters/attributesFilter.js";
-import {
-  DescriptorWithOnlyAttributes,
-  TenantWithOnlyAttributes,
-} from "../models/models.js";
 
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
-  consumerAttributeIds: Array<TenantAttribute["id"]>
+  tenantAttributes: Array<TenantAttribute["id"]>
 ): boolean =>
-  descriptorAttributes.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return (
-      attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
-    );
-  });
+  descriptorAttributes
+    .filter((attGroup) => attGroup.length > 0)
+    .every((attributeList) => {
+      const attributes = attributeList.map((a) => a.id);
+      return attributes.filter((a) => tenantAttributes.includes(a)).length > 0;
+    });
 
 export const certifiedAttributesSatisfied = (
-  descriptor: DescriptorWithOnlyAttributes,
-  tenant: TenantWithOnlyAttributes
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
 ): boolean => {
-  const certifiedAttributes = filterCertifiedAttributes(tenant).map(
+  const certifiedAttributes = filterCertifiedAttributes(tenantAttributes).map(
     (a) => a.id
   );
 
   return attributesSatisfied(
-    descriptor.attributes.certified,
+    descriptorAttributes.certified,
     certifiedAttributes
   );
 };
 
 export const declaredAttributesSatisfied = (
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
 ): boolean => {
-  const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
-
-  return attributesSatisfied(
-    descriptor.attributes.declared,
-    declaredAttributes
+  const declaredAttributes = filterDeclaredAttributes(tenantAttributes).map(
+    (a) => a.id
   );
+
+  return attributesSatisfied(descriptorAttributes.declared, declaredAttributes);
 };
 
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
-  descriptor: Descriptor,
-  tenant: Tenant | CompactTenant
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
 ): boolean => {
-  const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
-    (a) => a.id
-  );
+  const verifiedAttributes = filterVerifiedAttributes(
+    producerId,
+    tenantAttributes
+  ).map((a) => a.id);
 
-  return attributesSatisfied(
-    descriptor.attributes.verified,
-    verifiedAttributes
-  );
+  return attributesSatisfied(descriptorAttributes.verified, verifiedAttributes);
 };

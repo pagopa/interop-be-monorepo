@@ -21,6 +21,7 @@ import {
   clientKeyNotFound,
   organizationNotAllowedOnClient,
   userNotAllowedOnClient,
+  userNotAllowedToDeleteClientKey,
 } from "../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -33,10 +34,15 @@ describe("remove client key", () => {
     const mockConsumer = getMockTenant();
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
+    const mockAuthData = {
+      ...getMockAuthData(mockConsumer.id),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
 
     const mockClient: Client = {
       ...getMockClient(),
       consumerId: mockConsumer.id,
+      users: [mockAuthData.userId],
       keys: [keyToRemove, keyToNotRemove],
     };
 
@@ -45,7 +51,7 @@ describe("remove client key", () => {
     await authorizationService.deleteClientKeyById({
       clientId: mockClient.id,
       keyIdToRemove: keyToRemove.kid,
-      authData: getMockAuthData(mockConsumer.id),
+      authData: mockAuthData,
       correlationId: generateId(),
       logger: genericLogger,
     });
@@ -208,5 +214,38 @@ describe("remove client key", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(userNotAllowedOnClient(mockUserId, mockClient.id));
+  });
+  it("should throw userNotAllowedToDeleteClientKey if a security user tries to delete a key not uploaded by himself", async () => {
+    const mockConsumer = getMockTenant();
+    const mockUserId: UserId = generateId();
+    const keyToRemove: Key = { ...getMockKey(), userId: generateId() };
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumer.id,
+      keys: [keyToRemove],
+      users: [mockUserId],
+    };
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.deleteClientKeyById({
+        clientId: mockClient.id,
+        keyIdToRemove: keyToRemove.kid,
+        authData: {
+          ...getMockAuthData(mockConsumer.id),
+          userRoles: [userRoles.SECURITY_ROLE],
+          userId: mockUserId,
+        },
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      userNotAllowedToDeleteClientKey(
+        mockUserId,
+        mockClient.id,
+        keyToRemove.kid
+      )
+    );
   });
 });

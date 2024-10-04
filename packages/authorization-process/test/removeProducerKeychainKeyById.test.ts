@@ -21,6 +21,7 @@ import {
   producerKeyNotFound,
   organizationNotAllowedOnProducerKeychain,
   userNotAllowedOnProducerKeychain,
+  userNotAllowedToDeleteProducerKeychainKey,
 } from "../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
@@ -34,7 +35,10 @@ describe("remove producer keychain key", () => {
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
 
-    const authData = getMockAuthData(mockProducer.id);
+    const authData = {
+      ...getMockAuthData(mockProducer.id),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -247,6 +251,39 @@ describe("remove producer keychain key", () => {
       })
     ).rejects.toThrowError(
       userNotAllowedOnProducerKeychain(mockUserId, mockProducerKeychain.id)
+    );
+  });
+  it("should throw userNotAllowedToDeleteClientKey if a security user tries to delete a key not uploaded by himself", async () => {
+    const mockProducer = getMockTenant();
+    const mockUserId: UserId = generateId();
+    const keyToRemove: Key = { ...getMockKey(), userId: generateId() };
+    const mockProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      producerId: mockProducer.id,
+      keys: [keyToRemove],
+      users: [mockUserId],
+    };
+
+    await addOneProducerKeychain(mockProducerKeychain);
+
+    expect(
+      authorizationService.removeProducerKeychainKeyById({
+        producerKeychainId: mockProducerKeychain.id,
+        keyIdToRemove: keyToRemove.kid,
+        authData: {
+          ...getMockAuthData(mockProducer.id),
+          userRoles: [userRoles.SECURITY_ROLE],
+          userId: mockUserId,
+        },
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      userNotAllowedToDeleteProducerKeychainKey(
+        mockUserId,
+        mockProducerKeychain.id,
+        keyToRemove.kid
+      )
     );
   });
 });
