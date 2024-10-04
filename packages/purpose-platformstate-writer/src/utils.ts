@@ -525,7 +525,6 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
   }
 };
 
-// TODO: copied from catalog-platformstate-writer
 export const readCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK
