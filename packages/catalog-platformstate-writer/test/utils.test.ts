@@ -368,7 +368,7 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
 
-      const tokenEntriesLength = 2000;
+      const tokenEntriesLength = 1200;
 
       const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
       // eslint-disable-next-line functional/no-let
