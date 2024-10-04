@@ -15038,7 +15038,7 @@ components:
       description: Delegation State
       enum:
         - WAITING_FOR_APPROVAL
-        - APPROVED
+        - ACTIVE
         - REJECTED
         - REVOKED
     DelegationTenant:
