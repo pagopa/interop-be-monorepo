@@ -34,14 +34,11 @@ const supportRouter = (
   );
 
   supportRouter.post("/session/saml2/tokens", async (req, res) => {
-    const { tenantId, saml2 } = req.params;
     const ctx = fromBffAppContext(req.ctx, req.headers);
 
     try {
-      const samlDecoded = Buffer.from(saml2, "base64").toString();
       const sessionToken = await authorizationService.getSaml2Token(
-        samlDecoded,
-        tenantId,
+        req.body,
         ctx
       );
       return res.status(200).send(bffApi.SessionToken.parse(sessionToken));
