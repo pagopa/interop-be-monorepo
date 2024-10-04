@@ -14,6 +14,7 @@ import {
   ReadModelDbConfig,
   RedisRateLimiterConfig,
   S3Config,
+  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import {
   TEST_MINIO_PORT,
@@ -25,6 +26,8 @@ import {
   mailpitContainer,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MAILPIT_HTTP_PORT,
+  dynamoDBContainer,
+  TEST_DYNAMODB_PORT,
   redisContainer,
   TEST_REDIS_PORT,
 } from "./containerTestUtils.js";
@@ -33,6 +36,7 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    tokenGenerationReadModelConfig?: TokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
@@ -57,6 +61,8 @@ export function setupTestContainersVitestGlobal() {
     .safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
+  const tokenGenerationReadModelConfig =
+    TokenGenerationReadModelDbConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -66,6 +72,7 @@ export function setupTestContainersVitestGlobal() {
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
     let startedRedisContainer: StartedTestContainer | undefined;
+    let startedDynamoDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -130,6 +137,20 @@ export function setupTestContainersVitestGlobal() {
       provide("emailManagerConfig", emailManagerConfig.data);
     }
 
+    // Setting up the DynamoDB container if the config is provided
+    if (tokenGenerationReadModelConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+      tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbPort =
+        startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT);
+      tokenGenerationReadModelConfig.data.tokenGenerationReadModelDbHost =
+        startedDynamoDbContainer.getHost();
+
+      provide(
+        "tokenGenerationReadModelConfig",
+        tokenGenerationReadModelConfig.data
+      );
+    }
+
     if (redisRateLimiterConfig.success) {
       startedRedisContainer = await redisContainer().start();
       redisRateLimiterConfig.data.rateLimiterRedisPort =
@@ -142,6 +163,7 @@ export function setupTestContainersVitestGlobal() {
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
+      await startedDynamoDbContainer?.stop();
       await startedRedisContainer?.stop();
     };
   };
