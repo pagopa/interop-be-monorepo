@@ -59,5 +59,5 @@ export const TokenGenerationStatesClientEntry =
     PK: TokenGenerationStatesClientKidPK,
   });
 export type TokenGenerationStatesClientEntry = z.infer<
-  typeof TokenGenerationStatesClientPurposeEntry
+  typeof TokenGenerationStatesClientEntry
 >;
