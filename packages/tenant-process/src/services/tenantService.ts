@@ -1606,6 +1606,7 @@ export function tenantServiceBuilder(
           ...requesterTenant.data.features,
           { type: "DelegatedProducer", availabilityTimestamp: new Date() },
         ],
+        updatedAt: new Date(),
       };
 
       await repository.createEvent(
