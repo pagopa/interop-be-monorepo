@@ -131,6 +131,7 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "userNotFound",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("invalidKey", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
