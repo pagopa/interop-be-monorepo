@@ -19,12 +19,12 @@ message DelegationV2 {
 
 enum DelegationStateV2 {
   WAITING_FOR_APPROVAL= 0;
-  APPROVED= 1;
+  ACTIVE= 1;
   REJECTED= 2;
   REVOKED= 3;
 }
 
 enum DelegationKindV2 {
-  LEAD_ORGANIZATION = 0;
-  REPRESENTATIVE_USER = 1;
+  DELEGATED_CONSUMER = 1;
+  DELEGATED_PRODUCER = 0;
 }
