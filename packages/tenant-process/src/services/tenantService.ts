@@ -48,6 +48,7 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
+  toCreateEventTenantDelegatedProducerFeatureAdded,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -66,6 +67,7 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
+  tenantHasAlreadyDelegatedProducerFeature,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -1572,6 +1574,47 @@ export function tenantServiceBuilder(
       } else {
         await repository.createEvent(attributeAssignmentEvent);
       }
+    },
+    async addTenantDelegatedProducerFeature({
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(
+        `Assigning delegated producer feature to tenant ${organizationId}`
+      );
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      if (
+        requesterTenant.data.features.some(
+          (f) => f.type === "DelegatedProducer"
+        )
+      ) {
+        throw tenantHasAlreadyDelegatedProducerFeature(organizationId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        features: [
+          ...requesterTenant.data.features,
+          { type: "DelegatedProducer", availabilityTimestamp: new Date() },
+        ],
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDelegatedProducerFeatureAdded(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
     },
   };
 }
