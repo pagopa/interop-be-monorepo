@@ -501,6 +501,7 @@ export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
     ExpressionAttributeValues: {
       ":gsiValue": { S: gsiPKConsumerIdEServiceId },
     },
+    ScanIndexForward: false,
   };
   const command = new QueryCommand(input);
   const data: QueryCommandOutput = await dynamoDBClient.send(command);
