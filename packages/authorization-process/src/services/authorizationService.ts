@@ -531,20 +531,19 @@ export function authorizationServiceBuilder(
       const updatedClient: Client = {
         ...client.data,
       };
-
-      for (const [index, userId] of uniqueUserIds.entries()) {
-        // eslint-disable-next-line functional/immutable-data
-        updatedClient.users.push(userId);
-
-        await repository.createEvent(
-          toCreateEventClientUserAdded(
+      
+      await repository.createEvents(
+        uniqueUserIds.map((userId, index) => {
+          // eslint-disable-next-line functional/immutable-data
+          updatedClient.users.push(userId);
+          return toCreateEventClientUserAdded(
             userId,
             updatedClient,
             client.metadata.version + index,
             correlationId
           )
-        );
-      }
+        })
+      );
 
       return {
         client: updatedClient,
@@ -952,19 +951,18 @@ export function authorizationServiceBuilder(
         ...producerKeychain.data,
       };
 
-      for (const [index, userId] of uniqueUserIds.entries()) {
-        // eslint-disable-next-line functional/immutable-data
-        updatedProducerKeychain.users.push(userId);
-
-        await repository.createEvent(
-          toCreateEventProducerKeychainUserAdded(
+      await repository.createEvents(
+        uniqueUserIds.map((userId, index) => {
+          // eslint-disable-next-line functional/immutable-data
+          updatedProducerKeychain.users.push(userId);
+          return toCreateEventProducerKeychainUserAdded(
             userId,
             updatedProducerKeychain,
             producerKeychain.metadata.version + index,
             correlationId
           )
-        );
-      }
+        })
+      );
 
       return {
         producerKeychain: updatedProducerKeychain,
