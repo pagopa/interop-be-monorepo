@@ -49,9 +49,9 @@ export const writeTokenStateEntry = async (
               S: item,
             })),
           },
-          // descriptorVoucherLifespan: {
-          //   N: tokenStateEntry.descriptorVoucherLifespan!.toString(),
-          // },
+          descriptorVoucherLifespan: {
+            N: tokenStateEntry.descriptorVoucherLifespan!.toString(),
+          },
           GSIPK_eserviceId_descriptorId: {
             S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
           },
