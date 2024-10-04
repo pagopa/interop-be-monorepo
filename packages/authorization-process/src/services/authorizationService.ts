@@ -531,7 +531,7 @@ export function authorizationServiceBuilder(
       const updatedClient: Client = {
         ...client.data,
       };
-      
+
       await repository.createEvents(
         uniqueUserIds.map((userId, index) => {
           // eslint-disable-next-line functional/immutable-data
@@ -541,7 +541,7 @@ export function authorizationServiceBuilder(
             updatedClient,
             client.metadata.version + index,
             correlationId
-          )
+          );
         })
       );
 
@@ -960,7 +960,7 @@ export function authorizationServiceBuilder(
             updatedProducerKeychain,
             producerKeychain.metadata.version + index,
             correlationId
-          )
+          );
         })
       );
 
