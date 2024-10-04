@@ -397,7 +397,7 @@ describe("utils tests", async () => {
         consumerId: generateId(),
         eserviceId: generateId(),
       });
-      const previousPlatformAgreementEntry: PlatformStatesAgreementEntry = {
+      const previousPlatformAgreementEntry1: PlatformStatesAgreementEntry = {
         PK: makePlatformStatesAgreementPK(generateId()),
         state: itemState.inactive,
         GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
@@ -406,7 +406,27 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeAgreementEntry(previousPlatformAgreementEntry, dynamoDBClient);
+      await writeAgreementEntry(
+        previousPlatformAgreementEntry1,
+        dynamoDBClient
+      );
+
+      const newDate = new Date();
+      newDate.setDate(newDate.getDate() + 1);
+      const previousPlatformAgreementEntry2: PlatformStatesAgreementEntry = {
+        PK: makePlatformStatesAgreementPK(generateId()),
+        state: itemState.inactive,
+        GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
+        GSISK_agreementTimestamp: newDate.toISOString(),
+        agreementDescriptorId: generateId(),
+        version: 1,
+        updatedAt: newDate.toISOString(),
+      };
+      await writeAgreementEntry(
+        previousPlatformAgreementEntry2,
+        dynamoDBClient
+      );
+
       const retrievedPlatformAgreementEntry =
         await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
           dynamoDBClient,
@@ -414,7 +434,7 @@ describe("utils tests", async () => {
         );
 
       expect(retrievedPlatformAgreementEntry).toEqual(
-        previousPlatformAgreementEntry
+        previousPlatformAgreementEntry2
       );
     });
   });
