@@ -191,7 +191,7 @@ export const verifyClientAssertionSignature = (
       algorithms: [key.algorithm],
     });
 
-    // TODO: no idea when result is a string
+    // it's not clear when the result is a string
     if (typeof result === "string") {
       return failedValidation([
         invalidClientAssertionSignatureType(typeof result),
