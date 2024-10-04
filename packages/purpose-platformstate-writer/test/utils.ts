@@ -17,7 +17,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 export const config = inject("tokenGenerationReadModelConfig");
 
-// TODO: same function as agreement-platformstate-writer
 export const writeAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
   dynamoDBClient: DynamoDBClient
@@ -90,7 +89,6 @@ export const readAgreementEntry = async (
   }
 };
 
-// TODO: copied from catalog-platformstate-writer
 export const writeCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   catalogEntry: PlatformStatesCatalogEntry
