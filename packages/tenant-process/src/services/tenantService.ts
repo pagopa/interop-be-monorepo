@@ -28,6 +28,7 @@ import {
   TenantMail,
   TenantEvent,
   tenantMailKind,
+  TenantFeatureCertifier,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -1434,7 +1435,9 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifierFeature = tenant.data.features.find((a) => a.certifierId);
+      const certifierFeature = tenant.data.features.find(
+        (a): a is TenantFeatureCertifier => a.type === "PersistentCertifier"
+      );
 
       if (certifierFeature) {
         if (certifierId === certifierFeature.certifierId) {
@@ -1500,7 +1503,7 @@ export function tenantServiceBuilder(
       );
 
       const certifierId = requesterTenant.data.features.find(
-        (f) => f.type === "PersistentCertifier"
+        (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
       )?.certifierId;
 
       if (!certifierId) {

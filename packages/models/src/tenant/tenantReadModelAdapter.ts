@@ -1,6 +1,7 @@
 import { match } from "ts-pattern";
 import {
   TenantAttributeReadModel,
+  TenantFeatureReadModel,
   TenantMailReadModel,
   TenantReadModel,
   TenantRevokerReadModel,
@@ -12,6 +13,7 @@ import {
   DeclaredTenantAttribute,
   Tenant,
   TenantAttribute,
+  TenantFeature,
   TenantMail,
   TenantRevoker,
   TenantVerifier,
@@ -21,12 +23,24 @@ import {
 
 export const toReadModelTenant = (tenant: Tenant): TenantReadModel => ({
   ...tenant,
+  features: tenant.features.map(toReadModelTenantFeature),
   attributes: tenant.attributes.map(toReadModelTenantAttribute),
   createdAt: tenant.createdAt.toISOString(),
   updatedAt: tenant.updatedAt?.toISOString(),
   onboardedAt: tenant.onboardedAt?.toISOString(),
   mails: tenant.mails.map(toReadModelTenantMail),
 });
+
+export const toReadModelTenantFeature = (
+  feature: TenantFeature
+): TenantFeatureReadModel =>
+  match(feature)
+    .with({ type: "PersistentCertifier" }, (feature) => feature)
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      ...feature,
+      availabilityTimestamp: feature.availabilityTimestamp.toISOString(),
+    }))
+    .exhaustive();
 
 export const toReadModelTenantMail = (
   mail: TenantMail
