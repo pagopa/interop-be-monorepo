@@ -1575,7 +1575,7 @@ export function tenantServiceBuilder(
         await repository.createEvent(attributeAssignmentEvent);
       }
     },
-    async addTenantDelegatedProducerFeature({
+    async assignTenantDelegatedProducerFeature({
       organizationId,
       correlationId,
       logger,

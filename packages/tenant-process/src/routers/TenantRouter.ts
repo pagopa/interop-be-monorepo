@@ -37,7 +37,7 @@ import {
   internalUpsertTenantErrorMapper,
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
-  addTenantDelegatedProducerFeatureErrorMapper,
+  assignTenantDelegatedProducerFeatureErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -434,7 +434,7 @@ const tenantsRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.addTenantDelegatedProducerFeature({
+          await tenantService.assignTenantDelegatedProducerFeature({
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
@@ -443,7 +443,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addTenantDelegatedProducerFeatureErrorMapper,
+            assignTenantDelegatedProducerFeatureErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).send(errorRes);

@@ -979,11 +979,17 @@ paths:
     post:
       tags:
         - tenant
-      summary: Add delegated producer feature to tenant caller
-      operationId: addDelegatedProducerFeature
+      summary: Assign delegated producer feature to tenant caller
+      operationId: assignTenantDelegatedProducerFeature
       responses:
         "204":
-          description: Delegated producer feature added
+          description: Delegated producer feature assigned
+        "409":
+          description: Feature already assigned to tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
