@@ -15080,6 +15080,8 @@ components:
           $ref: "#/components/schemas/DelegationTenant"
         delegator:
           $ref: "#/components/schemas/DelegationTenant"
+        contract:
+          $ref: "#/components/schemas/Document"
         submittedAt:
           type: string
           format: date-time
