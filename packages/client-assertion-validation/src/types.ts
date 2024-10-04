@@ -30,7 +30,7 @@ export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
 
 export const ClientAssertionPayload = z
   .object({
-    sub: z.string(),
+    sub: ClientId,
     jti: z.string(),
     iat: z.number(),
     iss: z.string(),
