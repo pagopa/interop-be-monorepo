@@ -58,6 +58,8 @@ import {
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
   eserviceAlreadyLinkedToProducerKeychain,
+  userNotAllowedToDeleteProducerKeychainKey,
+  userNotAllowedToDeleteClientKey,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -362,17 +364,28 @@ export function authorizationServiceBuilder(
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
+      const hasSecurityRole = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
+      if (hasSecurityRole && !client.data.users.includes(authData.userId)) {
+        throw userNotAllowedOnClient(authData.userId, client.data.id);
+      }
+
       const keyToRemove = client.data.keys.find(
         (key) => key.kid === keyIdToRemove
       );
+
       if (!keyToRemove) {
         throw clientKeyNotFound(keyIdToRemove, client.data.id);
       }
-      if (
-        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
-        !client.data.users.includes(authData.userId)
-      ) {
-        throw userNotAllowedOnClient(authData.userId, client.data.id);
+
+      if (hasSecurityRole && keyToRemove.userId !== authData.userId) {
+        throw userNotAllowedToDeleteClientKey(
+          authData.userId,
+          client.data.id,
+          keyToRemove.kid
+        );
       }
 
       const updatedClient: Client = {
@@ -1080,8 +1093,12 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
+      const hasSecurityRole = authData.userRoles.includes(
+        userRoles.SECURITY_ROLE
+      );
+
       if (
-        authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+        hasSecurityRole &&
         !producerKeychain.data.users.includes(authData.userId)
       ) {
         throw userNotAllowedOnProducerKeychain(
@@ -1096,6 +1113,14 @@ export function authorizationServiceBuilder(
 
       if (!keyToRemove) {
         throw producerKeyNotFound(keyIdToRemove, producerKeychain.data.id);
+      }
+
+      if (hasSecurityRole && keyToRemove.userId !== authData.userId) {
+        throw userNotAllowedToDeleteProducerKeychainKey(
+          authData.userId,
+          producerKeychain.data.id,
+          keyToRemove.kid
+        );
       }
 
       const updatedProducerKeychain: ProducerKeychain = {
