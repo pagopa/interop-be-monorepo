@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ClientKind } from "../authorization/client.js";
 import {
   AgreementId,
   ClientId,
@@ -14,9 +13,19 @@ import {
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
 
+export const clientKindTokenStates = {
+  consumer: "CONSUMER",
+  api: "API",
+} as const;
+export const ClientKindTokenStates = z.enum([
+  Object.values(clientKindTokenStates)[0],
+  ...Object.values(clientKindTokenStates).slice(1),
+]);
+export type ClientKindTokenStates = z.infer<typeof ClientKindTokenStates>;
+
 const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,
-  clientKind: ClientKind,
+  clientKind: ClientKindTokenStates,
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
   GSIPK_kid: z.string(),
