@@ -269,7 +269,9 @@ export const validateCertifiedAttributes = ({
   descriptor: Descriptor;
   consumer: Tenant;
 }): void => {
-  if (!certifiedAttributesSatisfied(descriptor, consumer)) {
+  if (
+    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes)
+  ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
 };
@@ -366,9 +368,9 @@ export const matchingCertifiedAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): CertifiedAgreementAttribute[] => {
-  const certifiedAttributes = filterCertifiedAttributes(consumer).map(
-    (a) => a.id
-  );
+  const certifiedAttributes = filterCertifiedAttributes(
+    consumer.attributes
+  ).map((a) => a.id);
 
   return matchingAttributes(
     descriptor.attributes.certified,
@@ -380,7 +382,7 @@ export const matchingDeclaredAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): DeclaredAgreementAttribute[] => {
-  const declaredAttributes = filterDeclaredAttributes(consumer).map(
+  const declaredAttributes = filterDeclaredAttributes(consumer.attributes).map(
     (a) => a.id
   );
 
@@ -397,7 +399,7 @@ export const matchingVerifiedAttributes = (
 ): VerifiedAgreementAttribute[] => {
   const verifiedAttributes = filterVerifiedAttributes(
     eservice.producerId,
-    consumer
+    consumer.attributes
   ).map((a) => a.id);
 
   return matchingAttributes(

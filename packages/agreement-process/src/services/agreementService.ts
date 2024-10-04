@@ -601,13 +601,13 @@ export function agreementServiceBuilder(
 
       const verifiedValid = verifiedAttributesSatisfied(
         agreementToBeUpgraded.data.producerId,
-        newDescriptor,
-        consumer
+        newDescriptor.attributes,
+        consumer.attributes
       );
 
       const declaredValid = declaredAttributesSatisfied(
-        newDescriptor,
-        consumer
+        newDescriptor.attributes,
+        consumer.attributes
       );
 
       const contractBuilderInstance = contractBuilder(
