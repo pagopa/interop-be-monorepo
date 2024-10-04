@@ -975,15 +975,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/producerDelegation:
+  /tenants/delegatedProducer:
     post:
       tags:
         - tenant
-      summary: Add producer delegation feature to tenant caller
-      operationId: addProducerDelegationFeature
+      summary: Add delegated producer feature to tenant caller
+      operationId: addDelegatedProducerFeature
       responses:
         "204":
-          description: Producer delegation feature added
+          description: Delegated producer feature added
         "403":
           description: Forbidden
           content:
