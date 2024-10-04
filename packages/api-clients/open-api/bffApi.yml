@@ -11927,15 +11927,15 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /leadOrganization/delegations:
+  /producer/delegations:
     parameters:
     - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - delegation
-      summary: List delegations
-      description: List delegations
-      operationId: getDelegations
+      summary: List producer delegations
+      description: List producer delegations
+      operationId: getProducerDelegations
       parameters:
         - in: query
           name: offset
@@ -12072,8 +12072,8 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available  
     post:
-      summary: Delegation Creation
-      operationId: createDelegation
+      summary: Producer delegation creation
+      operationId: createProducerDelegation
       responses:
         "200":
           description: Delegation created.
@@ -12139,17 +12139,17 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/DelegationSeed"
-        description: payload for delegation creation
+        description: payload for producer delegation creation
         required: true
-      description: creates the delegation
-  "/leadOrganization/delegations/{delegationId}/approve":
+      description: creates the producer delegation
+  "/producer/delegations/{delegationId}/approve":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - delegation
-      summary: Approves a delegation
-      description: Approves a delegation
+      summary: Approves a producer delegation
+      description: Approves a producer delegation
       operationId: approveDelegation
       parameters:
         - name: delegationId
@@ -12251,14 +12251,14 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/leadOrganization/delegations/{delegationId}/reject":
+  "/producer/delegations/{delegationId}/reject":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - delegation
-      summary: Rejects a delegation
-      description: Rejects a delegation
+      summary: Rejects a producer delegation
+      description: Rejects a producer delegation
       requestBody:
         content:
           application/json:
@@ -12365,7 +12365,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available   
-  /leadOrganization/delegations/{delegationId}:
+  /producer/delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
@@ -12375,14 +12375,14 @@ paths:
         schema:
           type: string
     get:
-      description: Retrieves a delegation
-      summary: Retrieves a delegation
+      description: Retrieves a producer delegation
+      summary: Retrieves a producer delegation
       tags:
         - delegation
-      operationId: getDelegation
+      operationId: getProducerDelegation
       responses:
         "200":
-          description: Delegation retrieved
+          description: Producer delegation retrieved
           content:
             application/json:
               schema:
@@ -12458,11 +12458,11 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     delete:
-      description: Revokes a delegation
+      description: Revokes a producer delegation
       tags:
         - delegation
-      summary: Revoke a delegation
-      operationId: revokeDelegation
+      summary: Revokes a producer delegation
+      operationId: revokeProducerDelegation
       responses:
         "204":
           description: Delegation revoked
