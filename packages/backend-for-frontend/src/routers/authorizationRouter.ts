@@ -71,9 +71,10 @@ const authorizationRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const saml = Buffer.from(req.body.SAMLResponse, "base64").toString();
-
-        const jwt = await authorizationService.samlLoginCallback(saml, ctx);
+        const jwt = await authorizationService.samlLoginCallback(
+          req.body.SAMLResponse,
+          ctx
+        );
         return res.redirect(
           302,
           `${config.samlCallbackUrl}#saml2=${req.body.SAMLResponse}&jwt=${jwt}`
