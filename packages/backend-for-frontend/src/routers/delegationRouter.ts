@@ -11,7 +11,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  _processClients: PagoPAInteropBeClients
+  _processClients: PagoPAInteropBeClients,
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(bffApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -20,25 +20,19 @@ const delegationRouter = (
   // const delegationService = delegationServiceBuilder(processClients);
 
   delegationRouter
-    .get("/leadOrganization/delegations", async (_req, res) =>
-      res.status(501).send()
+    .get("/producer/delegations", async (_req, res) => res.status(501).send())
+    .get("/producer/delegations/:delegationId", async (_req, res) =>
+      res.status(501).send(),
     )
-    .get("/leadOrganization/delegations/:delegationId", async (_req, res) =>
-      res.status(501).send()
+    .post("/producer/delegations", async (_req, res) => res.status(501).send())
+    .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
+      res.status(501).send(),
     )
-    .post("/leadOrganization/delegations", async (_req, res) =>
-      res.status(501).send()
+    .post("/producer/delegations/:delegationId/reject", async (_req, res) =>
+      res.status(501).send(),
     )
-    .post(
-      "/leadOrganization/delegations/:delegationId/approve",
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
-      "/leadOrganization/delegations/:delegationId/reject",
-      async (_req, res) => res.status(501).send()
-    )
-    .delete("/leadOrganization/delegations/:delegationId", async (_req, res) =>
-      res.status(501).send()
+    .delete("/producer/delegations/:delegationId", async (_req, res) =>
+      res.status(501).send(),
     );
 
   return delegationRouter;
