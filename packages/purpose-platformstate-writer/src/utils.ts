@@ -97,7 +97,6 @@ export const deletePlatformPurposeEntry = async (
   await dynamoDBClient.send(command);
 };
 
-// TODO: copied from catalog-platformstate-writer
 export const readCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK
