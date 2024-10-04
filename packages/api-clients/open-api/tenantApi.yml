@@ -975,6 +975,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/producerDelegation:
+    post:
+      tags:
+        - tenant
+      summary: Add producer delegation feature to tenant caller
+      operationId: addProducerDelegationFeature
+      responses:
+        "204":
+          description: Producer delegation feature added
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
