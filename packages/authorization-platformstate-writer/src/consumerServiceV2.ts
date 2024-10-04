@@ -5,18 +5,20 @@ import {
   ClientV2,
   fromClientV2,
   makeGSIPKClient,
+  makeGSIPKClientIdPurposeId,
   makeGSIPKKid,
   makePlatformStatesClientPK,
   missingKafkaMessageDataError,
-  PlatformStatesClientEntry,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteEntriesFromTokenStatesByClient,
   deleteEntriesFromTokenStatesByKid,
-  updatePurposeIdsFromPlatformStateClientEntry,
-  updatePurposeIdsInPlatformStateClientEntry,
+  deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable,
+  readClientEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -37,23 +39,34 @@ export async function handleMessageV2(
     .with({ type: "ClientPurposeRemoved" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
-      const clientEntry: PlatformStatesClientEntry = await readClientEntry(pk);
+      const clientEntry = await readClientEntry(pk, dynamoDBClient);
 
       if (clientEntry) {
         if (clientEntry.version > msg.version) {
           return Promise.resolve();
         } else {
-          const updatedPurposeIdsArray = clientEntry.clientPurposesIds.filter(
-            (id) => id !== msg.data.purposeId
-          );
-
-          if (updatedPurposeIdsArray.length === 0) {
+          if (client.purposes.length === 0) {
             await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
           } else {
-            updatePurposeIdsInPlatformStateClientEntry();
+            // TODO cleanPurposeIdsInPlatformStateClientEntry();
           }
 
-          // TODO token-generation-states
+          // token-generation-states
+          const GSIPK_clientId_purposeId = makeGSIPKClientIdPurposeId({
+            clientId: client.id,
+            purposeId: unsafeBrandId(msg.data.purposeId),
+          });
+          if (client.purposes.length > 0) {
+            await deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
+              GSIPK_clientId_purposeId,
+              dynamoDBClient
+            );
+          } else {
+            await convertEntriesToClientKidInTokenGenerationStates(
+              GSIPK_clientId_purposeId,
+              dynamoDBClient
+            );
+          }
         }
       } else {
         // TODO not sure about this
