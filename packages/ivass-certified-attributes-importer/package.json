@@ -22,6 +22,7 @@
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
     "@types/ssh2-sftp-client": "9.0.4",
+    "@types/adm-zip": "0.5.5",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",
@@ -30,10 +31,10 @@
     "vitest": "1.6.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.387.0",
-    "@zip.js/zip.js": "^2.7.31",
-    "axios": "^1.5.0",
-    "csv": "^6.3.2",
+    "@aws-sdk/client-s3": "3.387.0",
+    "adm-zip": "0.5.15",
+    "axios": "1.5.0",
+    "csv": "6.3.2",
     "ts-pattern": "5.2.0",
     "dotenv-flow": "4.1.0",
     "pagopa-interop-commons": "workspace:*",
