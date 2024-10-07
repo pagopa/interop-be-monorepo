@@ -249,11 +249,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await eservices
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z.array(EService).safeParse(data.map((d) => d.data));
@@ -269,8 +268,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },
@@ -380,11 +378,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await eservices
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z.array(consumer).safeParse(data);
@@ -400,8 +397,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },
@@ -462,7 +458,9 @@ export function readModelServiceBuilder(
       const aggregationWithLimit = limit
         ? [...aggregationPipeline, { $limit: limit }]
         : aggregationPipeline;
-      const data = await agreements.aggregate(aggregationWithLimit).toArray();
+      const data = await agreements
+        .aggregate(aggregationWithLimit, { allowDiskUse: true })
+        .toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
