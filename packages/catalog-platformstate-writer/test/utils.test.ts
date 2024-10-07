@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
 import { fail } from "assert";
 import {
   afterAll,
@@ -362,13 +363,13 @@ describe("utils tests", async () => {
       );
     });
 
-    it.skip("should return entries if they exist (with pagination)", async () => {
+    it("should return entries if they exist (with pagination)", async () => {
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
 
-      const tokenEntriesLength = 1200;
+      const tokenEntriesLength = 10;
 
       const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
       // eslint-disable-next-line functional/no-let
@@ -383,6 +384,7 @@ describe("utils tests", async () => {
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+          publicKey: crypto.randomBytes(100000).toString("hex"),
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
