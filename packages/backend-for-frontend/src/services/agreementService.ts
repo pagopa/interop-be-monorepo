@@ -25,16 +25,16 @@ import {
   agreementDescriptorNotFound,
   contractException,
   contractNotFound,
-  invalidContentType,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { contentTypes } from "../utilities/mimeTypes.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import {
   toCompactEservice,
   toCompactDescriptor,
 } from "../api/catalogApiConverter.js";
 import {
+  toBffAgreementConsumerDocument,
+  toBffAttribute,
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
@@ -153,7 +153,7 @@ export function agreementServiceBuilder(
       const documentContent = Buffer.from(await doc.doc.arrayBuffer());
       const documentId = randomUUID();
 
-      await fileManager.storeBytes(
+      const storagePath = await fileManager.storeBytes(
         {
           bucket: config.consumerDocumentsContainer,
           path: documentPath,
@@ -169,7 +169,7 @@ export function agreementServiceBuilder(
         prettyName: doc.prettyName,
         name: doc.doc.name,
         contentType: doc.doc.type,
-        path: documentPath,
+        path: storagePath,
       };
 
       await agreementProcessClient.addAgreementConsumerDocument(seed, {
@@ -194,8 +194,6 @@ export function agreementServiceBuilder(
           params: { agreementId, documentId },
           headers,
         });
-
-      assertContentMediaType(document.contentType, agreementId, documentId);
 
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
@@ -690,14 +688,16 @@ export async function enrichAgreement(
         : undefined,
     },
     state: agreement.state,
-    verifiedAttributes: agreementVerifiedAttrs,
-    certifiedAttributes: agreementCertifiedAttrs,
-    declaredAttributes: agreementDeclaredAttrs,
+    verifiedAttributes: agreementVerifiedAttrs.map((a) => toBffAttribute(a)),
+    certifiedAttributes: agreementCertifiedAttrs.map((a) => toBffAttribute(a)),
+    declaredAttributes: agreementDeclaredAttrs.map((a) => toBffAttribute(a)),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
     isContractPresent: agreement.contract !== undefined,
-    consumerDocuments: agreement.consumerDocuments,
+    consumerDocuments: agreement.consumerDocuments.map((doc) =>
+      toBffAgreementConsumerDocument(doc)
+    ),
     createdAt: agreement.createdAt,
     updatedAt: agreement.updatedAt,
     suspendedAt: agreement.suspendedAt,
@@ -784,15 +784,6 @@ export function getCurrentDescriptor(
   return descriptor;
 }
 
-function assertContentMediaType(
-  contentType: string,
-  agreementId: string,
-  documentId: string
-): void {
-  if (!contentTypes.includes(contentType)) {
-    throw invalidContentType(contentType, agreementId, documentId);
-  }
-}
 const emptyPagination = (offset: number, limit: number) => ({
   pagination: {
     limit,

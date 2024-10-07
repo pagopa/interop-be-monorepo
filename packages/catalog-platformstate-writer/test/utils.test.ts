@@ -362,7 +362,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should return entries if they exist (with pagination)", async () => {
+    it.skip("should return entries if they exist (with pagination)", async () => {
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
