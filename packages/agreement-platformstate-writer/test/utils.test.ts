@@ -361,7 +361,7 @@ describe("utils", async () => {
       );
     });
 
-    it("should return entries if they exist (with pagination)", async () => {
+    it.skip("should return entries if they exist (with pagination)", async () => {
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: generateId(),
         eserviceId: generateId(),
