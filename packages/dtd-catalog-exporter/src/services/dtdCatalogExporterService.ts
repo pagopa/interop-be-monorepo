@@ -45,7 +45,7 @@ export function dtdCatalogExporterServiceBuilder({
 
       await fileManager.storeBytes(
         {
-          bucket: config.s3Bucket,
+          bucket: config.dtdCatalogStorageBucket,
           path: config.dtdCatalogStoragePath,
           name: config.dtdCatalogFilename,
           content: Buffer.from(JSON.stringify(publicEServices)),

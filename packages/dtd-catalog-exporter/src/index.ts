@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
   initFileManager,
   logger,
@@ -12,5 +13,6 @@ await dtdCatalogExporterServiceBuilder({
   fileManager: initFileManager(config),
   loggerInstance: logger({
     serviceName: "dtd-catalog-exporter",
+    correlationId: randomUUID(),
   }),
 }).exportDtdPublicCatalog();

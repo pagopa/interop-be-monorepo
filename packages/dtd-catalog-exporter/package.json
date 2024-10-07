@@ -1,5 +1,5 @@
 {
-  "name": "dtd-catalog-exporter-job",
+  "name": "pagopa-interop-dtd-catalog-exporter-job",
   "version": "1.0.0",
   "private": true,
   "description": "PagoPA Interoperability catalog exporter job",
@@ -10,6 +10,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
+    "check": "tsc --project tsconfig.check.json",
     "start:migrate": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "start:verify": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
     "build": "tsc"

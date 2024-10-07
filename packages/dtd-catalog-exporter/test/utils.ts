@@ -47,7 +47,7 @@ export const getExportDtdPublicCatalogResult = async (): Promise<
   PublicEService[]
 > => {
   const data = await fileManager.get(
-    config.s3Bucket,
+    config.dtdCatalogStorageBucket,
     `${config.dtdCatalogStoragePath}/${config.dtdCatalogFilename}`,
     genericLogger
   );
