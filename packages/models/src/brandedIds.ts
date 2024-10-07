@@ -74,6 +74,12 @@ export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 export const DelegationId = z.string().uuid().brand("DelegationId");
 export type DelegationId = z.infer<typeof DelegationId>;
 
+export const DelegationContractId = z
+  .string()
+  .uuid()
+  .brand("DelegationContractId");
+export type DelegationContractId = z.infer<typeof DelegationContractId>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -93,7 +99,8 @@ type IDS =
   | UserId
   | SelfcareId
   | ProducerKeychainId
-  | DelegationId;
+  | DelegationId
+  | DelegationContractId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

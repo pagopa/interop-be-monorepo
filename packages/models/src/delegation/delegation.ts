@@ -1,5 +1,10 @@
 import z from "zod";
-import { DelegationId, EServiceId, TenantId } from "../brandedIds.js";
+import {
+  DelegationContractId,
+  DelegationId,
+  EServiceId,
+  TenantId,
+} from "../brandedIds.js";
 
 export const delegationKind = {
   delegatedConsumer: "DelegatedConsumer",
@@ -24,6 +29,30 @@ export const DelegationState = z.enum([
 ]);
 export type DelegationState = z.infer<typeof DelegationState>;
 
+export const DelegationContractDocument = z.object({
+  id: DelegationContractId,
+  name: z.string(),
+  prettyName: z.string(),
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+});
+export type DelegationContractDocument = z.infer<typeof DelegationContractDocument>;
+
+export const DelegationStamp = z.object({
+  who: TenantId,
+  when: z.coerce.date(),
+});
+export type DelegationStamp = z.infer<typeof DelegationStamp>;
+
+export const DelegationStamps = z.object({
+  submission: DelegationStamp,
+  activation: DelegationStamp.optional(),
+  rejection: DelegationStamp.optional(),
+  revocation: DelegationStamp.optional(),
+});
+export type DelegationStamps = z.infer<typeof DelegationStamps>;
+
 export const Delegation = z.object({
   id: DelegationId,
   delegatorId: TenantId,
@@ -37,5 +66,7 @@ export const Delegation = z.object({
   revokedAt: z.coerce.date().optional(),
   state: DelegationState,
   kind: DelegationKind,
+  contract: DelegationContractDocument,
+  stamps: DelegationStamps,
 });
 export type Delegation = z.infer<typeof Delegation>;
