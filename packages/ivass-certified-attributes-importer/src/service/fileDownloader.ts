@@ -1,12 +1,14 @@
 import axios from "axios";
-import * as zip from "@zip.js/zip.js";
+import AmdZip from "adm-zip";
 import { FileManager, Logger } from "pagopa-interop-commons";
 
 const unzipFile = async (zipBlob: Blob): Promise<Buffer> => {
-  const entries = await new zip.ZipReader(
-    new zip.BlobReader(zipBlob)
-  ).getEntries({ filenameEncoding: "utf-8" });
-  const csvEntries = entries.filter((entry) => entry.filename.endsWith(".csv"));
+  const entries = new AmdZip(
+    Buffer.from(await zipBlob.arrayBuffer())
+  ).getEntries();
+  const csvEntries = entries.filter((entry) =>
+    entry.entryName.endsWith(".csv")
+  );
 
   if (csvEntries.length === 0) {
     throw new Error("The archive does not contain csv files");
@@ -22,9 +24,7 @@ const unzipFile = async (zipBlob: Blob): Promise<Buffer> => {
     throw new Error("Unexpected error: getData method is undefined");
   }
 
-  const entryBlob: Blob = await entry.getData(new zip.BlobWriter());
-  const arrayBuffer = await entryBlob.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  return entry.getData();
 };
 
 async function downloadFile(

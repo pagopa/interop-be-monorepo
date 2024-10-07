@@ -26,15 +26,17 @@ export function producerKeychainServiceBuilder(
       {
         limit,
         offset,
-        requesterId,
+        producerId,
         userIds,
         name,
+        eserviceId,
       }: {
-        requesterId: string;
+        producerId: string;
         offset: number;
         limit: number;
         userIds: string[];
         name?: string;
+        eserviceId?: string;
       },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactProducerKeychains> {
@@ -46,9 +48,9 @@ export function producerKeychainServiceBuilder(
             offset,
             limit,
             userIds,
-            producerId: requesterId,
+            producerId,
             name,
-            eserviceId: undefined,
+            eserviceId,
           },
           headers,
         });
@@ -162,12 +164,17 @@ export function producerKeychainServiceBuilder(
 
       const selfcareId = authData.selfcareId;
 
-      const { keys } =
-        await authorizationClient.producerKeychain.getProducerKeys({
+      const [{ keys }, { users }] = await Promise.all([
+        authorizationClient.producerKeychain.getProducerKeys({
           params: { producerKeychainId },
           queries: { userIds },
           headers,
-        });
+        }),
+        authorizationClient.producerKeychain.getProducerKeychain({
+          params: { producerKeychainId },
+          headers,
+        }),
+      ]);
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
@@ -175,6 +182,7 @@ export function producerKeychainServiceBuilder(
             selfcareUsersClient,
             k,
             selfcareId,
+            users,
             headers["X-Correlation-Id"]
           )
         )
@@ -193,16 +201,22 @@ export function producerKeychainServiceBuilder(
 
       const selfcareId = authData.selfcareId;
 
-      const key = await authorizationClient.producerKeychain.getProducerKeyById(
-        {
+      const [key, { users }] = await Promise.all([
+        authorizationClient.producerKeychain.getProducerKeyById({
           params: { producerKeychainId, keyId },
           headers,
-        }
-      );
+        }),
+        authorizationClient.producerKeychain.getProducerKeychain({
+          params: { producerKeychainId },
+          headers,
+        }),
+      ]);
+
       return decorateKey(
         selfcareUsersClient,
         key,
         selfcareId,
+        users,
         headers["X-Correlation-Id"]
       );
     },

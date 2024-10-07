@@ -1,0 +1,27 @@
+meta {
+  name: Update Eservice description
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eServiceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Accept: application/json
+}
+
+body:json {
+  {
+      "description": "this is a test again"
+  }
+}
