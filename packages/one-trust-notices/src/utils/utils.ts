@@ -79,23 +79,6 @@ export function remapOneTrustNoticeVersionToDynamoDBSchemaUpdateObject(
 }
 
 /**
- * Calls a function and logs the execution time.
- *
- * @param fn The function to call
- * @returns The result of the function
- */
-export async function withExecutionTime(
-  fn: () => void | Promise<void>
-): Promise<void> {
-  const t0 = performance.now();
-  await fn();
-  const t1 = performance.now();
-  const executionTimeMs = t1 - t0;
-  const executionTimeSeconds = Math.round((executionTimeMs / 1000) * 10) / 10;
-  console.log(`Execution time: ${executionTimeSeconds}s`);
-}
-
-/**
  * DynamoDB does not support nested object keys, this type removes all keys that contain objects.
  */
 export type DynamoDBKeyOf<T> = Partial<{

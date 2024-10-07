@@ -240,7 +240,8 @@ export function authorizationServiceBuilder(
     ): Promise<string> => {
       logger.info("Calling Support SAML");
 
-      validateSamlResponse(samlResponse);
+      const decodedSaml = Buffer.from(samlResponse, "base64").toString();
+      validateSamlResponse(decodedSaml);
 
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
@@ -262,13 +263,13 @@ export function authorizationServiceBuilder(
       return sessionToken;
     },
     getSaml2Token: async (
-      samlResponse: string,
-      tenantId: string,
+      { tenantId, saml2 }: bffApi.SAMLTokenRequest,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.SessionToken> => {
       logger.info("Calling get SAML2 token");
 
-      validateSamlResponse(samlResponse);
+      const decodedSaml = Buffer.from(saml2, "base64").toString();
+      validateSamlResponse(decodedSaml);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },

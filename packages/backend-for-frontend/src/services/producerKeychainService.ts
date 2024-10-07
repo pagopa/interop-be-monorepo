@@ -26,15 +26,17 @@ export function producerKeychainServiceBuilder(
       {
         limit,
         offset,
-        requesterId,
+        producerId,
         userIds,
         name,
+        eserviceId,
       }: {
-        requesterId: string;
+        producerId: string;
         offset: number;
         limit: number;
         userIds: string[];
         name?: string;
+        eserviceId?: string;
       },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactProducerKeychains> {
@@ -46,9 +48,9 @@ export function producerKeychainServiceBuilder(
             offset,
             limit,
             userIds,
-            producerId: requesterId,
+            producerId,
             name,
-            eserviceId: undefined,
+            eserviceId,
           },
           headers,
         });
@@ -264,25 +266,24 @@ export function producerKeychainServiceBuilder(
       );
       return Promise.all(users);
     },
-    async addProducerKeychainUser(
-      userId: string,
+    async addProducerKeychainUsers(
+      userIds: string[],
       producerKeychainId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
+    ): Promise<void> {
       logger.info(
-        `Add user ${userId} to producer keychain ${producerKeychainId}`
+        `Add user ${userIds.join(
+          ","
+        )} to producer keychain ${producerKeychainId}`
       );
 
-      const { id } =
-        await authorizationClient.producerKeychain.addProducerKeychainUser(
-          undefined,
-          {
-            params: { producerKeychainId, userId },
-            headers,
-          }
-        );
-
-      return { id };
+      await authorizationClient.producerKeychain.addProducerKeychainUsers(
+        { userIds },
+        {
+          params: { producerKeychainId },
+          headers,
+        }
+      );
     },
     async removeProducerKeychainUser(
       producerKeychainId: string,

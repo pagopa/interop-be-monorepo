@@ -54,6 +54,56 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
+  token-generation-readmodel:
+    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+    image: "amazon/dynamodb-local:latest"
+    ports:
+      - 8085:8000
+
+  platform-states-table-init:
+    depends_on:
+      - token-generation-readmodel
+    restart: on-failure
+    image: amazon/aws-cli
+    working_dir: /home/tables
+    volumes:
+      - ./dynamo-db/schema:/home/tables
+    environment:
+      AWS_ACCESS_KEY_ID: keyid
+      AWS_SECRET_ACCESS_KEY: key
+    command: dynamodb create-table
+      --cli-input-json file://./platform-states.json
+      --endpoint-url http://token-generation-readmodel:8000
+      --region eu-south-1
+
+  token-generation-states-table-init:
+    depends_on:
+      - token-generation-readmodel
+    restart: on-failure
+    image: amazon/aws-cli
+    working_dir: /home/tables
+    volumes:
+      - ./dynamoDB-tables:/home/tables
+    environment:
+      AWS_ACCESS_KEY_ID: keyid
+      AWS_SECRET_ACCESS_KEY: key
+    command: dynamodb create-table
+      --cli-input-json file://./token-generation-states.json
+      --endpoint-url http://token-generation-readmodel:8000
+      --region eu-south-1
+
+  dynamodb-admin:
+    image: "aaronshaf/dynamodb-admin"
+    container_name: dynamodb-admin_token-generation-readmodel
+    depends_on:
+      - token-generation-readmodel
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://token-generation-readmodel:8000
+      - AWS_REGION=eu-west-1
+
   # Mongo Express is a web-based MongoDB admin interface, included for convenience
   mongo-express:
     image: mongo-express:1.0.2-20
@@ -131,6 +181,7 @@ services:
         mc ready minio;
         echo 'MinIO is ready. Seeding data...';
         mc cp --recursive data/ minio/interop-local-bucket/;
+        mc mb minio/interop-datalake-bucket || true;
       "
     volumes:
       - ./minio-seed:/data

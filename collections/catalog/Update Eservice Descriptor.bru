@@ -1,0 +1,30 @@
+meta {
+  name: Update Eservice Descriptor
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eServiceId: {{eServiceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Accept: application/json
+}
+
+body:json {
+  {
+      "voucherLifespan": 86400,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 100
+  }
+}
