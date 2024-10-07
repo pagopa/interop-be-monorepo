@@ -3,7 +3,7 @@ import { DelegationId, EServiceId, TenantId } from "../brandedIds.js";
 
 export const delegationKind = {
   DelegatedConsumer: "DelegatedConsumer",
-  DelegatedPRoducer: "DelegatedProducer",
+  DelegatedProducer: "DelegatedProducer",
 } as const;
 export const DelegationKind = z.enum([
   Object.values(delegationKind)[0],
