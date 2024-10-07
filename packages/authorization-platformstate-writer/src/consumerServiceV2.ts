@@ -6,7 +6,6 @@ import {
   fromClientV2,
   genericInternalError,
   itemState,
-  makeGSIPKClient,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
@@ -252,7 +251,7 @@ export async function handleMessageV2(
           return Promise.resolve();
         } else {
           // TODO update
-          // what to do? If purposeIds has not to be populated
+          // what to do? If purposeIds has not to be populated -> update to empty that field
         }
       } else {
         const clientEntryPK = makePlatformStatesClientPK(client.id);
@@ -266,7 +265,7 @@ export async function handleMessageV2(
         await writeClientEntry(clientEntry, dynamoDBClient);
       }
 
-      const GSIPK_clientId = makeGSIPKClient(client.id);
+      const GSIPK_clientId = client.id;
       const tokenStates = await readClientEntriesInTokenGenerationStates(
         GSIPK_clientId,
         dynamoDBClient
@@ -298,7 +297,7 @@ export async function handleMessageV2(
           if (client.purposes.length === 0) {
             await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
           } else {
-            // TODO cleanPurposeIdsInPlatformStateClientEntry();
+            // TODO cleanPurposeIdsInPlatformStateClientEntry(); -> empty that field
           }
 
           // token-generation-states
@@ -320,6 +319,7 @@ export async function handleMessageV2(
         }
       } else {
         // TODO not sure about this
+        //  -> no op
       }
     })
     .with({ type: "ClientDeleted" }, async (msg) => {
@@ -327,7 +327,7 @@ export async function handleMessageV2(
       const pk = makePlatformStatesClientPK(client.id);
       await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
 
-      const GSIPK_clientId = makeGSIPKClient(client.id);
+      const GSIPK_clientId = client.id;
       await deleteEntriesFromTokenStatesByClient(
         GSIPK_clientId,
         dynamoDBClient

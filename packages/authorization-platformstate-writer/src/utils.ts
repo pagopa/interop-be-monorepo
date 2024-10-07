@@ -13,12 +13,12 @@ import {
   QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import {
+  ClientId,
   clientKind,
   ClientKind,
   clientKindTokenStates,
   ClientKindTokenStates,
   genericInternalError,
-  GSIPKClientId,
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
@@ -118,11 +118,11 @@ export const deleteClientEntryFromPlatformStates = async (
 };
 
 export const deleteEntriesFromTokenStatesByClient = async (
-  GSIPK_client: GSIPKClientId,
+  GSIPK_client: ClientId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesGenericEntry[]> => {
   const runPaginatedQuery = async (
-    GSIPK_client: GSIPKClientId,
+    GSIPK_client: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<TokenGenerationStatesGenericEntry[]> => {
@@ -653,11 +653,11 @@ export const writeClientEntry = async (
 };
 
 export const readClientEntriesInTokenGenerationStates = async (
-  GSIPK_clientId: GSIPKClientId,
+  GSIPK_clientId: ClientId,
   dynamoDBClient: DynamoDBClient
 ): Promise<TokenGenerationStatesGenericEntry[]> => {
   const runPaginatedQuery = async (
-    GSIPK_clientId: GSIPKClientId,
+    GSIPK_clientId: ClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
   ): Promise<TokenGenerationStatesGenericEntry[]> => {
