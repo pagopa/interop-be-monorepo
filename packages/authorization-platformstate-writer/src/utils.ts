@@ -13,18 +13,30 @@ import {
   QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import {
+  clientKind,
+  ClientKind,
+  clientKindTokenStates,
+  ClientKindTokenStates,
   genericInternalError,
   GSIPKClientId,
   GSIPKClientIdPurposeId,
+  GSIPKConsumerIdEServiceId,
   GSIPKKid,
   makeTokenGenerationStatesClientKidPK,
+  PlatformStatesAgreementEntry,
+  PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesClientPK,
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesPurposeEntry,
+  PlatformStatesPurposePK,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesGenericEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { match } from "ts-pattern";
 import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenStatesByKid = async (
@@ -38,7 +50,7 @@ export const deleteEntriesFromTokenStatesByKid = async (
   ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      IndexName: "Key",
+      IndexName: "Kid",
       KeyConditionExpression: `GSIPK_kid = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: GSIPK_kid },
@@ -47,7 +59,6 @@ export const deleteEntriesFromTokenStatesByKid = async (
     };
     const command = new QueryCommand(input);
     const data: QueryCommandOutput = await dynamoDBClient.send(command);
-
     if (!data.Items) {
       throw genericInternalError(
         `Unable to read token state entries: result ${JSON.stringify(data)} `
@@ -179,7 +190,7 @@ export const deleteClientEntryFromTokenGenerationStatesTable = async (
     Key: {
       PK: { S: entryToDelete.PK },
     },
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new DeleteItemCommand(input);
   await dynamoDBClient.send(command);
@@ -392,4 +403,312 @@ export const writeTokenStateClientEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const readCatalogEntry = async (
+  primaryKey: PlatformStatesEServiceDescriptorPK,
+  dynamoDBClient: DynamoDBClient
+): Promise<PlatformStatesCatalogEntry | undefined> => {
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: primaryKey },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Item) {
+    return undefined;
+  } else {
+    const unmarshalled = unmarshall(data.Item);
+    const catalogEntry = PlatformStatesCatalogEntry.safeParse(unmarshalled);
+
+    if (!catalogEntry.success) {
+      throw genericInternalError(
+        `Unable to parse catalog entry item: result ${JSON.stringify(
+          catalogEntry
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return catalogEntry.data;
+  }
+};
+
+export const readPlatformAgreementEntryByGSIPKConsumerIdEServiceId = async (
+  dynamoDBClient: DynamoDBClient,
+  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId
+): Promise<PlatformStatesAgreementEntry | undefined> => {
+  const input: QueryInput = {
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    IndexName: "Agreement",
+    KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
+    ExpressionAttributeValues: {
+      ":gsiValue": { S: gsiPKConsumerIdEServiceId },
+    },
+    ScanIndexForward: false,
+  };
+  const command = new QueryCommand(input);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Items) {
+    return undefined;
+  } else {
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+    const platformAgreementEntries = z
+      .array(PlatformStatesAgreementEntry)
+      .safeParse(unmarshalledItems);
+
+    if (platformAgreementEntries.success) {
+      return platformAgreementEntries.data[0];
+    } else {
+      throw genericInternalError(
+        `Unable to parse platform agreement entries: result ${JSON.stringify(
+          platformAgreementEntries
+        )} `
+      );
+    }
+  }
+};
+
+export const readPlatformPurposeEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesPurposePK
+): Promise<PlatformStatesPurposeEntry | undefined> => {
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: primaryKey },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Item) {
+    return undefined;
+  } else {
+    const unmarshalled = unmarshall(data.Item);
+    const purposeEntry = PlatformStatesPurposeEntry.safeParse(unmarshalled);
+
+    if (!purposeEntry.success) {
+      throw genericInternalError(
+        `Unable to parse purpose entry item: result ${JSON.stringify(
+          purposeEntry
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return purposeEntry.data;
+  }
+};
+
+export const writeTokenStateClientPurposeEntry = async (
+  tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: tokenStateEntry.PK,
+      },
+      ...(tokenStateEntry.descriptorState
+        ? {
+            descriptorState: {
+              S: tokenStateEntry.descriptorState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorAudience
+        ? {
+            descriptorAudience: {
+              L: tokenStateEntry.descriptorAudience.map((item) => ({
+                S: item,
+              })),
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorVoucherLifespan
+        ? {
+            descriptorVoucherLifespan: {
+              N: tokenStateEntry.descriptorVoucherLifespan.toString(),
+            },
+          }
+        : {}),
+      updatedAt: {
+        S: tokenStateEntry.updatedAt,
+      },
+      consumerId: {
+        S: tokenStateEntry.consumerId,
+      },
+      ...(tokenStateEntry.agreementId
+        ? {
+            agreementId: {
+              S: tokenStateEntry.agreementId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeVersionId
+        ? {
+            purposeVersionId: {
+              S: tokenStateEntry.purposeVersionId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_consumerId_eserviceId
+        ? {
+            GSIPK_consumerId_eserviceId: {
+              S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+            },
+          }
+        : {}),
+      clientKind: {
+        S: tokenStateEntry.clientKind,
+      },
+      publicKey: {
+        S: tokenStateEntry.publicKey,
+      },
+      GSIPK_clientId: {
+        S: tokenStateEntry.GSIPK_clientId,
+      },
+      GSIPK_kid: {
+        S: tokenStateEntry.GSIPK_kid,
+      },
+      ...(tokenStateEntry.GSIPK_clientId_purposeId
+        ? {
+            GSIPK_clientId_purposeId: {
+              S: tokenStateEntry.GSIPK_clientId_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.agreementState
+        ? {
+            agreementState: {
+              S: tokenStateEntry.agreementState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_eserviceId_descriptorId
+        ? {
+            GSIPK_eserviceId_descriptorId: {
+              S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_purposeId
+        ? {
+            GSIPK_purposeId: {
+              S: tokenStateEntry.GSIPK_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeState
+        ? {
+            purposeState: {
+              S: tokenStateEntry.purposeState,
+            },
+          }
+        : {}),
+    },
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const clientKindToTokenGenerationStatesClientKind = (
+  kind: ClientKind
+): ClientKindTokenStates =>
+  match<ClientKind, ClientKindTokenStates>(kind)
+    .with(clientKind.consumer, () => clientKindTokenStates.consumer)
+    .with(clientKind.api, () => clientKindTokenStates.api)
+    .exhaustive();
+
+export const writeClientEntry = async (
+  clientEntry: PlatformStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: clientEntry.PK,
+      },
+      state: {
+        S: clientEntry.state,
+      },
+      clientPurposesIds: {
+        L: [],
+      },
+      version: {
+        N: clientEntry.version.toString(),
+      },
+      updatedAt: {
+        S: clientEntry.updatedAt,
+      },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const readClientEntriesInTokenGenerationStates = async (
+  GSIPK_clientId: GSIPKClientId,
+  dynamoDBClient: DynamoDBClient
+): Promise<TokenGenerationStatesGenericEntry[]> => {
+  const runPaginatedQuery = async (
+    GSIPK_clientId: GSIPKClientId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenerationStatesGenericEntry[]> => {
+    const input: QueryInput = {
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      IndexName: "Client",
+      KeyConditionExpression: `GSIPK_clientId = :gsiValue`,
+      ExpressionAttributeValues: {
+        ":gsiValue": { S: GSIPK_clientId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+      ScanIndexForward: false,
+    };
+    const command = new QueryCommand(input);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read platform state client entries: result ${JSON.stringify(
+          data
+        )} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const clientEntries = z
+        .array(TokenGenerationStatesGenericEntry)
+        .safeParse(unmarshalledItems);
+
+      if (!clientEntries.success) {
+        throw genericInternalError(
+          `Unable to parse token state entry items: result ${JSON.stringify(
+            clientEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      if (!data.LastEvaluatedKey) {
+        return clientEntries.data;
+      } else {
+        return [
+          ...clientEntries.data,
+          ...(await runPaginatedQuery(
+            GSIPK_clientId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
+    }
+  };
+
+  return await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
 };
