@@ -1,0 +1,47 @@
+meta {
+  name: Add Descriptors Document
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/documents
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "documentId": "5d6d2677-f6b3-4c2a-ae25-d9685cb464b0",
+      "kind": "INTERFACE",
+      "prettyName": "Test File Name",
+      "filePath": "eservices/docs/5d6d2677-f6b3-4c2a-ae25-d9685cb464b0/testfile",
+      "fileName": "testfile",
+      "contentType": "test",
+      "checksum": "checksum",
+      "serverUrls": [
+          "server urls 1",
+          "server urls 2"
+      ]
+  }
+}
+
+vars:post-response {
+  interfaceId: res.body.descriptors[0].interface.id
+}

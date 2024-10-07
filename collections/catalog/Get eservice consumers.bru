@@ -1,0 +1,25 @@
+meta {
+  name: Get eservice consumers
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{host-catalog}}/eservices/:eserviceId/consumers
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceId}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+  ~Connection: keep-alive
+}
