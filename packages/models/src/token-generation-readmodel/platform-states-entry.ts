@@ -31,7 +31,7 @@ type PlatformStatesBaseEntry = z.infer<typeof PlatformStatesBaseEntry>;
 
 export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
-  descriptorAudience: z.string(),
+  descriptorAudience: z.array(z.string()),
   descriptorVoucherLifespan: z.number(),
 });
 export type PlatformStatesCatalogEntry = z.infer<

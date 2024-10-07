@@ -276,7 +276,7 @@ const clientRouter = (
           ctx
         );
 
-        return res.status(200).send(bffApi.PublicKeys.parse({ keys }));
+        return res.status(200).send(bffApi.PublicKeys.parse(keys));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
