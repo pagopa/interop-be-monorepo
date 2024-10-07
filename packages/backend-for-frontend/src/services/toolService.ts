@@ -48,7 +48,7 @@ import {
   AgreementProcessClient,
   CatalogProcessClient,
 } from "../clients/clientsProvider.js";
-import { getLatestAgreement } from "./agreementService.js";
+import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -309,22 +309,14 @@ async function retrieveAgreement(
   eserviceId: string,
   ctx: WithLogger<BffAppContext>
 ): Promise<agreementApi.Agreement> {
-  const agreements = await getAllFromPaginated<agreementApi.Agreement>(
-    async (offset, limit) =>
-      await agreementClient.getAgreements({
-        headers: ctx.headers,
-        queries: {
-          offset,
-          limit,
-          consumersIds: [consumerId],
-          eservicesIds: [eserviceId],
-          states: [
-            agreementApi.AgreementState.Values.ACTIVE,
-            agreementApi.AgreementState.Values.SUSPENDED,
-          ],
-        },
-      })
-  );
+  const agreements = await getAllAgreements(agreementClient, ctx.headers, {
+    consumersIds: [consumerId],
+    eservicesIds: [eserviceId],
+    states: [
+      agreementApi.AgreementState.Values.ACTIVE,
+      agreementApi.AgreementState.Values.SUSPENDED,
+    ],
+  });
 
   assertOnlyOneAgreementForEserviceAndConsumerExists(
     agreements,
