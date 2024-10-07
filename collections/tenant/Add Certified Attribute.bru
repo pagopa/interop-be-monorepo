@@ -1,0 +1,26 @@
+meta {
+  name: Add Certified Attribute
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{host-tenant}}/tenants/:tenantId/attributes/certified
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id" : "69e2865e-65ab-4e48-a638-2037a9ee2ee7"
+  }
+}

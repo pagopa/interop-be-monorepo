@@ -547,7 +547,7 @@ const tenantsRouter = (
 
         try {
           const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
-          return res.status(200).send({ id });
+          return res.status(200).send(tenantApi.ResourceId.parse({ id }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
