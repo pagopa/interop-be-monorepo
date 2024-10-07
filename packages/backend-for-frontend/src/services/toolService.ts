@@ -21,7 +21,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
