@@ -41,13 +41,13 @@ export const errorCodes = {
   notValidDescriptor: "0032",
   privacyNoticeNotFoundInConfiguration: "0034",
   privacyNoticeNotFound: "0035",
-  privacyNoticeVersionIsNotTheLatest: "0036",
-  missingActivePurposeVersion: "0038",
-  activeAgreementByEserviceAndConsumerNotFound: "0039",
-  multipleAgreementForEserviceAndConsumer: "0040",
-  purposeIdNotFoundInClientAssertion: "0041",
-  clientAssertionPublicKeyNotFound: "0042",
-  organizationNotAllowed: "0043",
+  privacyNoticeVersionIsNotTheLatest: "0035",
+  missingActivePurposeVersion: "0036",
+  activeAgreementByEserviceAndConsumerNotFound: "0037",
+  multipleAgreementForEserviceAndConsumer: "0038",
+  purposeIdNotFoundInClientAssertion: "0039",
+  clientAssertionPublicKeyNotFound: "0040",
+  organizationNotAllowed: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
