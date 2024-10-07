@@ -83,8 +83,8 @@ jobs:
             dockerfile_path: packages/anac-certified-attributes-importer
           - image_name: ivass-certified-attributes-importer
             dockerfile_path: packages/ivass-certified-attributes-importer
-          - image_name: pagopa-interop-pn-consumers
-            dockerfile_path: packages/pagopa-interop-pn-consumers
+          - image_name: pn-consumers
+            dockerfile_path: packages/pn-consumers
           - image_name: one-trust-notices
             dockerfile_path: packages/one-trust-notices
 

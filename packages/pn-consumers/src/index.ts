@@ -32,8 +32,8 @@ async function main(): Promise<void> {
   );
 
   if (purposes.length === 0) {
-    loggerInstance.info("> No purposes data found. Exiting program.");
-    process.exit(0);
+    loggerInstance.info("> No purposes data found.");
+    return;
   }
 
   const csv = toCSV(purposes.map((p) => toCsvDataRow(p, loggerInstance)));
@@ -56,9 +56,6 @@ async function main(): Promise<void> {
   );
 
   loggerInstance.info("> Success!\n");
-  loggerInstance.info("End of program.");
-
-  process.exit(0);
 }
 
 await withExecutionTime(main, loggerInstance);
