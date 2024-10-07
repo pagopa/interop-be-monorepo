@@ -10,16 +10,29 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const getAgreementErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("invalidAgreementState", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("producerAndConsumerParamMissing", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("attributeAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getAttributeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -40,15 +53,12 @@ export const getAgreementByPurposeErrorMapper = (
 
 export const getEserviceErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with(
-      "missingAvailableDescriptor",
-      "unexpectedDescriptorState",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -56,11 +66,8 @@ export const getEserviceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "eserviceDescriptorNotFound",
-      "unexpectedDescriptorState",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
