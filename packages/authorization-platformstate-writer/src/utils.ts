@@ -37,6 +37,8 @@ import {
 import { z } from "zod";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
+import { UpdateItemInput } from "@aws-sdk/client-dynamodb";
+import { UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenStatesByKid = async (
@@ -711,4 +713,36 @@ export const readClientEntriesInTokenGenerationStates = async (
   };
 
   return await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
+};
+
+export const cleanClientPurposeIdsInPlatformStatesEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesClientPK,
+  version: number
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":clientPurposesIds": {
+        L: [],
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression:
+      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
 };

@@ -41,6 +41,7 @@ import {
   writeTokenStateClientEntry,
   writeTokenStateClientPurposeEntry,
   readClientEntriesInTokenGenerationStates,
+  cleanClientPurposeIdsInPlatformStatesEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -250,8 +251,11 @@ export async function handleMessageV2(
         if (clientEntry.version > msg.version) {
           return Promise.resolve();
         } else {
-          // TODO update
-          // what to do? If purposeIds has not to be populated -> update to empty that field
+          await cleanClientPurposeIdsInPlatformStatesEntry(
+            dynamoDBClient,
+            pk,
+            msg.version
+          );
         }
       } else {
         const clientEntryPK = makePlatformStatesClientPK(client.id);
@@ -297,7 +301,11 @@ export async function handleMessageV2(
           if (client.purposes.length === 0) {
             await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
           } else {
-            // TODO cleanPurposeIdsInPlatformStateClientEntry(); -> empty that field
+            await cleanClientPurposeIdsInPlatformStatesEntry(
+              dynamoDBClient,
+              pk,
+              msg.version
+            );
           }
 
           // token-generation-states
@@ -317,9 +325,6 @@ export async function handleMessageV2(
             );
           }
         }
-      } else {
-        // TODO not sure about this
-        //  -> no op
       }
     })
     .with({ type: "ClientDeleted" }, async (msg) => {
