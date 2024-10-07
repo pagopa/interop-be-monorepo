@@ -282,7 +282,7 @@ export function tenantServiceBuilder(
         attributeId,
         correlationId
       );
-      console.log("event", event.event.data);
+
       await repository.createEvent(event);
       return updatedTenant;
     },
