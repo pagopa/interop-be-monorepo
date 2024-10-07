@@ -181,6 +181,7 @@ services:
         mc ready minio;
         echo 'MinIO is ready. Seeding data...';
         mc cp --recursive data/ minio/interop-local-bucket/;
+        mc mb minio/interop-datalake-bucket || true;
       "
     volumes:
       - ./minio-seed:/data
