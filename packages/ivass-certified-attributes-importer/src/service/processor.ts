@@ -295,4 +295,3 @@ function getBatch(
     records,
   };
 }
-
