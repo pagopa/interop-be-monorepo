@@ -25,6 +25,6 @@ enum DelegationStateV2 {
 }
 
 enum DelegationKindV2 {
-  DELEGATED_CONSUMER = 1;
   DELEGATED_PRODUCER = 0;
+  DELEGATED_CONSUMER = 1;
 }
