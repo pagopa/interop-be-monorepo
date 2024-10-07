@@ -318,8 +318,6 @@ const tenantsRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
-        // TODO sono arrivato qui
-
         try {
           const { tenantId, attributeId, verifierId } = req.params;
           const tenant =
@@ -329,7 +327,9 @@ const tenantsRouter = (
               verifierId,
               ctx
             );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -354,7 +354,9 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -455,7 +457,9 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           const tenant = await tenantService.m2mUpsertTenant(req.body, ctx);
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -516,7 +520,10 @@ const tenantsRouter = (
             ctx.logger
           );
 
-          return res.status(200).send(toApiTenant(tenant));
+          // TODO sono arrivato qui
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -566,7 +573,9 @@ const tenantsRouter = (
             req.body,
             ctx
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -654,7 +663,9 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -679,7 +690,9 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -705,7 +718,9 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -729,7 +744,9 @@ const tenantsRouter = (
             },
             ctx
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -779,7 +796,9 @@ const tenantsRouter = (
             },
             ctx.logger
           );
-          return res.status(200).send(toApiTenant(tenant));
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

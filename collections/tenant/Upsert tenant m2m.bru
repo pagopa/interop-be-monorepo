@@ -1,0 +1,24 @@
+meta {
+  name: Upsert tenant m2m
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host-tenant}}/m2m/tenants
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "externalId": "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+    "certifiedAttributes": [],
+    "name": "try"
+  }
+}
