@@ -13,12 +13,12 @@ import {
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
+  attributeByCodeNotFound,
   attributeByOriginNotFound,
   certifiedAttributeAlreadyAssigned,
   tenantAttributeNotFound,
   tenantByOriginNotFound,
   tenantNotFound,
-  tenantOrAttributeNotFound,
 } from "../models/errors.js";
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
@@ -166,7 +166,8 @@ export function tenantServiceBuilder(
         .catch((res) => {
           throw clientStatusCodeToError(res, {
             403: operationForbidden,
-            404: tenantAttributeNotFound(origin, externalId, attributeCode),
+            404: tenantByOriginNotFound(origin, externalId),
+            400: tenantAttributeNotFound(origin, externalId, attributeCode),
           });
         });
     },
@@ -184,6 +185,17 @@ export function tenantServiceBuilder(
       );
 
       const tenantSeed = toM2MTenantSeed(origin, externalId, attributeCode);
+
+      const tenant: tenantApi.Tenant | undefined =
+        await tenantProcessClient.tenant
+          .getTenantByExternalId({
+            headers,
+            params: {
+              origin,
+              code: externalId,
+            },
+          })
+          .catch(() => undefined);
       await tenantProcessClient.m2m
         .m2mUpsertTenant(tenantSeed, {
           headers,
@@ -191,7 +203,10 @@ export function tenantServiceBuilder(
         .catch((res) => {
           throw clientStatusCodeToError(res, {
             403: operationForbidden,
-            404: tenantOrAttributeNotFound(origin, externalId, attributeCode),
+            404:
+              tenant === undefined
+                ? tenantByOriginNotFound(origin, externalId)
+                : attributeByCodeNotFound(attributeCode),
             409: certifiedAttributeAlreadyAssigned(
               origin,
               externalId,

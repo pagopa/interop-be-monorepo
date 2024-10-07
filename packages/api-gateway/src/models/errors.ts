@@ -26,7 +26,7 @@ export const errorCodes = {
   tenantByOriginNotFound: "0014",
   attributeByOriginNotFound: "0015",
   tenantAttributeNotFound: "0016",
-  tenantOrAttributeNotFound: "0017",
+  attributeByCodeNotFound: "0017",
   certifiedAttributeAlreadyAssigned: "0018",
 };
 
@@ -247,15 +247,13 @@ export function tenantAttributeNotFound(
   });
 }
 
-export function tenantOrAttributeNotFound(
-  origin: tenantApi.ExternalId["origin"],
-  externalId: tenantApi.ExternalId["value"],
+export function attributeByCodeNotFound(
   attributeCode: attributeRegistryApi.Attribute["code"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Institution (${origin}, ${externalId}) or Attribute ${attributeCode} not found`,
-    code: "tenantOrAttributeNotFound",
-    title: "Institution or Attribute not found",
+    detail: `Attribute ${attributeCode} not found`,
+    code: "attributeByCodeNotFound",
+    title: "Attribute by code not found",
   });
 }
 
