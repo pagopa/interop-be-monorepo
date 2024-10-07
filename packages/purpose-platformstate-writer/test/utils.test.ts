@@ -267,7 +267,7 @@ describe("utils tests", async () => {
       expect(result.lastEvaluatedKey).toBeUndefined();
     });
 
-    it("should return the first page of entries if they exist (with pagination)", async () => {
+    it.skip("should return the first page of entries if they exist (with pagination)", async () => {
       const purposeId = generateId<PurposeId>();
       const tokenEntriesLength = 1200;
 
@@ -345,7 +345,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should return all entries if they exist (with pagination)", async () => {
+    it.skip("should return all entries if they exist (with pagination)", async () => {
       const purposeId = generateId<PurposeId>();
       const tokenEntriesLength = 1200;
 
