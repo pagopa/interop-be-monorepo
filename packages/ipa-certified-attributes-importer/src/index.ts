@@ -103,48 +103,54 @@ async function loadCertifiedAttributes(
 
 try {
   const openData = await loadOpenData();
-  const attributes = await loadCertifiedAttributes(openData);
+  // not needed? could be used to map into a certificate seed when needed
+  // const attributes = await loadCertifiedAttributes(openData);
 
   const readModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
 
+  const allInstitutions = [
+    ...openData.institutions,
+    ...openData.aoo,
+    ...openData.uo,
+  ];
+
+  const getAttributes = await readModelService.getAttributes();
   const ipaTenants = await readModelService.getIPATenants();
 
-  for (const tenant of ipaTenants) {
-    const tenantInstitutions = openData.institutions.filter(
-      (i) => i.originId === tenant.externalId.value
-    );
-    const tenantAoo = openData.aoo.filter(
-      (i) => i.originId === tenant.externalId.value
-    );
-    const tenantUo = openData.uo.filter(
-      (i) => i.originId === tenant.externalId.value
-    );
-    const tenantCategories = openData.categories.filter(
-      (c) => c.origin === tenant.externalId.value
-    );
-  }
+  const getAttributeToAdd = allInstitutions.filter(
+    (i) =>
+      !getAttributes.find((a) => a.code === i.originId) &&
+      ipaTenants.find((t) => t.externalId.value === i.originId)
+  );
 
-  for (const ipaTenant of ipaTenants) {
-    const ipaData = ipalist.find(
-      (ipa) => ipa.codice === ipaTenant.externalId.value
-    );
+  const tesst = ipaTenants.reduce((acc, tenant) => {}, []);
 
-    if (!ipaData) {
-      loggerInstance.warn(
-        `IPA data not found for tenant ${ipaTenant.externalId.value}`
-      );
-      continue;
-    }
+  // next steps
+  // get all attributes
+  // for each tenant find the attributes that should be assigned
+  //    and that should be revoked
+  // if a tenat is not present in the open data list
+  //    log a warning and continue
+  // revoke every attribute that should be revoked
+  // for each attribute that should be assigned
+  //    if already exist assign it
+  //    if not create it and assign it
+  //
+  //
+  // possible problems
+  // after the creation of a resource we should wait for the event to be processed
+  // so I'm not sure that is possible to assign the attribute to the tenant after it's creation
+  //
+  // is it possible that an attribute change? in this case we should revoke the old one
+  // and assign the new one?
 
-    loggerInstance.info(
-      `Found IPA data for tenant ${ipaTenant.externalId.value}`
-    );
-    // assign ipa data attribute to tenant
-
-    // revoke tenat attribute if not present in ipa data
-  }
+  // for (const tenant of ipaTenants) {
+  // const tenantAttributes = attributes.filter(
+  //   (a) => a.code === tenant.externalId.value
+  // );
+  // }
 } catch (error) {
   loggerInstance.error(error);
 }
