@@ -35,6 +35,12 @@ import {
   technology,
   AttributeKind,
   ProducerKeychain,
+  Delegation,
+  delegationKind,
+  DelegationId,
+  delegationState,
+  DelegationContractDocument,
+  DelegationContractId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -301,4 +307,41 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     origin: "IPA",
   },
   selfcareId: generateId(),
+});
+
+export const getMockDelegationProducer = (
+  delegationId?: DelegationId,
+  delegatorId?: TenantId,
+  delegatedId?: TenantId
+): Delegation => {
+  const creationTime = new Date();
+  const delegationSubmitter: TenantId = delegatorId ?? generateId<TenantId>();
+
+  return {
+    id: delegationId ?? generateId(),
+    delegatorId: delegationSubmitter,
+    delegateId: delegatedId ?? generateId(),
+    eserviceId: generateId(),
+    createdAt: creationTime,
+    submittedAt: creationTime,
+    state: delegationState.active,
+    kind: delegationKind.delegatedProducer,
+    stamps: {
+      submission: {
+        who: delegationSubmitter,
+        when: creationTime,
+      },
+    },
+  };
+};
+
+export const getMockDelegationDocument = (
+  id?: DelegationContractId
+): DelegationContractDocument => ({
+  id: id ?? generateId(),
+  name: "Test document",
+  prettyName: "Test document",
+  contentType: "json",
+  path: "path",
+  createdAt: new Date(),
 });
