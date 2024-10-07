@@ -5,6 +5,7 @@ import {
   removeDuplicateObjectsBy,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
+import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import {
@@ -116,14 +117,40 @@ try {
     ...openData.uo,
   ];
 
-  const getAttributes = await readModelService.getAttributes();
+  const attributes = await readModelService.getAttributes();
   const ipaTenants = await readModelService.getIPATenants();
 
-  const getAttributeToAdd = allInstitutions.filter(
-    (i) =>
-      !getAttributes.find((a) => a.code === i.originId) &&
-      ipaTenants.find((t) => t.externalId.value === i.originId)
+  const attributeIndex = new Map(
+    attributes
+      .filter((a) => a.kind === "Certified" && a.origin && a.code)
+      .map((a) => [a.id, { origin: a.origin, code: a.code }])
   );
+
+  const filteredTenants = ipaTenants.filter((t) => t.selfcareId);
+  const tenantsMap = new Map(
+    filteredTenants.map((t) => [t.externalId, t.name])
+  );
+
+  const fromRegistry = allInstitutions.filter(
+    (i) =>
+      i.id.length > 0 && tenantsMap.has({ value: i.origin, origin: i.originId })
+  );
+
+  const fromTenant = filteredTenants.map((t) => [
+    t.externalId,
+    t.attributes.map((a) =>
+      match(a)
+        .with({ type: "PersistentCertifiedAttribute" }, (a) =>
+          match(attributeIndex.get(a.id))
+            .with(P.not(P.nullish), (info) => ({
+              ...info,
+              revocationTimestamp: a.revocationTimestamp,
+            }))
+            .otherwise(() => undefined)
+        )
+        .otherwise(() => attributeIndex.get(a.id))
+    ),
+  ]);
 
   const tesst = ipaTenants.reduce((acc, tenant) => {}, []);
 
