@@ -65,3 +65,12 @@ export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
 export type PlatformStatesClientEntry = z.infer<
   typeof PlatformStatesClientEntry
 >;
+
+export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
+  PlatformStatesAgreementEntry
+)
+  .or(PlatformStatesPurposeEntry)
+  .or(PlatformStatesClientEntry);
+export type PlatformStatesGenericEntry = z.infer<
+  typeof PlatformStatesGenericEntry
+>;

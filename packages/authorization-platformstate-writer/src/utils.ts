@@ -120,16 +120,16 @@ export const deleteClientEntryFromPlatformStates = async (
 export const deleteEntriesFromTokenStatesByClient = async (
   GSIPK_client: GSIPKClientId,
   dynamoDBClient: DynamoDBClient
-): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+): Promise<TokenGenerationStatesGenericEntry[]> => {
   const runPaginatedQuery = async (
     GSIPK_client: GSIPKClientId,
     dynamoDBClient: DynamoDBClient,
     exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  ): Promise<TokenGenerationStatesGenericEntry[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Client",
-      KeyConditionExpression: `GSIPK_client = :gsiValue`,
+      KeyConditionExpression: `GSIPK_clientId = :gsiValue`,
       ExpressionAttributeValues: {
         ":gsiValue": { S: GSIPK_client },
       },
@@ -146,7 +146,7 @@ export const deleteEntriesFromTokenStatesByClient = async (
       const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
       const tokenStateEntries = z
-        .array(TokenGenerationStatesClientPurposeEntry)
+        .array(TokenGenerationStatesGenericEntry)
         .safeParse(unmarshalledItems);
 
       if (!tokenStateEntries.success) {
@@ -183,7 +183,7 @@ export const deleteEntriesFromTokenStatesByClient = async (
 };
 
 export const deleteClientEntryFromTokenGenerationStatesTable = async (
-  entryToDelete: TokenGenerationStatesClientPurposeEntry,
+  entryToDelete: TokenGenerationStatesGenericEntry,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const input: DeleteItemInput = {
