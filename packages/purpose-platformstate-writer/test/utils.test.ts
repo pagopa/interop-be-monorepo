@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
 import { fail } from "assert";
 import {
   afterAll,
@@ -267,9 +268,9 @@ describe("utils tests", async () => {
       expect(result.lastEvaluatedKey).toBeUndefined();
     });
 
-    it.skip("should return the first page of entries if they exist (with pagination)", async () => {
+    it("should return the first page of entries if they exist (with pagination)", async () => {
       const purposeId = generateId<PurposeId>();
-      const tokenEntriesLength = 1200;
+      const tokenEntriesLength = 10;
 
       for (let i = 0; i < tokenEntriesLength; i++) {
         const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
@@ -282,6 +283,7 @@ describe("utils tests", async () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
           purposeVersionId: generateId<PurposeVersionId>(),
+          publicKey: crypto.randomBytes(100000).toString("hex"),
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
       }
@@ -345,9 +347,9 @@ describe("utils tests", async () => {
       );
     });
 
-    it.skip("should return all entries if they exist (with pagination)", async () => {
+    it("should return all entries if they exist (with pagination)", async () => {
       const purposeId = generateId<PurposeId>();
-      const tokenEntriesLength = 1200;
+      const tokenEntriesLength = 10;
 
       const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
       for (let i = 0; i < tokenEntriesLength; i++) {
@@ -361,6 +363,7 @@ describe("utils tests", async () => {
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
           purposeVersionId: generateId<PurposeVersionId>(),
+          publicKey: crypto.randomBytes(100000).toString("hex"),
         };
         await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
         // eslint-disable-next-line functional/immutable-data
