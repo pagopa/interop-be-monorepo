@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import {
   InteropTokenGenerator,
   ReadModelRepository,
@@ -6,6 +5,7 @@ import {
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "./config/config.js";
 import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
@@ -14,7 +14,7 @@ import { ReadModelQueries } from "./service/readModelQueriesService.js";
 
 const loggerInstance = logger({
   serviceName: "ivass-certified-attributes-importer",
-  correlationId: crypto.randomUUID(),
+  correlationId: uuidv4(),
 });
 
 const fileManager = initFileManager(config);

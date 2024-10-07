@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
 import { Tenant } from "pagopa-interop-models";
@@ -338,7 +338,7 @@ async function assignAttribute(
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: crypto.randomUUID(),
+      correlationId: uuidv4(),
       bearerToken: token.serialized,
     };
     await tenantProcess.internalAssignCertifiedAttribute(
@@ -364,7 +364,7 @@ async function unassignAttribute(
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: crypto.randomUUID(),
+      correlationId: uuidv4(),
       bearerToken: token.serialized,
     };
     await tenantProcess.internalRevokeCertifiedAttribute(
