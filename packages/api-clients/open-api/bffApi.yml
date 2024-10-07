@@ -11962,18 +11962,22 @@ paths:
             default: []
           explode: false
         - in: query
-          name: filterBy
+          name: delegatorIds
           schema:
-            type: string
-            enum: [DELEGATOR, DELEGATED]
-          description: "The type of user to filter by"
+            type: array
+            items: 
+              type: string
+              format: uuid
+          description: "The delegator ids to filter by"
           required: true
         - in: query
-          name: userId
+          name: delegatedIds
           schema:
-            type: string
-            format: uuid
-          description: "The ID of the user to filter by"
+            type: array
+            items: 
+              type: string
+              format: uuid
+          description: "The delegated ids to filter by"
           required: true
       responses:
         "200":
