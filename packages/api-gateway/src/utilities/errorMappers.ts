@@ -38,13 +38,14 @@ export const getAttributeErrorMapper = (error: ApiError<ErrorCodes>): number =>
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("missingActivePurposeVersion", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementByPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "activeAgreementByEserviceAndConsumerNotFound",
       () => HTTP_STATUS_NOT_FOUND
@@ -62,6 +63,11 @@ export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getEserviceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -70,9 +76,39 @@ export const getEserviceDescriptorErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getJWKErrorMapper = (error: ApiError<ErrorCodes>): number =>
+export const getOrganizationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
   match(error.code)
-    .with("keyNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getOrganizationEservicesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantByOriginNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeByOriginNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const revokeTenantAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantByOriginNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantAttributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const upsertTenantErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantByOriginNotFound",
+      "attributeByCodeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
