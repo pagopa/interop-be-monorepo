@@ -37,7 +37,9 @@ export const DelegationContractDocument = z.object({
   path: z.string(),
   createdAt: z.coerce.date(),
 });
-export type DelegationContractDocument = z.infer<typeof DelegationContractDocument>;
+export type DelegationContractDocument = z.infer<
+  typeof DelegationContractDocument
+>;
 
 export const DelegationStamp = z.object({
   who: TenantId,
