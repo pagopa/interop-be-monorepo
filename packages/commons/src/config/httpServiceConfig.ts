@@ -14,12 +14,12 @@ export const JWTConfig = z
       .transform((s) => s.split(","))
       .pipe(z.array(z.string())),
 
-    JWKS_CACHE_MAX_AGE: z.coerce.number().optional(),
+    JWKS_CACHE_MAX_AGE_MILLIS: z.coerce.number().optional(),
   })
   .transform((c) => ({
     wellKnownUrls: c.WELL_KNOWN_URLS,
     acceptedAudiences: c.ACCEPTED_AUDIENCES,
-    jwksCacheMaxAge: c.JWKS_CACHE_MAX_AGE, // milliseconds
+    jwksCacheMaxAge: c.JWKS_CACHE_MAX_AGE_MILLIS, // milliseconds
   }));
 export type JWTConfig = z.infer<typeof JWTConfig>;
 
