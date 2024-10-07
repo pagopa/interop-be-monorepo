@@ -337,6 +337,9 @@ importers:
       ssh2-sftp-client:
         specifier: ^9.1.0
         version: 9.1.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -350,6 +353,9 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 9.0.4
         version: 9.0.4
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1740,6 +1746,9 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1756,6 +1765,9 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 9.0.4
         version: 9.0.4
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2016,6 +2028,64 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
+
+  packages/pn-consumers:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: 3.387.0
+        version: 3.387.0
+      axios:
+        specifier: 1.5.0
+        version: 1.5.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      nodemailer:
+        specifier: 6.9.4
+        version: 6.9.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/nodemailer':
+        specifier: 6.4.9
+        version: 6.4.9
+      '@types/uuid':
+        specifier: 9.0.8
+        version: 9.0.8
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
 
   packages/producer-key-events-writer:
     dependencies:
@@ -7867,6 +7937,12 @@ packages:
       '@types/node': 20.14.6
     dev: true
 
+  /@types/nodemailer@6.4.9:
+    resolution: {integrity: sha512-XYG8Gv+sHjaOtUpiuytahMy2mM3rectgroNbs6R3djZEKmPNiIJwe9KqOJBGzKKnNZNKvnuvmugBgpq3w/S0ig==}
+    dependencies:
+      '@types/node': 20.14.6
+    dev: true
+
   /@types/qs@6.9.15:
     resolution: {integrity: sha512-uXHQKES6DQKKCLh441Xv/dwxOq1TVS3JPUMlEqoEglvlhR6Mxnlew/Xq/LRVHpLyk7iK3zODe1qYHIMltO7XGg==}
 
@@ -11197,6 +11273,11 @@ packages:
 
   /nodemailer@6.9.14:
     resolution: {integrity: sha512-Dobp/ebDKBvz91sbtRKhcznLThrKxKt97GI2FAlAyy+fk19j73Uz3sBXolVtmcXjaorivqsbbbjDY+Jkt4/bQA==}
+    engines: {node: '>=6.0.0'}
+    dev: false
+
+  /nodemailer@6.9.4:
+    resolution: {integrity: sha512-CXjQvrQZV4+6X5wP6ZIgdehJamI63MFoYFGGPtHudWym9qaEHDNdPzaj5bfMCvxG1vhAileSWW90q7nL0N36mA==}
     engines: {node: '>=6.0.0'}
     dev: false
 

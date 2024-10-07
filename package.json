@@ -26,6 +26,7 @@
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",
     "start:ivass-certified-attributes-importer": "turbo start --filter pagopa-interop-ivass-certified-attributes-importer",
+    "start:pn-consumers": "turbo start --filter pagopa-interop-pn-consumers",
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
     "test": "turbo test",
