@@ -58,7 +58,7 @@ const getKey = async (
       return signingKey.getPublicKey();
     } catch (error) {
       // Continue to the next client
-      logger.info(`Skip Jwks client`);
+      logger.debug(`Skip Jwks client`);
     }
   }
 
