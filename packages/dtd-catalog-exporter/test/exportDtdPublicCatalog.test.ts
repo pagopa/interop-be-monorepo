@@ -12,7 +12,7 @@ import {
   addOneTenant,
   dtdCatalogExporterService,
   getExportDtdPublicCatalogResult,
-} from "./utils";
+} from "./utils.js";
 
 describe("exportDtdPublicCatalog", () => {
   it("should correctly retrieve and remap eservices", async () => {
