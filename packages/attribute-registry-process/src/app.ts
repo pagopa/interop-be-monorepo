@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import attributeRouter from "./routers/AttributeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
+import { config } from "./config/config.js";
 
 const serviceName = "attribute-registry-process";
 
@@ -17,7 +18,7 @@ app.disable("x-powered-by");
 
 app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
-app.use(authenticationMiddleware);
+app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
 app.use(attributeRouter(zodiosCtx));
 
