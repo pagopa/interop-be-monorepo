@@ -7,8 +7,11 @@ import {
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  getMockAgreementEntry,
   getMockTokenStatesClientPurposeEntry,
+  readAllTokenStateItems,
   readTokenStateEntriesByConsumerIdEserviceId,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import {
   makePlatformStatesAgreementPK,
@@ -42,12 +45,7 @@ import {
   agreementStateToItemState,
   updateAgreementStateInTokenGenerationStatesTable,
 } from "../src/utils.js";
-import {
-  getMockAgreementEntry,
-  writeTokenStateEntry,
-  readAllTokenStateItems,
-  config,
-} from "./utils.js";
+import { config } from "./utils.js";
 
 describe("utils", async () => {
   if (!config) {
