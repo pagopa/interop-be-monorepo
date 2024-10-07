@@ -151,8 +151,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           clients,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },
@@ -347,8 +346,7 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           producerKeychains,
-          aggregationPipeline,
-          false
+          aggregationPipeline
         ),
       };
     },

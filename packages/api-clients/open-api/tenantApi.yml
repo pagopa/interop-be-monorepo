@@ -1354,10 +1354,18 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+        digitalAddress:
+          $ref: "#/components/schemas/MailSeed"
+        onboardedAt:
+          type: string
+          format: date-time
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
       required:
         - externalId
         - selfcareId
         - name
+        - onboardedAt
     Mail:
       description: A specific kind of mail
       type: object

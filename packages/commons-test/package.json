@@ -19,7 +19,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
+    "@aws-sdk/client-dynamodb": "3.637.0",
     "@aws-sdk/client-sesv2": "3.620.1",
+    "@aws-sdk/util-dynamodb": "3.658.1",
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.4",
     "@testcontainers/postgresql": "10.9.0",

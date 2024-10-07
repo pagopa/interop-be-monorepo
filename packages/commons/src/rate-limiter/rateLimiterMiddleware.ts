@@ -23,7 +23,7 @@ export function rateLimiterMiddleware(
         () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
         ctx.logger
       );
-      res.status(errorRes.status).json(errorRes).send();
+      return res.status(errorRes.status).send(errorRes);
     }
 
     const rateLimiterStatus = await rateLimiter.rateLimitByOrganization(
@@ -41,9 +41,9 @@ export function rateLimiterMiddleware(
         ctx.logger
       );
 
-      res.status(errorRes.status).json(errorRes).send();
+      return res.status(errorRes.status).send(errorRes);
     } else {
-      next();
+      return next();
     }
   };
 }
