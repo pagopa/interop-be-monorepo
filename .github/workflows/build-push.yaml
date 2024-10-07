@@ -87,6 +87,8 @@ jobs:
             dockerfile_path: packages/pn-consumers
           - image_name: one-trust-notices
             dockerfile_path: packages/one-trust-notices
+          - image_name: datalake-data-exporter
+            dockerfile_path: packages/datalake-data-exporter
 
     steps:
       - name: Checkout repository
