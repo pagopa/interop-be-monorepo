@@ -183,7 +183,7 @@ export async function handleMessageV2(
                   purposeState: purposeEntry.state,
                   purposeVersionId: purposeEntry.purposeVersionId,
                   GSIPK_clientId: client.id,
-                  GSIPK_kid: msg.data.kid,
+                  GSIPK_kid: makeGSIPKKid(msg.data.kid),
                   GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
                     clientId: client.id,
                     purposeId,

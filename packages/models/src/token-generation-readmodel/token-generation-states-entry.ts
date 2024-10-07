@@ -5,6 +5,7 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
+  GSIPKKid,
   PurposeId,
   PurposeVersionId,
   TenantId,
@@ -28,7 +29,7 @@ const TokenGenerationStatesBaseEntry = z.object({
   clientKind: ClientKindTokenStates,
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
-  GSIPK_kid: z.string(),
+  GSIPK_kid: GSIPKKid,
   updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
