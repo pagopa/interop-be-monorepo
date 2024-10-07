@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ApiError, genericError } from "pagopa-interop-models";
 import { ErrorCodes } from "../models/errors.js";
 
-const CatchableCodes = z.enum(["404", "403"]);
+const CatchableCodes = z.enum(["403", "404", "409"]);
 type CatchableCodes = z.infer<typeof CatchableCodes>;
 const ClientError = z.object({
   message: z.string(),

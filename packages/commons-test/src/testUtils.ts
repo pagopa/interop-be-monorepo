@@ -34,6 +34,18 @@ import {
   Key,
   technology,
   AttributeKind,
+  itemState,
+  ClientId,
+  PurposeId,
+  TokenGenerationStatesClientPurposeEntry,
+  makeGSIPKConsumerIdEServiceId,
+  makeGSIPKClientIdPurposeId,
+  makeGSIPKEServiceIdDescriptorId,
+  TokenGenerationStatesClientKidPurposePK,
+  makeTokenGenerationStatesClientKidPurposePK,
+  clientKindTokenStates,
+  AgreementId,
+  PurposeVersionId,
   ProducerKeychain,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
@@ -302,3 +314,50 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   },
   selfcareId: generateId(),
 });
+
+export const getMockTokenStatesClientPurposeEntry = (
+  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
+): TokenGenerationStatesClientPurposeEntry => {
+  const clientId = generateId<ClientId>();
+  const purposeId = generateId<PurposeId>();
+  const consumerId = generateId<TenantId>();
+  const eserviceId = generateId<EServiceId>();
+  const descriptorId = generateId<DescriptorId>();
+  const agreementId = generateId<AgreementId>();
+  const purposeVersionId = generateId<PurposeVersionId>();
+
+  return {
+    PK:
+      tokenStateEntryPK ||
+      makeTokenGenerationStatesClientKidPurposePK({
+        clientId,
+        kid: `kid ${Math.random()}`,
+        purposeId,
+      }),
+    descriptorState: itemState.inactive,
+    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+    updatedAt: new Date().toISOString(),
+    consumerId,
+    agreementId,
+    purposeVersionId,
+    GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+      consumerId,
+      eserviceId,
+    }),
+    clientKind: clientKindTokenStates.consumer,
+    publicKey: "PEM",
+    GSIPK_clientId: clientId,
+    GSIPK_kid: "KID",
+    agreementState: "ACTIVE",
+    GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+      eserviceId,
+      descriptorId,
+    }),
+    GSIPK_purposeId: purposeId,
+    purposeState: itemState.inactive,
+    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+      clientId,
+      purposeId,
+    }),
+  };
+};
