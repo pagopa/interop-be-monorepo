@@ -1,6 +1,7 @@
 import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
+  Logger,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -16,7 +17,11 @@ import {
   toApiGatewayDescriptorIfNotDraft,
   toApiGatewayEserviceAttributes,
 } from "../api/catalogApiConverter.js";
-import { eserviceDescriptorNotFound } from "../models/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  eserviceNotFound,
+} from "../models/errors.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   assertAvailableDescriptorExists,
   assertNonDraftDescriptor,
@@ -43,6 +48,24 @@ export function getAllEservices(
       })
   );
 }
+
+const retrieveEservice = async (
+  catalogProcessClient: CatalogProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  eserviceId: catalogApi.EService["id"]
+): Promise<catalogApi.EService> =>
+  await catalogProcessClient
+    .getEServiceById({
+      headers,
+      params: {
+        eServiceId: eserviceId,
+      },
+    })
+    .catch((res) => {
+      throw clientStatusCodeToError(res, {
+        404: eserviceNotFound(eserviceId),
+      });
+    });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
@@ -78,18 +101,18 @@ export function catalogServiceBuilder(
       eserviceId: catalogApi.EService["id"]
     ): Promise<apiGatewayApi.EService> => {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eservice = await catalogProcessClient.getEServiceById({
+      const eservice = await retrieveEservice(
+        catalogProcessClient,
         headers,
-        params: {
-          eServiceId: eserviceId,
-        },
-      });
+        eserviceId
+      );
 
       return enhanceEservice(
         tenantProcessClient,
         attributeProcessClient,
         headers,
-        eservice
+        eservice,
+        logger
       );
     },
     getEserviceDescriptor: async (
@@ -101,15 +124,15 @@ export function catalogServiceBuilder(
         `Retrieving Descriptor ${descriptorId} of EService ${eserviceId}`
       );
 
-      const eservice = await catalogProcessClient.getEServiceById({
+      const eservice = await retrieveEservice(
+        catalogProcessClient,
         headers,
-        params: {
-          eServiceId: eserviceId,
-        },
-      });
+        eserviceId
+      );
+
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
-      return toApiGatewayDescriptorIfNotDraft(descriptor);
+      return toApiGatewayDescriptorIfNotDraft(descriptor, eserviceId, logger);
     },
     getEserviceDescriptors: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -117,16 +140,15 @@ export function catalogServiceBuilder(
     ): Promise<apiGatewayApi.EServiceDescriptors> => {
       logger.info(`Retrieving Descriptors of EService ${eserviceId}`);
 
-      const eservice = await catalogProcessClient.getEServiceById({
+      const eservice = await retrieveEservice(
+        catalogProcessClient,
         headers,
-        params: {
-          eServiceId: eserviceId,
-        },
-      });
+        eserviceId
+      );
 
       const descriptors = eservice.descriptors
         .filter(isNonDraft)
-        .map((d) => toApiGatewayDescriptorIfNotDraft(d));
+        .map((d) => toApiGatewayDescriptorIfNotDraft(d, eserviceId, logger));
 
       return { descriptors };
     },
@@ -150,17 +172,24 @@ function retrieveEserviceDescriptor(
 }
 
 function getLatestNonDraftDescriptor(
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  logger: Logger
 ): NonDraftCatalogApiDescriptor {
   const latestNonDraftDescriptor = eservice.descriptors
     .filter(isNonDraft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 
-  assertAvailableDescriptorExists(latestNonDraftDescriptor, eservice.id);
+  assertAvailableDescriptorExists(
+    latestNonDraftDescriptor,
+    eservice.id,
+    logger
+  );
   assertNonDraftDescriptor(
     latestNonDraftDescriptor,
-    latestNonDraftDescriptor.id
+    latestNonDraftDescriptor.id,
+    eservice.id,
+    logger
   );
 
   return latestNonDraftDescriptor;
@@ -195,9 +224,13 @@ export async function enhanceEservice(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  logger: Logger
 ): Promise<apiGatewayApi.EService> {
-  const latestNonDraftDescriptor = getLatestNonDraftDescriptor(eservice);
+  const latestNonDraftDescriptor = getLatestNonDraftDescriptor(
+    eservice,
+    logger
+  );
   const descriptorAttributes = await getDescriptorAttributes(
     attributeProcessClient,
     headers,

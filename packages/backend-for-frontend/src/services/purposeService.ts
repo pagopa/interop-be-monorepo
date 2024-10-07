@@ -28,14 +28,12 @@ import {
   agreementNotFound,
   eserviceDescriptorNotFound,
   eServiceNotFound,
-  invalidRiskAnalysisContentType,
   purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
-import { contentTypes } from "../utilities/mimeTypes.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
@@ -276,9 +274,15 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
-      const payload = {
-        ...createSeed,
+      const payload: purposeApi.EServicePurposeSeed = {
         eServiceId: createSeed.eserviceId,
+        consumerId: createSeed.consumerId,
+        riskAnalysisId: createSeed.riskAnalysisId,
+        title: createSeed.title,
+        description: createSeed.description,
+        isFreeOfCharge: createSeed.isFreeOfCharge,
+        freeOfChargeReason: createSeed.freeOfChargeReason,
+        dailyCalls: createSeed.dailyCalls,
       };
 
       const { id } = await purposeProcessClient.createPurposeFromEService(
@@ -427,15 +431,6 @@ export function purposeServiceBuilder(
         },
         headers,
       });
-
-      if (!contentTypes.includes(document.contentType)) {
-        throw invalidRiskAnalysisContentType(
-          document.contentType,
-          purposeId,
-          versionId,
-          documentId
-        );
-      }
 
       return await fileManager.get(
         config.riskAnalysisDocumentsContainer,
