@@ -30,7 +30,6 @@ import {
   clientKindTokenStates,
   generateId,
   itemState,
-  makeGSIPKClient,
   makeGSIPKKid,
   makePlatformStatesClientPK,
   makeTokenGenerationStatesClientKidPK,
@@ -101,7 +100,7 @@ describe("integration tests V2 events", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const GSIPK_clientId = makeGSIPKClient(client.id);
+      const GSIPK_clientId = client.id;
       const pk1 = makeTokenGenerationStatesClientKidPK({
         clientId: client.id,
         kid: kidToRemove,

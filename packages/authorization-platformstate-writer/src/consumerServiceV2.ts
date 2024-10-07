@@ -6,7 +6,6 @@ import {
   fromClientV2,
   genericInternalError,
   itemState,
-  makeGSIPKClient,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
@@ -266,7 +265,7 @@ export async function handleMessageV2(
         await writeClientEntry(clientEntry, dynamoDBClient);
       }
 
-      const GSIPK_clientId = makeGSIPKClient(client.id);
+      const GSIPK_clientId = client.id;
       const tokenStates = await readClientEntriesInTokenGenerationStates(
         GSIPK_clientId,
         dynamoDBClient
@@ -328,7 +327,7 @@ export async function handleMessageV2(
       const pk = makePlatformStatesClientPK(client.id);
       await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
 
-      const GSIPK_clientId = makeGSIPKClient(client.id);
+      const GSIPK_clientId = client.id;
       await deleteEntriesFromTokenStatesByClient(
         GSIPK_clientId,
         dynamoDBClient
