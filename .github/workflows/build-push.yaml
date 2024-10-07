@@ -87,6 +87,9 @@ jobs:
             dockerfile_path: packages/ivass-certified-attributes-importer
           - image_name: one-trust-notices
             dockerfile_path: packages/one-trust-notices
+          - image_name: datalake-data-exporter
+            dockerfile_path: packages/datalake-data-exporter
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
