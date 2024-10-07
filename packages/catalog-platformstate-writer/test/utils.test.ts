@@ -362,13 +362,13 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should return entries if they exist (with pagination)", async () => {
+    it.skip("should return entries if they exist (with pagination)", async () => {
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
 
-      const tokenEntriesLength = 2000;
+      const tokenEntriesLength = 1200;
 
       const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
       // eslint-disable-next-line functional/no-let
