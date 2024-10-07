@@ -16,6 +16,7 @@ import {
   genericInternalError,
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
+  PlatformStatesGenericEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -118,6 +119,37 @@ export const readAllTokenStateItems = async (
       );
     }
     return tokenStateEntries.data;
+  }
+};
+
+export const readAllPlatformStateItems = async (
+  dynamoDBClient: DynamoDBClient
+): Promise<PlatformStatesGenericEntry[]> => {
+  const readInput: ScanInput = {
+    TableName: "platform-states",
+  };
+  const commandQuery = new ScanCommand(readInput);
+  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+
+  if (!data.Items) {
+    throw genericInternalError(
+      `Unable to read platform state entries: result ${JSON.stringify(data)} `
+    );
+  } else {
+    const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+    const platformStateEntries = z
+      .array(PlatformStatesGenericEntry)
+      .safeParse(unmarshalledItems);
+
+    if (!platformStateEntries.success) {
+      throw genericInternalError(
+        `Unable to parse platform state entry item: result ${JSON.stringify(
+          platformStateEntries
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return platformStateEntries.data;
   }
 };
 
