@@ -78,7 +78,7 @@ export const validateIss = (iss?: string): ValidationResult<string> => {
 export const validateSub = (
   sub?: string,
   clientId?: string
-): ValidationResult<string> => {
+): ValidationResult<ClientId> => {
   if (!sub) {
     return failedValidation([subjectNotFound()]);
   }
@@ -94,7 +94,7 @@ export const validateSub = (
       return failedValidation([invalidSubject(sub)]);
     }
   }
-  return successfulValidation(sub);
+  return successfulValidation(unsafeBrandId<ClientId>(sub));
 };
 
 export const validatePurposeId = (

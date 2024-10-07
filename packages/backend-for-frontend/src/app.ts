@@ -7,6 +7,7 @@ import {
   initRedisRateLimiter,
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
+import express from "express";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -50,10 +51,17 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+app.disable("etag");
+
 app.use(loggerMiddleware(serviceName));
 
+// parse files from multipart/form-data and put them in req.body
 app.use(multerMiddleware);
 app.use(fromFilesToBodyMiddleware);
+
+// parse application/x-www-form-urlencoded and put it in req.body
+app.use(express.urlencoded({ extended: true }));
+
 app.use(contextMiddleware(serviceName, true));
 
 app.use(

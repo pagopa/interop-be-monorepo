@@ -79,6 +79,10 @@ jobs:
             dockerfile_path: packages/producer-key-readmodel-writer
           - image_name: producer-keychain-readmodel-writer
             dockerfile_path: packages/producer-keychain-readmodel-writer
+          - image_name: anac-certified-attributes-importer
+            dockerfile_path: packages/anac-certified-attributes-importer
+          - image_name: ivass-certified-attributes-importer
+            dockerfile_path: packages/ivass-certified-attributes-importer
           - image_name: one-trust-notices
             dockerfile_path: packages/one-trust-notices
 

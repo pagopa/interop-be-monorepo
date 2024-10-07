@@ -1,0 +1,28 @@
+meta {
+  name: Delete Descriptor Document
+  type: http
+  seq: 19
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eServiceId}}
+  descriptorId: {{descriptorId}}
+  documentId: {{interfaceId}}
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}

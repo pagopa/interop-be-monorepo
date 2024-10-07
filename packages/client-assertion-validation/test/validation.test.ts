@@ -118,7 +118,41 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeUndefined();
     });
-    it("clientAssertionInvalidClaims", () => {
+
+    it("clientAssertionInvalidClaims - header", () => {
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const payload = {
+        iss: generateId<ClientId>(),
+        sub: generateId<ClientId>(),
+        aud: ["test.interop.pagopa.it"],
+        jti: generateId(),
+        iat: 5,
+        exp: 10,
+        digest: {
+          alg: "SHA256",
+          value: value64chars,
+        },
+      };
+
+      const options = {
+        header: {
+          kid: "kid",
+          alg: "RS256",
+          invalidHeaderProp: "wrong",
+        },
+      };
+      const jws = jwt.sign(payload, keySet.privateKey, options);
+      const { errors } = verifyClientAssertion(jws, undefined);
+
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+    });
+
+    it("clientAssertionInvalidClaims - payload", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: {},
@@ -287,7 +321,7 @@ describe("validation test", () => {
 
       const options: jwt.SignOptions = {
         header: {
-          kid: "TODO",
+          kid: "kid",
           alg: "RS256",
         },
       };
@@ -460,7 +494,7 @@ describe("validation test", () => {
     });
 
     it.skip("AlgorithmNotFound", () => {
-      // TODO it seems this can't be tested because we need alg header to sign the mock jwt
+      // it seems this can't be tested because we need alg header to sign the mock jwt
       const jws = getMockClientAssertion({
         customHeader: { alg: undefined },
         standardClaimsOverride: {},
@@ -531,7 +565,7 @@ describe("validation test", () => {
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
-      // TODO: find out when the jsonwebtoken.verify function returns a string
+      // it's not clear when the result of the verify function is a string
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
@@ -580,7 +614,7 @@ describe("validation test", () => {
       expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
 
-    it("jsonWebTokenError - wrong signature", () => {
+    it("invalidSignature", () => {
       const mockKey = getMockConsumerKey();
       const clientAssertion = getMockClientAssertion({
         customHeader: {},
@@ -596,7 +630,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+      expect(errors![0]).toEqual(invalidSignature());
     });
     it("jsonWebTokenError - malformed jwt", () => {
       const mockKey = getMockConsumerKey();
@@ -647,7 +681,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(invalidSignature().code);
+      expect(errors![0]).toEqual(invalidSignature());
     });
 
     it("notBeforeError", () => {
@@ -688,7 +722,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(notBeforeError());
     });
     it.skip("unexpectedClientAssertionSignatureVerificationError", () => {
-      // TODO: not sure when this happens
+      // not sure when this happens
       expect(1).toBe(1);
     });
   });
