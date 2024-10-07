@@ -2,8 +2,8 @@ import z from "zod";
 import { DelegationId, EServiceId, TenantId } from "../brandedIds.js";
 
 export const delegationKind = {
-  DelegatedConsumer: "DelegatedConsumer",
-  DelegatedProducer: "DelegatedProducer",
+  delegatedConsumer: "DelegatedConsumer",
+  delegatedProducer: "DelegatedProducer",
 } as const;
 export const DelegationKind = z.enum([
   Object.values(delegationKind)[0],
@@ -12,10 +12,10 @@ export const DelegationKind = z.enum([
 export type DelegationKind = z.infer<typeof DelegationKind>;
 
 export const delegationState = {
-  WaitingForApproval: "WaitingForApproval",
-  Active: "Active",
-  Rejected: "Rejected",
-  Revoked: "Revoked",
+  waitingForApproval: "WaitingForApproval",
+  active: "Active",
+  rejected: "Rejected",
+  revoked: "Revoked",
 } as const;
 
 export const DelegationState = z.enum([
