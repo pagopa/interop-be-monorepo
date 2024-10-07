@@ -40,17 +40,21 @@ paths:
             default: []
           explode: false
         - in: query
-          name: delegatorId
+          name: delegatorIds
           required: false
           schema:
-            type: string
-            format: uuid
+            type: array
+            items:
+              type: string
+              format: uuid
         - in: query
-          name: delegateId
+          name: delegateIds
           required: false
           schema:
-            type: string
-            format: uuid
+            type: array
+            items:
+              type: string
+              format: uuid
         - in: query
           name: offset
           required: true
@@ -72,7 +76,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactDelegations"
+                $ref: "#/components/schemas/Delegations"
         "401":
           description: Unauthorized
           content:
@@ -268,35 +272,14 @@ paths:
                 $ref: "#/components/schemas/Problem"
 components:
   schemas:
-    CompactDelegation:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        eserviceName:
-          type: string
-        delegatedName:
-          type: string
-        delegatorName:
-          type: string
-        state:
-          $ref: "#/components/schemas/DelegationState"
-      required:
-        - id
-        - eserviceName
-        - delegatedName
-        - delegatorName
-        - state
-    CompactDelegations:
+    Delegations:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/CompactDelegation"
+            $ref: "#/components/schemas/Delegation"
         totalCount:
           type: integer
           format: int32
@@ -313,40 +296,6 @@ components:
           format: uuid
       required:
         - id
-    DelegationState:
-      type: string
-      description: Delegation State
-      enum:
-        - WAITING_FOR_APPROVAL
-        - APPROVED
-        - REJECTED
-        - REVOKED
-    DelegationTenant:
-      type: object
-      additionalProperties: false
-      properties:
-        id: 
-          type: string
-          format: uuid
-        name: 
-          type: string
-      required:
-        - id
-        - name
-    DelegationEService:
-      type: object
-      additionalProperties: false
-      properties:
-        id: 
-          type: string
-          format: uuid
-        name: 
-          type: string
-        description:
-          type: string
-      required:
-        - id
-        - name
     Delegation:
       type: object
       additionalProperties: false
@@ -354,25 +303,114 @@ components:
         id:
           type: string
           format: uuid
-        eservice:
-          $ref: "#/components/schemas/DelegationEService"
-        delegate:
-          $ref: "#/components/schemas/DelegationTenant"
-        delegator:
-          $ref: "#/components/schemas/DelegationTenant"
+        delegatorId:
+          type: string
+          format: uuid
+        delegateId:
+          type: string
+          format: uuid
+        eserviceId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
         submittedAt:
+          type: string
+          format: date-time
+        approvedAt:
+          type: string
+          format: date-time
+        rejectedAt:
           type: string
           format: date-time
         rejectionReason:
           type: string
+        revokedAt:
+          type: string
+          format: date-time
         state:
-          $ref: "#/components/schemas/DelegationState"
+          $ref: '#/components/schemas/DelegationState'
+        kind:
+          $ref: '#/components/schemas/DelegationKind'
+        contract:
+          $ref: '#/components/schemas/DelegationContractDocument'
+        stamps:
+          $ref: '#/components/schemas/DelegationStamps'
       required:
         - id
-        - eservice
-        - delegate
-        - delegator
+        - delegatorId
+        - delegateId
+        - eserviceId
+        - createdAt
+        - submittedAt
         - state
+        - kind
+        - stamps
+    DelegationState:
+      type: string
+      enum:
+        - WAITING_FOR_APPROVAL
+        - ACTIVE
+        - REJECTED
+        - REVOKED
+    DelegationKind:
+      type: string
+      enum:
+        - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
+    DelegationContractDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
+        - createdAt
+    DelegationStamp:
+      type: object
+      additionalProperties: false
+      properties:
+        who:
+          type: string
+          format: uuid
+        when:
+          type: string
+          format: date-time
+      required:
+        - who
+        - when
+    DelegationStamps:
+      type: object
+      additionalProperties: false
+      properties:
+        submission:
+          $ref: '#/components/schemas/DelegationStamp'
+        activation:
+          $ref: '#/components/schemas/DelegationStamp'
+        rejection:
+          $ref: '#/components/schemas/DelegationStamp'
+        revocation:
+          $ref: '#/components/schemas/DelegationStamp'
+      required:
+        - submission
     DelegationSeed:
       type: object
       additionalProperties: false
