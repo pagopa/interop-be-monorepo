@@ -1,0 +1,29 @@
+meta {
+  name: Get Agreement Consumers
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host-agreement}}/consumers?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~consumerName: 
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Suspend Agreement
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/suspend
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: ebc3f86c-97ab-46b5-85f5-a1183d1bc595
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

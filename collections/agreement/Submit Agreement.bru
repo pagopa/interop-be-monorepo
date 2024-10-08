@@ -1,0 +1,29 @@
+meta {
+  name: Submit Agreement
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/submit
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: 700f322c-5019-4cc7-87a2-086d39d53248
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

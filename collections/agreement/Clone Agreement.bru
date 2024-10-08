@@ -1,0 +1,29 @@
+meta {
+  name: Clone Agreement
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/clone
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: d6d9dd82-6da5-45f1-9890-347c86b24e8d
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Get Agreements
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-agreement}}/agreements?offset=0&states="SUSPENDED, TEST"
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  states: "SUSPENDED, TEST"
+  ~limit: 10
+  ~eservicesIds: ["61b7c333-2f00-44ba-8b1f-61b8d49dfab9"]
+  ~descriptorsIds: ["d4193900-ddaf-4c91-a336-d7cd2cb9b3a7"]
+  ~producersIds: ["4D55696F-16C0-4968-854B-2B166397FC30"]
+  ~consumersIds: ["4D55696F-16C0-4968-854B-2B166397FC30"]
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

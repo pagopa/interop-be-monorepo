@@ -1,0 +1,29 @@
+meta {
+  name: Archive Agreement
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/archive
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: f6c02190-eecf-4767-90b3-0cc7740f365c
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Get Agreement Eservices
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{host-agreement}}/agreements/filter/eservices?offset=0&limit=10&consumersIds=["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]&states=["DRAFT"]
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  consumersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
+  states: ["DRAFT"]
+  ~eServiceName: 
+  ~producersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.32.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
