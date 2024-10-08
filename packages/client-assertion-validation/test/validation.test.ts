@@ -494,7 +494,7 @@ describe("validation test", () => {
     });
 
     it.skip("AlgorithmNotFound", () => {
-      // TODO it seems this can't be tested because we need alg header to sign the mock jwt
+      // it seems this can't be tested because we need alg header to sign the mock jwt
       const jws = getMockClientAssertion({
         customHeader: { alg: undefined },
         standardClaimsOverride: {},
@@ -565,7 +565,7 @@ describe("validation test", () => {
     });
 
     it.skip("invalidClientAssertionSignatureType", () => {
-      // TODO: find out when the jsonwebtoken.verify function returns a string
+      // it's not clear when the result of the verify function is a string
       expect(1).toBe(1);
     });
     it("tokenExpiredError", () => {
@@ -614,7 +614,7 @@ describe("validation test", () => {
       expect(errors![0].code).toEqual(jsonWebTokenError("").code);
     });
 
-    it("jsonWebTokenError - wrong signature", () => {
+    it("invalidSignature", () => {
       const mockKey = getMockConsumerKey();
       const clientAssertion = getMockClientAssertion({
         customHeader: {},
@@ -630,7 +630,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(jsonWebTokenError("").code);
+      expect(errors![0]).toEqual(invalidSignature());
     });
     it("jsonWebTokenError - malformed jwt", () => {
       const mockKey = getMockConsumerKey();
@@ -681,7 +681,7 @@ describe("validation test", () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(invalidSignature().code);
+      expect(errors![0]).toEqual(invalidSignature());
     });
 
     it("notBeforeError", () => {
@@ -722,7 +722,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(notBeforeError());
     });
     it.skip("unexpectedClientAssertionSignatureVerificationError", () => {
-      // TODO: not sure when this happens
+      // not sure when this happens
       expect(1).toBe(1);
     });
   });

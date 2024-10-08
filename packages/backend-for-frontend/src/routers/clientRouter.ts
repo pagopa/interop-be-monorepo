@@ -161,23 +161,24 @@ const clientRouter = (
       }
     })
 
-    .post("/clients/:clientId/users/:userId", async (req, res) => {
+    .post("/clients/:clientId/users", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-
       try {
-        const createdUser = await clientService.addUserToClient(
-          req.params.userId,
+        await clientService.addUsersToClient(
+          req.body.userIds,
           req.params.clientId,
           ctx
         );
 
-        return res.status(200).send(bffApi.CreatedResource.parse(createdUser));
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error adding user ${req.params.userId} to client ${req.params.clientId}`
+          `Error adding users ${req.body.userIds.join(",")} to client ${
+            req.params.clientId
+          }`
         );
         return res.status(errorRes.status).send(errorRes);
       }
