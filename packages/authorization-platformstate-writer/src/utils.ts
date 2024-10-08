@@ -13,6 +13,7 @@ import {
   QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import {
+  AgreementId,
   ClientId,
   clientKind,
   ClientKind,
@@ -22,15 +23,21 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
+  makeGSIPKConsumerIdEServiceId,
+  makePlatformStatesEServiceDescriptorPK,
+  makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
   PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposeEntry,
   PlatformStatesPurposePK,
+  PurposeId,
   TokenGenerationStatesClientEntry,
+  TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientPurposeEntry,
   TokenGenerationStatesGenericEntry,
 } from "pagopa-interop-models";
@@ -343,7 +350,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
         publicKey: entry.publicKey,
         GSIPK_clientId: entry.GSIPK_clientId,
         GSIPK_kid: entry.GSIPK_kid,
-        updatedAt: entry.updatedAt, // TODO new Date() ?
+        updatedAt: new Date().toISOString(),
       };
 
       // write the new one
@@ -745,4 +752,75 @@ export const cleanClientPurposeIdsInPlatformStatesEntry = async (
   };
   const command = new UpdateItemCommand(input);
   await dynamoDBClient.send(command);
+};
+
+export const extractKidFromClientKidPK = (
+  pk: TokenGenerationStatesClientKidPK
+): string => pk.split("#")[2];
+
+export const extractAgreementIdFromAgreementPK = (
+  pk: PlatformStatesAgreementPK
+): AgreementId => {
+  const substrings = pk.split("#");
+  const agreementId = substrings[1];
+  const result = AgreementId.safeParse(agreementId);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse agreement PK: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(agreementId)} `
+    );
+  }
+  return result.data;
+};
+
+export const retrievePlatformStatesByPurpose = async (
+  dynamoDBClient: DynamoDBClient,
+  purposeId: PurposeId
+): Promise<{
+  purposeEntry: PlatformStatesPurposeEntry;
+  agreementEntry: PlatformStatesAgreementEntry;
+  catalogEntry: PlatformStatesCatalogEntry;
+}> => {
+  const purposePK = makePlatformStatesPurposePK(purposeId);
+  const purposeEntry = await readPlatformPurposeEntry(
+    dynamoDBClient,
+    purposePK
+  );
+
+  // TODO: should this throw an error?
+  if (!purposeEntry) {
+    throw genericInternalError("TODO throw this error?");
+  }
+
+  const agreementGSI = makeGSIPKConsumerIdEServiceId({
+    eserviceId: purposeEntry.purposeEserviceId,
+    consumerId: purposeEntry.purposeConsumerId,
+  });
+
+  const agreementEntry =
+    await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
+      dynamoDBClient,
+      agreementGSI
+    );
+
+  if (!agreementEntry) {
+    throw genericInternalError("TODO throw this error?");
+  }
+
+  const catalogPK = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: purposeEntry.purposeEserviceId,
+    descriptorId: agreementEntry.agreementDescriptorId,
+  });
+  const catalogEntry = await readCatalogEntry(catalogPK, dynamoDBClient);
+
+  if (!catalogEntry) {
+    throw genericInternalError("TODO throw this error?");
+  }
+  return {
+    purposeEntry,
+    agreementEntry,
+    catalogEntry,
+  };
 };
