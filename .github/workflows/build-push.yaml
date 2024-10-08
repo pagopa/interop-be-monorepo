@@ -12,8 +12,22 @@ on:
       - ".github/workflows/build-push.yaml"
 
 jobs:
+  find_dockerfiles:
+    name: Find Dockerfiles
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set_packages_output.outputs.packages }}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Find packages
+        id: set_packages_output
+        run: |
+          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+
   build_push_image:
-    name: ${{ matrix.image_name }}
+    name: ${{ matrix.package }}
+    needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     environment: dev
     permissions:
@@ -22,73 +36,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - image_name: catalog-process
-            dockerfile_path: packages/catalog-process
-          - image_name: catalog-readmodel-writer
-            dockerfile_path: packages/catalog-readmodel-writer
-          - image_name: agreement-process
-            dockerfile_path: packages/agreement-process
-          - image_name: agreement-readmodel-writer
-            dockerfile_path: packages/agreement-readmodel-writer
-          - image_name: tenant-process
-            dockerfile_path: packages/tenant-process
-          - image_name: tenant-readmodel-writer
-            dockerfile_path: packages/tenant-readmodel-writer
-          - image_name: purpose-process
-            dockerfile_path: packages/purpose-process
-          - image_name: purpose-readmodel-writer
-            dockerfile_path: packages/purpose-readmodel-writer
-          - image_name: attribute-registry-process
-            dockerfile_path: packages/attribute-registry-process
-          - image_name: attribute-registry-readmodel-writer
-            dockerfile_path: packages/attribute-registry-readmodel-writer
-          - image_name: authorization-updater
-            dockerfile_path: packages/authorization-updater
-          - image_name: notifier-seeder
-            dockerfile_path: packages/notifier-seeder
-          - image_name: eservice-descriptors-archiver
-            dockerfile_path: packages/eservice-descriptors-archiver
-          - image_name: agreement-email-sender
-            dockerfile_path: packages/agreement-email-sender
-          - image_name: authorization-process
-            dockerfile_path: packages/authorization-process
-          - image_name: client-readmodel-writer
-            dockerfile_path: packages/client-readmodel-writer
-          - image_name: key-readmodel-writer
-            dockerfile_path: packages/key-readmodel-writer
-          - image_name: backend-for-frontend
-            dockerfile_path: packages/backend-for-frontend
-          - image_name: api-gateway
-            dockerfile_path: packages/api-gateway
-          - image_name: agreement-outbound-writer
-            dockerfile_path: packages/agreement-outbound-writer
-          - image_name: catalog-outbound-writer
-            dockerfile_path: packages/catalog-outbound-writer
-          - image_name: purpose-outbound-writer
-            dockerfile_path: packages/purpose-outbound-writer
-          - image_name: tenant-outbound-writer
-            dockerfile_path: packages/tenant-outbound-writer
-          - image_name: compute-agreements-consumer
-            dockerfile_path: packages/compute-agreements-consumer
-          - image_name: selfcare-onboarding-consumer
-            dockerfile_path: packages/selfcare-onboarding-consumer
-          - image_name: producer-key-events-writer
-            dockerfile_path: packages/producer-key-events-writer
-          - image_name: producer-key-readmodel-writer
-            dockerfile_path: packages/producer-key-readmodel-writer
-          - image_name: producer-keychain-readmodel-writer
-            dockerfile_path: packages/producer-keychain-readmodel-writer
-          - image_name: anac-certified-attributes-importer
-            dockerfile_path: packages/anac-certified-attributes-importer
-          - image_name: ivass-certified-attributes-importer
-            dockerfile_path: packages/ivass-certified-attributes-importer
-          - image_name: pn-consumers
-            dockerfile_path: packages/pn-consumers
-          - image_name: one-trust-notices
-            dockerfile_path: packages/one-trust-notices
-          - image_name: datalake-data-export
-            dockerfile_path: packages/datalake-data-export
+        package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
+    env:
+        DOCKER_BUILD_SUMMARY: "false"
 
     steps:
       - name: Checkout repository
@@ -110,7 +60,7 @@ jobs:
         if: ${{ github.ref_type == 'branch' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
             latest=false
             prefix=
@@ -123,7 +73,7 @@ jobs:
         if: ${{ github.ref_type == 'tag' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
             latest=false
             prefix=
@@ -136,7 +86,7 @@ jobs:
         uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
           context: .
-          file: ${{ matrix.dockerfile_path }}/Dockerfile
+          file: packages/${{ matrix.package }}/Dockerfile
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.labels || steps.meta_tag.outputs.labels }}
