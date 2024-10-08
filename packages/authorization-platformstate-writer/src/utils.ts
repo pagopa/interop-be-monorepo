@@ -13,6 +13,7 @@ import {
   QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import {
+  AgreementId,
   ClientId,
   clientKind,
   ClientKind,
@@ -22,21 +23,31 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
+  makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
+  makePlatformStatesEServiceDescriptorPK,
+  makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
   PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposeEntry,
   PlatformStatesPurposePK,
+  PurposeId,
   TokenGenerationStatesClientEntry,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
   TokenGenerationStatesGenericEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
+import { UpdateItemInput } from "@aws-sdk/client-dynamodb";
+import { UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { config } from "./config/config.js";
 
 export const deleteEntriesFromTokenStatesByKid = async (
@@ -341,7 +352,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
         publicKey: entry.publicKey,
         GSIPK_clientId: entry.GSIPK_clientId,
         GSIPK_kid: entry.GSIPK_kid,
-        updatedAt: entry.updatedAt, // TODO new Date() ?
+        updatedAt: new Date().toISOString(),
       };
 
       // write the new one
@@ -711,4 +722,219 @@ export const readClientEntriesInTokenGenerationStates = async (
   };
 
   return await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
+};
+
+export const cleanClientPurposeIdsInPlatformStatesEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesClientPK,
+  version: number
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":clientPurposesIds": {
+        L: [],
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression:
+      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const extractKidFromTokenEntryPK = (
+  pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
+): string => pk.split("#")[2];
+
+export const extractAgreementIdFromAgreementPK = (
+  pk: PlatformStatesAgreementPK
+): AgreementId => {
+  const substrings = pk.split("#");
+  const agreementId = substrings[1];
+  const result = AgreementId.safeParse(agreementId);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse agreement PK: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(agreementId)} `
+    );
+  }
+  return result.data;
+};
+
+export const retrievePlatformStatesByPurpose = async (
+  dynamoDBClient: DynamoDBClient,
+  purposeId: PurposeId
+): Promise<{
+  purposeEntry: PlatformStatesPurposeEntry;
+  agreementEntry: PlatformStatesAgreementEntry;
+  catalogEntry: PlatformStatesCatalogEntry;
+}> => {
+  const purposePK = makePlatformStatesPurposePK(purposeId);
+  const purposeEntry = await readPlatformPurposeEntry(
+    dynamoDBClient,
+    purposePK
+  );
+
+  // TODO: should this throw an error?
+  if (!purposeEntry) {
+    throw genericInternalError("TODO throw this error?");
+  }
+
+  const agreementGSI = makeGSIPKConsumerIdEServiceId({
+    eserviceId: purposeEntry.purposeEserviceId,
+    consumerId: purposeEntry.purposeConsumerId,
+  });
+
+  const agreementEntry =
+    await readPlatformAgreementEntryByGSIPKConsumerIdEServiceId(
+      dynamoDBClient,
+      agreementGSI
+    );
+
+  if (!agreementEntry) {
+    throw genericInternalError("TODO throw this error?");
+  }
+
+  const catalogPK = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: purposeEntry.purposeEserviceId,
+    descriptorId: agreementEntry.agreementDescriptorId,
+  });
+  const catalogEntry = await readCatalogEntry(catalogPK, dynamoDBClient);
+
+  if (!catalogEntry) {
+    throw genericInternalError("TODO throw this error?");
+  }
+  return {
+    purposeEntry,
+    agreementEntry,
+    catalogEntry,
+  };
+};
+
+export const updateTokenEntriesWithPlatformStatesData = async ({
+  purposeId,
+  agreementEntry,
+  catalogEntry,
+  purposeEntry,
+  dynamoDBClient,
+  pkOfEntriesToUpdate,
+}: {
+  purposeId: PurposeId;
+  agreementEntry: PlatformStatesAgreementEntry;
+  catalogEntry: PlatformStatesCatalogEntry;
+  purposeEntry: PlatformStatesPurposeEntry;
+  dynamoDBClient: DynamoDBClient;
+  pkOfEntriesToUpdate: Set<TokenGenerationStatesClientKidPurposePK>;
+}): Promise<void> => {
+  for (const pk of pkOfEntriesToUpdate) {
+    const input: UpdateItemInput = {
+      ConditionExpression: "attribute_exists(PK)",
+      Key: {
+        PK: {
+          S: pk,
+        },
+      },
+      ExpressionAttributeValues: {
+        ":GSIPK_eserviceId_descriptorId": {
+          S: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: purposeEntry.purposeEserviceId,
+            descriptorId: agreementEntry.agreementDescriptorId,
+          }),
+        },
+        ":descriptorAudience": {
+          L: catalogEntry.descriptorAudience.map((item) => ({
+            S: item,
+          })),
+        },
+        ":descriptorVoucherLifespan": {
+          N: catalogEntry.descriptorVoucherLifespan.toString(),
+        },
+        ":descriptorState": {
+          S: catalogEntry.state,
+        },
+        ":agreementId": {
+          S: extractAgreementIdFromAgreementPK(agreementEntry.PK),
+        },
+        ":agreementState": {
+          S: agreementEntry.state,
+        },
+        ":GSIPK_consumerId_eserviceId": {
+          S: agreementEntry.GSIPK_consumerId_eserviceId,
+        },
+        ":purposeState": {
+          S: purposeEntry.state,
+        },
+        ":purposeVersionId": {
+          S: purposeEntry.purposeVersionId,
+        },
+        ":GSIPK_purposeId": {
+          S: purposeId,
+        },
+        ":newUpdateAt": {
+          S: new Date().toISOString(),
+        },
+      },
+      UpdateExpression:
+        "SET GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, descriptorState = :descriptorState, agreementId = :agreementId, agreementState = :agreementState, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, purposeState = :purposeState, purposeVersionId = :purposeVersionId, GSIPK_purposeId = :GSIPK_purposeId, updatedAt = :newUpdateAt",
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "NONE",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
+  }
+};
+
+export const upsertPlatformClientEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  pk: PlatformStatesClientPK,
+  version: number,
+  clientPurposesIds?: PurposeId[]
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    Key: {
+      PK: {
+        S: pk,
+      },
+    },
+    ExpressionAttributeValues: {
+      ...(clientPurposesIds
+        ? {
+            ":clientPurposesIds": {
+              L: clientPurposesIds.map((purposeId) => ({
+                S: purposeId,
+              })),
+            },
+          }
+        : {}),
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression: clientPurposesIds
+      ? "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion"
+      : "SET updatedAt = :newUpdateAt, version = :newVersion",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
 };
