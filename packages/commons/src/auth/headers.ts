@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
+import { genericLogger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -45,7 +46,7 @@ export const readHeaders = (req: Request): ParsedHeaders | undefined => {
           }
 
           const jwtToken = authorizationHeader[1];
-          const authData = readAuthDataFromJwtToken(jwtToken);
+          const authData = readAuthDataFromJwtToken(jwtToken, genericLogger);
 
           return {
             ...authData,
