@@ -72,40 +72,6 @@ services:
       - ./dynamo-db-data:/data
     working_dir: /home/dynamodblocal
 
-  # Init platform states table table in dynamodb
-  platform-states-table-init:
-    depends_on:
-      - dynamodb-local
-    restart: on-failure
-    image: amazon/aws-cli:2.18.1
-    working_dir: /home/tables
-    volumes:
-      - ./dynamo-db/schema:/home/tables
-    environment:
-      AWS_ACCESS_KEY_ID: keyid
-      AWS_SECRET_ACCESS_KEY: key
-    command: dynamodb create-table
-      --cli-input-json file://./platform-states.json
-      --endpoint-url http://dynamodb-local:8000
-      --region eu-south-1
-
-  # Init token generation states table in dynamodb
-  token-generation-states-table-init:
-    depends_on:
-      - dynamodb-local
-    restart: on-failure
-    image: amazon/aws-cli:2.18.1
-    working_dir: /home/tables
-    volumes:
-      - ./dynamoDB-tables:/home/tables
-    environment:
-      AWS_ACCESS_KEY_ID: keyid
-      AWS_SECRET_ACCESS_KEY: key
-    command: dynamodb create-table
-      --cli-input-json file://./token-generation-states.json
-      --endpoint-url http://dynamodb-local:8000
-      --region eu-south-1
-
   # Web GUI for dynamodb
   dynamodb-admin:
     image: aaronshaf/dynamodb-admin:4.6.1
@@ -116,7 +82,22 @@ services:
       - "8001:8001"
     environment:
       - DYNAMO_ENDPOINT=http://dynamodb-local:8000
-      - AWS_REGION=eu-west-1
+      - AWS_REGION=eu-south-1
+
+  # dynamodb migrations and data seed
+  dynamodb-migrations:
+    image: amazon/aws-cli:2.17.44
+    working_dir: /home/dynamodblocal
+    volumes:
+      - ./dynamo-db:/home/dynamodblocal
+    depends_on:
+      - dynamodb-local
+    environment:
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_REGION=eu-south-1
+      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states
+    entrypoint: ./dynamo-migrations.sh
 
   # Web GUI fro mongo
   mongo-express:
@@ -245,21 +226,6 @@ services:
     ports:
       - 8005:8005
     command: "/bin/bash -c 'npm install -g aws-ses-v2-local; aws-ses-v2-local --port=8005 --host=0.0.0.0'"
-
-  # Init privacy notices tables in dynamodb
-  migration-dynamodb-privacy-notices:
-    image: amazon/aws-cli:2.17.44
-    working_dir: /home/dynamodblocal
-    volumes:
-      - ./dynamo-db:/home/dynamodblocal
-    depends_on:
-      - dynamodb-local
-    environment:
-      - AWS_ACCESS_KEY_ID=local
-      - AWS_SECRET_ACCESS_KEY=local
-      - AWS_REGION=eu-west-1
-      - TABLES=privacy-notice,privacy-notice-acceptances
-    entrypoint: ./dynamo-migrations.sh
 
   # Redis local cache database used by the RateLimiter
   redis:
