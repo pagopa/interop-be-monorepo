@@ -208,7 +208,7 @@ export const deleteClientEntryFromTokenGenerationStatesTable = async (
 };
 
 export const readClientEntry = async (
-  primaryKey: string,
+  primaryKey: PlatformStatesClientPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesClientEntry | undefined> => {
   const input: GetItemInput = {
@@ -900,41 +900,105 @@ export const updateTokenEntriesWithPlatformStatesData = async ({
   }
 };
 
+// export const upsertPlatformClientEntry = async (
+//   dynamoDBClient: DynamoDBClient,
+//   pk: PlatformStatesClientPK,
+//   version: number,
+//   clientPurposesIds?: PurposeId[]
+// ): Promise<void> => {
+//   const input: UpdateItemInput = {
+//     Key: {
+//       PK: {
+//         S: pk,
+//       },
+//     },
+//     ExpressionAttributeValues: {
+//       ...(clientPurposesIds
+//         ? {
+//             ":clientPurposesIds": {
+//               L: clientPurposesIds.map((purposeId) => ({
+//                 S: purposeId,
+//               })),
+//             },
+//           }
+//         : {}),
+//       ":newVersion": {
+//         N: version.toString(),
+//       },
+//       ":newUpdateAt": {
+//         S: new Date().toISOString(),
+//       },
+//     },
+//     UpdateExpression: clientPurposesIds
+//       ? "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion"
+//       : "SET updatedAt = :newUpdateAt, version = :newVersion",
+//     TableName: config.tokenGenerationReadModelTableNamePlatform,
+//     ReturnValues: "NONE",
+//   };
+//   const command = new UpdateItemCommand(input);
+//   await dynamoDBClient.send(command);
+// };
+
 export const upsertPlatformClientEntry = async (
   dynamoDBClient: DynamoDBClient,
-  pk: PlatformStatesClientPK,
-  version: number,
-  clientPurposesIds?: PurposeId[]
+  entry: PlatformStatesClientEntry
 ): Promise<void> => {
-  const input: UpdateItemInput = {
-    Key: {
+  const input: PutItemInput = {
+    Item: {
       PK: {
-        S: pk,
+        S: entry.PK,
+      },
+      state: {
+        S: entry.state,
+      },
+      clientPurposesIds: {
+        L: entry.clientPurposesIds.map((purposeId) => ({
+          S: purposeId,
+        })),
+      },
+      version: {
+        N: entry.version.toString(),
+      },
+      updatedAt: {
+        S: entry.updatedAt,
       },
     },
-    ExpressionAttributeValues: {
-      ...(clientPurposesIds
-        ? {
-            ":clientPurposesIds": {
-              L: clientPurposesIds.map((purposeId) => ({
-                S: purposeId,
-              })),
-            },
-          }
-        : {}),
-      ":newVersion": {
-        N: version.toString(),
-      },
-      ":newUpdateAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    UpdateExpression: clientPurposesIds
-      ? "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion"
-      : "SET updatedAt = :newUpdateAt, version = :newVersion",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
-    ReturnValues: "NONE",
   };
-  const command = new UpdateItemCommand(input);
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const upsertTokenClientKidEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  entry: TokenGenerationStatesClientEntry
+): Promise<void> => {
+  const input: PutItemInput = {
+    Item: {
+      PK: {
+        S: entry.PK,
+      },
+      consumerId: {
+        S: entry.consumerId,
+      },
+      clientKind: {
+        S: entry.clientKind,
+      },
+      publicKey: {
+        S: entry.publicKey,
+      },
+      GSIPK_clientId: {
+        S: entry.GSIPK_clientId,
+      },
+      GSIPK_kid: {
+        S: entry.GSIPK_kid,
+      },
+      updatedAt: {
+        S: entry.updatedAt,
+      },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
 };
