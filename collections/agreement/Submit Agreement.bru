@@ -1,17 +1,17 @@
 meta {
   name: Submit Agreement
   type: http
-  seq: 12
+  seq: 10
 }
 
 post {
   url: {{host-agreement}}/agreements/:agreementId/submit
-  body: json
+  body: none
   auth: none
 }
 
 params:path {
-  agreementId: 700f322c-5019-4cc7-87a2-086d39d53248
+  agreementId: {{agreementId}}
 }
 
 headers {
