@@ -748,7 +748,7 @@ export const cleanClientPurposeIdsInPlatformStatesEntry = async (
       },
     },
     UpdateExpression:
-      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt",
+      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt, version = :newVersion",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
   };
