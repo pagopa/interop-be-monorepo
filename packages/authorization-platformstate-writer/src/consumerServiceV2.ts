@@ -217,7 +217,7 @@ export async function handleMessageV2(
               publicKey: pem,
               GSIPK_clientId: client.id,
               GSIPK_kid: makeGSIPKKid(msg.data.kid),
-              updatedAt: new Date().toISOString(), // TODO new Date() ?
+              updatedAt: new Date().toISOString(),
             };
             await writeTokenStateClientEntry(clientKidEntry, dynamoDBClient);
           }
