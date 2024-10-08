@@ -41,16 +41,13 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   readTokenStateEntriesByConsumerIdEserviceId,
+  writeTokenStateEntry,
+  getMockAgreementEntry,
+  writeCatalogEntry,
 } from "pagopa-interop-commons-test";
 import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import {
-  config,
-  getMockAgreementEntry,
-  sleep,
-  writeCatalogEntry,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config, sleep } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   if (!config) {
@@ -75,7 +72,7 @@ describe("integration tests V2 events", async () => {
   });
 
   describe("AgreementActivated", () => {
-    it("no operation if the entry already exists: incoming has version 1; previous entry has version 2", async () => {
+    it("should do no operation if the existing table entry is more recent", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -164,7 +161,7 @@ describe("integration tests V2 events", async () => {
         ])
       );
     });
-    it("entry has to be updated: incoming has version 3; previous entry has version 2", async () => {
+    it("should update the entry if the incoming version is more recent than existing table entry", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -518,7 +515,7 @@ describe("integration tests V2 events", async () => {
     });
   });
   describe("AgreementSuspendedByProducer, AgreementSuspendedByConsumer, AgreementSuspendedByPlatform", async () => {
-    it("should not throw error if the entry doesn't exist", async () => {
+    it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.suspended,
@@ -680,12 +677,12 @@ describe("integration tests V2 events", async () => {
         );
 
       expect(retrievedTokenStateEntries).toHaveLength(2);
-      // expect(retrievedTokenStateEntries).toEqual(
-      //   expect.arrayContaining([
-      //     previousTokenStateEntry2,
-      //     previousTokenStateEntry1,
-      //   ])
-      // );
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          previousTokenStateEntry2,
+          previousTokenStateEntry1,
+        ])
+      );
     });
     it("should update the entry (agreement is the latest -> update in token states)", async () => {
       const sixHoursAgo = new Date();
@@ -833,7 +830,7 @@ describe("integration tests V2 events", async () => {
     });
   });
   describe("AgreementUnsuspendedByProducer, AgreementUnsuspendedByConsumer, AgreementUnsuspendedByPlatform", async () => {
-    it("should not throw error if the entry doesn't exist", async () => {
+    it("should do no operation if the entry doesn't exist", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.active,
@@ -995,12 +992,12 @@ describe("integration tests V2 events", async () => {
         );
 
       expect(retrievedTokenStateEntries).toHaveLength(2);
-      // expect(retrievedTokenStateEntries).toEqual(
-      //   expect.arrayContaining([
-      //     previousTokenStateEntry2,
-      //     previousTokenStateEntry1,
-      //   ])
-      // );
+      expect(retrievedTokenStateEntries).toEqual(
+        expect.arrayContaining([
+          previousTokenStateEntry2,
+          previousTokenStateEntry1,
+        ])
+      );
     });
     it("should update the entry (agreement is the latest -> update in token states)", async () => {
       const sixHoursAgo = new Date();
