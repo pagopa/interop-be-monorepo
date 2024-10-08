@@ -1,18 +1,18 @@
 meta {
   name: Edit Eservice Descriptor
   type: http
-  seq: 16
+  seq: 17
 }
 
 put {
-  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId
   body: json
   auth: none
 }
 
 params:path {
   descriptorId: {{descriptorId}}
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {

@@ -1,17 +1,17 @@
 meta {
   name: Create Risk Analysis
   type: http
-  seq: 5
+  seq: 7
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eServiceId/riskAnalysis
+  url: {{host-catalog}}/eservices/:eserviceId/riskAnalysis
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {

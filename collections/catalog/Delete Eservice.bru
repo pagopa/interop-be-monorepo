@@ -5,13 +5,13 @@ meta {
 }
 
 delete {
-  url: {{host-catalog}}/eservices/:eServiceId
+  url: {{host-catalog}}/eservices/:eserviceId
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
@@ -38,6 +38,6 @@ body:json {
 
 script:pre-request {
   const random = Math.round(Math.random() * 100)
-  
+
   bru.setVar("name",`test name ${random}`)
 }

@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId/update
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
   descriptorId: {{descriptorId}}
   documentId: {{interfaceId}}
 }

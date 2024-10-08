@@ -1,17 +1,17 @@
 meta {
   name: Delete Risk Analysis
   type: http
-  seq: 7
+  seq: 9
 }
 
 delete {
-  url: {{host-catalog}}/eservices/:eServiceId/riskAnalysis/:riskAnalysisId
+  url: {{host-catalog}}/eservices/:eserviceId/riskAnalysis/:riskAnalysisId
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
   riskAnalysisId: {{riskAnalysisId}}
 }
 
