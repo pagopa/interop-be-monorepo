@@ -24,7 +24,6 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   agreementState,
   makeTokenGenerationStatesClientKidPurposePK,
-  makeGSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import {
