@@ -25,6 +25,9 @@ const delegationProducerRouter = (
     )
     .post("/producer/delegations/:delegationId/reject", async (_req, res) =>
       res.status(501).send()
+    )
+    .delete("/producer/delegations/:delegationId", async (_req, res) =>
+      res.status(501).send()
     );
 
   return delegationRouter;
