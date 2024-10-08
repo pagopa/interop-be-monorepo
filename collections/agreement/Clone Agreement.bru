@@ -1,7 +1,7 @@
 meta {
   name: Clone Agreement
   type: http
-  seq: 15
+  seq: 18
 }
 
 post {
@@ -11,10 +11,14 @@ post {
 }
 
 params:path {
-  agreementId: d6d9dd82-6da5-45f1-9890-347c86b24e8d
+  agreementId: {{agreementId}}
 }
 
 headers {
   Authorization: {{JWT}}
   x-correlation-id: {{correlation-id}}
+}
+
+vars:post-response {
+  agreementId: res.body.id
 }

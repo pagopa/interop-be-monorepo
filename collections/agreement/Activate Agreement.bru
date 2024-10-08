@@ -1,17 +1,17 @@
 meta {
   name: Activate Agreement
   type: http
-  seq: 12
+  seq: 14
 }
 
 post {
   url: {{host-agreement}}/agreements/:agreementId/activate
-  body: json
+  body: none
   auth: none
 }
 
 params:path {
-  agreementId: a3d64132-73be-492d-919c-8f9d52f1cb0d
+  agreementId: {{agreementId}}
 }
 
 headers {

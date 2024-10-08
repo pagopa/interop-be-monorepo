@@ -1,7 +1,7 @@
 meta {
   name: Upgrade Agreement
   type: http
-  seq: 16
+  seq: 15
 }
 
 post {
@@ -11,7 +11,7 @@ post {
 }
 
 params:path {
-  agreementId: 39c87845-4d52-4310-b2f7-da75939cd69d
+  agreementId: {{agreementId}}
 }
 
 headers {
@@ -24,4 +24,8 @@ body:json {
       "eserviceId":"17f8a7a9-9da2-462e-b327-471ed63d5aa0",
       "descriptorId":"d4193900-ddaf-4c91-a336-d7cd2cb9b3a7"
   }
+}
+
+vars:post-response {
+  agreementId: res.body.id
 }
