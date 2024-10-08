@@ -60,7 +60,7 @@ jobs:
         if: ${{ github.ref_type == 'branch' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
             latest=false
             prefix=
@@ -73,7 +73,7 @@ jobs:
         if: ${{ github.ref_type == 'tag' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
             latest=false
             prefix=
