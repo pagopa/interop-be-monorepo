@@ -26,7 +26,7 @@ jobs:
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
   build_push_image:
-    name: ${{ matrix.image_name }}
+    name: ${{ matrix.package }}
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     environment: dev
