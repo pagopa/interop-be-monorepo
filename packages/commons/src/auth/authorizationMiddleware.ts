@@ -17,7 +17,7 @@ import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
 import { UserRole, readHeaders } from "../index.js";
-import { logger } from "../logging/index.js";
+import { genericLogger, logger } from "../logging/index.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
 type RoleValidation =
@@ -35,7 +35,8 @@ const hasValidRoles = (
   if (!jwtToken) {
     throw missingBearer;
   }
-  const authData = readAuthDataFromJwtToken(jwtToken);
+
+  const authData = readAuthDataFromJwtToken(jwtToken, genericLogger);
   if (!authData.userRoles || authData.userRoles.length === 0) {
     return {
       isValid: false,
@@ -121,8 +122,7 @@ export const authorizationMiddleware =
           // NOTE(gabro): this is fine, we don't need the type safety provided by Zod since this is a generic middleware.
           // Preserving the type-level machinery to check the correctness of the json body wrt the status code is not worth the effort.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-assertion
-          .json(problem as any)
-          .end()
+          .send(problem as any)
       );
     }
   };

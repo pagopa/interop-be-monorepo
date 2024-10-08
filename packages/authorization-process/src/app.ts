@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
+import { config } from "./config/config.js";
 
 const serviceName = "authorization-process";
 
@@ -16,7 +17,7 @@ app.disable("x-powered-by");
 
 app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
-app.use(authenticationMiddleware);
+app.use(authenticationMiddleware(config));
 app.use(authorizationRouter(zodiosCtx));
 
 export default app;

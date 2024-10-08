@@ -3,6 +3,9 @@ import {
   catalogApi,
   purposeApi,
   tenantApi,
+  attributeRegistryApi,
+  notifierApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -16,17 +19,33 @@ export type AgreementProcessClient = ReturnType<
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
+  m2m: ReturnType<typeof tenantApi.createM2mApiClient>;
 };
 
 export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
 >;
 
+export type AttributeProcessClient = ReturnType<
+  typeof attributeRegistryApi.createAttributeApiClient
+>;
+
+export type NotifierEventsClient = ReturnType<
+  typeof notifierApi.createEventsApiClient
+>;
+
+export type AuthorizationProcessClient = {
+  client: ReturnType<typeof authorizationApi.createClientApiClient>;
+};
+
 export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   tenantProcessClient: TenantProcessClient;
   purposeProcessClient: PurposeProcessClient;
+  attributeProcessClient: AttributeProcessClient;
+  notifierEventsClient: NotifierEventsClient;
+  authorizationProcessClient: AuthorizationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -39,9 +58,19 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     ),
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
+      m2m: tenantApi.createM2mApiClient(config.tenantProcessUrl),
     },
     purposeProcessClient: purposeApi.createPurposeApiClient(
       config.purposeProcessUrl
     ),
+    attributeProcessClient: attributeRegistryApi.createAttributeApiClient(
+      config.attributeRegistryProcessUrl
+    ),
+    notifierEventsClient: notifierApi.createEventsApiClient(config.notifierUrl),
+    authorizationProcessClient: {
+      client: authorizationApi.createClientApiClient(
+        config.authorizationProcessUrl
+      ),
+    },
   };
 }

@@ -79,6 +79,7 @@ export const fromTenantVerifierV2 = (
   input: TenantVerifierV2
 ): TenantVerifier => ({
   ...input,
+  id: unsafeBrandId(input.id),
   verificationDate: bigIntToDate(input.verificationDate),
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
@@ -86,6 +87,7 @@ export const fromTenantVerifierV2 = (
 
 export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
   ...input,
+  id: unsafeBrandId(input.id),
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
   revocationDate: bigIntToDate(input.revocationDate),

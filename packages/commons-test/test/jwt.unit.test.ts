@@ -1,6 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import jwt from "jsonwebtoken";
-import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  readAuthDataFromJwtToken,
+} from "pagopa-interop-commons";
 import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { P, match } from "ts-pattern";
@@ -109,7 +112,7 @@ describe("JWT tests", () => {
         ...mockUiToken,
         "user-roles": "admin",
       });
-      expect(readAuthDataFromJwtToken(token)).toEqual({
+      expect(readAuthDataFromJwtToken(token, genericLogger)).toEqual({
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -127,7 +130,7 @@ describe("JWT tests", () => {
         "user-roles": "security,api",
       });
 
-      expect(readAuthDataFromJwtToken(token)).toEqual({
+      expect(readAuthDataFromJwtToken(token, genericLogger)).toEqual({
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -145,7 +148,7 @@ describe("JWT tests", () => {
         "user-roles": "api,invalid-role",
       });
 
-      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token, genericLogger)).toThrowError(
         invalidClaim(
           "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
         )
@@ -158,7 +161,7 @@ describe("JWT tests", () => {
         "user-roles": "",
       });
 
-      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token, genericLogger)).toThrowError(
         invalidClaim(
           'Validation error: String must contain at least 1 character(s) at "user-roles"'
         )
@@ -167,7 +170,7 @@ describe("JWT tests", () => {
 
     it("should successfully read auth data from a M2M token", async () => {
       const token = getMockSignedToken(mockM2MToken);
-      expect(readAuthDataFromJwtToken(token)).toEqual({
+      expect(readAuthDataFromJwtToken(token, genericLogger)).toEqual({
         externalId: {
           origin: "",
           value: "",
@@ -192,7 +195,7 @@ describe("JWT tests", () => {
         jti: undefined,
       });
 
-      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token, genericLogger)).toThrowError(
         invalidClaim(`Validation error: Required at "aud"; Required at "jti"`)
       );
     });
@@ -209,7 +212,7 @@ describe("JWT tests", () => {
         aud: "",
       });
 
-      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token, genericLogger)).toThrowError(
         invalidClaim(
           'Validation error: String must contain at least 1 character(s) at "aud"'
         )
@@ -218,7 +221,7 @@ describe("JWT tests", () => {
 
     it("should successfully read auth data from an Internal token", async () => {
       const token = getMockSignedToken(mockInternalToken);
-      expect(readAuthDataFromJwtToken(token)).toEqual({
+      expect(readAuthDataFromJwtToken(token, genericLogger)).toEqual({
         externalId: {
           origin: "",
           value: "",
@@ -232,7 +235,7 @@ describe("JWT tests", () => {
 
     it("should successfully read auth data from a Maintenance token", async () => {
       const token = getMockSignedToken(mockMaintenanceToken);
-      expect(readAuthDataFromJwtToken(token)).toEqual({
+      expect(readAuthDataFromJwtToken(token, genericLogger)).toEqual({
         externalId: {
           origin: "",
           value: "",
@@ -249,7 +252,7 @@ describe("JWT tests", () => {
         role: "invalid-role",
       });
 
-      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token, genericLogger)).toThrowError(
         invalidClaim(
           "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' | 'maintenance' |  at \"role\""
         )
@@ -258,7 +261,7 @@ describe("JWT tests", () => {
 
     it("should successfully read auth data from a Support token", async () => {
       const token = getMockSignedToken(mockSupportToken);
-      expect(readAuthDataFromJwtToken(token)).toEqual({
+      expect(readAuthDataFromJwtToken(token, genericLogger)).toEqual({
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -276,7 +279,7 @@ describe("JWT tests", () => {
         "user-roles": "support,invalid-role",
       });
 
-      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token, genericLogger)).toThrowError(
         invalidClaim(
           "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
         )
@@ -294,7 +297,7 @@ describe("JWT tests", () => {
         aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
       });
 
-      const authData = readAuthDataFromJwtToken(token);
+      const authData = readAuthDataFromJwtToken(token, genericLogger);
       expect(authData).toMatchObject({
         userRoles: match(mockToken)
           .with({ role: P.not(P.nullish) }, (t) => [t.role])
