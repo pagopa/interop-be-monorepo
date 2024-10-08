@@ -1,11 +1,11 @@
 meta {
-  name: Get Agreement Eservices
+  name: Get Agreements Eservices
   type: http
   seq: 6
 }
 
 get {
-  url: {{host-agreement}}/agreements/filter/eservices?offset=0&limit=10&consumersIds=["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]&states=["DRAFT"]
+  url: {{host-agreement}}/agreements/filter/eservices?offset=0&limit=10
   body: none
   auth: none
 }
@@ -13,8 +13,8 @@ get {
 params:query {
   offset: 0
   limit: 10
-  consumersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
-  states: ["DRAFT"]
+  ~consumersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
+  ~states: ["DRAFT"]
   ~eServiceName: 
   ~producersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
 }

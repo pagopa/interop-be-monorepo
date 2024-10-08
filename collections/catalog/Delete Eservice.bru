@@ -34,9 +34,3 @@ body:json {
       }
   }
 }
-
-script:pre-request {
-  const random = Math.round(Math.random() * 100)
-  
-  bru.setVar("name",`test name ${random}`)
-}

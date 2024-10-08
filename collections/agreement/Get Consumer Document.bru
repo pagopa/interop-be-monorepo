@@ -1,7 +1,7 @@
 meta {
   name: Get Consumer Document
   type: http
-  seq: 19
+  seq: 8
 }
 
 get {
@@ -11,11 +11,11 @@ get {
 }
 
 params:path {
-  agreementId: 146e33b9-ed04-404d-a845-a48d6da1e5e7
-  documentId: e293c0dd-9771-4144-8de3-c8a1e4592fae
+  agreementId: {{agreementId}}
+  documentId: {{agreementDocumentId}}
 }
 
 headers {
   Authorization: {{JWT}}
-  X-correlation-id: {{correlation-id}}
+  x-correlation-id: {{correlation-id}}
 }

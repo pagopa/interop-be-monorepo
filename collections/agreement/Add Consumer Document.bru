@@ -1,7 +1,7 @@
 meta {
   name: Add Consumer Document
   type: http
-  seq: 14
+  seq: 7
 }
 
 post {
@@ -11,7 +11,7 @@ post {
 }
 
 params:path {
-  agreementId: d6d9dd82-6da5-45f1-9890-347c86b24e8d
+  agreementId: {{agreementId}}
 }
 
 headers {
@@ -21,10 +21,19 @@ headers {
 
 body:json {
   {
-      "id":"{{$randomUUID}}",
+      "id":"{{randomUuid}}",
       "name":"Documento Test",
       "prettyName": "LokiDocument",
       "contentType": "Contract",
       "path": "anotherfile"
   }
+}
+
+vars:post-response {
+  agreementDocumentId: res.body.id
+}
+
+script:pre-request {
+  const { v4 } = require('uuid');
+  bru.setEnvVar("randomUuid", v4() );
 }
