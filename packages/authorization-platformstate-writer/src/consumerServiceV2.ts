@@ -70,7 +70,6 @@ export async function handleMessageV2(
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
-          // TODO: what is the state supposed to be?
           state: itemState.active,
           clientPurposesIds: [],
           version: msg.version,
@@ -189,7 +188,6 @@ export async function handleMessageV2(
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
-          // TODO: what is the state supposed to be?
           state: itemState.active,
           clientPurposesIds: [],
           version: msg.version,
@@ -371,27 +369,28 @@ export async function handleMessageV2(
         if (clientEntry.version > msg.version) {
           return Promise.resolve();
         } else {
-          if (client.purposes.length === 0) {
-            await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
-          } else {
-            await cleanClientPurposeIdsInPlatformStatesEntry(
-              dynamoDBClient,
-              pk,
-              msg.version
-            );
-          }
-
-          // token-generation-states
           const GSIPK_clientId_purposeId = makeGSIPKClientIdPurposeId({
             clientId: client.id,
             purposeId: unsafeBrandId(msg.data.purposeId),
           });
           if (client.purposes.length > 0) {
+            // platform-states
+            await cleanClientPurposeIdsInPlatformStatesEntry(
+              dynamoDBClient,
+              pk,
+              msg.version
+            );
+
+            // token-generation-states
             await deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable(
               GSIPK_clientId_purposeId,
               dynamoDBClient
             );
           } else {
+            // platform-states
+            await deleteClientEntryFromPlatformStates(pk, dynamoDBClient);
+
+            // token-generation-states
             await convertEntriesToClientKidInTokenGenerationStates(
               GSIPK_clientId_purposeId,
               dynamoDBClient
