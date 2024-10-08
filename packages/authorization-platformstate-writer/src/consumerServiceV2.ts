@@ -43,6 +43,7 @@ import {
   extractAgreementIdFromAgreementPK,
   retrievePlatformStatesByPurpose,
   updateTokenEntriesWithPlatformStatesData,
+  upsertPlatformClientEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -190,6 +191,16 @@ export async function handleMessageV2(
       }
     })
     .with({ type: "ClientKeyDeleted" }, async (msg) => {
+      const client = parseClient(msg.data.client, msg.type);
+      const pk = makePlatformStatesClientPK(client.id);
+      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+
+      if (clientEntry && clientEntry.version > msg.version) {
+        return Promise.resolve();
+      } else {
+        await upsertPlatformClientEntry(dynamoDBClient, pk, msg.version);
+      }
+
       const GSIPK_kid = makeGSIPKKid(msg.data.kid);
       await deleteEntriesFromTokenStatesByKid(GSIPK_kid, dynamoDBClient);
     })

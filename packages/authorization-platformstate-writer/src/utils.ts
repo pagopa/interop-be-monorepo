@@ -899,3 +899,42 @@ export const updateTokenEntriesWithPlatformStatesData = async ({
     await dynamoDBClient.send(command);
   }
 };
+
+export const upsertPlatformClientEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  pk: PlatformStatesClientPK,
+  version: number,
+  clientPurposesIds?: PurposeId[]
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    Key: {
+      PK: {
+        S: pk,
+      },
+    },
+    ExpressionAttributeValues: {
+      ...(clientPurposesIds
+        ? {
+            ":clientPurposesIds": {
+              L: clientPurposesIds.map((purposeId) => ({
+                S: purposeId,
+              })),
+            },
+          }
+        : {}),
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression: clientPurposesIds
+      ? "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion"
+      : "SET updatedAt = :newUpdateAt, version = :newVersion",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+};
