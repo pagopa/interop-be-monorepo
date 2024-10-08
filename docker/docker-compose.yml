@@ -99,7 +99,7 @@ services:
       - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states
     entrypoint: ./dynamo-migrations.sh
 
-  # Web GUI fro mongo
+  # Web GUI for mongo
   mongo-express:
     image: mongo-express:1.0.2-20
     ports:
