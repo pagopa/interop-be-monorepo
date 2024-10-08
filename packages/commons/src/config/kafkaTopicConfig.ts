@@ -54,6 +54,15 @@ export const AuthorizationTopicConfig = z
   }));
 export type AuthorizationTopicConfig = z.infer<typeof AuthorizationTopicConfig>;
 
+export const DelegationTopicConfig = z
+  .object({
+    DELEGATION_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    delegationTopic: c.DELEGATION_TOPIC,
+  }));
+export type DelegationTopicConfig = z.infer<typeof DelegationTopicConfig>;
+
 export const KafkaTopicConfig = z.union([
   CatalogTopicConfig,
   AgreementTopicConfig,
@@ -61,5 +70,6 @@ export const KafkaTopicConfig = z.union([
   AttributeTopicConfig,
   PurposeTopicConfig,
   AuthorizationTopicConfig,
+  DelegationTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;

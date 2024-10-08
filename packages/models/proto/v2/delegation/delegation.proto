@@ -15,8 +15,8 @@ message DelegationV2 {
   optional int64 revokedAt = 10;
   DelegationStateV2 state = 11;
   DelegationKindV2 kind = 12;
+  DelegationStampsV2 stamps = 13;  
   optional DelegationContractDocumentV2 contract = 14;
-  optional DelegationStampsV2 stamps = 13;  
 }
 
 message DelegationContractDocumentV2 {
