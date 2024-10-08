@@ -48,6 +48,8 @@ export const errorCodes = {
   purposeIdNotFoundInClientAssertion: "0039",
   clientAssertionPublicKeyNotFound: "0040",
   organizationNotAllowed: "0041",
+  invalidClientAssertionType: "0042",
+  invalidGrantType: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -415,5 +417,21 @@ export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
     detail: `Organization not allowed for client ${clientId}`,
     code: "organizationNotAllowed",
     title: "Organization not allowed",
+  });
+}
+
+export function invalidClientAssertionType(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid client assertion type`,
+    code: "invalidClientAssertionType",
+    title: "Invalid client assertion type",
+  });
+}
+
+export function invalidGrantType(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid grant type`,
+    code: "invalidGrantType",
+    title: "Invalid grant type",
   });
 }

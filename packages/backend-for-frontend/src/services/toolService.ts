@@ -41,8 +41,9 @@ import {
   multipleAgreementForEserviceAndConsumer,
   organizationNotAllowed,
   purposeIdNotFoundInClientAssertion,
+  invalidClientAssertionType,
+  invalidGrantType,
 } from "../model/errors.js";
-import { TokenGenerationValidationStepFailure } from "../../../api-clients/dist/bffApi.js";
 import {
   PagoPAInteropBeClients,
   AgreementProcessClient,
@@ -50,22 +51,33 @@ import {
 } from "../clients/clientsProvider.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 
+const DEFAULT_CLIENT_ASSERTION_TYPE =
+  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+const DEFAULT_GRANT_TYPE = "client_credentials";
+
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async validateTokenGeneration(
       clientId: string | undefined,
       clientAssertion: string,
-      _clientAssertionType: string,
-      _grantType: string,
+      clientAssertionType: string,
+      grantType: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
       ctx.logger.info(`Validating token generation for client ${clientId}`);
 
+      if (clientAssertionType !== DEFAULT_CLIENT_ASSERTION_TYPE) {
+        throw invalidClientAssertionType();
+      }
+
+      if (grantType !== DEFAULT_GRANT_TYPE) {
+        throw invalidGrantType();
+      }
+
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,
-        client_assertion_type:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        grant_type: "client_credentials",
+        client_assertion_type: clientAssertionType,
+        grant_type: grantType,
         client_id: clientId,
       });
 
@@ -445,7 +457,7 @@ export function assertOnlyOneAgreementForEserviceAndConsumerExists(
 
 function apiErrorsToValidationFailures<T extends string>(
   errors: Array<ApiError<T>> | undefined
-): TokenGenerationValidationStepFailure[] {
+): bffApi.TokenGenerationValidationStepFailure[] {
   if (!errors) {
     return [];
   }
