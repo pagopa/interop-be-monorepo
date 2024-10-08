@@ -1,0 +1,30 @@
+meta {
+  name: Approves a delegation
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-delegation}}/producer/delegations/:delegationId/approve
+  body: none
+  auth: bearer
+}
+
+params:path {
+  delegationId: 
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{JWT}}
+}

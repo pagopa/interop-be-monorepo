@@ -1,0 +1,33 @@
+meta {
+  name: Delegation Creation
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-delegation}}/producer/delegations
+  body: json
+  auth: bearer
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{JWT}}
+}
+
+body:json {
+  {
+    "eserviceId": "",
+    "delegateId": ""
+  }
+}
