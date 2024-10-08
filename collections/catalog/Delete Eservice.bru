@@ -17,7 +17,6 @@ params:path {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Accept: application/json
 }
 
 body:json {
@@ -38,6 +37,6 @@ body:json {
 
 script:pre-request {
   const random = Math.round(Math.random() * 100)
-
+  
   bru.setVar("name",`test name ${random}`)
 }

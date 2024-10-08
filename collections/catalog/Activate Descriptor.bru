@@ -16,12 +16,6 @@ params:path {
 }
 
 headers {
-  Cache-Control: no-cache
-  Content-Length: 0
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
 }

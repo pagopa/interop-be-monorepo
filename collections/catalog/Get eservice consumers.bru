@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{host-catalog}}/eservices/:eserviceId/consumers
+  url: {{host-catalog}}/eservices/:eserviceId/consumers?offset=0&limit=10
   body: json
   auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
 }
 
 params:path {
@@ -15,11 +20,6 @@ params:path {
 }
 
 headers {
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
-  ~Connection: keep-alive
 }
