@@ -77,7 +77,7 @@ services:
     depends_on:
       - dynamodb-local
     restart: on-failure
-    image: amazon/aws-cli
+    image: amazon/aws-cli:2.18.1
     working_dir: /home/tables
     volumes:
       - ./dynamo-db/schema:/home/tables
@@ -94,7 +94,7 @@ services:
     depends_on:
       - dynamodb-local
     restart: on-failure
-    image: amazon/aws-cli
+    image: amazon/aws-cli:2.18.1
     working_dir: /home/tables
     volumes:
       - ./dynamoDB-tables:/home/tables
@@ -189,7 +189,7 @@ services:
 
   # Seed data for MinIO
   minio-seed:
-    image: minio/mc
+    image: minio/mc:RELEASE.2024-02-09T22-18-24Z
     depends_on:
       - minio
     entrypoint: >
