@@ -318,11 +318,7 @@ export const deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable =
         ];
       }
     };
-    await runPaginatedQuery(
-      GSIPK_clientId_purposeId,
-      dynamoDBClient,
-      undefined
-    );
+    await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient);
   };
 
 export const convertEntriesToClientKidInTokenGenerationStates = async (
@@ -378,7 +374,7 @@ export const convertEntriesToClientKidInTokenGenerationStates = async (
       ];
     }
   };
-  await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient, undefined);
+  await runPaginatedQuery(GSIPK_clientId_purposeId, dynamoDBClient);
 };
 
 export const writeTokenStateClientEntry = async (
