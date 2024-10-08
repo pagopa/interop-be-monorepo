@@ -16,10 +16,12 @@ import {
   USER_ROLES,
   WithLogger,
   decodeJwtToken,
+  getJwksClients,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   missingClaim,
@@ -27,9 +29,8 @@ import {
   tenantLoginNotAllowed,
   tokenVerificationFailed,
 } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { validateSamlResponse } from "../utilities/samlValidator.js";
 import { BffAppContext } from "../utilities/context.js";
+import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
@@ -53,6 +54,8 @@ export function authorizationServiceBuilder(
   allowList: string[],
   rateLimiter: RateLimiter
 ) {
+  const jwksClients = getJwksClients(config);
+
   const readJwt = async (
     identityToken: string,
     logger: Logger
@@ -61,12 +64,17 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(identityToken, logger);
+    const verified = await verifyJwtToken(
+      identityToken,
+      jwksClients,
+      config,
+      logger
+    );
     if (!verified) {
       throw tokenVerificationFailed();
     }
 
-    const decoded = decodeJwtToken(identityToken);
+    const decoded = decodeJwtToken(identityToken, logger);
 
     const userRoles: string[] = decoded?.organization?.roles
       ? decoded.organization.roles.map((r: { role: string }) => r.role)
@@ -232,7 +240,8 @@ export function authorizationServiceBuilder(
     ): Promise<string> => {
       logger.info("Calling Support SAML");
 
-      validateSamlResponse(samlResponse);
+      const decodedSaml = Buffer.from(samlResponse, "base64").toString();
+      validateSamlResponse(decodedSaml);
 
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
@@ -254,13 +263,13 @@ export function authorizationServiceBuilder(
       return sessionToken;
     },
     getSaml2Token: async (
-      samlResponse: string,
-      tenantId: string,
+      { tenantId, saml2 }: bffApi.SAMLTokenRequest,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.SessionToken> => {
       logger.info("Calling get SAML2 token");
 
-      validateSamlResponse(samlResponse);
+      const decodedSaml = Buffer.from(saml2, "base64").toString();
+      validateSamlResponse(decodedSaml);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },

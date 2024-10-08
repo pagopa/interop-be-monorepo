@@ -779,24 +779,24 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      if (
-        verifiedTenantAttribute.revokedBy.some(
-          (a) => a.id === authData.organizationId
-        )
-      ) {
-        throw attributeAlreadyRevoked(
-          tenantId,
-          authData.organizationId,
-          attributeId
-        );
-      }
-
       const verifier = verifiedTenantAttribute.verifiedBy.find(
         (a) => a.id === authData.organizationId
       );
 
       if (!verifier) {
         throw attributeRevocationNotAllowed(tenantId, attributeId);
+      }
+
+      const isInRevokedBy = verifiedTenantAttribute.revokedBy.some(
+        (a) => a.id === authData.organizationId
+      );
+
+      if (isInRevokedBy) {
+        throw attributeAlreadyRevoked(
+          tenantId,
+          authData.organizationId,
+          attributeId
+        );
       }
 
       const updatedTenant: Tenant = {
@@ -1727,7 +1727,7 @@ function reassignVerifiedAttribute(
             tenantAttributeSeed.expirationDate
           ),
           revokedBy: verifiedTenantAttribute.revokedBy.filter(
-            (i) => i.id !== attr.id
+            (i) => i.id !== organizationId
           ),
         }
       : attr
