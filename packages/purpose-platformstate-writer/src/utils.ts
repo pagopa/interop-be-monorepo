@@ -16,6 +16,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
+  AgreementId,
   DescriptorId,
   genericInternalError,
   GSIPKConsumerIdEServiceId,
@@ -25,6 +26,7 @@ import {
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
   PlatformStatesCatalogEntry,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposeEntry,
@@ -311,7 +313,7 @@ export const updatePurposeEntriesInTokenGenerationStatesTable = async (
                 S: platformAgreementEntry.GSIPK_consumerId_eserviceId,
               },
               ":agreementId": {
-                S: platformAgreementEntry.PK.split("#")[1],
+                S: extractAgreementIdFromAgreementPK(platformAgreementEntry.PK),
               },
               ":agreementState": {
                 S: platformAgreementEntry.state,
@@ -592,4 +594,21 @@ const getPurposeVersionIdUpdateQueryData = (
     purposeVersionIdExpressionAttributeValues,
     purposeVersionIdUpdateExpression,
   };
+};
+
+const extractAgreementIdFromAgreementPK = (
+  pk: PlatformStatesAgreementPK
+): AgreementId => {
+  const substrings = pk.split("#");
+  const agreementId = substrings[1];
+  const result = AgreementId.safeParse(agreementId);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse agreement PK: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(agreementId)} `
+    );
+  }
+  return result.data;
 };
