@@ -2,6 +2,7 @@
 import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import { Tenant, TenantFeatureCertifier } from "pagopa-interop-models";
 import { parse } from "csv/sync";
+import { v4 as uuidv4 } from "uuid";
 import {
   AttributeIdentifiers,
   BatchParseResult,
@@ -197,7 +198,7 @@ async function assignAttribute(
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: crypto.randomUUID(),
+      correlationId: uuidv4(),
       bearerToken: token.serialized,
     };
     await tenantProcess.internalAssignCertifiedAttribute(
@@ -223,7 +224,7 @@ async function unassignAttribute(
 
     const token = await refreshableToken.get();
     const context: InteropContext = {
-      correlationId: crypto.randomUUID(),
+      correlationId: uuidv4(),
       bearerToken: token.serialized,
     };
     await tenantProcess.internalRevokeCertifiedAttribute(

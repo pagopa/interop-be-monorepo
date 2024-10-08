@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import {
   InteropTokenGenerator,
   ReadModelRepository,
@@ -23,7 +23,7 @@ const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
 
 const loggerInstance = logger({
   serviceName: "anac-certified-attributes-importer",
-  correlationId: crypto.randomUUID(),
+  correlationId: uuidv4(),
 });
 
 await importAttributes(
