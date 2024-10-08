@@ -724,6 +724,42 @@ export const readClientEntriesInTokenGenerationStates = async (
   return await runPaginatedQuery(GSIPK_clientId, dynamoDBClient, undefined);
 };
 
+export const setClientPurposeIdsInPlatformStatesEntry = async (
+  // TODO unify this function with cleanClientPurposeIdsInPlatformStatesEntry
+  dynamoDBClient: DynamoDBClient,
+  primaryKey: PlatformStatesClientPK,
+  version: number,
+  clientPurposeIds: PurposeId[]
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    ExpressionAttributeValues: {
+      ":clientPurposesIds": {
+        L: clientPurposeIds.map((purposeId) => ({
+          S: purposeId,
+        })),
+      },
+      ":newVersion": {
+        N: version.toString(),
+      },
+      ":newUpdateAt": {
+        S: new Date().toISOString(),
+      },
+    },
+    UpdateExpression:
+      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt",
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
 export const cleanClientPurposeIdsInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesClientPK,
