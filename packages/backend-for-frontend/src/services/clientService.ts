@@ -132,19 +132,20 @@ export function clientServiceBuilder(
       });
     },
 
-    async addUserToClient(
-      userId: string,
+    async addUsersToClient(
+      userIds: string[],
       clientId: string,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      logger.info(`Add user ${userId} to client ${clientId}`);
+    ): Promise<void> {
+      logger.info(`Add users ${userIds.join(",")} to client ${clientId}`);
 
-      const { id } = await authorizationClient.client.addUser(undefined, {
-        params: { clientId, userId },
-        headers,
-      });
-
-      return { id };
+      await authorizationClient.client.addUsers(
+        { userIds },
+        {
+          params: { clientId },
+          headers,
+        }
+      );
     },
 
     async createKeys(
@@ -171,11 +172,17 @@ export function clientServiceBuilder(
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
-      const { keys } = await authorizationClient.client.getClientKeys({
-        params: { clientId },
-        queries: { userIds },
-        headers,
-      });
+      const [{ keys }, { users }] = await Promise.all([
+        authorizationClient.client.getClientKeys({
+          params: { clientId },
+          queries: { userIds },
+          headers,
+        }),
+        authorizationClient.client.getClient({
+          params: { clientId },
+          headers,
+        }),
+      ]);
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
@@ -183,6 +190,7 @@ export function clientServiceBuilder(
             selfcareUsersClient,
             k,
             authData.selfcareId,
+            users,
             headers["X-Correlation-Id"]
           )
         )
@@ -238,14 +246,22 @@ export function clientServiceBuilder(
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
-      const key = await authorizationClient.client.getClientKeyById({
-        params: { clientId, keyId },
-        headers,
-      });
+      const [key, { users }] = await Promise.all([
+        authorizationClient.client.getClientKeyById({
+          params: { clientId, keyId },
+          headers,
+        }),
+        authorizationClient.client.getClient({
+          params: { clientId },
+          headers,
+        }),
+      ]);
+
       return decorateKey(
         selfcareUsersClient,
         key,
         selfcareId,
+        users,
         headers["X-Correlation-Id"]
       );
     },
@@ -270,9 +286,14 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating consumer client with name ${seed.name}`);
 
-      return authorizationClient.client.createConsumerClient(seed, {
-        headers,
-      });
+      const { id } = await authorizationClient.client.createConsumerClient(
+        seed,
+        {
+          headers,
+        }
+      );
+
+      return { id };
     },
 
     async createApiClient(
@@ -281,9 +302,11 @@ export function clientServiceBuilder(
     ): Promise<bffApi.CreatedResource> {
       logger.info(`Creating api client with name ${seed.name}`);
 
-      return authorizationClient.client.createApiClient(seed, {
+      const { id } = await authorizationClient.client.createApiClient(seed, {
         headers,
       });
+
+      return { id };
     },
   };
 }
@@ -380,6 +403,7 @@ export async function decorateKey(
   selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string,
+  members: string[],
   correlationId: string
 ): Promise<bffApi.PublicKey> {
   const user = await getSelfcareUserById(
@@ -394,7 +418,7 @@ export async function decorateKey(
     name: key.name,
     keyId: key.kid,
     createdAt: key.createdAt,
-    isOrphan: user.id === undefined,
+    isOrphan: !members.includes(key.userId) || user.id === undefined,
   };
 }
 

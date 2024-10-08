@@ -36,8 +36,8 @@ const producerKeychainRouter = (
     .get("/producerKeychains", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const requesterId = ctx.authData.organizationId;
-        const { limit, offset, userIds, q } = req.query;
+        const { limit, offset, userIds, q, eserviceId, producerId } = req.query;
+
         const producerKeychains =
           await producerKeychainService.getProducerKeychains(
             {
@@ -45,7 +45,8 @@ const producerKeychainRouter = (
               offset,
               userIds,
               name: q,
-              requesterId,
+              producerId,
+              eserviceId,
             },
             ctx
           );
@@ -82,7 +83,9 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error creating producer keychain with seed: ${JSON.stringify(req)}`
+          `Error creating producer keychain with seed: ${JSON.stringify(
+            req.body
+          )}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -286,33 +289,29 @@ const producerKeychainRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post(
-      "/producerKeychains/:producerKeychainId/users/:userId",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
+    .post("/producerKeychains/:producerKeychainId/users", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-        try {
-          const createdUser =
-            await producerKeychainService.addProducerKeychainUser(
-              req.params.userId,
-              req.params.producerKeychainId,
-              ctx
-            );
+      try {
+        await producerKeychainService.addProducerKeychainUsers(
+          req.body.userIds,
+          req.params.producerKeychainId,
+          ctx
+        );
 
-          return res
-            .status(200)
-            .send(bffApi.CreatedResource.parse(createdUser));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            `Error adding user ${req.params.userId} to producer keychain ${req.params.producerKeychainId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          `Error adding users ${req.body.userIds.join(
+            ","
+          )} to producer keychain ${req.params.producerKeychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .delete(
       "/producerKeychains/:producerKeychainId/users/:userId",
       async (req, res) => {
