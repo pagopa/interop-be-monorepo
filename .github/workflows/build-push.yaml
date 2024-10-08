@@ -86,7 +86,7 @@ jobs:
         uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
           context: .
-          file: ${{ matrix.dockerfile_path }}/Dockerfile
+          file: packages/${{ matrix.package }}/Dockerfile
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.labels || steps.meta_tag.outputs.labels }}
