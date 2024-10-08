@@ -1,0 +1,29 @@
+meta {
+  name: Get eservice
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-catalog}}/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eServiceId}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+  ~Connection: keep-alive
+}
+
+vars:post-response {
+  riskAnalysisId: res.body.riskAnalysis[0].id
+}
