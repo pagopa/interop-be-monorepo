@@ -31,6 +31,7 @@
     "uuid": "10.0.0",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
     "ts-pattern": "5.2.0",
     "zod": "^3.23.8"
   }
