@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 
 import healthRouter from "./routers/HealthRouter.js";
-import delegationProducerRouter from "./routers/DelegationRouter.js";
+import delegationProducerRouter from "./routers/DelegationProducerRouter.js";
 
 const serviceName = "delgation-process";
 
