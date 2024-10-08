@@ -77,6 +77,9 @@ export async function handleMessageV2(
               }
             > = new Map();
 
+            const PKsOfAddedEntries =
+              new Set<TokenGenerationStatesClientKidPurposePK>();
+
             for (const purposeId of client.purposes) {
               const states = await retrievePlatformStatesByPurpose(
                 dynamoDBClient,
@@ -84,13 +87,16 @@ export async function handleMessageV2(
               );
               map.set(purposeId, states);
 
+              const pk = makeTokenGenerationStatesClientKidPurposePK({
+                clientId: client.id,
+                kid: msg.data.kid,
+                purposeId,
+              });
+              PKsOfAddedEntries.add(pk);
+
               const clientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
                 {
-                  PK: makeTokenGenerationStatesClientKidPurposePK({
-                    clientId: client.id,
-                    kid: msg.data.kid,
-                    purposeId,
-                  }),
+                  PK: pk,
                   consumerId: client.consumerId,
                   clientKind: clientKindToTokenGenerationStatesClientKind(
                     client.kind
@@ -119,18 +125,34 @@ export async function handleMessageV2(
                 clientKidPurposeEntry,
                 dynamoDBClient
               );
-            }
+              // }
+              // TODO this two loops can be merged or should they be completely separated?
+              // for (const purposeId of client.purposes) {
+              const secondRetrievalStates =
+                await retrievePlatformStatesByPurpose(
+                  dynamoDBClient,
+                  purposeId
+                );
+              const { agreementEntry, catalogEntry, purposeEntry } =
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                map.get(purposeId)!;
 
-            for (const purposeId of client.purposes) {
-              const newStates = await retrievePlatformStatesByPurpose(
-                dynamoDBClient,
-                purposeId
-              );
-
-              const previousState = map.get(purposeId);
-              // TODO: compare previous states with new states and update the ones whose state has changed
-
-              // TODO update the ones whose state has changed
+              if (
+                secondRetrievalStates.agreementEntry.state !==
+                  agreementEntry.state ||
+                secondRetrievalStates.catalogEntry.state !==
+                  catalogEntry.state ||
+                secondRetrievalStates.purposeEntry.state !== purposeEntry.state
+              ) {
+                await updateTokenEntriesWithPlatformStatesData({
+                  purposeId,
+                  agreementEntry: secondRetrievalStates.agreementEntry,
+                  catalogEntry: secondRetrievalStates.catalogEntry,
+                  purposeEntry: secondRetrievalStates.purposeEntry,
+                  dynamoDBClient,
+                  pkOfEntriesToUpdate: PKsOfAddedEntries,
+                });
+              }
             }
           } else {
             const clientKidEntry: TokenGenerationStatesClientEntry = {
@@ -171,6 +193,7 @@ export async function handleMessageV2(
       const GSIPK_kid = makeGSIPKKid(msg.data.kid);
       await deleteEntriesFromTokenStatesByKid(GSIPK_kid, dynamoDBClient);
     })
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     .with({ type: "ClientPurposeAdded" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
 
