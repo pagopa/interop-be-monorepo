@@ -21,6 +21,11 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
 paths:
   /producer/delegations:
     get:
@@ -266,6 +271,21 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
           content:
             application/json:
               schema:
