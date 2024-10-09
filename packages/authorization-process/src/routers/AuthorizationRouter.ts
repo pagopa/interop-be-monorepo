@@ -84,7 +84,8 @@ const authorizationService = authorizationServiceBuilder(
 const authorizationRouter = (
   ctx: ZodiosContext
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
-  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } = userRoles;
+  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE, API_ROLE } =
+    userRoles;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -145,6 +146,7 @@ const authorizationRouter = (
         SECURITY_ROLE,
         M2M_ROLE,
         SUPPORT_ROLE,
+        API_ROLE,
       ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -340,16 +342,16 @@ const authorizationRouter = (
       }
     )
     .post(
-      "/clients/:clientId/users/:userId",
+      "/clients/:clientId/users",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const { client, showUsers } =
-            await authorizationService.addClientUser(
+            await authorizationService.addClientUsers(
               {
                 clientId: unsafeBrandId(req.params.clientId),
-                userId: unsafeBrandId(req.params.userId),
+                userIds: req.body.userIds.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,
@@ -717,18 +719,18 @@ const authorizationRouter = (
       }
     )
     .post(
-      "/producerKeychains/:producerKeychainId/users/:userId",
+      "/producerKeychains/:producerKeychainId/users",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const { producerKeychain, showUsers } =
-            await authorizationService.addProducerKeychainUser(
+            await authorizationService.addProducerKeychainUsers(
               {
                 producerKeychainId: unsafeBrandId(
                   req.params.producerKeychainId
                 ),
-                userId: unsafeBrandId(req.params.userId),
+                userIds: req.body.userIds.map(unsafeBrandId<UserId>),
                 authData: req.ctx.authData,
               },
               req.ctx.correlationId,

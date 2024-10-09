@@ -155,6 +155,14 @@ export function makeApiProblemBuilder<T extends string>(
           }
         }
       )
+      .with(P.instanceOf(ZodError), (error) => {
+        // Zod errors shall always be catched and handled throwing
+        // an ApiError. If a ZodError arrives here we log it and
+        // return a generic problem
+        const zodError = fromZodError(error);
+        logger.error(makeProblemLogString(genericProblem, zodError));
+        return genericProblem;
+      })
       .otherwise((error: unknown): Problem => {
         logger.error(makeProblemLogString(genericProblem, error));
         return genericProblem;
@@ -184,6 +192,7 @@ const errorCodes = {
   invalidKey: "10003",
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
+  jwksSigningKeyError: "10006",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -372,6 +381,14 @@ export function jwkDecodingError(error: unknown): ApiError<CommonErrorCodes> {
     )}`,
     code: "jwkDecodingError",
     title: "JWK decoding error",
+  });
+}
+
+export function jwksSigningKeyError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error getting signing key`,
+    code: "jwksSigningKeyError",
+    title: "JWK signing key error",
   });
 }
 

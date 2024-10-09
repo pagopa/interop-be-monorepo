@@ -122,18 +122,18 @@ export function agreementServiceBuilder(
     },
 
     getAgreementPurposes: async (
-      { logger, headers }: WithLogger<ApiGatewayAppContext>,
+      ctx: WithLogger<ApiGatewayAppContext>,
       agreementId: agreementApi.Agreement["id"]
     ): Promise<apiGatewayApi.Purposes> => {
-      logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
+      ctx.logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(
         agreementProcessClient,
-        headers,
+        ctx.headers,
         agreementId
       );
 
-      return await getAllPurposes(purposeProcessClient, headers, {
+      return await getAllPurposes(purposeProcessClient, ctx, {
         eserviceId: agreement.eserviceId,
         consumerId: agreement.consumerId,
       });
