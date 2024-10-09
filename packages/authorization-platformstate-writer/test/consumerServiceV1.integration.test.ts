@@ -27,7 +27,6 @@ import {
   generateId,
   itemState,
   KeyDeletedV1,
-  makeGSIPKClient,
   makeGSIPKKid,
   makePlatformStatesClientPK,
   makeTokenGenerationStatesClientKidPK,
@@ -95,7 +94,7 @@ describe("integration tests V1 events", async () => {
         data: payload,
         log_date: new Date(),
       };
-      const GSIPK_clientId = makeGSIPKClient(clientId);
+      const GSIPK_clientId = clientId;
       const pk1 = makeTokenGenerationStatesClientKidPK({
         clientId,
         kid: kidToRemove,
@@ -153,12 +152,14 @@ describe("integration tests V1 events", async () => {
     });
   });
 
+  // eslint-disable-next-line sonarjs/no-identical-functions
   describe("ClientPurposeAdded", () => {
     it("sample", () => {
       expect(1).toBe(1);
     });
   });
 
+  // eslint-disable-next-line sonarjs/no-identical-functions
   describe("ClientPurposeRemoved", () => {
     it("sample", () => {
       expect(1).toBe(1);

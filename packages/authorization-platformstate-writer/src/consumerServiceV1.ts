@@ -4,6 +4,7 @@ import {
   ClientId,
   clientKindTokenStates,
   fromKeyV1,
+  generateId,
   genericInternalError,
   itemState,
   Key,
@@ -27,7 +28,6 @@ import {
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteClientEntryFromTokenGenerationStatesTable,
@@ -113,9 +113,7 @@ export async function handleMessageV1(
               {
                 PK: pk,
                 consumerId: states.purposeEntry.purposeConsumerId, // TODO double check
-                clientKind: clientKindToTokenGenerationStatesClientKind(
-                  client.kind // TODO
-                ),
+                clientKind: clientKindTokenStates.consumer, // TODO
                 GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
                   eserviceId: states.purposeEntry.purposeEserviceId,
                   descriptorId: states.agreementEntry.agreementDescriptorId,
@@ -172,7 +170,7 @@ export async function handleMessageV1(
               clientId,
               kid,
             }),
-            consumerId: client.consumerId, // TODO
+            consumerId: generateId(), // TODO
             clientKind: clientKindTokenStates.api, // TODO
             publicKey: pem,
             GSIPK_clientId: clientId,
