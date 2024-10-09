@@ -39,6 +39,11 @@ export function toApiTenantFeature(
         certifierId: feature.certifierId,
       },
     }))
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      delegatedProducer: {
+        availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
+      },
+    }))
     .exhaustive();
 }
 

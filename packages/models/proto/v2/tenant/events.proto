@@ -75,3 +75,7 @@ message TenantMailDeletedV2 {
 message MaintenanceTenantPromotedToCertifierV2{
    TenantV2 tenant = 1;
 }
+
+message TenantDelegatedProducerFeatureAddedV2 {
+  TenantV2 tenant = 1;
+}

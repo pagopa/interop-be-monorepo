@@ -418,6 +418,16 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async assignTenantDelegatedProducerFeature(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.assignTenantDelegatedProducerFeature(
+        undefined,
+        { headers }
+      );
+    },
   };
 }
 

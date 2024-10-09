@@ -34,6 +34,7 @@ export async function handleMessageV2(
       { type: "MaintenanceTenantPromotedToCertifier" },
       { type: "TenantMailDeleted" },
       { type: "TenantKindUpdated" },
+      { type: "TenantDelegatedProducerFeatureAdded" },
       async (message) =>
         await tenants.updateOne(
           {

@@ -7,6 +7,7 @@ import {
   ExternalId,
   Tenant,
   TenantAttribute,
+  TenantFeatureCertifier,
   TenantId,
   TenantKind,
   TenantVerifier,
@@ -238,7 +239,7 @@ export function evaluateNewSelfcareId({
 
 export function retrieveCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   )?.certifierId;
 
   if (!certifierFeature) {

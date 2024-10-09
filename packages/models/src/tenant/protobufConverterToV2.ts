@@ -37,6 +37,14 @@ export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
         },
       },
     }))
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      sealedValue: {
+        oneofKind: "delegatedProducer",
+        delegatedProducer: {
+          availabilityTimestamp: dateToBigInt(feature.availabilityTimestamp),
+        },
+      },
+    }))
     .exhaustive();
 }
 
