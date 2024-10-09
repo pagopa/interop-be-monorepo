@@ -65,6 +65,8 @@ export async function handleMessageV1(
           PK: pk,
           version: msg.version,
           state: itemState.active,
+          clientKind: clientEntry.clientKind,
+          clientConsumerId: clientEntry.clientConsumerId,
           updatedAt: new Date().toISOString(),
           clientPurposesIds: client.purposes,
         };
@@ -95,6 +97,8 @@ export async function handleMessageV1(
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
           state: itemState.active,
+          clientKind: clientEntry.clientKind,
+          clientConsumerId: clientEntry.clientConsumerId,
           clientPurposesIds,
           version: msg.version,
           updatedAt: new Date().toISOString(),
@@ -174,6 +178,7 @@ export async function handleMessageV1(
               secondRetrievalStates.purposeEntry.state !== purposeEntry.state
             ) {
               await updateTokenEntriesWithPlatformStatesData({
+                clientId,
                 purposeId,
                 agreementEntry: secondRetrievalStates.agreementEntry,
                 catalogEntry: secondRetrievalStates.catalogEntry,
@@ -211,6 +216,8 @@ export async function handleMessageV1(
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
           state: itemState.active,
+          clientKind: clientEntry.clientKind,
+          clientConsumerId: clientEntry.clientConsumerId,
           clientPurposesIds: clientEntry.clientPurposesIds,
           version: msg.version,
           updatedAt: new Date().toISOString(),
@@ -367,6 +374,7 @@ export async function handleMessageV1(
           secondRetrievalStates.purposeEntry.state !== purposeEntry.state
         ) {
           await updateTokenEntriesWithPlatformStatesData({
+            clientId,
             purposeId,
             agreementEntry: secondRetrievalStates.agreementEntry,
             catalogEntry: secondRetrievalStates.catalogEntry,

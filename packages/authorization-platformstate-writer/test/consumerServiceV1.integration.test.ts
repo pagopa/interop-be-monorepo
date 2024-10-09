@@ -33,6 +33,7 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
   PlatformStatesClientEntry,
   PurposeId,
+  TenantId,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
@@ -191,6 +192,8 @@ describe("integration tests V1 events", async () => {
         PK: pk1PlatformStates,
         version: 1,
         state: itemState.active,
+        clientKind: clientKindTokenStates.consumer,
+        clientConsumerId: generateId<TenantId>(),
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
@@ -200,6 +203,8 @@ describe("integration tests V1 events", async () => {
         PK: pk2PlatformStates,
         version: 1,
         state: itemState.active,
+        clientKind: clientKindTokenStates.consumer,
+        clientConsumerId: generateId<TenantId>(),
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
