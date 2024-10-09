@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   EServiceId,
   DescriptorId,
@@ -97,3 +98,13 @@ export const makeGSIPKClientIdPurposeId = ({
 
 export const makeGSIPKKid = (kid: string): GSIPKKid =>
   unsafeBrandId<GSIPKKid>(kid);
+
+export const clientKindTokenStates = {
+  consumer: "CONSUMER",
+  api: "API",
+} as const;
+export const ClientKindTokenStates = z.enum([
+  Object.values(clientKindTokenStates)[0],
+  ...Object.values(clientKindTokenStates).slice(1),
+]);
+export type ClientKindTokenStates = z.infer<typeof ClientKindTokenStates>;
