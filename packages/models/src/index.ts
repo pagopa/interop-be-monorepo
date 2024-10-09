@@ -17,6 +17,7 @@ export * from "./attribute/protobufConverterToV1.js";
 
 export * from "./delegation/delegation.js";
 export * from "./delegation/delegationEvents.js";
+export * from "./delegation/protobufConverterToV2.js";
 
 export * from "./email/email.js";
 
