@@ -23,6 +23,7 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
+  makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
@@ -824,6 +825,7 @@ export const retrievePlatformStatesByPurpose = async (
 };
 
 export const updateTokenEntriesWithPlatformStatesData = async ({
+  clientId,
   purposeId,
   agreementEntry,
   catalogEntry,
@@ -831,6 +833,7 @@ export const updateTokenEntriesWithPlatformStatesData = async ({
   dynamoDBClient,
   pkOfEntriesToUpdate,
 }: {
+  clientId: ClientId;
   purposeId: PurposeId;
   agreementEntry: PlatformStatesAgreementEntry;
   catalogEntry: PlatformStatesCatalogEntry;
@@ -873,6 +876,12 @@ export const updateTokenEntriesWithPlatformStatesData = async ({
         ":GSIPK_consumerId_eserviceId": {
           S: agreementEntry.GSIPK_consumerId_eserviceId,
         },
+        ":GSIPK_clientId_purposeId": {
+          S: makeGSIPKClientIdPurposeId({
+            clientId,
+            purposeId,
+          }),
+        },
         ":purposeState": {
           S: purposeEntry.state,
         },
@@ -886,8 +895,18 @@ export const updateTokenEntriesWithPlatformStatesData = async ({
           S: new Date().toISOString(),
         },
       },
-      UpdateExpression:
-        "SET GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan, descriptorState = :descriptorState, agreementId = :agreementId, agreementState = :agreementState, GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId, purposeState = :purposeState, purposeVersionId = :purposeVersionId, GSIPK_purposeId = :GSIPK_purposeId, updatedAt = :newUpdateAt",
+      UpdateExpression: `SET GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, 
+                        descriptorAudience = :descriptorAudience, 
+                        descriptorVoucherLifespan = :descriptorVoucherLifespan, 
+                        descriptorState = :descriptorState, 
+                        agreementId = :agreementId, 
+                        agreementState = :agreementState, 
+                        GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId,
+                        GSIPK_clientId_purposeId = :GSIPK_clientId_purposeId,
+                        purposeState = :purposeState, 
+                        purposeVersionId = :purposeVersionId, 
+                        GSIPK_purposeId = :GSIPK_purposeId, 
+                        updatedAt = :newUpdateAt`,
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       ReturnValues: "NONE",
     };
