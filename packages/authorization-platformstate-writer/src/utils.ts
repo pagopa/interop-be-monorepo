@@ -645,7 +645,15 @@ export const writeClientEntry = async (
         S: clientEntry.state,
       },
       clientPurposesIds: {
-        L: [],
+        L: clientEntry.clientPurposesIds.map((purposeId) => ({
+          S: purposeId,
+        })),
+      },
+      clientKind: {
+        S: clientEntry.clientKind,
+      },
+      clientConsumerId: {
+        S: clientEntry.clientConsumerId,
       },
       version: {
         N: clientEntry.version.toString(),
@@ -1006,6 +1014,12 @@ export const upsertPlatformClientEntry = async (
         L: entry.clientPurposesIds.map((purposeId) => ({
           S: purposeId,
         })),
+      },
+      clientKind: {
+        S: entry.clientKind,
+      },
+      clientConsumerId: {
+        S: entry.clientConsumerId,
       },
       version: {
         N: entry.version.toString(),
