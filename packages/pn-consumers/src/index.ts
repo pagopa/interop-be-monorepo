@@ -56,6 +56,7 @@ async function main(): Promise<void> {
   );
 
   loggerInstance.info("> Success!\n");
+  readModel.close();
 }
 
 await withExecutionTime(main, loggerInstance);
