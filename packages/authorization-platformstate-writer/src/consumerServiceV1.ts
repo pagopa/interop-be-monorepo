@@ -1,8 +1,11 @@
 import { match } from "ts-pattern";
 import {
   AuthorizationEventEnvelopeV1,
+  Client,
   ClientId,
   clientKindTokenStates,
+  ClientV1,
+  fromClientV1,
   fromKeyV1,
   generateId,
   genericInternalError,
@@ -43,7 +46,6 @@ import {
   updateTokenEntriesWithPlatformStatesData,
   upsertPlatformClientEntry,
   upsertTokenClientKidEntry,
-  writeClientEntry,
   writeTokenStateClientPurposeEntry,
 } from "./utils.js";
 
@@ -52,6 +54,23 @@ export async function handleMessageV1(
   dynamoDBClient: DynamoDBClient
 ): Promise<void> {
   await match(message)
+    .with({ type: "ClientAdded" }, async (msg) => {
+      const client = parseClient(msg.data.client, msg.type);
+
+      const pk = makePlatformStatesClientPK(client.id);
+      const clientEntry = await readClientEntry(pk, dynamoDBClient);
+
+      if (clientEntry && clientEntry.version > msg.version) {
+        const updatedClientEntry: PlatformStatesClientEntry = {
+          PK: pk,
+          version: msg.version,
+          state: itemState.active,
+          updatedAt: new Date().toISOString(),
+          clientPurposesIds: client.purposes,
+        };
+        await upsertPlatformClientEntry(dynamoDBClient, updatedClientEntry);
+      }
+    })
     // eslint-disable-next-line sonarjs/cognitive-complexity
     .with({ type: "KeysAdded" }, async (msg) => {
       const keyV1 = msg.data.keys[0].value;
@@ -68,7 +87,7 @@ export async function handleMessageV1(
       const pk = makePlatformStatesClientPK(clientId);
       const clientEntry = await readClientEntry(pk, dynamoDBClient);
 
-      if (clientEntry && clientEntry.version > msg.version) {
+      if (!clientEntry || clientEntry.version > msg.version) {
         return Promise.resolve();
       } else {
         const clientPurposesIds = clientEntry?.clientPurposesIds || [];
@@ -186,13 +205,13 @@ export async function handleMessageV1(
       const pk = makePlatformStatesClientPK(clientId);
       const clientEntry = await readClientEntry(pk, dynamoDBClient);
 
-      if (clientEntry && clientEntry.version > msg.version) {
+      if (!clientEntry || clientEntry.version > msg.version) {
         return Promise.resolve();
       } else {
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
           state: itemState.active,
-          clientPurposesIds: [],
+          clientPurposesIds: clientEntry.clientPurposesIds,
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
@@ -214,28 +233,16 @@ export async function handleMessageV1(
 
       const pk = makePlatformStatesClientPK(clientId);
       const clientEntry = await readClientEntry(pk, dynamoDBClient);
-      if (clientEntry) {
-        if (clientEntry.version > msg.version) {
-          return Promise.resolve();
-        } else {
-          const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
-          await setClientPurposeIdsInPlatformStatesEntry(
-            dynamoDBClient,
-            pk,
-            msg.version,
-            purposeIds
-          );
-        }
+      if (!clientEntry || clientEntry.version > msg.version) {
+        return Promise.resolve();
       } else {
-        const clientEntryPK = makePlatformStatesClientPK(clientId);
-        const clientEntry: PlatformStatesClientEntry = {
-          PK: clientEntryPK,
-          state: itemState.active,
-          clientPurposesIds: [],
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        };
-        await writeClientEntry(clientEntry, dynamoDBClient);
+        const purposeIds = [...clientEntry.clientPurposesIds, purposeId];
+        await setClientPurposeIdsInPlatformStatesEntry(
+          dynamoDBClient,
+          pk,
+          msg.version,
+          purposeIds
+        );
       }
 
       const GSIPK_clientId = clientId;
@@ -426,7 +433,6 @@ export async function handleMessageV1(
       );
     })
     .with(
-      { type: "ClientAdded" },
       { type: "KeyRelationshipToUserMigrated" },
       { type: "RelationshipAdded" },
       { type: "RelationshipAdded" },
@@ -444,4 +450,15 @@ export const parseKey = (keyV1: KeyV1 | undefined, eventType: string): Key => {
   }
 
   return fromKeyV1(keyV1);
+};
+
+export const parseClient = (
+  clientV1: ClientV1 | undefined,
+  eventType: string
+): Client => {
+  if (!clientV1) {
+    throw missingKafkaMessageDataError("client", eventType);
+  }
+
+  return fromClientV1(clientV1);
 };
