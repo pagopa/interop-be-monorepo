@@ -1,0 +1,16 @@
+meta {
+  name: Create Purpose
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-purpose}}/purposes
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
