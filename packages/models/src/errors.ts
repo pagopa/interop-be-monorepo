@@ -354,16 +354,14 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
 export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   const title = "Header has not been passed";
   return new ApiError({
-    detail: headerName
-      ? `Header ${headerName} not existing in this request`
-      : title,
+    detail: headerName ? `Missing ${headerName} request header` : title,
     code: "missingHeader",
     title,
   });
 }
 
 export const missingBearer: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Authorization Illegal header key.`,
+  detail: `Mising Bearer in Authorization header`,
   code: "missingHeader",
   title: "Bearer token has not been passed",
 });

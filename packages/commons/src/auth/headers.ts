@@ -1,61 +1,40 @@
 import { Request } from "express";
-import { P, match } from "ts-pattern";
+import { missingBearer, missingHeader } from "pagopa-interop-models";
 import { z } from "zod";
-import { genericLogger } from "../logging/index.js";
-import { AuthData } from "./authData.js";
-import { readAuthDataFromJwtToken } from "./jwt.js";
+import { Logger } from "../logging/index.js";
 
-export const Headers = z.object({
-  authorization: z.string().nullish(),
-  "x-correlation-id": z.string().nullish(),
-});
+export function parseCorrelationIdHeader(req: Request): string | undefined {
+  const parsed = z
+    .object({ "x-correlation-id": z.string() })
+    .safeParse(req.headers);
 
-export type Headers = z.infer<typeof Headers>;
-
-export const ParsedHeaders = z
-  .object({
-    correlationId: z.string(),
-  })
-  .and(AuthData);
-export type ParsedHeaders = z.infer<typeof ParsedHeaders>;
-
-export const readCorrelationIdHeader = (req: Request): string | undefined =>
-  match(req.headers)
-    .with(
-      { "x-correlation-id": P.string },
-      (headers) => headers["x-correlation-id"]
-    )
-    .otherwise(() => undefined);
-
-export const readHeaders = (req: Request): ParsedHeaders | undefined => {
-  try {
-    const headers = Headers.parse(req.headers);
-    return match(headers)
-      .with(
-        {
-          authorization: P.string,
-          "x-correlation-id": P.string,
-        },
-        (headers) => {
-          const authorizationHeader = headers.authorization.split(" ");
-          if (
-            authorizationHeader.length !== 2 ||
-            authorizationHeader[0] !== "Bearer"
-          ) {
-            return undefined;
-          }
-
-          const jwtToken = authorizationHeader[1];
-          const authData = readAuthDataFromJwtToken(jwtToken, genericLogger);
-
-          return {
-            ...authData,
-            correlationId: headers["x-correlation-id"],
-          };
-        }
-      )
-      .otherwise(() => undefined);
-  } catch (error) {
-    return undefined;
+  if (parsed.success) {
+    return parsed.data["x-correlation-id"];
   }
-};
+  return undefined;
+}
+export function parseAuthHeader(req: Request): string | undefined {
+  const parsed = z.object({ authorization: z.string() }).safeParse(req.headers);
+
+  if (parsed.success) {
+    return parsed.data.authorization;
+  }
+  return undefined;
+}
+
+export function jwtFromAuthHeader(req: Request, logger: Logger): string {
+  const authHeader = parseAuthHeader(req);
+  if (!authHeader) {
+    throw missingHeader("Authorization");
+  }
+
+  const authHeaderParts = authHeader.split(" ");
+  if (authHeaderParts.length !== 2 || authHeaderParts[0] !== "Bearer") {
+    logger.warn(
+      `No authentication provided for this call ${req.method} ${req.url}`
+    );
+    throw missingBearer;
+  }
+
+  return authHeaderParts[1];
+}

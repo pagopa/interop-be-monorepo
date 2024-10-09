@@ -1,12 +1,14 @@
+import { constants } from "http2";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { makeApiProblemBuilder, missingHeader } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
-import { Logger, logger } from "../logging/index.js";
-import { readCorrelationIdHeader } from "../auth/headers.js";
+import { genericLogger, Logger, logger } from "../logging/index.js";
+import { parseCorrelationIdHeader } from "../auth/headers.js";
 
 export const AppContext = z.object({
   serviceName: z.string(),
@@ -25,21 +27,38 @@ export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
 }
 
+const makeApiProblem = makeApiProblemBuilder({});
+
 export const contextMiddleware =
   (
     serviceName: string,
-    overrideCorrelationId: boolean = false
+    readCorrelationIdFromHeader: boolean = true
   ): ZodiosRouterContextRequestHandler<ExpressContext> =>
-  (req, _res, next): void => {
-    const correlationId = overrideCorrelationId
-      ? uuidv4()
-      : readCorrelationIdHeader(req) ?? uuidv4();
+  async (req, res, next): Promise<unknown> => {
+    const setCtx = (correlationId: string): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx = {
+        serviceName,
+        correlationId,
+      } as AppContext;
+    };
 
-    // eslint-disable-next-line functional/immutable-data
-    req.ctx = {
-      serviceName,
-      correlationId,
-    } as AppContext;
+    if (readCorrelationIdFromHeader) {
+      const correlationIdHeader = parseCorrelationIdHeader(req);
 
-    next();
+      if (!correlationIdHeader) {
+        const problem = makeApiProblem(
+          missingHeader("X-Correlation-Id"),
+          () => constants.HTTP_STATUS_BAD_REQUEST,
+          genericLogger
+        );
+        return res.status(problem.status).send(problem);
+      }
+
+      setCtx(correlationIdHeader || uuidv4());
+    } else {
+      setCtx(uuidv4());
+    }
+
+    return next();
   };
