@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   AttributeValue,
   DynamoDBClient,
@@ -19,6 +17,8 @@ import {
   PlatformStatesCatalogEntry,
   PlatformStatesGenericEntry,
   TokenGenerationStatesClientPurposeEntry,
+  PlatformStatesPurposeEntry,
+  PlatformStatesAgreementEntry,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
@@ -349,6 +349,76 @@ export const writeCatalogEntry = async (
       },
       updatedAt: {
         S: catalogEntry.updatedAt,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writePlatformPurposeEntry = async (
+  purposeEntry: PlatformStatesPurposeEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: purposeEntry.PK,
+      },
+      state: {
+        S: purposeEntry.state,
+      },
+      purposeVersionId: {
+        S: purposeEntry.purposeVersionId,
+      },
+      purposeEserviceId: {
+        S: purposeEntry.purposeEserviceId,
+      },
+      purposeConsumerId: {
+        S: purposeEntry.purposeConsumerId,
+      },
+      version: {
+        N: purposeEntry.version.toString(),
+      },
+      updatedAt: {
+        S: purposeEntry.updatedAt,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writePlatformAgreementEntry = async (
+  agreementEntry: PlatformStatesAgreementEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: agreementEntry.PK,
+      },
+      state: {
+        S: agreementEntry.state,
+      },
+      version: {
+        N: agreementEntry.version.toString(),
+      },
+      updatedAt: {
+        S: agreementEntry.updatedAt,
+      },
+      GSIPK_consumerId_eserviceId: {
+        S: agreementEntry.GSIPK_consumerId_eserviceId,
+      },
+      GSISK_agreementTimestamp: {
+        S: agreementEntry.GSISK_agreementTimestamp,
+      },
+      agreementDescriptorId: {
+        S: agreementEntry.agreementDescriptorId,
       },
     },
     TableName: "platform-states",
