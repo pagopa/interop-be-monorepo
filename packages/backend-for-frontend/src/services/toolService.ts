@@ -38,7 +38,6 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  multipleAgreementForEserviceAndConsumer,
   organizationNotAllowed,
   purposeIdNotFoundInClientAssertion,
 } from "../model/errors.js";
@@ -313,15 +312,24 @@ async function retrieveAgreement(
     states: [
       agreementApi.AgreementState.Values.ACTIVE,
       agreementApi.AgreementState.Values.SUSPENDED,
+      agreementApi.AgreementState.Values.ARCHIVED,
     ],
   });
 
-  assertOnlyOneAgreementForEserviceAndConsumerExists(
-    agreements,
-    eserviceId,
-    consumerId
+  if (agreements.length === 0) {
+    throw activeAgreementByEserviceAndConsumerNotFound(eserviceId, consumerId);
+  }
+  if (agreements.length === 1) {
+    return agreements[0];
+  }
+
+  // If there are multiple agreements, give priority to active or suspended agreement
+  const agreementPrioritized = agreements.find(
+    (a) =>
+      a.state === agreementApi.AgreementState.Values.SUSPENDED ||
+      a.state === agreementApi.AgreementState.Values.ACTIVE
   );
-  return agreements[0];
+  return agreementPrioritized ?? agreements[0];
 }
 
 async function retrieveDescriptor(
@@ -428,18 +436,6 @@ const purposeVersionStateToItemState = (
   state === purposeApi.PurposeVersionState.Enum.ACTIVE
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
-
-export function assertOnlyOneAgreementForEserviceAndConsumerExists(
-  agreements: agreementApi.Agreement[],
-  eserviceId: string,
-  consumerId: string
-): asserts agreements is [agreementApi.Agreement] {
-  if (agreements.length === 0) {
-    throw activeAgreementByEserviceAndConsumerNotFound(eserviceId, consumerId);
-  } else if (agreements.length > 1) {
-    throw multipleAgreementForEserviceAndConsumer(eserviceId, consumerId);
-  }
-}
 
 function apiErrorsToValidationFailures<T extends string>(
   errors: Array<ApiError<T>> | undefined

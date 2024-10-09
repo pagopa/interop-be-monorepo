@@ -44,10 +44,9 @@ export const errorCodes = {
   privacyNoticeVersionIsNotTheLatest: "0035",
   missingActivePurposeVersion: "0036",
   activeAgreementByEserviceAndConsumerNotFound: "0037",
-  multipleAgreementForEserviceAndConsumer: "0038",
-  purposeIdNotFoundInClientAssertion: "0039",
-  clientAssertionPublicKeyNotFound: "0040",
-  organizationNotAllowed: "0041",
+  purposeIdNotFoundInClientAssertion: "0038",
+  clientAssertionPublicKeyNotFound: "0049",
+  organizationNotAllowed: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -377,17 +376,6 @@ export function activeAgreementByEserviceAndConsumerNotFound(
     detail: `Active agreement for Eservice ${eserviceId} and consumer ${consumerId} not found`,
     code: "activeAgreementByEserviceAndConsumerNotFound",
     title: "Active agreement not found",
-  });
-}
-
-export function multipleAgreementForEserviceAndConsumer(
-  eserviceId: string,
-  consumerId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Multiple agreements for Eservice ${eserviceId} and consumer ${consumerId} found`,
-    code: "multipleAgreementForEserviceAndConsumer",
-    title: "Multiple agreement found",
   });
 }
 
