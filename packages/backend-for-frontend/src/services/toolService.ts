@@ -360,14 +360,18 @@ function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
     .find(
       (v) =>
         v.state === purposeApi.PurposeVersionState.Enum.ACTIVE ||
-        v.state === purposeApi.PurposeVersionState.Enum.SUSPENDED
+        v.state === purposeApi.PurposeVersionState.Enum.SUSPENDED ||
+        v.state === purposeApi.PurposeVersionState.Enum.ARCHIVED
     );
 
   if (!activePurposeVersion) {
     throw missingActivePurposeVersion(purpose.id);
   }
 
-  return purposeVersionStateToItemState(activePurposeVersion.state);
+  return activePurposeVersion.state ===
+    purposeApi.PurposeVersionState.Enum.ACTIVE
+    ? ItemState.Enum.ACTIVE
+    : ItemState.Enum.INACTIVE;
 }
 
 async function retrieveTokenValidationEService(
@@ -427,13 +431,6 @@ const descriptorStateToItemState = (
 ): ItemState =>
   state === catalogApi.EServiceDescriptorState.Enum.PUBLISHED ||
   state === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
-    ? ItemState.Enum.ACTIVE
-    : ItemState.Enum.INACTIVE;
-
-const purposeVersionStateToItemState = (
-  state: purposeApi.PurposeVersionState
-): ItemState =>
-  state === purposeApi.PurposeVersionState.Enum.ACTIVE
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
 
