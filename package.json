@@ -24,6 +24,7 @@
     "start:bff": "turbo start --filter pagopa-interop-backend-for-frontend",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
+    "start:delegation": "turbo start --filter pagopa-interop-delegation-process",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",

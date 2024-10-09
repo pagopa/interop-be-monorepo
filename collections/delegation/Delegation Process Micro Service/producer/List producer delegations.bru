@@ -1,0 +1,34 @@
+meta {
+  name: List producer delegations
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-delegation}}/producer/delegations
+  body: none
+  auth: bearer
+}
+
+params:query {
+  offset: 
+  limit: 
+  ~delegationStates: 
+  ~delegatorIds: 
+  ~delegateIds: 
+}
+
+headers {
+  Cache-Control: no-cache
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{JWT}}
+}
