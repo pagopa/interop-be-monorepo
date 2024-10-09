@@ -71,6 +71,8 @@ export async function handleMessageV2(
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
           state: itemState.active,
+          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+          clientConsumerId: client.consumerId,
           clientPurposesIds: [],
           version: msg.version,
           updatedAt: new Date().toISOString(),
@@ -190,6 +192,8 @@ export async function handleMessageV2(
         const platformClientEntry: PlatformStatesClientEntry = {
           PK: pk,
           state: itemState.active,
+          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+          clientConsumerId: client.consumerId,
           clientPurposesIds: [],
           version: msg.version,
           updatedAt: new Date().toISOString(),
@@ -221,6 +225,8 @@ export async function handleMessageV2(
         const clientEntry: PlatformStatesClientEntry = {
           PK: clientEntryPK,
           state: itemState.active,
+          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+          clientConsumerId: client.consumerId,
           clientPurposesIds: [],
           version: 1,
           updatedAt: new Date().toISOString(),
