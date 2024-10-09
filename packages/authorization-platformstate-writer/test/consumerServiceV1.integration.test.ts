@@ -95,6 +95,20 @@ describe("integration tests V1 events", async () => {
         data: payload,
         log_date: new Date(),
       };
+
+      const pk1PlatformStates = makePlatformStatesClientPK(clientId);
+      const clientPlatformStateEntry: PlatformStatesClientEntry = {
+        PK: pk1PlatformStates,
+        version: 1,
+        state: itemState.active,
+        clientKind: clientKindTokenStates.consumer,
+        clientConsumerId: generateId<TenantId>(),
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+      };
+
+      await writeClientEntry(clientPlatformStateEntry, dynamoDBClient);
+
       const GSIPK_clientId = clientId;
       const pk1 = makeTokenGenerationStatesClientKidPK({
         clientId,
