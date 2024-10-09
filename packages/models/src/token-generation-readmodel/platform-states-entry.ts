@@ -11,7 +11,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
-import { ClientKindTokenStates } from "./token-generation-states-entry.js";
+import { ClientKindTokenStates } from "./commons.js";
 
 export const itemState = {
   active: "ACTIVE",
