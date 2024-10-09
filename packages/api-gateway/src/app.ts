@@ -36,7 +36,7 @@ app.use(contextMiddleware(serviceName, true));
 // Unauthenticated routes
 app.use(healthRouter);
 
-app.use(authenticationMiddleware);
+app.use(authenticationMiddleware(config));
 
 // Authenticated routes - rate limiter and logger need authentication data to work
 app.use(loggerMiddleware(serviceName));

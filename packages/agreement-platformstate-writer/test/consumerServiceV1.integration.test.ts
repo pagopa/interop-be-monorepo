@@ -38,16 +38,13 @@ import {
   deleteDynamoDBTables,
   toAgreementV1,
   readTokenStateEntriesByConsumerIdEserviceId,
+  getMockAgreementEntry,
+  writeCatalogEntry,
+  writeTokenStateEntry,
 } from "pagopa-interop-commons-test";
 import { readAgreementEntry, writeAgreementEntry } from "../src/utils.js";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import {
-  config,
-  getMockAgreementEntry,
-  sleep,
-  writeCatalogEntry,
-  writeTokenStateEntry,
-} from "./utils.js";
+import { config, sleep } from "./utils.js";
 
 describe("integration tests V1 events", async () => {
   if (!config) {

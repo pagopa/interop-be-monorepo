@@ -30,10 +30,11 @@ export function assertAgreementStateNotDraft(
 
 export function assertActivePurposeVersionExists(
   purposeVersion: purposeApi.PurposeVersion | undefined,
-  purposeId: purposeApi.Purpose["id"]
+  purposeId: purposeApi.Purpose["id"],
+  logger: Logger
 ): asserts purposeVersion is NonNullable<purposeApi.PurposeVersion> {
   if (!purposeVersion) {
-    throw missingActivePurposeVersion(purposeId);
+    throw missingActivePurposeVersion(purposeId, logger);
   }
 }
 

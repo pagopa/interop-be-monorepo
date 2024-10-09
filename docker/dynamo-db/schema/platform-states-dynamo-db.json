@@ -11,7 +11,7 @@
       "IndexName": "Agreement",
       "KeySchema": [
         { "AttributeName": "GSIPK_consumerId_eserviceId", "KeyType": "HASH" },
-        { "AttributeName": "GSISK_agreementTimestamp", "KeyType": "HASH" }
+        { "AttributeName": "GSISK_agreementTimestamp", "KeyType": "RANGE" }
       ],
       "Projection": { "ProjectionType": "ALL" }
     }
