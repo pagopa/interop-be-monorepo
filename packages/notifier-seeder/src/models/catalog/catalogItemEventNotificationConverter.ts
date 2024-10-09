@@ -241,4 +241,10 @@ export const toCatalogItemEventNotification = (
         catalogRiskAnalysisId: e.data.riskAnalysisId,
       })
     )
+    // TODO: For now we skip those event, they will be handled with task PIN-5424
+    .with(
+      { type: "EServiceDelegationAssigned" },
+      { type: "EServiceDelegationRevoked" },
+      (): CatalogItemRiskAnalysisNotification => undefined as never
+    )
     .exhaustive();

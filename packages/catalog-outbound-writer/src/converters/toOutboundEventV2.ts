@@ -133,6 +133,22 @@ export function toOutboundEventV2(
       })
     )
     .with(
+      { type: "EServiceDelegationAssigned" },
+      { type: "EServiceDelegationRevoked" },
+      (msg) => ({
+        event_version: msg.event_version,
+        type: msg.type,
+        version: msg.version,
+        data: {
+          delegationId: msg.data.delegationId,
+          eservice:
+            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+        },
+        stream_id: msg.stream_id,
+        timestamp: new Date(),
+      })
+    )
+    .with(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },

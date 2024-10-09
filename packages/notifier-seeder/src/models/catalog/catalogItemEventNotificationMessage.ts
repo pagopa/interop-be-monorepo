@@ -57,6 +57,13 @@ export const eventV2TypeMapper = (
       "EServiceRiskAnalysisDeleted",
       () => "catalog_item_risk_analysis_deleted"
     )
+    // TODO: For now we skip those event, they will be handled with task PIN-5424
+    .with(
+      "EServiceDelegationAssigned",
+      "EServiceDelegationRevoked",
+      () => undefined as never
+    )
+
     .exhaustive();
 
 /* 

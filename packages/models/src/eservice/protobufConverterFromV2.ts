@@ -1,4 +1,4 @@
-import { unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -163,4 +163,7 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   createdAt: bigIntToDate(input.createdAt),
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
 });

@@ -1453,6 +1453,9 @@ components:
             $ref: "#/components/schemas/EServiceRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        delegationid:
+          type: string
+          format: uuid
     EServiceMode:
       type: string
       description: Risk Analysis Mode

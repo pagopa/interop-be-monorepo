@@ -117,3 +117,13 @@ message EServiceRiskAnalysisDeletedV2 {
 message EServiceDescriptionUpdatedV2 {
     EServiceV2 eservice = 1;
 }
+
+message EServiceDelegationAssignedV2 {
+  string delegationId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDelegationRevokedV2 {
+  string delegationId = 1;
+  EServiceV2 eservice = 2;
+}

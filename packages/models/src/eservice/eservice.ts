@@ -1,6 +1,7 @@
 import z from "zod";
 import {
   AttributeId,
+  DelegationId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
@@ -105,5 +106,6 @@ export const EService = z.object({
   createdAt: z.coerce.date(),
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
+  delegationId: DelegationId.optional(),
 });
 export type EService = z.infer<typeof EService>;
