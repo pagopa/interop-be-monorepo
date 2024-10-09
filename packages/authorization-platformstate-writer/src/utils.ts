@@ -645,7 +645,9 @@ export const writeClientEntry = async (
         S: clientEntry.state,
       },
       clientPurposesIds: {
-        L: [],
+        L: clientEntry.clientPurposesIds.map((purposeId) => ({
+          S: purposeId,
+        })),
       },
       version: {
         N: clientEntry.version.toString(),
