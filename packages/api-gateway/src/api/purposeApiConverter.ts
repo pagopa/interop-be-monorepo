@@ -1,4 +1,5 @@
 import { apiGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { Logger } from "pagopa-interop-commons";
 import { assertActivePurposeVersionExists } from "../services/validators.js";
 
 const allowedPurposeStates: apiGatewayApi.PurposeState[] = [
@@ -21,7 +22,8 @@ export function toPurposeProcessGetPurposesQueryParams(
 }
 
 export function toApiGatewayPurpose(
-  purpose: purposeApi.Purpose
+  purpose: purposeApi.Purpose,
+  logger: Logger
 ): apiGatewayApi.Purpose {
   const activePurposeVersion = [...purpose.versions]
     .sort(
@@ -30,7 +32,7 @@ export function toApiGatewayPurpose(
     )
     .find((v) => allowedPurposeStates.includes(v.state));
 
-  assertActivePurposeVersionExists(activePurposeVersion, purpose.id);
+  assertActivePurposeVersionExists(activePurposeVersion, purpose.id, logger);
 
   return {
     id: purpose.id,

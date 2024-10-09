@@ -47,7 +47,14 @@ import {
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
+  DescriptorState,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
   makeGSIPKKid,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientEntry,
+  makeTokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -200,11 +207,11 @@ export const getMockAttribute = (
   origin: undefined,
 });
 
-export const getMockPurpose = (): Purpose => ({
+export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   id: generateId(),
   eserviceId: generateId(),
   consumerId: generateId(),
-  versions: [],
+  versions: versions ?? [],
   title: "Purpose 1 - test",
   description: "Test purpose - description",
   createdAt: new Date(),
@@ -243,11 +250,11 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockDescriptor = (): Descriptor => ({
+export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
   docs: [],
-  state: descriptorState.draft,
+  state: state || descriptorState.draft,
   audience: [],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
@@ -261,6 +268,11 @@ export const getMockDescriptor = (): Descriptor => ({
     declared: [],
   },
 });
+
+export const getMockDescriptorList = (length?: number): Descriptor[] => {
+  const arrayLength = length ?? Math.floor(Math.random() * 10) + 1;
+  return Array.from({ length: arrayLength }, () => getMockDescriptor());
+};
 
 export const getMockDocument = (): Document => ({
   name: "fileName",
@@ -326,17 +338,19 @@ export const getMockTokenStatesClientPurposeEntry = (
   const descriptorId = generateId<DescriptorId>();
   const agreementId = generateId<AgreementId>();
   const purposeVersionId = generateId<PurposeVersionId>();
+  const kid = `kid ${Math.random()}`;
 
   return {
     PK:
       tokenStateEntryPK ||
       makeTokenGenerationStatesClientKidPurposePK({
         clientId,
-        kid: `kid ${Math.random()}`,
+        kid,
         purposeId,
       }),
     descriptorState: itemState.inactive,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+    descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
     consumerId,
     agreementId,
@@ -348,8 +362,8 @@ export const getMockTokenStatesClientPurposeEntry = (
     clientKind: clientKindTokenStates.consumer,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid("KID"),
-    agreementState: "ACTIVE",
+    GSIPK_kid: makeGSIPKKid(kid),
+    agreementState: itemState.active,
     GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
       eserviceId,
       descriptorId,
@@ -360,5 +374,46 @@ export const getMockTokenStatesClientPurposeEntry = (
       clientId,
       purposeId,
     }),
+  };
+};
+
+export const getMockAgreementEntry = (
+  primaryKey: PlatformStatesAgreementPK,
+  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
+    {
+      consumerId: generateId<TenantId>(),
+      eserviceId: generateId<EServiceId>(),
+    }
+  )
+): PlatformStatesAgreementEntry => ({
+  PK: primaryKey,
+  state: itemState.inactive,
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  GSIPK_consumerId_eserviceId,
+  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementDescriptorId: generateId<DescriptorId>(),
+});
+
+export const getMockTokenStatesClientEntry = (
+  tokenStateEntryPK?: TokenGenerationStatesClientKidPK
+): TokenGenerationStatesClientEntry => {
+  const clientId = generateId<ClientId>();
+  const consumerId = generateId<TenantId>();
+  const kid = `kid ${Math.random()}`;
+
+  return {
+    PK:
+      tokenStateEntryPK ||
+      makeTokenGenerationStatesClientKidPK({
+        clientId,
+        kid,
+      }),
+    updatedAt: new Date().toISOString(),
+    consumerId,
+    clientKind: clientKindTokenStates.consumer,
+    publicKey: "PEM",
+    GSIPK_clientId: clientId,
+    GSIPK_kid: makeGSIPKKid(kid),
   };
 };

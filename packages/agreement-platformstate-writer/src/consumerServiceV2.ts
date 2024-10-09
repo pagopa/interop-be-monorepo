@@ -10,6 +10,7 @@ import {
   makePlatformStatesAgreementPK,
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementEntry,
+  PlatformStatesCatalogEntry,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -194,7 +195,9 @@ export async function handleMessageV2(
         await writeAgreementEntry(newAgreementEntry, dynamoDBClient);
       }
 
-      const doOperationOnTokenStates = async (): Promise<void> => {
+      const doOperationOnTokenStates = async (
+        catalogEntry: PlatformStatesCatalogEntry
+      ): Promise<void> => {
         if (
           await isAgreementTheLatest(
             GSIPK_consumerId_eserviceId,
@@ -222,7 +225,7 @@ export async function handleMessageV2(
         }
       };
 
-      await doOperationOnTokenStates();
+      await doOperationOnTokenStates(catalogEntry);
 
       const secondRetrievalCatalogEntry = await readCatalogEntry(
         pkCatalogEntry,
@@ -233,7 +236,7 @@ export async function handleMessageV2(
         throw genericInternalError("Catalog entry not found");
       }
       if (secondRetrievalCatalogEntry.state !== catalogEntry.state) {
-        await doOperationOnTokenStates();
+        await doOperationOnTokenStates(secondRetrievalCatalogEntry);
       }
     })
     .with({ type: "AgreementArchivedByUpgrade" }, async (msg) => {
