@@ -1,0 +1,29 @@
+meta {
+  name: Get attributes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-attribute}}/attributes?name&origin&limit=10&offset=0&kinds=["CERTIFIED"]
+  body: json
+  auth: none
+}
+
+params:query {
+  name: 
+  origin: 
+  limit: 10
+  offset: 0
+  kinds: ["CERTIFIED"]
+}
+
+headers {
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+  ~Connection: keep-alive
+}

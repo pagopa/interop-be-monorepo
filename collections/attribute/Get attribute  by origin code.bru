@@ -1,0 +1,26 @@
+meta {
+  name: Get attribute  by origin code
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-attribute}}/attributes/origin/:origin/code/:code
+  body: json
+  auth: none
+}
+
+params:path {
+  origin: {{origin}}
+  code: {{code}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+  ~Connection: keep-alive
+}

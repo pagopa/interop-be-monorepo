@@ -1,0 +1,28 @@
+meta {
+  name: Create verified attribute
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-attribute}}/verifiedAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+  ~Connection: keep-alive
+}
+
+body:json {
+  {
+    "description": "prova",
+    "name": "myattr"
+  }
+}

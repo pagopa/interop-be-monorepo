@@ -262,7 +262,7 @@ services:
       - dynamodb-local
     restart: always
     ports:
-      - "8001:8001"
+      - "8002:8001"
     environment:
       - DYNAMO_ENDPOINT=http://dynamodb-local:8000
       - AWS_REGION=eu-west-1
