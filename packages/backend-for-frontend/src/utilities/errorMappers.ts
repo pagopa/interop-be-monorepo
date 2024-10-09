@@ -158,8 +158,6 @@ export const getProducerKeychainUsersErrorMapper = (
 export const toolsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("invalidClientAssertionType", () => HTTP_STATUS_BAD_REQUEST)
-    .with("invalidGrantType", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceDocumentErrorMapper = (

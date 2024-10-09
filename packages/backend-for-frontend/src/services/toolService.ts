@@ -41,8 +41,6 @@ import {
   multipleAgreementForEserviceAndConsumer,
   organizationNotAllowed,
   purposeIdNotFoundInClientAssertion,
-  invalidClientAssertionType,
-  invalidGrantType,
 } from "../model/errors.js";
 import {
   PagoPAInteropBeClients,
@@ -50,10 +48,6 @@ import {
   CatalogProcessClient,
 } from "../clients/clientsProvider.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
-
-const DEFAULT_CLIENT_ASSERTION_TYPE =
-  "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-const DEFAULT_GRANT_TYPE = "client_credentials";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -65,14 +59,6 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
       ctx.logger.info(`Validating token generation for client ${clientId}`);
-
-      if (clientAssertionType !== DEFAULT_CLIENT_ASSERTION_TYPE) {
-        throw invalidClientAssertionType();
-      }
-
-      if (grantType !== DEFAULT_GRANT_TYPE) {
-        throw invalidGrantType();
-      }
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,
