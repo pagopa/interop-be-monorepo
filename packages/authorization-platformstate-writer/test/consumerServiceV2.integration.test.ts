@@ -61,6 +61,7 @@ import {
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
+  clientKindToTokenGenerationStatesClientKind,
   readClientEntry,
   writeClientEntry,
   writeTokenStateClientEntry,
@@ -128,6 +129,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
@@ -228,6 +231,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         clientPurposesIds: [],
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         version: messageVersion,
         updatedAt: new Date().toISOString(),
       };
@@ -274,6 +279,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
       };
@@ -368,6 +375,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
@@ -431,6 +440,9 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
       };
@@ -547,6 +559,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose.id],
       };
@@ -787,6 +801,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
       };
@@ -1047,6 +1063,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
       };
@@ -1246,6 +1264,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
@@ -1368,6 +1388,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId1, purposeId2],
       };
@@ -1480,6 +1502,8 @@ describe("integration tests V2 events", async () => {
         PK: platformClientPK,
         version: previousPlatformEntryVersion,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
       };
@@ -1574,6 +1598,8 @@ describe("integration tests V2 events", async () => {
         PK: pk1PlatformStates,
         version: 1,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
@@ -1583,6 +1609,8 @@ describe("integration tests V2 events", async () => {
         PK: pk2PlatformStates,
         version: 1,
         state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
       };
