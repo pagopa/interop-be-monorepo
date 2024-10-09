@@ -47,14 +47,14 @@ import {
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
-  makeGSIPKKid,
-  TokenGenerationStatesClientKidPK,
-  TokenGenerationStatesClientEntry,
-  makeTokenGenerationStatesClientKidPK,
   DescriptorState,
   GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
+  makeGSIPKKid,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesClientEntry,
+  makeTokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";

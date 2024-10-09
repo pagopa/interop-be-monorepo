@@ -16,8 +16,8 @@ import {
   genericInternalError,
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
-  PlatformStatesGenericEntry,
   PlatformStatesCatalogEntry,
+  PlatformStatesGenericEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
