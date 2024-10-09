@@ -256,7 +256,7 @@ async function retrieveKey(
         kid: jwt.header.kid,
         algorithm: "RS256",
         publicKey: encodedPem,
-        clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
+        clientId: keyWithClient.client.id,
         consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
         purposeId,
       },
@@ -286,7 +286,7 @@ async function retrieveKey(
     errors: undefined,
     data: {
       clientKind: authorizationApi.ClientKind.enum.CONSUMER,
-      clientId: unsafeBrandId<ClientId>(jwt.payload.iss),
+      clientId: keyWithClient.client.id,
       kid: jwt.header.kid,
       algorithm: "RS256",
       publicKey: encodedPem,
