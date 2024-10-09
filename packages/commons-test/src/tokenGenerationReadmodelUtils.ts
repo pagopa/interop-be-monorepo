@@ -17,6 +17,7 @@ import {
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
   PlatformStatesGenericEntry,
+  PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -320,4 +321,38 @@ export const readTokenStateEntriesByConsumerIdEserviceId = async (
     dynamoDBClient,
     undefined
   );
+};
+
+export const writeCatalogEntry = async (
+  catalogEntry: PlatformStatesCatalogEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: catalogEntry.PK,
+      },
+      state: {
+        S: catalogEntry.state,
+      },
+      descriptorAudience: {
+        L: catalogEntry.descriptorAudience.map((item) => ({
+          S: item,
+        })),
+      },
+      descriptorVoucherLifespan: {
+        N: catalogEntry.descriptorVoucherLifespan.toString(),
+      },
+      version: {
+        N: catalogEntry.version.toString(),
+      },
+      updatedAt: {
+        S: catalogEntry.updatedAt,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
 };

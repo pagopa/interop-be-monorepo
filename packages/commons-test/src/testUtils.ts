@@ -51,6 +51,10 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientEntry,
   makeTokenGenerationStatesClientKidPK,
+  DescriptorState,
+  GSIPKConsumerIdEServiceId,
+  PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -203,11 +207,11 @@ export const getMockAttribute = (
   origin: undefined,
 });
 
-export const getMockPurpose = (): Purpose => ({
+export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   id: generateId(),
   eserviceId: generateId(),
   consumerId: generateId(),
-  versions: [],
+  versions: versions ?? [],
   title: "Purpose 1 - test",
   description: "Test purpose - description",
   createdAt: new Date(),
@@ -246,11 +250,11 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockDescriptor = (): Descriptor => ({
+export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
   docs: [],
-  state: descriptorState.draft,
+  state: state || descriptorState.draft,
   audience: [],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
@@ -264,6 +268,11 @@ export const getMockDescriptor = (): Descriptor => ({
     declared: [],
   },
 });
+
+export const getMockDescriptorList = (length?: number): Descriptor[] => {
+  const arrayLength = length ?? Math.floor(Math.random() * 10) + 1;
+  return Array.from({ length: arrayLength }, () => getMockDescriptor());
+};
 
 export const getMockDocument = (): Document => ({
   name: "fileName",
@@ -367,6 +376,24 @@ export const getMockTokenStatesClientPurposeEntry = (
     }),
   };
 };
+
+export const getMockAgreementEntry = (
+  primaryKey: PlatformStatesAgreementPK,
+  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
+    {
+      consumerId: generateId<TenantId>(),
+      eserviceId: generateId<EServiceId>(),
+    }
+  )
+): PlatformStatesAgreementEntry => ({
+  PK: primaryKey,
+  state: itemState.inactive,
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  GSIPK_consumerId_eserviceId,
+  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementDescriptorId: generateId<DescriptorId>(),
+});
 
 export const getMockTokenStatesClientEntry = (
   tokenStateEntryPK?: TokenGenerationStatesClientKidPK
