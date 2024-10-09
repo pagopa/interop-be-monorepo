@@ -151,7 +151,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
   state === agreementState.active ? itemState.active : itemState.inactive;
 
-export const updateAgreementStateInTokenGenerationStatesEntriesTable = async ({
+export const updateAgreementStateInTokenGenerationStatesTableEntries = async ({
   entriesToUpdate,
   agreementState,
   dynamoDBClient,
@@ -465,7 +465,7 @@ export const updateAgreementStateInTokenGenerationStatesTable = async ({
         );
       }
 
-      await updateAgreementStateInTokenGenerationStatesEntriesTable({
+      await updateAgreementStateInTokenGenerationStatesTableEntries({
         entriesToUpdate: tokenStateEntries.data,
         agreementState,
         dynamoDBClient,
