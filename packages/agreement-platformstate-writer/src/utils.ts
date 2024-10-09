@@ -187,7 +187,7 @@ export const updateAgreementStateEntriesInTokenGenerationStatesTable = async ({
   }
 };
 
-export const updateAgreementStateEntriesInTokenGenerationStatesTablePlusDescriptorInfo =
+export const updateAgreementStateInTokenGenerationStatesTableEntriesPlusDescriptorInfo =
   async ({
     entriesToUpdate,
     agreementState,
@@ -371,7 +371,7 @@ export const updateAgreementStateInTokenGenerationStatesTablePlusDescriptorInfo 
           );
         }
 
-        await updateAgreementStateEntriesInTokenGenerationStatesTablePlusDescriptorInfo(
+        await updateAgreementStateInTokenGenerationStatesTableEntriesPlusDescriptorInfo(
           {
             entriesToUpdate: tokenStateEntries.data,
             agreementState,
