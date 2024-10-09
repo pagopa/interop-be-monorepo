@@ -42,5 +42,5 @@ vars:post-response {
 
 script:pre-request {
   const { v4 } = require('uuid');
-  bru.setEnvVar("randomUuid", v4() );
+  bru.setVar("randomUuid", v4() );
 }
