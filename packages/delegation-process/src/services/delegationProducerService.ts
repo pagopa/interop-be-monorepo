@@ -1,4 +1,9 @@
-import { Delegation, DelegationId } from "pagopa-interop-models";
+import {
+  Delegation,
+  DelegationId,
+  DelegationState,
+  TenantId,
+} from "pagopa-interop-models";
 import { delegationNotFound } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -15,6 +20,21 @@ export function delegationProducerServiceBuilder(
       }
 
       return delegation;
+    },
+    async getDelegations(
+      delegateIds: TenantId[],
+      delegatorIds: TenantId[],
+      delegationStates: DelegationState[],
+      offset: number,
+      limit: number
+    ): Promise<Delegation[]> {
+      return readModelService.getDelegations({
+        delegateIds,
+        delegatorIds,
+        delegationStates,
+        offset,
+        limit,
+      });
     },
   };
 }

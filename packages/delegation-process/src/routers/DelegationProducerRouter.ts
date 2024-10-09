@@ -8,13 +8,16 @@ import {
   fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
 import { delegationProducerServiceBuilder } from "../services/delegationProducerService.js";
-import { delegationToApiDelegation } from "../model/domain/apiConverter.js";
+import {
+  apiDelegationStateToDelegationState,
+  delegationToApiDelegation,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { getDelegationByIdErrorMapper } from "../utilites/errorMappers.js";
+import { getDelegationErrorMapper } from "../utilites/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -50,14 +53,45 @@ const delegationProducerRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getDelegationByIdErrorMapper,
+          getDelegationErrorMapper,
           ctx.logger
         );
 
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producer/delegations", async (_req, res) => res.status(501).send())
+    .get("/producer/delegations", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { offset, limit, delegateIds, delegatorIds, delegationStates } =
+        req.query;
+
+      try {
+        const delegations = await delegationProducerService.getDelegations(
+          delegateIds.map(unsafeBrandId<TenantId>),
+          delegatorIds.map(unsafeBrandId<TenantId>),
+          delegationStates.map(apiDelegationStateToDelegationState),
+          offset,
+          limit
+        );
+
+        return res.status(200).send(
+          delegationApi.Delegations.parse({
+            results: delegations.map((delegation) =>
+              delegationToApiDelegation(delegation)
+            ),
+            totalCount: delegations.length,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getDelegationErrorMapper,
+          ctx.logger
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/producer/delegations", async (_req, res) => res.status(501).send())
     .post("/producer/delegations/:delegationId/approve", async (_req, res) =>
       res.status(501).send()

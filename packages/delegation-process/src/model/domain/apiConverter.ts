@@ -84,3 +84,13 @@ export const delegationStampToApiDelegationStamp = (
   who: stamp.who,
   when: stamp.when.toJSON(),
 });
+
+export const apiDelegationStateToDelegationState = (
+  delegationState: delegationApi.DelegationState
+): DelegationState =>
+  match<delegationApi.DelegationState, DelegationState>(delegationState)
+    .with("ACTIVE", () => "Active")
+    .with("REJECTED", () => "Rejected")
+    .with("REVOKED", () => "Revoked")
+    .with("WAITING_FOR_APPROVAL", () => "WaitingForApproval")
+    .exhaustive();
