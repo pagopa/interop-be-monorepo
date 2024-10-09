@@ -32,31 +32,56 @@ export const writeTokenStateEntry = async (
       PK: {
         S: tokenStateEntry.PK,
       },
-      descriptorState: {
-        S: tokenStateEntry.descriptorState!,
-      },
-      descriptorAudience: {
-        L: tokenStateEntry.descriptorAudience
-          ? tokenStateEntry.descriptorAudience.map((item) => ({
-              S: item,
-            }))
-          : [],
-      },
+      ...(tokenStateEntry.descriptorState
+        ? {
+            descriptorState: {
+              S: tokenStateEntry.descriptorState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorAudience
+        ? {
+            descriptorAudience: {
+              L: tokenStateEntry.descriptorAudience.map((item) => ({
+                S: item,
+              })),
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorVoucherLifespan
+        ? {
+            descriptorVoucherLifespan: {
+              N: tokenStateEntry.descriptorVoucherLifespan.toString(),
+            },
+          }
+        : {}),
       updatedAt: {
         S: tokenStateEntry.updatedAt,
       },
       consumerId: {
         S: tokenStateEntry.consumerId,
       },
-      agreementId: {
-        S: tokenStateEntry.agreementId!,
-      },
-      purposeVersionId: {
-        S: tokenStateEntry.purposeVersionId!,
-      },
-      GSIPK_consumerId_eserviceId: {
-        S: tokenStateEntry.GSIPK_consumerId_eserviceId!,
-      },
+      ...(tokenStateEntry.agreementId
+        ? {
+            agreementId: {
+              S: tokenStateEntry.agreementId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeVersionId
+        ? {
+            purposeVersionId: {
+              S: tokenStateEntry.purposeVersionId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_consumerId_eserviceId
+        ? {
+            GSIPK_consumerId_eserviceId: {
+              S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+            },
+          }
+        : {}),
       clientKind: {
         S: tokenStateEntry.clientKind,
       },
@@ -69,21 +94,41 @@ export const writeTokenStateEntry = async (
       GSIPK_kid: {
         S: tokenStateEntry.GSIPK_kid,
       },
-      GSIPK_clientId_purposeId: {
-        S: tokenStateEntry.GSIPK_clientId_purposeId!,
-      },
-      agreementState: {
-        S: tokenStateEntry.agreementState!,
-      },
-      GSIPK_eserviceId_descriptorId: {
-        S: tokenStateEntry.GSIPK_eserviceId_descriptorId!,
-      },
-      GSIPK_purposeId: {
-        S: tokenStateEntry.GSIPK_purposeId!,
-      },
-      purposeState: {
-        S: tokenStateEntry.purposeState!,
-      },
+      ...(tokenStateEntry.GSIPK_clientId_purposeId
+        ? {
+            GSIPK_clientId_purposeId: {
+              S: tokenStateEntry.GSIPK_clientId_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.agreementState
+        ? {
+            agreementState: {
+              S: tokenStateEntry.agreementState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_eserviceId_descriptorId
+        ? {
+            GSIPK_eserviceId_descriptorId: {
+              S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_purposeId
+        ? {
+            GSIPK_purposeId: {
+              S: tokenStateEntry.GSIPK_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeState
+        ? {
+            purposeState: {
+              S: tokenStateEntry.purposeState,
+            },
+          }
+        : {}),
     },
     TableName: "token-generation-states",
   };
