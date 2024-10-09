@@ -8,6 +8,7 @@ import {
   genericInternalError,
   itemState,
   makeGSIPKClientIdPurposeId,
+  makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   makeGSIPKKid,
   makePlatformStatesClientPK,
@@ -79,7 +80,6 @@ export async function handleMessageV2(
         };
         await upsertPlatformClientEntry(dynamoDBClient, platformClientEntry);
       }
-
       if (client.purposes.length > 0) {
         const map: Map<
           PurposeId,
@@ -92,7 +92,6 @@ export async function handleMessageV2(
 
         const PKsOfAddedEntries =
           new Set<TokenGenerationStatesClientKidPurposePK>();
-
         for (const purposeId of client.purposes) {
           const states = await retrievePlatformStatesByPurpose(
             dynamoDBClient,
@@ -110,17 +109,29 @@ export async function handleMessageV2(
           const clientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
             {
               PK: pk,
-              consumerId: client.consumerId,
-              clientKind: clientKindToTokenGenerationStatesClientKind(
-                client.kind
+              GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+                consumerId: client.consumerId,
+                eserviceId: states.purposeEntry.purposeEserviceId,
+              }),
+              agreementId: extractAgreementIdFromAgreementPK(
+                states.agreementEntry.PK
               ),
+              agreementState: states.agreementEntry.state,
               GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
                 eserviceId: states.purposeEntry.purposeEserviceId,
                 descriptorId: states.agreementEntry.agreementDescriptorId,
               }),
-              agreementState: states.agreementEntry.state,
+              descriptorState: states.agreementEntry.state,
+              descriptorAudience: states.catalogEntry.descriptorAudience,
+              descriptorVoucherLifespan:
+                states.catalogEntry.descriptorVoucherLifespan,
               GSIPK_purposeId: purposeId,
               purposeState: states.purposeEntry.state,
+              consumerId: client.consumerId,
+              clientKind: clientKindToTokenGenerationStatesClientKind(
+                client.kind
+              ),
+              publicKey: pem,
               purposeVersionId: states.purposeEntry.purposeVersionId,
               GSIPK_clientId: client.id,
               GSIPK_kid: makeGSIPKKid(msg.data.kid),
@@ -128,7 +139,6 @@ export async function handleMessageV2(
                 clientId: client.id,
                 purposeId,
               }),
-              publicKey: pem,
               updatedAt: new Date().toISOString(),
             };
 
@@ -295,6 +305,7 @@ export async function handleMessageV2(
                   descriptorVoucherLifespan:
                     catalogEntry.descriptorVoucherLifespan,
                 };
+              // TODO: should be upsert
               await writeTokenStateClientPurposeEntry(
                 newClientPurposeEntry,
                 dynamoDBClient
