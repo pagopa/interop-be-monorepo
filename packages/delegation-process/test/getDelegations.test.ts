@@ -1,19 +1,12 @@
 /* eslint-disable functional/no-let */
 import { expect, describe, it } from "vitest";
-import { TenantId, generateId } from "pagopa-interop-models";
-import {
-  addOneDelegation,
-  delegationService,
-  getMockDelegation,
-} from "./utils.js";
+import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
+import { addOneDelegation, delegationService } from "./utils.js";
 
 describe("get delegations", () => {
   it("should get delegations", async () => {
-    const delegation1 = getMockDelegation({ state: "Active" });
-    const delegation2 = getMockDelegation({
-      delegateId: generateId<TenantId>(),
-    });
-
+    const delegation1 = getMockDelegationProducer({ state: "Active" });
+    const delegation2 = getMockDelegationProducer();
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
@@ -24,7 +17,6 @@ describe("get delegations", () => {
       0,
       50
     );
-
     expect(res1).toEqual([delegation1]);
 
     const res2 = await delegationService.getDelegations(
@@ -34,7 +26,15 @@ describe("get delegations", () => {
       0,
       50
     );
-
     expect(res2).toEqual([delegation2]);
+
+    const res3 = await delegationService.getDelegations(
+      [],
+      [],
+      ["Revoked"],
+      0,
+      50
+    );
+    expect(res3).toEqual([]);
   });
 });
