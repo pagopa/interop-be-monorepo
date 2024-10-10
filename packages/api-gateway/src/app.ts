@@ -31,7 +31,7 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware(serviceName, true));
+app.use(contextMiddleware(serviceName, false));
 
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,

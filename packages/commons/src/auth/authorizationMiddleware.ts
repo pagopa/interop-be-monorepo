@@ -3,7 +3,6 @@ import {
   ZodiosEndpointDefinition,
   Method,
 } from "@zodios/core";
-import { Request } from "express";
 import {
   Problem,
   makeApiProblemBuilder,
@@ -11,14 +10,11 @@ import {
   ApiError,
   unauthorizedError,
   CommonErrorCodes,
-  missingBearer,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
-import { UserRole, readHeaders } from "../index.js";
-import { genericLogger, logger } from "../logging/index.js";
-import { readAuthDataFromJwtToken } from "./jwt.js";
+import { AuthData, fromAppContext, UserRole } from "../index.js";
 
 type RoleValidation =
   | {
@@ -28,15 +24,9 @@ type RoleValidation =
   | { isValid: true };
 
 const hasValidRoles = (
-  req: Request,
+  authData: AuthData,
   admittedRoles: UserRole[]
 ): RoleValidation => {
-  const jwtToken = req.headers.authorization?.split(" ")[1];
-  if (!jwtToken) {
-    throw missingBearer;
-  }
-
-  const authData = readAuthDataFromJwtToken(jwtToken, genericLogger);
   if (!authData.userRoles || authData.userRoles.length === 0) {
     return {
       isValid: false,
@@ -77,22 +67,19 @@ export const authorizationMiddleware =
     admittedRoles: UserRole[]
   ): Middleware<Api, M, Path, Context> =>
   (req, res, next) => {
+    // We assume that:
+    // - contextMiddleware already set ctx.serviceName and ctx.correlationId
+    // - authorizationMiddleware already validated the token and set ctx.authData
+    const ctx = fromAppContext(req.ctx);
+
     try {
-      const validationResult = hasValidRoles(req as Request, admittedRoles);
+      const validationResult = hasValidRoles(ctx.authData, admittedRoles);
       if (!validationResult.isValid) {
         throw validationResult.error;
       }
 
       return next();
     } catch (err) {
-      const headers = readHeaders(req as Request);
-
-      const loggerInstance = logger({
-        userId: headers?.userId,
-        organizationId: headers?.organizationId,
-        correlationId: headers?.correlationId,
-      });
-
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
@@ -100,10 +87,10 @@ export const authorizationMiddleware =
               code: error.code,
               detail: error.detail,
               title: error.title,
-              correlationId: headers?.correlationId,
+              correlationId: ctx.correlationId,
             }),
             (error) => (error.code === "unauthorizedError" ? 403 : 500),
-            loggerInstance
+            ctx.logger
           )
         )
         .otherwise(() =>
@@ -112,7 +99,7 @@ export const authorizationMiddleware =
               "An unexpected error occurred during authorization checks"
             ),
             () => 500,
-            loggerInstance
+            ctx.logger
           )
         );
 
