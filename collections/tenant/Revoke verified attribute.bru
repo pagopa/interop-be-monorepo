@@ -1,0 +1,21 @@
+meta {
+  name: Revoke verified attribute
+  type: http
+  seq: 23
+}
+
+delete {
+  url: {{host-tenant}}/tenants/:tenantId/attributes/verified/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
