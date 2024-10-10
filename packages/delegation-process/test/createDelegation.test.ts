@@ -169,7 +169,7 @@ describe("create delegation", () => {
     );
   });
 
-  it("should throw an tenantNotFound if delegated tenant not exists", async () => {
+  it("should throw an tenantNotFound error if delegated tenant not exists", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
 
@@ -201,7 +201,7 @@ describe("create delegation", () => {
     ).rejects.toThrowError(tenantNotFound(delegateId));
   });
 
-  it("should throw an invalidDelegator if delegatorId and delegateId is the same", async () => {
+  it("should throw an invalidDelegator error if delegatorId and delegateId is the same", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
     const delegate = getMockTenant(delegatorId);
@@ -225,7 +225,7 @@ describe("create delegation", () => {
     ).rejects.toThrowError(invalidDelegator());
   });
 
-  it("should throw an eserviceNotFound if Eservice not exists", async () => {
+  it("should throw an eserviceNotFound error if Eservice not exists", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
 
