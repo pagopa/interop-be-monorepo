@@ -841,7 +841,6 @@ export const readClientEntriesInTokenGenerationStates = async (
 };
 
 export const setClientPurposeIdsInPlatformStatesEntry = async (
-  // TODO unify this function with cleanClientPurposeIdsInPlatformStatesEntry
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesClientPK,
   version: number,
