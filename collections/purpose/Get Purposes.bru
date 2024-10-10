@@ -1,0 +1,39 @@
+meta {
+  name: Get Purposes
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-purpose}}/purposes?offset=0&limit=10&excludeDraft=false&states=["DRAFT", "ACTIVE"]&eserviceIds=["{{eserviceId}}"]&consumerIds=["{{tenantId}}"]&producersIds=["{{tenantId}}"]&name=title
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  excludeDraft: false
+  states: ["DRAFT", "ACTIVE"]
+  eserviceIds: ["{{eserviceId}}"]
+  consumerIds: ["{{tenantId}}"]
+  producersIds: ["{{tenantId}}"]
+  name: title
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId": "{{eserviceId}}",
+      "consumerId": "{{tenantId}}",
+      "title": "a purpose title",
+      "description": "a purpose long description",
+      "isFreeOfCharge": true,
+      "dailyCalls": 100,
+      "freeOfChargeReason": "Free!"
+  }
+}
