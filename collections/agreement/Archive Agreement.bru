@@ -1,0 +1,20 @@
+meta {
+  name: Archive Agreement
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/archive
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

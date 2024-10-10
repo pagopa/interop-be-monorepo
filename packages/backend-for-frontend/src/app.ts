@@ -53,8 +53,6 @@ app.disable("x-powered-by");
 
 app.disable("etag");
 
-app.use(loggerMiddleware(serviceName));
-
 // parse files from multipart/form-data and put them in req.body
 app.use(multerMiddleware);
 app.use(fromFilesToBodyMiddleware);
@@ -62,14 +60,15 @@ app.use(fromFilesToBodyMiddleware);
 // parse application/x-www-form-urlencoded and put it in req.body
 app.use(express.urlencoded({ extended: true }));
 
-app.use(contextMiddleware(serviceName, true));
+app.use(contextMiddleware(serviceName, false));
+app.use(loggerMiddleware(serviceName));
 
 app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
-  // Authenticated routes - rate limiter need authentication data to work
+  // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),
