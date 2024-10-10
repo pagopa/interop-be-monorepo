@@ -193,6 +193,7 @@ const errorCodes = {
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
+  badBearerToken: "10007",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -354,18 +355,16 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
 export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   const title = "Header has not been passed";
   return new ApiError({
-    detail: headerName
-      ? `Header ${headerName} not existing in this request`
-      : title,
+    detail: headerName ? `Missing ${headerName} request header` : title,
     code: "missingHeader",
     title,
   });
 }
 
-export const missingBearer: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Authorization Illegal header key.`,
-  code: "missingHeader",
-  title: "Bearer token has not been passed",
+export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
+  detail: `Bad Bearer Token format in Authorization header`,
+  code: "badBearerToken",
+  title: "Bad Bearer Token format",
 });
 
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({

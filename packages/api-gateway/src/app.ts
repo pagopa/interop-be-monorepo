@@ -31,16 +31,16 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware(serviceName, true));
+app.use(contextMiddleware(serviceName, false));
 
-// Unauthenticated routes
-app.use(healthRouter);
-
-app.use(authenticationMiddleware(config));
-
-// Authenticated routes - rate limiter and logger need authentication data to work
-app.use(loggerMiddleware(serviceName));
-app.use(rateLimiterMiddleware(redisRateLimiter));
-app.use(apiGatewayRouter(zodiosCtx, clients));
+app.use(
+  `/api-gateway/${config.apiGatewayInterfaceVersion}`,
+  healthRouter,
+  authenticationMiddleware(config),
+  // Authenticated routes - rate limiter and logger rely on auth data to work
+  loggerMiddleware(serviceName),
+  rateLimiterMiddleware(redisRateLimiter),
+  apiGatewayRouter(zodiosCtx, clients)
+);
 
 export default app;
