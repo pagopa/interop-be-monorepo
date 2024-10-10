@@ -359,7 +359,7 @@ async function retrieveDescriptor(
 }
 
 function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
-  const activePurposeVersion = [...purpose.versions]
+  const purposeVersion = [...purpose.versions]
     .sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -371,12 +371,11 @@ function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
         v.state === purposeApi.PurposeVersionState.Enum.ARCHIVED
     );
 
-  if (!activePurposeVersion) {
+  if (!purposeVersion) {
     throw missingActivePurposeVersion(purpose.id);
   }
 
-  return activePurposeVersion.state ===
-    purposeApi.PurposeVersionState.Enum.ACTIVE
+  return purposeVersion.state === purposeApi.PurposeVersionState.Enum.ACTIVE
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
 }
