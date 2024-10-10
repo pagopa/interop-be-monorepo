@@ -508,7 +508,7 @@ export const parseKey = (keyV1: KeyV1 | undefined, eventType: string): Key => {
   return fromKeyV1(keyV1);
 };
 
-export const parseClient = (
+const parseClient = (
   clientV1: ClientV1 | undefined,
   eventType: string
 ): Client => {
