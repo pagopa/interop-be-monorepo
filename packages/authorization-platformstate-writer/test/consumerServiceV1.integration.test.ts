@@ -32,6 +32,7 @@ import {
 import {
   AuthorizationEventEnvelope,
   Client,
+  ClientAddedV1,
   ClientComponentStateV1,
   ClientDeletedV1,
   ClientId,
@@ -59,6 +60,7 @@ import {
   Purpose,
   PurposeId,
   purposeVersionState,
+  toClientV1,
   TokenGenerationStatesClientEntry,
   TokenGenerationStatesClientPurposeEntry,
   toKeyV1,
@@ -96,8 +98,140 @@ describe("integration tests V1 events", async () => {
   });
 
   describe("ClientAdded", () => {
-    it("sample", () => {
-      expect(1).toBe(1);
+    it("should do no operation if the existing table entry is more recent", async () => {
+      const previousPlatformEntryVersion = 2;
+      const messageVersion = 1;
+
+      const client = getMockClient();
+
+      const payload: ClientAddedV1 = {
+        client: toClientV1(client),
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdded",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      const previousPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: previousPlatformEntryVersion,
+        state: itemState.active,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+      };
+      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+
+      await handleMessageV1(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedPlatformClientEntry = await readClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
+    });
+
+    it("should add the entry if it doesn't exist", async () => {
+      const messageVersion = 1;
+
+      const client = getMockClient();
+
+      const payload: ClientAddedV1 = {
+        client: toClientV1(client),
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdded",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      expect(
+        await readClientEntry(platformClientPK, dynamoDBClient)
+      ).toBeUndefined();
+
+      await handleMessageV1(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedPlatformClientEntry = await readClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      const expectedPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: messageVersion,
+        state: itemState.active,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: client.purposes,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+      };
+      expect(retrievedPlatformClientEntry).toEqual(expectedPlatformClientEntry);
+    });
+
+    it("should update the entry", async () => {
+      const previousPlatformEntryVersion = 1;
+      const messageVersion = 2;
+
+      const client = getMockClient();
+
+      const payload: ClientAddedV1 = {
+        client: toClientV1(client),
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdded",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      const previousPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: previousPlatformEntryVersion,
+        state: itemState.active,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+      };
+      await writeClientEntry(previousPlatformClientEntry, dynamoDBClient);
+
+      await handleMessageV1(message, dynamoDBClient);
+
+      // platform-states
+      const retrievedPlatformClientEntry = await readClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      const expectedPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: messageVersion,
+        state: itemState.active,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: client.purposes,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+      };
+      expect(retrievedPlatformClientEntry).toEqual(expectedPlatformClientEntry);
     });
   });
 
