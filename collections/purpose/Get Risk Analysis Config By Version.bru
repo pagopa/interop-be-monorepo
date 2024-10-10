@@ -22,15 +22,3 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
 }
-
-body:json {
-  {
-      "eserviceId": "{{eserviceId}}",
-      "consumerId": "{{tenantId}}",
-      "title": "a purpose title",
-      "description": "a purpose long description",
-      "isFreeOfCharge": true,
-      "dailyCalls": 100,
-      "freeOfChargeReason": "Free!"
-  }
-}
