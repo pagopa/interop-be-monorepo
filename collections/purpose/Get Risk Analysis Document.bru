@@ -1,0 +1,22 @@
+meta {
+  name: Get Risk Analysis Document
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host-purpose}}/purposes/:purposeId/versions/:versionId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+  documentId: {{riskAnalysisDocumentId}}
+  versionId: {{purposeVersionId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

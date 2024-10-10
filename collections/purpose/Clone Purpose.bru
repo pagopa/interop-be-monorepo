@@ -1,0 +1,31 @@
+meta {
+  name: Clone Purpose
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host-purpose}}/purposes/:purposeId/clone
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId": "{{eserviceId}}"
+  }
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
+}

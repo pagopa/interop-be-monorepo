@@ -1,0 +1,30 @@
+meta {
+  name: Create Purpose Version
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-purpose}}/purposes/:id/versions
+  body: json
+  auth: none
+}
+
+params:path {
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "dailyCalls": 200
+  }
+}
+
+vars:post-response {
+  purposeVersionId: res.body.id
+}

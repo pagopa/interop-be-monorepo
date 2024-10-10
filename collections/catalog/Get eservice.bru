@@ -20,5 +20,6 @@ headers {
 }
 
 vars:post-response {
-  riskAnalysisId: res.body.riskAnalysis[0].id
+  riskAnalysisId: res.body.riskAnalysis.at(-1).id
+  descriptorId: res.body.descriptors.at(-1).id
 }

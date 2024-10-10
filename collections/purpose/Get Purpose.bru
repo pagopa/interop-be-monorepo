@@ -1,0 +1,25 @@
+meta {
+  name: Get Purpose
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-purpose}}/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
+}

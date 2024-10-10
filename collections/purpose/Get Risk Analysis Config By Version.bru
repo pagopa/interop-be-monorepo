@@ -1,0 +1,24 @@
+meta {
+  name: Get Risk Analysis Config By Version
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{host-purpose}}/purposes/riskAnalysis/version/:riskAnalysisVersion?eserviceId={{eserviceId}}
+  body: none
+  auth: none
+}
+
+params:query {
+  eserviceId: {{eserviceId}}
+}
+
+params:path {
+  riskAnalysisVersion: 2.0
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

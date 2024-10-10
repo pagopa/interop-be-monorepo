@@ -115,12 +115,14 @@ const purposeRouter = (
             { offset, limit },
             ctx.logger
           );
-          return res.status(200).send({
-            results: purposes.results.map((purpose) =>
-              purposeToApiPurpose(purpose, false)
-            ),
-            totalCount: purposes.totalCount,
-          });
+          return res.status(200).send(
+            purposeApi.Purposes.parse({
+              results: purposes.results.map((purpose) =>
+                purposeToApiPurpose(purpose, false)
+              ),
+              totalCount: purposes.totalCount,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).send(errorRes);
@@ -142,7 +144,11 @@ const purposeRouter = (
             );
           return res
             .status(200)
-            .send(purposeToApiPurpose(purpose, isRiskAnalysisValid));
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -168,7 +174,11 @@ const purposeRouter = (
             );
           return res
             .status(200)
-            .send(purposeToApiPurpose(purpose, isRiskAnalysisValid));
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -195,7 +205,11 @@ const purposeRouter = (
             });
           return res
             .status(200)
-            .send(purposeToApiPurpose(purpose, isRiskAnalysisValid));
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -226,7 +240,11 @@ const purposeRouter = (
             );
           return res
             .status(200)
-            .send(purposeToApiPurpose(purpose, isRiskAnalysisValid));
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -253,7 +271,11 @@ const purposeRouter = (
             });
           return res
             .status(200)
-            .send(purposeToApiPurpose(purpose, isRiskAnalysisValid));
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -302,7 +324,11 @@ const purposeRouter = (
           });
           return res
             .status(200)
-            .send(purposeVersionToApiPurposeVersion(purposeVersion));
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(purposeVersion)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -352,7 +378,11 @@ const purposeRouter = (
           });
           return res
             .status(200)
-            .send(purposeVersionDocumentToApiPurposeVersionDocument(document));
+            .send(
+              purposeApi.PurposeVersionDocument.parse(
+                purposeVersionDocumentToApiPurposeVersionDocument(document)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -404,7 +434,11 @@ const purposeRouter = (
           });
           return res
             .status(200)
-            .send(purposeVersionToApiPurposeVersion(purposeVersion));
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(purposeVersion)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -431,7 +465,11 @@ const purposeRouter = (
             });
           return res
             .status(200)
-            .send(purposeToApiPurpose(purpose, isRiskAnalysisValid));
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -457,7 +495,11 @@ const purposeRouter = (
           });
           return res
             .status(200)
-            .send(purposeVersionToApiPurposeVersion(suspendedVersion));
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(suspendedVersion)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -483,7 +525,11 @@ const purposeRouter = (
           });
           return res
             .status(200)
-            .send(purposeVersionToApiPurposeVersion(archivedVersion));
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(archivedVersion)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -509,8 +555,10 @@ const purposeRouter = (
           return res
             .status(200)
             .send(
-              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
-                riskAnalysisConfiguration
+              purposeApi.RiskAnalysisFormConfigResponse.parse(
+                riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                  riskAnalysisConfiguration
+                )
               )
             );
         } catch (error) {
@@ -535,8 +583,10 @@ const purposeRouter = (
           return res
             .status(200)
             .send(
-              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
-                riskAnalysisConfiguration
+              purposeApi.RiskAnalysisFormConfigResponse.parse(
+                riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                  riskAnalysisConfiguration
+                )
               )
             );
         } catch (error) {
