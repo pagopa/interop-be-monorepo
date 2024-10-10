@@ -19,18 +19,6 @@ headers {
   X-Correlation-Id: {{correlation-id}}
 }
 
-body:json {
-  {
-      "eserviceId": "{{eserviceId}}",
-      "consumerId": "{{tenantId}}",
-      "title": "a purpose title",
-      "description": "a purpose long description",
-      "isFreeOfCharge": true,
-      "dailyCalls": 100,
-      "freeOfChargeReason": "Free!"
-  }
-}
-
 vars:post-response {
   purposeId: res.body.id
   purposeVersionId: res.body.versions.at(-1).id
