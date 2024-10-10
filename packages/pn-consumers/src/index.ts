@@ -59,3 +59,8 @@ async function main(): Promise<void> {
 }
 
 await withExecutionTime(main, loggerInstance);
+
+process.exit(0);
+// process.exit() should not be required.
+// however, something in this script hangs on exit.
+// TODO figure out why and remove this workaround.
