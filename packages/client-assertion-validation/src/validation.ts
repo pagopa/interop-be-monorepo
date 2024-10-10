@@ -24,6 +24,7 @@ import {
   validatePurposeId,
   validateSub,
   validatePlatformState,
+  ALLOWED_ALGORITHM,
 } from "./utils.js";
 import {
   ApiKey,
@@ -48,6 +49,7 @@ import {
   unexpectedClientAssertionPayload,
   invalidSignature,
   clientAssertionInvalidClaims,
+  algorithmNotAllowed,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -187,6 +189,10 @@ export const verifyClientAssertionSignature = (
   key: Key
 ): ValidationResult<JwtPayload> => {
   try {
+    if (key.algorithm !== ALLOWED_ALGORITHM) {
+      return failedValidation([algorithmNotAllowed(key.algorithm)]);
+    }
+
     const result = verify(clientAssertionJws, key.publicKey, {
       algorithms: [key.algorithm],
     });
