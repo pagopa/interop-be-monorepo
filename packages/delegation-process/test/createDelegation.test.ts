@@ -7,6 +7,7 @@ import {
   getMockEService,
   getMockTenant,
   getRandomAuthData,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -127,12 +128,18 @@ describe("create delegation", () => {
 
     const delegate = getMockTenant();
     const eservice = getMockEService();
-    const delegation = getMockDelegationProducer(
-      generateId<DelegationId>(),
-      delegatorId,
-      delegate.id,
-      eservice.id
-    );
+    const delegation = {
+      ...getMockDelegationProducer(
+        generateId<DelegationId>(),
+        delegatorId,
+        delegate.id,
+        eservice.id
+      ),
+      state: randomArrayItem([
+        delegationState.active,
+        delegationState.waitingForApproval,
+      ]),
+    };
 
     await addOneTenant(delegate);
     await addOneEservice(eservice);
