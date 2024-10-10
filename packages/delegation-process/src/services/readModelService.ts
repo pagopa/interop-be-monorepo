@@ -12,6 +12,7 @@ import {
   DelegationReadModel,
   WithMetadata,
   genericInternalError,
+  Tenant,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -65,6 +66,8 @@ export function readModelServiceBuilder(
 ) {
   const delegations = readModelRepository.delegations;
   const eservices = readModelRepository.eservices;
+  const tenants = readModelRepository.tenants;
+
   return {
     async getEService(
       eservices: EServiceCollection,
@@ -133,6 +136,27 @@ export function readModelServiceBuilder(
         data: delegation,
         metadata: { version: 0 },
       });
+    },
+    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
+      const data = await tenants.findOne(
+        { "data.id": tenantId },
+        { projection: { data: true } }
+      );
+
+      if (data) {
+        const result = Tenant.safeParse(data.data);
+
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse tenant item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+
+        return result.data;
+      }
+      return undefined;
     },
   };
 }

@@ -22,6 +22,7 @@ import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
   assertEserviceExists,
+  assertTenantExists,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -53,6 +54,7 @@ export function delegationProducerServiceBuilder(
       );
 
       await assertEserviceExists(eserviceId, readModelService);
+      await assertTenantExists(delegateId, readModelService);
       await assertDelegationNotExists(
         delegatorId,
         delegateId,

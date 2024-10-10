@@ -2,12 +2,14 @@ import {
   ApiError,
   EServiceId,
   makeApiProblemBuilder,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
   delegationNotFound: "0001",
   eserviceNotFound: "0002",
   delegationAlreadyExists: "0003",
+  tenantNotFound: "0004",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -41,5 +43,13 @@ export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
     detail: `EService ${eserviceId} not found`,
     code: "eserviceNotFound",
     title: "EService not found",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
   });
 }

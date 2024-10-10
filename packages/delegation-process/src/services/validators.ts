@@ -7,6 +7,7 @@ import {
 import {
   delegationAlreadyExists,
   eserviceNotFound,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -17,6 +18,16 @@ export const assertEserviceExists = async (
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     throw eserviceNotFound(eserviceId);
+  }
+};
+
+export const assertTenantExists = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<void> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
   }
 };
 
