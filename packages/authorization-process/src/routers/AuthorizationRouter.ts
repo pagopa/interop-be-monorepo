@@ -104,7 +104,13 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res.status(200).send(clientToApiClient(client, { showUsers }));
+          return res
+            .status(200)
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -128,7 +134,13 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res.status(200).send(clientToApiClient(client, { showUsers }));
+          return res
+            .status(200)
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -175,14 +187,16 @@ const authorizationRouter = (
             limit,
             logger: ctx.logger,
           });
-          return res.status(200).send({
-            results: clients.results.map((client) =>
-              clientToApiClientWithKeys(client, {
-                showUsers: ctx.authData.organizationId === client.consumerId,
-              })
-            ),
-            totalCount: clients.totalCount,
-          });
+          return res.status(200).send(
+            authorizationApi.ClientsWithKeys.parse({
+              results: clients.results.map((client) =>
+                clientToApiClientWithKeys(client, {
+                  showUsers: ctx.authData.organizationId === client.consumerId,
+                })
+              ),
+              totalCount: clients.totalCount,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -221,14 +235,16 @@ const authorizationRouter = (
             limit,
             logger: ctx.logger,
           });
-          return res.status(200).send({
-            results: clients.results.map((client) =>
-              clientToApiClient(client, {
-                showUsers: ctx.authData.organizationId === client.consumerId,
-              })
-            ),
-            totalCount: clients.totalCount,
-          });
+          return res.status(200).send(
+            authorizationApi.Clients.parse({
+              results: clients.results.map((client) =>
+                clientToApiClient(client, {
+                  showUsers: ctx.authData.organizationId === client.consumerId,
+                })
+              ),
+              totalCount: clients.totalCount,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -256,7 +272,13 @@ const authorizationRouter = (
               organizationId: ctx.authData.organizationId,
               logger: ctx.logger,
             });
-          return res.status(200).send(clientToApiClient(client, { showUsers }));
+          return res
+            .status(200)
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -306,7 +328,7 @@ const authorizationRouter = (
             organizationId: ctx.authData.organizationId,
             logger: ctx.logger,
           });
-          return res.status(200).send(users);
+          return res.status(200).send(authorizationApi.Users.parse(users));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -357,7 +379,13 @@ const authorizationRouter = (
               req.ctx.correlationId,
               ctx.logger
             );
-          return res.status(200).send(clientToApiClient(client, { showUsers }));
+          return res
+            .status(200)
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers })
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -381,9 +409,11 @@ const authorizationRouter = (
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
-          return res
-            .status(200)
-            .send({ keys: client.keys.map((key) => keyToApiKey(key)) });
+          return res.status(200).send(
+            authorizationApi.Keys.parse({
+              keys: client.keys.map((key) => keyToApiKey(key)),
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -412,9 +442,11 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res
-            .status(200)
-            .send({ keys: keys.map((key) => keyToApiKey(key)) });
+          return res.status(200).send(
+            authorizationApi.Keys.parse({
+              keys: keys.map((key) => keyToApiKey(key)),
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -443,7 +475,9 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).send(keyToApiKey(key));
+          return res
+            .status(200)
+            .send(authorizationApi.Key.parse(keyToApiKey(key)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -575,9 +609,11 @@ const authorizationRouter = (
               logger: ctx.logger,
             });
           return res.status(200).send(
-            producerKeychainToApiProducerKeychain(producerKeychain, {
-              showUsers,
-            })
+            authorizationApi.ProducerKeychain.parse(
+              producerKeychainToApiProducerKeychain(producerKeychain, {
+                showUsers,
+              })
+            )
           );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -617,15 +653,17 @@ const authorizationRouter = (
               limit,
               logger: ctx.logger,
             });
-          return res.status(200).send({
-            results: producerKeychains.results.map((producerKeychain) =>
-              producerKeychainToApiProducerKeychain(producerKeychain, {
-                showUsers:
-                  ctx.authData.organizationId === producerKeychain.producerId,
-              })
-            ),
-            totalCount: producerKeychains.totalCount,
-          });
+          return res.status(200).send(
+            authorizationApi.ProducerKeychains.parse({
+              results: producerKeychains.results.map((producerKeychain) =>
+                producerKeychainToApiProducerKeychain(producerKeychain, {
+                  showUsers:
+                    ctx.authData.organizationId === producerKeychain.producerId,
+                })
+              ),
+              totalCount: producerKeychains.totalCount,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -654,9 +692,11 @@ const authorizationRouter = (
               logger: ctx.logger,
             });
           return res.status(200).send(
-            producerKeychainToApiProducerKeychain(producerKeychain, {
-              showUsers,
-            })
+            authorizationApi.ProducerKeychain.parse(
+              producerKeychainToApiProducerKeychain(producerKeychain, {
+                showUsers,
+              })
+            )
           );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -707,7 +747,7 @@ const authorizationRouter = (
             organizationId: ctx.authData.organizationId,
             logger: ctx.logger,
           });
-          return res.status(200).send(users);
+          return res.status(200).send(authorizationApi.Users.parse(users));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -737,9 +777,11 @@ const authorizationRouter = (
               ctx.logger
             );
           return res.status(200).send(
-            producerKeychainToApiProducerKeychain(producerKeychain, {
-              showUsers,
-            })
+            authorizationApi.ProducerKeychain.parse(
+              producerKeychainToApiProducerKeychain(producerKeychain, {
+                showUsers,
+              })
+            )
           );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -789,9 +831,11 @@ const authorizationRouter = (
               correlationId: req.ctx.correlationId,
               logger: ctx.logger,
             });
-          return res.status(200).send({
-            keys: producerKeychain.keys.map(keyToApiKey),
-          });
+          return res.status(200).send(
+            authorizationApi.Keys.parse({
+              keys: producerKeychain.keys.map(keyToApiKey),
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -820,7 +864,9 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).send({ keys: keys.map(keyToApiKey) });
+          return res
+            .status(200)
+            .send(authorizationApi.Keys.parse({ keys: keys.map(keyToApiKey) }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -849,7 +895,9 @@ const authorizationRouter = (
             logger: ctx.logger,
           });
 
-          return res.status(200).send(keyToApiKey(key));
+          return res
+            .status(200)
+            .send(authorizationApi.Key.parse(keyToApiKey(key)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -957,10 +1005,12 @@ const authorizationRouter = (
             kid: req.params.keyId,
             logger: ctx.logger,
           });
-        return res.status(200).send({
-          key: jwkKey,
-          client,
-        });
+        return res.status(200).send(
+          authorizationApi.KeyWithClient.parse({
+            key: jwkKey,
+            client,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
