@@ -520,7 +520,6 @@ const tenantsRouter = (
             ctx.logger
           );
 
-          // TODO sono arrivato qui
           return res
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
