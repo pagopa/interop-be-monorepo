@@ -429,6 +429,7 @@ describe("integration tests V2 events", async () => {
           updatedAt: new Date().toISOString(),
         };
 
+      expect(retrievedTokenEntries).toHaveLength(4);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([
           tokenClientPurposeEntry1,
@@ -758,6 +759,7 @@ describe("integration tests V2 events", async () => {
           updatedAt: new Date().toISOString(),
         };
 
+      expect(retrievedTokenEntries).toHaveLength(4);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([
           tokenClientPurposeEntry1,
@@ -851,6 +853,7 @@ describe("integration tests V2 events", async () => {
         updatedAt: new Date().toISOString(),
       };
 
+      expect(retrievedTokenEntries).toHaveLength(2);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([tokenClientEntry, expectedTokenClientEntry])
       );
@@ -949,6 +952,7 @@ describe("integration tests V2 events", async () => {
         updatedAt: new Date().toISOString(),
       };
 
+      expect(retrievedTokenEntries).toHaveLength(2);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([tokenClientEntry1, expectedTokenClientEntry])
       );
@@ -1331,6 +1335,8 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenEntries = await readAllTokenStateItems(
         dynamoDBClient
       );
+
+      expect(retrievedTokenEntries).toHaveLength(2);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([tokenClientPurposeEntry, tokenClientEntry])
       );
@@ -1470,7 +1476,7 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenEntries = await readAllTokenStateItems(
         dynamoDBClient
       );
-      const newTokenData = {
+      const newTokenClientPurposeEntryData = {
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: client.id,
           purposeId: purpose.id,
@@ -1496,7 +1502,7 @@ describe("integration tests V2 events", async () => {
       const expectedTokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...tokenClientEntry1,
-          ...newTokenData,
+          ...newTokenClientPurposeEntryData,
           PK: makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             purposeId: purpose.id,
@@ -1507,7 +1513,7 @@ describe("integration tests V2 events", async () => {
       const expectedTokenClientPurposeEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...tokenClientEntry2,
-          ...newTokenData,
+          ...newTokenClientPurposeEntryData,
           PK: makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             purposeId: purpose.id,
@@ -1515,6 +1521,7 @@ describe("integration tests V2 events", async () => {
           }),
         };
 
+      expect(retrievedTokenEntries).toHaveLength(3);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([
           tokenClientPurposeEntryWithOtherClient,
@@ -1682,6 +1689,7 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenClientKidPK1),
+          consumerId: client.consumerId,
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId1,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(kid1),
@@ -1690,6 +1698,7 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenClientKidPK2),
+          consumerId: client.consumerId,
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId1,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(kid2),
@@ -1729,7 +1738,7 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenEntries = await readAllTokenStateItems(
         dynamoDBClient
       );
-      const newTokenData = {
+      const newTokenClientPurposeEntryData = {
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: client.id,
           purposeId: purpose2.id,
@@ -1755,7 +1764,7 @@ describe("integration tests V2 events", async () => {
       const expectedTokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...tokenClientPurposeEntry1,
-          ...newTokenData,
+          ...newTokenClientPurposeEntryData,
           PK: makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             purposeId: purpose2.id,
@@ -1766,7 +1775,7 @@ describe("integration tests V2 events", async () => {
       const expectedTokenClientPurposeEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...tokenClientPurposeEntry2,
-          ...newTokenData,
+          ...newTokenClientPurposeEntryData,
           PK: makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             purposeId: purpose2.id,
@@ -1774,6 +1783,7 @@ describe("integration tests V2 events", async () => {
           }),
         };
 
+      expect(retrievedTokenEntries).toHaveLength(5);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([
           tokenClientEntryWithOtherClient,
@@ -1785,8 +1795,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    // TODO: need upsert implementation
-    it.skip("should update platform-states entry and update client-kid-purpose entries to token-generation-states table", async () => {
+    it("should update platform-states entry and update client-kid-purpose entries to token-generation-states table", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
@@ -1958,6 +1967,7 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenClientKidPK1),
+          consumerId: client.consumerId,
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId1,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(kid1),
@@ -1966,6 +1976,7 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenClientKidPK2),
+          consumerId: client.consumerId,
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId1,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(kid2),
@@ -1974,6 +1985,7 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntry3: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenClientKidPK3),
+          consumerId: client.consumerId,
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId2,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(kid1),
@@ -1982,6 +1994,7 @@ describe("integration tests V2 events", async () => {
       const tokenClientPurposeEntry4: TokenGenerationStatesClientPurposeEntry =
         {
           ...getMockTokenStatesClientPurposeEntry(tokenClientKidPK4),
+          consumerId: client.consumerId,
           GSIPK_clientId_purposeId: gsiPKClientIdPurposeId2,
           GSIPK_clientId: client.id,
           GSIPK_kid: makeGSIPKKid(kid2),
@@ -2029,7 +2042,7 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenEntries = await readAllTokenStateItems(
         dynamoDBClient
       );
-      const newTokenData = {
+      const newTokenClientPurposeEntryData = {
         GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
           clientId: client.id,
           purposeId: purpose2.id,
@@ -2055,18 +2068,17 @@ describe("integration tests V2 events", async () => {
       const expectedTokenClientPurposeEntry1: TokenGenerationStatesClientPurposeEntry =
         {
           ...tokenClientPurposeEntry1,
-          ...newTokenData,
+          ...newTokenClientPurposeEntryData,
           PK: makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             purposeId: purpose2.id,
             kid: kid1,
           }),
         };
-
       const expectedTokenClientPurposeEntry2: TokenGenerationStatesClientPurposeEntry =
         {
           ...tokenClientPurposeEntry2,
-          ...newTokenData,
+          ...newTokenClientPurposeEntryData,
           PK: makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             purposeId: purpose2.id,
@@ -2074,6 +2086,7 @@ describe("integration tests V2 events", async () => {
           }),
         };
 
+      expect(retrievedTokenEntries).toHaveLength(5);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([
           tokenClientEntryWithOtherClient,
@@ -2319,6 +2332,7 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenEntries = await readAllTokenStateItems(
         dynamoDBClient
       );
+      expect(retrievedTokenEntries).toHaveLength(2);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([tokenClientEntry, tokenClientPurposeEntry1])
       );
@@ -2414,6 +2428,8 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: tokenClientPurposeEntry.GSIPK_clientId,
         GSIPK_kid: tokenClientPurposeEntry.GSIPK_kid,
       };
+
+      expect(retrievedTokenEntries).toHaveLength(2);
       expect(retrievedTokenEntries).toEqual(
         expect.arrayContaining([tokenClientEntry, expectedTokenClientEntry])
       );
