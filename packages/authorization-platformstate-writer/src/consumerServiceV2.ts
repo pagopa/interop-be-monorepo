@@ -279,7 +279,54 @@ export async function handleMessageV2(
           new Array<TokenGenerationStatesClientPurposeEntry>();
         const kidSet = new Set<string>();
         for (const entry of tokenClientEntries) {
-          if (entry.PK.startsWith(clientKidPurposePrefix)) {
+          if (entry.PK.startsWith(clientKidPrefix)) {
+            const pk = makeTokenGenerationStatesClientKidPurposePK({
+              clientId: client.id,
+              kid: extractKidFromTokenEntryPK(entry.PK),
+              purposeId,
+            });
+            const newTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+              {
+                consumerId: entry.consumerId,
+                updatedAt: new Date().toISOString(),
+                PK: pk,
+                clientKind: entry.clientKind,
+                publicKey: entry.publicKey,
+                GSIPK_clientId: entry.GSIPK_clientId,
+                GSIPK_kid: entry.GSIPK_kid,
+                GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+                  clientId: client.id,
+                  purposeId,
+                }),
+                GSIPK_purposeId: purposeId,
+                purposeState: purposeEntry.state,
+                purposeVersionId: purposeEntry.purposeVersionId,
+                GSIPK_consumerId_eserviceId:
+                  agreementEntry.GSIPK_consumerId_eserviceId,
+                agreementId: extractAgreementIdFromAgreementPK(
+                  agreementEntry.PK
+                ),
+                agreementState: agreementEntry.state,
+                GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+                  eserviceId: purposeEntry.purposeEserviceId,
+                  descriptorId: agreementEntry.agreementDescriptorId,
+                }),
+                descriptorState: catalogEntry.state,
+                descriptorAudience: catalogEntry.descriptorAudience,
+                descriptorVoucherLifespan:
+                  catalogEntry.descriptorVoucherLifespan,
+              };
+            await upsertTokenStateClientPurposeEntry(
+              newTokenClientPurposeEntry,
+              dynamoDBClient
+            );
+            await deleteClientEntryFromTokenGenerationStatesTable(
+              entry,
+              dynamoDBClient
+            );
+            // eslint-disable-next-line functional/immutable-data
+            addedTokenClientPurposeEntries.push(newTokenClientPurposeEntry);
+          } else if (entry.PK.startsWith(clientKidPurposePrefix)) {
             const kid = extractKidFromTokenEntryPK(entry.PK);
             if (!kidSet.has(kid)) {
               const pk = makeTokenGenerationStatesClientKidPurposePK({
@@ -329,53 +376,6 @@ export async function handleMessageV2(
               // eslint-disable-next-line functional/immutable-data
               addedTokenClientPurposeEntries.push(newClientPurposeEntry);
             }
-          } else if (entry.PK.startsWith(clientKidPrefix)) {
-            const pk = makeTokenGenerationStatesClientKidPurposePK({
-              clientId: client.id,
-              kid: extractKidFromTokenEntryPK(entry.PK),
-              purposeId,
-            });
-            const newTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-              {
-                consumerId: entry.consumerId,
-                updatedAt: new Date().toISOString(),
-                PK: pk,
-                clientKind: entry.clientKind,
-                publicKey: entry.publicKey,
-                GSIPK_clientId: entry.GSIPK_clientId,
-                GSIPK_kid: entry.GSIPK_kid,
-                GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-                  clientId: client.id,
-                  purposeId,
-                }),
-                GSIPK_purposeId: purposeId,
-                purposeState: purposeEntry.state,
-                purposeVersionId: purposeEntry.purposeVersionId,
-                GSIPK_consumerId_eserviceId:
-                  agreementEntry.GSIPK_consumerId_eserviceId,
-                agreementId: extractAgreementIdFromAgreementPK(
-                  agreementEntry.PK
-                ),
-                agreementState: agreementEntry.state,
-                GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-                  eserviceId: purposeEntry.purposeEserviceId,
-                  descriptorId: agreementEntry.agreementDescriptorId,
-                }),
-                descriptorState: catalogEntry.state,
-                descriptorAudience: catalogEntry.descriptorAudience,
-                descriptorVoucherLifespan:
-                  catalogEntry.descriptorVoucherLifespan,
-              };
-            await upsertTokenStateClientPurposeEntry(
-              newTokenClientPurposeEntry,
-              dynamoDBClient
-            );
-            await deleteClientEntryFromTokenGenerationStatesTable(
-              entry,
-              dynamoDBClient
-            );
-            // eslint-disable-next-line functional/immutable-data
-            addedTokenClientPurposeEntries.push(newTokenClientPurposeEntry);
           } else {
             throw genericInternalError(`Unable to parse ${entry}`);
           }
