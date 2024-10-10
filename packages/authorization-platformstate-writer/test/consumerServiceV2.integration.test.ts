@@ -439,8 +439,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    // TODO: need upsert implementation
-    it.skip("should update platform-states entry and update token-generation-states client-kid-purpose entries", async () => {
+    it("should update platform-states entry and update token-generation-states client-kid-purpose entries", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 

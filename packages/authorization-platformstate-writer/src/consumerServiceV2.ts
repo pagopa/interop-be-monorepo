@@ -15,13 +15,9 @@ import {
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   missingKafkaMessageDataError,
-  PlatformStatesAgreementEntry,
-  PlatformStatesCatalogEntry,
   PlatformStatesClientEntry,
-  PlatformStatesPurposeEntry,
   PurposeId,
   TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientPurposeEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -35,16 +31,15 @@ import {
   deleteEntriesWithClientAndPurposeFromTokenGenerationStatesTable,
   readClientEntry,
   writeClientEntry,
-  writeTokenStateClientPurposeEntry,
   readClientEntriesInTokenGenerationStates,
   cleanClientPurposeIdsInPlatformStatesEntry,
   deleteClientEntryFromTokenGenerationStatesTable,
   extractKidFromTokenEntryPK,
   extractAgreementIdFromAgreementPK,
   retrievePlatformStatesByPurpose,
-  updateTokenEntriesWithPlatformStatesData,
   upsertPlatformClientEntry,
   upsertTokenClientKidEntry,
+  upsertTokenStateClientPurposeEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -81,30 +76,20 @@ export async function handleMessageV2(
         await upsertPlatformClientEntry(dynamoDBClient, platformClientEntry);
       }
       if (client.purposes.length > 0) {
-        const map: Map<
-          PurposeId,
-          {
-            purposeEntry: PlatformStatesPurposeEntry;
-            agreementEntry: PlatformStatesAgreementEntry;
-            catalogEntry: PlatformStatesCatalogEntry;
-          }
-        > = new Map();
+        const map: Map<PurposeId, TokenGenerationStatesClientPurposeEntry> =
+          new Map();
 
-        const PKsOfAddedEntries =
-          new Set<TokenGenerationStatesClientKidPurposePK>();
         for (const purposeId of client.purposes) {
           const states = await retrievePlatformStatesByPurpose(
             dynamoDBClient,
             purposeId
           );
-          map.set(purposeId, states);
 
           const pk = makeTokenGenerationStatesClientKidPurposePK({
             clientId: client.id,
             kid: msg.data.kid,
             purposeId,
           });
-          PKsOfAddedEntries.add(pk);
 
           const clientKidPurposeEntry: TokenGenerationStatesClientPurposeEntry =
             {
@@ -142,37 +127,68 @@ export async function handleMessageV2(
               updatedAt: new Date().toISOString(),
             };
 
-          // TODO: upsert
-          await writeTokenStateClientPurposeEntry(
+          await upsertTokenStateClientPurposeEntry(
             clientKidPurposeEntry,
             dynamoDBClient
           );
-          // }
-          // TODO this two loops can be merged or should they be completely separated?
-          // for (const purposeId of client.purposes) {
+
+          map.set(purposeId, clientKidPurposeEntry);
+        }
+
+        for (const purposeId of client.purposes) {
           const secondRetrievalStates = await retrievePlatformStatesByPurpose(
             dynamoDBClient,
             purposeId
           );
-          const { agreementEntry, catalogEntry, purposeEntry } =
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            map.get(purposeId)!;
+          const addedClientKidPurposeEntry = map.get(purposeId);
+
+          if (!addedClientKidPurposeEntry) {
+            throw genericInternalError(
+              `Error during upsert for entry related to purpose id: ${purposeId}`
+            );
+          }
 
           if (
             secondRetrievalStates.agreementEntry.state !==
-              agreementEntry.state ||
-            secondRetrievalStates.catalogEntry.state !== catalogEntry.state ||
-            secondRetrievalStates.purposeEntry.state !== purposeEntry.state
+              addedClientKidPurposeEntry.agreementState ||
+            secondRetrievalStates.catalogEntry.state !==
+              addedClientKidPurposeEntry.descriptorState ||
+            secondRetrievalStates.purposeEntry.state !==
+              addedClientKidPurposeEntry.purposeState
           ) {
-            await updateTokenEntriesWithPlatformStatesData({
-              clientId: client.id,
-              purposeId,
-              agreementEntry: secondRetrievalStates.agreementEntry,
-              catalogEntry: secondRetrievalStates.catalogEntry,
-              purposeEntry: secondRetrievalStates.purposeEntry,
-              dynamoDBClient,
-              pkOfEntriesToUpdate: PKsOfAddedEntries,
-            });
+            const updatedTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+              {
+                ...addedClientKidPurposeEntry,
+                GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+                  consumerId: client.consumerId,
+                  eserviceId:
+                    secondRetrievalStates.purposeEntry.purposeEserviceId,
+                }),
+                agreementId: extractAgreementIdFromAgreementPK(
+                  secondRetrievalStates.agreementEntry.PK
+                ),
+                agreementState: secondRetrievalStates.agreementEntry.state,
+                GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+                  eserviceId:
+                    secondRetrievalStates.purposeEntry.purposeEserviceId,
+                  descriptorId:
+                    secondRetrievalStates.agreementEntry.agreementDescriptorId,
+                }),
+                descriptorState: secondRetrievalStates.agreementEntry.state,
+                descriptorAudience:
+                  secondRetrievalStates.catalogEntry.descriptorAudience,
+                descriptorVoucherLifespan:
+                  secondRetrievalStates.catalogEntry.descriptorVoucherLifespan,
+                purposeState: secondRetrievalStates.purposeEntry.state,
+                purposeVersionId:
+                  secondRetrievalStates.purposeEntry.purposeVersionId,
+                updatedAt: new Date().toISOString(),
+              };
+
+            await upsertTokenStateClientPurposeEntry(
+              updatedTokenClientPurposeEntry,
+              dynamoDBClient
+            );
           }
         }
       } else {
@@ -256,11 +272,10 @@ export async function handleMessageV2(
         const { purposeEntry, agreementEntry, catalogEntry } =
           await retrievePlatformStatesByPurpose(dynamoDBClient, purposeId);
 
-        const PKsOfAddedEntries =
-          new Set<TokenGenerationStatesClientKidPurposePK>();
+        const addedTokenClientPurposeEntries =
+          new Array<TokenGenerationStatesClientPurposeEntry>();
         const kidSet = new Set<string>();
         for (const entry of tokenClientEntries) {
-          // TODO: improve this to differentiate between client and client purpose entries
           if (
             TokenGenerationStatesClientPurposeEntry.safeParse(entry).success
           ) {
@@ -272,7 +287,6 @@ export async function handleMessageV2(
                 purposeId,
               });
 
-              PKsOfAddedEntries.add(pk);
               const newClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
                 {
                   consumerId: entry.consumerId,
@@ -305,13 +319,14 @@ export async function handleMessageV2(
                   descriptorVoucherLifespan:
                     catalogEntry.descriptorVoucherLifespan,
                 };
-              // TODO: should be upsert
-              await writeTokenStateClientPurposeEntry(
+              await upsertTokenStateClientPurposeEntry(
                 newClientPurposeEntry,
                 dynamoDBClient
               );
 
               kidSet.add(kid);
+              // eslint-disable-next-line functional/immutable-data
+              addedTokenClientPurposeEntries.push(newClientPurposeEntry);
             }
           } else if (
             TokenGenerationStatesClientEntry.safeParse(entry).success
@@ -321,7 +336,6 @@ export async function handleMessageV2(
               kid: extractKidFromTokenEntryPK(entry.PK),
               purposeId,
             });
-            PKsOfAddedEntries.add(pk);
             const newTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
               {
                 consumerId: entry.consumerId,
@@ -353,8 +367,7 @@ export async function handleMessageV2(
                 descriptorVoucherLifespan:
                   catalogEntry.descriptorVoucherLifespan,
               };
-            await writeTokenStateClientPurposeEntry(
-              // TODO make it upsert?
+            await upsertTokenStateClientPurposeEntry(
               newTokenClientPurposeEntry,
               dynamoDBClient
             );
@@ -362,6 +375,8 @@ export async function handleMessageV2(
               entry,
               dynamoDBClient
             );
+            // eslint-disable-next-line functional/immutable-data
+            addedTokenClientPurposeEntries.push(newTokenClientPurposeEntry);
           } else {
             throw genericInternalError(`Unable to parse ${entry}`);
           }
@@ -371,21 +386,47 @@ export async function handleMessageV2(
           dynamoDBClient,
           purposeId
         );
+        for (const clientPurposeEntry of addedTokenClientPurposeEntries) {
+          if (
+            secondRetrievalStates.agreementEntry.state !==
+              agreementEntry.state ||
+            secondRetrievalStates.catalogEntry.state !== catalogEntry.state ||
+            secondRetrievalStates.purposeEntry.state !== purposeEntry.state
+          ) {
+            const updatedTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+              {
+                ...clientPurposeEntry,
+                GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+                  consumerId: client.consumerId,
+                  eserviceId:
+                    secondRetrievalStates.purposeEntry.purposeEserviceId,
+                }),
+                agreementId: extractAgreementIdFromAgreementPK(
+                  secondRetrievalStates.agreementEntry.PK
+                ),
+                agreementState: secondRetrievalStates.agreementEntry.state,
+                GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+                  eserviceId:
+                    secondRetrievalStates.purposeEntry.purposeEserviceId,
+                  descriptorId:
+                    secondRetrievalStates.agreementEntry.agreementDescriptorId,
+                }),
+                descriptorState: secondRetrievalStates.agreementEntry.state,
+                descriptorAudience:
+                  secondRetrievalStates.catalogEntry.descriptorAudience,
+                descriptorVoucherLifespan:
+                  secondRetrievalStates.catalogEntry.descriptorVoucherLifespan,
+                purposeState: secondRetrievalStates.purposeEntry.state,
+                purposeVersionId:
+                  secondRetrievalStates.purposeEntry.purposeVersionId,
+                updatedAt: new Date().toISOString(),
+              };
 
-        if (
-          secondRetrievalStates.agreementEntry.state !== agreementEntry.state ||
-          secondRetrievalStates.catalogEntry.state !== catalogEntry.state ||
-          secondRetrievalStates.purposeEntry.state !== purposeEntry.state
-        ) {
-          await updateTokenEntriesWithPlatformStatesData({
-            clientId: client.id,
-            purposeId,
-            agreementEntry: secondRetrievalStates.agreementEntry,
-            catalogEntry: secondRetrievalStates.catalogEntry,
-            purposeEntry: secondRetrievalStates.purposeEntry,
-            dynamoDBClient,
-            pkOfEntriesToUpdate: PKsOfAddedEntries,
-          });
+            await upsertTokenStateClientPurposeEntry(
+              updatedTokenClientPurposeEntry,
+              dynamoDBClient
+            );
+          }
         }
       }
     })
