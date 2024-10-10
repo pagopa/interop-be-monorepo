@@ -342,6 +342,7 @@ export const getMockTokenStatesClientPurposeEntry = (
       }),
     descriptorState: itemState.inactive,
     descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+    descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
     consumerId,
     agreementId,
