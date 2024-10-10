@@ -55,7 +55,7 @@ export const contextMiddleware =
         return res.status(problem.status).send(problem);
       }
 
-      setCtx(correlationIdHeader || uuidv4());
+      setCtx(correlationIdHeader);
     } else {
       setCtx(uuidv4());
     }
