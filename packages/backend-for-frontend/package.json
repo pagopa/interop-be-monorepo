@@ -45,6 +45,7 @@
     "adm-zip": "0.5.15",
     "mime": "4.0.4",
     "pagopa-interop-agreement-lifecycle": "workspace:*",
+    "pagopa-interop-client-assertion-validation": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
