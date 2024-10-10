@@ -1,0 +1,28 @@
+meta {
+  name: Upsert selfcare tenant
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host-tenant}}/selfcare/tenants
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "externalId": {
+      "origin": "try",
+      "value": "value"
+    },
+    "selfcareId": "49b58150-9851-4fdc-87c6-d7353359e48f",
+    "name": "test",
+    "onboardedAt": "2024-10-05T14:48:00.000Z"
+  }
+}
