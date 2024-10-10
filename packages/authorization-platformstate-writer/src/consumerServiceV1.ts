@@ -29,6 +29,7 @@ import {
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  clientKindToTokenGenerationStatesClientKind,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
   deleteClientEntryFromTokenGenerationStatesTable,
@@ -58,12 +59,14 @@ export async function handleMessageV1(
       const clientEntry = await readClientEntry(pk, dynamoDBClient);
 
       if (clientEntry && clientEntry.version > msg.version) {
+        return Promise.resolve();
+      } else {
         const updatedClientEntry: PlatformStatesClientEntry = {
           PK: pk,
           version: msg.version,
           state: itemState.active,
-          clientKind: clientEntry.clientKind,
-          clientConsumerId: clientEntry.clientConsumerId,
+          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+          clientConsumerId: client.consumerId,
           updatedAt: new Date().toISOString(),
           clientPurposesIds: client.purposes,
         };
