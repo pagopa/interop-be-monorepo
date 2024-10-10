@@ -1,4 +1,9 @@
-import { DelegationKind, EServiceId, TenantId } from "pagopa-interop-models";
+import {
+  DelegationKind,
+  delegationState,
+  EServiceId,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   delegationAlreadyExists,
   eserviceNotFound,
@@ -27,6 +32,7 @@ export const assertDelegationNotExists = async (
     delegateId,
     eserviceId,
     delegationKind,
+    states: [delegationState.active, delegationState.waitingForApproval],
   });
 
   if (delegation) {

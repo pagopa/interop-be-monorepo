@@ -20,7 +20,8 @@ import { GetDelegationsFilters } from "../model/domain/models.js";
 const toReadModelFilter = (
   filters: GetDelegationsFilters
 ): Filter<WithId<WithMetadata<DelegationReadModel>>> => {
-  const { delegateId, delegatorId, eserviceId, delegationKind } = filters;
+  const { delegateId, delegatorId, eserviceId, delegationKind, states } =
+    filters;
 
   const delegatorIdFilter = delegatorId
     ? {
@@ -42,12 +43,19 @@ const toReadModelFilter = (
         "data.kind": { $eq: delegationKind },
       }
     : {};
+  const stateFilter =
+    states && states.length > 0
+      ? {
+          "data.state": { $in: states },
+        }
+      : {};
 
   return {
     ...delegatorIdFilter,
     ...delegateIdFilter,
     ...eserviceIdFilter,
     ...delegationKindFilter,
+    ...stateFilter,
   };
 };
 

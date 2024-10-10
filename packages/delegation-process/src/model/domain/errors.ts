@@ -31,8 +31,8 @@ export function delegationAlreadyExists(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation type ${delegationKind} already exists with id ${delegationId} for delegator ${delgatorId} and delegate ${delegeteId} for EService ${eserviceId}`,
-    code: "delegationNotFound",
-    title: "Delegation not found",
+    code: "delegationAlreadyExists",
+    title: "Delegation already exists",
   });
 }
 
