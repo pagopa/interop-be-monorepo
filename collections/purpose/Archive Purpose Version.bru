@@ -1,11 +1,11 @@
 meta {
-  name: Reject Purpose Version
+  name: Archive Purpose Version
   type: http
-  seq: 12
+  seq: 9
 }
 
 post {
-  url: {{host-purpose}}/purposes/:id/versions/:versionId/reject
+  url: {{host-purpose}}/purposes/:id/versions/:versionId/archive
   body: json
   auth: none
 }
@@ -18,10 +18,4 @@ params:path {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-}
-
-body:json {
-  {
-    "rejectionReason": "Some reason"
-  }
 }

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-purpose}}/purposes?offset=0&limit=10&excludeDraft=false&states=["DRAFT", "ACTIVE"]&eserviceIds=["{{eserviceId}}"]&consumerIds=["{{tenantId}}"]&producersIds=["{{tenantId}}"]&name=title
+  url: {{host-purpose}}/purposes?offset=0&limit=10
   body: none
   auth: none
 }
@@ -13,12 +13,12 @@ get {
 params:query {
   offset: 0
   limit: 10
-  excludeDraft: false
-  states: ["DRAFT", "ACTIVE"]
-  eserviceIds: ["{{eserviceId}}"]
-  consumerIds: ["{{tenantId}}"]
-  producersIds: ["{{tenantId}}"]
-  name: title
+  ~excludeDraft: false
+  ~states: ["DRAFT", "ACTIVE"]
+  ~eserviceIds: ["{{eserviceId}}"]
+  ~consumerIds: ["{{tenantId}}"]
+  ~producersIds: ["{{tenantId}}"]
+  ~name: title
 }
 
 headers {
@@ -36,4 +36,10 @@ body:json {
       "dailyCalls": 100,
       "freeOfChargeReason": "Free!"
   }
+}
+
+vars:post-response {
+  purposeId: res.body.results.at(-1).id
+  purposeVersionId: res.body.results.at(-1).versions.at(-1).id
+  eserviceId: res.body.results.at(-1).eserviceId
 }

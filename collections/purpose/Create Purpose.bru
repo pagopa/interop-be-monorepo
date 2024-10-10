@@ -55,7 +55,7 @@ body:json {
 
 vars:post-response {
   purposeId: res.body.id
-  purposeVersionId: res.body.versions.at(-1)
+  purposeVersionId: res.body.versions.at(-1).id
 }
 
 script:pre-request {

@@ -19,3 +19,7 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
 }
+
+vars:post-response {
+  riskAnalysisDocumentId: res.body.riskAnalysis.id
+}

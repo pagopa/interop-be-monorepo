@@ -1,0 +1,28 @@
+meta {
+  name: Get Latest Risk Analysis Config
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{host-purpose}}/purposes/riskAnalysis/latest
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId": "{{eserviceId}}",
+      "consumerId": "{{tenantId}}",
+      "title": "a purpose title",
+      "description": "a purpose long description",
+      "isFreeOfCharge": true,
+      "dailyCalls": 100,
+      "freeOfChargeReason": "Free!"
+  }
+}
