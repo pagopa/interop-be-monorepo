@@ -55,7 +55,6 @@ export const Key = z
     clientId: ClientId,
     consumerId: TenantId,
     kid: z.string(),
-    purposeId: PurposeId,
     publicKey: z.string().min(1),
     algorithm: z.literal("RS256"),
   })
