@@ -19,7 +19,10 @@ import {
 import { delegationNotFound } from "../model/domain/errors.js";
 import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
-import { assertEserviceExists } from "./validators.js";
+import {
+  assertDelegationNotExists,
+  assertEserviceExists,
+} from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationProducerServiceBuilder(
@@ -42,6 +45,7 @@ export function delegationProducerServiceBuilder(
       { authData, logger, correlationId }: WithLogger<AppContext>
     ): Promise<Delegation> {
       const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
+      const delegateId = unsafeBrandId<TenantId>(delegationSeed.delegateId);
       const eserviceId = unsafeBrandId<EServiceId>(delegationSeed.eserviceId);
 
       logger.info(
@@ -49,12 +53,19 @@ export function delegationProducerServiceBuilder(
       );
 
       await assertEserviceExists(eserviceId, readModelService);
+      await assertDelegationNotExists(
+        delegatorId,
+        delegateId,
+        eserviceId,
+        delegationKind.delegatedProducer,
+        readModelService
+      );
 
       const creationDate = new Date();
       const delegation = {
         id: generateId<DelegationId>(),
         delegatorId,
-        delegateId: unsafeBrandId<TenantId>(delegationSeed.delegateId),
+        delegateId,
         eserviceId,
         createdAt: creationDate,
         submittedAt: creationDate,
