@@ -1,10 +1,10 @@
 meta {
-  name: Get Purpose
+  name: Delete Purpose
   type: http
-  seq: 3
+  seq: 2
 }
 
-get {
+delete {
   url: {{host-purpose}}/purposes/:purposeId
   body: none
   auth: none
@@ -29,9 +29,4 @@ body:json {
       "dailyCalls": 100,
       "freeOfChargeReason": "Free!"
   }
-}
-
-vars:post-response {
-  purposeId: res.body.id
-  purposeVersionId: res.body.versions.at(-1).id
 }

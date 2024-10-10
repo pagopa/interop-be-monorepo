@@ -1,0 +1,21 @@
+meta {
+  name: Activate Purpose Version
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-purpose}}/purposes/:id/versions/:versionId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{purposeVersionId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

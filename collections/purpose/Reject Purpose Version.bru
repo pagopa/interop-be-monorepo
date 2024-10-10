@@ -1,0 +1,27 @@
+meta {
+  name: Reject Purpose Version
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-purpose}}/purposes/:id/versions/:versionId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{purposeVersionId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "rejectionReason": "Some reason"
+  }
+}
