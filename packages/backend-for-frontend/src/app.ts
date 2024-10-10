@@ -60,11 +60,12 @@ app.use(fromFilesToBodyMiddleware);
 // parse application/x-www-form-urlencoded and put it in req.body
 app.use(express.urlencoded({ extended: true }));
 
+app.use(loggerMiddleware(serviceName));
+
 app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
-  loggerMiddleware(serviceName),
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
