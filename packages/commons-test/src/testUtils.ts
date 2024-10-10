@@ -312,7 +312,8 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
 export const getMockDelegationProducer = (
   delegationId?: DelegationId,
   delegatorId?: TenantId,
-  delegatedId?: TenantId
+  delegatedId?: TenantId,
+  eserviceId?: EServiceId
 ): Delegation => {
   const creationTime = new Date();
   const delegationSubmitter: TenantId = delegatorId ?? generateId<TenantId>();
@@ -321,7 +322,7 @@ export const getMockDelegationProducer = (
     id: delegationId ?? generateId(),
     delegatorId: delegationSubmitter,
     delegateId: delegatedId ?? generateId(),
-    eserviceId: generateId(),
+    eserviceId: eserviceId ?? generateId(),
     createdAt: creationTime,
     submittedAt: creationTime,
     state: delegationState.active,
