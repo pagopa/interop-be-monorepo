@@ -1,0 +1,23 @@
+meta {
+  name: Internal Revoke Certified attribute
+  type: http
+  seq: 19
+}
+
+delete {
+  url: {{host-tenant}}/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId
+  body: json
+  auth: none
+}
+
+params:path {
+  tOrigin: {{tOriginId}}
+  tExternalId: {{tExternalId}}
+  aOrigin: {{aOrigin}}
+  aExternalId: {{aExternalId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
