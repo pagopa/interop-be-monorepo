@@ -1,13 +1,17 @@
 meta {
-  name: Create Consumer Client
+  name: Create Client Keys
   type: http
-  seq: 1
+  seq: 10
 }
 
 post {
-  url: {{host-authorization}}/clientsConsumer
+  url: {{host-authorization}}/clients/:clientId/keys
   body: json
   auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
 }
 
 headers {
@@ -16,15 +20,18 @@ headers {
 }
 
 body:json {
-  {
-    "name": "{{randomName}}",
-    "members": ["{{userId1}}", "{{userId2}}"],
-    "description": "Some client description"
-  }
+  [
+    {
+      "key": "{{keyEncodedPem}}",
+      "use": "ENC",
+      "alg": "RS256",
+      "name": "{{randomName}}"
+    }
+  ]
 }
 
 vars:post-response {
-  clientId: res.body.id
+  keyId: res.body.keys.at(-1).kid
 }
 
 script:pre-request {
