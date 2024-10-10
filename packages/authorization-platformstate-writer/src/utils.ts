@@ -1062,7 +1062,7 @@ export const upsertTokenClientKidEntry = async (
         S: entry.updatedAt,
       },
     },
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
