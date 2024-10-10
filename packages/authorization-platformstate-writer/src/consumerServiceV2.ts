@@ -499,7 +499,7 @@ export async function handleMessageV2(
     .exhaustive();
 }
 
-export const parseClient = (
+const parseClient = (
   clientV2: ClientV2 | undefined,
   eventType: string
 ): Client => {
