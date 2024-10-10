@@ -3,6 +3,9 @@ import {
   AuthorizationEventEnvelopeV1,
   Client,
   ClientId,
+  clientKidPrefix,
+  clientKidPurposePrefix,
+  clientKindTokenStates,
   ClientV1,
   fromClientV1,
   fromKeyV1,
@@ -283,7 +286,55 @@ export async function handleMessageV1(
           new Array<TokenGenerationStatesClientPurposeEntry>();
         const kidSet = new Set<string>();
         for (const entry of tokenClientEntries) {
-          if (TokenGenerationStatesClientEntry.safeParse(entry).success) {
+          if (entry.PK.startsWith(clientKidPrefix)) {
+            console.log("client kid");
+            const kid = extractKidFromTokenEntryPK(entry.PK);
+            const pk = makeTokenGenerationStatesClientKidPurposePK({
+              clientId,
+              kid,
+              purposeId,
+            });
+            const newTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
+              {
+                consumerId: entry.consumerId,
+                updatedAt: new Date().toISOString(),
+                PK: pk,
+                clientKind: clientKindTokenStates.consumer,
+                publicKey: entry.publicKey,
+                GSIPK_clientId: entry.GSIPK_clientId,
+                GSIPK_kid: makeGSIPKKid(kid),
+                GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+                  clientId,
+                  purposeId,
+                }),
+                GSIPK_purposeId: purposeId,
+                purposeState: purposeEntry.state,
+                purposeVersionId: purposeEntry.purposeVersionId,
+                GSIPK_consumerId_eserviceId:
+                  agreementEntry.GSIPK_consumerId_eserviceId,
+                agreementId: extractAgreementIdFromAgreementPK(
+                  agreementEntry.PK
+                ),
+                agreementState: agreementEntry.state,
+                GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+                  eserviceId: purposeEntry.purposeEserviceId,
+                  descriptorId: agreementEntry.agreementDescriptorId,
+                }),
+                descriptorState: catalogEntry.state,
+                descriptorAudience: catalogEntry.descriptorAudience,
+                descriptorVoucherLifespan:
+                  catalogEntry.descriptorVoucherLifespan,
+              };
+
+            await upsertTokenStateClientPurposeEntry(
+              newTokenClientPurposeEntry,
+              dynamoDBClient
+            );
+            await deleteClientEntryFromTokenGenerationStatesTable(
+              entry,
+              dynamoDBClient
+            );
+          } else if (entry.PK.startsWith(clientKidPurposePrefix)) {
             const kid = extractKidFromTokenEntryPK(entry.PK);
             if (!kidSet.has(kid)) {
               const pk = makeTokenGenerationStatesClientKidPurposePK({
@@ -294,13 +345,17 @@ export async function handleMessageV1(
 
               const newClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
                 {
-                  PK: pk,
                   consumerId: entry.consumerId,
                   updatedAt: new Date().toISOString(),
-                  clientKind: clientEntry.clientKind,
+                  PK: pk,
+                  clientKind: entry.clientKind,
                   publicKey: entry.publicKey,
                   GSIPK_clientId: entry.GSIPK_clientId,
-                  GSIPK_kid: makeGSIPKKid(kid),
+                  GSIPK_kid: entry.GSIPK_kid,
+                  GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+                    clientId,
+                    purposeId,
+                  }),
                   GSIPK_purposeId: purposeId,
                   purposeState: purposeEntry.state,
                   purposeVersionId: purposeEntry.purposeVersionId,
@@ -329,53 +384,9 @@ export async function handleMessageV1(
               kidSet.add(kid);
               // eslint-disable-next-line functional/immutable-data
               addedTokenClientPurposeEntries.push(newClientPurposeEntry);
-            } else if (
-              TokenGenerationStatesClientPurposeEntry.safeParse(entry).success
-            ) {
-              const pk = makeTokenGenerationStatesClientKidPurposePK({
-                clientId,
-                kid: extractKidFromTokenEntryPK(entry.PK),
-                purposeId,
-              });
-              const newTokenClientPurposeEntry: TokenGenerationStatesClientPurposeEntry =
-                {
-                  consumerId: entry.consumerId,
-                  updatedAt: new Date().toISOString(),
-                  PK: pk,
-                  clientKind: entry.clientKind,
-                  publicKey: entry.publicKey,
-                  GSIPK_clientId: entry.GSIPK_clientId,
-                  GSIPK_kid: entry.GSIPK_kid,
-                  GSIPK_purposeId: purposeId,
-                  purposeState: purposeEntry.state,
-                  purposeVersionId: purposeEntry.purposeVersionId,
-                  GSIPK_consumerId_eserviceId:
-                    agreementEntry.GSIPK_consumerId_eserviceId,
-                  agreementId: extractAgreementIdFromAgreementPK(
-                    agreementEntry.PK
-                  ),
-                  agreementState: agreementEntry.state,
-                  GSIPK_eserviceId_descriptorId:
-                    makeGSIPKEServiceIdDescriptorId({
-                      eserviceId: purposeEntry.purposeEserviceId,
-                      descriptorId: agreementEntry.agreementDescriptorId,
-                    }),
-                  descriptorState: catalogEntry.state,
-                  descriptorAudience: catalogEntry.descriptorAudience,
-                  descriptorVoucherLifespan:
-                    catalogEntry.descriptorVoucherLifespan,
-                };
-              await upsertTokenStateClientPurposeEntry(
-                newTokenClientPurposeEntry,
-                dynamoDBClient
-              );
-              await deleteClientEntryFromTokenGenerationStatesTable(
-                entry,
-                dynamoDBClient
-              );
-            } else {
-              throw genericInternalError(`Unable to parse ${entry}`);
             }
+          } else {
+            throw genericInternalError(`Unable to parse ${entry}`);
           }
 
           const secondRetrievalStates = await retrievePlatformStatesByPurpose(
