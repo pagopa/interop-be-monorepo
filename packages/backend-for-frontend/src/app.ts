@@ -68,7 +68,7 @@ app.use(
   healthRouter,
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
-  // Authenticated routes - rate limiter need authentication data to work
+  // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),
