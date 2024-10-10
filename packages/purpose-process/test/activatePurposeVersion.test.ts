@@ -153,6 +153,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      suspendedByConsumer: false,
       versions: [purposeVersion],
       updatedAt: new Date(),
     };
@@ -330,7 +331,7 @@ describe("activatePurposeVersion", () => {
     const expectedPurpose: Purpose = {
       ...mockPurpose,
       versions: [purposeVersionMock, expectedPurposeVersion],
-      suspendedByConsumer: false,
+      suspendedByConsumer: true,
       suspendedByProducer: false,
       updatedAt: new Date(),
     };
