@@ -7,6 +7,7 @@ import {
 import {
   delegationAlreadyExists,
   eserviceNotFound,
+  invalidDelegator,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
@@ -18,6 +19,15 @@ export const assertEserviceExists = async (
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     throw eserviceNotFound(eserviceId);
+  }
+};
+
+export const assertDelegatorIsNotDelegate = (
+  delegatorId: TenantId,
+  delegateId: TenantId
+): void => {
+  if (delegatorId === delegateId) {
+    throw invalidDelegator();
   }
 };
 

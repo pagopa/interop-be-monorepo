@@ -10,6 +10,7 @@ export const errorCodes = {
   eserviceNotFound: "0002",
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
+  invalidDelegator: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -51,5 +52,13 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
     title: "Tenant not found",
+  });
+}
+
+export function invalidDelegator(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegator and delegate cannot be the same tenant`,
+    code: "invalidDelegator",
+    title: "Invalid delegator",
   });
 }

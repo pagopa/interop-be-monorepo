@@ -23,6 +23,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   delegationAlreadyExists,
   eserviceNotFound,
+  invalidDelegator,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 
@@ -191,6 +192,30 @@ describe("create delegation", () => {
         }
       )
     ).rejects.toThrowError(tenantNotFound(delegateId));
+  });
+
+  it("should throw an invalidDelegator if delegatorId and delegateId is the same", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegate = getMockTenant(delegatorId);
+    const eserviceId = generateId<EServiceId>();
+
+    await addOneTenant(delegate);
+
+    await expect(
+      delegationService.createProducerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId,
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: randomUUID(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(invalidDelegator());
   });
 
   it("should throw an eserviceNotFound if Eservice not exists", async () => {

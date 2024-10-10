@@ -21,6 +21,7 @@ import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
+  assertDelegatorIsNotDelegate,
   assertEserviceExists,
   assertTenantExists,
 } from "./validators.js";
@@ -53,6 +54,7 @@ export function delegationProducerServiceBuilder(
         `Creating a delegation for tenant:${delegationSeed.delegateId} by producer:${delegatorId}`
       );
 
+      assertDelegatorIsNotDelegate(delegatorId, delegateId);
       await assertEserviceExists(eserviceId, readModelService);
       await assertTenantExists(delegateId, readModelService);
       await assertDelegationNotExists(
