@@ -7,11 +7,11 @@ import {
 import { match } from "ts-pattern";
 import {
   ExpressContext,
+  fromAppContext,
   getJwksClients,
   JWTConfig,
   jwtFromAuthHeader,
 } from "../index.js";
-import { logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
@@ -24,29 +24,23 @@ export const authenticationMiddleware: (
   async (req, res, next): Promise<unknown> => {
     // We assume that:
     // - contextMiddleware already set ctx.serviceName and ctx.correlationId
-    const loggerInstance = logger({
-      serviceName: req.ctx.serviceName,
-      correlationId: req.ctx.correlationId,
-    });
+    const ctx = fromAppContext(req.ctx);
 
     try {
       const jwksClients = getJwksClients(config);
 
-      const jwtToken = jwtFromAuthHeader(req, loggerInstance);
+      const jwtToken = jwtFromAuthHeader(req, ctx.logger);
       const valid = await verifyJwtToken(
         jwtToken,
         jwksClients,
         config,
-        loggerInstance
+        ctx.logger
       );
       if (!valid) {
         throw unauthorizedError("Invalid token");
       }
 
-      const authData: AuthData = readAuthDataFromJwtToken(
-        jwtToken,
-        loggerInstance
-      );
+      const authData: AuthData = readAuthDataFromJwtToken(jwtToken, ctx.logger);
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = authData;
       return next();
@@ -59,7 +53,7 @@ export const authenticationMiddleware: (
             .with("operationForbidden", () => 403)
             .with("missingHeader", "badBearerToken", () => 400)
             .otherwise(() => 500),
-        loggerInstance
+        ctx.logger
       );
       return res.status(problem.status).send(problem);
     }
