@@ -109,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreatedResource"
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -350,13 +350,13 @@ components:
           type: string
           format: date-time
         state:
-          $ref: '#/components/schemas/DelegationState'
+          $ref: "#/components/schemas/DelegationState"
         kind:
-          $ref: '#/components/schemas/DelegationKind'
+          $ref: "#/components/schemas/DelegationKind"
         contract:
-          $ref: '#/components/schemas/DelegationContractDocument'
+          $ref: "#/components/schemas/DelegationContractDocument"
         stamps:
-          $ref: '#/components/schemas/DelegationStamps'
+          $ref: "#/components/schemas/DelegationStamps"
       required:
         - id
         - delegatorId
@@ -422,13 +422,13 @@ components:
       additionalProperties: false
       properties:
         submission:
-          $ref: '#/components/schemas/DelegationStamp'
+          $ref: "#/components/schemas/DelegationStamp"
         activation:
-          $ref: '#/components/schemas/DelegationStamp'
+          $ref: "#/components/schemas/DelegationStamp"
         rejection:
-          $ref: '#/components/schemas/DelegationStamp'
+          $ref: "#/components/schemas/DelegationStamp"
         revocation:
-          $ref: '#/components/schemas/DelegationStamp'
+          $ref: "#/components/schemas/DelegationStamp"
       required:
         - submission
     DelegationSeed:
