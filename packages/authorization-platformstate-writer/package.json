@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-agreement-platformstate-writer",
+  "name": "pagopa-interop-authorization-platformstate-writer",
   "private": true,
   "version": "1.0.0",
-  "description": "PagoPA Interoperability agreement consumer service that updates the token-generation-read-model",
+  "description": "PagoPA Interoperability authorization consumer service that updates the token-generation-read-model",
   "main": "dist",
   "type": "module",
   "scripts": {
