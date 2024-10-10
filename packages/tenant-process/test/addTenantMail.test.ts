@@ -15,6 +15,7 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   mailAlreadyExists,
+  notValidMailAddress,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
@@ -77,6 +78,53 @@ describe("addTenantMail", async () => {
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
+  it("Should correctly add email by cleaning the address from unwanted characters", async () => {
+    const mailSeedWithStrangeCharacters: tenantApi.MailSeed = {
+      kind: "CONTACT_EMAIL",
+      address: "         test#°¶^            Mail@test.$%*it",
+      description: "mail description",
+    };
+    await addOneTenant(mockTenant);
+    await tenantService.addTenantMail(
+      {
+        tenantId: mockTenant.id,
+        mailSeed: mailSeedWithStrangeCharacters,
+        organizationId: mockTenant.id,
+        correlationId: generateId(),
+      },
+      genericLogger
+    );
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantMailAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload: TenantMailAddedV2 | undefined = protobufDecoder(
+      TenantMailAddedV2
+    ).parse(writtenEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      mails: [
+        {
+          ...mailSeed,
+          id: writtenPayload.mailId,
+          createdAt: new Date(),
+        },
+      ],
+      updatedAt: new Date(),
+    };
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
+
   it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
     expect(
       tenantService.addTenantMail(
@@ -131,5 +179,27 @@ describe("addTenantMail", async () => {
         genericLogger
       )
     ).rejects.toThrowError(mailAlreadyExists());
+  });
+
+  it("Should throw notValidMailAddress if the address doesn't respect the valid pattern", async () => {
+    const mailSeedWithStrangeCharacters: tenantApi.MailSeed = {
+      kind: "CONTACT_EMAIL",
+      address: "         test#°¶^            Mail@test.$%*@@it",
+      description: "mail description",
+    };
+    await addOneTenant(mockTenant);
+    expect(
+      tenantService.addTenantMail(
+        {
+          tenantId: mockTenant.id,
+          mailSeed: mailSeedWithStrangeCharacters,
+          organizationId: mockTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      notValidMailAddress(mailSeedWithStrangeCharacters.address)
+    );
   });
 });
