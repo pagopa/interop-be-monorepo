@@ -32,7 +32,6 @@ import {
   readClientEntry,
   writeClientEntry,
   readClientEntriesInTokenGenerationStates,
-  cleanClientPurposeIdsInPlatformStatesEntry,
   deleteClientEntryFromTokenGenerationStatesTable,
   extractKidFromTokenEntryPK,
   extractAgreementIdFromAgreementPK,
@@ -40,6 +39,7 @@ import {
   upsertPlatformClientEntry,
   upsertTokenClientKidEntry,
   upsertTokenStateClientPurposeEntry,
+  setClientPurposeIdsInPlatformStatesEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -240,10 +240,11 @@ export async function handleMessageV2(
         if (clientEntry.version > msg.version) {
           return Promise.resolve();
         } else {
-          await cleanClientPurposeIdsInPlatformStatesEntry(
+          await setClientPurposeIdsInPlatformStatesEntry(
             dynamoDBClient,
             pk,
-            msg.version
+            msg.version,
+            []
           );
         }
       } else {
@@ -445,10 +446,11 @@ export async function handleMessageV2(
           });
           if (client.purposes.length > 0) {
             // platform-states
-            await cleanClientPurposeIdsInPlatformStatesEntry(
+            await setClientPurposeIdsInPlatformStatesEntry(
               dynamoDBClient,
               pk,
-              msg.version
+              msg.version,
+              []
             );
 
             // token-generation-states

@@ -868,38 +868,6 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
       },
     },
     UpdateExpression:
-      "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt",
-    TableName: config.tokenGenerationReadModelTableNamePlatform,
-    ReturnValues: "NONE",
-  };
-  const command = new UpdateItemCommand(input);
-  await dynamoDBClient.send(command);
-};
-
-export const cleanClientPurposeIdsInPlatformStatesEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  primaryKey: PlatformStatesClientPK,
-  version: number
-): Promise<void> => {
-  const input: UpdateItemInput = {
-    ConditionExpression: "attribute_exists(PK)",
-    Key: {
-      PK: {
-        S: primaryKey,
-      },
-    },
-    ExpressionAttributeValues: {
-      ":clientPurposesIds": {
-        L: [],
-      },
-      ":newVersion": {
-        N: version.toString(),
-      },
-      ":newUpdateAt": {
-        S: new Date().toISOString(),
-      },
-    },
-    UpdateExpression:
       "SET clientPurposesIds = :clientPurposesIds,updatedAt = :newUpdateAt, version = :newVersion",
     TableName: config.tokenGenerationReadModelTableNamePlatform,
     ReturnValues: "NONE",
