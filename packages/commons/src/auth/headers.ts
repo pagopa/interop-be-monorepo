@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { missingBearer, missingHeader } from "pagopa-interop-models";
+import { badBearer, missingHeader } from "pagopa-interop-models";
 import { z } from "zod";
 import { Logger } from "../logging/index.js";
 
@@ -31,9 +31,9 @@ export function jwtFromAuthHeader(req: Request, logger: Logger): string {
   const authHeaderParts = authHeader.split(" ");
   if (authHeaderParts.length !== 2 || authHeaderParts[0] !== "Bearer") {
     logger.warn(
-      `No authentication provided for this call ${req.method} ${req.url}`
+      `Invalid authentication provided for this call ${req.method} ${req.url}`
     );
-    throw missingBearer;
+    throw badBearer;
   }
 
   return authHeaderParts[1];
