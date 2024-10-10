@@ -81,7 +81,17 @@ export const NotifierServerConfig = z
   }));
 export type NotifierServerConfig = z.infer<typeof NotifierServerConfig>;
 
+export const InterfaceVersion = z
+  .object({
+    API_GATEWAY_INTERFACE_VERSION: z.string(),
+  })
+  .transform((c) => ({
+    apiGatewayInterfaceVersion: c.API_GATEWAY_INTERFACE_VERSION,
+  }));
+export type InterfaceVersion = z.infer<typeof InterfaceVersion>;
+
 const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
+  .and(InterfaceVersion)
   .and(CatalogProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(TenantProcessServerConfig)
