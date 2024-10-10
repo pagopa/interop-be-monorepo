@@ -1,0 +1,20 @@
+meta {
+  name: Activate Agreement
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
