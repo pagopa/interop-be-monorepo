@@ -287,7 +287,6 @@ export async function handleMessageV1(
         const kidSet = new Set<string>();
         for (const entry of tokenClientEntries) {
           if (entry.PK.startsWith(clientKidPrefix)) {
-            console.log("client kid");
             const kid = extractKidFromTokenEntryPK(entry.PK);
             const pk = makeTokenGenerationStatesClientKidPurposePK({
               clientId,
