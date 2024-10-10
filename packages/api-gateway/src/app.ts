@@ -31,11 +31,10 @@ const redisRateLimiter = await initRedisRateLimiter({
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware(serviceName, false));
-
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
+  contextMiddleware(serviceName, false),
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter and logger rely on auth data to work
   loggerMiddleware(serviceName),
