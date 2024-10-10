@@ -14,7 +14,9 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import {
   genericInternalError,
+  GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
+  PlatformStatesCatalogEntry,
   TokenGenerationStatesClientPurposeEntry,
 } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -30,16 +32,29 @@ export const writeTokenStateEntry = async (
       PK: {
         S: tokenStateEntry.PK,
       },
-      descriptorState: {
-        S: tokenStateEntry.descriptorState!,
-      },
-      descriptorAudience: {
-        L: tokenStateEntry.descriptorAudience
-          ? tokenStateEntry.descriptorAudience.map((item) => ({
-              S: item,
-            }))
-          : [],
-      },
+      ...(tokenStateEntry.descriptorState
+        ? {
+            descriptorState: {
+              S: tokenStateEntry.descriptorState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorAudience
+        ? {
+            descriptorAudience: {
+              L: tokenStateEntry.descriptorAudience.map((item) => ({
+                S: item,
+              })),
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorVoucherLifespan
+        ? {
+            descriptorVoucherLifespan: {
+              N: tokenStateEntry.descriptorVoucherLifespan.toString(),
+            },
+          }
+        : {}),
       updatedAt: {
         S: tokenStateEntry.updatedAt,
       },
@@ -52,9 +67,13 @@ export const writeTokenStateEntry = async (
       purposeVersionId: {
         S: tokenStateEntry.purposeVersionId!,
       },
-      GSIPK_consumerId_eserviceId: {
-        S: tokenStateEntry.GSIPK_consumerId_eserviceId!,
-      },
+      ...(tokenStateEntry.GSIPK_consumerId_eserviceId
+        ? {
+            GSIPK_consumerId_eserviceId: {
+              S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+            },
+          }
+        : {}),
       clientKind: {
         S: tokenStateEntry.clientKind,
       },
@@ -73,9 +92,13 @@ export const writeTokenStateEntry = async (
       agreementState: {
         S: tokenStateEntry.agreementState!,
       },
-      GSIPK_eserviceId_descriptorId: {
-        S: tokenStateEntry.GSIPK_eserviceId_descriptorId!,
-      },
+      ...(tokenStateEntry.GSIPK_eserviceId_descriptorId
+        ? {
+            GSIPK_eserviceId_descriptorId: {
+              S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+            },
+          }
+        : {}),
       GSIPK_purposeId: {
         S: tokenStateEntry.GSIPK_purposeId!,
       },
@@ -180,4 +203,100 @@ export const readTokenStateEntriesByEserviceIdAndDescriptorId = async (
     dynamoDBClient,
     undefined
   );
+};
+
+export const readTokenStateEntriesByConsumerIdEserviceId = async (
+  consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+  dynamoDBClient: DynamoDBClient
+): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+  const runPaginatedQuery = async (
+    consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenerationStatesClientPurposeEntry[]> => {
+    const input: QueryInput = {
+      TableName: "token-generation-states",
+      IndexName: "Agreement",
+      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
+      ExpressionAttributeValues: {
+        ":gsiValue": { S: consumerId_eserviceId },
+      },
+      ExclusiveStartKey: exclusiveStartKey,
+    };
+    const command = new QueryCommand(input);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+    if (!data.Items) {
+      throw genericInternalError(
+        `Unable to read token state entries: result ${JSON.stringify(data)} `
+      );
+    } else {
+      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
+
+      const tokenStateEntries = z
+        .array(TokenGenerationStatesClientPurposeEntry)
+        .safeParse(unmarshalledItems);
+
+      if (!tokenStateEntries.success) {
+        throw genericInternalError(
+          `Unable to parse token state entry item: result ${JSON.stringify(
+            tokenStateEntries
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      if (!data.LastEvaluatedKey) {
+        return tokenStateEntries.data;
+      } else {
+        return [
+          ...tokenStateEntries.data,
+          ...(await runPaginatedQuery(
+            consumerId_eserviceId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
+    }
+  };
+
+  return await runPaginatedQuery(
+    consumerId_eserviceId,
+    dynamoDBClient,
+    undefined
+  );
+};
+
+export const writeCatalogEntry = async (
+  catalogEntry: PlatformStatesCatalogEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: catalogEntry.PK,
+      },
+      state: {
+        S: catalogEntry.state,
+      },
+      descriptorAudience: {
+        L: catalogEntry.descriptorAudience.map((item) => ({
+          S: item,
+        })),
+      },
+      descriptorVoucherLifespan: {
+        N: catalogEntry.descriptorVoucherLifespan.toString(),
+      },
+      version: {
+        N: catalogEntry.version.toString(),
+      },
+      updatedAt: {
+        S: catalogEntry.updatedAt,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
 };
