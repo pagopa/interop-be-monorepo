@@ -57,7 +57,7 @@ export const authenticationMiddleware: (
           match(err.code)
             .with("unauthorizedError", () => 401)
             .with("operationForbidden", () => 403)
-            .with("missingHeader", "badBearer", () => 400)
+            .with("missingHeader", "badBearerToken", () => 400)
             .otherwise(() => 500),
         loggerInstance
       );

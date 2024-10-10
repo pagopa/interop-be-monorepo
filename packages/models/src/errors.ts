@@ -193,7 +193,7 @@ const errorCodes = {
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
-  badBearer: "10007",
+  badBearerToken: "10007",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -361,9 +361,9 @@ export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   });
 }
 
-export const badBearer: ApiError<CommonErrorCodes> = new ApiError({
+export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Bad Bearer Token format in Authorization header`,
-  code: "badBearer",
+  code: "badBearerToken",
   title: "Bad Bearer Token format",
 });
 
