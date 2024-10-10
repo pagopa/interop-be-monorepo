@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{host-catalog}}/eservices/:eserviceId/consumers
+  url: {{host-catalog}}/eservices/:eserviceId/consumers?offset=0&limit=50
   body: json
   auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
 }
 
 params:path {

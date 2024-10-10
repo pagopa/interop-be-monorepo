@@ -26,7 +26,7 @@ jobs:
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
   build_push_image:
-    name: ${{ matrix.image_name }}
+    name: ${{ matrix.package }}
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
     environment: dev
@@ -60,7 +60,7 @@ jobs:
         if: ${{ github.ref_type == 'branch' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
             latest=false
             prefix=
@@ -73,7 +73,7 @@ jobs:
         if: ${{ github.ref_type == 'tag' }}
         uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
             latest=false
             prefix=
@@ -86,7 +86,7 @@ jobs:
         uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
           context: .
-          file: ${{ matrix.dockerfile_path }}/Dockerfile
+          file: packages/${{ matrix.package }}/Dockerfile
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.labels || steps.meta_tag.outputs.labels }}
