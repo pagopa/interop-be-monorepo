@@ -564,6 +564,43 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
+    it("algorithmNotAllowed", () => {
+      const threeHourLater = new Date();
+      threeHourLater.setHours(threeHourLater.getHours() + 3);
+
+      const notAllowedAlg = "RS384";
+      const keySet = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      });
+
+      const jws = getMockClientAssertion({
+        customHeader: {
+          alg: notAllowedAlg,
+        },
+        standardClaimsOverride: {
+          iat: new Date().getTime() / 1000,
+          exp: threeHourLater.getTime() / 1000,
+        },
+        customClaims: {},
+        keySet,
+      });
+      const publicKey = keySet.publicKey
+        .export({
+          type: "pkcs1",
+          format: "pem",
+        })
+        .toString();
+      const mockConsumerKey: ConsumerKey = {
+        ...getMockConsumerKey(),
+        publicKey,
+        algorithm: notAllowedAlg,
+      };
+      const { errors } = verifyClientAssertionSignature(jws, mockConsumerKey);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(algorithmNotAllowed(notAllowedAlg));
+    });
+
     it.skip("invalidClientAssertionSignatureType", () => {
       // it's not clear when the result of the verify function is a string
       expect(1).toBe(1);

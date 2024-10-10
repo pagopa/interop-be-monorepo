@@ -56,7 +56,7 @@ export const Key = z
     consumerId: TenantId,
     kid: z.string(),
     publicKey: z.string().min(1),
-    algorithm: z.literal("RS256"),
+    algorithm: z.string(),
   })
   .strict();
 export type Key = z.infer<typeof Key>;
