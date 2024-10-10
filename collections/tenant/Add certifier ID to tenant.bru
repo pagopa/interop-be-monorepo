@@ -1,0 +1,26 @@
+meta {
+  name: Add certifier ID to tenant
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-tenant}}/maintenance/tenants/:tenantId/certifier
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "certifierId": "01260612-eca3-4441-a2df-41ac0690b528"
+  }
+}
