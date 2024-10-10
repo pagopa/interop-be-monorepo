@@ -70,6 +70,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data: jwt, errors: clientAssertionErrors } =
         verifyClientAssertion(clientAssertion, clientId);
+
       if (parametersErrors || clientAssertionErrors) {
         return handleValidationResults({
           clientAssertionErrors: [
