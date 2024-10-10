@@ -86,10 +86,12 @@ const attributeRouter = (
               logger
             );
 
-          return res.status(200).send({
-            results: attributes.results.map(toApiAttribute),
-            totalCount: attributes.totalCount,
-          });
+          return res.status(200).send(
+            attributeRegistryApi.Attributes.parse({
+              results: attributes.results.map(toApiAttribute),
+              totalCount: attributes.totalCount,
+            })
+          );
         } catch (error) {
           return res.status(500).send();
         }
@@ -113,7 +115,13 @@ const attributeRouter = (
             ctx.logger
           );
 
-          return res.status(200).send(toApiAttribute(attribute.data));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(
+                toApiAttribute(attribute.data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -147,7 +155,13 @@ const attributeRouter = (
               ctx.logger
             );
 
-          return res.status(200).send(toApiAttribute(attribute.data));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(
+                toApiAttribute(attribute.data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -177,7 +191,13 @@ const attributeRouter = (
             ctx.logger
           );
 
-          return res.status(200).send(toApiAttribute(attribute.data));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(
+                toApiAttribute(attribute.data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -210,10 +230,12 @@ const attributeRouter = (
             },
             logger
           );
-          return res.status(200).send({
-            results: attributes.results.map(toApiAttribute),
-            totalCount: attributes.totalCount,
-          });
+          return res.status(200).send(
+            attributeRegistryApi.Attributes.parse({
+              results: attributes.results.map(toApiAttribute),
+              totalCount: attributes.totalCount,
+            })
+          );
         } catch (error) {
           return res.status(500).send();
         }
@@ -231,7 +253,11 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).send(toApiAttribute(attribute));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -254,7 +280,11 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).send(toApiAttribute(attribute));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -277,7 +307,11 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).send(toApiAttribute(attribute));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -300,7 +334,11 @@ const attributeRouter = (
               req.body,
               ctx
             );
-          return res.status(200).send(toApiAttribute(attribute));
+          return res
+            .status(200)
+            .send(
+              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

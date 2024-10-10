@@ -1,0 +1,24 @@
+meta {
+  name: Get attributes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-attribute}}/attributes?name&origin&limit=10&offset=0&kinds=["CERTIFIED"]
+  body: json
+  auth: none
+}
+
+params:query {
+  name: 
+  origin: 
+  limit: 10
+  offset: 0
+  kinds: ["CERTIFIED"]
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

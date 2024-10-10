@@ -1,0 +1,23 @@
+meta {
+  name: Create declared attribute
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-attribute}}/declaredAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "description": "prova",
+    "name": "myattr"
+  }
+}

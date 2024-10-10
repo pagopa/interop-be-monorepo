@@ -1,0 +1,25 @@
+meta {
+  name: Get bulk attributes
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-attribute}}/bulk/attributes?limit=10&offset=0
+  body: json
+  auth: none
+}
+
+params:query {
+  limit: 10
+  offset: 0
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  ["9f4b24ef-f145-4dce-9d7d-71d12b4c8792"]
+}

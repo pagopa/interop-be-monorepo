@@ -1,0 +1,24 @@
+meta {
+  name: Create certified attribute
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-attribute}}/certifiedAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "description": "prova",
+    "name": "myattr",
+    "code": "1616"
+  }
+}
