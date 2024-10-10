@@ -16,8 +16,8 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
+app.use(contextMiddleware(serviceName));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
 app.use(eservicesRouter(zodiosCtx));
