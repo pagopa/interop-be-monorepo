@@ -1,0 +1,30 @@
+meta {
+  name: Create Api Client
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-authorization}}/clientsApi
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "{{randomName}}",
+    "members": ["{{userId1}}", "{{userId2}}"],
+    "description": "Some client description"
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}
