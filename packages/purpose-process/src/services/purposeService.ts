@@ -1610,7 +1610,6 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    suspendedByConsumer: false,
     versions: [...oldVersions, newPurposeVersion],
     updatedAt: new Date(),
   };
@@ -1667,10 +1666,13 @@ async function activatePurposeLogic({
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };
-
+  const unsuspendedByConsumerPurpose: Purpose =
+    fromState === purposeVersionState.waitingForApproval
+      ? { ...purpose.data, suspendedByConsumer: false }
+      : purpose.data;
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
-      ...purpose.data,
+      ...unsuspendedByConsumerPurpose,
       versions: archiveActiveAndSuspendedPurposeVersions(purpose.data.versions),
     },
     updatedPurposeVersion
