@@ -1,0 +1,22 @@
+meta {
+  name: Add Declared Attribute
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{host-tenant}}/tenants/attributes/declared
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id" : "0502908b-5055-453b-ad94-ffd861486747"
+  }
+}
