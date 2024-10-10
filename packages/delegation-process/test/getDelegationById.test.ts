@@ -2,8 +2,19 @@
 import { expect, describe, it } from "vitest";
 import { DelegationId, generateId } from "pagopa-interop-models";
 import { getMockDelegationProducer } from "pagopa-interop-commons-test/index.js";
-import { delegationNotFound } from "../src/model/domain/errors.js";
-import { addOneDelegation, delegationService } from "./utils.js";
+import request from "supertest";
+import app from "../src/app.js";
+import { delegationToApiDelegation } from "../src/model/domain/apiConverter.js";
+import { addOneDelegation } from "./utils.js";
+
+// TODO move to common test utils
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function buildRequest(method: "get" | "post", path: string) {
+  return request(app)
+    [method](path)
+    .set("X-Correlation-Id", "9999")
+    .set("Authorization", `${process.env.VITE_JWT}`);
+}
 
 describe("get delegation by id", () => {
   it("should get the delegation if it exists", async () => {
@@ -11,11 +22,14 @@ describe("get delegation by id", () => {
 
     await addOneDelegation(delegation);
 
-    const expectedDelegation = await delegationService.getDelegationById(
-      delegation.id
-    );
+    const actualDelegation = await buildRequest(
+      "get",
+      `/producer/delegations/${delegation.id}`
+    ).expect(200);
 
-    expect(delegation).toEqual(expectedDelegation);
+    expect(actualDelegation.body).toEqual(
+      delegationToApiDelegation(delegation)
+    );
   });
 
   it("should fail with delegationNotFound", async () => {
@@ -24,10 +38,20 @@ describe("get delegation by id", () => {
     await addOneDelegation(delegation);
 
     const notFoundId = generateId<DelegationId>();
-    const expectedDelegation = delegationService.getDelegationById(notFoundId);
-
-    await expect(expectedDelegation).rejects.toThrow(
-      delegationNotFound(notFoundId)
+    await buildRequest("get", `/producer/delegations/${notFoundId}`).expect(
+      404,
+      {
+        detail: `Delegation ${notFoundId} not found`,
+        errors: [
+          {
+            code: "0001",
+            detail: `Delegation ${notFoundId} not found`,
+          },
+        ],
+        status: 404,
+        title: "Delegation not found",
+        type: "about:blank",
+      }
     );
   });
 });
