@@ -23,6 +23,10 @@ body:json {
   }
 }
 
+vars:post-response {
+  clientId: res.body.id
+}
+
 script:pre-request {
   const random = Math.round(Math.random() * 100)
   
