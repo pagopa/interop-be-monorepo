@@ -19,6 +19,7 @@
     "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
     "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
+    "start:purpose-platformstate-writer": "turbo start --filter pagopa-interop-purpose-platformstate-writer",
     "start:authorization": "turbo start --filter pagopa-interop-authorization-process",
     "start:client-readmodel-writer": "turbo start --filter pagopa-interop-client-readmodel-writer",
     "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
