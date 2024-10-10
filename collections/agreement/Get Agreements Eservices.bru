@@ -1,0 +1,25 @@
+meta {
+  name: Get Agreements Eservices
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host-agreement}}/agreements/filter/eservices?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~consumersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
+  ~states: ["DRAFT"]
+  ~eServiceName: 
+  ~producersIds: ["e7f31307-49db-4a6b-b1ea-bf51fe57173e"]
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
