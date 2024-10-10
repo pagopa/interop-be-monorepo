@@ -15,11 +15,6 @@ params:path {
 }
 
 headers {
-  Content-Type: application/json
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
-  ~Connection: keep-alive
 }
