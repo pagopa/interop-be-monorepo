@@ -1,0 +1,21 @@
+meta {
+  name: Get Consumer Document
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{host-agreement}}/agreements/:agreementId/consumer-documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+  documentId: {{agreementDocumentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}

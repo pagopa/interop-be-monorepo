@@ -1,0 +1,39 @@
+meta {
+  name: Add Consumer Document
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/consumer-documents
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "id":"{{randomUuid}}",
+      "name":"Documento Test",
+      "prettyName": "LokiDocument",
+      "contentType": "Contract",
+      "path": "anotherfile"
+  }
+}
+
+vars:post-response {
+  agreementDocumentId: res.body.id
+}
+
+script:pre-request {
+  const { v4 } = require('uuid');
+  bru.setVar("randomUuid", v4() );
+}
