@@ -23,9 +23,7 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKKid,
-  makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
-  makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   makePlatformStatesPurposePK,
   makeTokenGenerationStatesClientKidPK,
@@ -623,6 +621,119 @@ export const writeTokenStateClientPurposeEntry = async (
   await dynamoDBClient.send(command);
 };
 
+export const upsertTokenStateClientPurposeEntry = async (
+  tokenStateEntry: TokenGenerationStatesClientPurposeEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    Item: {
+      PK: {
+        S: tokenStateEntry.PK,
+      },
+      ...(tokenStateEntry.descriptorState
+        ? {
+            descriptorState: {
+              S: tokenStateEntry.descriptorState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorAudience
+        ? {
+            descriptorAudience: {
+              L: tokenStateEntry.descriptorAudience.map((item) => ({
+                S: item,
+              })),
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.descriptorVoucherLifespan
+        ? {
+            descriptorVoucherLifespan: {
+              N: tokenStateEntry.descriptorVoucherLifespan.toString(),
+            },
+          }
+        : {}),
+      updatedAt: {
+        S: tokenStateEntry.updatedAt,
+      },
+      consumerId: {
+        S: tokenStateEntry.consumerId,
+      },
+      ...(tokenStateEntry.agreementId
+        ? {
+            agreementId: {
+              S: tokenStateEntry.agreementId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeVersionId
+        ? {
+            purposeVersionId: {
+              S: tokenStateEntry.purposeVersionId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_consumerId_eserviceId
+        ? {
+            GSIPK_consumerId_eserviceId: {
+              S: tokenStateEntry.GSIPK_consumerId_eserviceId,
+            },
+          }
+        : {}),
+      clientKind: {
+        S: tokenStateEntry.clientKind,
+      },
+      publicKey: {
+        S: tokenStateEntry.publicKey,
+      },
+      GSIPK_clientId: {
+        S: tokenStateEntry.GSIPK_clientId,
+      },
+      GSIPK_kid: {
+        S: tokenStateEntry.GSIPK_kid,
+      },
+      ...(tokenStateEntry.GSIPK_clientId_purposeId
+        ? {
+            GSIPK_clientId_purposeId: {
+              S: tokenStateEntry.GSIPK_clientId_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.agreementState
+        ? {
+            agreementState: {
+              S: tokenStateEntry.agreementState,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_eserviceId_descriptorId
+        ? {
+            GSIPK_eserviceId_descriptorId: {
+              S: tokenStateEntry.GSIPK_eserviceId_descriptorId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.GSIPK_purposeId
+        ? {
+            GSIPK_purposeId: {
+              S: tokenStateEntry.GSIPK_purposeId,
+            },
+          }
+        : {}),
+      ...(tokenStateEntry.purposeState
+        ? {
+            purposeState: {
+              S: tokenStateEntry.purposeState,
+            },
+          }
+        : {}),
+    },
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
 export const clientKindToTokenGenerationStatesClientKind = (
   kind: ClientKind
 ): ClientKindTokenStates =>
@@ -867,136 +978,6 @@ export const retrievePlatformStatesByPurpose = async (
     catalogEntry,
   };
 };
-
-export const updateTokenEntriesWithPlatformStatesData = async ({
-  clientId,
-  purposeId,
-  agreementEntry,
-  catalogEntry,
-  purposeEntry,
-  dynamoDBClient,
-  pkOfEntriesToUpdate,
-}: {
-  clientId: ClientId;
-  purposeId: PurposeId;
-  agreementEntry: PlatformStatesAgreementEntry;
-  catalogEntry: PlatformStatesCatalogEntry;
-  purposeEntry: PlatformStatesPurposeEntry;
-  dynamoDBClient: DynamoDBClient;
-  pkOfEntriesToUpdate: Set<TokenGenerationStatesClientKidPurposePK>;
-}): Promise<void> => {
-  for (const pk of pkOfEntriesToUpdate) {
-    const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(PK)",
-      Key: {
-        PK: {
-          S: pk,
-        },
-      },
-      ExpressionAttributeValues: {
-        ":GSIPK_eserviceId_descriptorId": {
-          S: makeGSIPKEServiceIdDescriptorId({
-            eserviceId: purposeEntry.purposeEserviceId,
-            descriptorId: agreementEntry.agreementDescriptorId,
-          }),
-        },
-        ":descriptorAudience": {
-          L: catalogEntry.descriptorAudience.map((item) => ({
-            S: item,
-          })),
-        },
-        ":descriptorVoucherLifespan": {
-          N: catalogEntry.descriptorVoucherLifespan.toString(),
-        },
-        ":descriptorState": {
-          S: catalogEntry.state,
-        },
-        ":agreementId": {
-          S: extractAgreementIdFromAgreementPK(agreementEntry.PK),
-        },
-        ":agreementState": {
-          S: agreementEntry.state,
-        },
-        ":GSIPK_consumerId_eserviceId": {
-          S: agreementEntry.GSIPK_consumerId_eserviceId,
-        },
-        ":GSIPK_clientId_purposeId": {
-          S: makeGSIPKClientIdPurposeId({
-            clientId,
-            purposeId,
-          }),
-        },
-        ":purposeState": {
-          S: purposeEntry.state,
-        },
-        ":purposeVersionId": {
-          S: purposeEntry.purposeVersionId,
-        },
-        ":GSIPK_purposeId": {
-          S: purposeId,
-        },
-        ":newUpdateAt": {
-          S: new Date().toISOString(),
-        },
-      },
-      UpdateExpression: `SET GSIPK_eserviceId_descriptorId = :GSIPK_eserviceId_descriptorId, 
-                        descriptorAudience = :descriptorAudience, 
-                        descriptorVoucherLifespan = :descriptorVoucherLifespan, 
-                        descriptorState = :descriptorState, 
-                        agreementId = :agreementId, 
-                        agreementState = :agreementState, 
-                        GSIPK_consumerId_eserviceId = :GSIPK_consumerId_eserviceId,
-                        GSIPK_clientId_purposeId = :GSIPK_clientId_purposeId,
-                        purposeState = :purposeState, 
-                        purposeVersionId = :purposeVersionId, 
-                        GSIPK_purposeId = :GSIPK_purposeId, 
-                        updatedAt = :newUpdateAt`,
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      ReturnValues: "NONE",
-    };
-    const command = new UpdateItemCommand(input);
-    await dynamoDBClient.send(command);
-  }
-};
-
-// export const upsertPlatformClientEntry = async (
-//   dynamoDBClient: DynamoDBClient,
-//   pk: PlatformStatesClientPK,
-//   version: number,
-//   clientPurposesIds?: PurposeId[]
-// ): Promise<void> => {
-//   const input: UpdateItemInput = {
-//     Key: {
-//       PK: {
-//         S: pk,
-//       },
-//     },
-//     ExpressionAttributeValues: {
-//       ...(clientPurposesIds
-//         ? {
-//             ":clientPurposesIds": {
-//               L: clientPurposesIds.map((purposeId) => ({
-//                 S: purposeId,
-//               })),
-//             },
-//           }
-//         : {}),
-//       ":newVersion": {
-//         N: version.toString(),
-//       },
-//       ":newUpdateAt": {
-//         S: new Date().toISOString(),
-//       },
-//     },
-//     UpdateExpression: clientPurposesIds
-//       ? "SET clientPurposesIds = :clientPurposesIds, updatedAt = :newUpdateAt, version = :newVersion"
-//       : "SET updatedAt = :newUpdateAt, version = :newVersion",
-//     TableName: config.tokenGenerationReadModelTableNamePlatform,
-//     ReturnValues: "NONE",
-//   };
-//   const command = new UpdateItemCommand(input);
-//   await dynamoDBClient.send(command);
-// };
 
 export const upsertPlatformClientEntry = async (
   dynamoDBClient: DynamoDBClient,
