@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { isAxiosError } from "axios";
 import {
   ApiKey,
   ClientAssertion,
@@ -34,6 +35,7 @@ import {
   activeAgreementByEserviceAndConsumerNotFound,
   agreementDescriptorNotFound,
   agreementNotFound,
+  cannotGetKeyWithClient,
   clientAssertionPublicKeyNotFound,
   ErrorCodes,
   eserviceDescriptorNotFound,
@@ -224,7 +226,12 @@ async function retrieveKey(
       },
       headers: ctx.headers,
     })
-    .catch(() => undefined);
+    .catch((e) => {
+      if (isAxiosError(e) && e.response?.status === 404) {
+        return undefined;
+      }
+      throw cannotGetKeyWithClient(jwt.payload.sub, jwt.header.kid);
+    });
 
   if (!keyWithClient) {
     return {

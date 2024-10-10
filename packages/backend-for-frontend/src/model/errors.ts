@@ -47,6 +47,7 @@ export const errorCodes = {
   purposeIdNotFoundInClientAssertion: "0038",
   clientAssertionPublicKeyNotFound: "0049",
   organizationNotAllowed: "0040",
+  cannotGetKeyWithClient: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -403,5 +404,16 @@ export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
     detail: `Organization not allowed for client ${clientId}`,
     code: "organizationNotAllowed",
     title: "Organization not allowed",
+  });
+}
+
+export function cannotGetKeyWithClient(
+  clientId: string,
+  keyId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot get key with client ${clientId} and key ${keyId}`,
+    code: "cannotGetKeyWithClient",
+    title: "Cannot get key with client",
   });
 }
