@@ -2,6 +2,8 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   AuthorizationEventEnvelopeV2,
   Client,
+  clientKidPrefix,
+  clientKidPurposePrefix,
   clientKindTokenStates,
   ClientV2,
   fromClientV2,
@@ -276,9 +278,7 @@ export async function handleMessageV2(
           new Array<TokenGenerationStatesClientPurposeEntry>();
         const kidSet = new Set<string>();
         for (const entry of tokenClientEntries) {
-          if (
-            TokenGenerationStatesClientPurposeEntry.safeParse(entry).success
-          ) {
+          if (entry.PK.startsWith(clientKidPurposePrefix)) {
             const kid = extractKidFromTokenEntryPK(entry.PK);
             if (!kidSet.has(kid)) {
               const pk = makeTokenGenerationStatesClientKidPurposePK({
@@ -328,9 +328,7 @@ export async function handleMessageV2(
               // eslint-disable-next-line functional/immutable-data
               addedTokenClientPurposeEntries.push(newClientPurposeEntry);
             }
-          } else if (
-            TokenGenerationStatesClientEntry.safeParse(entry).success
-          ) {
+          } else if (entry.PK.startsWith(clientKidPrefix)) {
             const pk = makeTokenGenerationStatesClientKidPurposePK({
               clientId: client.id,
               kid: extractKidFromTokenEntryPK(entry.PK),
