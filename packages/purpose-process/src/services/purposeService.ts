@@ -1666,7 +1666,7 @@ async function activatePurposeLogic({
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };
-  const unsuspendedByConsumerPurpose: Purpose =
+  const unsuspendedPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval
       ? {
           ...purpose.data,
@@ -1676,7 +1676,7 @@ async function activatePurposeLogic({
       : purpose.data;
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
-      ...unsuspendedByConsumerPurpose,
+      ...unsuspendedPurpose,
       versions: archiveActiveAndSuspendedPurposeVersions(purpose.data.versions),
     },
     updatedPurposeVersion
