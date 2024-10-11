@@ -1,0 +1,21 @@
+meta {
+  name: Producers
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-tenant}}/producers?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

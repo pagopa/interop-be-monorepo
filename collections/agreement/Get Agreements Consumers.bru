@@ -1,0 +1,22 @@
+meta {
+  name: Get Agreements Consumers
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-agreement}}/consumers?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~consumerName: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
