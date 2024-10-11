@@ -1,7 +1,7 @@
 meta {
   name: Get eservices
   type: http
-  seq: 4
+  seq: 5
 }
 
 get {
@@ -22,11 +22,6 @@ params:query {
 }
 
 headers {
-  Cache-Control: no-cache
-  Accept: */*
-  Accept-Encoding: gzip, deflate, br
-  Connection: keep-alive
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Content-Type: application/json
 }
