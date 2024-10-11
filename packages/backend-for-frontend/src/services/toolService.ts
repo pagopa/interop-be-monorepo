@@ -310,8 +310,8 @@ async function retrieveKeyAndEservice(
         agreementId: unsafeBrandId<AgreementId>(agreement.id),
         eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
         agreementState: agreementStateToComponentState(agreement.state),
-        purposeState: retrievePurposeComponentState(purpose),
-        eServiceState: descriptorStateToComponentState(descriptor),
+        purposeState: purposeToComponentState(purpose),
+        eServiceState: descriptorToComponentState(descriptor),
       },
       eservice,
       descriptor,
@@ -363,7 +363,7 @@ async function retrieveDescriptor(
   return descriptor;
 }
 
-function retrievePurposeComponentState(
+function purposeToComponentState(
   purpose: purposeApi.Purpose
 ): PurposeComponentState {
   const purposeVersion = [...purpose.versions]
@@ -412,7 +412,7 @@ const agreementStateToComponentState = (
       : ItemState.Enum.INACTIVE,
 });
 
-const descriptorStateToComponentState = (
+const descriptorToComponentState = (
   descriptor: catalogApi.EServiceDescriptor
 ): EServiceComponentState => ({
   state:
