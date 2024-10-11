@@ -42,6 +42,12 @@ export const errorCodes = {
   privacyNoticeNotFoundInConfiguration: "0033",
   privacyNoticeNotFound: "0034",
   privacyNoticeVersionIsNotTheLatest: "0035",
+  missingActivePurposeVersion: "0036",
+  activeAgreementByEserviceAndConsumerNotFound: "0037",
+  purposeIdNotFoundInClientAssertion: "0038",
+  clientAssertionPublicKeyNotFound: "0049",
+  organizationNotAllowed: "0040",
+  cannotGetKeyWithClient: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -350,5 +356,64 @@ export function invalidZipStructure(description: string): ApiError<ErrorCodes> {
     detail: `Invalid zip structure: ${description}`,
     code: "invalidZipStructure",
     title: "Invalid zip structure",
+  });
+}
+
+export function missingActivePurposeVersion(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no active version for purpose ${purposeId}`,
+    code: "missingActivePurposeVersion",
+    title: "Missing active purpose version",
+  });
+}
+
+export function activeAgreementByEserviceAndConsumerNotFound(
+  eserviceId: string,
+  consumerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Active agreement for Eservice ${eserviceId} and consumer ${consumerId} not found`,
+    code: "activeAgreementByEserviceAndConsumerNotFound",
+    title: "Active agreement not found",
+  });
+}
+
+export function purposeIdNotFoundInClientAssertion(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PurposeId not found in client assertion`,
+    code: "purposeIdNotFoundInClientAssertion",
+    title: "PurposeId not found in client assertion",
+  });
+}
+
+export function clientAssertionPublicKeyNotFound(
+  kid: string,
+  clientId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Public key with kid ${kid} not found for client ${clientId}`,
+    code: "clientAssertionPublicKeyNotFound",
+    title: "Client assertion public key not found",
+  });
+}
+
+export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization not allowed for client ${clientId}`,
+    code: "organizationNotAllowed",
+    title: "Organization not allowed",
+  });
+}
+
+export function cannotGetKeyWithClient(
+  clientId: string,
+  keyId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot get key with client ${clientId} and key ${keyId}`,
+    code: "cannotGetKeyWithClient",
+    title: "Cannot get key with client",
   });
 }
