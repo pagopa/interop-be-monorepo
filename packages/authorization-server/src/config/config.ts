@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const AuthorizationServerConfig = CommonHTTPServiceConfig;
 
-// TODO add config for dynamoDB and KMS
+// TODO add config for dynamoDB, KMS, rate limiter
 
 export type AuthorizationServerConfig = z.infer<
   typeof AuthorizationServerConfig

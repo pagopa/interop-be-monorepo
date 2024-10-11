@@ -12,6 +12,7 @@ import {
   clientKidPrefix,
   clientKidPurposePrefix,
   clientKindTokenStates,
+  DescriptorId,
   EServiceId,
   generateId,
   genericInternalError,
@@ -32,23 +33,31 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
-import { b64ByteUrlEncode, b64UrlEncode } from "pagopa-interop-commons";
+import {
+  b64ByteUrlEncode,
+  b64UrlEncode,
+  genericLogger,
+  RateLimiter,
+} from "pagopa-interop-commons";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import {
+  GeneratedTokenAuditDetails,
   InteropJwtHeader,
   InteropJwtPayload,
   InteropToken,
-} from "./model/domain/models.js";
+} from "../model/domain/models.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tokenServiceBuilder(
   dynamoDBClient: DynamoDBClient,
-  kmsClient: KMSClient
+  kmsClient: KMSClient,
+  redisRateLimiter: RateLimiter
 ) {
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest
-    ): Promise<boolean> {
+      // TODO: fix return type
+    ): Promise<any> {
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
         client_assertion_type: request.client_assertion_type,
@@ -91,7 +100,27 @@ export function tokenServiceBuilder(
         return Promise.resolve(false);
       }
 
-      await actualGenerateToken(kmsClient, jwt, [], 0, {});
+      // TODO rate limiter
+      // TODO throw error if limit reached?
+      const { limitReached, ...rateLimiterStatus } =
+        await redisRateLimiter.rateLimitByOrganization(
+          key.consumerId,
+          genericLogger
+        );
+
+      if (limitReached) {
+        return {
+          limitReached: true,
+          token: undefined,
+          rateLimitedTenantId: key.consumerId,
+          rateLimiterStatus,
+        };
+      }
+
+      const token = await actualGenerateToken(kmsClient, jwt, [], 0, {});
+
+      // TODO audit
+
       return false;
     },
   };
@@ -141,10 +170,13 @@ export const retrieveKey = async (
             if (
               !clientKidPurposeEntry.GSIPK_purposeId ||
               !clientKidPurposeEntry.purposeState ||
+              !clientKidPurposeEntry.purposeVersionId ||
               !clientKidPurposeEntry.agreementId ||
               !clientKidPurposeEntry.agreementState ||
               !clientKidPurposeEntry.GSIPK_eserviceId_descriptorId ||
-              !clientKidPurposeEntry.descriptorState
+              !clientKidPurposeEntry.descriptorState ||
+              !clientKidPurposeEntry.descriptorAudience ||
+              !clientKidPurposeEntry.descriptorVoucherLifespan
             ) {
               throw genericInternalError("");
             }
@@ -157,15 +189,30 @@ export const retrieveKey = async (
               publicKey: clientKidPurposeEntry.publicKey,
               algorithm: "RS256" /* TODO pass this as a parameter? */,
               clientKind: clientKindTokenStates.consumer, // TODO this doesn't work with clientKidPurpose Entry.clientKind, but it should be already validated in the "when"
-              purposeState: clientKidPurposeEntry.purposeState,
+              purposeState: {
+                state: clientKidPurposeEntry.purposeState,
+                versionId: clientKidPurposeEntry.purposeVersionId,
+              },
               agreementId: clientKidPurposeEntry.agreementId,
-              agreementState: clientKidPurposeEntry.agreementState,
+              agreementState: {
+                state: clientKidPurposeEntry.agreementState,
+              },
               eServiceId: unsafeBrandId<EServiceId>(
                 clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split(
                   "#"
                 )[0]
               ),
-              descriptorState: clientKidPurposeEntry.descriptorState,
+              eServiceState: {
+                state: clientKidPurposeEntry.descriptorState,
+                descriptorId: unsafeBrandId<DescriptorId>(
+                  clientKidPurposeEntry.GSIPK_eserviceId_descriptorId.split(
+                    "#"
+                  )[1]
+                ),
+                audience: clientKidPurposeEntry.descriptorAudience,
+                voucherLifespan:
+                  clientKidPurposeEntry.descriptorVoucherLifespan,
+              },
             };
             return key;
           }
@@ -222,8 +269,7 @@ export const actualGenerateToken = async (
   clientAssertion: ClientAssertion,
   audience: string[],
   tokenDurationInSeconds: number,
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  customClaims: Object
+  customClaims: object
 ): Promise<InteropToken> => {
   const currentTimestamp = Date.now();
 
@@ -269,4 +315,47 @@ export const actualGenerateToken = async (
     payload,
     serialized: `${serializedToken}.${jwtSignature}`,
   };
+};
+
+export const publishAudit = (
+  generatedToken: InteropToken,
+  key: ConsumerKey,
+  clientAssertion: ClientAssertion,
+  correlationId: string
+): void => {
+  try {
+    // TODO: publish audit
+    const messageBody: GeneratedTokenAuditDetails = {
+      jwtId: generatedToken.payload.jti,
+      correlationId, // TODO
+      issuedAt: generatedToken.payload.iat,
+      clientId: clientAssertion.payload.sub,
+      organizationId: key.consumerId,
+      agreementId: key.agreementId,
+      eserviceId: key.eServiceId,
+      descriptorId: key.eServiceState.descriptorId,
+      purposeId: key.purposeId,
+      purposeVersionId: key.purposeState.versionId,
+      algorithm: generatedToken.header.alg,
+      keyId: generatedToken.header.kid,
+      audience: generatedToken.payload.aud.join(","),
+      subject: generatedToken.payload.sub,
+      notBefore: generatedToken.payload.nbf,
+      expirationTime: generatedToken.payload.exp,
+      issuer: generatedToken.payload.iss,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        audience: clientAssertion.payload.aud.join(","),
+        // TODO: double check if the toMillis function is needed
+        expirationTime: clientAssertion.payload.exp,
+        issuedAt: clientAssertion.payload.iat,
+        issuer: clientAssertion.payload.iss,
+        jwtId: clientAssertion.payload.jti,
+        keyId: clientAssertion.header.kid,
+        subject: clientAssertion.payload.sub,
+      },
+    };
+  } catch (e) {
+    // TODO: fallback audit
+  }
 };

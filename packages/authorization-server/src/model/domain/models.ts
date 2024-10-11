@@ -25,3 +25,35 @@ export interface InteropTokenResponse {
   token_type: string;
   expires_in: number;
 }
+
+export interface ClientAssertionAuditDetails {
+  jwtId: string;
+  issuedAt: number;
+  algorithm: string;
+  keyId: string;
+  issuer: string;
+  subject: string;
+  audience: string;
+  expirationTime: number;
+}
+
+export interface GeneratedTokenAuditDetails {
+  jwtId: string;
+  correlationId: string;
+  issuedAt: number;
+  clientId: string;
+  organizationId: string;
+  agreementId: string;
+  eserviceId: string;
+  descriptorId: string;
+  purposeId: string;
+  purposeVersionId: string;
+  algorithm: string;
+  keyId: string;
+  audience: string;
+  subject: string;
+  notBefore: number;
+  expirationTime: number;
+  issuer: string;
+  clientAssertion: ClientAssertionAuditDetails;
+}
