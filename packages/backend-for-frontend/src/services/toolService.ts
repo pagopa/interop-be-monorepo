@@ -33,8 +33,6 @@ import {
 import { BffAppContext } from "../utilities/context.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
-  agreementDescriptorNotFound,
-  agreementNotFound,
   cannotGetKeyWithClient,
   clientAssertionPublicKeyNotFound,
   ErrorCodes,
@@ -46,9 +44,8 @@ import {
 import {
   PagoPAInteropBeClients,
   AgreementProcessClient,
-  CatalogProcessClient,
 } from "../clients/clientsProvider.js";
-import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
+import { getAllAgreements } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -80,7 +77,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         });
       }
 
-      const { data: key, errors: keyRetrieveErrors } = await retrieveKey(
+      const { data, errors: keyRetrieveErrors } = await retrieveKeyAndEservice(
         clients,
         jwt,
         ctx
@@ -91,13 +88,11 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         });
       }
 
-      const eservice = jwt.payload.purposeId
-        ? await retrieveTokenValidationEService(
-            clients,
-            jwt.payload.purposeId,
-            ctx
-          )
-        : undefined;
+      const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
+      const eservice =
+        keyEservice && keyDescriptor
+          ? toTokenValidationEService(keyEservice, keyDescriptor)
+          : undefined;
 
       const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
         clientAssertion,
@@ -203,7 +198,7 @@ function getStepResult(
   }
 }
 
-async function retrieveKey(
+async function retrieveKeyAndEservice(
   {
     authorizationClient,
     purposeProcessClient,
@@ -213,7 +208,12 @@ async function retrieveKey(
   jwt: ClientAssertion,
   ctx: WithLogger<BffAppContext>
 ): Promise<
-  SuccessfulValidation<ApiKey | ConsumerKey> | FailedValidation<ErrorCodes>
+  | SuccessfulValidation<{
+      key: ApiKey | ConsumerKey;
+      eservice?: catalogApi.EService;
+      descriptor?: catalogApi.EServiceDescriptor;
+    }>
+  | FailedValidation<ErrorCodes>
 > {
   const keyWithClient = await authorizationClient.token
     .getKeyWithClientByKeyId({
@@ -254,12 +254,14 @@ async function retrieveKey(
     return {
       errors: undefined,
       data: {
-        clientKind: authorizationApi.ClientKind.enum.API,
-        kid: jwt.header.kid,
-        algorithm,
-        publicKey: encodedPem,
-        clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
-        consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
+        key: {
+          clientKind: authorizationApi.ClientKind.enum.API,
+          kid: jwt.header.kid,
+          algorithm,
+          publicKey: encodedPem,
+          clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+          consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
+        },
       },
     };
   }
@@ -284,28 +286,32 @@ async function retrieveKey(
     ctx
   );
 
-  const descriptor = await retrieveDescriptor(
-    catalogProcessClient,
-    agreement.eserviceId,
-    agreement.descriptorId,
-    ctx
-  );
+  const eservice = await catalogProcessClient.getEServiceById({
+    params: { eServiceId: agreement.eserviceId },
+    headers: ctx.headers,
+  });
+
+  const descriptor = await retrieveDescriptor(eservice, agreement.eserviceId);
 
   return {
     errors: undefined,
     data: {
-      clientKind: authorizationApi.ClientKind.enum.CONSUMER,
-      clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
-      kid: jwt.header.kid,
-      algorithm,
-      publicKey: encodedPem,
-      purposeId,
-      consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
-      agreementId: unsafeBrandId<AgreementId>(agreement.id),
-      eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
-      agreementState: agreementStateToItemState(agreement.state),
-      purposeState: retrievePurposeItemState(purpose),
-      descriptorState: descriptorStateToItemState(descriptor.state),
+      key: {
+        clientKind: authorizationApi.ClientKind.enum.CONSUMER,
+        clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+        kid: jwt.header.kid,
+        algorithm,
+        publicKey: encodedPem,
+        purposeId,
+        consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
+        agreementId: unsafeBrandId<AgreementId>(agreement.id),
+        eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
+        agreementState: agreementStateToItemState(agreement.state),
+        purposeState: retrievePurposeItemState(purpose),
+        descriptorState: descriptorStateToItemState(descriptor.state),
+      },
+      eservice,
+      descriptor,
     },
   };
 }
@@ -343,16 +349,9 @@ async function retrieveAgreement(
 }
 
 async function retrieveDescriptor(
-  catalogClient: CatalogProcessClient,
-  eserviceId: string,
-  descriptorId: string,
-  ctx: WithLogger<BffAppContext>
+  eservice: catalogApi.EService,
+  descriptorId: string
 ): Promise<catalogApi.EServiceDescriptor> {
-  const eservice = await catalogClient.getEServiceById({
-    params: { eServiceId: eserviceId },
-    headers: ctx.headers,
-  });
-
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
     throw eserviceDescriptorNotFound(eservice.id, descriptorId);
@@ -383,48 +382,15 @@ function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
     : ItemState.Enum.INACTIVE;
 }
 
-async function retrieveTokenValidationEService(
-  {
-    catalogProcessClient,
-    purposeProcessClient,
-    agreementProcessClient,
-  }: PagoPAInteropBeClients,
-  purposeId: string,
-  ctx: WithLogger<BffAppContext>
-): Promise<bffApi.TokenGenerationValidationEService> {
-  const purpose = await purposeProcessClient.getPurpose({
-    params: { id: purposeId },
-    headers: ctx.headers,
-  });
-
-  const eservice = await catalogProcessClient.getEServiceById({
-    params: { eServiceId: purpose.eserviceId },
-    headers: ctx.headers,
-  });
-
-  const agreement = await getLatestAgreement(
-    agreementProcessClient,
-    purpose.consumerId,
-    eservice,
-    ctx.headers
-  );
-  if (!agreement) {
-    throw agreementNotFound(purpose.consumerId);
-  }
-
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw agreementDescriptorNotFound(agreement.id);
-  }
-
+function toTokenValidationEService(
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor
+): bffApi.TokenGenerationValidationEService {
   return {
-    id: eservice.id,
     descriptorId: descriptor.id,
-    version: descriptor.version,
+    id: eservice.id,
     name: eservice.name,
+    version: descriptor.version,
   };
 }
 
