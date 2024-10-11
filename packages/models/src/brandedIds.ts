@@ -98,16 +98,18 @@ export type GSIPKConsumerIdEServiceId = z.infer<
   typeof GSIPKConsumerIdEServiceId
 >;
 
+export const clientKidPurposePrefix = "CLIENTKIDPURPOSE#";
 export const TokenGenerationStatesClientKidPurposePK = z
   .string()
-  .brand(`CLIENTKIDPURPOSE#clientId#kid#purposeId`);
+  .brand(`${clientKidPurposePrefix}clientId#kid#purposeId`);
 export type TokenGenerationStatesClientKidPurposePK = z.infer<
   typeof TokenGenerationStatesClientKidPurposePK
 >;
 
+export const clientKidPrefix = "CLIENTKID#";
 export const TokenGenerationStatesClientKidPK = z
   .string()
-  .brand(`CLIENTKID#clientId#kid`);
+  .brand(`${clientKidPrefix}clientId#kid`);
 export type TokenGenerationStatesClientKidPK = z.infer<
   typeof TokenGenerationStatesClientKidPK
 >;
