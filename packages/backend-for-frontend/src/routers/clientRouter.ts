@@ -210,7 +210,7 @@ const clientRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        await clientService.addClientPurpose(
+        await clientService.addClientPurposes(
           req.params.clientId,
           req.body,
           ctx
@@ -222,7 +222,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          `Error adding purpose to client ${req.body.purposeId}`
+          `Error adding purposes to client ${req.body.purposeIds.join(",")}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

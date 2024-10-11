@@ -484,7 +484,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.addClientPurpose({
+          await authorizationService.addClientPurposes({
             clientId: unsafeBrandId(req.params.clientId),
             seed: req.body,
             organizationId: ctx.authData.organizationId,
@@ -890,7 +890,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await authorizationService.addProducerKeychainEService({
+          await authorizationService.addProducerKeychainEServices({
             producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
             seed: req.body,
             organizationId: ctx.authData.organizationId,

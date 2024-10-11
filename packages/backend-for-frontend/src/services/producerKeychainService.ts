@@ -107,17 +107,19 @@ export function producerKeychainServiceBuilder(
         }
       );
     },
-    async addProducerKeychainEService(
+    async addProducerKeychainEServices(
       producerKeychainId: string,
-      eservice: bffApi.EServiceAdditionDetailsSeed,
+      body: bffApi.EServicesAdditionDetailsSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
-        `Adding e-service ${eservice.eserviceId} to producer keychain ${producerKeychainId}`
+        `Adding e-services ${body.eserviceIds.join(
+          ","
+        )} to producer keychain ${producerKeychainId}`
       );
 
-      await authorizationClient.producerKeychain.addProducerKeychainEService(
-        eservice,
+      await authorizationClient.producerKeychain.addProducerKeychainEServices(
+        body,
         {
           params: { producerKeychainId },
           headers,

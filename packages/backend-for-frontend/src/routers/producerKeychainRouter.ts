@@ -137,7 +137,7 @@ const producerKeychainRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
 
         try {
-          await producerKeychainService.addProducerKeychainEService(
+          await producerKeychainService.addProducerKeychainEServices(
             req.params.producerKeychainId,
             req.body,
             ctx
@@ -149,7 +149,9 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx.logger,
-            `Error adding EService ${req.body.eserviceId} to producer keychain ${req.params.producerKeychainId}`
+            `Error adding EServices ${req.body.eserviceIds.join(
+              ","
+            )} to producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

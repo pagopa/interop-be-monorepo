@@ -32,6 +32,7 @@ import {
   userRoles,
   calculateKid,
   createJWK,
+  removeDuplicates,
 } from "pagopa-interop-commons";
 import {
   authorizationApi,
@@ -570,7 +571,7 @@ export function authorizationServiceBuilder(
         return client.data.keys;
       }
     },
-    async addClientPurpose({
+    async addClientPurposes({
       clientId,
       seed,
       organizationId,
@@ -578,66 +579,124 @@ export function authorizationServiceBuilder(
       logger,
     }: {
       clientId: ClientId;
-      seed: authorizationApi.PurposeAdditionDetails;
+      seed: authorizationApi.PurposesAdditionDetails;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
+      // logger.info(
+      //   `Adding eservices with id ${seed.eserviceIds.join(
+      //     ","
+      //   )} to producer keychain ${producerKeychainId}`
+      // );
+
+      // const eserviceIds = removeDuplicates(seed.eserviceIds).map(
+      //   unsafeBrandId<EServiceId>
+      // );
+      // const producerKeychain = await retrieveProducerKeychain(
+      //   producerKeychainId,
+      //   readModelService
+      // );
+
+      // assertOrganizationIsProducerKeychainProducer(
+      //   organizationId,
+      //   producerKeychain.data
+      // );
+
+      // for (const eserviceId of eserviceIds) {
+      //   const eservice = await retrieveEService(eserviceId, readModelService);
+      //   assertOrganizationIsEServiceProducer(organizationId, eservice);
+      //   if (producerKeychain.data.eservices.includes(eserviceId)) {
+      //     throw eserviceAlreadyLinkedToProducerKeychain(
+      //       eserviceId,
+      //       producerKeychain.data.id
+      //     );
+      //   }
+      // }
+
+      // const updatedProducerKeychain: ProducerKeychain = {
+      //   ...producerKeychain.data,
+      // };
+
+      // await repository.createEvents(
+      //   eserviceIds.map((eserviceId, index) => {
+      //     // eslint-disable-next-line functional/immutable-data
+      //     updatedProducerKeychain.eservices.push(eserviceId);
+      //     return toCreateEventProducerKeychainEServiceAdded(
+      //       eserviceId,
+      //       updatedProducerKeychain,
+      //       producerKeychain.metadata.version + index,
+      //       correlationId
+      //     );
+      //   })
+      // );
       logger.info(
-        `Adding purpose with id ${seed.purposeId} to client ${clientId}`
+        `Adding purposes with id ${seed.purposeIds.join(
+          ","
+        )} to client ${clientId}`
       );
-      const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
+
+      const purposeIds = removeDuplicates(seed.purposeIds).map(
+        unsafeBrandId<PurposeId>
+      );
 
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
-      const purpose = await retrievePurpose(purposeId, readModelService);
-      assertOrganizationIsPurposeConsumer(organizationId, purpose);
-
-      if (client.data.purposes.includes(purposeId)) {
-        throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+      for (const purposeId of purposeIds) {
+        if (client.data.purposes.includes(purposeId)) {
+          throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
+        }
       }
 
-      const eservice = await retrieveEService(
-        purpose.eserviceId,
-        readModelService
-      );
+      for (const purposeId of purposeIds) {
+        const purpose = await retrievePurpose(purposeId, readModelService);
+        assertOrganizationIsPurposeConsumer(organizationId, purpose);
 
-      const agreement = await readModelService.getActiveOrSuspendedAgreement(
-        eservice.id,
-        organizationId
-      );
+        const eservice = await retrieveEService(
+          purpose.eserviceId,
+          readModelService
+        );
 
-      if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
-      }
+        const agreement = await readModelService.getActiveOrSuspendedAgreement(
+          eservice.id,
+          organizationId
+        );
 
-      retrieveDescriptor(agreement.descriptorId, eservice);
+        if (agreement === undefined) {
+          throw noAgreementFoundInRequiredState(eservice.id, organizationId);
+        }
 
-      const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
-        purposeVersionState.active,
-        purposeVersionState.suspended,
-      ]);
-      const purposeVersion = purpose.versions.find((v) =>
-        validPurposeVersionStates.has(v.state)
-      );
+        retrieveDescriptor(agreement.descriptorId, eservice);
 
-      if (purposeVersion === undefined) {
-        throw noPurposeVersionsFoundInRequiredState(purpose.id);
+        const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
+          purposeVersionState.active,
+          purposeVersionState.suspended,
+        ]);
+        const purposeVersion = purpose.versions.find((v) =>
+          validPurposeVersionStates.has(v.state)
+        );
+
+        if (purposeVersion === undefined) {
+          throw noPurposeVersionsFoundInRequiredState(purpose.id);
+        }
       }
 
       const updatedClient: Client = {
         ...client.data,
-        purposes: [...client.data.purposes, purposeId],
       };
 
-      await repository.createEvent(
-        toCreateEventClientPurposeAdded(
-          purposeId,
-          updatedClient,
-          client.metadata.version,
-          correlationId
-        )
+      await repository.createEvents(
+        purposeIds.map((purposeId, index) => {
+          // eslint-disable-next-line functional/immutable-data
+          updatedClient.purposes.push(purposeId);
+          return toCreateEventClientPurposeAdded(
+            purposeId,
+            updatedClient,
+            client.metadata.version + index,
+            correlationId
+          );
+        })
       );
     },
 
@@ -1228,7 +1287,7 @@ export function authorizationServiceBuilder(
       }
       return key;
     },
-    async addProducerKeychainEService({
+    async addProducerKeychainEServices({
       producerKeychainId,
       seed,
       organizationId,
@@ -1236,42 +1295,59 @@ export function authorizationServiceBuilder(
       logger,
     }: {
       producerKeychainId: ProducerKeychainId;
-      seed: authorizationApi.EServiceAdditionDetails;
+      seed: authorizationApi.EServicesAdditionDetails;
       organizationId: TenantId;
       correlationId: string;
       logger: Logger;
     }): Promise<void> {
       logger.info(
-        `Adding eservice with id ${seed.eserviceId} to producer keychain ${producerKeychainId}`
+        `Adding eservices with id ${seed.eserviceIds.join(
+          ","
+        )} to producer keychain ${producerKeychainId}`
       );
-      const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
+
+      const eserviceIds = removeDuplicates(seed.eserviceIds).map(
+        unsafeBrandId<EServiceId>
+      );
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
         readModelService
       );
+
       assertOrganizationIsProducerKeychainProducer(
         organizationId,
         producerKeychain.data
       );
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      assertOrganizationIsEServiceProducer(organizationId, eservice);
-      if (producerKeychain.data.eservices.includes(eserviceId)) {
-        throw eserviceAlreadyLinkedToProducerKeychain(
-          eserviceId,
-          producerKeychain.data.id
-        );
+
+      for (const eserviceId of eserviceIds) {
+        if (producerKeychain.data.eservices.includes(eserviceId)) {
+          throw eserviceAlreadyLinkedToProducerKeychain(
+            eserviceId,
+            producerKeychain.data.id
+          );
+        }
       }
+
+      for (const eserviceId of eserviceIds) {
+        const eservice = await retrieveEService(eserviceId, readModelService);
+        assertOrganizationIsEServiceProducer(organizationId, eservice);
+      }
+
       const updatedProducerKeychain: ProducerKeychain = {
         ...producerKeychain.data,
-        eservices: [...producerKeychain.data.eservices, eserviceId],
       };
-      await repository.createEvent(
-        toCreateEventProducerKeychainEServiceAdded(
-          eserviceId,
-          updatedProducerKeychain,
-          producerKeychain.metadata.version,
-          correlationId
-        )
+
+      await repository.createEvents(
+        eserviceIds.map((eserviceId, index) => {
+          // eslint-disable-next-line functional/immutable-data
+          updatedProducerKeychain.eservices.push(eserviceId);
+          return toCreateEventProducerKeychainEServiceAdded(
+            eserviceId,
+            updatedProducerKeychain,
+            producerKeychain.metadata.version + index,
+            correlationId
+          );
+        })
       );
     },
     async removeProducerKeychainEService({

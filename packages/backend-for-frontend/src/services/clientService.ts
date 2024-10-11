@@ -199,14 +199,16 @@ export function clientServiceBuilder(
       return { keys: decoratedKeys };
     },
 
-    async addClientPurpose(
+    async addClientPurposes(
       clientId: string,
-      purpose: bffApi.PurposeAdditionDetailsSeed,
+      body: bffApi.PurposesAdditionDetailsSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Adding purpose ${purpose.purposeId} to client ${clientId}`);
+      logger.info(
+        `Adding purposes ${body.purposeIds.join(",")} to client ${clientId}`
+      );
 
-      await authorizationClient.client.addClientPurpose(purpose, {
+      await authorizationClient.client.addClientPurposes(body, {
         params: { clientId },
         headers,
       });

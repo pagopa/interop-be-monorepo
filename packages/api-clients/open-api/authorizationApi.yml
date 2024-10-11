@@ -758,9 +758,9 @@ paths:
     post:
       tags:
         - client
-      summary: Adds a purpose to a client
-      description: Adds a purpose to a client
-      operationId: addClientPurpose
+      summary: Adds purposes to a client
+      description: Adds purposes to a client
+      operationId: addClientPurposes
       parameters:
         - name: clientId
           in: path
@@ -771,11 +771,11 @@ paths:
             format: uuid
       requestBody:
         required: true
-        description: Details of the Purpose to add
+        description: Details of the Purposes to add
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PurposeAdditionDetails"
+              $ref: "#/components/schemas/PurposesAdditionDetails"
       responses:
         "204":
           description: Request succeed
@@ -1402,9 +1402,9 @@ paths:
     post:
       tags:
         - producerKeychain
-      summary: Adds an eservice to a producer keychain
-      description: Adds an eservice to a producer keychain
-      operationId: addProducerKeychainEService
+      summary: Adds eservices to a producer keychain
+      description: Adds eservices to a producer keychain
+      operationId: addProducerKeychainEServices
       parameters:
         - name: producerKeychainId
           in: path
@@ -1415,11 +1415,11 @@ paths:
             format: uuid
       requestBody:
         required: true
-        description: Details of the EService to add
+        description: Details of the EServices to add
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceAdditionDetails"
+              $ref: "#/components/schemas/EServicesAdditionDetails"
       responses:
         "204":
           description: Request succeed
@@ -1783,15 +1783,18 @@ components:
       enum:
         - SIG
         - ENC
-    PurposeAdditionDetails:
+    PurposesAdditionDetails:
       type: object
       additionalProperties: false
       properties:
-        purposeId:
-          type: string
-          format: uuid
+        purposeIds:
+          type: array
+          minItems: 1
+          items: 
+            type: string
+            format: uuid
       required:
-        - purposeId
+        - purposeIds
     ProducerKeychain:
       description: Models Producer Keychain details
       type: object
@@ -1868,14 +1871,18 @@ components:
         - name
         - description
         - members 
-    EServiceAdditionDetails:
+    EServicesAdditionDetails:
       type: object
+      additionalProperties: false
       properties:
-        eserviceId:
-          type: string
-          format: uuid
+        eserviceIds:
+          minItems: 1
+          type: array
+          items:
+            type: string
+            format: uuid
       required:
-        - eserviceId
+        - eserviceIds
     Problem:
       properties:
         type:
