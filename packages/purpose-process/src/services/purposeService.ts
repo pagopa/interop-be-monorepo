@@ -1668,7 +1668,11 @@ async function activatePurposeLogic({
   };
   const unsuspendedByConsumerPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval
-      ? { ...purpose.data, suspendedByConsumer: false }
+      ? {
+          ...purpose.data,
+          suspendedByConsumer: false,
+          suspendedByProducer: false,
+        }
       : purpose.data;
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
