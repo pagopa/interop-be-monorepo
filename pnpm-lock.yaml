@@ -388,7 +388,7 @@ importers:
     dependencies:
       csv:
         specifier: ^6.3.2
-        version: 6.3.10
+        version: 6.3.2
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -955,6 +955,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-client-assertion-validation:
+        specifier: workspace:*
+        version: link:../client-assertion-validation
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -9122,16 +9125,6 @@ packages:
 
   /csv-stringify@6.5.1:
     resolution: {integrity: sha512-+9lpZfwpLntpTIEpFbwQyWuW/hmI/eHuJZD1XzeZpfZTqkf1fyvBbBLXTJJMsBuuS11uTShMqPwzx4A6ffXgRQ==}
-    dev: false
-
-  /csv@6.3.10:
-    resolution: {integrity: sha512-5NYZG4AN2ZUthmNxIudgBEdMPUnbQHu9V4QTzBPqQzUP3KQsFiJo+8HQ0+oVxj1PomIT1/f67VI1QH/hsrZLKA==}
-    engines: {node: '>= 0.1.90'}
-    dependencies:
-      csv-generate: 4.4.1
-      csv-parse: 5.5.6
-      csv-stringify: 6.5.1
-      stream-transform: 3.3.2
     dev: false
 
   /csv@6.3.2:
