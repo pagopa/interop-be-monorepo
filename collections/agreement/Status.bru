@@ -1,0 +1,15 @@
+meta {
+  name: Status
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{host-agreement}}/status
+  body: none
+  auth: none
+}
+
+headers {
+  X-Correlation-Id: {{correlation-id}}
+}

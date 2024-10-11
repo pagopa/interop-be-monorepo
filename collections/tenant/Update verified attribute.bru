@@ -1,0 +1,27 @@
+meta {
+  name: Update verified attribute
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-tenant}}/tenants/:tenantId/attributes/verified/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  attributeId: 30dab389-4568-4fa5-8145-d5b9175fa664
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "expirationDate": "2030-01-01T00:00:00Z"
+  }
+}
