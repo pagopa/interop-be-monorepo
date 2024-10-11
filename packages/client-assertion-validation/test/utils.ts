@@ -89,7 +89,6 @@ export const getMockApiKey = (): ApiKey => ({
   clientId: generateId<ClientId>(),
   consumerId: generateId<TenantId>(),
   kid: "kid",
-  purposeId: generateId<PurposeId>(),
   publicKey: crypto
     .generateKeyPairSync("rsa", {
       modulusLength: 2048,

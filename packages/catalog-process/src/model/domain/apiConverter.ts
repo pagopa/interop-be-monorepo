@@ -154,7 +154,9 @@ export const descriptorToApiDescriptor = (
   voucherLifespan: descriptor.voucherLifespan,
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
   dailyCallsTotal: descriptor.dailyCallsTotal,
-  interface: descriptor.interface,
+  interface: descriptor.interface
+    ? documentToApiDocument(descriptor.interface)
+    : undefined,
   docs: descriptor.docs.map(documentToApiDocument),
   state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
   agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
