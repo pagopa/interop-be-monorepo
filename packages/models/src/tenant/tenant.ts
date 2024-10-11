@@ -38,7 +38,7 @@ export type TenantFeatureDelegatedProducer = z.infer<
 export const TenantFeature = z.discriminatedUnion("type", [
   TenantFeatureCertifier,
   TenantFeatureDelegatedProducer,
-]); // It will be extended with other features, we will use this union to discriminate them
+]);
 
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
