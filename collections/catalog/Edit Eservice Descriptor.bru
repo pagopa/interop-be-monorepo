@@ -5,20 +5,19 @@ meta {
 }
 
 put {
-  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId
   body: json
   auth: none
 }
 
 params:path {
   descriptorId: {{descriptorId}}
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Accept: application/json
 }
 
 body:json {
