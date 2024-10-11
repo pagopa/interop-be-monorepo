@@ -177,13 +177,17 @@ export const validatePlatformState = (
   key: ConsumerKey
 ): ValidationResult<ConsumerKey> => {
   const agreementError =
-    key.agreementState !== itemState.active ? inactiveAgreement() : undefined;
+    key.agreementState.state !== itemState.active
+      ? inactiveAgreement()
+      : undefined;
 
   const descriptorError =
-    key.descriptorState !== itemState.active ? inactiveEService() : undefined;
+    key.eServiceState.state !== itemState.active
+      ? inactiveEService()
+      : undefined;
 
   const purposeError =
-    key.purposeState !== itemState.active ? inactivePurpose() : undefined;
+    key.purposeState.state !== itemState.active ? inactivePurpose() : undefined;
 
   if (!agreementError && !descriptorError && !purposeError) {
     return successfulValidation(key);
