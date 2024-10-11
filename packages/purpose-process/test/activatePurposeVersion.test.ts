@@ -154,6 +154,7 @@ describe("activatePurposeVersion", () => {
     const expectedPurpose: Purpose = {
       ...mockPurpose,
       suspendedByConsumer: false,
+      suspendedByProducer: false,
       versions: [purposeVersion],
       updatedAt: new Date(),
     };
