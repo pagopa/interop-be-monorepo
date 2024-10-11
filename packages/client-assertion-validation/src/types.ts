@@ -55,9 +55,8 @@ export const Key = z
     clientId: ClientId,
     consumerId: TenantId,
     kid: z.string(),
-    purposeId: PurposeId,
     publicKey: z.string().min(1),
-    algorithm: z.literal("RS256"),
+    algorithm: z.string(),
   })
   .strict();
 export type Key = z.infer<typeof Key>;
@@ -78,11 +77,13 @@ export const ApiKey = Key.extend({
 }).strict();
 export type ApiKey = z.infer<typeof ApiKey>;
 
-export type ValidationResult<T> = SuccessfulValidation<T> | FailedValidation;
+export type ValidationResult<T> =
+  | SuccessfulValidation<T>
+  | FailedValidation<ErrorCodes>;
 
 export type SuccessfulValidation<T> = { errors: undefined; data: T };
-export type FailedValidation = {
-  errors: Array<ApiError<ErrorCodes>>;
+export type FailedValidation<T> = {
+  errors: Array<ApiError<T>>;
   data: undefined;
 };
 
