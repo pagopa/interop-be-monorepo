@@ -91,11 +91,13 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         });
       }
 
-      const eservice = await retrieveTokenValidationEService(
-        clients,
-        key.purposeId,
-        ctx
-      );
+      const eservice = jwt.payload.purposeId
+        ? await retrieveTokenValidationEService(
+            clients,
+            jwt.payload.purposeId,
+            ctx
+          )
+        : undefined;
 
       const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
         clientAssertion,
@@ -213,12 +215,6 @@ async function retrieveKey(
 ): Promise<
   SuccessfulValidation<ApiKey | ConsumerKey> | FailedValidation<ErrorCodes>
 > {
-  if (!jwt.payload.purposeId) {
-    return {
-      data: undefined,
-      errors: [purposeIdNotFoundInClientAssertion()],
-    };
-  }
   const keyWithClient = await authorizationClient.token
     .getKeyWithClientByKeyId({
       params: {
@@ -245,15 +241,14 @@ async function retrieveKey(
 
   assertIsConsumer(ctx.authData.organizationId, keyWithClient);
 
-  const { encodedPem } = await authorizationClient.client.getClientKeyById({
-    headers: ctx.headers,
-    params: {
-      clientId: keyWithClient.client.id,
-      keyId: jwt.header.kid,
-    },
-  });
-
-  const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
+  const { encodedPem, algorithm } =
+    await authorizationClient.client.getClientKeyById({
+      headers: ctx.headers,
+      params: {
+        clientId: keyWithClient.client.id,
+        keyId: jwt.header.kid,
+      },
+    });
 
   if (keyWithClient.client.kind === authorizationApi.ClientKind.enum.API) {
     return {
@@ -261,14 +256,21 @@ async function retrieveKey(
       data: {
         clientKind: authorizationApi.ClientKind.enum.API,
         kid: jwt.header.kid,
-        algorithm: "RS256",
+        algorithm,
         publicKey: encodedPem,
         clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
         consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
-        purposeId,
       },
     };
   }
+
+  if (!jwt.payload.purposeId) {
+    return {
+      data: undefined,
+      errors: [purposeIdNotFoundInClientAssertion()],
+    };
+  }
+  const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
 
   const purpose = await purposeProcessClient.getPurpose({
     params: { id: purposeId },
@@ -295,7 +297,7 @@ async function retrieveKey(
       clientKind: authorizationApi.ClientKind.enum.CONSUMER,
       clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
       kid: jwt.header.kid,
-      algorithm: "RS256",
+      algorithm,
       publicKey: encodedPem,
       purposeId,
       consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
