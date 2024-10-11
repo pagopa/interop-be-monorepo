@@ -1,23 +1,22 @@
 meta {
   name: Edit Eservice
   type: http
-  seq: 21
+  seq: 20
 }
 
 put {
-  url: {{host-catalog}}/eservices/:eServiceId
+  url: {{host-catalog}}/eservices/:eserviceId
   body: json
   auth: none
 }
 
 params:path {
-  eServiceId: {{eServiceId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-  Accept: application/json
 }
 
 body:json {
