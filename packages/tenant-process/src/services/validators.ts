@@ -153,6 +153,12 @@ export async function assertRequesterAllowed(
   }
 }
 
+export function assertRequesterIPAOrigin(authData: AuthData): void {
+  if (authData.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
+    throw operationForbidden;
+  }
+}
+
 export async function assertResourceAllowed(
   resourceId: string,
   authData: AuthData

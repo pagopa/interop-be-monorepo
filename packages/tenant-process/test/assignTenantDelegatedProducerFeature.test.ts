@@ -5,12 +5,13 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantDelegatedProducerFeatureAddedV2,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
-import { getMockTenant } from "pagopa-interop-commons-test";
-import { tenantHasAlreadyDelegatedProducerFeature } from "../src/model/domain/errors.js";
+import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
+import { tenantAlreadyHasDelegatedProducerFeature } from "../src/model/domain/errors.js";
 import { addOneTenant, postgresDB, tenantService } from "./utils.js";
 
 describe("assignTenantDelegatedProducerFeature", async () => {
@@ -29,6 +30,7 @@ describe("assignTenantDelegatedProducerFeature", async () => {
     await tenantService.assignTenantDelegatedProducerFeature({
       organizationId: mockTenant.id,
       correlationId: generateId(),
+      authData: getMockAuthData(),
       logger: genericLogger,
     });
     const writtenEvent = await readLastEventByStreamId(
@@ -63,7 +65,7 @@ describe("assignTenantDelegatedProducerFeature", async () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
 
-  it("Should throw tenantHasAlreadyDelegatedProducerFeature if the requester tenant already has the delegated producer feature", async () => {
+  it("Should throw tenantAlreadyHasDelegatedProducerFeature if the requester tenant already has the delegated producer feature", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -75,12 +77,31 @@ describe("assignTenantDelegatedProducerFeature", async () => {
     };
 
     await addOneTenant(tenant);
+
     expect(
       tenantService.assignTenantDelegatedProducerFeature({
         organizationId: tenant.id,
         correlationId: generateId(),
+        authData: getMockAuthData(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantHasAlreadyDelegatedProducerFeature(tenant.id));
+    ).rejects.toThrowError(tenantAlreadyHasDelegatedProducerFeature(tenant.id));
+  });
+  it("Should throw operationForbidden if the requester tenant is not a public administration", async () => {
+    const tenant = getMockTenant();
+
+    await addOneTenant(tenant);
+
+    expect(
+      tenantService.assignTenantDelegatedProducerFeature({
+        organizationId: tenant.id,
+        correlationId: generateId(),
+        authData: {
+          ...getMockAuthData(),
+          externalId: { origin: "UNKNOWN", value: "test" },
+        },
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
   });
 });

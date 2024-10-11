@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  AuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -67,7 +68,7 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
-  tenantHasAlreadyDelegatedProducerFeature,
+  tenantAlreadyHasDelegatedProducerFeature,
 } from "../model/domain/errors.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -81,6 +82,7 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
+  assertRequesterIPAOrigin,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1578,15 +1580,20 @@ export function tenantServiceBuilder(
     async assignTenantDelegatedProducerFeature({
       organizationId,
       correlationId,
+      authData,
       logger,
     }: {
       organizationId: TenantId;
       correlationId: string;
+      authData: AuthData;
       logger: Logger;
     }): Promise<void> {
       logger.info(
         `Assigning delegated producer feature to tenant ${organizationId}`
       );
+
+      assertRequesterIPAOrigin(authData);
+
       const requesterTenant = await retrieveTenant(
         organizationId,
         readModelService
@@ -1597,7 +1604,7 @@ export function tenantServiceBuilder(
           (f) => f.type === "DelegatedProducer"
         )
       ) {
-        throw tenantHasAlreadyDelegatedProducerFeature(organizationId);
+        throw tenantAlreadyHasDelegatedProducerFeature(organizationId);
       }
 
       const updatedTenant: Tenant = {

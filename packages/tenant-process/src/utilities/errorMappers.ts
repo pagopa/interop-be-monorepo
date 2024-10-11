@@ -226,7 +226,7 @@ export const assignTenantDelegatedProducerFeatureErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "tenantHasAlreadyDelegatedProducerFeature",
+      "tenantAlreadyHasDelegatedProducerFeature",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
