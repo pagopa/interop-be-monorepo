@@ -1,0 +1,20 @@
+meta {
+  name: Submit Agreement
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/submit
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
