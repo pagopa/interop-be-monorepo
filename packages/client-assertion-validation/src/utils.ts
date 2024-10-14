@@ -35,6 +35,7 @@ import {
   invalidKidFormat,
   digestClaimNotFound,
   audienceNotFound,
+  invalidAudienceFormat,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -128,14 +129,22 @@ export const validateAudience = (
     return failedValidation([audienceNotFound()]);
   }
 
-  const audEntries = Array.isArray(aud)
-    ? aud
-    : aud.split(",").map((s) => s.trim());
-
-  if (!audEntries.includes(config.clientAssertionAudience)) {
+  if (Array.isArray(aud)) {
+    if (config.clientAssertionAudience.every((entry) => aud.includes(entry))) {
+      return successfulValidation(aud);
+    }
+    return failedValidation([invalidAudience()]);
+  } else {
+    const split = aud.split(",").map((s) => s.trim());
+    if (split.length > 1) {
+      return failedValidation([invalidAudienceFormat()]);
+    }
+    const audEntry = split[0];
+    if (config.clientAssertionAudience.every((entry) => audEntry === entry)) {
+      return successfulValidation([aud]);
+    }
     return failedValidation([invalidAudience()]);
   }
-  return successfulValidation(audEntries);
 };
 
 export const validateAlgorithm = (alg?: string): ValidationResult<string> => {

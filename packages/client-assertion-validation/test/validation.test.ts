@@ -46,6 +46,7 @@ import {
   invalidAssertionType,
   invalidSignature,
   clientAssertionInvalidClaims,
+  invalidAudienceFormat,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
 import {
@@ -118,26 +119,6 @@ describe("validation test", () => {
       expect(errors).toBeUndefined();
     });
 
-    it("success client assertion - audience as string", () => {
-      const a = getMockClientAssertion({
-        customHeader: {},
-        standardClaimsOverride: { aud: "test.interop.pagopa.it" },
-        customClaims: {},
-      });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeUndefined();
-    });
-
-    it("success client assertion - audience as comma-separated strings", () => {
-      const a = getMockClientAssertion({
-        customHeader: {},
-        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
-        customClaims: {},
-      });
-      const { errors } = verifyClientAssertion(a, undefined);
-      expect(errors).toBeUndefined();
-    });
-
     it("clientAssertionInvalidClaims - header", () => {
       const keySet = crypto.generateKeyPairSync("rsa", {
         modulusLength: 2048,
@@ -146,7 +127,7 @@ describe("validation test", () => {
       const payload = {
         iss: generateId<ClientId>(),
         sub: generateId<ClientId>(),
-        aud: ["test.interop.pagopa.it"],
+        aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
         jti: generateId(),
         iat: 5,
         exp: 10,
@@ -250,7 +231,7 @@ describe("validation test", () => {
       expect(errors4![0]).toEqual(invalidClientAssertionFormat());
     });
 
-    it("invalidAudienceFormat", () => {
+    it("invalidAudience - wrong entry as string", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: { aud: "random" },
@@ -262,7 +243,7 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidAudience());
     });
 
-    it("invalidAudience", () => {
+    it("invalidAudience - wrong entry as 1-item array", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: { aud: ["random"] },
@@ -274,10 +255,36 @@ describe("validation test", () => {
       expect(errors![0]).toEqual(invalidAudience());
     });
 
-    it("invalidAudience", () => {
+    it("invalidAudienceFormat - comma-separated strings", () => {
       const a = getMockClientAssertion({
         customHeader: {},
-        standardClaimsOverride: { aud: "wrong-audience1, wrong-audience2" },
+        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAudienceFormat());
+    });
+
+    it("invalidAudience - wrong entries", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { aud: ["wrong-audience1, wrong-audience2"] },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAudience());
+    });
+
+    it("invalidAudience - missing entry", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: {
+          aud: ["test.interop.pagopa.it"],
+        },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -341,7 +348,7 @@ describe("validation test", () => {
       const payload = {
         iss: generateId<ClientId>(),
         sub: generateId<ClientId>(),
-        aud: ["test.interop.pagopa.it"],
+        aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
         jti: generateId(),
         iat: 5,
         digest: {
