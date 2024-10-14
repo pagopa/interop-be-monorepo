@@ -4,7 +4,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { Delegation } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
+import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelRepository } = await setupTestContainersVitest(
@@ -16,8 +16,7 @@ export const delegations = readModelRepository.delegations;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
-export const delegationService =
-  delegationProducerServiceBuilder(readModelService);
+export const delegationService = delegationServiceBuilder(readModelService);
 
 export const addOneDelegation = async (
   delegation: Delegation

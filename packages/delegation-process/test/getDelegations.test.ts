@@ -14,6 +14,7 @@ describe("get delegations", () => {
       [],
       [],
       ["Active"],
+      "DelegatedProducer",
       0,
       50
     );
@@ -23,6 +24,7 @@ describe("get delegations", () => {
       [delegation2.delegateId],
       [],
       [],
+      "DelegatedProducer",
       0,
       50
     );
@@ -32,6 +34,7 @@ describe("get delegations", () => {
       [],
       [],
       ["Revoked"],
+      "DelegatedProducer",
       0,
       50
     );
