@@ -51,6 +51,19 @@ import {
   InteropToken,
 } from "../model/domain/models.js";
 import { config } from "../config/config.js";
+import {
+  clientAssertionRequestValidationFailed,
+  clientAssertionSignatureValidationFailed,
+  clientAssertionValidationFailed,
+  fallbackAuditFailed,
+  invalidPlatformStates,
+  kafkaAuditingFailed,
+  keyNotFound,
+  keyRetrievalError,
+  keyTypeMismatch,
+  tokenSigningFailed,
+  unexpectedTokenGenerationStatesEntry,
+} from "../model/domain/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tokenServiceBuilder(
@@ -75,11 +88,15 @@ export function tokenServiceBuilder(
         client_id: request.client_id,
       });
 
+      if (parametersErrors) {
+        throw clientAssertionRequestValidationFailed();
+      }
+
       const { data: jwt, errors: clientAssertionErrors } =
         verifyClientAssertion(request.client_assertion, request.client_id);
 
-      if (parametersErrors || clientAssertionErrors) {
-        return Promise.resolve(false);
+      if (clientAssertionErrors) {
+        throw clientAssertionValidationFailed();
       }
 
       const clientId = jwt.payload.sub;
@@ -96,21 +113,19 @@ export function tokenServiceBuilder(
 
       const key = await retrieveKey(dynamoDBClient, pk);
 
-      const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
-        request.client_assertion,
-        key
-      );
-      if (clientSignatureErrors) {
-        return Promise.resolve(false);
+      const { errors: clientAssertionSignatureErrors } =
+        verifyClientAssertionSignature(request.client_assertion, key);
+      if (clientAssertionSignatureErrors) {
+        throw clientAssertionSignatureValidationFailed();
       }
 
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
-        return Promise.resolve(false);
+        throw clientAssertionSignatureValidationFailed();
       }
 
-      // TODO throw error if limit reached?
+      // TODO throw error if limit reached? Maybe not, because info have to be passed
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(
           key.consumerId,
@@ -126,27 +141,23 @@ export function tokenServiceBuilder(
         };
       }
 
-      const token = await actualGenerateToken(kmsClient, jwt, [], 0, {});
+      const token = await generateInteropToken(kmsClient, jwt, [], 0, {});
 
       if (key.clientKind === clientKindTokenStates.consumer) {
-        if (
-          await publishAudit(
-            producer,
-            token,
-            key,
-            jwt,
-            correlationId,
-            fileManager,
-            logger
-          )
-        ) {
-          return token;
-        } else {
-          return false;
-        }
+        await publishAudit(
+          producer,
+          token,
+          key,
+          jwt,
+          correlationId,
+          fileManager,
+          logger
+        );
+
+        return token;
       }
 
-      return false;
+      return token;
     },
   };
 }
@@ -161,7 +172,7 @@ export const retrieveKey = async (
     Key: {
       PK: { S: pk },
     },
-    TableName: "token-generation-states",
+    TableName: config.tokenGenerationStatesTable,
   };
 
   try {
@@ -170,7 +181,7 @@ export const retrieveKey = async (
     const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
     if (!data.Item) {
-      throw genericInternalError("key not found");
+      throw keyNotFound();
     } else {
       const unmarshalled = unmarshall(data.Item);
       const tokenGenerationEntry =
@@ -203,7 +214,7 @@ export const retrieveKey = async (
               !clientKidPurposeEntry.descriptorAudience ||
               !clientKidPurposeEntry.descriptorVoucherLifespan
             ) {
-              throw genericInternalError("");
+              throw invalidPlatformStates();
             }
 
             const key: ConsumerKey = {
@@ -246,16 +257,16 @@ export const retrieveKey = async (
           (entry) =>
             entry.clientKind === clientKindTokenStates.consumer &&
             entry.PK.startsWith(clientKidPrefix),
-          () => {
-            throw genericInternalError("TODO create specific error");
+          (entry) => {
+            throw keyTypeMismatch(clientKidPrefix, entry.clientKind);
           }
         )
         .when(
           (entry) =>
             entry.clientKind === clientKindTokenStates.api &&
             entry.PK.startsWith(clientKidPurposePrefix),
-          () => {
-            throw genericInternalError("TODO create specific error");
+          (entry) => {
+            throw keyTypeMismatch(clientKidPurposePrefix, entry.clientKind);
           }
         )
         .when(
@@ -279,17 +290,16 @@ export const retrieveKey = async (
         )
         .run();
 
-      throw genericInternalError("unexpected token entry");
+      throw unexpectedTokenGenerationStatesEntry();
     }
   } catch (error) {
     // error handling.
     // TODO Handle both dynamodb errors and throw error for empty public key
-    console.log(error);
-    throw error;
+    throw keyRetrievalError();
   }
 };
 
-export const actualGenerateToken = async (
+export const generateInteropToken = async (
   kmsClient: KMSClient,
   clientAssertion: ClientAssertion,
   audience: string[],
@@ -330,7 +340,7 @@ export const actualGenerateToken = async (
   const response = await kmsClient.send(command);
 
   if (!response.Signature) {
-    throw Error("Signature failed");
+    throw tokenSigningFailed();
   }
 
   const jwtSignature = b64ByteUrlEncode(response.Signature);
@@ -350,7 +360,7 @@ export const publishAudit = async (
   correlationId: string,
   fileManager: FileManager,
   logger: Logger
-): Promise<boolean> => {
+): Promise<void> => {
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
@@ -393,13 +403,11 @@ export const publishAudit = async (
     });
 
     if (res.length === 0 || res[0].errorCode !== 0) {
-      console.log("error");
-      throw genericInternalError("kafka write operation returned an error");
+      throw kafkaAuditingFailed();
     }
-
-    return true;
   } catch (e) {
-    return fallbackAudit(messageBody, fileManager, logger);
+    logger.info("main auditing flow failed, going through fallback");
+    await fallbackAudit(messageBody, fileManager, logger);
   }
 };
 
@@ -407,7 +415,7 @@ export const fallbackAudit = async (
   messageBody: GeneratedTokenAuditDetails,
   fileManager: FileManager,
   logger: Logger
-): Promise<boolean> => {
+): Promise<void> => {
   const ymdDate = formatDateyyyyMMdd(new Date());
 
   const fileName = `${ymdDate}_${messageBody.jwtId}.ndjson`;
@@ -423,8 +431,8 @@ export const fallbackAudit = async (
       },
       logger
     );
-    return true;
+    logger.info("auditing succeded through fallback");
   } catch {
-    return false;
+    throw fallbackAuditFailed();
   }
 };
