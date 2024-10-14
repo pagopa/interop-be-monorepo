@@ -1,4 +1,8 @@
-import { genericLogger, initRedisRateLimiter } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  initFileManager,
+  initRedisRateLimiter,
+} from "pagopa-interop-commons";
 import { fastifyFormbody } from "@fastify/formbody";
 import Fastify from "fastify";
 import { FastifyInstance } from "fastify";
@@ -6,6 +10,7 @@ import { generateId, genericInternalError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
+import { initProducer } from "kafka-iam-auth";
 import { makeApiProblem } from "./model/domain/errors.js";
 import { sampleErrorMapper } from "./utilities/errorMappers.js";
 import { tokenServiceBuilder } from "./services/tokenService.js";
@@ -25,6 +30,8 @@ const redisRateLimiter = await initRedisRateLimiter({
   redisPort: config.rateLimiterRedisPort,
   timeout: config.rateLimiterTimeout,
 });
+const producer = await initProducer(config, config.tokenAuditingTopic);
+const fileManager = initFileManager(config);
 
 // TODO Enable logging once error handling is completed
 // const server: FastifyInstance = Fastify({ logger: { level: 'error' } })
@@ -34,7 +41,11 @@ await fastifyServer.register(fastifyFormbody);
 const tokenService = tokenServiceBuilder(
   dynamoDBClient,
   kmsClient,
-  redisRateLimiter
+  redisRateLimiter,
+  producer,
+  generateId(),
+  fileManager,
+  genericLogger
 );
 
 fastifyServer.post("/token.oauth2", async (request, reply) => {

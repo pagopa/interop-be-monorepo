@@ -36,10 +36,14 @@ import { match } from "ts-pattern";
 import {
   b64ByteUrlEncode,
   b64UrlEncode,
+  FileManager,
+  formatDateyyyyMMdd,
   genericLogger,
+  Logger,
   RateLimiter,
 } from "pagopa-interop-commons";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
+import { initProducer } from "kafka-iam-auth";
 import {
   GeneratedTokenAuditDetails,
   InteropJwtHeader,
@@ -52,7 +56,11 @@ import { config } from "../config/config.js";
 export function tokenServiceBuilder(
   dynamoDBClient: DynamoDBClient,
   kmsClient: KMSClient,
-  redisRateLimiter: RateLimiter
+  redisRateLimiter: RateLimiter,
+  producer: Awaited<ReturnType<typeof initProducer>>,
+  correlationId: string,
+  fileManager: FileManager,
+  logger: Logger
 ) {
   return {
     async generateToken(
@@ -102,7 +110,6 @@ export function tokenServiceBuilder(
         return Promise.resolve(false);
       }
 
-      // TODO rate limiter
       // TODO throw error if limit reached?
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(
@@ -121,7 +128,23 @@ export function tokenServiceBuilder(
 
       const token = await actualGenerateToken(kmsClient, jwt, [], 0, {});
 
-      // TODO audit
+      if (key.clientKind === clientKindTokenStates.consumer) {
+        if (
+          await publishAudit(
+            producer,
+            token,
+            key,
+            jwt,
+            correlationId,
+            fileManager,
+            logger
+          )
+        ) {
+          return token;
+        } else {
+          return false;
+        }
+      }
 
       return false;
     },
@@ -319,46 +342,89 @@ export const actualGenerateToken = async (
   };
 };
 
-export const publishAudit = (
+export const publishAudit = async (
+  producer: Awaited<ReturnType<typeof initProducer>>,
   generatedToken: InteropToken,
   key: ConsumerKey,
   clientAssertion: ClientAssertion,
-  correlationId: string
-): void => {
-  try {
-    // TODO: publish audit
+  correlationId: string,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<boolean> => {
+  const messageBody: GeneratedTokenAuditDetails = {
+    jwtId: generatedToken.payload.jti,
+    correlationId,
+    issuedAt: generatedToken.payload.iat,
+    clientId: clientAssertion.payload.sub,
+    organizationId: key.consumerId,
+    agreementId: key.agreementId,
+    eserviceId: key.eServiceId,
+    descriptorId: key.eServiceState.descriptorId,
+    purposeId: key.purposeId,
+    purposeVersionId: key.purposeState.versionId,
+    algorithm: generatedToken.header.alg,
+    keyId: generatedToken.header.kid,
+    audience: generatedToken.payload.aud.join(","),
+    subject: generatedToken.payload.sub,
+    notBefore: generatedToken.payload.nbf,
+    expirationTime: generatedToken.payload.exp,
+    issuer: generatedToken.payload.iss,
+    clientAssertion: {
+      algorithm: clientAssertion.header.alg,
+      audience: clientAssertion.payload.aud.join(","),
+      // TODO: double check if the toMillis function is needed
+      expirationTime: clientAssertion.payload.exp,
+      issuedAt: clientAssertion.payload.iat,
+      issuer: clientAssertion.payload.iss,
+      jwtId: clientAssertion.payload.jti,
+      keyId: clientAssertion.header.kid,
+      subject: clientAssertion.payload.sub,
+    },
+  };
 
-    const messageBody: GeneratedTokenAuditDetails = {
-      jwtId: generatedToken.payload.jti,
-      correlationId, // TODO
-      issuedAt: generatedToken.payload.iat,
-      clientId: clientAssertion.payload.sub,
-      organizationId: key.consumerId,
-      agreementId: key.agreementId,
-      eserviceId: key.eServiceId,
-      descriptorId: key.eServiceState.descriptorId,
-      purposeId: key.purposeId,
-      purposeVersionId: key.purposeState.versionId,
-      algorithm: generatedToken.header.alg,
-      keyId: generatedToken.header.kid,
-      audience: generatedToken.payload.aud.join(","),
-      subject: generatedToken.payload.sub,
-      notBefore: generatedToken.payload.nbf,
-      expirationTime: generatedToken.payload.exp,
-      issuer: generatedToken.payload.iss,
-      clientAssertion: {
-        algorithm: clientAssertion.header.alg,
-        audience: clientAssertion.payload.aud.join(","),
-        // TODO: double check if the toMillis function is needed
-        expirationTime: clientAssertion.payload.exp,
-        issuedAt: clientAssertion.payload.iat,
-        issuer: clientAssertion.payload.iss,
-        jwtId: clientAssertion.payload.jti,
-        keyId: clientAssertion.header.kid,
-        subject: clientAssertion.payload.sub,
-      },
-    };
+  try {
+    const res = await producer.send({
+      messages: [
+        {
+          key: generatedToken.payload.jti,
+          value: JSON.stringify(messageBody),
+        },
+      ],
+    });
+
+    if (res.length === 0 || res[0].errorCode !== 0) {
+      console.log("error");
+      throw genericInternalError("kafka write operation returned an error");
+    }
+
+    return true;
   } catch (e) {
-    // TODO: fallback audit
+    return fallbackAudit(messageBody, fileManager, logger);
+  }
+};
+
+export const fallbackAudit = async (
+  messageBody: GeneratedTokenAuditDetails,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<boolean> => {
+  const ymdDate = formatDateyyyyMMdd(new Date());
+
+  const fileName = `${ymdDate}_${messageBody.jwtId}.ndjson`;
+  const filePath = `token-details/${ymdDate}/${fileName}`;
+
+  try {
+    await fileManager.storeBytes(
+      {
+        bucket: config.interopGeneratedJwtDetailsFallback,
+        path: filePath,
+        name: fileName,
+        content: Buffer.from(JSON.stringify(messageBody)),
+      },
+      logger
+    );
+    return true;
+  } catch {
+    return false;
   }
 };

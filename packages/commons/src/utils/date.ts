@@ -13,6 +13,10 @@ export function formatDateyyyyMMddThhmmss(date: Date): string {
   return format(date, "yyyy-MM-dd'T'hh:mm:ss");
 }
 
+export function formatDateyyyyMMdd(date: Date): string {
+  return format(date, "yyyyMMdd");
+}
+
 export function dateAtRomeZone(date: Date): string {
   return formatInTimeZone(date, "Europe/Rome", "dd/MM/yyyy");
 }

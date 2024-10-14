@@ -873,6 +873,9 @@ importers:
       fastify:
         specifier: 5.0.0
         version: 5.0.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
