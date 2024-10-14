@@ -36,7 +36,7 @@ export const getMockClientAssertion = ({
   const defaultPayload: jwt.JwtPayload = {
     iss: clientId,
     sub: clientId,
-    aud: ["test.interop.pagopa.it"],
+    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
     exp: 60,
     jti: generateId(),
     iat: 5,

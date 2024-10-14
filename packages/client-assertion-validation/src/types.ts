@@ -34,7 +34,7 @@ export const ClientAssertionPayload = z
     jti: z.string(),
     iat: z.number(),
     iss: z.string(),
-    aud: z.array(z.string()),
+    aud: z.array(z.string()).or(z.string()),
     exp: z.number(),
     digest: ClientAssertionDigest.optional(),
     purposeId: PurposeId.optional(),
