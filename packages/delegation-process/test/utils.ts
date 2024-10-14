@@ -9,6 +9,7 @@ import {
   Delegation,
   DelegationEvent,
   DelegationId,
+  DelegationState,
   delegationState,
   EService,
   Tenant,
