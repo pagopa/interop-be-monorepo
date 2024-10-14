@@ -4,13 +4,14 @@ import {
   initRedisRateLimiter,
 } from "pagopa-interop-commons";
 import { fastifyFormbody } from "@fastify/formbody";
-import Fastify from "fastify";
+import Fastify, { FastifyRequest } from "fastify";
 import { FastifyInstance } from "fastify";
 import { generateId, genericInternalError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
+import { AccessTokenRequest } from "../../api-clients/dist/bffApi.js";
 import { makeApiProblem } from "./model/domain/errors.js";
 import { sampleErrorMapper } from "./utilities/errorMappers.js";
 import { tokenServiceBuilder } from "./services/tokenService.js";
@@ -48,14 +49,18 @@ const tokenService = tokenServiceBuilder(
   genericLogger
 );
 
-fastifyServer.post("/token.oauth2", async (request, reply) => {
-  const correlationId = generateId();
-  const tokenRequest = authorizationServerApi.AccessTokenRequest.safeParse(
-    request.body
-  );
-  if (tokenRequest.success) {
+fastifyServer.post(
+  "/token.oauth2",
+  async (
+    request: FastifyRequest<{
+      Body: authorizationServerApi.AccessTokenRequest;
+    }>,
+    reply
+  ) => {
+    const correlationId = generateId();
+
     try {
-      const res = await tokenService.generateToken(tokenRequest.data);
+      const res = await tokenService.generateToken(request.body);
       return reply.status(200).send({
         res, // TODO check type for response
       });
@@ -64,12 +69,7 @@ fastifyServer.post("/token.oauth2", async (request, reply) => {
       const errorRes = makeApiProblem(err, sampleErrorMapper, genericLogger);
       return reply.status(errorRes.status).send(errorRes);
     }
-  } else {
-    // console.log(tokenRequest.error.format());
-    return reply
-      .status(400)
-      .send({ correlationId, ...genericInternalError("") });
   }
-});
+);
 
 fastifyServer.get("/health", async (_, reply) => reply.status(204));
