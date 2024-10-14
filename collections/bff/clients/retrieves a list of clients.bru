@@ -1,0 +1,30 @@
+meta {
+  name: retrieves a list of clients
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/clients
+  body: none
+  auth: none
+}
+
+params:query {
+  q: 
+  userIds: 
+  offset: 0
+  limit: 10
+  ~kind: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+docs {
+  retrieves a list of clients
+}

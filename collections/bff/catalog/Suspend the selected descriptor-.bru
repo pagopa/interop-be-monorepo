@@ -1,0 +1,25 @@
+meta {
+  name: Suspend the selected descriptor-
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/suspend
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+  descriptorId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}

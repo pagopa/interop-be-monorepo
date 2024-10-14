@@ -1,0 +1,21 @@
+meta {
+  name: Health status endpoint
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/status
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+
+
+docs {
+  Return ok
+}

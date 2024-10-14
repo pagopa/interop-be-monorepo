@@ -1,0 +1,34 @@
+meta {
+  name: Retrieves the catalog eservice descriptor corresponding to the id
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/catalog/eservices/:eserviceId/descriptor/:descriptorId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 2e32a120-ec4c-4a88-9c1f-822d327c198b
+  descriptorId: 1fb5c4e3-01a3-45fd-8600-582d68d5582e
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  X-Correlation-Id: sdfasdfsf
+  Accept: application/json
+}
+
+
+
+docs {
+  Retrieves the catalog eservice descriptor corresponding to the id
+}

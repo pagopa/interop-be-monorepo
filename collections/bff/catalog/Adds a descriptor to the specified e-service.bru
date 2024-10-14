@@ -1,0 +1,106 @@
+meta {
+  name: Adds a descriptor to the specified e-service
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+body:json {
+  {
+    "audience": [
+      "<string>",
+      "<string>"
+    ],
+    "voucherLifespan": "<integer>",
+    "dailyCallsPerConsumer": "<integer>",
+    "dailyCallsTotal": "<integer>",
+    "agreementApprovalPolicy": "MANUAL",
+    "attributes": {
+      "certified": [
+        [
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          },
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          }
+        ],
+        [
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          },
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          }
+        ]
+      ],
+      "declared": [
+        [
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          },
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          }
+        ],
+        [
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          },
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          }
+        ]
+      ],
+      "verified": [
+        [
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          },
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          }
+        ],
+        [
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          },
+          {
+            "id": "<uuid>",
+            "explicitAttributeVerification": "<boolean>"
+          }
+        ]
+      ]
+    },
+    "description": "<string>"
+  }
+}

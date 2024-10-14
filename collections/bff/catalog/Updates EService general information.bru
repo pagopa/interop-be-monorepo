@@ -1,0 +1,40 @@
+meta {
+  name: Updates EService general information
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{host-bff}}/eservices/:eServiceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 26f433e1-2c3c-4022-a14e-3c300baefc51
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Content-Type: application/json
+  Content-Length: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  X-Correlation-Id: test
+  Content-Type: application/json
+}
+
+
+
+body:json {
+  {
+    "name": "{{$randomLoremWord}}",
+    "description": "{{$randomLoremParagraph}}",
+    "technology": "SOAP",
+    "mode": "RECEIVE"
+  }
+}

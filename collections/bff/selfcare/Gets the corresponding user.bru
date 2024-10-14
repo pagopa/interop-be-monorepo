@@ -1,0 +1,33 @@
+meta {
+  name: Gets the corresponding user
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/users/:userId
+  body: none
+  auth: none
+}
+
+params:path {
+  userId: d0b75bf4-6dfb-44bb-9f12-a298bbc5d37e
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Accept: application/json
+  X-Correlation-Id: sdfdsa
+}
+
+
+
+docs {
+  Gets user
+}

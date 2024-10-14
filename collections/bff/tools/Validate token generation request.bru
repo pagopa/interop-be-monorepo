@@ -1,0 +1,30 @@
+meta {
+  name: Validate token generation request
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/tools/validateTokenGeneration
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  X-Correlation-Id: <string>
+  Content-Type: application/x-www-form-urlencoded
+  Accept: application/json
+}
+
+
+
+body:form-urlencoded {
+  client_assertion: <string>
+  client_assertion_type: <string>
+  grant_type: <string>
+  client_id: <string>
+}
+
+docs {
+  Provides additional details about token generation request failure
+}

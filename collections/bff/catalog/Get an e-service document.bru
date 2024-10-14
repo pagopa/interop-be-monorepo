@@ -1,0 +1,27 @@
+meta {
+  name: Get an e-service document
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: <string>
+  descriptorId: <string>
+  documentId: <string>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+  Accept: application/octet-stream
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}

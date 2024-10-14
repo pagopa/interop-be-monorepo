@@ -1,0 +1,37 @@
+meta {
+  name: Create Keys for the specific clientId-
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/clients/:clientId/keys
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+
+
+body:json {
+  [
+    {
+      "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FETUVrdEZVVyszY2VWN01FT2RBVG5ZYWc3eQpJc3JtRDZ6eVBTZHhJTDlJczNmdnlGREMvbnVCWVFpa3Izampjc21aREdTN0RGKzNWRUJ3UXFYUldGM3NObElRCnFIc21Td2x2NjZ2ZDQ0OHEzSXpSb1JBWktGMGc3c3BGcUJ5bi9DTXZaM0RET2xVK2V0c2xDYWRNa084UktyM1YKd2xqQjFJdk90TWtCd2lLTU53SURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo=",
+      "use": "ENC",
+      "alg": "RS256",
+      "name": "asdasasdasdad"
+    }
+  ]
+}
+
+docs {
+  Creates one or more keys for the corresponding client.
+}

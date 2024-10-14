@@ -1,0 +1,29 @@
+meta {
+  name: getInstitutionUserProducts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/selfcare/institutions/products
+  body: none
+  auth: none
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Accept: application/json
+  X-Correlation-Id: asdfads
+}
+
+
+
+docs {
+  Service to retrieve all active products for given institution and user
+}

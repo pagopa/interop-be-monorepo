@@ -1,0 +1,33 @@
+meta {
+  name: Revokes the declared attribute to the Institution
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/tenants/attributes/declared/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  attributeId: d8fa4097-d3cb-42ea-a82b-c99e4c7506fd
+}
+
+headers {
+  Cache-Control: no-cache
+  Postman-Token: <calculated when request is sent>
+  Host: <calculated when request is sent>
+  User-Agent: PostmanRuntime/7.39.1
+  Accept: */*
+  Accept-Encoding: gzip, deflate, br
+  Connection: keep-alive
+  Accept: application/json
+  X-Correlation-Id: sdfdsf
+}
+
+
+
+docs {
+  Revokes the declared attribute to the Institution
+}

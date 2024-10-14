@@ -1,0 +1,25 @@
+meta {
+  name: Deletes a draft descriptor or an eservice if empty
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+  descriptorId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
