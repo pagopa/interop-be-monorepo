@@ -13,6 +13,7 @@ import {
   Tenant,
   TenantKind,
   Descriptor,
+  EServiceId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -24,15 +25,31 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 
-export function assertRequesterAllowed(
+export async function assertRequesterAllowed(
   producerId: TenantId,
-  authData: AuthData
-): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
+  eserviceId: EServiceId,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+
+  const delegation = await readModelService.getDelegationByEServiceId(
+    eserviceId
+  );
+
+  // If the e-service is delegated, only the delegated can operate
+  if (delegation) {
+    if (authData.organizationId !== delegation.delegateId) {
+      throw operationForbidden;
+    }
+    return;
+  }
+
+  if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
 }

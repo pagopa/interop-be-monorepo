@@ -27,6 +27,7 @@ import {
   EServiceReadModel,
   TenantReadModel,
   genericInternalError,
+  Delegation,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -99,6 +100,7 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
+  const delegations = readModelRepository.delegations;
 
   return {
     async getEServices(
@@ -497,6 +499,30 @@ export function readModelServiceBuilder(
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
+    },
+
+    async getDelegationByEServiceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      const delegation = await delegations.findOne({
+        "data.eserviceId": eserviceId,
+      });
+
+      if (!delegation) {
+        return undefined;
+      }
+
+      const result = Delegation.safeParse(delegation.data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(delegation)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
