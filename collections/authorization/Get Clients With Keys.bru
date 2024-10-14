@@ -24,3 +24,7 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
 }
+
+vars:post-response {
+  clientId: res.body.results.at(-1).client.id
+}
