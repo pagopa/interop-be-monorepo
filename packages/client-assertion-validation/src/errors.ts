@@ -310,7 +310,7 @@ export function clientAssertionInvalidClaims(
   details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failure 123. Reason: ${details}`,
+    detail: `Client assertion validation failure. Reason: ${details}`,
     code: "clientAssertionInvalidClaims",
     title: "Invalid claims in header or payload",
   });
