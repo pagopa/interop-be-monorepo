@@ -69,7 +69,7 @@ export function invalidExternalOriginError(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegator is not an IPA`,
-    code: "invalidExternalOrigin",
+    code: "invalidExternalOriginId",
     title: `Invalid External origin ${externalOrigin}`,
   });
 }

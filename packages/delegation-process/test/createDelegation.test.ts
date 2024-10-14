@@ -13,7 +13,6 @@ import {
   Delegation,
   DelegationId,
   delegationKind,
-  DelegationState,
   delegationState,
   DelegationSubmittedV2,
   EServiceId,
