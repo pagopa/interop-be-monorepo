@@ -1,17 +1,17 @@
 meta {
-  name: Delete Producer Keychain Key
+  name: Delete Producer Keychain Eservice
   type: http
-  seq: 28
+  seq: 30
 }
 
 delete {
-  url: {{host-authorization}}/producerKeychains/:producerKeychainId/keys/:keyId
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/eservices/:eserviceId
   body: none
   auth: none
 }
 
 params:path {
-  keyId: {{keyId}}
+  eserviceId: {{eserviceId}}
   producerKeychainId: {{producerKeychainId}}
 }
 

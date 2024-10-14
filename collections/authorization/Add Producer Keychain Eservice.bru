@@ -1,11 +1,11 @@
 meta {
-  name: Add Producer Keychain Users
+  name: Add Producer Keychain Eservice
   type: http
-  seq: 24
+  seq: 29
 }
 
 post {
-  url: {{host-authorization}}/producerKeychains/:producerKeychainId/users
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/eservices
   body: json
   auth: none
 }
@@ -21,6 +21,7 @@ headers {
 
 body:json {
   {
-    "userIds": ["{{userId1}}"]
+    "eserviceId": "{{eserviceId}}"
   }
+  
 }

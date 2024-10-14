@@ -1,18 +1,18 @@
 meta {
-  name: Delete Client Purpose
+  name: Get Keys With Client
   type: http
-  seq: 16
+  seq: 14
 }
 
-delete {
-  url: {{host-authorization}}/clients/:clientId/purposes/:purposeId
+get {
+  url: {{host-authorization}}/clients/:clientId/keys/:keyId/bundle
   body: none
   auth: none
 }
 
 params:path {
-  purposeId: {{purposeId}}
   clientId: {{clientId}}
+  keyId: {{keyId}}
 }
 
 headers {
