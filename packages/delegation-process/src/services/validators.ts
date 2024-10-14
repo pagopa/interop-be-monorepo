@@ -1,16 +1,25 @@
 import {
   DelegationKind,
+  DelegationState,
   delegationState,
   EServiceId,
+  Tenant,
   TenantId,
 } from "pagopa-interop-models";
 import {
   delegationAlreadyExists,
+  delegatorAndDelegateSameIdError,
   eserviceNotFound,
-  invalidDelegator,
+  invalidExternalOriginError,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
+
+/* ========= STATES ========= */
+export const delegationNotActivableStates: DelegationState[] = [
+  delegationState.rejected,
+  delegationState.revoked,
+];
 
 export const assertEserviceExists = async (
   eserviceId: EServiceId,
@@ -27,7 +36,15 @@ export const assertDelegatorIsNotDelegate = (
   delegateId: TenantId
 ): void => {
   if (delegatorId === delegateId) {
-    throw invalidDelegator();
+    throw delegatorAndDelegateSameIdError();
+  }
+};
+
+export const assertDelegatorIsIPA = async (
+  delegator?: Tenant
+): Promise<void> => {
+  if (delegator?.externalId?.origin !== "IPA") {
+    throw invalidExternalOriginError(delegator?.externalId?.origin);
   }
 };
 
@@ -42,12 +59,15 @@ export const assertTenantExists = async (
 };
 
 export const assertDelegationNotExists = async (
-  delegatorId: TenantId,
-  delegateId: TenantId,
+  delegator: Tenant,
+  delegate: Tenant,
   eserviceId: EServiceId,
   delegationKind: DelegationKind,
   readModelService: ReadModelService
 ): Promise<void> => {
+  const delegatorId = delegator.id;
+  const delegateId = delegate.id;
+
   const delegation = await readModelService.findDelegation({
     delegatorId,
     delegateId,

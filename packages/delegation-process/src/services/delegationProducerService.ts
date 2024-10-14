@@ -13,17 +13,18 @@ import {
   delegationState,
   EServiceId,
   generateId,
+  Tenant,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { delegationNotFound } from "../model/domain/errors.js";
+import { delegationNotFound, tenantNotFound } from "../model/domain/errors.js";
 import { toCreateEventProducerDelegation } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDelegationNotExists,
+  assertDelegatorIsIPA,
   assertDelegatorIsNotDelegate,
   assertEserviceExists,
-  assertTenantExists,
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -31,6 +32,14 @@ export function delegationProducerServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService
 ) {
+  const getTenantById = async (tenantId: TenantId): Promise<Tenant> => {
+    const tenant = await readModelService.getTenantById(tenantId);
+    if (!tenant) {
+      throw tenantNotFound(tenantId);
+    }
+    return tenant;
+  };
+
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
   return {
     async getDelegationById(delegationId: DelegationId): Promise<Delegation> {
@@ -55,11 +64,15 @@ export function delegationProducerServiceBuilder(
       );
 
       assertDelegatorIsNotDelegate(delegatorId, delegateId);
+
+      const delegator = await getTenantById(delegatorId);
+      const delegate = await getTenantById(delegateId);
+
+      await assertDelegatorIsIPA(delegator);
       await assertEserviceExists(eserviceId, readModelService);
-      await assertTenantExists(delegateId, readModelService);
       await assertDelegationNotExists(
-        delegatorId,
-        delegateId,
+        delegator,
+        delegate,
         eserviceId,
         delegationKind.delegatedProducer,
         readModelService

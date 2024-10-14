@@ -10,7 +10,8 @@ export const errorCodes = {
   eserviceNotFound: "0002",
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
-  invalidDelegator: "0005",
+  invalidDelegatorAndDelegateIds: "0005",
+  invalidExternalOriginId: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -55,10 +56,20 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidDelegator(): ApiError<ErrorCodes> {
+export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegator and delegate cannot be the same tenant`,
-    code: "invalidDelegator",
-    title: "Invalid delegator",
+    detail: `Error occurs because Delegator and Delegate have the same Id`,
+    code: "invalidDelegatorAndDelegateIds",
+    title: "Invalid Delegator and Delegate",
+  });
+}
+
+export function invalidExternalOriginError(
+  externalOrigin?: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegator is not an IPA`,
+    code: "invalidExternalOrigin",
+    title: `Invalid External origin ${externalOrigin}`,
   });
 }

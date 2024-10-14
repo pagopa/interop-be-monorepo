@@ -1,6 +1,6 @@
-import { randomUUID } from "crypto";
 import { fail } from "assert";
-import { expect, describe, it, vi } from "vitest";
+import { randomUUID } from "crypto";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockDelegationProducer,
@@ -13,6 +13,7 @@ import {
   Delegation,
   DelegationId,
   delegationKind,
+  DelegationState,
   delegationState,
   DelegationSubmittedV2,
   EServiceId,
@@ -20,19 +21,22 @@ import {
   TenantId,
   toDelegationV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { describe, expect, it, vi } from "vitest";
 import {
   delegationAlreadyExists,
+  delegatorAndDelegateSameIdError,
   eserviceNotFound,
-  invalidDelegator,
+  invalidExternalOriginError,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 
+import { delegationNotActivableStates } from "../src/services/validators.js";
 import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationService,
+  getRandomValidDelegationStatus,
   readLastAgreementEvent,
 } from "./utils.js";
 
@@ -81,12 +85,87 @@ describe("create delegation", () => {
 
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "anythings",
+      },
+    };
 
     const delegate = getMockTenant();
     const eservice = getMockEService();
 
+    await addOneTenant(delegator);
     await addOneTenant(delegate);
     await addOneEservice(eservice);
+
+    const actualDelegation = await delegationService.createProducerDelegation(
+      {
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+      },
+      {
+        authData,
+        logger: genericLogger,
+        correlationId: randomUUID(),
+        serviceName: "DelegationServiceTest",
+      }
+    );
+
+    const expectedDelegation: Delegation = {
+      id: actualDelegation.id,
+      delegatorId,
+      delegateId: delegate.id,
+      eserviceId: eservice.id,
+      kind: delegationKind.delegatedProducer,
+      state: delegationState.waitingForApproval,
+      createdAt: currentExecutionTime,
+      submittedAt: currentExecutionTime,
+      stamps: {
+        submission: {
+          who: delegatorId,
+          when: currentExecutionTime,
+        },
+      },
+    };
+
+    await expectedDelegationCreation(actualDelegation, expectedDelegation);
+    vi.useRealTimers();
+  });
+
+  it("should create a delegation if already exists the same delegation in status Rejected or Revoked", async () => {
+    const currentExecutionTime = new Date();
+    vi.useFakeTimers();
+    vi.setSystemTime(currentExecutionTime);
+
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "anythings",
+      },
+    };
+
+    const delegate = getMockTenant();
+    const eservice = getMockEService();
+
+    const existentDelegation = {
+      ...getMockDelegationProducer(
+        generateId<DelegationId>(),
+        delegatorId,
+        delegate.id,
+        eservice.id
+      ),
+      state: randomArrayItem(delegationNotActivableStates),
+    };
+
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEservice(eservice);
+    await addOneDelegation(existentDelegation);
 
     const actualDelegation = await delegationService.createProducerDelegation(
       {
@@ -125,6 +204,13 @@ describe("create delegation", () => {
   it("should throw an delegationAlreadyExists error when Delegation for eservice producer already exists with for same delegator, delegate and eserivce ", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "anythings",
+      },
+    };
 
     const delegate = getMockTenant();
     const eservice = getMockEService();
@@ -135,13 +221,13 @@ describe("create delegation", () => {
         delegate.id,
         eservice.id
       ),
-      state: randomArrayItem([
-        delegationState.active,
-        delegationState.waitingForApproval,
-      ]),
+      state: getRandomValidDelegationStatus(),
     };
+    // eslint-disable-next-line no-console
+    console.log(`Delegation created with state ${delegation.state}`);
 
     await addOneTenant(delegate);
+    await addOneTenant(delegator);
     await addOneEservice(eservice);
     await addOneDelegation(delegation);
 
@@ -172,24 +258,17 @@ describe("create delegation", () => {
   it("should throw an tenantNotFound error if delegated tenant not exists", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const delegator = getMockTenant(delegatorId);
 
     const delegateId = generateId<TenantId>();
-    const eservice = getMockEService();
-    const delegation = getMockDelegationProducer(
-      generateId<DelegationId>(),
-      delegatorId,
-      delegateId,
-      eservice.id
-    );
 
-    await addOneEservice(eservice);
-    await addOneDelegation(delegation);
+    await addOneTenant(delegator);
 
     await expect(
       delegationService.createProducerDelegation(
         {
           delegateId,
-          eserviceId: eservice.id,
+          eserviceId: generateId<EServiceId>(),
         },
         {
           authData,
@@ -201,19 +280,20 @@ describe("create delegation", () => {
     ).rejects.toThrowError(tenantNotFound(delegateId));
   });
 
-  it("should throw an invalidDelegator error if delegatorId and delegateId is the same", async () => {
+  it("should throw an tenantNotFound error if delegator tenant not exists", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
-    const delegate = getMockTenant(delegatorId);
-    const eserviceId = generateId<EServiceId>();
+
+    const delegateId = generateId<TenantId>();
+    const delegate = getMockTenant(delegateId);
 
     await addOneTenant(delegate);
 
     await expect(
       delegationService.createProducerDelegation(
         {
-          delegateId: delegate.id,
-          eserviceId,
+          delegateId,
+          eserviceId: generateId<EServiceId>(),
         },
         {
           authData,
@@ -222,12 +302,73 @@ describe("create delegation", () => {
           serviceName: "DelegationServiceTest",
         }
       )
-    ).rejects.toThrowError(invalidDelegator());
+    ).rejects.toThrowError(tenantNotFound(delegatorId));
+  });
+
+  it("should throw an invalidDelegatorAndDelegateAreSame error if delegatorId and delegateId is the same", async () => {
+    const sameTenantId = generateId<TenantId>();
+    const authData = getRandomAuthData(sameTenantId);
+
+    await expect(
+      delegationService.createProducerDelegation(
+        {
+          delegateId: sameTenantId,
+          eserviceId: generateId<EServiceId>(),
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: randomUUID(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(delegatorAndDelegateSameIdError());
+  });
+
+  it("should throw an invalidExternalOriginError error if delegator has externalId origin different from IPA", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "NOT_IPA",
+        value: "anythings",
+      },
+    };
+
+    const delegate = getMockTenant();
+
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+
+    await expect(
+      delegationService.createProducerDelegation(
+        {
+          delegateId: delegate.id,
+          eserviceId: generateId<EServiceId>(),
+        },
+        {
+          authData,
+          logger: genericLogger,
+          correlationId: randomUUID(),
+          serviceName: "DelegationServiceTest",
+        }
+      )
+    ).rejects.toThrowError(
+      invalidExternalOriginError(delegator.externalId.origin)
+    );
   });
 
   it("should throw an eserviceNotFound error if Eservice not exists", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getRandomAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "anythings",
+      },
+    };
 
     const delegate = getMockTenant();
     const eserviceId = generateId<EServiceId>();
@@ -238,6 +379,7 @@ describe("create delegation", () => {
     );
 
     await addOneTenant(delegate);
+    await addOneTenant(delegator);
     await addOneDelegation(delegation);
 
     await expect(
