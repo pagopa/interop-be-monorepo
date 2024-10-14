@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "PagoPA Interop api gw",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
