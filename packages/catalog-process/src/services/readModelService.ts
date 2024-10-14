@@ -6,6 +6,7 @@ import {
   hasPermission,
   AuthData,
   TenantCollection,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -84,6 +85,30 @@ async function getTenant(
   if (!result.success) {
     throw genericInternalError(
       `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return result.data;
+}
+
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<WithId<WithMetadata<Delegation>>>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  }
+  const result = Delegation.safeParse(data.data);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse delegation item: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
@@ -501,28 +526,12 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.id": id });
     },
 
-    async getDelegationByEServiceId(
+    getDelegationByEServiceId(
       eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
-      const delegation = await delegations.findOne({
+      return getDelegation(delegations, {
         "data.eserviceId": eserviceId,
       });
-
-      if (!delegation) {
-        return undefined;
-      }
-
-      const result = Delegation.safeParse(delegation.data);
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse delegation item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(delegation)} `
-        );
-      }
-
-      return result.data;
     },
   };
 }

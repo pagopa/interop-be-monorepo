@@ -14,6 +14,8 @@ import {
   TenantKind,
   Descriptor,
   EServiceId,
+  delegationState,
+  DelegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
@@ -27,7 +29,7 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
-export async function assertRequesterAllowed(
+export async function assertRequesterIsDelegateOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
   authData: AuthData,
@@ -41,15 +43,38 @@ export async function assertRequesterAllowed(
     eserviceId
   );
 
-  // If the e-service is delegated, only the delegated can operate
-  if (delegation) {
+  if (delegation && delegation.state === delegationState.active) {
     if (authData.organizationId !== delegation.delegateId) {
       throw operationForbidden;
     }
-    return;
+  } else {
+    assertRequesterIsProducer(producerId, authData);
   }
+}
 
+export function assertRequesterIsProducer(
+  producerId: TenantId,
+  authData: AuthData
+): void {
   if (producerId !== authData.organizationId) {
+    throw operationForbidden;
+  }
+}
+
+export async function assertNoValidDelegationAssociated(
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> {
+  const delegation = await readModelService.getDelegationByEServiceId(
+    eserviceId
+  );
+
+  const validDelegationStates: DelegationState[] = [
+    delegationState.active,
+    delegationState.waitingForApproval,
+  ];
+
+  if (delegation && validDelegationStates.includes(delegation.state)) {
     throw operationForbidden;
   }
 }
