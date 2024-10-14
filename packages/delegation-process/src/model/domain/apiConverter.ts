@@ -54,6 +54,14 @@ export const delegationKindToApiDelegationKind = (
     .with(delegationKind.delegatedProducer, () => "DELEGATED_PRODUCER")
     .exhaustive();
 
+export const apiDelegationKindToDelegationKind = (
+  kind: delegationApi.DelegationKind
+): DelegationKind =>
+  match<delegationApi.DelegationKind, DelegationKind>(kind)
+    .with("DELEGATED_CONSUMER", () => delegationKind.delegatedConsumer)
+    .with("DELEGATED_PRODUCER", () => delegationKind.delegatedProducer)
+    .exhaustive();
+
 export const delegationContractToApiDelegationContract = (
   contract: DelegationContractDocument
 ): delegationApi.DelegationContractDocument => ({

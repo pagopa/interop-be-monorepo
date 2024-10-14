@@ -16,6 +16,11 @@ servers:
 security:
   - bearerAuth: []
 tags:
+  - name: delegation
+    description: Delegation common operations
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
   - name: producer
     description: Lead organization
     externalDocs:
@@ -27,13 +32,13 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /producer/delegations:
+  /delegations:
     get:
-      description: List producer delegations
-      summary: List producer delegations
+      description: List delegations
+      summary: List delegations
       tags:
-        - producer
-      operationId: getProducerDelegations
+        - delegation
+      operationId: getDelegations
       parameters:
         - in: query
           name: delegationStates
@@ -64,6 +69,11 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: kind
+          required: true
+          schema:
+            $ref: "#/components/schemas/DelegationKind"
         - in: query
           name: offset
           required: true
@@ -104,6 +114,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /delegations/{delegationId}:
+    parameters:
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+    get:
+      description: Retrieves a delegation
+      summary: Retrieves a delegation
+      tags:
+        - delegation
+      operationId: getDelegation
+      responses:
+        "200":
+          description: Delegation retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producer/delegations:
     post:
       summary: Delegation Creation
       operationId: createProducerDelegation
@@ -221,37 +271,6 @@ paths:
         required: true
         schema:
           type: string
-    get:
-      description: Retrieves a delegation
-      summary: Retrieves a delegation
-      tags:
-        - producer
-      operationId: getProducerDelegation
-      responses:
-        "200":
-          description: Delegation retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Delegation"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Delegation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
     delete:
       description: Revokes a delegation
       tags:
