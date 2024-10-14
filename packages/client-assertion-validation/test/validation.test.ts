@@ -25,7 +25,6 @@ import {
   inactiveEService,
   inactivePurpose,
   invalidAudience,
-  invalidAudienceFormat,
   invalidClientAssertionFormat,
   invalidClientIdFormat,
   invalidHashAlgorithm,
@@ -113,6 +112,26 @@ describe("validation test", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: {},
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeUndefined();
+    });
+
+    it("success client assertion - audience as string", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { aud: "test.interop.pagopa.it" },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeUndefined();
+    });
+
+    it("success client assertion - audience as comma-separated strings", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { aud: "test.interop.pagopa.it, other-aud" },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);
@@ -240,13 +259,25 @@ describe("validation test", () => {
       const { errors } = verifyClientAssertion(a, undefined);
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidAudienceFormat());
+      expect(errors![0]).toEqual(invalidAudience());
     });
 
     it("invalidAudience", () => {
       const a = getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: { aud: ["random"] },
+        customClaims: {},
+      });
+      const { errors } = verifyClientAssertion(a, undefined);
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidAudience());
+    });
+
+    it("invalidAudience", () => {
+      const a = getMockClientAssertion({
+        customHeader: {},
+        standardClaimsOverride: { aud: "wrong-audience1, wrong-audience2" },
         customClaims: {},
       });
       const { errors } = verifyClientAssertion(a, undefined);

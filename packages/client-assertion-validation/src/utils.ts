@@ -17,7 +17,6 @@ import {
   expNotFound,
   issuedAtNotFound,
   invalidAudience,
-  invalidAudienceFormat,
   issuerNotFound,
   jtiNotFound,
   subjectNotFound,
@@ -35,6 +34,7 @@ import {
   invalidHashAlgorithm,
   invalidKidFormat,
   digestClaimNotFound,
+  audienceNotFound,
 } from "./errors.js";
 import { config } from "./config.js";
 
@@ -124,17 +124,18 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
 export const validateAudience = (
   aud: string | string[] | undefined
 ): ValidationResult<string[]> => {
-  if (aud === config.clientAssertionAudience) {
-    return successfulValidation([aud]);
+  if (!aud) {
+    return failedValidation([audienceNotFound()]);
   }
 
-  if (!Array.isArray(aud)) {
-    return failedValidation([invalidAudienceFormat()]);
-  }
-  if (!aud.includes(config.clientAssertionAudience)) {
+  const audEntries = Array.isArray(aud)
+    ? aud
+    : aud.split(",").map((s) => s.trim());
+
+  if (!audEntries.includes(config.clientAssertionAudience)) {
     return failedValidation([invalidAudience()]);
   }
-  return successfulValidation(aud);
+  return successfulValidation(audEntries);
 };
 
 export const validateAlgorithm = (alg?: string): ValidationResult<string> => {

@@ -5,7 +5,7 @@ export const errorCodes = {
   unexpectedClientAssertionSignatureVerificationError: "0002",
   invalidAssertionType: "0003",
   invalidGrantType: "0004",
-  invalidAudienceFormat: "0005",
+  audienceNotFound: "0005",
   invalidAudience: "0006",
   invalidClientAssertionFormat: "0007",
   unexpectedClientAssertionPayload: "0008",
@@ -75,11 +75,11 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidAudienceFormat(): ApiError<ErrorCodes> {
+export function audienceNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Audience must be an array`,
-    code: "invalidAudienceFormat",
-    title: "Invalid audience format",
+    detail: "Audience not found in client assertion",
+    code: "audienceNotFound",
+    title: "Audience not found",
   });
 }
 
@@ -310,7 +310,7 @@ export function clientAssertionInvalidClaims(
   details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failure. Reason: ${details}`,
+    detail: `Client assertion validation failure 123. Reason: ${details}`,
     code: "clientAssertionInvalidClaims",
     title: "Invalid claims in header or payload",
   });
