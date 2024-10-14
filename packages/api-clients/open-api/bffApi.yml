@@ -11927,7 +11927,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /producer/delegations:
+  /delegations:
     parameters:
     - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -11969,7 +11969,6 @@ paths:
               type: string
               format: uuid
           description: "The delegator ids to filter by"
-          required: true
         - in: query
           name: delegatedIds
           schema:
@@ -11978,7 +11977,11 @@ paths:
               type: string
               format: uuid
           description: "The delegated ids to filter by"
-          required: true
+        - in: query
+          name: kind
+          schema:
+            $ref: "#/components/schemas/DelegationKind"
+          description: "The delegation kind to filter by"
       responses:
         "200":
           description: Delegations found
@@ -12369,7 +12372,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available   
-  /producer/delegations/{delegationId}:
+  /delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
@@ -15037,6 +15040,12 @@ components:
           format: uuid
       required:
         - id
+    DelegationKind:
+      type: string
+      description: Delegation State
+      enum:
+        - DELEGATED_PRODUCER
+        - DELEGATED_CONSUMER
     DelegationState:
       type: string
       description: Delegation State

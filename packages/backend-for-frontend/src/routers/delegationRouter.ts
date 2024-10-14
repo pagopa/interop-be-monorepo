@@ -20,8 +20,8 @@ const delegationRouter = (
   // const delegationService = delegationServiceBuilder(processClients);
 
   delegationRouter
-    .get("/producer/delegations", async (_req, res) => res.status(501).send())
-    .get("/producer/delegations/:delegationId", async (_req, res) =>
+    .get("/delegations", async (_req, res) => res.status(501).send())
+    .get("/delegations/:delegationId", async (_req, res) =>
       res.status(501).send()
     )
     .post("/producer/delegations", async (_req, res) => res.status(501).send())
