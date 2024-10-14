@@ -1,10 +1,10 @@
 meta {
-  name: Delete Client Keys
+  name: Get Client Key
   type: http
-  seq: 10
+  seq: 12
 }
 
-delete {
+get {
   url: {{host-authorization}}/clients/:clientId/keys/:keyId
   body: none
   auth: none
