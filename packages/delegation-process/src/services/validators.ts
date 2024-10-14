@@ -15,6 +15,9 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
+/* ========= IDENTIFIERS ========= */
+const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
+
 /* ========= STATES ========= */
 export const delegationNotActivableStates: DelegationState[] = [
   delegationState.rejected,
@@ -43,7 +46,7 @@ export const assertDelegatorIsNotDelegate = (
 export const assertDelegatorIsIPA = async (
   delegator?: Tenant
 ): Promise<void> => {
-  if (delegator?.externalId?.origin !== "IPA") {
+  if (delegator?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
     throw invalidExternalOriginError(delegator?.externalId?.origin);
   }
 };
