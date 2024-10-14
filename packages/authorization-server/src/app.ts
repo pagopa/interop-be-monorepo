@@ -9,6 +9,7 @@ import { KMSClient } from "@aws-sdk/client-kms";
 import { makeApiProblem } from "./model/domain/errors.js";
 import { sampleErrorMapper } from "./utilities/errorMappers.js";
 import { tokenServiceBuilder } from "./services/tokenService.js";
+import { config } from "./config/config.js";
 
 // const serviceName = "authorization-server";
 

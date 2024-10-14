@@ -46,6 +46,7 @@ import {
   InteropJwtPayload,
   InteropToken,
 } from "../model/domain/models.js";
+import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tokenServiceBuilder(
@@ -57,6 +58,7 @@ export function tokenServiceBuilder(
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest
       // TODO: fix return type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): Promise<any> {
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
@@ -277,12 +279,12 @@ export const actualGenerateToken = async (
     alg: "RS256",
     use: "sig",
     typ: "at+jwt",
-    kid: config.GENERATED_INTEROP_TOKEN_KID,
+    kid: config.generatedInteropTokenKid,
   };
 
   const payload: InteropJwtPayload = {
     jti: generateId(),
-    iss: config.GENERATED_INTEROP_TOKEN_ISSUER,
+    iss: config.generatedInteropTokenIssuer,
     aud: audience,
     sub: clientAssertion.payload.sub,
     iat: currentTimestamp,
@@ -296,9 +298,9 @@ export const actualGenerateToken = async (
   )}.${b64UrlEncode(JSON.stringify(payload))}`;
 
   const commandParams: SignCommandInput = {
-    KeyId: config.GENERATED_INTEROP_TOKEN_KID,
+    KeyId: config.generatedInteropTokenKid,
     Message: new TextEncoder().encode(serializedToken),
-    SigningAlgorithm: config.GENERATED_INTEROP_TOKEN_ALGORITHM,
+    SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256", // TODO move this to config?
   };
 
   const command = new SignCommand(commandParams);
@@ -325,6 +327,7 @@ export const publishAudit = (
 ): void => {
   try {
     // TODO: publish audit
+
     const messageBody: GeneratedTokenAuditDetails = {
       jwtId: generatedToken.payload.jti,
       correlationId, // TODO
