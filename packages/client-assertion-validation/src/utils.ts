@@ -124,7 +124,7 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
 
 export const validateAudience = (
   aud: string | string[] | undefined
-): ValidationResult<string[]> => {
+): ValidationResult<string[] | string> => {
   if (!aud) {
     return failedValidation([audienceNotFound()]);
   }
@@ -141,7 +141,7 @@ export const validateAudience = (
     }
     const audEntry = split[0];
     if (config.clientAssertionAudience.every((entry) => audEntry === entry)) {
-      return successfulValidation([aud]);
+      return successfulValidation(aud);
     }
     return failedValidation([invalidAudience()]);
   }
