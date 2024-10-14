@@ -5,9 +5,9 @@ export const errorCodes = {
   unexpectedClientAssertionSignatureVerificationError: "0002",
   invalidAssertionType: "0003",
   invalidGrantType: "0004",
-  audienceNotFound: "0005",
-  invalidAudienceFormat: "0006",
-  invalidAudience: "0007",
+  invalidAudienceFormat: "0005",
+  invalidAudience: "0006",
+  audienceNotFound: "0007",
   invalidClientAssertionFormat: "0008",
   unexpectedClientAssertionPayload: "0009",
   jtiNotFound: "00010",
@@ -76,14 +76,6 @@ export function invalidGrantType(grantType: string): ApiError<ErrorCodes> {
   });
 }
 
-export function audienceNotFound(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Audience not found in client assertion",
-    code: "audienceNotFound",
-    title: "Audience not found",
-  });
-}
-
 export function invalidAudienceFormat(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "Audience must be an array or a string in case of single value",
@@ -97,6 +89,14 @@ export function invalidAudience(): ApiError<ErrorCodes> {
     detail: "Unexpected client assertion audience",
     code: "invalidAudience",
     title: "Invalid audience",
+  });
+}
+
+export function audienceNotFound(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Audience not found in client assertion",
+    code: "audienceNotFound",
+    title: "Audience not found",
   });
 }
 
