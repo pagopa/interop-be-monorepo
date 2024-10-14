@@ -1,16 +1,17 @@
 meta {
-  name: Get Client Keys
+  name: Get Client Keys by Id
   type: http
-  seq: 13
+  seq: 12
 }
 
 get {
-  url: {{host-authorization}}/clients/:clientId/keys
+  url: {{host-authorization}}/clients/:clientId/keys/:keyId
   body: none
   auth: none
 }
 
 params:path {
+  keyId: {{keyId}}
   clientId: {{clientId}}
 }
 

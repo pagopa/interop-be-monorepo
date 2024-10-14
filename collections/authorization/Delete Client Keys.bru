@@ -1,16 +1,17 @@
 meta {
-  name: Get Client Keys
+  name: Delete Client Keys
   type: http
-  seq: 13
+  seq: 10
 }
 
-get {
-  url: {{host-authorization}}/clients/:clientId/keys
+delete {
+  url: {{host-authorization}}/clients/:clientId/keys/:keyId
   body: none
   auth: none
 }
 
 params:path {
+  keyId: {{keyId}}
   clientId: {{clientId}}
 }
 
