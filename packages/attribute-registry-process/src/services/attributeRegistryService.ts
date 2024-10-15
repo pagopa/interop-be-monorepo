@@ -15,6 +15,7 @@ import {
   AttributeId,
   AttributeKind,
   ListResult,
+  TenantFeatureCertifier,
 } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
@@ -308,7 +309,10 @@ async function getCertifierId(
   }
 
   const certifier = tenant.features
-    .filter(({ type }) => type === "PersistentCertifier")
+    .filter(
+      (feature): feature is TenantFeatureCertifier =>
+        feature.type === "PersistentCertifier"
+    )
     .find(({ certifierId }) => certifierId.trim().length > 0);
 
   if (certifier) {
