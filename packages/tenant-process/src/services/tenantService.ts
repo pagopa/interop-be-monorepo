@@ -83,6 +83,7 @@ import {
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
   assertRequesterIPAOrigin,
+  assertDelegatedProducerFeatureNotAssigned,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1599,13 +1600,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      if (
-        requesterTenant.data.features.some(
-          (f) => f.type === "DelegatedProducer"
-        )
-      ) {
-        throw tenantAlreadyHasDelegatedProducerFeature(organizationId);
-      }
+      assertDelegatedProducerFeatureNotAssigned(requesterTenant.data);
 
       const updatedTenant: Tenant = {
         ...requesterTenant.data,

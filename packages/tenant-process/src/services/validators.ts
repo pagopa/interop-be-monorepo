@@ -27,6 +27,7 @@ import {
   tenantIsNotACertifier,
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
+  tenantAlreadyHasDelegatedProducerFeature,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -252,4 +253,12 @@ export function retrieveCertifierId(tenant: Tenant): string {
     throw tenantIsNotACertifier(tenant.id);
   }
   return certifierFeature;
+}
+
+export function assertDelegatedProducerFeatureNotAssigned(
+  tenant: Tenant
+): void {
+  if (tenant.features.some((f) => f.type === "DelegatedProducer")) {
+    throw tenantAlreadyHasDelegatedProducerFeature(tenant.id);
+  }
 }
