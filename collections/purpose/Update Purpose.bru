@@ -1,17 +1,17 @@
 meta {
-  name: Create Risk Analysis
+  name: Update Purpose
   type: http
-  seq: 6
+  seq: 5
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eserviceId/riskAnalysis
+  url: {{host-purpose}}/purposes/:id
   body: json
   auth: none
 }
 
 params:path {
-  eserviceId: {{eserviceId}}
+  id: {{purposeId}}
 }
 
 headers {
@@ -21,20 +21,24 @@ headers {
 
 body:json {
   {
-      "name": "{{randomName}}",
+      "title": "{{randomName}}",
+      "description": "a purpose long description updated",
+      "isFreeOfCharge": false,
+      "dailyCalls": 200,
+      "freeOfChargeReason": "",
       "riskAnalysisForm": {
           "version": "3.0",
           "answers": {
               "purpose": ["INSTITUTIONAL"],
-              "institutionalPurpose": ["MyPurpose"],
+              "institutionalPurpose": ["Another updated purpose"],
               "personalDataTypes": ["OTHER"],
-              "otherPersonalDataTypes": ["MyDataTypes"],
+              "otherPersonalDataTypes": ["some other data types"],
               "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
               "legalObligationReference": ["somethingLegal"],
               "legalBasisPublicInterest": ["RULE_OF_LAW"],
               "ruleOfLawText": ["TheLaw"],
-              "knowsDataQuantity": ["NO"],
-              "dataQuantity": [],
+              "knowsDataQuantity": ["YES"],
+              "dataQuantity": ["QUANTITY_500_TO_1000"],
               "deliveryMethod": ["ANONYMOUS"],
               "policyProvided": ["NO"],
               "confirmPricipleIntegrityAndDiscretion": ["true"],
@@ -49,6 +53,10 @@ body:json {
           }
       }
   }
+}
+
+vars:post-response {
+  purposeId: res.body.id
 }
 
 script:pre-request {
