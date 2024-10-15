@@ -32,3 +32,8 @@ export const createProducerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getDelegationErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

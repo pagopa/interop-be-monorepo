@@ -13,7 +13,7 @@ export function toCreateEventProducerDelegation(
     streamId: delegation.id,
     version: 0,
     event: {
-      type: "DelegationSubmittedV2",
+      type: "DelegationSubmitted",
       event_version: 2,
       data: {
         delegation: toDelegationV2(delegation),

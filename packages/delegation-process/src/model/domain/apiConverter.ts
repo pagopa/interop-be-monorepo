@@ -6,6 +6,8 @@ import {
   DelegationStamp,
   DelegationStamps,
   DelegationState,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -38,18 +40,26 @@ export const delegationStateToApiDelegationState = (
   state: DelegationState
 ): delegationApi.DelegationState =>
   match<DelegationState, delegationApi.DelegationState>(state)
-    .with("Active", () => "ACTIVE")
-    .with("Rejected", () => "REJECTED")
-    .with("Revoked", () => "REVOKED")
-    .with("WaitingForApproval", () => "WAITING_FOR_APPROVAL")
+    .with(delegationState.active, () => "ACTIVE")
+    .with(delegationState.rejected, () => "REJECTED")
+    .with(delegationState.revoked, () => "REVOKED")
+    .with(delegationState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
 
 export const delegationKindToApiDelegationKind = (
   kind: DelegationKind
 ): delegationApi.DelegationKind =>
   match<DelegationKind, delegationApi.DelegationKind>(kind)
-    .with("DelegatedConsumer", () => "DELEGATED_CONSUMER")
-    .with("DelegatedProducer", () => "DELEGATED_PRODUCER")
+    .with(delegationKind.delegatedConsumer, () => "DELEGATED_CONSUMER")
+    .with(delegationKind.delegatedProducer, () => "DELEGATED_PRODUCER")
+    .exhaustive();
+
+export const apiDelegationKindToDelegationKind = (
+  kind: delegationApi.DelegationKind
+): DelegationKind =>
+  match<delegationApi.DelegationKind, DelegationKind>(kind)
+    .with("DELEGATED_CONSUMER", () => delegationKind.delegatedConsumer)
+    .with("DELEGATED_PRODUCER", () => delegationKind.delegatedProducer)
     .exhaustive();
 
 export const delegationContractToApiDelegationContract = (
@@ -84,3 +94,13 @@ export const delegationStampToApiDelegationStamp = (
   who: stamp.who,
   when: stamp.when.toJSON(),
 });
+
+export const apiDelegationStateToDelegationState = (
+  state: delegationApi.DelegationState
+): DelegationState =>
+  match<delegationApi.DelegationState, DelegationState>(state)
+    .with("ACTIVE", () => delegationState.active)
+    .with("REJECTED", () => delegationState.rejected)
+    .with("REVOKED", () => delegationState.revoked)
+    .with("WAITING_FOR_APPROVAL", () => delegationState.waitingForApproval)
+    .exhaustive();

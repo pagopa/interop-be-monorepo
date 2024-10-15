@@ -5,49 +5,31 @@ import {
   DelegationStampsV2,
   DelegationStateV2,
   DelegationKindV2,
+  DelegationContractDocumentV2,
 } from "../gen/v2/delegation/delegation.js";
 import { dateToBigInt } from "../utils.js";
 import {
   Delegation,
   DelegationKind,
   delegationKind,
+  DelegationContractDocument,
   DelegationStamp,
   DelegationStamps,
   DelegationState,
   delegationState,
 } from "./delegation.js";
 
-export const toDelegationStampV2 = (
-  input: DelegationStamp
-): DelegationStampV2 => ({
-  ...input,
-  when: dateToBigInt(input.when),
-});
-
-export const toDelegationStampsV2 = (
-  input: DelegationStamps
-): DelegationStampsV2 => ({
-  submission: toDelegationStampV2(input.submission),
-  activation: input.activation
-    ? toDelegationStampV2(input.activation)
-    : undefined,
-  rejection: input.rejection ? toDelegationStampV2(input.rejection) : undefined,
-  revocation: input.revocation
-    ? toDelegationStampV2(input.revocation)
-    : undefined,
-});
-
 export const toDelegationStateV2 = (
   state: DelegationState
 ): DelegationStateV2 =>
   match(state)
+    .with(delegationState.active, () => DelegationStateV2.ACTIVE)
+    .with(delegationState.rejected, () => DelegationStateV2.REJECTED)
+    .with(delegationState.revoked, () => DelegationStateV2.REVOKED)
     .with(
       delegationState.waitingForApproval,
       () => DelegationStateV2.WAITING_FOR_APPROVAL
     )
-    .with(delegationState.active, () => DelegationStateV2.ACTIVE)
-    .with(delegationState.rejected, () => DelegationStateV2.REJECTED)
-    .with(delegationState.revoked, () => DelegationStateV2.REVOKED)
     .exhaustive();
 
 export const toDelegationKindV2 = (kind: DelegationKind): DelegationKindV2 =>
@@ -62,6 +44,29 @@ export const toDelegationKindV2 = (kind: DelegationKind): DelegationKindV2 =>
     )
     .exhaustive();
 
+export const toDelegationContractDocumentV2 = (
+  contract: DelegationContractDocument
+): DelegationContractDocumentV2 => ({
+  ...contract,
+  createdAt: dateToBigInt(contract.createdAt),
+});
+
+export const toDelegationStampV2 = (
+  stamp: DelegationStamp
+): DelegationStampV2 => ({
+  when: dateToBigInt(stamp.when),
+  who: stamp.who,
+});
+
+export const toDelegationStampsV2 = (
+  input: DelegationStamps
+): DelegationStampsV2 => ({
+  submission: toDelegationStampV2(input.submission),
+  activation: input.activation && toDelegationStampV2(input.activation),
+  rejection: input.rejection && toDelegationStampV2(input.rejection),
+  revocation: input.revocation && toDelegationStampV2(input.revocation),
+});
+
 export const toDelegationV2 = (delegation: Delegation): DelegationV2 => ({
   ...delegation,
   state: toDelegationStateV2(delegation.state),
@@ -72,10 +77,7 @@ export const toDelegationV2 = (delegation: Delegation): DelegationV2 => ({
   rejectedAt: dateToBigInt(delegation.rejectedAt),
   revokedAt: dateToBigInt(delegation.revokedAt),
   stamps: toDelegationStampsV2(delegation.stamps),
-  contract: delegation.contract
-    ? {
-        ...delegation.contract,
-        createdAt: dateToBigInt(delegation.contract.createdAt),
-      }
-    : undefined,
+  rejectionReason: delegation.rejectionReason,
+  contract:
+    delegation.contract && toDelegationContractDocumentV2(delegation.contract),
 });
