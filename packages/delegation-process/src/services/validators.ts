@@ -3,6 +3,7 @@ import {
   DelegationState,
   delegationState,
   EServiceId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
@@ -15,9 +16,6 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-
-/* ========= IDENTIFIERS ========= */
-const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
 
 /* ========= STATES ========= */
 export const delegationNotActivableStates: DelegationState[] = [
