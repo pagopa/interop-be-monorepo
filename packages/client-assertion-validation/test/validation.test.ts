@@ -7,6 +7,7 @@ import {
   generateId,
   itemState,
   PurposeId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   validateClientKindAndPlatformState,
@@ -45,8 +46,13 @@ import {
   invalidSignature,
   clientAssertionInvalidClaims,
   invalidAudienceFormat,
+  unexpectedClientAssertionSignatureVerificationError,
 } from "../src/errors.js";
-import { ClientAssertionValidationRequest, ConsumerKey } from "../src/types.js";
+import {
+  ClientAssertionValidationRequest,
+  ConsumerKey,
+  Key,
+} from "../src/types.js";
 import {
   getMockAccessTokenRequest,
   getMockApiKey,

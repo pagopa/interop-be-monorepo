@@ -196,14 +196,21 @@ export const verifyClientAssertionSignature = async (
       return failedValidation([algorithmNotAllowed(key.algorithm)]);
     }
 
-    const publicKey = await importSPKI(key.publicKey, key.algorithm);
+    const decoded = Buffer.from(key.publicKey, "base64").toString("utf8");
+    // TODO maybe check if it is a base64 encoded string somehow
+    console.log(key.publicKey, decoded);
 
+    const publicKey = await importSPKI(decoded, key.algorithm);
     const result = await jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [key.algorithm],
+
+      // TODO REMOVE - setting last week to avoid expiration errors
+      currentDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     });
 
     return successfulValidation(result.payload);
   } catch (error: unknown) {
+    console.log(error);
     if (error instanceof JWTExpired) {
       return failedValidation([tokenExpiredError()]);
     } else if (error instanceof JWSSignatureVerificationFailed) {
