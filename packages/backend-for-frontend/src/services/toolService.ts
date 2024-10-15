@@ -94,10 +94,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           ? toTokenValidationEService(keyEservice, keyDescriptor)
           : undefined;
 
-      const { errors: clientSignatureErrors } = verifyClientAssertionSignature(
-        clientAssertion,
-        key
-      );
+      const { errors: clientSignatureErrors } =
+        await verifyClientAssertionSignature(clientAssertion, key);
       if (clientSignatureErrors) {
         return handleValidationResults(
           {

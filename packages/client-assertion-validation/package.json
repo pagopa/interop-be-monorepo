@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "jsonwebtoken": "9.0.2",
+    "jose": "5.9.4",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
@@ -27,7 +27,6 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "9.0.6",
     "@types/node": "20.14.6",
     "eslint": "8.57.0",
     "prettier": "2.8.8",

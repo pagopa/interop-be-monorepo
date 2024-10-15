@@ -18,7 +18,7 @@ export const errorCodes = {
   invalidSubject: "0015",
   invalidPurposeIdClaimFormat: "0016",
   kidNotFound: "0017",
-  invalidClientAssertionSignatureType: "0018",
+  clientAssertionSignatureVerificationError: "0018",
   tokenExpiredError: "0019",
   jsonWebTokenError: "0020",
   notBeforeError: "0021",
@@ -47,6 +47,16 @@ export function clientAssertionValidationFailure(
     detail: `Client assertion validation failed: ${details}`,
     code: "clientAssertionValidationFailure",
     title: "Client assertion validation failed",
+  });
+}
+
+export function clientAssertionSignatureVerificationError(
+  errorMessage: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error verifying client assertion signature: Reason: ${errorMessage}`,
+    code: "clientAssertionSignatureVerificationError",
+    title: "Client assertion signature verification error",
   });
 }
 
@@ -181,16 +191,6 @@ export function kidNotFound(): ApiError<ErrorCodes> {
     detail: `KID not found in client assertion`,
     code: "kidNotFound",
     title: "KID not found",
-  });
-}
-
-export function invalidClientAssertionSignatureType(
-  clientAssertionSignatureType: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Client assertion signature's type not valid: ${clientAssertionSignatureType}`,
-    code: "invalidClientAssertionSignatureType",
-    title: "Token expired in client assertion signature validation",
   });
 }
 

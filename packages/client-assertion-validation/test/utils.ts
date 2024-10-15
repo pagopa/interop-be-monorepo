@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import * as jwt from "jsonwebtoken";
 import {
   ClientId,
   clientKindTokenStates,
@@ -8,6 +7,7 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
+import { importPKCS8, JWTHeaderParameters, JWTPayload, SignJWT } from "jose";
 import {
   ApiKey,
   ClientAssertionHeader,
@@ -21,19 +21,24 @@ import {
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
 
-export const getMockClientAssertion = ({
+export const getMockClientAssertion = async ({
   customHeader,
   standardClaimsOverride,
   customClaims,
-  keySet,
+  keySet: maybeKeySet,
 }: {
   customHeader: Partial<ClientAssertionHeader>;
-  standardClaimsOverride: Partial<jwt.JwtPayload>;
+  standardClaimsOverride: Partial<JWTPayload>;
   customClaims: { [k: string]: unknown };
   keySet?: crypto.KeyPairKeyObjectResult;
-}): string => {
+}): Promise<string> => {
+  const keySet: crypto.KeyPairKeyObjectResult =
+    maybeKeySet ??
+    crypto.generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
   const clientId = generateId<ClientId>();
-  const defaultPayload: jwt.JwtPayload = {
+  const defaultPayload: JWTPayload = {
     iss: clientId,
     sub: clientId,
     aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
@@ -47,22 +52,49 @@ export const getMockClientAssertion = ({
     ...standardClaimsOverride,
     ...customClaims,
   };
-  const options: jwt.SignOptions = {
-    header: {
-      kid: "kid",
-      alg: "RS256",
-      ...customHeader,
-    },
+
+  const headers = {
+    alg: "RS256",
+    kid: "kid",
+    ...customHeader,
   };
 
-  if (!keySet) {
-    const keySet = crypto.generateKeyPairSync("rsa", {
+  return await signClientAssertion({
+    payload: actualPayload,
+    headers,
+    keySet,
+  });
+};
+
+export const signClientAssertion = async ({
+  payload,
+  headers,
+  keySet: maybeKeySet,
+}: {
+  payload: JWTPayload;
+  headers: JWTHeaderParameters;
+  keySet?: crypto.KeyPairKeyObjectResult;
+}): Promise<string> => {
+  const keySet: crypto.KeyPairKeyObjectResult =
+    maybeKeySet ??
+    crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     });
-    return jwt.sign(actualPayload, keySet.privateKey, options);
-  }
+  const pemPrivateKey = keySet.privateKey.export({
+    type: "pkcs8",
+    format: "pem",
+  });
 
-  return jwt.sign(actualPayload, keySet.privateKey, options);
+  const privateKey = await importPKCS8(
+    Buffer.isBuffer(pemPrivateKey)
+      ? pemPrivateKey.toString("utf8")
+      : pemPrivateKey,
+    "RS256"
+  );
+
+  return await new SignJWT(payload)
+    .setProtectedHeader(headers)
+    .sign(privateKey);
 };
 
 export const getMockConsumerKey = (): ConsumerKey => ({
@@ -100,7 +132,7 @@ export const getMockApiKey = (): ApiKey => ({
 });
 
 export const getMockAccessTokenRequest =
-  (): ClientAssertionValidationRequest => {
+  async (): Promise<ClientAssertionValidationRequest> => {
     const keySet = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     });
@@ -108,7 +140,7 @@ export const getMockAccessTokenRequest =
     return {
       client_id: generateId<ClientId>(),
       client_assertion_type: EXPECTED_CLIENT_ASSERTION_TYPE,
-      client_assertion: getMockClientAssertion({
+      client_assertion: await getMockClientAssertion({
         customHeader: {},
         standardClaimsOverride: {},
         customClaims: {},
