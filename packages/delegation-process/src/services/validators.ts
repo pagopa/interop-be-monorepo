@@ -50,7 +50,7 @@ export const assertDelegatorIsIPA = async (
   }
 };
 
-export const assertTenantAllowedToDelgation = (tenant: Tenant): void => {
+export const assertTenantAllowedToDelegation = (tenant: Tenant): void => {
   const delegationFeature = tenant.features.find(
     (f) => f.type === "DelegatedProducer"
   );
